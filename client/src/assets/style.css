@@ -12,11 +12,19 @@
     width: 30px;
     height: 30px;
     border: 1px solid #30a0f0;
-    background-color: rgb(52, 152, 219);
+    background-color: rgb(172, 152, 219);
     cursor: pointer;
   }
   
-  .grid-square.active {
-    background-color: rgb(52, 152, 219);
+  .red {
+    background-color: rgb(212, 52, 69);
+  }
+
+  .green {
+    background-color: rgb(112, 252, 69);
+  }
+
+  .blue {
+    background-color: rgb(72, 52, 239);
   }
   

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 )
 
 func getHello(w http.ResponseWriter, r *http.Request) {
@@ -29,18 +30,48 @@ func getBye(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, button)
 }
 
+func postActivate(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("got /activate request\n")
+	fmt.Printf(r.Method)
+	fmt.Printf("\n")
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		fmt.Printf("Error reading body: %v", err)
+		http.Error(w, "can't read body", http.StatusBadRequest)
+		return
+	}
+
+	bodyS := string(body[:])
+	input := strings.Split(bodyS, "&")
+	id := input[0]
+	token := strings.Split(input[1], "=")[1]
+
+	fmt.Printf(bodyS)
+	fmt.Printf("\n")
+	fmt.Printf(id)
+	fmt.Printf("\n")
+	fmt.Printf(token)
+	fmt.Printf("\n")
+
+	resp := `<div class="grid-square ` + token + `" id="c2-3"></div>`
+	io.WriteString(w, resp)
+}
+
 func getIndex(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./client/src")
 }
 
 func main() {
 	fmt.Println("Attempting to start server...")
+
+	http.HandleFunc("/home/", getIndex)
+	http.Handle("/home/assets/", http.StripPrefix("/home/assets/", http.FileServer(http.Dir("./client/src/assets"))))
+
 	http.HandleFunc("/hello", getHello)
 	http.HandleFunc("/bye", getBye)
-	http.HandleFunc("/", getIndex)
+	http.HandleFunc("/activate", postActivate)
 
-	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./client/src/assets"))))
-	//err := http.ListenAndServe(":9090", http.FileServer(http.Dir("./client/src")))
 	err := http.ListenAndServe(":9090", nil)
 	if err != nil {
 		fmt.Println("Failed to start server", err)

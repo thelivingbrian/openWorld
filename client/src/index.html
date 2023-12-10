@@ -1,8 +1,6 @@
 <script src="https://unpkg.com/htmx.org@1.9.9" integrity="sha384-QFjmbokDn2DjBjq+fM+8LUIVrAgqcNW2s0PjAxHETgRn9l4fvX31ZxDxvwQnyMOX" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="assets/style.css">
 
-<h1>Welcome. Please click the button below:</h1>
-
 <div id="parent-div">
     <button hx-post="/hello"
         hx-trigger="click"
@@ -12,32 +10,58 @@
     </button>
 </div>
 
-<button hx-post="/hfisduhfisudfh"
-        hx-trigger="click"
-        hx-target="#c2-0"
-        hx-swap="outerHTML">
-Why?
-</button>
+<form hx-post="/activate" hx-target="#c2-3" hx-swap="outerHTML">
+    <div>
+      <label>Hello User:</label>
+      <input type="hidden" name="id" value="1">
+      <input type="text" name="token" value="abcdefghijklmnop">
+    </div>
+    <button>Activate</button>
+</form>
 
+<br />
+<br />
 <br />
 
 <div class="grid">
+    <div class="grid-row">
+        <div class="grid-square red" id="c4-0"></div>
+        <div class="grid-square green" id="c4-1"></div>
+        <div class="grid-square blue" id="c4-2"></div>
+        <div class="grid-square" id="c4-3"></div>
+        <div class="grid-square" id="c4-4"></div>
+        <div class="grid-square" id="c4-5"></div>
+    </div>
+    <div class="grid-row">
+        <div class="grid-square" id="c3-0"></div>
+        <div class="grid-square" id="c3-1"></div>
+        <div class="grid-square" id="c3-2"></div>
+        <div class="grid-square" id="c3-3"></div>
+        <div class="grid-square" id="c3-4"></div>
+        <div class="grid-square" id="c3-5"></div>
+    </div>
     <div class="grid-row">
         <div class="grid-square" id="c2-0"></div>
         <div class="grid-square" id="c2-1"></div>
         <div class="grid-square" id="c2-2"></div>
         <div class="grid-square" id="c2-3"></div>
+        <div class="grid-square" id="c2-4"></div>
+        <div class="grid-square" id="c2-5"></div>
     </div>
     <div class="grid-row">
         <div class="grid-square" id="c1-0"></div>
         <div class="grid-square" id="c1-1"></div>
         <div class="grid-square" id="c1-2"></div>
         <div class="grid-square" id="c1-3"></div>
+        <div class="grid-square" id="c1-4"></div>
+        <div class="grid-square" id="c1-5"></div>
     </div>
     <div class="grid-row">
         <div class="grid-square" id="c0-0"></div>
         <div class="grid-square" id="c0-1"></div>
         <div class="grid-square" id="c0-2"></div>
         <div class="grid-square" id="c0-3"></div>
+        <div class="grid-square" id="c0-4"></div>
+        <div class="grid-square" id="c0-5"></div>
     </div>
 </div>
