@@ -58,6 +58,19 @@ func postActivate(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, resp)
 }
 
+func getScreen(w http.ResponseWriter, r *http.Request) {
+	stage := Stage{
+		tiles: [][]Tile{
+			{Tile{""}, Tile{"blue"}, Tile{"red"}, Tile{"green"}, Tile{""}, Tile{""}},
+			{Tile{""}, Tile{""}, Tile{""}, Tile{"red"}, Tile{"green"}, Tile{"red"}},
+			{Tile{"green"}, Tile{""}, Tile{"red"}, Tile{""}, Tile{"blue"}, Tile{""}},
+			{Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}},
+			{Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}},
+		},
+	}
+	io.WriteString(w, stage.printStage())
+}
+
 func getIndex(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./client/src")
 }
@@ -71,6 +84,7 @@ func main() {
 	http.HandleFunc("/hello", getHello)
 	http.HandleFunc("/bye", getBye)
 	http.HandleFunc("/activate", postActivate)
+	http.HandleFunc("/screen", getScreen)
 
 	err := http.ListenAndServe(":9090", nil)
 	if err != nil {
