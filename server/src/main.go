@@ -5,36 +5,21 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 )
 
-func getHello(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("got /hello request\n")
-	fmt.Printf(r.Method)
-	button := `<button hx-post="/bye"
-                        hx-trigger="click"
-                        hx-target="#parent-div"
-                        hx-swap="innerHTML">
-                        Goodbye!
-                 </button>`
-	io.WriteString(w, button)
+var (
+	playerMap   = make(map[string]*Player) // Map to store Player instances with token as key
+	playerMutex sync.Mutex                 // Mutex for synchronization when accessing playerMap
+	stageMap    = make(map[string]*Stage)
+	stageMutex  sync.Mutex
+)
+
+func getIndex(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./client/src")
 }
 
-func getBye(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("got /bye request\n")
-	button := `<button hx-post="/hello"
-        hx-trigger="click"
-        hx-target="#parent-div"
-        hx-swap="innerHTML">
-        Hello!
- </button>`
-	io.WriteString(w, button)
-}
-
-func postActivate(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("got /activate request\n")
-	fmt.Printf(r.Method)
-	fmt.Printf("\n")
-
+func postSignin(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Printf("Error reading body: %v", err)
@@ -47,32 +32,47 @@ func postActivate(w http.ResponseWriter, r *http.Request) {
 	id := input[0]
 	token := strings.Split(input[1], "=")[1]
 
-	fmt.Printf(bodyS)
-	fmt.Printf("\n")
-	fmt.Printf(id)
-	fmt.Printf("\n")
-	fmt.Printf(token)
-	fmt.Printf("\n")
+	playerMutex.Lock()
+	existingPlayer, playerExists := playerMap[token]
+	playerMutex.Unlock()
 
-	resp := `<div class="grid-square ` + token + `" id="c2-3"></div>`
-	io.WriteString(w, resp)
-}
+	if !playerExists {
+		fmt.Println("New Player")
+		// Create a new Player instance
+		newPlayer := &Player{
+			id:        id,
+			stage:     nil,
+			stageName: "default",
+			x:         2,
+			y:         2,
+		}
 
-func getScreen(w http.ResponseWriter, r *http.Request) {
-	stage := Stage{
-		tiles: [][]Tile{
-			{Tile{""}, Tile{"blue"}, Tile{"red"}, Tile{"green"}, Tile{""}, Tile{""}},
-			{Tile{""}, Tile{""}, Tile{""}, Tile{"red"}, Tile{"green"}, Tile{"red"}},
-			{Tile{"green"}, Tile{""}, Tile{"red"}, Tile{""}, Tile{"blue"}, Tile{""}},
-			{Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}},
-			{Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}},
-		},
+		// Store the new Player in the map with the token as the key
+		playerMutex.Lock()
+		defer playerMutex.Unlock()
+		playerMap[token] = newPlayer
+		existingPlayer = newPlayer
 	}
-	io.WriteString(w, stage.printStage())
-}
 
-func getIndex(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "./client/src")
+	// Player with the given token exists
+	existingStageName := existingPlayer.stageName
+
+	stageMutex.Lock()
+	existingStage, stageExists := stageMap[existingStageName]
+	if !stageExists {
+		fmt.Println("New Stage")
+		// If the Stage doesn't exist, create a new one and store it in the map
+		newStage := getBigEmptyStage()
+		stagePtr := &newStage
+		stageMap[existingStageName] = stagePtr
+		existingStage = stagePtr
+	}
+	stageMutex.Unlock()
+
+	existingPlayer.stage = existingStage
+
+	fmt.Println("Printing Stage")
+	io.WriteString(w, existingStage.printStage())
 }
 
 func main() {
@@ -80,6 +80,8 @@ func main() {
 
 	http.HandleFunc("/home/", getIndex)
 	http.Handle("/home/assets/", http.StripPrefix("/home/assets/", http.FileServer(http.Dir("./client/src/assets"))))
+
+	http.HandleFunc("/signin", postSignin)
 
 	http.HandleFunc("/hello", getHello)
 	http.HandleFunc("/bye", getBye)
