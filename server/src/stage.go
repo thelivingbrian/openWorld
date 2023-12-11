@@ -53,18 +53,17 @@ func (stage *Stage) placeOnStage(p *Player) {
 }
 
 func walkable(tile *Tile) bool {
-	return true
+	return tile.color != "half-gray"
 }
 
 func moveNorth(stage *Stage, p *Player) {
 	x := p.x
 	y := p.y
-	currentTile := &stage.tiles[y][x]
-	if walkable(currentTile) {
+	nextTile := &stage.tiles[y-1][x]
+	if walkable(nextTile) {
 		stage.tiles[y][x] = Tile{""}
-		stage.tiles[y-1][x] = Tile{"fusia"}
+		*nextTile = Tile{"fusia"}
 		p.y = y - 1
-		p.x = x
 	} else {
 		//nop
 	}
@@ -73,12 +72,12 @@ func moveNorth(stage *Stage, p *Player) {
 func moveSouth(stage *Stage, p *Player) {
 	x := p.x
 	y := p.y
-	currentTile := &stage.tiles[y][x]
-	if walkable(currentTile) {
+
+	nextTile := &stage.tiles[y+1][x]
+	if walkable(nextTile) {
 		stage.tiles[y][x] = Tile{""}
-		stage.tiles[y+1][x] = Tile{"fusia"}
+		*nextTile = Tile{"fusia"}
 		p.y = y + 1
-		p.x = x
 	} else {
 		//nop
 	}
@@ -87,11 +86,10 @@ func moveSouth(stage *Stage, p *Player) {
 func moveEast(stage *Stage, p *Player) {
 	x := p.x
 	y := p.y
-	currentTile := &stage.tiles[y][x]
-	if walkable(currentTile) {
+	nextTile := &stage.tiles[y][x+1]
+	if walkable(nextTile) {
 		stage.tiles[y][x] = Tile{""}
-		stage.tiles[y][x+1] = Tile{"fusia"}
-		p.y = y
+		*nextTile = Tile{"fusia"}
 		p.x = x + 1
 	} else {
 		//nop
@@ -101,11 +99,10 @@ func moveEast(stage *Stage, p *Player) {
 func moveWest(stage *Stage, p *Player) {
 	x := p.x
 	y := p.y
-	currentTile := &stage.tiles[y][x]
-	if walkable(currentTile) {
+	nextTile := &stage.tiles[y][x-1]
+	if walkable(nextTile) {
 		stage.tiles[y][x] = Tile{""}
-		stage.tiles[y][x-1] = Tile{"fusia"}
-		p.y = y
+		*nextTile = Tile{"fusia"}
 		p.x = x - 1
 	} else {
 		//nop
@@ -133,6 +130,22 @@ func getStageByName(name string) Stage {
 				{Tile{"half-gray"}, Tile{""}, Tile{"green"}, Tile{"green"}, Tile{""}, Tile{"half-gray"}},
 				{Tile{"half-gray"}, Tile{"green"}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
 				{Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}},
+			},
+		}
+	}
+	if name == "big" {
+		return Stage{
+			tiles: [][]Tile{
+				{Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}},
+				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
+				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
+				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
+				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{"half-gray"}},
+				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{"half-gray"}},
+				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
+				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
+				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
+				{Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}},
 			},
 		}
 	}
