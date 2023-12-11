@@ -10,20 +10,22 @@
     </button>
 </div>
 
-<form hx-post="/signin" hx-trigger="click" hx-target="#screen" hx-swap="outerHTML">
-    <div>
-      <label>Hello User:</label>
-      <input type="hidden" name="id" value="1">
-      <input type="text" name="token" value="abcdefghijklmnop">
-    </div>
-    <button>Activate</button>
-</form>
+
 
 <br />
-<br />
-<br />
+
 
 <div class="grid" id="screen">
+    <form hx-post="/signin" hx-target="#screen" hx-swap="outerHTML">
+        <div>
+          <label>Hello User:</label>
+          <input type="text" name="token" value="john">
+          <input type="text" name="stage" value="greenX">
+        </div>
+        <button>Activate</button>
+    </form>
+    <br />
+    <br />
     <div class="grid-row">
         <div class="grid-square red" id="c0-0"></div>
         <div class="grid-square green" id="c0-1"></div>
@@ -57,7 +59,7 @@
         <div class="grid-square" id="c3-5"></div>
     </div>
     <div class="grid-row">
-        <div class="grid-square red" id="c4-0"></div>
+        <div class="grid-square" id="c4-0"></div>
         <div class="grid-square" id="c4-1"></div>
         <div class="grid-square" id="c4-2"></div>
         <div class="grid-square" id="c4-3"></div>

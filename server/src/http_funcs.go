@@ -35,24 +35,25 @@ func postActivate(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, resp)
 }
 
-func getScreen(w http.ResponseWriter, r *http.Request) {
-	stage := Stage{
-		tiles: [][]Tile{
-			{Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}},
-			{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-			{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-			{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-			{Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}},
-		},
+/*
+	func getScreen(w http.ResponseWriter, r *http.Request) {
+		stage := Stage{
+			tiles: [][]Tile{
+				{Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}},
+				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
+				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
+				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
+				{Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}},
+			},
+		}
+		io.WriteString(w, stage.printStage())
 	}
-	io.WriteString(w, stage.printStage())
-}
-
+*/
 func getHello(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("got /hello request\n")
 	fmt.Printf(r.Method)
 	button := `<button hx-post="/bye"
-                        hx-trigger="click"
+                        hx-trigger="click, keyup[key=='Alt'] from:body"
                         hx-target="#parent-div"
                         hx-swap="innerHTML">
                         Goodbye!
@@ -63,7 +64,7 @@ func getHello(w http.ResponseWriter, r *http.Request) {
 func getBye(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("got /bye request\n")
 	button := `<button hx-post="/hello"
-        hx-trigger="click"
+        hx-trigger="click, keyup[key=='Alt'] from:body"
         hx-target="#parent-div"
         hx-swap="innerHTML">
         Hello!

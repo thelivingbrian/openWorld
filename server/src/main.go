@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -29,8 +30,8 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 
 	bodyS := string(body[:])
 	input := strings.Split(bodyS, "&")
-	id := input[0]
-	token := strings.Split(input[1], "=")[1]
+	token := strings.Split(input[0], "=")[1]
+	stage := strings.Split(input[1], "=")[1]
 
 	playerMutex.Lock()
 	existingPlayer, playerExists := playerMap[token]
@@ -40,9 +41,9 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("New Player")
 		// Create a new Player instance
 		newPlayer := &Player{
-			id:        id,
+			id:        token,
 			stage:     nil,
-			stageName: "default",
+			stageName: stage,
 			x:         2,
 			y:         2,
 		}
@@ -62,7 +63,7 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 	if !stageExists {
 		fmt.Println("New Stage")
 		// If the Stage doesn't exist, create a new one and store it in the map
-		newStage := getBigEmptyStage()
+		newStage := getStageByName(stage)
 		stagePtr := &newStage
 		stageMap[existingStageName] = stagePtr
 		existingStage = stagePtr
@@ -70,9 +71,37 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 	stageMutex.Unlock()
 
 	existingPlayer.stage = existingStage
+	existingStage.placeOnStage(existingPlayer)
 
 	fmt.Println("Printing Stage")
-	io.WriteString(w, existingStage.printStage())
+	io.WriteString(w, existingStage.printStageFor(existingPlayer))
+}
+
+func postInput(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		fmt.Printf("Error reading body: %v", err)
+		http.Error(w, "can't read body", http.StatusBadRequest)
+		return
+	}
+
+	bodyS := string(body[:])
+	input := strings.Split(bodyS, "&")
+	token := strings.Split(input[0], "=")[1]
+	//stage := strings.Split(input[1], "=")[1]
+
+	existingPlayer, playerExists := playerMap[token]
+	if !playerExists {
+		err := errors.New("player not found with token: " + token)
+		http.Error(w, err.Error(), http.StatusNotFound)
+	}
+
+	currentStage := existingPlayer.stage
+
+	moveNorth(currentStage, existingPlayer)
+
+	fmt.Println("Printing update")
+	io.WriteString(w, existingPlayer.stage.printStageFor(existingPlayer))
 }
 
 func main() {
@@ -86,7 +115,7 @@ func main() {
 	http.HandleFunc("/hello", getHello)
 	http.HandleFunc("/bye", getBye)
 	http.HandleFunc("/activate", postActivate)
-	http.HandleFunc("/screen", getScreen)
+	http.HandleFunc("/userInput", postInput)
 
 	err := http.ListenAndServe(":9090", nil)
 	if err != nil {
