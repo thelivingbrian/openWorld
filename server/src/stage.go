@@ -26,7 +26,6 @@ func printRow(row []Tile, y int) string {
 		var yStr = strconv.Itoa(y)
 		var xStr = strconv.Itoa(x)
 		output += `<div class="grid-square ` + tile.color + `" id="c` + yStr + `-` + xStr + `"></div>`
-		//fmt.Printf("%s\t", tile.color)
 	}
 	output += `</div>`
 	return output
@@ -37,11 +36,11 @@ func (stage *Stage) printStageFor(player *Player) string {
 	<div class="grid" id="screen">
 		<input hx-post="/w" hx-trigger="keyup[key=='w'] from:body" hx-target="#screen" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />
 		<input hx-post="/s" hx-trigger="keyup[key=='s'] from:body" hx-target="#screen" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />
+		<input hx-post="/a" hx-trigger="keyup[key=='a'] from:body" hx-target="#screen" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />
+		<input hx-post="/d" hx-trigger="keyup[key=='d'] from:body" hx-target="#screen" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />
 			`
 	for y, row := range stage.tiles {
-		//fmt.Printf("Row %d: ", y)
 		output += printRow(row, y)
-		//fmt.Println()
 	}
 	output += `</div>`
 	return output
@@ -80,6 +79,34 @@ func moveSouth(stage *Stage, p *Player) {
 		stage.tiles[y+1][x] = Tile{"fusia"}
 		p.y = y + 1
 		p.x = x
+	} else {
+		//nop
+	}
+}
+
+func moveEast(stage *Stage, p *Player) {
+	x := p.x
+	y := p.y
+	currentTile := &stage.tiles[y][x]
+	if walkable(currentTile) {
+		stage.tiles[y][x] = Tile{""}
+		stage.tiles[y][x+1] = Tile{"fusia"}
+		p.y = y
+		p.x = x + 1
+	} else {
+		//nop
+	}
+}
+
+func moveWest(stage *Stage, p *Player) {
+	x := p.x
+	y := p.y
+	currentTile := &stage.tiles[y][x]
+	if walkable(currentTile) {
+		stage.tiles[y][x] = Tile{""}
+		stage.tiles[y][x-1] = Tile{"fusia"}
+		p.y = y
+		p.x = x - 1
 	} else {
 		//nop
 	}
