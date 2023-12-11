@@ -35,10 +35,9 @@ func printRow(row []Tile, y int) string {
 func (stage *Stage) printStageFor(player *Player) string {
 	var output string = `
 	<div class="grid" id="screen">
-		<form hx-post="/userInput" hx-trigger="keyup[key=='w'] from:body" hx-target="#screen" hx-swap="outerHTML">
-			<input type="hidden" name="token" value="` + player.id + `" />
-			<button>Click Me!</button>
-		</form>`
+		<input hx-post="/w" hx-trigger="keyup[key=='w'] from:body" hx-target="#screen" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />
+		<input hx-post="/s" hx-trigger="keyup[key=='s'] from:body" hx-target="#screen" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />
+			`
 	for y, row := range stage.tiles {
 		//fmt.Printf("Row %d: ", y)
 		output += printRow(row, y)
@@ -66,6 +65,20 @@ func moveNorth(stage *Stage, p *Player) {
 		stage.tiles[y][x] = Tile{""}
 		stage.tiles[y-1][x] = Tile{"fusia"}
 		p.y = y - 1
+		p.x = x
+	} else {
+		//nop
+	}
+}
+
+func moveSouth(stage *Stage, p *Player) {
+	x := p.x
+	y := p.y
+	currentTile := &stage.tiles[y][x]
+	if walkable(currentTile) {
+		stage.tiles[y][x] = Tile{""}
+		stage.tiles[y+1][x] = Tile{"fusia"}
+		p.y = y + 1
 		p.x = x
 	} else {
 		//nop

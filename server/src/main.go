@@ -77,7 +77,7 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, existingStage.printStageFor(existingPlayer))
 }
 
-func postInput(w http.ResponseWriter, r *http.Request) {
+func postw(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Printf("Error reading body: %v", err)
@@ -104,6 +104,33 @@ func postInput(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, existingPlayer.stage.printStageFor(existingPlayer))
 }
 
+func posts(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		fmt.Printf("Error reading body: %v", err)
+		http.Error(w, "can't read body", http.StatusBadRequest)
+		return
+	}
+
+	bodyS := string(body[:])
+	input := strings.Split(bodyS, "&")
+	token := strings.Split(input[0], "=")[1]
+	//stage := strings.Split(input[1], "=")[1]
+
+	existingPlayer, playerExists := playerMap[token]
+	if !playerExists {
+		err := errors.New("player not found with token: " + token)
+		http.Error(w, err.Error(), http.StatusNotFound)
+	}
+
+	currentStage := existingPlayer.stage
+
+	moveSouth(currentStage, existingPlayer)
+
+	fmt.Println("Printing update")
+	io.WriteString(w, existingPlayer.stage.printStageFor(existingPlayer))
+}
+
 func main() {
 	fmt.Println("Attempting to start server...")
 
@@ -115,7 +142,8 @@ func main() {
 	http.HandleFunc("/hello", getHello)
 	http.HandleFunc("/bye", getBye)
 	http.HandleFunc("/activate", postActivate)
-	http.HandleFunc("/userInput", postInput)
+	http.HandleFunc("/w", postw)
+	http.HandleFunc("/s", posts)
 
 	err := http.ListenAndServe(":9090", nil)
 	if err != nil {
