@@ -24,34 +24,6 @@ func printRow(row []Tile, y int) string {
 	return output
 }
 
-func printPageHeaderFor(player *Player) string {
-	return `
-	<div id="page">
-    <div id="controls">      
-		<input hx-post="/w" hx-trigger="keyup[key=='w'] from:body" type="hidden" name="token" value="` + player.id + `" />
-		<input hx-post="/s" hx-trigger="keyup[key=='s'] from:body" type="hidden" name="token" value="` + player.id + `" />
-		<input hx-post="/a" hx-trigger="keyup[key=='a'] from:body" type="hidden" name="token" value="` + player.id + `" />
-		<input hx-post="/d" hx-trigger="keyup[key=='d'] from:body" type="hidden" name="token" value="` + player.id + `" />	
-		<input id="tick" hx-post="/screen" hx-trigger="every 20ms" hx-target="#tick" hx-swap="innerHTML" type="hidden" name="token" value="` + player.id + `" />
-	</div>
-    <div id="screen" class="grid">
-			
-	</div>
-	</div>`
-}
-
-func (stage *Stage) printStageFor(player *Player) string {
-	// <input id="tick" hx-post="/screen" hx-trigger="load" hx-target="#tick" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />
-	var output string = `
-	<div id="screen" class="grid" hx-swap-oob="true">	
-	`
-	for y, row := range stage.tiles {
-		output += printRow(row, y)
-	}
-	output += `</div>`
-	return output
-}
-
 func (stage *Stage) placeOnStage(p *Player) {
 	x := p.x
 	y := p.y

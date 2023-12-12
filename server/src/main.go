@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	playerMap   = make(map[string]*Player) // Map to store Player instances with token as key
-	playerMutex sync.Mutex                 // Mutex for synchronization when accessing playerMap
+	playerMap   = make(map[string]*Player)
+	playerMutex sync.Mutex
 	stageMap    = make(map[string]*Stage)
 	stageMutex  sync.Mutex
 )
@@ -38,7 +38,6 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 
 	if !playerExists {
 		fmt.Println("New Player")
-		// Create a new Player instance
 		newPlayer := &Player{
 			id:          token,
 			stage:       nil,
@@ -48,7 +47,6 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 			y:           2,
 		}
 
-		// Store the new Player in the map with the token as the key
 		playerMutex.Lock()
 		defer playerMutex.Unlock()
 		playerMap[token] = newPlayer
@@ -75,7 +73,6 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Printing Stage")
 	io.WriteString(w, printPageHeaderFor(existingPlayer))
-	//io.WriteString(w, existingStage.printStageFor(existingPlayer))
 }
 
 func playerFromRequest(r *http.Request) (*Player, bool) {
@@ -110,33 +107,21 @@ func postMovement(f func(*Stage, *Player)) func(w http.ResponseWriter, r *http.R
 		f(currentStage, existingPlayer)
 
 		fmt.Println("moving")
-		//io.WriteString(w, existingPlayer.stage.printStageFor(existingPlayer))
 	}
 }
 
 func postPlayerScreen(w http.ResponseWriter, r *http.Request) {
 	existingPlayer, success := playerFromRequest(r)
 	if !success {
-		panic(0)
+		panic(0) // Handle this gracefully
 	}
 	if existingPlayer.viewIsDirty {
 		fmt.Println("View is Dirty")
 		existingPlayer.viewIsDirty = false
-		currentStage := existingPlayer.stage
-		io.WriteString(w, currentStage.printStageFor(existingPlayer))
+		io.WriteString(w, printStageFor(existingPlayer))
 	} else {
-		//io.WriteString(w, `<input id="tick" hx-post="/screen" hx-trigger="load" hx-target="#tick" hx-swap="outerHTML" type="hidden" name="token" value="`+existingPlayer.id+`" />`)
 		io.WriteString(w, "")
 	}
-}
-
-func postDirtyIndicator(w http.ResponseWriter, r *http.Request) {
-	existingPlayer, success := playerFromRequest(r)
-	if !success {
-		panic(0)
-	}
-
-	io.WriteString(w, existingPlayer.printDirty())
 }
 
 func main() {
@@ -155,7 +140,6 @@ func main() {
 	http.HandleFunc("/a", postMovement(moveWest))
 	http.HandleFunc("/d", postMovement(moveEast))
 	http.HandleFunc("/screen", postPlayerScreen)
-	http.HandleFunc("/dirty", postDirtyIndicator)
 
 	err := http.ListenAndServe(":9090", nil)
 	if err != nil {
