@@ -1,44 +1,58 @@
 package main
 
 import (
-	"strconv"
+	"sync"
 )
 
 type Tile struct {
-	color string
+	material    int
+	playerMap   map[string]*Player
+	playerMutex sync.Mutex // Currently unused. Probably important?
+	// Items and coords?
 }
 
 type Stage struct {
 	tiles   [][]Tile
-	Players []*Player
+	players []*Player
 }
 
-func printRow(row []Tile, y int) string {
-	var output string = `<div class="grid-row">`
-	for x, tile := range row {
-		var yStr = strconv.Itoa(y)
-		var xStr = strconv.Itoa(x)
-		output += `<div class="grid-square ` + tile.color + `" id="c` + yStr + `-` + xStr + `"></div>`
+func colorOf(tile *Tile) string {
+	if len(tile.playerMap) > 0 {
+		return "blue"
 	}
-	output += `</div>`
+	if tile.material == 0 {
+		return "half-gray"
+	}
+	return ""
+}
+
+func colorArray(row []Tile) []string {
+	var output []string = make([]string, len(row))
+	for i := range row {
+		output[i] = colorOf(&row[i])
+	}
 	return output
+}
+
+func newTile(mat int) Tile {
+	return Tile{mat, make(map[string]*Player), sync.Mutex{}}
 }
 
 func (stage *Stage) placeOnStage(p *Player) {
 	x := p.x
 	y := p.y
-	stage.tiles[y][x] = Tile{"fusia"}
-	stage.Players = append(stage.Players, p)
+	stage.tiles[y][x].playerMap[p.id] = p
+	stage.players = append(stage.players, p)
 }
 
 func (stage *Stage) markAllDirty() {
-	for _, player := range stage.Players {
+	for _, player := range stage.players {
 		player.viewIsDirty = true
 	}
 }
 
 func walkable(tile *Tile) bool {
-	return tile.color != "half-gray"
+	return tile.material > 50
 }
 
 func moveNorth(stage *Stage, p *Player) {
@@ -46,8 +60,8 @@ func moveNorth(stage *Stage, p *Player) {
 	y := p.y
 	nextTile := &stage.tiles[y-1][x]
 	if walkable(nextTile) {
-		stage.tiles[y][x] = Tile{""}
-		*nextTile = Tile{"fusia"}
+		delete(stage.tiles[y][x].playerMap, p.id)
+		nextTile.playerMap[p.id] = p
 		p.y = y - 1
 		stage.markAllDirty()
 	} else {
@@ -61,8 +75,8 @@ func moveSouth(stage *Stage, p *Player) {
 
 	nextTile := &stage.tiles[y+1][x]
 	if walkable(nextTile) {
-		stage.tiles[y][x] = Tile{""}
-		*nextTile = Tile{"fusia"}
+		delete(stage.tiles[y][x].playerMap, p.id)
+		nextTile.playerMap[p.id] = p
 		p.y = y + 1
 		stage.markAllDirty()
 	} else {
@@ -75,8 +89,8 @@ func moveEast(stage *Stage, p *Player) {
 	y := p.y
 	nextTile := &stage.tiles[y][x+1]
 	if walkable(nextTile) {
-		stage.tiles[y][x] = Tile{""}
-		*nextTile = Tile{"fusia"}
+		delete(stage.tiles[y][x].playerMap, p.id)
+		nextTile.playerMap[p.id] = p
 		p.x = x + 1
 		stage.markAllDirty()
 	} else {
@@ -89,8 +103,8 @@ func moveWest(stage *Stage, p *Player) {
 	y := p.y
 	nextTile := &stage.tiles[y][x-1]
 	if walkable(nextTile) {
-		stage.tiles[y][x] = Tile{""}
-		*nextTile = Tile{"fusia"}
+		delete(stage.tiles[y][x].playerMap, p.id)
+		nextTile.playerMap[p.id] = p
 		p.x = x - 1
 		stage.markAllDirty()
 	} else {
@@ -101,11 +115,11 @@ func moveWest(stage *Stage, p *Player) {
 func getBigEmptyStage() Stage {
 	return Stage{
 		tiles: [][]Tile{
-			{Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}},
-			{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-			{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-			{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-			{Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}},
+			{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
+			{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+			{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+			{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+			{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
 		},
 	}
 }
@@ -114,27 +128,27 @@ func getStageByName(name string) Stage {
 	if name == "greenX" {
 		return Stage{
 			tiles: [][]Tile{
-				{Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}},
-				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{"green"}, Tile{"half-gray"}},
-				{Tile{"half-gray"}, Tile{""}, Tile{"green"}, Tile{"green"}, Tile{""}, Tile{"half-gray"}},
-				{Tile{"half-gray"}, Tile{"green"}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-				{Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}},
+				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(52), newTile(0)},
+				{newTile(0), newTile(51), newTile(52), newTile(52), newTile(51), newTile(0)},
+				{newTile(0), newTile(52), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
 			},
 		}
 	}
 	if name == "big" {
 		return Stage{
 			tiles: [][]Tile{
-				{Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}},
-				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-				{Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}},
+				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
 			},
 		}
 	}

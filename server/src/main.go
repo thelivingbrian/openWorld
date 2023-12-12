@@ -134,7 +134,7 @@ func main() {
 
 	http.HandleFunc("/hello", getHello)
 	http.HandleFunc("/bye", getBye)
-	http.HandleFunc("/activate", postActivate)
+	http.HandleFunc("/activate", postActivate) // unused?
 	http.HandleFunc("/w", postMovement(moveNorth))
 	http.HandleFunc("/s", postMovement(moveSouth))
 	http.HandleFunc("/a", postMovement(moveWest))

@@ -39,11 +39,11 @@ func postActivate(w http.ResponseWriter, r *http.Request) {
 	func getScreen(w http.ResponseWriter, r *http.Request) {
 		stage := Stage{
 			tiles: [][]Tile{
-				{Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}},
-				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-				{Tile{"half-gray"}, Tile{""}, Tile{""}, Tile{""}, Tile{""}, Tile{"half-gray"}},
-				{Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}, Tile{"half-gray"}},
+				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
 			},
 		}
 		io.WriteString(w, stage.printStage())

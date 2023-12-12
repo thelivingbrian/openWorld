@@ -1,5 +1,9 @@
 package main
 
+import (
+	"strconv"
+)
+
 type Player struct {
 	id          string
 	stage       *Stage
@@ -25,13 +29,33 @@ func printPageHeaderFor(player *Player) string {
 	</div>`
 }
 
+func htmlFromColorMatrix(matrix [][]string) string {
+	output := ""
+	for y := range matrix {
+		output += `<div class="grid-row">`
+		for x := range matrix[y] {
+			var yStr = strconv.Itoa(y)
+			var xStr = strconv.Itoa(x)
+			output += `<div class="grid-square ` + matrix[y][x] + `" id="c` + yStr + `-` + xStr + `"></div>`
+		}
+		output += `</div>`
+	}
+	return output
+}
+
 func printStageFor(player *Player) string {
 	var output string = `
 	<div id="screen" class="grid" hx-swap-oob="true">	
 	`
-	for y, row := range player.stage.tiles {
-		output += printRow(row, y)
+
+	var tileColors [][]string = make([][]string, len(player.stage.tiles))
+	for i, row := range player.stage.tiles {
+		tileColors[i] = colorArray(row)
 	}
+
+	tileColors[player.y][player.x] = "fusia"
+	output += htmlFromColorMatrix(tileColors)
+
 	output += `</div>`
 	return output
 }
