@@ -38,6 +38,7 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 
 	if !playerExists {
 		fmt.Println("New Player")
+		actions := Actions{false}
 		newPlayer := &Player{
 			id:          token,
 			stage:       nil,
@@ -45,6 +46,7 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 			viewIsDirty: true,
 			x:           2,
 			y:           2,
+			actions:     &actions,
 		}
 
 		playerMutex.Lock()
@@ -107,6 +109,27 @@ func postMovement(f func(*Stage, *Player)) func(w http.ResponseWriter, r *http.R
 		f(currentStage, existingPlayer)
 
 		fmt.Println("moving")
+	}
+}
+
+func postSpaceOn(w http.ResponseWriter, r *http.Request) {
+	existingPlayer, success := playerFromRequest(r)
+	if success {
+		existingPlayer.actions.space = true
+		existingPlayer.viewIsDirty = true
+	} else {
+		io.WriteString(w, "")
+	}
+}
+
+func postSpaceOff(w http.ResponseWriter, r *http.Request) {
+	existingPlayer, success := playerFromRequest(r)
+	if success {
+		existingPlayer.actions.space = false
+		existingPlayer.viewIsDirty = true
+		io.WriteString(w, `<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="`+existingPlayer.id+`" />`)
+	} else {
+		io.WriteString(w, "")
 	}
 }
 

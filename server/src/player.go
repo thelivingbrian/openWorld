@@ -11,6 +11,11 @@ type Player struct {
 	viewIsDirty bool
 	x           int
 	y           int
+	actions     *Actions
+}
+
+type Actions struct {
+	space bool
 }
 
 func printPageHeaderFor(player *Player) string {
@@ -20,7 +25,9 @@ func printPageHeaderFor(player *Player) string {
 		<input hx-post="/w" hx-trigger="keyup[key=='w'] from:body" type="hidden" name="token" value="` + player.id + `" />
 		<input hx-post="/s" hx-trigger="keyup[key=='s'] from:body" type="hidden" name="token" value="` + player.id + `" />
 		<input hx-post="/a" hx-trigger="keyup[key=='a'] from:body" type="hidden" name="token" value="` + player.id + `" />
-		<input hx-post="/d" hx-trigger="keyup[key=='d'] from:body" type="hidden" name="token" value="` + player.id + `" />	
+		<input hx-post="/d" hx-trigger="keyup[key=='d'] from:body" type="hidden" name="token" value="` + player.id + `" />
+		<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="` + player.id + `" />
+		<input hx-post="/spaceOff" hx-trigger="keyup[key==' '] from:body" hx-target="#spaceOn" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />	
 		<input id="tick" hx-post="/screen" hx-trigger="every 20ms" hx-target="#tick" hx-swap="innerHTML" type="hidden" name="token" value="` + player.id + `" />
 	</div>
     <div id="screen" class="grid">
@@ -43,17 +50,50 @@ func htmlFromColorMatrix(matrix [][]string) string {
 	return output
 }
 
+func spaceHighlight(tile *Tile) string {
+	if walkable(tile) {
+		return "green"
+	} else {
+		return "red"
+	}
+}
+
 func printStageFor(player *Player) string {
 	var output string = `
 	<div id="screen" class="grid" hx-swap-oob="true">	
 	`
 
+	// Get defaul colors
 	var tileColors [][]string = make([][]string, len(player.stage.tiles))
 	for i, row := range player.stage.tiles {
 		tileColors[i] = colorArray(row)
 	}
 
+	// Add player
 	tileColors[player.y][player.x] = "fusia"
+
+	// Add Space
+	if player.actions.space {
+		hiY := player.y + 2
+		loY := player.y - 2
+		hiX := player.x + 2
+		loX := player.x - 2
+		validHighY := (len(player.stage.tiles)-hiY-1 >= 0)
+		validHighX := (len(player.stage.tiles[0])-hiX-1 >= 0)
+		if validHighY {
+			tileColors[player.y+2][player.x] = spaceHighlight(&player.stage.tiles[player.y+2][player.x])
+		}
+		if loY >= 0 {
+			tileColors[player.y-2][player.x] = spaceHighlight(&player.stage.tiles[player.y-2][player.x])
+		}
+		if validHighX {
+			tileColors[player.y][player.x+2] = spaceHighlight(&player.stage.tiles[player.y][player.x+2])
+		}
+		if loX >= 0 {
+			tileColors[player.y][player.x-2] = spaceHighlight(&player.stage.tiles[player.y][player.x-2])
+		}
+	}
+
 	output += htmlFromColorMatrix(tileColors)
 
 	output += `</div>`

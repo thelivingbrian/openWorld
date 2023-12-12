@@ -20,6 +20,8 @@ func main() {
 	http.HandleFunc("/a", postMovement(moveWest))
 	http.HandleFunc("/d", postMovement(moveEast))
 	http.HandleFunc("/screen", postPlayerScreen)
+	http.HandleFunc("/spaceOn", postSpaceOn)
+	http.HandleFunc("/spaceOff", postSpaceOff)
 
 	err := http.ListenAndServe(":9090", nil)
 	if err != nil {
