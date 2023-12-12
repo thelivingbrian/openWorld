@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -41,11 +40,12 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("New Player")
 		// Create a new Player instance
 		newPlayer := &Player{
-			id:        token,
-			stage:     nil,
-			stageName: stage,
-			x:         2,
-			y:         2,
+			id:          token,
+			stage:       nil,
+			stageName:   stage,
+			viewIsDirty: true,
+			x:           2,
+			y:           2,
 		}
 
 		// Store the new Player in the map with the token as the key
@@ -74,35 +74,65 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 	existingStage.placeOnStage(existingPlayer)
 
 	fmt.Println("Printing Stage")
-	io.WriteString(w, existingStage.printStageFor(existingPlayer))
+	io.WriteString(w, printPageHeaderFor(existingPlayer))
+	//io.WriteString(w, existingStage.printStageFor(existingPlayer))
+}
+
+func playerFromRequest(r *http.Request) (*Player, bool) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		fmt.Printf("Error reading body: %v", err)
+		return nil, false
+	}
+
+	bodyS := string(body[:])
+	input := strings.Split(bodyS, "&")
+	token := strings.Split(input[0], "=")[1]
+
+	existingPlayer, playerExists := playerMap[token]
+	if !playerExists {
+		fmt.Println("player not found with token: " + token)
+		return nil, false
+	}
+
+	return existingPlayer, true
 }
 
 func postMovement(f func(*Stage, *Player)) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			fmt.Printf("Error reading body: %v", err)
-			http.Error(w, "can't read body", http.StatusBadRequest)
-			return
+
+		existingPlayer, success := playerFromRequest(r)
+		if !success {
+			panic(0)
 		}
-
-		bodyS := string(body[:])
-		input := strings.Split(bodyS, "&")
-		token := strings.Split(input[0], "=")[1]
-
-		existingPlayer, playerExists := playerMap[token]
-		if !playerExists {
-			err := errors.New("player not found with token: " + token)
-			http.Error(w, err.Error(), http.StatusNotFound)
-		}
-
 		currentStage := existingPlayer.stage // This is a bug? Is stage always legit? Login?
 
 		f(currentStage, existingPlayer)
 
-		fmt.Println("Printing update")
-		io.WriteString(w, existingPlayer.stage.printStageFor(existingPlayer))
+		fmt.Println("moving")
+		//io.WriteString(w, existingPlayer.stage.printStageFor(existingPlayer))
 	}
+}
+
+func postPlayerScreen(w http.ResponseWriter, r *http.Request) {
+	existingPlayer, success := playerFromRequest(r)
+	if !success {
+		panic(0)
+	}
+	if existingPlayer.viewIsDirty {
+		//existingPlayer.viewIsDirty = false
+		currentStage := existingPlayer.stage
+		io.WriteString(w, currentStage.printStageFor(existingPlayer))
+	}
+}
+
+func postDirtyIndicator(w http.ResponseWriter, r *http.Request) {
+	existingPlayer, success := playerFromRequest(r)
+	if !success {
+		panic(0)
+	}
+
+	io.WriteString(w, existingPlayer.printDirty())
 }
 
 func main() {
@@ -120,6 +150,8 @@ func main() {
 	http.HandleFunc("/s", postMovement(moveSouth))
 	http.HandleFunc("/a", postMovement(moveWest))
 	http.HandleFunc("/d", postMovement(moveEast))
+	http.HandleFunc("/screen", postPlayerScreen)
+	http.HandleFunc("/dirty", postDirtyIndicator)
 
 	err := http.ListenAndServe(":9090", nil)
 	if err != nil {

@@ -4,20 +4,13 @@ import (
 	"strconv"
 )
 
-type Player struct {
-	id        string
-	stage     *Stage
-	stageName string
-	x         int
-	y         int
-}
-
 type Tile struct {
 	color string
 }
 
 type Stage struct {
-	tiles [][]Tile
+	tiles   [][]Tile
+	Players []*Player
 }
 
 func printRow(row []Tile, y int) string {
@@ -31,14 +24,27 @@ func printRow(row []Tile, y int) string {
 	return output
 }
 
+func printPageHeaderFor(player *Player) string {
+	return `
+	<div id="page">
+    <div id="controls">      
+		<input hx-post="/w" hx-trigger="keyup[key=='w'] from:body" type="hidden" name="token" value="` + player.id + `" />
+		<input hx-post="/s" hx-trigger="keyup[key=='s'] from:body" type="hidden" name="token" value="` + player.id + `" />
+		<input hx-post="/a" hx-trigger="keyup[key=='a'] from:body" type="hidden" name="token" value="` + player.id + `" />
+		<input hx-post="/d" hx-trigger="keyup[key=='d'] from:body" type="hidden" name="token" value="` + player.id + `" />	
+		
+	</div>
+    <div id="screen" class="grid">
+		<input hx-post="/screen" hx-trigger="load" hx-target="#screen" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />	
+	</div>
+	</div>`
+}
+
 func (stage *Stage) printStageFor(player *Player) string {
 	var output string = `
-	<div class="grid" id="screen">
-		<input hx-post="/w" hx-trigger="keyup[key=='w'] from:body" hx-target="#screen" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />
-		<input hx-post="/s" hx-trigger="keyup[key=='s'] from:body" hx-target="#screen" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />
-		<input hx-post="/a" hx-trigger="keyup[key=='a'] from:body" hx-target="#screen" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />
-		<input hx-post="/d" hx-trigger="keyup[key=='d'] from:body" hx-target="#screen" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />
-			`
+	<div id="screen" class="grid">
+		<input hx-post="/screen" hx-trigger="load" hx-target="#screen" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />	
+	`
 	for y, row := range stage.tiles {
 		output += printRow(row, y)
 	}
@@ -64,6 +70,9 @@ func moveNorth(stage *Stage, p *Player) {
 		stage.tiles[y][x] = Tile{""}
 		*nextTile = Tile{"fusia"}
 		p.y = y - 1
+		for _, player := range stage.Players {
+			player.viewIsDirty = true
+		}
 	} else {
 		//nop
 	}
