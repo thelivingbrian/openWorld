@@ -120,9 +120,13 @@ func postPlayerScreen(w http.ResponseWriter, r *http.Request) {
 		panic(0)
 	}
 	if existingPlayer.viewIsDirty {
-		//existingPlayer.viewIsDirty = false
+		fmt.Println("View is Dirty")
+		existingPlayer.viewIsDirty = false
 		currentStage := existingPlayer.stage
 		io.WriteString(w, currentStage.printStageFor(existingPlayer))
+	} else {
+		//io.WriteString(w, `<input id="tick" hx-post="/screen" hx-trigger="load" hx-target="#tick" hx-swap="outerHTML" type="hidden" name="token" value="`+existingPlayer.id+`" />`)
+		io.WriteString(w, "")
 	}
 }
 
