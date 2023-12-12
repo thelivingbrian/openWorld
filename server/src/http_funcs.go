@@ -5,13 +5,21 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 )
 
-func postActivate(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("got /activate request\n")
-	fmt.Printf(r.Method)
-	fmt.Printf("\n")
+var (
+	playerMap   = make(map[string]*Player)
+	playerMutex sync.Mutex
+	stageMap    = make(map[string]*Stage)
+	stageMutex  sync.Mutex
+)
 
+func getIndex(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./client/src")
+}
+
+func postSignin(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Printf("Error reading body: %v", err)
@@ -21,34 +29,101 @@ func postActivate(w http.ResponseWriter, r *http.Request) {
 
 	bodyS := string(body[:])
 	input := strings.Split(bodyS, "&")
-	id := input[0]
-	token := strings.Split(input[1], "=")[1]
+	token := strings.Split(input[0], "=")[1]
+	stage := strings.Split(input[1], "=")[1]
 
-	fmt.Printf(bodyS)
-	fmt.Printf("\n")
-	fmt.Printf(id)
-	fmt.Printf("\n")
-	fmt.Printf(token)
-	fmt.Printf("\n")
+	playerMutex.Lock()
+	existingPlayer, playerExists := playerMap[token]
+	playerMutex.Unlock()
 
-	resp := `<div class="grid-square ` + token + `" id="c2-3"></div>`
-	io.WriteString(w, resp)
+	if !playerExists {
+		fmt.Println("New Player")
+		newPlayer := &Player{
+			id:          token,
+			stage:       nil,
+			stageName:   stage,
+			viewIsDirty: true,
+			x:           2,
+			y:           2,
+		}
+
+		playerMutex.Lock()
+		defer playerMutex.Unlock()
+		playerMap[token] = newPlayer
+		existingPlayer = newPlayer
+	}
+
+	// Player with the given token exists
+	existingStageName := existingPlayer.stageName
+
+	stageMutex.Lock()
+	existingStage, stageExists := stageMap[existingStageName]
+	if !stageExists {
+		fmt.Println("New Stage")
+		// If the Stage doesn't exist, create a new one and store it in the map
+		newStage := getStageByName(stage)
+		stagePtr := &newStage
+		stageMap[existingStageName] = stagePtr
+		existingStage = stagePtr
+	}
+	stageMutex.Unlock()
+
+	existingPlayer.stage = existingStage
+	existingStage.placeOnStage(existingPlayer)
+
+	fmt.Println("Printing Stage")
+	io.WriteString(w, printPageHeaderFor(existingPlayer))
 }
 
-/*
-	func getScreen(w http.ResponseWriter, r *http.Request) {
-		stage := Stage{
-			tiles: [][]Tile{
-				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
-			},
-		}
-		io.WriteString(w, stage.printStage())
+func playerFromRequest(r *http.Request) (*Player, bool) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		fmt.Printf("Error reading body: %v", err)
+		return nil, false
 	}
-*/
+
+	bodyS := string(body[:])
+	input := strings.Split(bodyS, "&")
+	token := strings.Split(input[0], "=")[1]
+
+	existingPlayer, playerExists := playerMap[token]
+	if !playerExists {
+		fmt.Println("player not found with token: " + token)
+		return nil, false
+	}
+
+	return existingPlayer, true
+}
+
+func postMovement(f func(*Stage, *Player)) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		existingPlayer, success := playerFromRequest(r)
+		if !success {
+			panic(0)
+		}
+		currentStage := existingPlayer.stage // This is a bug? Is stage always legit? Login?
+
+		f(currentStage, existingPlayer)
+
+		fmt.Println("moving")
+	}
+}
+
+func postPlayerScreen(w http.ResponseWriter, r *http.Request) {
+	existingPlayer, success := playerFromRequest(r)
+	if !success {
+		panic(0) // Handle this gracefully
+	}
+	if existingPlayer.viewIsDirty {
+		fmt.Println("View is Dirty")
+		existingPlayer.viewIsDirty = false
+		io.WriteString(w, printStageFor(existingPlayer))
+	} else {
+		io.WriteString(w, "")
+	}
+}
+
 func getHello(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("got /hello request\n")
 	fmt.Printf(r.Method)
