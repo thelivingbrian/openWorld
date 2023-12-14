@@ -19,6 +19,10 @@ type Actions struct {
 	space bool
 }
 
+func (player *Player) isAlive() bool {
+	return player.health > 0
+}
+
 func printPageHeaderFor(player *Player) string {
 	return `
 	<div id="page">
@@ -106,6 +110,8 @@ func printStageFor(player *Player) string {
 		clinic := getClinic()
 		player.health = 100
 		player.stage = clinic
+		player.x = 2
+		player.y = 2
 		clinic.placeOnStage(player)
 		output += livingView(player)
 	}

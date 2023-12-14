@@ -78,25 +78,28 @@ func moveWest(stage *Stage, p *Player) {
 	}
 }
 
-// gross
 func (stage *Stage) damageAt(coords [][2]int) {
 	for _, pair := range coords {
 		for i, player := range stage.players {
 			if pair[0] == player.y && pair[1] == player.x {
-				player.health = 0
+				player.health += -50
 				player.viewIsDirty = true
-				if player.health <= 0 {
+				if !player.isAlive() {
 					delete(stage.tiles[pair[0]][pair[1]].playerMap, player.id)
-					highestIndex := len(stage.players) - 1
-					if highestIndex > 0 {
-						stage.players[i] = stage.players[highestIndex]
-						stage.players = stage.players[:highestIndex]
-					} else {
-						delete(stageMap, stage.name)
-					}
+					stage.removePlayerAtIndex(i)
 				}
 			}
 		}
+	}
+}
+
+func (stage *Stage) removePlayerAtIndex(i int) {
+	highestIndex := len(stage.players) - 1
+	if highestIndex > 0 {
+		stage.players[i] = stage.players[highestIndex]
+		stage.players = stage.players[:highestIndex]
+	} else {
+		delete(stageMap, stage.name)
 	}
 }
 
