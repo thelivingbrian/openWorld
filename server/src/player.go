@@ -87,24 +87,6 @@ func livingView(player *Player) string {
 	// Add Space
 	if player.actions.space {
 		applyHighlights(player, &tileColors, x(), spaceHighlighter)
-		/*hiY := player.y + 2
-		loY := player.y - 2
-		hiX := player.x + 2
-		loX := player.x - 2
-		validHighY := (len(player.stage.tiles)-hiY-1 >= 0)
-		validHighX := (len(player.stage.tiles[0])-hiX-1 >= 0)
-		if validHighY {
-			tileColors[player.y+2][player.x] = spaceHighlight(&player.stage.tiles[player.y+2][player.x])
-		}
-		if loY >= 0 {
-			tileColors[player.y-2][player.x] = spaceHighlight(&player.stage.tiles[player.y-2][player.x])
-		}
-		if validHighX {
-			tileColors[player.y][player.x+2] = spaceHighlight(&player.stage.tiles[player.y][player.x+2])
-		}
-		if loX >= 0 {
-			tileColors[player.y][player.x-2] = spaceHighlight(&player.stage.tiles[player.y][player.x-2])
-		}*/
 	}
 
 	output += htmlFromColorMatrix(tileColors)
