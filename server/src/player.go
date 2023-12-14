@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 )
 
@@ -24,10 +23,10 @@ func printPageHeaderFor(player *Player) string {
 	return `
 	<div id="page">
     <div id="controls">      
-		<input hx-post="/w" hx-trigger="keyup[key=='w'] from:body" type="hidden" name="token" value="` + player.id + `" />
-		<input hx-post="/s" hx-trigger="keyup[key=='s'] from:body" type="hidden" name="token" value="` + player.id + `" />
-		<input hx-post="/a" hx-trigger="keyup[key=='a'] from:body" type="hidden" name="token" value="` + player.id + `" />
-		<input hx-post="/d" hx-trigger="keyup[key=='d'] from:body" type="hidden" name="token" value="` + player.id + `" />
+		<input hx-post="/w" hx-trigger="keydown[key=='w'] from:body" type="hidden" name="token" value="` + player.id + `" />
+		<input hx-post="/s" hx-trigger="keydown[key=='s'] from:body" type="hidden" name="token" value="` + player.id + `" />
+		<input hx-post="/a" hx-trigger="keydown[key=='a'] from:body" type="hidden" name="token" value="` + player.id + `" />
+		<input hx-post="/d" hx-trigger="keydown[key=='d'] from:body" type="hidden" name="token" value="` + player.id + `" />
 		<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="` + player.id + `" />
 		<input hx-post="/spaceOff" hx-trigger="keyup[key==' '] from:body" hx-target="#spaceOn" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />	
 		<input id="tick" hx-post="/screen" hx-trigger="every 20ms" hx-target="#tick" hx-swap="innerHTML" type="hidden" name="token" value="` + player.id + `" />
@@ -52,7 +51,7 @@ func htmlFromColorMatrix(matrix [][]string) string {
 	return output
 }
 
-func spaceHighlight(tile *Tile) string {
+func spaceHighlighter(tile *Tile) string {
 	if walkable(tile) {
 		return "green"
 	} else {
@@ -60,10 +59,23 @@ func spaceHighlight(tile *Tile) string {
 	}
 }
 
+func applyHighlights(player *Player, tileColorsPtr *[][]string, relativeCoords [][2]int, highligher func(*Tile) string) {
+	absCoordinatePairs := applyRelativeDistance(player.y, player.x, relativeCoords)
+	for _, pair := range absCoordinatePairs {
+		if pair[0] >= 0 &&
+			pair[1] >= 0 &&
+			pair[0] < len(player.stage.tiles) &&
+			pair[1] < len(player.stage.tiles[0]) {
+			tileColors := *tileColorsPtr
+			tileColors[pair[0]][pair[1]] = highligher(&player.stage.tiles[pair[0]][pair[1]])
+		}
+	}
+}
+
 func livingView(player *Player) string {
 	output := ""
 
-	// Get defaul colors
+	// Get default colors
 	var tileColors [][]string = make([][]string, len(player.stage.tiles))
 	for i, row := range player.stage.tiles {
 		tileColors[i] = colorArray(row)
@@ -74,7 +86,8 @@ func livingView(player *Player) string {
 
 	// Add Space
 	if player.actions.space {
-		hiY := player.y + 2
+		applyHighlights(player, &tileColors, x(), spaceHighlighter)
+		/*hiY := player.y + 2
 		loY := player.y - 2
 		hiX := player.x + 2
 		loX := player.x - 2
@@ -91,7 +104,7 @@ func livingView(player *Player) string {
 		}
 		if loX >= 0 {
 			tileColors[player.y][player.x-2] = spaceHighlight(&player.stage.tiles[player.y][player.x-2])
-		}
+		}*/
 	}
 
 	output += htmlFromColorMatrix(tileColors)
@@ -108,25 +121,14 @@ func printStageFor(player *Player) string {
 		output += livingView(player)
 	} else {
 		output += `<h2>You Died.</h2>`
-		stageMutex.Lock()
-		existingStage, stageExists := stageMap["clinic"]
-		if !stageExists {
-			fmt.Println("New Stage")
-			newStage := getStageByName("clinic")
-			stagePtr := &newStage
-			stageMap["clinic"] = stagePtr
-			existingStage = stagePtr
-		}
-		stageMutex.Unlock()
-
+		clinic := getClinic()
 		player.health = 100
-		player.stage = existingStage
-		existingStage.placeOnStage(player)
+		player.stage = clinic
+		clinic.placeOnStage(player)
 		output += livingView(player)
 	}
 
 	output += `</div>`
 	player.viewIsDirty = false
 	return output
-
 }

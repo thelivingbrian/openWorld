@@ -2,7 +2,7 @@ package main
 
 type Stage struct {
 	tiles   [][]Tile
-	players []*Player // Should this also be 2d array?
+	players []*Player // Should this also be 2d array? (Probably no, mutex lock for each movement, although delete mildly faster. Current delete from stage already O(1))
 	name    string
 }
 
@@ -78,6 +78,7 @@ func moveWest(stage *Stage, p *Player) {
 	}
 }
 
+// gross
 func (stage *Stage) damageAt(coords [][2]int) {
 	for _, pair := range coords {
 		for i, player := range stage.players {
@@ -99,7 +100,24 @@ func (stage *Stage) damageAt(coords [][2]int) {
 	}
 }
 
-func getBigEmptyStage() Stage {
+func getStageByName(name string) *Stage {
+	stageMutex.Lock()
+	existingStage, stageExists := stageMap[name]
+	if !stageExists {
+		newStage := createStageByName(name)
+		stagePtr := &newStage
+		stageMap[name] = stagePtr
+		existingStage = stagePtr
+	}
+	stageMutex.Unlock()
+	return existingStage
+}
+
+func getClinic() *Stage {
+	return getStageByName("clinic")
+}
+
+func createBigEmptyStage() Stage {
 	return Stage{
 		tiles: [][]Tile{
 			{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
@@ -111,7 +129,7 @@ func getBigEmptyStage() Stage {
 	}
 }
 
-func getStageByName(name string) Stage {
+func createStageByName(name string) Stage {
 	if name == "greenX" {
 		return Stage{
 			tiles: [][]Tile{
@@ -162,5 +180,5 @@ func getStageByName(name string) Stage {
 			name: "clinic",
 		}
 	}
-	return getBigEmptyStage()
+	return createBigEmptyStage()
 }

@@ -2,8 +2,16 @@ package main
 
 // [[ycoord, xcoord], ... ]
 
-func cross() [][2]int {
+func jumpCross() [][2]int {
 	return [][2]int{{2, 0}, {-2, 0}, {0, 2}, {0, -2}}
+}
+
+func cross() [][2]int {
+	return [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+}
+
+func x() [][2]int {
+	return [][2]int{{1, 1}, {-1, 1}, {1, -1}, {-1, -1}}
 }
 
 func applyRelativeDistance(y int, x int, offsets [][2]int) [][2]int {

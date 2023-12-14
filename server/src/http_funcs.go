@@ -55,8 +55,7 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 	existingStage, stageExists := stageMap[existingStageName]
 	if !stageExists {
 		fmt.Println("New Stage")
-		// If the Stage doesn't exist, create a new one and store it in the map
-		newStage := getStageByName(stage)
+		newStage := createStageByName(stage)
 		stagePtr := &newStage
 		stageMap[existingStageName] = stagePtr
 		existingStage = stagePtr
@@ -92,16 +91,12 @@ func playerFromRequest(r *http.Request) (*Player, bool) {
 
 func postMovement(f func(*Stage, *Player)) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		existingPlayer, success := playerFromRequest(r)
 		if !success {
 			panic(0)
 		}
-		currentStage := existingPlayer.stage // This is a bug? Is stage always legit? Login?
-
+		currentStage := existingPlayer.stage // Is stage ever nil?
 		f(currentStage, existingPlayer)
-
-		//fmt.Println("moving")
 	}
 }
 
@@ -120,7 +115,7 @@ func postSpaceOff(w http.ResponseWriter, r *http.Request) {
 	if success {
 		existingPlayer.actions.space = false
 		existingPlayer.viewIsDirty = true
-		existingPlayer.stage.damageAt(applyRelativeDistance(existingPlayer.y, existingPlayer.x, cross()))
+		existingPlayer.stage.damageAt(applyRelativeDistance(existingPlayer.y, existingPlayer.x, x()))
 		io.WriteString(w, `<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="`+existingPlayer.id+`" />`)
 	} else {
 		io.WriteString(w, "")
@@ -133,7 +128,6 @@ func postPlayerScreen(w http.ResponseWriter, r *http.Request) {
 		panic(0) // Handle this gracefully
 	}
 	if existingPlayer.viewIsDirty {
-		//fmt.Println("View is Dirty")
 		io.WriteString(w, printStageFor(existingPlayer))
 	} else {
 		io.WriteString(w, "")
