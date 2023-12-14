@@ -1,41 +1,8 @@
 package main
 
-import (
-	"sync"
-)
-
-type Tile struct {
-	material    int
-	playerMap   map[string]*Player
-	playerMutex sync.Mutex // Currently unused. Probably important?
-	// Items and coords?
-}
-
 type Stage struct {
 	tiles   [][]Tile
-	players []*Player
-}
-
-func colorOf(tile *Tile) string {
-	if len(tile.playerMap) > 0 {
-		return "blue"
-	}
-	if tile.material == 0 {
-		return "half-gray"
-	}
-	return ""
-}
-
-func colorArray(row []Tile) []string {
-	var output []string = make([]string, len(row))
-	for i := range row {
-		output[i] = colorOf(&row[i])
-	}
-	return output
-}
-
-func newTile(mat int) Tile {
-	return Tile{mat, make(map[string]*Player), sync.Mutex{}}
+	players []*Player // Should this also be 2d array?
 }
 
 func (stage *Stage) placeOnStage(p *Player) {
@@ -43,16 +10,14 @@ func (stage *Stage) placeOnStage(p *Player) {
 	y := p.y
 	stage.tiles[y][x].playerMap[p.id] = p
 	stage.players = append(stage.players, p)
+	stage.markAllDirty()
+
 }
 
 func (stage *Stage) markAllDirty() {
 	for _, player := range stage.players {
 		player.viewIsDirty = true
 	}
-}
-
-func walkable(tile *Tile) bool {
-	return tile.material > 50
 }
 
 func moveNorth(stage *Stage, p *Player) {
@@ -109,6 +74,17 @@ func moveWest(stage *Stage, p *Player) {
 		stage.markAllDirty()
 	} else {
 		//nop
+	}
+}
+
+func (stage *Stage) damageAt(coords [][2]int) {
+	for _, pair := range coords {
+		for _, player := range stage.players {
+			if pair[0] == player.y && pair[1] == player.x {
+				player.health = 0
+				player.viewIsDirty = true
+			}
+		}
 	}
 }
 

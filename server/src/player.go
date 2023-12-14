@@ -12,6 +12,7 @@ type Player struct {
 	x           int
 	y           int
 	actions     *Actions
+	health      int
 }
 
 type Actions struct {
@@ -58,10 +59,8 @@ func spaceHighlight(tile *Tile) string {
 	}
 }
 
-func printStageFor(player *Player) string {
-	var output string = `
-	<div id="screen" class="grid" hx-swap-oob="true">	
-	`
+func livingView(player *Player) string {
+	output := ""
 
 	// Get defaul colors
 	var tileColors [][]string = make([][]string, len(player.stage.tiles))
@@ -96,6 +95,21 @@ func printStageFor(player *Player) string {
 
 	output += htmlFromColorMatrix(tileColors)
 
+	return output
+}
+
+func printStageFor(player *Player) string {
+	var output string = `
+	<div id="screen" class="grid" hx-swap-oob="true">	
+	`
+
+	if player.health > 0 {
+		output += livingView(player)
+	} else {
+		output += `<h1>You are dead</h1>`
+	}
+
 	output += `</div>`
 	return output
+
 }

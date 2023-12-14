@@ -47,6 +47,7 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 			x:           2,
 			y:           2,
 			actions:     &actions,
+			health:      100,
 		}
 
 		playerMutex.Lock()
@@ -127,6 +128,7 @@ func postSpaceOff(w http.ResponseWriter, r *http.Request) {
 	if success {
 		existingPlayer.actions.space = false
 		existingPlayer.viewIsDirty = true
+		existingPlayer.stage.damageAt(applyRelativeDistance(existingPlayer.y, existingPlayer.x, cross()))
 		io.WriteString(w, `<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="`+existingPlayer.id+`" />`)
 	} else {
 		io.WriteString(w, "")
