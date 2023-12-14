@@ -5,14 +5,6 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"sync"
-)
-
-var (
-	playerMap   = make(map[string]*Player)
-	playerMutex sync.Mutex
-	stageMap    = make(map[string]*Stage)
-	stageMutex  sync.Mutex
 )
 
 func getIndex(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +101,7 @@ func postMovement(f func(*Stage, *Player)) func(w http.ResponseWriter, r *http.R
 
 		f(currentStage, existingPlayer)
 
-		fmt.Println("moving")
+		//fmt.Println("moving")
 	}
 }
 
@@ -141,8 +133,7 @@ func postPlayerScreen(w http.ResponseWriter, r *http.Request) {
 		panic(0) // Handle this gracefully
 	}
 	if existingPlayer.viewIsDirty {
-		fmt.Println("View is Dirty")
-		existingPlayer.viewIsDirty = false
+		//fmt.Println("View is Dirty")
 		io.WriteString(w, printStageFor(existingPlayer))
 	} else {
 		io.WriteString(w, "")

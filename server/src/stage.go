@@ -3,6 +3,7 @@ package main
 type Stage struct {
 	tiles   [][]Tile
 	players []*Player // Should this also be 2d array?
+	name    string
 }
 
 func (stage *Stage) placeOnStage(p *Player) {
@@ -79,10 +80,20 @@ func moveWest(stage *Stage, p *Player) {
 
 func (stage *Stage) damageAt(coords [][2]int) {
 	for _, pair := range coords {
-		for _, player := range stage.players {
+		for i, player := range stage.players {
 			if pair[0] == player.y && pair[1] == player.x {
 				player.health = 0
 				player.viewIsDirty = true
+				if player.health <= 0 {
+					delete(stage.tiles[pair[0]][pair[1]].playerMap, player.id)
+					highestIndex := len(stage.players) - 1
+					if highestIndex > 0 {
+						stage.players[i] = stage.players[highestIndex]
+						stage.players = stage.players[:highestIndex]
+					} else {
+						delete(stageMap, stage.name)
+					}
+				}
 			}
 		}
 	}
@@ -110,6 +121,7 @@ func getStageByName(name string) Stage {
 				{newTile(0), newTile(52), newTile(51), newTile(51), newTile(51), newTile(0)},
 				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
 			},
+			name: "greenX",
 		}
 	}
 	if name == "big" {
@@ -126,6 +138,28 @@ func getStageByName(name string) Stage {
 				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
 				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
 			},
+			name: "big",
+		}
+	}
+	if name == "clinic" {
+		return Stage{
+			tiles: [][]Tile{
+				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(0), newTile(0), newTile(0), newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
+				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
+			},
+			name: "clinic",
 		}
 	}
 	return getBigEmptyStage()

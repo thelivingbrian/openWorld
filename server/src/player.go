@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -106,10 +107,26 @@ func printStageFor(player *Player) string {
 	if player.health > 0 {
 		output += livingView(player)
 	} else {
-		output += `<h1>You are dead</h1>`
+		output += `<h2>You Died.</h2>`
+		stageMutex.Lock()
+		existingStage, stageExists := stageMap["clinic"]
+		if !stageExists {
+			fmt.Println("New Stage")
+			newStage := getStageByName("clinic")
+			stagePtr := &newStage
+			stageMap["clinic"] = stagePtr
+			existingStage = stagePtr
+		}
+		stageMutex.Unlock()
+
+		player.health = 100
+		player.stage = existingStage
+		existingStage.placeOnStage(player)
+		output += livingView(player)
 	}
 
 	output += `</div>`
+	player.viewIsDirty = false
 	return output
 
 }

@@ -3,6 +3,14 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"sync"
+)
+
+var (
+	playerMap   = make(map[string]*Player)
+	playerMutex sync.Mutex
+	stageMap    = make(map[string]*Stage)
+	stageMutex  sync.Mutex
 )
 
 func main() {
