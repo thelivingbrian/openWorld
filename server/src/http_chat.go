@@ -70,11 +70,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Chat Message:", msg.ChatMessage)
 
 		message := `
-		<form id="form" ws-send>
-			<input type="hidden" name="token" value="` + msg.Token + `">
-			<input type="text" name="chat_message">
-		</form>
-		<div id="chat_room" hx-swap-oob="beforeend">
+		<input id="msg" type="text" name="chat_message" value="">
+		
+		<div id="chat_room" hx-swap-oob="beforeend:#chat_room">
 			<p>` + msg.Token + `: ` + msg.ChatMessage + `</p>
 		</div>`
 

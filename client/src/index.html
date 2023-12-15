@@ -2,7 +2,7 @@
 <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
 <link rel="stylesheet" href="assets/style.css">
 <body>
-    <div id="page">
+    <div id="page" hx-get="/home" hx-target="#page" hx-trigger="htmx:wsClose">
         <div id="controls">
             <form hx-post="/signin" hx-target="#page" hx-swap="outerHTML">
                 <div>

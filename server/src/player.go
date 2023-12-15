@@ -25,7 +25,7 @@ func (player *Player) isAlive() bool {
 
 func printPageHeaderFor(player *Player) string {
 	return `
-	<div id="page">
+	<div id="page" hx-get="/home" hx-target="#page" hx-trigger="htmx:wsClose">
 		<div id="controls">      
 			<input hx-post="/w" hx-trigger="keydown[key=='w'] from:body" type="hidden" name="token" value="` + player.id + `" />
 			<input hx-post="/s" hx-trigger="keydown[key=='s'] from:body" type="hidden" name="token" value="` + player.id + `" />
@@ -39,9 +39,9 @@ func printPageHeaderFor(player *Player) string {
 				
 		</div>
 		<div id="chat" hx-ext="ws" ws-connect="/chat">
-			<form id="form" ws-send>
+			<form id="form" ws-send hx-swap="outerHTML" hx-target="#msg">
 				<input type="hidden" name="token" value="` + player.id + `">
-				<input type="text" name="chat_message" value="Press Enter to send">
+				<input id="msg" type="text" name="chat_message" value="">
 			</form>
 			<div id="chat_room">
 				
