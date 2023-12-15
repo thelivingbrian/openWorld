@@ -133,26 +133,3 @@ func postPlayerScreen(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "")
 	}
 }
-
-func getHello(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("got /hello request\n")
-	fmt.Printf(r.Method)
-	button := `<button hx-post="/bye"
-                        hx-trigger="click, keyup[key=='Alt'] from:body"
-                        hx-target="#parent-div"
-                        hx-swap="innerHTML">
-                        Goodbye!
-                 </button>`
-	io.WriteString(w, button)
-}
-
-func getBye(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("got /bye request\n")
-	button := `<button hx-post="/hello"
-        hx-trigger="click, keyup[key=='Alt'] from:body"
-        hx-target="#parent-div"
-        hx-swap="innerHTML">
-        Hello!
- </button>`
-	io.WriteString(w, button)
-}
