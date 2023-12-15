@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -100,8 +101,9 @@ func (stage *Stage) damageAt(coords [][2]int) {
 		for _, player := range stage.playerMap {
 			if pair[0] == player.y && pair[1] == player.x {
 				player.health += -50
-				player.viewIsDirty = true
 				if !player.isAlive() {
+					fmt.Println(player.id + " has died")
+
 					deadPlayerTile := &stage.tiles[pair[0]][pair[1]]
 					deadPlayerTile.playerMutex.Lock() // break into function, no high level mutexing(?)
 					delete(deadPlayerTile.playerMap, player.id)
@@ -110,6 +112,9 @@ func (stage *Stage) damageAt(coords [][2]int) {
 					stage.playerMutex.Lock()
 					delete(stage.playerMap, player.id)
 					stage.playerMutex.Unlock()
+
+					stage.markAllDirty()
+					player.viewIsDirty = true //player no longer on stage
 				}
 			}
 		}
