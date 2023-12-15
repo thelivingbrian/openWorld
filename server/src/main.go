@@ -74,7 +74,8 @@ func main() {
 	http.HandleFunc("/s", postMovement(moveSouth))
 	http.HandleFunc("/a", postMovement(moveWest))
 	http.HandleFunc("/d", postMovement(moveEast))
-	http.HandleFunc("/screen", postPlayerScreen)
+	//http.HandleFunc("/screen", postPlayerScreen)
+	http.HandleFunc("/screen", ws_screen)
 	http.HandleFunc("/spaceOn", postSpaceOn)
 	http.HandleFunc("/spaceOff", postSpaceOff)
 

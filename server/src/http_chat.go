@@ -8,10 +8,13 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type Message struct {
-	Token       string            `json:"token"`
-	ChatMessage string            `json:"chat_message"`
-	Headers     map[string]string `json:"HEADERS"`
+type ChatRequest struct {
+	Token       string `json:"token"`
+	ChatMessage string `json:"chat_message"`
+}
+
+type ScreenRequest struct {
+	Token string `json:"token"`
 }
 
 var upgrader = websocket.Upgrader{
@@ -56,7 +59,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Received message: %s\n", bytes)
 		jsonData := string(bytes)
 
-		var msg Message
+		var msg ChatRequest
 		err = json.Unmarshal([]byte(jsonData), &msg)
 		if err != nil {
 			fmt.Println("Error parsing JSON:", err)
@@ -68,7 +71,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		message := `
 		<form id="form" ws-send>
-			<input type="hidden" name="token" value="john">
+			<input type="hidden" name="token" value="` + msg.Token + `">
 			<input type="text" name="chat_message">
 		</form>
 		<div id="chat_room" hx-swap-oob="beforeend">
@@ -97,5 +100,44 @@ func handleMessages(c *client) {
 				return
 			}
 		}
+	}
+}
+
+func ws_screen(w http.ResponseWriter, r *http.Request) {
+	// Upgrade the HTTP connection to a WebSocket connection
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer conn.Close()
+
+	_, bytes, err := conn.ReadMessage()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	jsonData := string(bytes)
+
+	var msg ScreenRequest
+	err = json.Unmarshal([]byte(jsonData), &msg)
+	if err != nil {
+		fmt.Println("Error parsing JSON:", err)
+		return
+	}
+	token := msg.Token
+	existingPlayer, playerExists := playerMap[token]
+	if playerExists {
+		for {
+			if existingPlayer.viewIsDirty {
+				if err := conn.WriteMessage(websocket.TextMessage, []byte(printStageFor(existingPlayer))); err != nil {
+					fmt.Println(err)
+					return
+				}
+			}
+		}
+	} else {
+		fmt.Println("player not found with token: " + token)
+
 	}
 }

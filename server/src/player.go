@@ -33,7 +33,7 @@ func printPageHeaderFor(player *Player) string {
 			<input hx-post="/d" hx-trigger="keydown[key=='d'] from:body" type="hidden" name="token" value="` + player.id + `" />
 			<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="` + player.id + `" />
 			<input hx-post="/spaceOff" hx-trigger="keyup[key==' '] from:body" hx-target="#spaceOn" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />	
-			<input id="tick" hx-post="/screen" hx-trigger="every 20ms" hx-target="#tick" hx-swap="innerHTML" type="hidden" name="token" value="` + player.id + `" />
+			<input id="tick" hx-ext="ws" ws-connect="/screen" ws-send hx-swap="innerHTML" hx-trigger="load once"type="hidden" name="token" value="` + player.id + `" />
 		</div>
 		<div id="screen" class="grid">
 				
