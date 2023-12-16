@@ -25,13 +25,19 @@ var upgrader = websocket.Upgrader{
 
 type client struct {
 	conn *websocket.Conn
-	send chan string
+	//send chan string
+}
+
+type Update struct {
+	player *Player
+	update string
 }
 
 var clients = make(map[*client]bool)
 var broadcast = make(chan string)
+var updates = make(chan Update)
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func ws_chat(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println(err)
@@ -41,18 +47,15 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	newClient := &client{
 		conn: conn,
-		send: make(chan string),
 	}
 	clients[newClient] = true
-
-	go handleMessages(newClient)
 
 	for {
 		_, bytes, err := conn.ReadMessage()
 		if err != nil {
 			fmt.Println(err)
 			delete(clients, newClient)
-			close(newClient.send)
+			//close(newClient.send)
 			return
 		}
 
@@ -69,6 +72,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Token:", msg.Token)
 		fmt.Println("Chat Message:", msg.ChatMessage)
 
+		// This is a bug because it will wipe keyed messages if a new message comes in
 		message := `
 		<input id="msg" type="text" name="chat_message" value="">
 		
@@ -89,20 +93,11 @@ func sendMessageToAll(messageType int, message []byte) {
 	}
 }
 
-func handleMessages(c *client) {
-	for {
-		select {
-		case message := <-c.send:
-			if err := c.conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
-				fmt.Println(err)
-				return
-			}
-		}
-	}
+func sendUpdate(messageType int, update Update) {
+	update.player.conn.WriteMessage(messageType, []byte(update.update))
 }
 
 func ws_screen(w http.ResponseWriter, r *http.Request) {
-	// Upgrade the HTTP connection to a WebSocket connection
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println(err)
@@ -124,15 +119,28 @@ func ws_screen(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token := msg.Token
+	fmt.Println("Screen Req")
+	fmt.Println(token)
+
 	existingPlayer, playerExists := playerMap[token]
 	if playerExists {
+		fmt.Println("Exists" + existingPlayer.id)
+
+		existingPlayer.conn = conn
+
+		fmt.Println("made channel")
+		placeOnStage(existingPlayer)
+
+		fmt.Println("Placed on stage")
 		for {
-			if existingPlayer.viewIsDirty {
-				if err := conn.WriteMessage(websocket.TextMessage, []byte(printStageFor(existingPlayer))); err != nil {
-					fmt.Println(err)
-					return
-				}
+			_, _, err := conn.ReadMessage()
+			if err != nil {
+				fmt.Println(err)
+				return
 			}
+
+			fmt.Println("new screen" + existingPlayer.id)
+
 		}
 	} else {
 		fmt.Println("player not found with token: " + token)

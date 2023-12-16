@@ -1,18 +1,21 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
+
+	"github.com/gorilla/websocket"
 )
 
 type Player struct {
-	id          string
-	stage       *Stage
-	stageName   string
-	viewIsDirty bool
-	x           int
-	y           int
-	actions     *Actions
-	health      int
+	id        string
+	stage     *Stage
+	stageName string
+	conn      *websocket.Conn
+	x         int
+	y         int
+	actions   *Actions
+	health    int
 }
 
 type Actions struct {
@@ -48,6 +51,19 @@ func printPageHeaderFor(player *Player) string {
 			</div>
 		</div>
 	</div>`
+}
+
+func placeOnStage(p *Player) {
+	fmt.Println("1")
+	x := p.x
+	y := p.y
+	fmt.Println("2")
+	p.stage.tiles[y][x].playerMap[p.id] = p
+	fmt.Println("3")
+	p.stage.playerMap[p.id] = p
+	fmt.Println("4")
+	p.stage.markAllDirty()
+	fmt.Println("5")
 }
 
 func htmlFromColorMatrix(matrix [][]string) string {
@@ -107,7 +123,7 @@ func livingView(player *Player) string {
 	return output
 }
 
-func printStageFor(player *Player) string {
+func updateScreen(player *Player) {
 	var output string = `
 	<div id="screen" class="grid" hx-swap-oob="true">	
 	`
@@ -121,11 +137,11 @@ func printStageFor(player *Player) string {
 		player.stage = clinic
 		player.x = 2
 		player.y = 2
-		clinic.placeOnStage(player)
+		placeOnStage(player)
 		output += livingView(player)
 	}
 
 	output += `</div>`
-	player.viewIsDirty = false
-	return output
+
+	updates <- Update{player, output}
 }

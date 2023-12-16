@@ -12,18 +12,10 @@ type Stage struct {
 	name        string
 }
 
-func (stage *Stage) placeOnStage(p *Player) {
-	x := p.x
-	y := p.y
-	stage.tiles[y][x].playerMap[p.id] = p
-	stage.playerMap[p.id] = p
-	stage.markAllDirty()
-
-}
-
 func (stage *Stage) markAllDirty() {
 	for _, player := range stage.playerMap {
-		player.viewIsDirty = true
+		fmt.Println("6")
+		updateScreen(player)
 	}
 }
 
@@ -114,7 +106,7 @@ func (stage *Stage) damageAt(coords [][2]int) {
 					stage.playerMutex.Unlock()
 
 					stage.markAllDirty()
-					player.viewIsDirty = true //player no longer on stage
+					updateScreen(player)
 				}
 			}
 		}

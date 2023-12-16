@@ -7,7 +7,7 @@ import (
 type Tile struct {
 	material    int
 	playerMap   map[string]*Player
-	playerMutex sync.Mutex // Currently unused. Probably important?
+	playerMutex sync.Mutex
 	// Items and coords?
 }
 
