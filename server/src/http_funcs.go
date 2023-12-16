@@ -112,6 +112,7 @@ func postSpaceOff(w http.ResponseWriter, r *http.Request) {
 	existingPlayer, success := playerFromRequest(r)
 	if success {
 		existingPlayer.actions.space = false
+		updateScreen(existingPlayer)
 		existingPlayer.stage.damageAt(applyRelativeDistance(existingPlayer.y, existingPlayer.x, x()))
 		io.WriteString(w, `<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="`+existingPlayer.id+`" />`)
 	} else {

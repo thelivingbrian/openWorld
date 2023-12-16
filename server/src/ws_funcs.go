@@ -119,16 +119,10 @@ func ws_screen(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token := msg.Token
-	fmt.Println("Screen Req")
-	fmt.Println(token)
 
 	existingPlayer, playerExists := playerMap[token]
 	if playerExists {
-		fmt.Println("Exists" + existingPlayer.id)
-
 		existingPlayer.conn = conn
-
-		fmt.Println("made channel")
 		placeOnStage(existingPlayer)
 
 		fmt.Println("Placed on stage")

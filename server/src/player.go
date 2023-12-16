@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/gorilla/websocket"
@@ -54,16 +53,11 @@ func printPageHeaderFor(player *Player) string {
 }
 
 func placeOnStage(p *Player) {
-	fmt.Println("1")
 	x := p.x
 	y := p.y
-	fmt.Println("2")
 	p.stage.tiles[y][x].playerMap[p.id] = p
-	fmt.Println("3")
 	p.stage.playerMap[p.id] = p
-	fmt.Println("4")
 	p.stage.markAllDirty()
-	fmt.Println("5")
 }
 
 func htmlFromColorMatrix(matrix [][]string) string {

@@ -14,7 +14,6 @@ type Stage struct {
 
 func (stage *Stage) markAllDirty() {
 	for _, player := range stage.playerMap {
-		fmt.Println("6")
 		updateScreen(player)
 	}
 }
