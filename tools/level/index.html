@@ -1,20 +1,22 @@
 <script src="assets/htmx-199.min.js"></script>
-<script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
 <link rel="stylesheet" href="assets/style.css">
 <body>
     <div id="page">
-        <div id="controls">
-            <form hx-post="/signin" hx-target="#page" hx-swap="outerHTML">
+        <a hx-get="/materialPage" hx-target="#page">Edit Materials</a>
+        <a hx-get="/createStagePage" hx-target="#page">Create Stage</a>
+        <a hx-get="/editStagePage" hx-target="#page">Edit Stage</a>
+        <!--
+            <div id="controls">
+            <form hx-post="/createGrid" hx-target="#page" hx-swap="outerHTML">
                 <div>
-                <label>Hello User:</label>
-                <input type="text" name="token" value="john">
-                <input type="text" name="stage" value="greenX">
+                    <label>Enter Height and Width:</label>
+                    <input type="text" name="height" value="10">
+                    <input type="text" name="width" value="14">
+                    <button>Create</button>
                 </div>
-                <button>Activate</button>
             </form>
         </div>
         <div class="grid" id="screen">
-            <br />
             <div class="grid-row">
                 <div class="grid-square red" id="c0-0"></div>
                 <div class="grid-square green" id="c0-1"></div>
@@ -32,5 +34,6 @@
                 <div class="grid-square" id="c1-5"></div>
             </div>
         </div>
+    -->
     </div>
 </body>

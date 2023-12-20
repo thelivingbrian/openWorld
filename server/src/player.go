@@ -109,7 +109,7 @@ func livingView(player *Player) string {
 
 	// Add Space
 	if player.actions.space {
-		applyHighlights(player, &tileColors, x(), spaceHighlighter)
+		applyHighlights(player, &tileColors, cross(), spaceHighlighter)
 	}
 
 	output += htmlFromColorMatrix(tileColors)

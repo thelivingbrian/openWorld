@@ -89,7 +89,7 @@ func moveWest(stage *Stage, p *Player) {
 
 func (stage *Stage) damageAt(coords [][2]int) {
 	for _, pair := range coords {
-		for _, player := range stage.playerMap {
+		for _, player := range stage.playerMap { // This is really stupid right? The tile has a playermap?
 			if pair[0] == player.y && pair[1] == player.x {
 				player.health += -50
 				if !player.isAlive() {
@@ -111,20 +111,6 @@ func (stage *Stage) damageAt(coords [][2]int) {
 		}
 	}
 }
-
-/*
-func (stage *Stage) removePlayerAtIndex(i int) {
-	playerMutex.Lock()
-	highestIndex := len(stage.players) - 1
-	if highestIndex > 0 {
-		stage.players[i] = stage.players[highestIndex]
-		stage.players = stage.players[:highestIndex]
-	} else {
-		delete(stageMap, stage.name)
-	}
-	playerMutex.Unlock()
-}
-*/
 
 func getStageByName(name string) *Stage {
 	stageMutex.Lock()

@@ -1,0 +1,77 @@
+/*#screen {
+    float: left;
+}
+
+#chat {
+    float: right;
+    align-items: left;
+}
+This looks bad
+Note that only floating screen left and no style for chat is better but still not great
+*/
+
+.grid {
+    display: grid;
+    grid-gap: 1px;
+  }
+  
+  .grid-row {
+    display: flex;
+    grid-template-columns: repeat(40, 30px);
+  }
+  
+  .grid-square {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #30a0f0;
+    background-color: rgb(172, 152, 219);
+    cursor: pointer;
+  }
+  
+  .red {
+    background-color: rgb(212, 52, 69);
+  }
+
+  .green {
+    background-color: rgb(112, 252, 69);
+  }
+
+  .blue {
+    background-color: rgb(72, 52, 239);
+  }
+
+  .fusia {
+    background-color: rgb(253, 52, 172);
+  }
+  
+  .half-gray {
+    background-color: rgb(120, 120, 129);
+  }
+  
+/*
+.color-selector {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+}*/
+
+.color-box {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    border: 1px solid #30a0f0;
+    cursor: pointer;
+}
+
+/* Ensure the actual radio buttons are hidden but functional 
+.color-selector input[type="radio"] {
+  display: none;
+} 
+*/
+.color-selector input[type="radio"] + label {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #30a0f0;
+  cursor: pointer;
+}
