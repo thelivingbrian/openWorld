@@ -21,6 +21,10 @@ func main() {
 
 	http.HandleFunc("/materialPage", getMaterialPage)
 	http.HandleFunc("/material", getMaterial)
+	http.HandleFunc("/materialEdit", materialEdit)
+	http.HandleFunc("/newMaterialForm", newMaterialForm)
+	http.HandleFunc("/materialNew", materialNew)
+	http.HandleFunc("/submit", submit)
 
 	err := http.ListenAndServe(":4444", nil)
 	if err != nil {
