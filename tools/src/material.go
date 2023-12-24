@@ -12,26 +12,17 @@ import (
 
 type Material struct {
 	ID           int    `json:"id"`
+	CommonName   string `json:"commonName"`
+	CssClassName string `json:"cssClassName"`
+	Walkable     bool   `json:"walkable"`
 	R            int    `json:"R"`
 	G            int    `json:"G"`
 	B            int    `json:"B"`
-	CssClassName string `json:"cssClassName"`
-	CommonName   string `json:"commonName"`
 }
 
-var materials []Material
+var R, G, B int
 
 func getMaterialPage(w http.ResponseWriter, r *http.Request) {
-	jsonData, err := os.ReadFile("./tools/level/data/materials.json")
-	if err != nil {
-		panic(err)
-	}
-
-	// Parse the JSON data.
-	if err := json.Unmarshal(jsonData, &materials); err != nil {
-		panic(err)
-	}
-
 	io.WriteString(w, materialPageHTML())
 }
 
@@ -55,46 +46,79 @@ func materialPageHTML() string {
 		<div id="selectedMaterial">
 		</div>
 	</div>
-	<button class="btn" hx-post="/submit" hx-target="#page">Output changes</button>`
+	<button class="btn" hx-post="/submit" hx-target="#panel">Output changes</button>`
 	return output
+}
+
+func exampleSquare(w http.ResponseWriter, r *http.Request) {
+	red, err := strconv.Atoi(r.URL.Query().Get("R"))
+	if err != nil {
+		red = R
+	} else {
+		R = red
+	}
+
+	green, err := strconv.Atoi(r.URL.Query().Get("G"))
+	if err != nil {
+		green = G
+	} else {
+		G = green
+	}
+
+	blue, err := strconv.Atoi(r.URL.Query().Get("B"))
+	if err != nil {
+		blue = B
+	} else {
+		B = blue
+	}
+
+	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square" style="background-color:rgb(%d,%d,%d)"></div></div>`, red, green, blue)
+	io.WriteString(w, output)
 }
 
 func getMaterial(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
-	id := queryValues.Get("materialId")
+	id, _ := strconv.Atoi(queryValues.Get("materialId"))
 
-	fmt.Printf("Received id: %s", id)
+	fmt.Printf("Received id: %d", id)
 
-	output := ""
-	for _, material := range materials {
-		if id, _ := strconv.Atoi(id); id == material.ID {
-			editForm := `
-			<form hx-put="/materialEdit" hx-target="#page">
-			<div>
+	material := materials[id]
+	R = material.R
+	G = material.G
+	B = material.B
+	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square" style="background-color:rgb(%d,%d,%d)"></div></div>`, R, G, B)
 
-				<label>Name: (ID: %d)</label>
-				<input type="text" name="CommonName" value="%s">
-			</div>
-			<div>
-				<label>Class Name: </label>
-				<input type="text" name="CssClassName" value="%s">
-			</div>
-			<div>
-				<label>R: </label>
-				<input type="text" name="R" value="%d">
-				<label>G: </label>
-				<input type="text" name="G" value="%d">
-				<label>B: </label>
-				<input type="text" name="B" value="%d">
-			</div>
-			<input type="hidden" name="materialId" value="%d">
-			<button class="btn">Save</button>
-			</form>
-			`
-			output += fmt.Sprintf(editForm, id, material.CommonName, material.CssClassName,
-				material.R, material.G, material.B, id)
-		}
+	walkableIndicator := ""
+	if material.Walkable {
+		walkableIndicator = "checked"
 	}
+
+	editForm := `
+	<form hx-put="/materialEdit" hx-target="#panel">
+	<div>
+		<label>Name: (ID: %d)</label>
+		<input type="text" name="CommonName" value="%s">
+	</div>
+	<div>
+		<label>Class Name: </label>
+		<input type="text" name="CssClassName" value="%s">
+	</div>
+	<div>
+		<label>R: </label>
+		<input hx-get="/exampleSquare" hx-trigger="change" hx-target="#exampleSquare" type="text" name="R" value="%d">
+		<label>G: </label>
+		<input hx-get="/exampleSquare" hx-trigger="change" hx-target="#exampleSquare" type="text" name="G" value="%d">
+		<label>B: </label>
+		<input hx-get="/exampleSquare" hx-trigger="change" hx-target="#exampleSquare" type="text" name="B" value="%d">
+	</div>
+	<input type="hidden" name="materialId" value="%d">
+	<input type="checkbox" name="walkable" %s>
+	<button class="btn">Save</button>
+	</form>
+	`
+	output += fmt.Sprintf(editForm, id, material.CommonName, material.CssClassName,
+		material.R, material.G, material.B, id, walkableIndicator)
+
 	io.WriteString(w, output)
 }
 
@@ -109,27 +133,22 @@ func stringToPropertyMap(body string) map[string]string {
 }
 
 func materialEdit(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		fmt.Printf("Error reading body: %v", err)
-		return
-	}
-
-	bodyS := string(body[:])
-	properties := stringToPropertyMap(bodyS)
+	properties, _ := requestToProperties(r)
 	materialId, _ := strconv.Atoi(properties["materialId"])
 	commonName := properties["CommonName"]
 	cssClass := properties["CssClassName"]
+	walkable := properties["walkable"]
 	red, _ := strconv.Atoi(properties["R"])
 	green, _ := strconv.Atoi(properties["G"])
 	blue, _ := strconv.Atoi(properties["B"])
 
-	fmt.Printf("%d %s %s %d %d %d\n\n", materialId, commonName, cssClass, red, green, blue)
+	fmt.Printf("%d %s %s %d %d %d\n%s\n", materialId, commonName, cssClass, red, green, blue, walkable)
 
 	for i, _ := range materials {
 		if materials[i].ID == materialId {
 			materials[i].CommonName = commonName
 			materials[i].CssClassName = cssClass
+			materials[i].Walkable = (walkable == "on")
 			materials[i].R = red
 			materials[i].G = green
 			materials[i].B = blue
@@ -139,25 +158,18 @@ func materialEdit(w http.ResponseWriter, r *http.Request) {
 }
 
 func materialNew(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		fmt.Printf("Error reading body: %v", err)
-		return
-	}
-
-	bodyS := string(body[:])
-	fmt.Println(bodyS)
-	properties := stringToPropertyMap(bodyS)
-	materialId, _ := strconv.Atoi(properties["materialId"])
+	properties, _ := requestToProperties(r)
+	materialId := len(materials)
 	commonName := properties["CommonName"]
+	walkable := (properties["walkable"] == "on")
 	cssClass := properties["CssClassName"]
 	red, _ := strconv.Atoi(properties["R"])
 	green, _ := strconv.Atoi(properties["G"])
 	blue, _ := strconv.Atoi(properties["B"])
 
-	fmt.Printf("%d %s %s %d %d %d\n\n", materialId, commonName, cssClass, red, green, blue)
+	fmt.Printf("%d %s %s %d %d %d\n%s\n", materialId, commonName, cssClass, red, green, blue, properties["walkable"])
 
-	material := Material{ID: materialId, R: red, G: green, B: blue, CssClassName: cssClass, CommonName: commonName}
+	material := Material{ID: materialId, R: red, G: green, B: blue, CssClassName: cssClass, CommonName: commonName, Walkable: walkable}
 
 	materials = append(materials, material)
 	io.WriteString(w, materialPageHTML())
@@ -165,11 +177,7 @@ func materialNew(w http.ResponseWriter, r *http.Request) {
 
 func newMaterialForm(w http.ResponseWriter, r *http.Request) {
 	newForm := `
-	<form hx-post="/materialNew" hx-target="#page">
-	<div>
-		<label>ID: </label>
-		<input type="text" name="materialId" value="">
-	</div>
+	<form hx-post="/materialNew" hx-target="#panel">
 	<div>
 		<label>Name: </label>
 		<input type="text" name="CommonName" value="">
@@ -205,20 +213,17 @@ func submit(w http.ResponseWriter, r *http.Request) {
 }
 
 func WriteMaterialsToFile() error {
-	// Serialize the materials slice to JSON
 	data, err := json.Marshal(materials)
 	if err != nil {
 		return fmt.Errorf("error marshalling materials: %w", err)
 	}
 
-	// Create and open a file
 	file, err := os.Create("./tools/level/data/materials.json")
 	if err != nil {
 		return fmt.Errorf("error creating file: %w", err)
 	}
 	defer file.Close()
 
-	// Write the JSON data to the file
 	_, err = file.Write(data)
 	if err != nil {
 		return fmt.Errorf("error writing to file: %w", err)
@@ -228,26 +233,12 @@ func WriteMaterialsToFile() error {
 }
 
 func createCSSFile() {
-	// Read the JSON file.
-	/*jsonData, err := os.ReadFile("materials.json")
-	if err != nil {
-		panic(err)
-	}*/
-
-	// Parse the JSON data.
-	//var materials []Material
-	/*if err := json.Unmarshal(jsonData, &materials); err != nil {
-		panic(err)
-	}*/
-
-	// Open the CSS file for writing.
-	cssFile, err := os.Create("./tools/level/data/materials.css")
+	cssFile, err := os.Create("./tools/level/assets/materials.css")
 	if err != nil {
 		panic(err)
 	}
 	defer cssFile.Close()
 
-	// Write CSS rules for each material.
 	for _, material := range materials {
 		cssRule := fmt.Sprintf(".%s {\n    background-color: rgb(%d, %d, %d);\n}\n\n", material.CssClassName, material.R, material.G, material.B)
 		_, err := cssFile.WriteString(cssRule)

@@ -28,6 +28,7 @@ Note that only floating screen left and no style for chat is better but still no
     cursor: pointer;
   }
   
+  /*
   .red {
     background-color: rgb(212, 52, 69);
   }
@@ -53,7 +54,7 @@ Note that only floating screen left and no style for chat is better but still no
     display: flex;
     justify-content: space-around;
     padding: 10px;
-}*/
+}
 
 .color-box {
     display: inline-block;
@@ -67,7 +68,7 @@ Note that only floating screen left and no style for chat is better but still no
 .color-selector input[type="radio"] {
   display: none;
 } 
-*/
+
 .color-selector input[type="radio"] + label {
   display: inline-block;
   width: 30px;
@@ -75,3 +76,4 @@ Note that only floating screen left and no style for chat is better but still no
   border: 1px solid #30a0f0;
   cursor: pointer;
 }
+*/
