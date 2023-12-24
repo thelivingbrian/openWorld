@@ -11,10 +11,14 @@
 }
 
 .water {
-    background-color: rgb(155, 155, 220);
+    background-color: rgb(0, 15, 250);
 }
 
 .sand {
     background-color: rgb(250, 245, 175);
+}
+
+.ice {
+    background-color: rgb(225, 240, 255);
 }
 
