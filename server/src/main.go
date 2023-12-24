@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+
+	"github.com/gorilla/websocket"
 )
 
 var (
@@ -21,15 +23,29 @@ func main() {
 
 	http.HandleFunc("/signin", postSignin)
 
-	http.HandleFunc("/hello", getHello)
-	http.HandleFunc("/bye", getBye)
 	http.HandleFunc("/w", postMovement(moveNorth))
 	http.HandleFunc("/s", postMovement(moveSouth))
 	http.HandleFunc("/a", postMovement(moveWest))
 	http.HandleFunc("/d", postMovement(moveEast))
-	http.HandleFunc("/screen", postPlayerScreen)
+	//http.HandleFunc("/screen", postPlayerScreen)
 	http.HandleFunc("/spaceOn", postSpaceOn)
 	http.HandleFunc("/spaceOff", postSpaceOff)
+
+	http.HandleFunc("/screen", ws_screen)
+	http.HandleFunc("/chat", ws_chat)
+
+	go func() {
+		for {
+			message := <-broadcast
+			sendMessageToAll(websocket.TextMessage, []byte(message))
+		}
+	}()
+	go func() {
+		for {
+			update := <-updates
+			sendUpdate(websocket.TextMessage, update)
+		}
+	}()
 
 	err := http.ListenAndServe(":9090", nil)
 	if err != nil {

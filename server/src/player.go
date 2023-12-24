@@ -2,17 +2,19 @@ package main
 
 import (
 	"strconv"
+
+	"github.com/gorilla/websocket"
 )
 
 type Player struct {
-	id          string
-	stage       *Stage
-	stageName   string
-	viewIsDirty bool
-	x           int
-	y           int
-	actions     *Actions
-	health      int
+	id        string
+	stage     *Stage
+	stageName string
+	conn      *websocket.Conn
+	x         int
+	y         int
+	actions   *Actions
+	health    int
 }
 
 type Actions struct {
@@ -26,19 +28,36 @@ func (player *Player) isAlive() bool {
 func printPageHeaderFor(player *Player) string {
 	return `
 	<div id="page">
-    <div id="controls">      
-		<input hx-post="/w" hx-trigger="keydown[key=='w'] from:body" type="hidden" name="token" value="` + player.id + `" />
-		<input hx-post="/s" hx-trigger="keydown[key=='s'] from:body" type="hidden" name="token" value="` + player.id + `" />
-		<input hx-post="/a" hx-trigger="keydown[key=='a'] from:body" type="hidden" name="token" value="` + player.id + `" />
-		<input hx-post="/d" hx-trigger="keydown[key=='d'] from:body" type="hidden" name="token" value="` + player.id + `" />
-		<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="` + player.id + `" />
-		<input hx-post="/spaceOff" hx-trigger="keyup[key==' '] from:body" hx-target="#spaceOn" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />	
-		<input id="tick" hx-post="/screen" hx-trigger="every 20ms" hx-target="#tick" hx-swap="innerHTML" type="hidden" name="token" value="` + player.id + `" />
-	</div>
-    <div id="screen" class="grid">
-			
-	</div>
+		<div id="controls">      
+			<input hx-post="/w" hx-trigger="keydown[key=='w'] from:body" type="hidden" name="token" value="` + player.id + `" />
+			<input hx-post="/s" hx-trigger="keydown[key=='s'] from:body" type="hidden" name="token" value="` + player.id + `" />
+			<input hx-post="/a" hx-trigger="keydown[key=='a'] from:body" type="hidden" name="token" value="` + player.id + `" />
+			<input hx-post="/d" hx-trigger="keydown[key=='d'] from:body" type="hidden" name="token" value="` + player.id + `" />
+			<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="` + player.id + `" />
+			<input hx-post="/spaceOff" hx-trigger="keyup[key==' '] from:body" hx-target="#spaceOn" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />	
+			<input id="tick" hx-ext="ws" ws-connect="/screen" ws-send hx-swap="innerHTML" hx-trigger="load once"type="hidden" name="token" value="` + player.id + `" />
+		</div>
+		<div id="screen" class="grid">
+				
+		</div>
+		<div id="chat" hx-ext="ws" ws-connect="/chat">
+			<form id="form" ws-send hx-swap="outerHTML" hx-target="#msg">
+				<input type="hidden" name="token" value="` + player.id + `">
+				<input id="msg" type="text" name="chat_message" value="">
+			</form>
+			<div id="chat_room">
+				
+			</div>
+		</div>
 	</div>`
+}
+
+func placeOnStage(p *Player) {
+	x := p.x
+	y := p.y
+	p.stage.tiles[y][x].playerMap[p.id] = p
+	p.stage.playerMap[p.id] = p
+	p.stage.markAllDirty()
 }
 
 func htmlFromColorMatrix(matrix [][]string) string {
@@ -98,7 +117,7 @@ func livingView(player *Player) string {
 	return output
 }
 
-func printStageFor(player *Player) string {
+func updateScreen(player *Player) {
 	var output string = `
 	<div id="screen" class="grid" hx-swap-oob="true">	
 	`
@@ -112,11 +131,11 @@ func printStageFor(player *Player) string {
 		player.stage = clinic
 		player.x = 2
 		player.y = 2
-		clinic.placeOnStage(player)
+		placeOnStage(player)
 		output += livingView(player)
 	}
 
 	output += `</div>`
-	player.viewIsDirty = false
-	return output
+
+	updates <- Update{player, output}
 }

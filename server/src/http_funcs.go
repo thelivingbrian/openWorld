@@ -32,14 +32,13 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("New Player")
 		actions := Actions{false}
 		newPlayer := &Player{
-			id:          token,
-			stage:       nil,
-			stageName:   stage,
-			viewIsDirty: true,
-			x:           2,
-			y:           2,
-			actions:     &actions,
-			health:      100,
+			id:        token,
+			stage:     nil,
+			stageName: stage,
+			x:         2,
+			y:         2,
+			actions:   &actions,
+			health:    100,
 		}
 
 		playerMutex.Lock()
@@ -63,9 +62,8 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 	stageMutex.Unlock()
 
 	existingPlayer.stage = existingStage
-	existingStage.placeOnStage(existingPlayer)
 
-	fmt.Println("Printing Stage")
+	fmt.Println("Printing Page Headers")
 	io.WriteString(w, printPageHeaderFor(existingPlayer))
 }
 
@@ -104,7 +102,7 @@ func postSpaceOn(w http.ResponseWriter, r *http.Request) {
 	existingPlayer, success := playerFromRequest(r)
 	if success {
 		existingPlayer.actions.space = true
-		existingPlayer.viewIsDirty = true
+		updateScreen(existingPlayer)
 	} else {
 		io.WriteString(w, "")
 	}
@@ -114,45 +112,10 @@ func postSpaceOff(w http.ResponseWriter, r *http.Request) {
 	existingPlayer, success := playerFromRequest(r)
 	if success {
 		existingPlayer.actions.space = false
-		existingPlayer.viewIsDirty = true
+		updateScreen(existingPlayer)
 		existingPlayer.stage.damageAt(applyRelativeDistance(existingPlayer.y, existingPlayer.x, x()))
 		io.WriteString(w, `<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="`+existingPlayer.id+`" />`)
 	} else {
 		io.WriteString(w, "")
 	}
-}
-
-func postPlayerScreen(w http.ResponseWriter, r *http.Request) {
-	existingPlayer, success := playerFromRequest(r)
-	if !success {
-		panic(0) // Handle this gracefully
-	}
-	if existingPlayer.viewIsDirty {
-		io.WriteString(w, printStageFor(existingPlayer))
-	} else {
-		io.WriteString(w, "")
-	}
-}
-
-func getHello(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("got /hello request\n")
-	fmt.Printf(r.Method)
-	button := `<button hx-post="/bye"
-                        hx-trigger="click, keyup[key=='Alt'] from:body"
-                        hx-target="#parent-div"
-                        hx-swap="innerHTML">
-                        Goodbye!
-                 </button>`
-	io.WriteString(w, button)
-}
-
-func getBye(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("got /bye request\n")
-	button := `<button hx-post="/hello"
-        hx-trigger="click, keyup[key=='Alt'] from:body"
-        hx-target="#parent-div"
-        hx-swap="innerHTML">
-        Hello!
- </button>`
-	io.WriteString(w, button)
 }

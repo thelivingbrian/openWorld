@@ -1,23 +1,20 @@
 package main
 
+import (
+	"fmt"
+	"sync"
+)
+
 type Stage struct {
-	tiles   [][]Tile
-	players []*Player // Should this also be 2d array? (Probably no, mutex lock for each movement, although delete mildly faster. Current delete from stage already O(1))
-	name    string
-}
-
-func (stage *Stage) placeOnStage(p *Player) {
-	x := p.x
-	y := p.y
-	stage.tiles[y][x].playerMap[p.id] = p
-	stage.players = append(stage.players, p)
-	stage.markAllDirty()
-
+	tiles       [][]Tile
+	playerMap   map[string]*Player
+	playerMutex sync.Mutex
+	name        string
 }
 
 func (stage *Stage) markAllDirty() {
-	for _, player := range stage.players {
-		player.viewIsDirty = true
+	for _, player := range stage.playerMap {
+		updateScreen(player)
 	}
 }
 
@@ -26,8 +23,11 @@ func moveNorth(stage *Stage, p *Player) {
 	y := p.y
 	nextTile := &stage.tiles[y-1][x]
 	if walkable(nextTile) {
-		delete(stage.tiles[y][x].playerMap, p.id)
-		nextTile.playerMap[p.id] = p
+		currentTile := &stage.tiles[y][x]
+		currentTile.removePlayer(p.id)
+
+		nextTile.addPlayer(p)
+
 		p.y = y - 1
 		stage.markAllDirty()
 	} else {
@@ -41,8 +41,11 @@ func moveSouth(stage *Stage, p *Player) {
 
 	nextTile := &stage.tiles[y+1][x]
 	if walkable(nextTile) {
-		delete(stage.tiles[y][x].playerMap, p.id)
-		nextTile.playerMap[p.id] = p
+		currentTile := &stage.tiles[y][x]
+		currentTile.removePlayer(p.id)
+
+		nextTile.addPlayer(p)
+
 		p.y = y + 1
 		stage.markAllDirty()
 	} else {
@@ -55,8 +58,11 @@ func moveEast(stage *Stage, p *Player) {
 	y := p.y
 	nextTile := &stage.tiles[y][x+1]
 	if walkable(nextTile) {
-		delete(stage.tiles[y][x].playerMap, p.id)
-		nextTile.playerMap[p.id] = p
+		currentTile := &stage.tiles[y][x]
+		currentTile.removePlayer(p.id)
+
+		nextTile.addPlayer(p)
+
 		p.x = x + 1
 		stage.markAllDirty()
 	} else {
@@ -69,8 +75,11 @@ func moveWest(stage *Stage, p *Player) {
 	y := p.y
 	nextTile := &stage.tiles[y][x-1]
 	if walkable(nextTile) {
-		delete(stage.tiles[y][x].playerMap, p.id)
-		nextTile.playerMap[p.id] = p
+		currentTile := &stage.tiles[y][x]
+		currentTile.removePlayer(p.id)
+
+		nextTile.addPlayer(p)
+
 		p.x = x - 1
 		stage.markAllDirty()
 	} else {
@@ -80,20 +89,32 @@ func moveWest(stage *Stage, p *Player) {
 
 func (stage *Stage) damageAt(coords [][2]int) {
 	for _, pair := range coords {
-		for i, player := range stage.players {
+		for _, player := range stage.playerMap {
 			if pair[0] == player.y && pair[1] == player.x {
 				player.health += -50
-				player.viewIsDirty = true
 				if !player.isAlive() {
-					delete(stage.tiles[pair[0]][pair[1]].playerMap, player.id)
-					stage.removePlayerAtIndex(i)
+					fmt.Println(player.id + " has died")
+
+					deadPlayerTile := &stage.tiles[pair[0]][pair[1]]
+					deadPlayerTile.playerMutex.Lock() // break into function, no high level mutexing(?)
+					delete(deadPlayerTile.playerMap, player.id)
+					deadPlayerTile.playerMutex.Unlock()
+
+					stage.playerMutex.Lock()
+					delete(stage.playerMap, player.id)
+					stage.playerMutex.Unlock()
+
+					stage.markAllDirty()
+					updateScreen(player)
 				}
 			}
 		}
 	}
 }
 
+/*
 func (stage *Stage) removePlayerAtIndex(i int) {
+	playerMutex.Lock()
 	highestIndex := len(stage.players) - 1
 	if highestIndex > 0 {
 		stage.players[i] = stage.players[highestIndex]
@@ -101,7 +122,9 @@ func (stage *Stage) removePlayerAtIndex(i int) {
 	} else {
 		delete(stageMap, stage.name)
 	}
+	playerMutex.Unlock()
 }
+*/
 
 func getStageByName(name string) *Stage {
 	stageMutex.Lock()
@@ -129,6 +152,8 @@ func createBigEmptyStage() Stage {
 			{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
 			{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
 		},
+		playerMap:   make(map[string]*Player),
+		playerMutex: sync.Mutex{},
 	}
 }
 
@@ -142,7 +167,9 @@ func createStageByName(name string) Stage {
 				{newTile(0), newTile(52), newTile(51), newTile(51), newTile(51), newTile(0)},
 				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
 			},
-			name: "greenX",
+			name:        "greenX",
+			playerMap:   make(map[string]*Player),
+			playerMutex: sync.Mutex{},
 		}
 	}
 	if name == "big" {
@@ -159,7 +186,9 @@ func createStageByName(name string) Stage {
 				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
 				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
 			},
-			name: "big",
+			name:        "big",
+			playerMap:   make(map[string]*Player),
+			playerMutex: sync.Mutex{},
 		}
 	}
 	if name == "clinic" {
@@ -180,7 +209,9 @@ func createStageByName(name string) Stage {
 				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
 				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
 			},
-			name: "clinic",
+			name:        "clinic",
+			playerMap:   make(map[string]*Player),
+			playerMutex: sync.Mutex{},
 		}
 	}
 	return createBigEmptyStage()

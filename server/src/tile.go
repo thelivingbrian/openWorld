@@ -7,7 +7,7 @@ import (
 type Tile struct {
 	material    int
 	playerMap   map[string]*Player
-	playerMutex sync.Mutex // Currently unused. Probably important?
+	playerMutex sync.Mutex
 	// Items and coords?
 }
 
@@ -35,4 +35,16 @@ func newTile(mat int) Tile {
 
 func walkable(tile *Tile) bool {
 	return tile.material > 50
+}
+
+func (tile *Tile) removePlayer(playerId string) {
+	tile.playerMutex.Lock()
+	delete(tile.playerMap, playerId)
+	tile.playerMutex.Unlock()
+}
+
+func (tile *Tile) addPlayer(player *Player) {
+	tile.playerMutex.Lock()
+	tile.playerMap[player.id] = player
+	tile.playerMutex.Unlock()
 }
