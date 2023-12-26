@@ -27,13 +27,10 @@ var selectedMaterial Material
 var modifications [][]Material
 
 func saveArea(w http.ResponseWriter, r *http.Request) {
-	// Get the Area info
 	properties, _ := requestToProperties(r)
 	name := properties["areaName"]
-	fmt.Println(name)
 	safe := (properties["safe"] == "on")
-	fmt.Println(safe)
-	// Iterate through modifications and add all tiles
+
 	if len(modifications) == 0 {
 		return
 	}
@@ -47,7 +44,10 @@ func saveArea(w http.ResponseWriter, r *http.Request) {
 	}
 
 	area := Area{Name: name, Safe: safe, Tiles: tiles, Transport: nil}
-	data, err := json.Marshal(area)
+
+	areas = append(areas, area)
+
+	data, err := json.Marshal(areas)
 	if err != nil {
 		return
 	}
@@ -78,6 +78,20 @@ func getAreaPage(w http.ResponseWriter, r *http.Request) {
 			</div>
 		</form>
 	</div>`
+	io.WriteString(w, output)
+}
+
+func getEditAreaPage(w http.ResponseWriter, r *http.Request) {
+	output := `
+	<div>
+		<label>Materials</label>
+		<select name="materialId">
+			<option value="">--</option>
+	`
+	for _, area := range areas {
+		output += fmt.Sprintf(`<option value="%s">%s</option>`, area.Name, area.Name)
+	}
+	output += "</select></div>"
 	io.WriteString(w, output)
 }
 
@@ -158,7 +172,7 @@ func createGrid(w http.ResponseWriter, r *http.Request) {
 		output += fmt.Sprintf(`<div class="grid-square %s></div>`, selectedMaterial.CssClassName)
 	}
 
-	output += `</div></div></div>`
+	output += `</div></div></div>` // Too many /div?
 	io.WriteString(w, output)
 
 }
@@ -202,10 +216,4 @@ func selectColor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	io.WriteString(w, fmt.Sprintf(`<div class="grid-square %s"></div>`, selectedMaterial.CssClassName))
-}
-
-type ColorData struct {
-	color string
-	y     int
-	x     int
 }

@@ -8,12 +8,13 @@ import (
 )
 
 var materials []Material
+var areas []Area
 
 func getLevel(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./tools/level")
 }
 
-func populateJson() {
+func populateMaterialsFromJson() {
 	jsonData, err := os.ReadFile("./tools/level/data/materials.json")
 	if err != nil {
 		panic(err)
@@ -23,14 +24,30 @@ func populateJson() {
 		panic(err)
 	}
 
-	fmt.Println("Got Materials")
-	fmt.Println(materials[0].CommonName)
+	fmt.Printf("Loaded %d material(s).\n", len(materials))
+}
 
+func populateAreasFromJson() {
+	jsonData, err := os.ReadFile("./tools/level/data/areas.json")
+	if err != nil {
+		panic(err)
+	}
+
+	if err := json.Unmarshal(jsonData, &areas); err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Loaded %d area(s).\n", len(areas))
+}
+
+func populateFromJson() {
+	populateMaterialsFromJson()
+	populateAreasFromJson()
 }
 
 func main() {
 	fmt.Println("Attempting to start server...")
-	populateJson()
+	populateFromJson()
 
 	http.HandleFunc("/level/", getLevel)
 	http.Handle("/level/assets/", http.StripPrefix("/level/assets/", http.FileServer(http.Dir("./tools/level/assets"))))
@@ -48,6 +65,7 @@ func main() {
 	http.HandleFunc("/select", selectColor)
 	http.HandleFunc("/exampleSquare", exampleSquare)
 	http.HandleFunc("/saveArea", saveArea)
+	http.HandleFunc("/editAreaPage", getEditAreaPage)
 
 	err := http.ListenAndServe(":4444", nil)
 	if err != nil {
