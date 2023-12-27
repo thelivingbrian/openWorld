@@ -19,7 +19,7 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bodyS := string(body[:])
+	bodyS := string(body[:]) // Use property-ifier
 	input := strings.Split(bodyS, "&")
 	token := strings.Split(input[0], "=")[1]
 	stage := strings.Split(input[1], "=")[1]
@@ -54,7 +54,7 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 	existingStage, stageExists := stageMap[existingStageName]
 	if !stageExists {
 		fmt.Println("New Stage")
-		newStage := createStageByName(stage)
+		newStage := stageFromArea(stage)
 		stagePtr := &newStage
 		stageMap[existingStageName] = stagePtr
 		existingStage = stagePtr

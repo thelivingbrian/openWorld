@@ -18,6 +18,7 @@ var (
 func main() {
 	fmt.Println("Loading data...")
 	// Load areas and materials
+	loadFromJson()
 
 	fmt.Println("Establishing Routes...")
 	http.HandleFunc("/home/", getIndex)

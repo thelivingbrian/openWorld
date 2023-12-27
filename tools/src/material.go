@@ -112,6 +112,7 @@ func getMaterial(w http.ResponseWriter, r *http.Request) {
 		<input hx-get="/exampleSquare" hx-trigger="change" hx-target="#exampleSquare" type="text" name="B" value="%d">
 	</div>
 	<input type="hidden" name="materialId" value="%d">
+	<label>Walkable: </label>
 	<input type="checkbox" name="walkable" %s>
 	<button class="btn">Save</button>
 	</form>
