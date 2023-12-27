@@ -5,7 +5,7 @@ import (
 )
 
 type Tile struct {
-	material    int
+	material    Material
 	playerMap   map[string]*Player
 	playerMutex sync.Mutex
 	// Items and coords?
@@ -15,10 +15,8 @@ func colorOf(tile *Tile) string {
 	if len(tile.playerMap) > 0 {
 		return "blue"
 	}
-	if tile.material == 0 {
-		return "half-gray"
-	}
-	return ""
+
+	return tile.material.CssClassName
 }
 
 func colorArray(row []Tile) []string {
@@ -29,12 +27,12 @@ func colorArray(row []Tile) []string {
 	return output
 }
 
-func newTile(mat int) Tile {
+func newTile(mat Material) Tile {
 	return Tile{mat, make(map[string]*Player), sync.Mutex{}}
 }
 
 func walkable(tile *Tile) bool {
-	return tile.material > 50
+	return tile.material.Walkable
 }
 
 func (tile *Tile) removePlayer(playerId string) {

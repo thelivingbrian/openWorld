@@ -89,7 +89,7 @@ func moveWest(stage *Stage, p *Player) {
 
 func (stage *Stage) damageAt(coords [][2]int) {
 	for _, pair := range coords {
-		for _, player := range stage.playerMap {
+		for _, player := range stage.playerMap { // This is really stupid right? The tile has a playermap?
 			if pair[0] == player.y && pair[1] == player.x {
 				player.health += -50
 				if !player.isAlive() {
@@ -112,107 +112,7 @@ func (stage *Stage) damageAt(coords [][2]int) {
 	}
 }
 
-/*
-func (stage *Stage) removePlayerAtIndex(i int) {
-	playerMutex.Lock()
-	highestIndex := len(stage.players) - 1
-	if highestIndex > 0 {
-		stage.players[i] = stage.players[highestIndex]
-		stage.players = stage.players[:highestIndex]
-	} else {
-		delete(stageMap, stage.name)
-	}
-	playerMutex.Unlock()
-}
-*/
-
-func getStageByName(name string) *Stage {
-	stageMutex.Lock()
-	existingStage, stageExists := stageMap[name]
-	if !stageExists {
-		newStage := createStageByName(name)
-		stagePtr := &newStage
-		stageMap[name] = stagePtr
-		existingStage = stagePtr
-	}
-	stageMutex.Unlock()
-	return existingStage
-}
-
 func getClinic() *Stage {
-	return getStageByName("clinic")
-}
-
-func createBigEmptyStage() Stage {
-	return Stage{
-		tiles: [][]Tile{
-			{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
-			{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-			{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-			{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-			{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
-		},
-		playerMap:   make(map[string]*Player),
-		playerMutex: sync.Mutex{},
-	}
-}
-
-func createStageByName(name string) Stage {
-	if name == "greenX" {
-		return Stage{
-			tiles: [][]Tile{
-				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(52), newTile(0)},
-				{newTile(0), newTile(51), newTile(52), newTile(52), newTile(51), newTile(0)},
-				{newTile(0), newTile(52), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
-			},
-			name:        "greenX",
-			playerMap:   make(map[string]*Player),
-			playerMutex: sync.Mutex{},
-		}
-	}
-	if name == "big" {
-		return Stage{
-			tiles: [][]Tile{
-				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
-			},
-			name:        "big",
-			playerMap:   make(map[string]*Player),
-			playerMutex: sync.Mutex{},
-		}
-	}
-	if name == "clinic" {
-		return Stage{
-			tiles: [][]Tile{
-				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0), newTile(0), newTile(0), newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(51), newTile(0)},
-				{newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0), newTile(0)},
-			},
-			name:        "clinic",
-			playerMap:   make(map[string]*Player),
-			playerMutex: sync.Mutex{},
-		}
-	}
-	return createBigEmptyStage()
+	clinic := stageFromArea("clinic")
+	return &clinic
 }

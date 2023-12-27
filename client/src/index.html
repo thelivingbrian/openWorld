@@ -1,8 +1,9 @@
 <script src="assets/htmx-199.min.js"></script>
 <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
 <link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/materials.css">
 <body>
-    <div id="page" hx-get="/home" hx-target="#page" hx-trigger="htmx:wsClose">
+    <div id="page">
         <div id="controls">
             <form hx-post="/signin" hx-target="#page" hx-swap="outerHTML">
                 <div>

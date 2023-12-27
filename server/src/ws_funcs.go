@@ -25,7 +25,6 @@ var upgrader = websocket.Upgrader{
 
 type client struct {
 	conn *websocket.Conn
-	//send chan string
 }
 
 type Update struct {
@@ -55,7 +54,6 @@ func ws_chat(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Println(err)
 			delete(clients, newClient)
-			//close(newClient.send)
 			return
 		}
 
@@ -134,10 +132,8 @@ func ws_screen(w http.ResponseWriter, r *http.Request) {
 			}
 
 			fmt.Println("new screen" + existingPlayer.id)
-
 		}
 	} else {
 		fmt.Println("player not found with token: " + token)
-
 	}
 }

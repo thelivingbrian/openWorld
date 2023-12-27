@@ -1,0 +1,16 @@
+{
+    "name": "forest",
+    "safe": false, 
+    "tiles": [
+        [51, 51, 51, 51],
+        [51, 0, 0, 51],
+        [51, 0, 0, 51],
+        [51, 51, 51, 51]
+    ],
+    "transport" : [{
+        "materialId": 72,
+        "destY": 2,
+        "destX": 2,
+        "destStage": "woods01"
+    }]
+}
