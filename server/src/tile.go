@@ -61,7 +61,7 @@ func (tile *Tile) addPlayer(player *Player) {
 		existingStage, stageExists := stageMap[player.stageName]
 		if !stageExists {
 			fmt.Println("New Stage")
-			newStage := stageFromArea(player.stageName)
+			newStage := createStageByName(player.stageName)
 			stagePtr := &newStage
 			stageMap[player.stageName] = stagePtr
 			existingStage = stagePtr

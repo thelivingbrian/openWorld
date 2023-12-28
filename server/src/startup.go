@@ -65,7 +65,7 @@ func areaFromName(s string) Area {
 	panic("Area not found")
 }
 
-func stageFromArea(s string) Stage {
+func createStageByName(s string) Stage {
 	area := areaFromName(s)
 	tiles := make([][]Tile, len(area.Tiles))
 	for y := range tiles {

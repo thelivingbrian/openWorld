@@ -54,7 +54,7 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 	existingStage, stageExists := stageMap[existingStageName]
 	if !stageExists {
 		fmt.Println("New Stage")
-		newStage := stageFromArea(existingStageName)
+		newStage := createStageByName(existingStageName)
 		stagePtr := &newStage
 		stageMap[existingStageName] = stagePtr
 		existingStage = stagePtr
@@ -87,14 +87,13 @@ func playerFromRequest(r *http.Request) (*Player, bool) {
 	return existingPlayer, true
 }
 
-func postMovement(f func(*Stage, *Player)) func(w http.ResponseWriter, r *http.Request) {
+func postMovement(f func(*Player)) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		existingPlayer, success := playerFromRequest(r)
 		if !success {
 			panic(0)
 		}
-		currentStage := existingPlayer.stage // Is stage ever nil?
-		f(currentStage, existingPlayer)
+		f(existingPlayer)
 	}
 }
 

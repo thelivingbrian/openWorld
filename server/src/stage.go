@@ -42,19 +42,19 @@ func move(p *Player, yOffset int, xOffset int) {
 	}
 }
 
-func moveNorth(stage *Stage, p *Player) {
+func moveNorth(p *Player) {
 	move(p, -1, 0)
 }
 
-func moveSouth(stage *Stage, p *Player) {
+func moveSouth(p *Player) {
 	move(p, 1, 0)
 }
 
-func moveEast(stage *Stage, p *Player) {
+func moveEast(p *Player) {
 	move(p, 0, 1)
 }
 
-func moveWest(stage *Stage, p *Player) {
+func moveWest(p *Player) {
 	move(p, 0, -1)
 }
 
@@ -83,7 +83,19 @@ func (stage *Stage) damageAt(coords [][2]int) {
 	}
 }
 
+func getStageByName(name string) *Stage {
+	stageMutex.Lock()
+	existingStage, stageExists := stageMap[name]
+	if !stageExists {
+		newStage := createStageByName(name)
+		stagePtr := &newStage
+		stageMap[name] = stagePtr
+		existingStage = stagePtr
+	}
+	stageMutex.Unlock()
+	return existingStage
+}
+
 func getClinic() *Stage {
-	clinic := stageFromArea("clinic")
-	return &clinic
+	return getStageByName("clinic")
 }
