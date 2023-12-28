@@ -54,7 +54,7 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 	existingStage, stageExists := stageMap[existingStageName]
 	if !stageExists {
 		fmt.Println("New Stage")
-		newStage := stageFromArea(stage)
+		newStage := stageFromArea(existingStageName)
 		stagePtr := &newStage
 		stageMap[existingStageName] = stagePtr
 		existingStage = stagePtr

@@ -17,10 +17,10 @@ type Transport struct {
 }
 
 type Area struct {
-	Name      string      `json:"name"`
-	Safe      bool        `json:"safe"`
-	Tiles     [][]int     `json:"tiles"`
-	Transport []Transport `json:"transport"`
+	Name       string      `json:"name"`
+	Safe       bool        `json:"safe"`
+	Tiles      [][]int     `json:"tiles"`
+	Transports []Transport `json:"transports"`
 }
 
 var selectedMaterial Material
@@ -36,14 +36,14 @@ func saveArea(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tiles := make([][]int, len(modifications))
-	for y, _ := range modifications {
+	for y := range modifications {
 		tiles[y] = make([]int, len(modifications[y]))
 		for x, material := range modifications[y] {
 			tiles[y][x] = material.ID
 		}
 	}
 
-	area := Area{Name: name, Safe: safe, Tiles: tiles, Transport: nil}
+	area := Area{Name: name, Safe: safe, Tiles: tiles, Transports: nil}
 
 	areas = append(areas, area)
 
@@ -124,9 +124,9 @@ func createGrid(w http.ResponseWriter, r *http.Request) {
 	}
 
 	modifications = make([][]Material, height)
-	for i, _ := range modifications {
+	for i := range modifications {
 		modifications[i] = make([]Material, width)
-		for j, _ := range modifications[i] {
+		for j := range modifications[i] {
 			modifications[i][j] = Material{ID: 0, CommonName: "default", CssClassName: "", Walkable: true, R: 255, G: 255, B: 255}
 		}
 	}

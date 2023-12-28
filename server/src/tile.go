@@ -1,13 +1,21 @@
 package main
 
 import (
+	"fmt"
 	"sync"
 )
+
+type Teleport struct {
+	destStage string
+	destY     int
+	destX     int
+}
 
 type Tile struct {
 	material    Material
 	playerMap   map[string]*Player
 	playerMutex sync.Mutex
+	Teleport    *Teleport
 	// Items and coords?
 }
 
@@ -28,8 +36,10 @@ func colorArray(row []Tile) []string {
 }
 
 func newTile(mat Material) Tile {
-	return Tile{mat, make(map[string]*Player), sync.Mutex{}}
+	return Tile{mat, make(map[string]*Player), sync.Mutex{}, nil}
 }
+
+// newTile w/ teleport?
 
 func walkable(tile *Tile) bool {
 	return tile.material.Walkable
@@ -42,7 +52,27 @@ func (tile *Tile) removePlayer(playerId string) {
 }
 
 func (tile *Tile) addPlayer(player *Player) {
-	tile.playerMutex.Lock()
-	tile.playerMap[player.id] = player
-	tile.playerMutex.Unlock()
+	if tile.Teleport != nil {
+		player.y = tile.Teleport.destY
+		player.x = tile.Teleport.destX
+		player.stageName = tile.Teleport.destStage
+		stageMutex.Lock()
+
+		existingStage, stageExists := stageMap[player.stageName]
+		if !stageExists {
+			fmt.Println("New Stage")
+			newStage := stageFromArea(player.stageName)
+			stagePtr := &newStage
+			stageMap[player.stageName] = stagePtr
+			existingStage = stagePtr
+		}
+		stageMutex.Unlock()
+
+		player.stage = existingStage
+		placeOnStage(player)
+	} else {
+		tile.playerMutex.Lock()
+		tile.playerMap[player.id] = player
+		tile.playerMutex.Unlock()
+	}
 }

@@ -18,17 +18,18 @@ type Material struct {
 }
 
 type Transport struct {
-	MaterialID int    `json:"materialId"`
-	DestY      int    `json:"destY"`
-	DestX      int    `json:"destX"`
-	DestStage  string `json:"destStage"`
+	SourceY   int    `json:"sourceY"`
+	SourceX   int    `json:"sourceX"`
+	DestY     int    `json:"destY"`
+	DestX     int    `json:"destX"`
+	DestStage string `json:"destStage"`
 }
 
 type Area struct {
-	Name      string      `json:"name"`
-	Safe      bool        `json:"safe"`
-	Tiles     [][]int     `json:"tiles"`
-	Transport []Transport `json:"transport"`
+	Name       string      `json:"name"`
+	Safe       bool        `json:"safe"`
+	Tiles      [][]int     `json:"tiles"`
+	Transports []Transport `json:"transports"`
 }
 
 var (
@@ -67,11 +68,14 @@ func areaFromName(s string) Area {
 func stageFromArea(s string) Stage {
 	area := areaFromName(s)
 	tiles := make([][]Tile, len(area.Tiles))
-	for i, _ := range tiles {
-		tiles[i] = make([]Tile, len(area.Tiles[i]))
-		for j, _ := range tiles[i] {
-			tiles[i][j] = newTile(materials[area.Tiles[i][j]])
+	for y := range tiles {
+		tiles[y] = make([]Tile, len(area.Tiles[y]))
+		for x := range tiles[y] {
+			tiles[y][x] = newTile(materials[area.Tiles[y][x]])
 		}
+	}
+	for _, transport := range area.Transports {
+		tiles[transport.SourceY][transport.SourceX].Teleport = &Teleport{transport.DestStage, transport.DestY, transport.DestX}
 	}
 	return Stage{tiles: tiles, playerMap: make(map[string]*Player), playerMutex: sync.Mutex{}}
 }
