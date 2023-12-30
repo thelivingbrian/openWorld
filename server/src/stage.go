@@ -18,46 +18,6 @@ func (stage *Stage) markAllDirty() {
 	}
 }
 
-func validCoordinate(y int, x int, tiles [][]Tile) bool {
-	if y < 0 || y >= len(tiles) {
-		return false
-	}
-	if x < 0 || x >= len(tiles[y]) {
-		return false
-	}
-	return true
-}
-
-func move(p *Player, yOffset int, xOffset int) {
-	destY := p.y + yOffset
-	destX := p.x + xOffset
-	if validCoordinate(destY, destX, p.stage.tiles) && walkable(&p.stage.tiles[destY][destX]) {
-		currentTile := &p.stage.tiles[p.y][p.x]
-		destTile := &p.stage.tiles[destY][destX]
-		currentTile.removePlayer(p.id)
-		p.y = destY
-		p.x = destX
-		destTile.addPlayer(p)
-		p.stage.markAllDirty()
-	}
-}
-
-func moveNorth(p *Player) {
-	move(p, -1, 0)
-}
-
-func moveSouth(p *Player) {
-	move(p, 1, 0)
-}
-
-func moveEast(p *Player) {
-	move(p, 0, 1)
-}
-
-func moveWest(p *Player) {
-	move(p, 0, -1)
-}
-
 func (stage *Stage) damageAt(coords [][2]int) {
 	for _, pair := range coords {
 		for _, player := range stage.playerMap { // This is really stupid right? The tile has a playermap?
@@ -76,7 +36,7 @@ func (stage *Stage) damageAt(coords [][2]int) {
 					stage.playerMutex.Unlock()
 
 					stage.markAllDirty()
-					updateScreen(player)
+					updateScreen(player) // Player is no longer on screen
 				}
 			}
 		}

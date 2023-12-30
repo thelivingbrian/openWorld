@@ -30,6 +30,8 @@ func main() {
 	http.HandleFunc("/s", postMovement(moveSouth))
 	http.HandleFunc("/a", postMovement(moveWest))
 	http.HandleFunc("/d", postMovement(moveEast))
+
+	http.HandleFunc("/clear", clearScreen)
 	http.HandleFunc("/spaceOn", postSpaceOn)
 	http.HandleFunc("/spaceOff", postSpaceOff)
 

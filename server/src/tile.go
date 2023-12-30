@@ -56,8 +56,8 @@ func (tile *Tile) addPlayer(player *Player) {
 		player.y = tile.Teleport.destY
 		player.x = tile.Teleport.destX
 		player.stageName = tile.Teleport.destStage
-		stageMutex.Lock()
 
+		stageMutex.Lock()
 		existingStage, stageExists := stageMap[player.stageName]
 		if !stageExists {
 			fmt.Println("New Stage")

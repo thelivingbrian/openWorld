@@ -33,9 +33,10 @@ func printPageHeaderFor(player *Player) string {
 			<input hx-post="/s" hx-trigger="keydown[key=='s'] from:body" type="hidden" name="token" value="` + player.id + `" />
 			<input hx-post="/a" hx-trigger="keydown[key=='a'] from:body" type="hidden" name="token" value="` + player.id + `" />
 			<input hx-post="/d" hx-trigger="keydown[key=='d'] from:body" type="hidden" name="token" value="` + player.id + `" />
+			<input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='c'] from:body" type="hidden" name="token" value="` + player.id + `" />
 			<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="` + player.id + `" />
 			<input hx-post="/spaceOff" hx-trigger="keyup[key==' '] from:body" hx-target="#spaceOn" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />	
-			<input id="tick" hx-ext="ws" ws-connect="/screen" ws-send hx-swap="innerHTML" hx-trigger="load once"type="hidden" name="token" value="` + player.id + `" />
+			<input id="tick" hx-ext="ws" ws-connect="/screen" ws-send hx-trigger="load once" type="hidden" name="token" value="` + player.id + `" />
 		</div>
 		<div id="screen" class="grid">
 				
@@ -55,21 +56,36 @@ func printPageHeaderFor(player *Player) string {
 func placeOnStage(p *Player) {
 	x := p.x
 	y := p.y
-	p.stage.tiles[y][x].playerMap[p.id] = p
-	p.stage.playerMap[p.id] = p
-	p.stage.markAllDirty()
+	p.stage.tiles[y][x].playerMap[p.id] = p // add p method
+	p.stage.playerMap[p.id] = p             // needed?
+	updateFullScreen(p)
+	//p.stage.markAllDirty()
 }
 
 func htmlFromColorMatrix(matrix [][]string) string {
 	output := ""
 	for y := range matrix {
-		output += `<div class="grid-row">`
+		var yStr = strconv.Itoa(y)
+		output += `<div id="r` + yStr + `" class="grid-row">`
 		for x := range matrix[y] {
-			var yStr = strconv.Itoa(y)
 			var xStr = strconv.Itoa(x)
 			output += `<div class="grid-square ` + matrix[y][x] + `" id="c` + yStr + `-` + xStr + `"></div>`
 		}
 		output += `</div>`
+	}
+	return output
+}
+
+func htmlFromColorMatrix2(matrix [][]string) string {
+	output := ""
+	for y := range matrix {
+		var yStr = strconv.Itoa(y)
+		//output += `<div id="r` + yStr + `" class="grid-row">`
+		for x := range matrix[y] {
+			var xStr = strconv.Itoa(x)
+			output += `<div class="grid-square ` + matrix[y][x] + `" id="c` + yStr + `-` + xStr + `"></div>`
+		}
+		//output += `</div>`
 	}
 	return output
 }
@@ -117,9 +133,54 @@ func livingView(player *Player) string {
 	return output
 }
 
+func livingView2(player *Player) string {
+	output := ""
+
+	// Get default colors
+	var tileColors [][]string = make([][]string, len(player.stage.tiles))
+	for i, row := range player.stage.tiles {
+		tileColors[i] = colorArray(row)
+	}
+
+	// Add player
+	tileColors[player.y][player.x] = "fusia"
+
+	// Add Space
+	if player.actions.space {
+		applyHighlights(player, &tileColors, cross(), spaceHighlighter)
+	}
+
+	output += htmlFromColorMatrix2(tileColors)
+
+	return output
+}
+
 func updateScreen(player *Player) {
 	var output string = `
-	<div id="screen" class="grid" hx-swap-oob="true">	
+	<div id="screen" class="grid">
+	`
+
+	if player.health > 0 {
+		output += livingView(player)
+	} else {
+		output += `<h2>You Died.</h2>`
+		clinic := getClinic()
+		player.health = 100
+		player.stage = clinic
+		player.x = 2
+		player.y = 2
+		placeOnStage(player)
+		output += livingView(player)
+	}
+
+	output += `</div>`
+
+	updates <- Update{player, output}
+}
+
+func updateFullScreen(player *Player) { // Is replacing whole page more efficient?
+	var output string = `
+	<div id="screen" class="grid">
 	`
 
 	if player.health > 0 {
@@ -157,7 +218,7 @@ func move(p *Player, yOffset int, xOffset int) {
 		currentTile := &p.stage.tiles[p.y][p.x]
 		destTile := &p.stage.tiles[destY][destX]
 		currentTile.removePlayer(p.id)
-		p.y = destY
+		p.y = destY // Don't like this here, move to addPlayer?
 		p.x = destX
 		destTile.addPlayer(p)
 		p.stage.markAllDirty()

@@ -42,7 +42,7 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 		}
 
 		playerMutex.Lock()
-		defer playerMutex.Unlock()
+		defer playerMutex.Unlock() //sketchy?
 		playerMap[token] = newPlayer
 		existingPlayer = newPlayer
 	}
@@ -50,7 +50,8 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 	// Player with the given token exists
 	existingStageName := existingPlayer.stageName
 
-	stageMutex.Lock()
+	existingStage := getStageByName(existingStageName)
+	/*stageMutex.Lock()
 	existingStage, stageExists := stageMap[existingStageName]
 	if !stageExists {
 		fmt.Println("New Stage")
@@ -60,6 +61,7 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 		existingStage = stagePtr
 	}
 	stageMutex.Unlock()
+	*/
 
 	existingPlayer.stage = existingStage
 
@@ -91,7 +93,7 @@ func postMovement(f func(*Player)) func(w http.ResponseWriter, r *http.Request) 
 	return func(w http.ResponseWriter, r *http.Request) {
 		existingPlayer, success := playerFromRequest(r)
 		if !success {
-			panic(0)
+			panic(0) // This is bad because it means anyone can panic the server
 		}
 		f(existingPlayer)
 	}
@@ -105,6 +107,13 @@ func postSpaceOn(w http.ResponseWriter, r *http.Request) {
 	} else {
 		io.WriteString(w, "")
 	}
+}
+
+func clearScreen(w http.ResponseWriter, r *http.Request) {
+	output := `<div id="screen" class="grid">
+				
+	</div>`
+	io.WriteString(w, output)
 }
 
 func postSpaceOff(w http.ResponseWriter, r *http.Request) {
