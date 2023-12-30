@@ -22,7 +22,7 @@ func main() {
 
 	fmt.Println("Establishing Routes...")
 	http.HandleFunc("/home/", getIndex)
-	http.Handle("/home/assets/", http.StripPrefix("/home/assets/", http.FileServer(http.Dir("./client/src/assets"))))
+	http.Handle("/home/assets/", http.StripPrefix("/home/assets/", http.FileServer(http.Dir("./src/assets"))))
 	http.HandleFunc("/signin", postSignin)
 
 	fmt.Println("Preparing for interactions...")
@@ -50,7 +50,7 @@ func main() {
 	}()
 
 	fmt.Println("Attempting to start server...")
-	err := http.ListenAndServe(":9090", nil)
+	err := http.ListenAndServe(":8888", nil)
 	if err != nil {
 		fmt.Println("Failed to start server", err)
 		return

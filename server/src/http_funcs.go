@@ -8,7 +8,7 @@ import (
 )
 
 func getIndex(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "./client/src")
+	http.ServeFile(w, r, "./src/assets")
 }
 
 func postSignin(w http.ResponseWriter, r *http.Request) {
