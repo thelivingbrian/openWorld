@@ -38,7 +38,7 @@ var (
 )
 
 func populateStructUsingFileName[T any](ptr *T, fn string) {
-	jsonData, err := os.ReadFile(fmt.Sprintf("./server/src/data/%s.json", fn))
+	jsonData, err := os.ReadFile(fmt.Sprintf("./data/%s.json", fn))
 	if err != nil {
 		panic(err)
 	}

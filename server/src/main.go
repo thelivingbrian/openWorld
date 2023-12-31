@@ -21,8 +21,8 @@ func main() {
 	loadFromJson()
 
 	fmt.Println("Establishing Routes...")
-	http.HandleFunc("/home/", getIndex)
-	http.Handle("/home/assets/", http.StripPrefix("/home/assets/", http.FileServer(http.Dir("./client/src/assets"))))
+	//http.HandleFunc("/home/", getIndex)
+	http.Handle("/home/", http.StripPrefix("/home/", http.FileServer(http.Dir("./assets"))))
 	http.HandleFunc("/signin", postSignin)
 
 	fmt.Println("Preparing for interactions...")

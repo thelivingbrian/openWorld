@@ -58,7 +58,7 @@ func placeOnStage(p *Player) {
 	y := p.y
 	p.stage.tiles[y][x].playerMap[p.id] = p // add p method
 	p.stage.playerMap[p.id] = p             // needed?
-	updateFullScreen(p)
+	//updateFullScreen(p)
 	//p.stage.markAllDirty()
 }
 
@@ -198,7 +198,7 @@ func updateFullScreen(player *Player) { // Is replacing whole page more efficien
 
 	output += `</div>`
 
-	updates <- Update{player, output}
+	//updates <- Update{player, output}
 }
 
 func validCoordinate(y int, x int, tiles [][]Tile) bool {
