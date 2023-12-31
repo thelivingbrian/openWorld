@@ -59,7 +59,7 @@ func placeOnStage(p *Player) {
 	p.stage.tiles[y][x].playerMap[p.id] = p // add p method
 	p.stage.playerMap[p.id] = p             // needed?
 	//updateFullScreen(p)
-	//p.stage.markAllDirty()
+	p.stage.markAllDirty()
 }
 
 func htmlFromColorMatrix(matrix [][]string) string {
