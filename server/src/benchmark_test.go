@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func BenchmarkUpdateFullScreen(b *testing.B) {
+func BenchmarkMarkAllDirty(b *testing.B) {
 	loadFromJson()
 
 	//updates = make(chan Update) // Should add back!

@@ -23,7 +23,7 @@ type Tile struct {
 }
 
 func colorOf(tile *Tile) string {
-	return tile.CurrentCssClass
+	return tile.CurrentCssClass // Maybe like the old way better with the player count logic here
 }
 
 func colorArray(row []Tile) []string {
