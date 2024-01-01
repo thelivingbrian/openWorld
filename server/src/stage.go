@@ -14,76 +14,7 @@ type Stage struct {
 
 func (stage *Stage) markAllDirty() {
 	for _, player := range stage.playerMap {
-		updateScreen(player)
-	}
-}
-
-func moveNorth(stage *Stage, p *Player) {
-	x := p.x
-	y := p.y
-	nextTile := &stage.tiles[y-1][x]
-	if walkable(nextTile) {
-		currentTile := &stage.tiles[y][x]
-		currentTile.removePlayer(p.id)
-
-		nextTile.addPlayer(p)
-
-		p.y = y - 1
-		stage.markAllDirty()
-	} else {
-		//nop
-	}
-}
-
-func moveSouth(stage *Stage, p *Player) {
-	x := p.x
-	y := p.y
-
-	nextTile := &stage.tiles[y+1][x]
-	if walkable(nextTile) {
-		currentTile := &stage.tiles[y][x]
-		currentTile.removePlayer(p.id)
-
-		nextTile.addPlayer(p)
-
-		p.y = y + 1
-		stage.markAllDirty()
-	} else {
-		//nop
-	}
-}
-
-func moveEast(stage *Stage, p *Player) {
-	x := p.x
-	y := p.y
-	nextTile := &stage.tiles[y][x+1]
-	if walkable(nextTile) {
-		currentTile := &stage.tiles[y][x]
-		currentTile.removePlayer(p.id)
-
-		nextTile.addPlayer(p)
-
-		p.x = x + 1
-		stage.markAllDirty()
-	} else {
-		//nop
-	}
-}
-
-func moveWest(stage *Stage, p *Player) {
-	x := p.x
-	y := p.y
-	nextTile := &stage.tiles[y][x-1]
-	if walkable(nextTile) {
-		currentTile := &stage.tiles[y][x]
-		currentTile.removePlayer(p.id)
-
-		nextTile.addPlayer(p)
-
-		p.x = x - 1
-		stage.markAllDirty()
-	} else {
-		//nop
+		updateFullScreen(player, updates)
 	}
 }
 
@@ -92,27 +23,41 @@ func (stage *Stage) damageAt(coords [][2]int) {
 		for _, player := range stage.playerMap { // This is really stupid right? The tile has a playermap?
 			if pair[0] == player.y && pair[1] == player.x {
 				player.health += -50
-				if !player.isAlive() {
+				if player.isDead() {
 					fmt.Println(player.id + " has died")
 
 					deadPlayerTile := &stage.tiles[pair[0]][pair[1]]
-					deadPlayerTile.playerMutex.Lock() // break into function, no high level mutexing(?)
-					delete(deadPlayerTile.playerMap, player.id)
-					deadPlayerTile.playerMutex.Unlock()
+					deadPlayerTile.removePlayer(player.id)
 
-					stage.playerMutex.Lock()
-					delete(stage.playerMap, player.id)
-					stage.playerMutex.Unlock()
+					removePlayerById(stage, player.id)
 
 					stage.markAllDirty()
-					updateScreen(player)
+					updateFullScreen(player, updates) // Player is no longer on screen
 				}
 			}
 		}
 	}
 }
 
+func removePlayerById(stage *Stage, id string) {
+	stage.playerMutex.Lock()
+	delete(stage.playerMap, id)
+	stage.playerMutex.Unlock()
+}
+
+func getStageByName(name string) *Stage {
+	stageMutex.Lock()
+	existingStage, stageExists := stageMap[name]
+	if !stageExists {
+		newStage := createStageByName(name)
+		stagePtr := &newStage
+		stageMap[name] = stagePtr
+		existingStage = stagePtr
+	}
+	stageMutex.Unlock()
+	return existingStage
+}
+
 func getClinic() *Stage {
-	clinic := stageFromArea("clinic")
-	return &clinic
+	return getStageByName("clinic")
 }

@@ -145,7 +145,7 @@ func materialEdit(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("%d %s %s %d %d %d\n%s\n", materialId, commonName, cssClass, red, green, blue, walkable)
 
-	for i, _ := range materials {
+	for i := range materials {
 		if materials[i].ID == materialId {
 			materials[i].CommonName = commonName
 			materials[i].CssClassName = cssClass

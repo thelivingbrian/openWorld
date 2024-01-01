@@ -32,9 +32,7 @@ type Update struct {
 	update string
 }
 
-var clients = make(map[*client]bool)
-var broadcast = make(chan string)
-var updates = make(chan Update)
+var clients = make(map[*client]bool) // hmm.
 
 func ws_chat(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -47,7 +45,7 @@ func ws_chat(w http.ResponseWriter, r *http.Request) {
 	newClient := &client{
 		conn: conn,
 	}
-	clients[newClient] = true
+	clients[newClient] = true // Should this be seperate from players?
 
 	for {
 		_, bytes, err := conn.ReadMessage()

@@ -42,7 +42,7 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 		}
 
 		playerMutex.Lock()
-		defer playerMutex.Unlock()
+		defer playerMutex.Unlock() //sketchy?
 		playerMap[token] = newPlayer
 		existingPlayer = newPlayer
 	}
@@ -50,21 +50,12 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 	// Player with the given token exists
 	existingStageName := existingPlayer.stageName
 
-	stageMutex.Lock()
-	existingStage, stageExists := stageMap[existingStageName]
-	if !stageExists {
-		fmt.Println("New Stage")
-		newStage := stageFromArea(stage)
-		stagePtr := &newStage
-		stageMap[existingStageName] = stagePtr
-		existingStage = stagePtr
-	}
-	stageMutex.Unlock()
+	existingStage := getStageByName(existingStageName)
 
 	existingPlayer.stage = existingStage
 
 	fmt.Println("Printing Page Headers")
-	io.WriteString(w, printPageHeaderFor(existingPlayer))
+	io.WriteString(w, printPageFor(existingPlayer))
 }
 
 func playerFromRequest(r *http.Request) (*Player, bool) {
@@ -87,14 +78,13 @@ func playerFromRequest(r *http.Request) (*Player, bool) {
 	return existingPlayer, true
 }
 
-func postMovement(f func(*Stage, *Player)) func(w http.ResponseWriter, r *http.Request) {
+func postMovement(f func(*Player)) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		existingPlayer, success := playerFromRequest(r)
 		if !success {
-			panic(0)
+			panic(0) // This is bad because it means anyone can panic the server
 		}
-		currentStage := existingPlayer.stage // Is stage ever nil?
-		f(currentStage, existingPlayer)
+		f(existingPlayer)
 	}
 }
 
@@ -102,17 +92,24 @@ func postSpaceOn(w http.ResponseWriter, r *http.Request) {
 	existingPlayer, success := playerFromRequest(r)
 	if success {
 		existingPlayer.actions.space = true
-		updateScreen(existingPlayer)
+		updateFullScreen(existingPlayer, updates)
 	} else {
 		io.WriteString(w, "")
 	}
+}
+
+func clearScreen(w http.ResponseWriter, r *http.Request) {
+	output := `<div id="screen" class="grid">
+				
+	</div>`
+	io.WriteString(w, output)
 }
 
 func postSpaceOff(w http.ResponseWriter, r *http.Request) {
 	existingPlayer, success := playerFromRequest(r)
 	if success {
 		existingPlayer.actions.space = false
-		updateScreen(existingPlayer)
+		updateFullScreen(existingPlayer, updates)
 		existingPlayer.stage.damageAt(applyRelativeDistance(existingPlayer.y, existingPlayer.x, cross()))
 		io.WriteString(w, `<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="`+existingPlayer.id+`" />`)
 	} else {

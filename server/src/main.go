@@ -9,20 +9,20 @@ import (
 )
 
 var (
-	playerMap   = make(map[string]*Player)
+	playerMap   = make(map[string]*Player) // Consider sync.Map
 	playerMutex sync.Mutex
 	stageMap    = make(map[string]*Stage)
 	stageMutex  sync.Mutex
+	broadcast   = make(chan string)
+	updates     = make(chan Update)
 )
 
 func main() {
 	fmt.Println("Loading data...")
-	// Load areas and materials
 	loadFromJson()
 
 	fmt.Println("Establishing Routes...")
-	http.HandleFunc("/home/", getIndex)
-	http.Handle("/home/assets/", http.StripPrefix("/home/assets/", http.FileServer(http.Dir("./client/src/assets"))))
+	http.Handle("/home/", http.StripPrefix("/home/", http.FileServer(http.Dir("./assets"))))
 	http.HandleFunc("/signin", postSignin)
 
 	fmt.Println("Preparing for interactions...")
@@ -30,6 +30,8 @@ func main() {
 	http.HandleFunc("/s", postMovement(moveSouth))
 	http.HandleFunc("/a", postMovement(moveWest))
 	http.HandleFunc("/d", postMovement(moveEast))
+
+	http.HandleFunc("/clear", clearScreen)
 	http.HandleFunc("/spaceOn", postSpaceOn)
 	http.HandleFunc("/spaceOff", postSpaceOff)
 
