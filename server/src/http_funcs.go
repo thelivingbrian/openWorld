@@ -55,7 +55,7 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 	existingPlayer.stage = existingStage
 
 	fmt.Println("Printing Page Headers")
-	io.WriteString(w, printPageHeaderFor(existingPlayer))
+	io.WriteString(w, printPageFor(existingPlayer))
 }
 
 func playerFromRequest(r *http.Request) (*Player, bool) {

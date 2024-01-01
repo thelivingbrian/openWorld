@@ -19,12 +19,9 @@ var (
 
 func main() {
 	fmt.Println("Loading data...")
-	// Load areas and materials, output templates, etc
 	loadFromJson()
-	//parseTemplate()
 
 	fmt.Println("Establishing Routes...")
-	//http.HandleFunc("/home/", getIndex)
 	http.Handle("/home/", http.StripPrefix("/home/", http.FileServer(http.Dir("./assets"))))
 	http.HandleFunc("/signin", postSignin)
 

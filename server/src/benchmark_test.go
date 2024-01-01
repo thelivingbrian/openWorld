@@ -15,7 +15,7 @@ func BenchmarkUpdateFullScreen(b *testing.B) {
 		}
 	}()
 
-	sName := "small"
+	sName := "large"
 	bigStage := createStageByName(sName)
 	testPlayer := Player{
 		id:        "testToken",
@@ -26,8 +26,9 @@ func BenchmarkUpdateFullScreen(b *testing.B) {
 		actions:   &Actions{false},
 		health:    100,
 	}
-
 	placeOnStage(&testPlayer)
+
+	// Add additional players to stage
 	for i := 0; i < 9; i++ {
 		newPlayer := testPlayer
 		newPlayer.id = fmt.Sprintf("tp%d", i)

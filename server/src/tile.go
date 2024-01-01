@@ -23,11 +23,6 @@ type Tile struct {
 }
 
 func colorOf(tile *Tile) string {
-	/*if len(tile.playerMap) > 0 {
-		return "blue"
-	}
-
-	return tile.material.CssClassName*/
 	return tile.CurrentCssClass
 }
 
