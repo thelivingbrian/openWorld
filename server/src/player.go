@@ -178,7 +178,7 @@ func updateScreen(player *Player) {
 	updates <- Update{player, output}
 }
 
-func updateFullScreen(player *Player) { // Is replacing whole page more efficient?
+func fullScreenHtml(player *Player) string { // Is replacing whole page more efficient?
 	var output string = `
 	<div id="screen" class="grid">
 	`
@@ -198,7 +198,14 @@ func updateFullScreen(player *Player) { // Is replacing whole page more efficien
 
 	output += `</div>`
 
+	return output
 	//updates <- Update{player, output}
+}
+
+func updateFullScreen(player *Player, playerUpdates chan Update) {
+	screenHtml := fullScreenHtml(player)
+	//fmt.Println(screenHtml)
+	playerUpdates <- Update{player, screenHtml}
 }
 
 func validCoordinate(y int, x int, tiles [][]Tile) bool {

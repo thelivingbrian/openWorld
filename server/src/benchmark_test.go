@@ -14,9 +14,18 @@ func addSomeStrings(s string) string {
 }
 
 func BenchmarkUpdateFullScreen(b *testing.B) {
+	fmt.Println("Running test")
+
 	loadFromJson()
+	//updates = make(chan Update) // Should add back!
+	go func() {
+		for {
+			<-updates
+		}
+	}()
+
 	bigStage := createStageByName("big")
-	testPlayer := &Player{
+	testPlayer := Player{
 		id:        "testToken",
 		stage:     &bigStage,
 		stageName: "big",
@@ -25,14 +34,16 @@ func BenchmarkUpdateFullScreen(b *testing.B) {
 		actions:   &Actions{false},
 		health:    100,
 	}
-	testPlayer.x = 7
 
-	placeOnStage(testPlayer)
+	placeOnStage(&testPlayer)
+	for i := 0; i < 50; i++ {
+		newPlayer := testPlayer
+		newPlayer.id = fmt.Sprintf("tp%d", i)
+		placeOnStage(&newPlayer)
+	}
 
 	for i := 0; i < b.N; i++ {
-		//addSomeStrings("hi")
-		fmt.Println(i)
-		updateFullScreen(testPlayer) // Calling SomeFunction from src package
+		//fmt.Println(i)
+		testPlayer.stage.markAllDirty()
 	}
-	//updateFullScreen()
 }

@@ -13,6 +13,8 @@ var (
 	playerMutex sync.Mutex
 	stageMap    = make(map[string]*Stage)
 	stageMutex  sync.Mutex
+	broadcast   = make(chan string)
+	updates     = make(chan Update)
 )
 
 func main() {

@@ -14,7 +14,7 @@ type Stage struct {
 
 func (stage *Stage) markAllDirty() {
 	for _, player := range stage.playerMap {
-		updateScreen(player)
+		updateFullScreen(player, updates)
 	}
 }
 
