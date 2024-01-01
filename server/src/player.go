@@ -48,14 +48,20 @@ func updateFullScreen(player *Player, playerUpdates chan Update) {
 	playerUpdates <- Update{player, screenHtml}
 }
 
-func validCoordinate(y int, x int, tiles [][]Tile) bool {
-	if y < 0 || y >= len(tiles) {
-		return false
-	}
-	if x < 0 || x >= len(tiles[y]) {
-		return false
-	}
-	return true
+func moveNorth(p *Player) {
+	move(p, -1, 0)
+}
+
+func moveSouth(p *Player) {
+	move(p, 1, 0)
+}
+
+func moveEast(p *Player) {
+	move(p, 0, 1)
+}
+
+func moveWest(p *Player) {
+	move(p, 0, -1)
 }
 
 func move(p *Player, yOffset int, xOffset int) {
@@ -72,18 +78,12 @@ func move(p *Player, yOffset int, xOffset int) {
 	}
 }
 
-func moveNorth(p *Player) {
-	move(p, -1, 0)
-}
-
-func moveSouth(p *Player) {
-	move(p, 1, 0)
-}
-
-func moveEast(p *Player) {
-	move(p, 0, 1)
-}
-
-func moveWest(p *Player) {
-	move(p, 0, -1)
+func validCoordinate(y int, x int, tiles [][]Tile) bool {
+	if y < 0 || y >= len(tiles) {
+		return false
+	}
+	if x < 0 || x >= len(tiles[y]) {
+		return false
+	}
+	return true
 }
