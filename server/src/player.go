@@ -56,8 +56,8 @@ func printPageHeaderFor(player *Player) string {
 func placeOnStage(p *Player) {
 	x := p.x
 	y := p.y
-	p.stage.tiles[y][x].playerMap[p.id] = p // add p method
-	p.stage.playerMap[p.id] = p             // needed?
+	p.stage.tiles[y][x].addPlayer(p) // add p method
+	p.stage.playerMap[p.id] = p      // needed?
 	//updateFullScreen(p)
 	p.stage.markAllDirty()
 }
@@ -98,14 +98,14 @@ func spaceHighlighter(tile *Tile) string {
 	}
 }
 
-func applyHighlights(player *Player, tileColorsPtr *[][]string, relativeCoords [][2]int, highligher func(*Tile) string) {
+func applyHighlights(player *Player, tileColors [][]string, relativeCoords [][2]int, highligher func(*Tile) string) {
 	absCoordinatePairs := applyRelativeDistance(player.y, player.x, relativeCoords)
 	for _, pair := range absCoordinatePairs {
 		if pair[0] >= 0 &&
 			pair[1] >= 0 &&
 			pair[0] < len(player.stage.tiles) &&
 			pair[1] < len(player.stage.tiles[0]) {
-			tileColors := *tileColorsPtr
+			//tileColors := *tileColorsPtr
 			tileColors[pair[0]][pair[1]] = highligher(&player.stage.tiles[pair[0]][pair[1]])
 		}
 	}
@@ -125,57 +125,12 @@ func livingView(player *Player) string {
 
 	// Add Space
 	if player.actions.space {
-		applyHighlights(player, &tileColors, cross(), spaceHighlighter)
+		applyHighlights(player, tileColors, cross(), spaceHighlighter)
 	}
 
 	output += htmlFromColorMatrix(tileColors)
 
 	return output
-}
-
-func livingView2(player *Player) string {
-	output := ""
-
-	// Get default colors
-	var tileColors [][]string = make([][]string, len(player.stage.tiles))
-	for i, row := range player.stage.tiles {
-		tileColors[i] = colorArray(row)
-	}
-
-	// Add player
-	tileColors[player.y][player.x] = "fusia"
-
-	// Add Space
-	if player.actions.space {
-		applyHighlights(player, &tileColors, cross(), spaceHighlighter)
-	}
-
-	output += htmlFromColorMatrix2(tileColors)
-
-	return output
-}
-
-func updateScreen(player *Player) {
-	var output string = `
-	<div id="screen" class="grid">
-	`
-
-	if player.health > 0 {
-		output += livingView(player)
-	} else {
-		output += `<h2>You Died.</h2>`
-		clinic := getClinic()
-		player.health = 100
-		player.stage = clinic
-		player.x = 2
-		player.y = 2
-		placeOnStage(player)
-		output += livingView(player)
-	}
-
-	output += `</div>`
-
-	updates <- Update{player, output}
 }
 
 func fullScreenHtml(player *Player) string { // Is replacing whole page more efficient?
@@ -202,8 +157,21 @@ func fullScreenHtml(player *Player) string { // Is replacing whole page more eff
 	//updates <- Update{player, output}
 }
 
+func handleDeathOf(player *Player) {
+	clinic := getClinic()
+	player.health = 100
+	player.stage = clinic
+	player.x = 2
+	player.y = 2
+	placeOnStage(player)
+}
+
 func updateFullScreen(player *Player, playerUpdates chan Update) {
-	screenHtml := fullScreenHtml(player)
+	//screenHtml := fullScreenHtml(player)
+	if player.health <= 0 {
+		handleDeathOf(player)
+	}
+	screenHtml := screenHtmlFromTemplate(player)
 	//fmt.Println(screenHtml)
 	playerUpdates <- Update{player, screenHtml}
 }

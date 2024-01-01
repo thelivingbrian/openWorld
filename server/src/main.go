@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	playerMap   = make(map[string]*Player)
+	playerMap   = make(map[string]*Player) // Consider sync.Map
 	playerMutex sync.Mutex
 	stageMap    = make(map[string]*Stage)
 	stageMutex  sync.Mutex
@@ -19,8 +19,9 @@ var (
 
 func main() {
 	fmt.Println("Loading data...")
-	// Load areas and materials
+	// Load areas and materials, output templates, etc
 	loadFromJson()
+	//parseTemplate()
 
 	fmt.Println("Establishing Routes...")
 	//http.HandleFunc("/home/", getIndex)

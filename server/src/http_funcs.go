@@ -51,17 +51,6 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 	existingStageName := existingPlayer.stageName
 
 	existingStage := getStageByName(existingStageName)
-	/*stageMutex.Lock()
-	existingStage, stageExists := stageMap[existingStageName]
-	if !stageExists {
-		fmt.Println("New Stage")
-		newStage := createStageByName(existingStageName)
-		stagePtr := &newStage
-		stageMap[existingStageName] = stagePtr
-		existingStage = stagePtr
-	}
-	stageMutex.Unlock()
-	*/
 
 	existingPlayer.stage = existingStage
 
@@ -103,7 +92,7 @@ func postSpaceOn(w http.ResponseWriter, r *http.Request) {
 	existingPlayer, success := playerFromRequest(r)
 	if success {
 		existingPlayer.actions.space = true
-		updateScreen(existingPlayer)
+		updateFullScreen(existingPlayer, updates)
 	} else {
 		io.WriteString(w, "")
 	}
@@ -120,7 +109,7 @@ func postSpaceOff(w http.ResponseWriter, r *http.Request) {
 	existingPlayer, success := playerFromRequest(r)
 	if success {
 		existingPlayer.actions.space = false
-		updateScreen(existingPlayer)
+		updateFullScreen(existingPlayer, updates)
 		existingPlayer.stage.damageAt(applyRelativeDistance(existingPlayer.y, existingPlayer.x, cross()))
 		io.WriteString(w, `<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="`+existingPlayer.id+`" />`)
 	} else {

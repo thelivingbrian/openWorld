@@ -5,18 +5,9 @@ import (
 	"testing"
 )
 
-func addSomeStrings(s string) string {
-	output := ""
-	for i := 0; i < 5; i++ {
-		output += s
-	}
-	return output
-}
-
 func BenchmarkUpdateFullScreen(b *testing.B) {
-	fmt.Println("Running test")
-
 	loadFromJson()
+
 	//updates = make(chan Update) // Should add back!
 	go func() {
 		for {
@@ -24,11 +15,12 @@ func BenchmarkUpdateFullScreen(b *testing.B) {
 		}
 	}()
 
-	bigStage := createStageByName("big")
+	sName := "small"
+	bigStage := createStageByName(sName)
 	testPlayer := Player{
 		id:        "testToken",
 		stage:     &bigStage,
-		stageName: "big",
+		stageName: sName,
 		x:         2,
 		y:         2,
 		actions:   &Actions{false},
@@ -36,14 +28,13 @@ func BenchmarkUpdateFullScreen(b *testing.B) {
 	}
 
 	placeOnStage(&testPlayer)
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 9; i++ {
 		newPlayer := testPlayer
 		newPlayer.id = fmt.Sprintf("tp%d", i)
 		placeOnStage(&newPlayer)
 	}
 
 	for i := 0; i < b.N; i++ {
-		//fmt.Println(i)
 		testPlayer.stage.markAllDirty()
 	}
 }

@@ -27,16 +27,17 @@ func (stage *Stage) damageAt(coords [][2]int) {
 					fmt.Println(player.id + " has died")
 
 					deadPlayerTile := &stage.tiles[pair[0]][pair[1]]
-					deadPlayerTile.playerMutex.Lock() // break into function, no high level mutexing(?)
-					delete(deadPlayerTile.playerMap, player.id)
-					deadPlayerTile.playerMutex.Unlock()
+					deadPlayerTile.removePlayer(player.id)
+					//deadPlayerTile.playerMutex.Lock() // break into function, no high level mutexing(?)
+					//delete(deadPlayerTile.playerMap, player.id)
+					//deadPlayerTile.playerMutex.Unlock()
 
 					stage.playerMutex.Lock()
 					delete(stage.playerMap, player.id)
 					stage.playerMutex.Unlock()
 
 					stage.markAllDirty()
-					updateScreen(player) // Player is no longer on screen
+					updateFullScreen(player, updates) // Player is no longer on screen
 				}
 			}
 		}
