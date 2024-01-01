@@ -28,13 +28,8 @@ func (stage *Stage) damageAt(coords [][2]int) {
 
 					deadPlayerTile := &stage.tiles[pair[0]][pair[1]]
 					deadPlayerTile.removePlayer(player.id)
-					//deadPlayerTile.playerMutex.Lock() // break into function, no high level mutexing(?)
-					//delete(deadPlayerTile.playerMap, player.id)
-					//deadPlayerTile.playerMutex.Unlock()
 
-					stage.playerMutex.Lock()
-					delete(stage.playerMap, player.id)
-					stage.playerMutex.Unlock()
+					removePlayerById(stage, player.id)
 
 					stage.markAllDirty()
 					updateFullScreen(player, updates) // Player is no longer on screen
@@ -42,6 +37,12 @@ func (stage *Stage) damageAt(coords [][2]int) {
 			}
 		}
 	}
+}
+
+func removePlayerById(stage *Stage, id string) {
+	stage.playerMutex.Lock()
+	delete(stage.playerMap, id)
+	stage.playerMutex.Unlock()
 }
 
 func getStageByName(name string) *Stage {
