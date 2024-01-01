@@ -20,17 +20,8 @@ var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(scre
 
 func screenHtmlFromTemplate(player *Player) string {
 	var buf bytes.Buffer
-	tileColors := make([][]string, len(player.stage.tiles))
-	for y := range tileColors {
-		tileColors[y] = make([]string, len(player.stage.tiles[y]))
-		for x := range tileColors[y] {
-			tileColors[y][x] = player.stage.tiles[y][x].CurrentCssClass
-		}
-	}
-	tileColors[player.y][player.x] = "fusia"
-	if player.actions.space {
-		applyHighlights(player, tileColors, cross(), spaceHighlighter)
-	}
+	tileColors := tilesToColors(player.stage.tiles)
+	playerView(player, tileColors)
 
 	err := parsedScreenTemplate.Execute(&buf, tileColors)
 	if err != nil {
@@ -38,6 +29,44 @@ func screenHtmlFromTemplate(player *Player) string {
 	}
 
 	return buf.String()
+}
+
+func tilesToColors(tiles [][]Tile) [][]string {
+	output := make([][]string, len(tiles))
+	for y := range output {
+		output[y] = make([]string, len(tiles[y]))
+		for x := range output[y] {
+			output[y][x] = tiles[y][x].CurrentCssClass
+		}
+	}
+	return output
+}
+
+func playerView(player *Player, tileColors [][]string) {
+	tileColors[player.y][player.x] = "fusia"
+	if player.actions.space {
+		applyHighlights(player, tileColors, cross(), spaceHighlighter)
+	}
+}
+
+func applyHighlights(player *Player, tileColors [][]string, relativeCoords [][2]int, highligher func(*Tile) string) {
+	absCoordinatePairs := applyRelativeDistance(player.y, player.x, relativeCoords)
+	for _, pair := range absCoordinatePairs {
+		if pair[0] >= 0 &&
+			pair[1] >= 0 &&
+			pair[0] < len(player.stage.tiles) &&
+			pair[1] < len(player.stage.tiles[0]) {
+			tileColors[pair[0]][pair[1]] = highligher(&player.stage.tiles[pair[0]][pair[1]])
+		}
+	}
+}
+
+func spaceHighlighter(tile *Tile) string {
+	if walkable(tile) {
+		return "green"
+	} else {
+		return "red"
+	}
 }
 
 func printPageFor(player *Player) string {

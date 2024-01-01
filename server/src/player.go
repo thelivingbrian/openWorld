@@ -31,26 +31,6 @@ func placeOnStage(p *Player) {
 	p.stage.markAllDirty()
 }
 
-func spaceHighlighter(tile *Tile) string {
-	if walkable(tile) {
-		return "green"
-	} else {
-		return "red"
-	}
-}
-
-func applyHighlights(player *Player, tileColors [][]string, relativeCoords [][2]int, highligher func(*Tile) string) {
-	absCoordinatePairs := applyRelativeDistance(player.y, player.x, relativeCoords)
-	for _, pair := range absCoordinatePairs {
-		if pair[0] >= 0 &&
-			pair[1] >= 0 &&
-			pair[0] < len(player.stage.tiles) &&
-			pair[1] < len(player.stage.tiles[0]) {
-			tileColors[pair[0]][pair[1]] = highligher(&player.stage.tiles[pair[0]][pair[1]])
-		}
-	}
-}
-
 func handleDeathOf(player *Player) {
 	clinic := getClinic()
 	player.health = 100
