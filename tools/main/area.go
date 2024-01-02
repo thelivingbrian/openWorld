@@ -52,7 +52,7 @@ func saveArea(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, err := os.Create("./tools/level/data/areas.json")
+	file, err := os.Create("./level/data/areas.json")
 	if err != nil {
 		return
 	}

@@ -219,7 +219,7 @@ func WriteMaterialsToFile() error {
 		return fmt.Errorf("error marshalling materials: %w", err)
 	}
 
-	file, err := os.Create("./tools/level/data/materials.json")
+	file, err := os.Create("./level/data/materials.json")
 	if err != nil {
 		return fmt.Errorf("error creating file: %w", err)
 	}
@@ -234,7 +234,7 @@ func WriteMaterialsToFile() error {
 }
 
 func createCSSFile() {
-	cssFile, err := os.Create("./tools/level/assets/materials.css")
+	cssFile, err := os.Create("./level/assets/materials.css")
 	if err != nil {
 		panic(err)
 	}
