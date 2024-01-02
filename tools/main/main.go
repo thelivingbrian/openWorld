@@ -10,12 +10,8 @@ import (
 var materials []Material
 var areas []Area
 
-func getLevel(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "./tools/level")
-}
-
 func populateMaterialsFromJson() {
-	jsonData, err := os.ReadFile("./tools/level/data/materials.json")
+	jsonData, err := os.ReadFile("./level/data/materials.json")
 	if err != nil {
 		panic(err)
 	}
@@ -28,7 +24,7 @@ func populateMaterialsFromJson() {
 }
 
 func populateAreasFromJson() {
-	jsonData, err := os.ReadFile("./tools/level/data/areas.json")
+	jsonData, err := os.ReadFile("./level/data/areas.json")
 	if err != nil {
 		panic(err)
 	}
@@ -49,8 +45,8 @@ func main() {
 	fmt.Println("Attempting to start server...")
 	populateFromJson()
 
-	http.HandleFunc("/level/", getLevel)
-	http.Handle("/level/assets/", http.StripPrefix("/level/assets/", http.FileServer(http.Dir("./tools/level/assets"))))
+	//http.HandleFunc("/level/", getLevel)
+	http.Handle("/level/", http.StripPrefix("/level/", http.FileServer(http.Dir("./level/assets"))))
 
 	http.HandleFunc("/materialPage", getMaterialPage)
 	http.HandleFunc("/material", getMaterial)
