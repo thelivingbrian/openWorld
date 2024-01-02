@@ -14,7 +14,14 @@ const screenTemplate = `
 		{{end}}
 	</div>
 	{{end}}
-</div>`
+</div>
+<div class="grid-square blue" id="c0-0" hx-swap-oob="true"></div>
+<div class="grid-square blue" id="c0-1" hx-swap-oob="true"></div>
+<div class="grid-square blue" id="c0-2" hx-swap-oob="true"></div>
+<div class="grid-square blue" id="c0-3" hx-swap-oob="true"></div>
+<div class="grid-square blue" id="c0-4" hx-swap-oob="true"></div>
+<div class="grid-square blue" id="c0-5" hx-swap-oob="true"></div>
+<div class="grid-square blue" id="c0-6" hx-swap-oob="true"></div>`
 
 var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(screenTemplate))
 
