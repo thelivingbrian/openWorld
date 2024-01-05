@@ -15,7 +15,7 @@ func BenchmarkMarkAllDirty(b *testing.B) {
 	}()
 
 	stageNames := []string{"small", "large"}
-	playerCounts := []int{1, 5, 10, 20, 40}
+	playerCounts := []int{1, 5, 10, 100}
 
 	for _, stageName := range stageNames {
 		for _, playerCount := range playerCounts {

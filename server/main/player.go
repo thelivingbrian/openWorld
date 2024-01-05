@@ -41,12 +41,13 @@ func handleDeathOf(player *Player) {
 	placeOnStage(player)
 }
 
-func updateFullScreen(player *Player, playerUpdates chan Update) {
+func updateFullScreen(player *Player, html string, playerUpdates chan Update) {
 	if player.isDead() {
 		handleDeathOf(player)
+		return
 	}
-	screenHtml := screenHtmlFromTemplate(player)
-	playerUpdates <- Update{player, screenHtml}
+	html += hudAsOutOfBound(player)
+	playerUpdates <- Update{player, []byte(html)}
 }
 
 func moveNorth(p *Player) {

@@ -13,8 +13,9 @@ type Stage struct {
 }
 
 func (stage *Stage) markAllDirty() {
+	screenHtml := htmlFromStage(stage)
 	for _, player := range stage.playerMap {
-		updateFullScreen(player, updates)
+		updateFullScreen(player, screenHtml, updates)
 	}
 }
 
@@ -32,7 +33,8 @@ func (stage *Stage) damageAt(coords [][2]int) {
 					removePlayerById(stage, player.id)
 
 					stage.markAllDirty()
-					updateFullScreen(player, updates) // Player is no longer on screen
+					//html := htmlFromStage(stage)
+					updateFullScreen(player, "", updates) // Player is no longer on screen
 				}
 			}
 		}

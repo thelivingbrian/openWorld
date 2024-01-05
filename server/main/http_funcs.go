@@ -92,7 +92,8 @@ func postSpaceOn(w http.ResponseWriter, r *http.Request) {
 	existingPlayer, success := playerFromRequest(r)
 	if success {
 		existingPlayer.actions.space = true
-		updateFullScreen(existingPlayer, updates)
+		html := htmlFromStage(existingPlayer.stage)
+		updateFullScreen(existingPlayer, html, updates)
 	} else {
 		io.WriteString(w, "")
 	}
@@ -109,7 +110,8 @@ func postSpaceOff(w http.ResponseWriter, r *http.Request) {
 	existingPlayer, success := playerFromRequest(r)
 	if success {
 		existingPlayer.actions.space = false
-		updateFullScreen(existingPlayer, updates)
+		html := htmlFromStage(existingPlayer.stage)
+		updateFullScreen(existingPlayer, html, updates)
 		existingPlayer.stage.damageAt(applyRelativeDistance(existingPlayer.y, existingPlayer.x, cross()))
 		io.WriteString(w, `<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="`+existingPlayer.id+`" />`)
 	} else {

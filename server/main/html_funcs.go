@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"text/template"
 )
 
@@ -14,21 +15,39 @@ const screenTemplate = `
 		{{end}}
 	</div>
 	{{end}}
-</div>
+</div>`
+
+/*
 <div class="grid-square blue" id="c0-0" hx-swap-oob="true"></div>
 <div class="grid-square blue" id="c0-1" hx-swap-oob="true"></div>
 <div class="grid-square blue" id="c0-2" hx-swap-oob="true"></div>
 <div class="grid-square blue" id="c0-3" hx-swap-oob="true"></div>
 <div class="grid-square blue" id="c0-4" hx-swap-oob="true"></div>
 <div class="grid-square blue" id="c0-5" hx-swap-oob="true"></div>
-<div class="grid-square blue" id="c0-6" hx-swap-oob="true"></div>`
+<div class="grid-square blue" id="c0-6" hx-swap-oob="true"></div>
+*/
 
 var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(screenTemplate))
 
-func screenHtmlFromTemplate(player *Player) string {
+func screenHtmlFromTemplate(player *Player) []byte {
 	var buf bytes.Buffer
 	tileColors := tilesToColors(player.stage.tiles)
-	playerView(player, tileColors)
+	//playerView(player, tileColors)
+
+	err := parsedScreenTemplate.Execute(&buf, tileColors)
+	if err != nil {
+		panic(err)
+	}
+
+	buf.WriteString(hudAsOutOfBound(player))
+
+	return buf.Bytes()
+}
+
+func htmlFromStage(stage *Stage) string {
+	var buf bytes.Buffer
+	tileColors := tilesToColors(stage.tiles)
+	//playerView(player, tileColors)
 
 	err := parsedScreenTemplate.Execute(&buf, tileColors)
 	if err != nil {
@@ -36,6 +55,10 @@ func screenHtmlFromTemplate(player *Player) string {
 	}
 
 	return buf.String()
+}
+
+func hudAsOutOfBound(player *Player) string {
+	return fmt.Sprintf(`<div class="grid-square fusia" id="c%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
 }
 
 func tilesToColors(tiles [][]Tile) [][]string {
