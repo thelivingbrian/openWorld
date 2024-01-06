@@ -17,7 +17,7 @@ type Tile struct {
 	playerMap   map[string]*Player
 	playerMutex sync.Mutex
 	Teleport    *Teleport
-	// Items and coords?
+	// Items and coords?j
 	// Display
 	CurrentCssClass string
 }
@@ -34,8 +34,8 @@ func colorArray(row []Tile) []string {
 	return output
 }
 
-func newTile(mat Material) Tile {
-	return Tile{mat, make(map[string]*Player), sync.Mutex{}, nil, mat.CssClassName}
+func newTile(mat Material) *Tile {
+	return &Tile{mat, make(map[string]*Player), sync.Mutex{}, nil, mat.CssClassName}
 }
 
 // newTile w/ teleport?

@@ -67,9 +67,9 @@ func areaFromName(s string) Area {
 
 func createStageByName(s string) Stage {
 	area := areaFromName(s)
-	tiles := make([][]Tile, len(area.Tiles))
+	tiles := make([][]*Tile, len(area.Tiles))
 	for y := range tiles {
-		tiles[y] = make([]Tile, len(area.Tiles[y]))
+		tiles[y] = make([]*Tile, len(area.Tiles[y]))
 		for x := range tiles[y] {
 			tiles[y][x] = newTile(materials[area.Tiles[y][x]])
 		}

@@ -41,7 +41,7 @@ func BenchmarkMarkAllDirty(b *testing.B) {
 				b.StartTimer() // Start the timer for the actual benchmarking
 
 				for i := 0; i < b.N; i++ {
-					bigStage.markAllDirty()
+					bigStage.markAllDirty() // Test this with player.action.space on
 				}
 			})
 		}
