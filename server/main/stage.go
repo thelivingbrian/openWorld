@@ -51,25 +51,6 @@ func (stage *Stage) damageAt(coords [][2]int) {
 
 			}
 		}
-		/*
-			for _, player := range stage.playerMap { // This is really stupid right? The tile has a playermap?
-				if pair[0] == player.y && pair[1] == player.x {
-					player.health += -50
-					if player.isDead() {
-						fmt.Println(player.id + " has died")
-
-						deadPlayerTile := stage.tiles[pair[0]][pair[1]]
-						deadPlayerTile.removePlayer(player.id)
-
-						removePlayerById(stage, player.id)
-
-						stage.markAllDirty()
-						//html := htmlFromStage(stage)
-						updateScreenWithStarter(player, "", updates) // Player is no longer on screen
-					}
-				}
-			}
-		*/
 	}
 }
 
