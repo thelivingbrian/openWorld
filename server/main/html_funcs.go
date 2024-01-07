@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"text/template"
 )
 
@@ -18,7 +19,7 @@ const screenTemplate = `
 
 var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(screenTemplate))
 
-func screenHtmlFromTemplate(player *Player) string {
+func htmlFromPlayer(player *Player) []byte {
 	var buf bytes.Buffer
 	tileColors := tilesToColors(player.stage.tiles)
 	playerView(player, tileColors)
@@ -28,10 +29,40 @@ func screenHtmlFromTemplate(player *Player) string {
 		panic(err)
 	}
 
+	return buf.Bytes()
+}
+
+func htmlFromStage(stage *Stage) string {
+	var buf bytes.Buffer
+	tileColors := tilesToColors(stage.tiles)
+
+	err := parsedScreenTemplate.Execute(&buf, tileColors)
+	if err != nil {
+		panic(err)
+	}
+
 	return buf.String()
 }
 
-func tilesToColors(tiles [][]Tile) [][]string {
+func playerView(player *Player, tileColors [][]string) {
+	tileColors[player.y][player.x] = "fusia"
+	if player.actions.space {
+		applyHighlights(player, tileColors, grid5x5, spaceHighlighter)
+	}
+}
+
+func hudAsOutOfBound(player *Player) string {
+	highlights := ""
+	if player.actions.space {
+		highlights += highlightsAsOob(player, grid5x5, spaceHighlighter)
+	}
+
+	playerIcon := fmt.Sprintf(`<div class="grid-square fusia" id="c%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
+
+	return highlights + playerIcon
+}
+
+func tilesToColors(tiles [][]*Tile) [][]string {
 	output := make([][]string, len(tiles))
 	for y := range output {
 		output[y] = make([]string, len(tiles[y]))
@@ -42,13 +73,6 @@ func tilesToColors(tiles [][]Tile) [][]string {
 	return output
 }
 
-func playerView(player *Player, tileColors [][]string) {
-	tileColors[player.y][player.x] = "fusia"
-	if player.actions.space {
-		applyHighlights(player, tileColors, cross(), spaceHighlighter)
-	}
-}
-
 func applyHighlights(player *Player, tileColors [][]string, relativeCoords [][2]int, highligher func(*Tile) string) {
 	absCoordinatePairs := applyRelativeDistance(player.y, player.x, relativeCoords)
 	for _, pair := range absCoordinatePairs {
@@ -56,9 +80,24 @@ func applyHighlights(player *Player, tileColors [][]string, relativeCoords [][2]
 			pair[1] >= 0 &&
 			pair[0] < len(player.stage.tiles) &&
 			pair[1] < len(player.stage.tiles[0]) {
-			tileColors[pair[0]][pair[1]] = highligher(&player.stage.tiles[pair[0]][pair[1]])
+			tileColors[pair[0]][pair[1]] = highligher(player.stage.tiles[pair[0]][pair[1]])
 		}
 	}
+}
+
+func highlightsAsOob(player *Player, relativeCoords [][2]int, highligher func(*Tile) string) string {
+	output := ``
+	absCoordinatePairs := applyRelativeDistance(player.y, player.x, relativeCoords)
+	for _, pair := range absCoordinatePairs {
+		if pair[0] >= 0 &&
+			pair[1] >= 0 &&
+			pair[0] < len(player.stage.tiles) &&
+			pair[1] < len(player.stage.tiles[0]) {
+			highlight := highligher(player.stage.tiles[pair[0]][pair[1]])
+			output += fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true"></div>`, highlight, pair[0], pair[1])
+		}
+	}
+	return output
 }
 
 func spaceHighlighter(tile *Tile) string {

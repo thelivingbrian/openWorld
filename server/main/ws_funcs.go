@@ -10,7 +10,7 @@ import (
 
 type Update struct {
 	player *Player
-	update string
+	update []byte // should be []byte not string, conversion cost twice
 }
 
 var (
@@ -134,5 +134,5 @@ func getTokenFromFirstMessage(conn *websocket.Conn) (token string, success bool)
 }
 
 func sendUpdate(messageType int, update Update) {
-	update.player.conn.WriteMessage(messageType, []byte(update.update))
+	update.player.conn.WriteMessage(messageType, update.update)
 }

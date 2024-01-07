@@ -34,8 +34,8 @@ func colorArray(row []Tile) []string {
 	return output
 }
 
-func newTile(mat Material) Tile {
-	return Tile{mat, make(map[string]*Player), sync.Mutex{}, nil, mat.CssClassName}
+func newTile(mat Material) *Tile {
+	return &Tile{mat, make(map[string]*Player), sync.Mutex{}, nil, mat.CssClassName}
 }
 
 // newTile w/ teleport?

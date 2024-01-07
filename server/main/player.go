@@ -26,8 +26,8 @@ func (player *Player) isDead() bool {
 func placeOnStage(p *Player) {
 	x := p.x
 	y := p.y
-	p.stage.tiles[y][x].addPlayer(p) // add p method
-	p.stage.playerMap[p.id] = p      // needed?
+	p.stage.tiles[y][x].addPlayer(p)
+	p.stage.playerMap[p.id] = p
 	p.stage.markAllDirty()
 }
 
@@ -41,12 +41,21 @@ func handleDeathOf(player *Player) {
 	placeOnStage(player)
 }
 
-func updateFullScreen(player *Player, playerUpdates chan Update) {
+func updateScreenWithStarter(player *Player, html string, playerUpdates chan Update) {
 	if player.isDead() {
 		handleDeathOf(player)
+		return
 	}
-	screenHtml := screenHtmlFromTemplate(player)
-	playerUpdates <- Update{player, screenHtml}
+	html += hudAsOutOfBound(player)
+	playerUpdates <- Update{player, []byte(html)}
+}
+
+func updateScreenFromScratch(player *Player, playerUpdates chan Update) {
+	if player.isDead() {
+		handleDeathOf(player)
+		return
+	}
+	playerUpdates <- Update{player, htmlFromPlayer(player)}
 }
 
 func moveNorth(p *Player) {
@@ -68,9 +77,9 @@ func moveWest(p *Player) {
 func move(p *Player, yOffset int, xOffset int) {
 	destY := p.y + yOffset
 	destX := p.x + xOffset
-	if validCoordinate(destY, destX, p.stage.tiles) && walkable(&p.stage.tiles[destY][destX]) {
-		currentTile := &p.stage.tiles[p.y][p.x]
-		destTile := &p.stage.tiles[destY][destX]
+	if validCoordinate(destY, destX, p.stage.tiles) && walkable(p.stage.tiles[destY][destX]) {
+		currentTile := p.stage.tiles[p.y][p.x]
+		destTile := p.stage.tiles[destY][destX]
 		currentTile.removePlayer(p.id)
 		p.y = destY // Don't like this here, move to addPlayer?
 		p.x = destX
@@ -79,7 +88,7 @@ func move(p *Player, yOffset int, xOffset int) {
 	}
 }
 
-func validCoordinate(y int, x int, tiles [][]Tile) bool {
+func validCoordinate(y int, x int, tiles [][]*Tile) bool {
 	if y < 0 || y >= len(tiles) {
 		return false
 	}

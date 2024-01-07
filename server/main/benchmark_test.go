@@ -15,7 +15,7 @@ func BenchmarkMarkAllDirty(b *testing.B) {
 	}()
 
 	stageNames := []string{"small", "large"}
-	playerCounts := []int{1, 5, 10, 20, 40}
+	playerCounts := []int{1, 5, 10, 100}
 
 	for _, stageName := range stageNames {
 		for _, playerCount := range playerCounts {
@@ -41,7 +41,7 @@ func BenchmarkMarkAllDirty(b *testing.B) {
 				b.StartTimer() // Start the timer for the actual benchmarking
 
 				for i := 0; i < b.N; i++ {
-					bigStage.markAllDirty()
+					bigStage.markAllDirty() // Test this with player.action.space on
 				}
 			})
 		}

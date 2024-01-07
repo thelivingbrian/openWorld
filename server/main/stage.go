@@ -6,34 +6,49 @@ import (
 )
 
 type Stage struct {
-	tiles       [][]Tile
+	tiles       [][]*Tile
 	playerMap   map[string]*Player
 	playerMutex sync.Mutex
 	name        string
 }
 
 func (stage *Stage) markAllDirty() {
+	if len(stage.playerMap) > 4 {
+		startingScreenUpdate(stage)
+	} else {
+		fullUpdate(stage)
+	}
+}
+
+func startingScreenUpdate(stage *Stage) {
+	screenHtml := htmlFromStage(stage)
 	for _, player := range stage.playerMap {
-		updateFullScreen(player, updates)
+		updateScreenWithStarter(player, screenHtml, updates)
+	}
+}
+
+func fullUpdate(stage *Stage) {
+	for _, player := range stage.playerMap {
+		updateScreenFromScratch(player, updates)
 	}
 }
 
 func (stage *Stage) damageAt(coords [][2]int) {
 	for _, pair := range coords {
-		for _, player := range stage.playerMap { // This is really stupid right? The tile has a playermap?
-			if pair[0] == player.y && pair[1] == player.x {
+		if validCoordinate(pair[0], pair[1], stage.tiles) {
+			for _, player := range stage.tiles[pair[0]][pair[1]].playerMap {
 				player.health += -50
 				if player.isDead() {
 					fmt.Println(player.id + " has died")
 
-					deadPlayerTile := &stage.tiles[pair[0]][pair[1]]
+					deadPlayerTile := stage.tiles[pair[0]][pair[1]]
 					deadPlayerTile.removePlayer(player.id)
-
-					removePlayerById(stage, player.id)
-
+					removePlayerById(stage, player.id) // Is stage player map used (maybe for player count only?)
 					stage.markAllDirty()
-					updateFullScreen(player, updates) // Player is no longer on screen
+
+					updateScreenWithStarter(player, "", updates) // Player is no longer on screen, Should this be a different method or should update happen elsewhere?
 				}
+
 			}
 		}
 	}
