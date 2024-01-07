@@ -17,16 +17,6 @@ const screenTemplate = `
 	{{end}}
 </div>`
 
-/*
-<div class="grid-square blue" id="c0-0" hx-swap-oob="true"></div>
-<div class="grid-square blue" id="c0-1" hx-swap-oob="true"></div>
-<div class="grid-square blue" id="c0-2" hx-swap-oob="true"></div>
-<div class="grid-square blue" id="c0-3" hx-swap-oob="true"></div>
-<div class="grid-square blue" id="c0-4" hx-swap-oob="true"></div>
-<div class="grid-square blue" id="c0-5" hx-swap-oob="true"></div>
-<div class="grid-square blue" id="c0-6" hx-swap-oob="true"></div>
-*/
-
 var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(screenTemplate))
 
 func htmlFromPlayer(player *Player) []byte {
@@ -38,8 +28,6 @@ func htmlFromPlayer(player *Player) []byte {
 	if err != nil {
 		panic(err)
 	}
-
-	//buf.WriteString(hudAsOutOfBound(player))
 
 	return buf.Bytes()
 }
@@ -54,6 +42,13 @@ func htmlFromStage(stage *Stage) string {
 	}
 
 	return buf.String()
+}
+
+func playerView(player *Player, tileColors [][]string) {
+	tileColors[player.y][player.x] = "fusia"
+	if player.actions.space {
+		applyHighlights(player, tileColors, grid5x5, spaceHighlighter)
+	}
 }
 
 func hudAsOutOfBound(player *Player) string {
@@ -77,13 +72,6 @@ func tilesToColors(tiles [][]*Tile) [][]string {
 		}
 	}
 	return output
-}
-
-func playerView(player *Player, tileColors [][]string) {
-	tileColors[player.y][player.x] = "fusia"
-	if player.actions.space {
-		applyHighlights(player, tileColors, grid5x5, spaceHighlighter)
-	}
 }
 
 func applyHighlights(player *Player, tileColors [][]string, relativeCoords [][2]int, highligher func(*Tile) string) {

@@ -26,9 +26,8 @@ func (player *Player) isDead() bool {
 func placeOnStage(p *Player) {
 	x := p.x
 	y := p.y
-	p.stage.tiles[y][x].addPlayer(p) // add p method
-	p.stage.playerMap[p.id] = p      // needed?
-	//fmt.Println(len(p.stage.playerMap))
+	p.stage.tiles[y][x].addPlayer(p)
+	p.stage.playerMap[p.id] = p
 	p.stage.markAllDirty()
 }
 

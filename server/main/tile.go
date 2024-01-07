@@ -17,7 +17,7 @@ type Tile struct {
 	playerMap   map[string]*Player
 	playerMutex sync.Mutex
 	Teleport    *Teleport
-	// Items and coords?j
+	// Items and coords?
 	// Display
 	CurrentCssClass string
 }
