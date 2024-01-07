@@ -52,7 +52,6 @@ func playerView(player *Player, tileColors [][]string) {
 }
 
 func hudAsOutOfBound(player *Player) string {
-
 	highlights := ""
 	if player.actions.space {
 		highlights += highlightsAsOob(player, grid5x5, spaceHighlighter)
