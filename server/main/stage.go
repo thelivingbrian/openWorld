@@ -74,7 +74,9 @@ func sendUpdate(messageType int, update Update) {
 
 func (stage *Stage) updateAll(update string) {
 	for _, player := range playerMap {
-		stage.updates <- Update{player, []byte(update)}
+
+		oobUpdateWithHud(player, update)
+		//stage.updates <- Update{player, []byte(update)}
 	}
 }
 
@@ -89,13 +91,13 @@ func (stage *Stage) markAllDirty() {
 func startingScreenUpdate(stage *Stage) {
 	screenHtml := htmlFromStage(stage)
 	for _, player := range stage.playerMap {
-		updateScreenWithStarter(player, screenHtml, stage.updates)
+		updateScreenWithStarter(player, screenHtml)
 	}
 }
 
 func fullUpdate(stage *Stage) {
 	for _, player := range stage.playerMap {
-		updateScreenFromScratch(player, stage.updates)
+		updateScreenFromScratch(player)
 	}
 }
 
@@ -112,7 +114,7 @@ func (stage *Stage) damageAt(coords [][2]int) {
 					removePlayerById(stage, player.id) // Is stage player map used (maybe for player count only?)
 					stage.markAllDirty()
 
-					updateScreenWithStarter(player, "", stage.updates) // Player is no longer on screen, Should this be a different method or should update happen elsewhere?
+					updateScreenWithStarter(player, "") // Player is no longer on screen, Should this be a different method or should update happen elsewhere?
 				}
 
 			}

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -41,21 +43,25 @@ func handleDeathOf(player *Player) {
 	placeOnStage(player)
 }
 
-func updateScreenWithStarter(player *Player, html string, playerUpdates chan Update) {
+func updateScreenWithStarter(player *Player, html string) {
 	if player.isDead() {
 		handleDeathOf(player)
 		return
 	}
 	html += hudAsOutOfBound(player)
-	playerUpdates <- Update{player, []byte(html)}
+	player.stage.updates <- Update{player, []byte(html)}
 }
 
-func updateScreenFromScratch(player *Player, playerUpdates chan Update) {
+func updateScreenFromScratch(player *Player) {
 	if player.isDead() {
 		handleDeathOf(player)
 		return
 	}
-	playerUpdates <- Update{player, htmlFromPlayer(player)}
+	player.stage.updates <- Update{player, htmlFromPlayer(player)}
+}
+
+func oobUpdateWithHud(player *Player, update string) {
+	player.stage.updates <- Update{player, []byte(update + hudAsOutOfBound(player))}
 }
 
 func moveNorth(p *Player) {
@@ -85,6 +91,7 @@ func move(p *Player, yOffset int, xOffset int) {
 		//p.y = destY // Don't like this here, move to addPlayer?
 		//p.x = destX
 		oobNext := destTile.addPlayer(p)
+		fmt.Println(currentStage.name)
 		currentStage.updateAll(oobPrevious + oobNext)
 		//p.stage.markAllDirty()
 	}
