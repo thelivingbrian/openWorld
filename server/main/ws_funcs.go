@@ -89,7 +89,9 @@ func ws_screen(w http.ResponseWriter, r *http.Request) {
 
 	token, success := getTokenFromFirstMessage(conn)
 	if !success {
-		panic("oops")
+		fmt.Println("Invalid Connection")
+		return
+		//panic("oops")
 	}
 
 	existingPlayer, playerExists := playerMap[token]
@@ -103,7 +105,7 @@ func ws_screen(w http.ResponseWriter, r *http.Request) {
 func handleNewPlayer(existingPlayer *Player, conn *websocket.Conn) {
 	existingPlayer.conn = conn
 	placeOnStage(existingPlayer)
-	fmt.Println("New Player")
+	fmt.Println("New Connection")
 	for {
 		_, _, err := conn.ReadMessage()
 		if err != nil {
@@ -131,8 +133,4 @@ func getTokenFromFirstMessage(conn *websocket.Conn) (token string, success bool)
 	}
 
 	return msg.Token, true
-}
-
-func sendUpdate(messageType int, update Update) {
-	update.player.conn.WriteMessage(messageType, update.update)
 }

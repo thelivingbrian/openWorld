@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"sync"
 )
 
 type Material struct {
@@ -63,19 +62,4 @@ func areaFromName(s string) Area {
 		}
 	}
 	panic("Area not found")
-}
-
-func createStageByName(s string) Stage {
-	area := areaFromName(s)
-	tiles := make([][]*Tile, len(area.Tiles))
-	for y := range tiles {
-		tiles[y] = make([]*Tile, len(area.Tiles[y]))
-		for x := range tiles[y] {
-			tiles[y][x] = newTile(materials[area.Tiles[y][x]])
-		}
-	}
-	for _, transport := range area.Transports {
-		tiles[transport.SourceY][transport.SourceX].Teleport = &Teleport{transport.DestStage, transport.DestY, transport.DestX}
-	}
-	return Stage{tiles: tiles, playerMap: make(map[string]*Player), playerMutex: sync.Mutex{}}
 }

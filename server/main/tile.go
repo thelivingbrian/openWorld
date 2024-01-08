@@ -16,14 +16,16 @@ type Tile struct {
 	material    Material
 	playerMap   map[string]*Player
 	playerMutex sync.Mutex
-	Teleport    *Teleport
-	// Items and coords?
+	teleport    *Teleport
+	// Coords
+	y int
+	x int
 	// Display
-	CurrentCssClass string
+	currentCssClass string
 }
 
 func colorOf(tile *Tile) string {
-	return tile.CurrentCssClass // Maybe like the old way better with the player count logic here
+	return tile.currentCssClass // Maybe like the old way better with the player count logic here
 }
 
 func colorArray(row []Tile) []string {
@@ -34,8 +36,8 @@ func colorArray(row []Tile) []string {
 	return output
 }
 
-func newTile(mat Material) *Tile {
-	return &Tile{mat, make(map[string]*Player), sync.Mutex{}, nil, mat.CssClassName}
+func newTile(mat Material, y int, x int) *Tile {
+	return &Tile{mat, make(map[string]*Player), sync.Mutex{}, nil, y, x, mat.CssClassName}
 }
 
 // newTile w/ teleport?
@@ -50,24 +52,24 @@ func (tile *Tile) removePlayer(playerId string) {
 	tile.playerMutex.Unlock()
 
 	if len(tile.playerMap) == 0 {
-		tile.CurrentCssClass = tile.material.CssClassName
+		tile.currentCssClass = tile.material.CssClassName
 	}
 }
 
 func (tile *Tile) addPlayer(player *Player) {
-	if tile.Teleport != nil {
-		player.y = tile.Teleport.destY
-		player.x = tile.Teleport.destX
-		player.stageName = tile.Teleport.destStage
+	if tile.teleport != nil {
+		player.y = tile.teleport.destY
+		player.x = tile.teleport.destX
+		player.stageName = tile.teleport.destStage
 
 		stageMutex.Lock()
 		existingStage, stageExists := stageMap[player.stageName]
 		if !stageExists {
 			fmt.Println("New Stage")
-			newStage := createStageByName(player.stageName)
-			stagePtr := &newStage
-			stageMap[player.stageName] = stagePtr
-			existingStage = stagePtr
+			existingStage = createStageByName(player.stageName)
+			//stagePtr := &newStage
+			//stageMap[player.stageName] = stagePtr
+			//existingStage = stagePtr
 		}
 		stageMutex.Unlock()
 
@@ -77,6 +79,6 @@ func (tile *Tile) addPlayer(player *Player) {
 		tile.playerMutex.Lock()
 		tile.playerMap[player.id] = player
 		tile.playerMutex.Unlock()
-		tile.CurrentCssClass = "blue"
+		tile.currentCssClass = "blue"
 	}
 }

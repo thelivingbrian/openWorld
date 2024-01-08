@@ -29,7 +29,7 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 	playerMutex.Unlock()
 
 	if !playerExists {
-		fmt.Println("New Player")
+		fmt.Println("New Player: ")
 		actions := Actions{false}
 		newPlayer := &Player{
 			id:        token,
@@ -93,7 +93,20 @@ func postSpaceOn(w http.ResponseWriter, r *http.Request) {
 	if success {
 		existingPlayer.actions.space = true
 		html := htmlFromStage(existingPlayer.stage)
-		updateScreenWithStarter(existingPlayer, html, updates)
+		updateScreenWithStarter(existingPlayer, html, existingPlayer.stage.updates)
+	} else {
+		io.WriteString(w, "")
+	}
+}
+
+func postSpaceOff(w http.ResponseWriter, r *http.Request) {
+	existingPlayer, success := playerFromRequest(r)
+	if success {
+		existingPlayer.actions.space = false
+		html := htmlFromStage(existingPlayer.stage)
+		updateScreenWithStarter(existingPlayer, html, existingPlayer.stage.updates)
+		existingPlayer.stage.damageAt(applyRelativeDistance(existingPlayer.y, existingPlayer.x, cross()))
+		io.WriteString(w, `<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="`+existingPlayer.id+`" />`)
 	} else {
 		io.WriteString(w, "")
 	}
@@ -104,17 +117,4 @@ func clearScreen(w http.ResponseWriter, r *http.Request) {
 				
 	</div>`
 	io.WriteString(w, output)
-}
-
-func postSpaceOff(w http.ResponseWriter, r *http.Request) {
-	existingPlayer, success := playerFromRequest(r)
-	if success {
-		existingPlayer.actions.space = false
-		html := htmlFromStage(existingPlayer.stage)
-		updateScreenWithStarter(existingPlayer, html, updates)
-		existingPlayer.stage.damageAt(applyRelativeDistance(existingPlayer.y, existingPlayer.x, cross()))
-		io.WriteString(w, `<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="`+existingPlayer.id+`" />`)
-	} else {
-		io.WriteString(w, "")
-	}
 }

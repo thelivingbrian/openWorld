@@ -67,7 +67,7 @@ func tilesToColors(tiles [][]*Tile) [][]string {
 	for y := range output {
 		output[y] = make([]string, len(tiles[y]))
 		for x := range output[y] {
-			output[y][x] = tiles[y][x].CurrentCssClass
+			output[y][x] = tiles[y][x].currentCssClass
 		}
 	}
 	return output
