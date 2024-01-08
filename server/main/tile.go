@@ -87,3 +87,15 @@ func (tile *Tile) addPlayer(player *Player) string {
 	}
 	return htmlFromTile(tile)
 }
+
+func (tile *Tile) damageAll(dmg int) {
+	for _, player := range tile.playerMap {
+		player.health += -dmg
+		if player.isDead() {
+			tile.removePlayer(player.id)
+			player.stage.removePlayerById(player.id)
+			player.stage.updateAll(htmlFromTile(tile))
+			respawn(player)
+		}
+	}
+}

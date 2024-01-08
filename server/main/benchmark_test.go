@@ -34,7 +34,7 @@ func BenchmarkMarkAllDirty(b *testing.B) {
 						stageName: stageName,
 						x:         2,
 						y:         2,
-						actions:   &Actions{false},
+						actions:   createDefaultActions(),
 						health:    100,
 					}
 					placeOnStage(&players[i])

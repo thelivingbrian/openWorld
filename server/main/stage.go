@@ -8,7 +8,7 @@ import (
 )
 
 type Stage struct {
-	tiles       [][]*Tile
+	tiles       [][]*Tile // [][]**Tile would be weird and open up FP over mutation (also lookup is less fragile)
 	playerMap   map[string]*Player
 	playerMutex sync.Mutex
 	updates     chan Update
@@ -59,7 +59,7 @@ func (stage *Stage) sendUpdates() {
 	for {
 		update, ok := <-stage.updates
 		if !ok {
-			fmt.Println("hi")
+			fmt.Println("Stage update channel closed")
 			return
 		}
 		//fmt.Println("yo")
@@ -73,14 +73,27 @@ func sendUpdate(messageType int, update Update) {
 }
 
 func (stage *Stage) updateAll(update string) {
-	for _, player := range playerMap {
+	for _, player := range stage.playerMap {
 
 		oobUpdateWithHud(player, update)
 		//stage.updates <- Update{player, []byte(update)}
 	}
 }
 
-func (stage *Stage) markAllDirty() {
+func (stage *Stage) updateAllExcept(update string, ignore *Player) {
+	for _, player := range stage.playerMap {
+		if player == ignore {
+			continue
+		}
+		oobUpdateWithHud(player, update)
+	}
+}
+
+func updateOne(update string, player *Player) {
+	oobUpdateWithHud(player, update)
+}
+
+func (stage *Stage) markAllDirty() { // This may become prohibitively slow upon players spawning, and full screen probably only needed for spawned player
 	if len(stage.playerMap) > 4 {
 		startingScreenUpdate(stage)
 	} else {
@@ -101,6 +114,7 @@ func fullUpdate(stage *Stage) {
 	}
 }
 
+/*
 func (stage *Stage) damageAt(coords [][2]int) {
 	for _, pair := range coords {
 		if validCoordinate(pair[0], pair[1], stage.tiles) {
@@ -111,7 +125,7 @@ func (stage *Stage) damageAt(coords [][2]int) {
 
 					deadPlayerTile := stage.tiles[pair[0]][pair[1]]
 					deadPlayerTile.removePlayer(player.id)
-					removePlayerById(stage, player.id) // Is stage player map used (maybe for player count only?)
+					stage.removePlayerById(player.id)
 					stage.markAllDirty()
 
 					updateScreenWithStarter(player, "") // Player is no longer on screen, Should this be a different method or should update happen elsewhere?
@@ -120,9 +134,9 @@ func (stage *Stage) damageAt(coords [][2]int) {
 			}
 		}
 	}
-}
+}*/
 
-func removePlayerById(stage *Stage, id string) {
+func (stage *Stage) removePlayerById(id string) {
 	stage.playerMutex.Lock()
 	delete(stage.playerMap, id)
 	stage.playerMutex.Unlock()

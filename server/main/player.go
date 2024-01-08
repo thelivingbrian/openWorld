@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/gorilla/websocket"
 )
 
@@ -18,7 +16,13 @@ type Player struct {
 }
 
 type Actions struct {
-	space bool
+	space           bool
+	spaceShape      [][2]int
+	spaceHighlights map[*Tile]bool
+}
+
+func createDefaultActions() *Actions {
+	return &Actions{false, cross(), map[*Tile]bool{}}
 }
 
 func (player *Player) isDead() bool {
@@ -34,18 +38,23 @@ func placeOnStage(p *Player) {
 }
 
 func handleDeathOf(player *Player) {
+
+}
+
+func respawn(player *Player) {
 	clinic := getClinic()
 	player.health = 100
 	player.stage = clinic
 	player.stageName = "clinic"
 	player.x = 2
 	player.y = 2
+	player.actions = createDefaultActions()
 	placeOnStage(player)
 }
 
 func updateScreenWithStarter(player *Player, html string) {
 	if player.isDead() {
-		handleDeathOf(player)
+		respawn(player)
 		return
 	}
 	html += hudAsOutOfBound(player)
@@ -54,13 +63,14 @@ func updateScreenWithStarter(player *Player, html string) {
 
 func updateScreenFromScratch(player *Player) {
 	if player.isDead() {
-		handleDeathOf(player)
+		respawn(player)
 		return
 	}
 	player.stage.updates <- Update{player, htmlFromPlayer(player)}
 }
 
 func oobUpdateWithHud(player *Player, update string) {
+	// Turn off previous highlighted that are no longer highlighted.
 	player.stage.updates <- Update{player, []byte(update + hudAsOutOfBound(player))}
 }
 
@@ -86,13 +96,16 @@ func move(p *Player, yOffset int, xOffset int) {
 	if validCoordinate(destY, destX, p.stage.tiles) && walkable(p.stage.tiles[destY][destX]) {
 		currentTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
-		currentStage := p.stage
-		oobPrevious := currentTile.removePlayer(p.id)
-		//p.y = destY // Don't like this here, move to addPlayer?
-		//p.x = destX
-		oobNext := destTile.addPlayer(p)
-		fmt.Println(currentStage.name)
-		currentStage.updateAll(oobPrevious + oobNext)
+
+		currentStage := p.stage // Stage may change as result of teleport or etc
+		oobAll := currentTile.removePlayer(p.id)
+		oobAll = oobAll + destTile.addPlayer(p)
+		oobRemoveHighlights := mapOfTileToOoB(p.setSpaceHighlights())
+
+		currentStage.updateAllExcept(oobAll, p)
+		if currentStage == p.stage {
+			updateOne(oobAll+oobRemoveHighlights, p)
+		}
 		//p.stage.markAllDirty()
 	}
 }
@@ -105,4 +118,49 @@ func validCoordinate(y int, x int, tiles [][]*Tile) bool {
 		return false
 	}
 	return true
+}
+
+func (player *Player) turnSpaceOn() {
+	player.actions.space = true
+	removedHighlights := player.setSpaceHighlights()
+	html := mapOfTileToOoB(removedHighlights)
+
+	player.stage.updates <- Update{player, []byte(html + hudAsOutOfBound(player))}
+}
+
+func (player *Player) setSpaceHighlights() map[*Tile]bool {
+	previous := player.actions.spaceHighlights
+	player.actions.spaceHighlights = map[*Tile]bool{}
+	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceShape)
+	for _, pair := range absCoordinatePairs {
+		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
+			tile := player.stage.tiles[pair[0]][pair[1]]
+			player.actions.spaceHighlights[tile] = true
+			delete(previous, tile)
+		}
+	}
+	return previous
+}
+
+func (player *Player) turnSpaceOff() {
+	player.actions.space = false
+	html := ``
+	for tile := range player.actions.spaceHighlights {
+		tile.damageAll(25)
+	}
+	html += mapOfTileToOoB(player.actions.spaceHighlights)
+
+	player.actions.spaceHighlights = map[*Tile]bool{}
+
+	//player.stage.damageAt(applyRelativeDistance(player.y, player.x, cross())) // put this method on tile and loop through highlighted map
+	player.stage.updates <- Update{player, []byte(html + hudAsOutOfBound(player))}
+}
+
+func mapOfTileToOoB(m map[*Tile]bool) string {
+	html := ``
+	for tile := range m {
+		//fmt.Println("hey")
+		html += htmlFromTile(tile)
+	}
+	return html
 }

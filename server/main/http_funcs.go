@@ -30,14 +30,14 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 
 	if !playerExists {
 		fmt.Println("New Player: ")
-		actions := Actions{false}
+		//actions := Actions{false, make(map[*Tile]bool)}
 		newPlayer := &Player{
 			id:        token,
 			stage:     nil,
 			stageName: stage,
 			x:         2,
 			y:         2,
-			actions:   &actions,
+			actions:   createDefaultActions(),
 			health:    100,
 		}
 
@@ -91,9 +91,10 @@ func postMovement(f func(*Player)) func(w http.ResponseWriter, r *http.Request) 
 func postSpaceOn(w http.ResponseWriter, r *http.Request) {
 	existingPlayer, success := playerFromRequest(r)
 	if success {
-		existingPlayer.actions.space = true
-		html := htmlFromStage(existingPlayer.stage)
-		updateScreenWithStarter(existingPlayer, html)
+		existingPlayer.turnSpaceOn()
+		//existingPlayer.actions.space = true
+		//html := htmlFromStage(existingPlayer.stage)
+		//updateScreenWithStarter(existingPlayer, html)
 	} else {
 		io.WriteString(w, "")
 	}
@@ -102,10 +103,11 @@ func postSpaceOn(w http.ResponseWriter, r *http.Request) {
 func postSpaceOff(w http.ResponseWriter, r *http.Request) {
 	existingPlayer, success := playerFromRequest(r)
 	if success {
-		existingPlayer.actions.space = false
-		html := htmlFromStage(existingPlayer.stage)
-		updateScreenWithStarter(existingPlayer, html)
-		existingPlayer.stage.damageAt(applyRelativeDistance(existingPlayer.y, existingPlayer.x, cross()))
+		existingPlayer.turnSpaceOff()
+		//existingPlayer.actions.space = false
+		//html := htmlFromStage(existingPlayer.stage)
+		//updateScreenWithStarter(existingPlayer, html) // Maybe can use smaller update if dehighlight is added?
+		//existingPlayer.stage.damageAt(applyRelativeDistance(existingPlayer.y, existingPlayer.x, cross()))
 		io.WriteString(w, `<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="`+existingPlayer.id+`" />`)
 	} else {
 		io.WriteString(w, "")
