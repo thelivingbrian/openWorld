@@ -16,12 +16,26 @@
     cursor: pointer;
   }
   
-  .red {
-    background-color: rgb(212, 52, 69);
-  }
+
 
   .green {
-    background-color: rgb(112, 252, 69);
+    background-color: rgb(32, 255, 69);
+  }
+
+  .lime {
+    background-color: rgb(150, 255, 42);
+  }
+
+  .yellow {
+    background-color: rgb(239, 239, 69);
+  }
+
+  .orange {
+    background-color: rgb(255, 150, 69);
+  }
+
+  .red {
+    background-color: rgb(255, 32, 69);
   }
 
   .blue {

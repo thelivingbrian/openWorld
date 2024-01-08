@@ -68,10 +68,7 @@ func (tile *Tile) addPlayer(player *Player) string {
 		existingStage, stageExists := stageMap[player.stageName]
 		if !stageExists {
 			fmt.Println("New Stage")
-			existingStage = createStageByName(player.stageName)
-			//stagePtr := &newStage
-			//stageMap[player.stageName] = stagePtr
-			//existingStage = stagePtr
+			existingStage = createStageAndHandleUpdates(player.stageName)
 		}
 		stageMutex.Unlock()
 
@@ -83,14 +80,34 @@ func (tile *Tile) addPlayer(player *Player) string {
 		tile.playerMutex.Unlock()
 		player.y = tile.y
 		player.x = tile.x
-		tile.currentCssClass = "blue"
+		tile.currentCssClass = cssClassFromHealth(player)
 	}
 	return htmlFromTile(tile)
+}
+
+func cssClassFromHealth(player *Player) string {
+	if player.health >= 80 {
+		return "green"
+	}
+	if player.health >= 60 {
+		return "lime"
+	}
+	if player.health >= 40 {
+		return "yellow"
+	}
+	if player.health >= 20 {
+		return "orange"
+	}
+	if player.health >= 0 {
+		return "red"
+	}
+	return "blue" //shouldn't happen but want to be visible
 }
 
 func (tile *Tile) damageAll(dmg int) {
 	for _, player := range tile.playerMap {
 		player.health += -dmg
+		tile.currentCssClass = cssClassFromHealth(player)
 		if player.isDead() {
 			tile.removePlayer(player.id)
 			player.stage.removePlayerById(player.id)

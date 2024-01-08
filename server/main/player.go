@@ -22,7 +22,7 @@ type Actions struct {
 }
 
 func createDefaultActions() *Actions {
-	return &Actions{false, cross(), map[*Tile]bool{}}
+	return &Actions{false, grid7x7, map[*Tile]bool{}}
 }
 
 func (player *Player) isDead() bool {
