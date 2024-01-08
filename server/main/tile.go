@@ -46,7 +46,7 @@ func walkable(tile *Tile) bool {
 	return tile.material.Walkable
 }
 
-func (tile *Tile) removePlayer(playerId string) {
+func (tile *Tile) removePlayer(playerId string) string {
 	tile.playerMutex.Lock()
 	delete(tile.playerMap, playerId)
 	tile.playerMutex.Unlock()
@@ -54,9 +54,11 @@ func (tile *Tile) removePlayer(playerId string) {
 	if len(tile.playerMap) == 0 {
 		tile.currentCssClass = tile.material.CssClassName
 	}
+
+	return htmlFromTile(tile)
 }
 
-func (tile *Tile) addPlayer(player *Player) {
+func (tile *Tile) addPlayer(player *Player) string {
 	if tile.teleport != nil {
 		player.y = tile.teleport.destY
 		player.x = tile.teleport.destX
@@ -79,6 +81,9 @@ func (tile *Tile) addPlayer(player *Player) {
 		tile.playerMutex.Lock()
 		tile.playerMap[player.id] = player
 		tile.playerMutex.Unlock()
+		player.y = tile.y
+		player.x = tile.x
 		tile.currentCssClass = "blue"
 	}
+	return htmlFromTile(tile)
 }

@@ -19,13 +19,19 @@ func getStageByName(name string) *Stage {
 	stageMutex.Lock()
 	existingStage, stageExists := stageMap[name]
 	if !stageExists {
-		fmt.Println("New Stage " + name)
-		existingStage = createStageByName(name)
-		stageMap[name] = existingStage
-		go existingStage.sendUpdates()
+		existingStage = createStageAndHandleUpdates(name)
 	}
 	stageMutex.Unlock()
 	return existingStage
+}
+
+func createStageAndHandleUpdates(name string) *Stage {
+	fmt.Println("New Stage " + name)
+	stage := createStageByName(name)
+	stageMap[name] = stage
+	go stage.sendUpdates()
+	return stage
+
 }
 
 func createStageByName(s string) *Stage {
@@ -64,6 +70,12 @@ func (stage *Stage) sendUpdates() {
 
 func sendUpdate(messageType int, update Update) {
 	update.player.conn.WriteMessage(messageType, update.update)
+}
+
+func (stage *Stage) updateAll(update string) {
+	for _, player := range playerMap {
+		stage.updates <- Update{player, []byte(update)}
+	}
 }
 
 func (stage *Stage) markAllDirty() {

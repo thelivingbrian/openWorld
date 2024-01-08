@@ -135,3 +135,7 @@ func printPageFor(player *Player) string {
 		</div>
 	</div>`
 }
+
+func htmlFromTile(tile *Tile) string {
+	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true"></div>`, tile.currentCssClass, tile.y, tile.x)
+}

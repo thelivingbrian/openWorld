@@ -80,11 +80,13 @@ func move(p *Player, yOffset int, xOffset int) {
 	if validCoordinate(destY, destX, p.stage.tiles) && walkable(p.stage.tiles[destY][destX]) {
 		currentTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
-		currentTile.removePlayer(p.id)
-		p.y = destY // Don't like this here, move to addPlayer?
-		p.x = destX
-		destTile.addPlayer(p)
-		p.stage.markAllDirty()
+		currentStage := p.stage
+		oobPrevious := currentTile.removePlayer(p.id)
+		//p.y = destY // Don't like this here, move to addPlayer?
+		//p.x = destX
+		oobNext := destTile.addPlayer(p)
+		currentStage.updateAll(oobPrevious + oobNext)
+		//p.stage.markAllDirty()
 	}
 }
 

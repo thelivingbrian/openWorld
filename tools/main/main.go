@@ -45,8 +45,7 @@ func main() {
 	fmt.Println("Attempting to start server...")
 	populateFromJson()
 
-	//http.HandleFunc("/level/", getLevel)
-	http.Handle("/level/", http.StripPrefix("/level/", http.FileServer(http.Dir("./level/assets"))))
+	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./level/assets"))))
 
 	http.HandleFunc("/materialPage", getMaterialPage)
 	http.HandleFunc("/material", getMaterial)
