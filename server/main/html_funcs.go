@@ -47,14 +47,14 @@ func htmlFromStage(stage *Stage) string {
 func playerView(player *Player, tileColors [][]string) {
 	tileColors[player.y][player.x] = "fusia"
 	if player.actions.space {
-		applyHighlights(player, tileColors, grid5x5, spaceHighlighter)
+		applyHighlights(player, tileColors, player.actions.spaceShape, spaceHighlighter) // Modify to use space shape (Is this actually possible?)
 	}
 }
 
 func hudAsOutOfBound(player *Player) string {
 	highlights := ""
 	if player.actions.space {
-		for tile, _ := range player.actions.spaceHighlights {
+		for tile := range player.actions.spaceHighlights {
 			highlights += oobColoredTile(tile, spaceHighlighter(tile))
 		}
 	}
