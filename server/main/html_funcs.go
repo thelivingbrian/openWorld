@@ -106,7 +106,9 @@ func highlightsAsOob(player *Player, relativeCoords [][2]int, highligher func(*T
 }
 
 func spaceHighlighter(tile *Tile) string {
-	if walkable(tile) {
+	if len(tile.playerMap) > 0 {
+		return "dark-blue"
+	} else if walkable(tile) {
 		return "green"
 	} else {
 		return "red"

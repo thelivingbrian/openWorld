@@ -16,30 +16,30 @@
     cursor: pointer;
   }
   
-
+/* these colors are needed by the game itself */
 
   .green {
-    background-color: rgb(32, 255, 69);
+    background-color: rgb(32, 255, 60);
   }
 
   .lime {
-    background-color: rgb(150, 255, 42);
+    background-color: rgb(150, 255, 60);
   }
 
   .yellow {
-    background-color: rgb(239, 239, 69);
+    background-color: rgb(255, 255, 60);
   }
 
   .orange {
-    background-color: rgb(255, 150, 69);
+    background-color: rgb(255, 150, 60);
   }
 
   .red {
-    background-color: rgb(255, 32, 69);
+    background-color: rgb(255, 32, 60);
   }
 
   .blue {
-    background-color: rgb(72, 52, 239);
+    background-color: rgb(72, 52, 238);
   }
 
   .fusia {
@@ -48,4 +48,8 @@
   
   .half-gray {
     background-color: rgb(120, 120, 129);
+  }
+  
+  .dark-blue {
+    background-color: rgb(32, 32, 65);
   }

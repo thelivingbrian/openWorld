@@ -16,6 +16,7 @@ type Tile struct {
 	material    Material
 	playerMap   map[string]*Player
 	playerMutex sync.Mutex
+	stage       *Stage
 	teleport    *Teleport
 	// Coords
 	y int
@@ -37,7 +38,7 @@ func colorArray(row []Tile) []string {
 }
 
 func newTile(mat Material, y int, x int) *Tile {
-	return &Tile{mat, make(map[string]*Player), sync.Mutex{}, nil, y, x, mat.CssClassName}
+	return &Tile{mat, make(map[string]*Player), sync.Mutex{}, nil, nil, y, x, mat.CssClassName}
 }
 
 // newTile w/ teleport?
@@ -105,14 +106,18 @@ func cssClassFromHealth(player *Player) string {
 }
 
 func (tile *Tile) damageAll(dmg int) {
+	first := true
 	for _, player := range tile.playerMap {
 		player.health += -dmg
 		tile.currentCssClass = cssClassFromHealth(player)
 		if player.isDead() {
 			tile.removePlayer(player.id)
-			player.stage.removePlayerById(player.id)
-			player.stage.updateAll(htmlFromTile(tile))
+			tile.stage.removePlayerById(player.id)
 			respawn(player)
+		}
+		if first {
+			first = false
+			tile.stage.updateAll(htmlFromTile(tile))
 		}
 	}
 }

@@ -35,20 +35,23 @@ func createStageAndHandleUpdates(name string) *Stage {
 }
 
 func createStageByName(s string) *Stage {
+
+	updates := make(chan Update)
 	area := areaFromName(s)
-	tiles := make([][]*Tile, len(area.Tiles))
-	for y := range tiles {
-		tiles[y] = make([]*Tile, len(area.Tiles[y]))
-		for x := range tiles[y] {
-			tiles[y][x] = newTile(materials[area.Tiles[y][x]], y, x)
+	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, updates, s}
+
+	for y := range outputStage.tiles {
+		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
+		for x := range outputStage.tiles[y] {
+			outputStage.tiles[y][x] = newTile(materials[area.Tiles[y][x]], y, x)
+			outputStage.tiles[y][x].stage = &outputStage
 		}
 	}
 	for _, transport := range area.Transports {
-		tiles[transport.SourceY][transport.SourceX].teleport = &Teleport{transport.DestStage, transport.DestY, transport.DestX}
+		outputStage.tiles[transport.SourceY][transport.SourceX].teleport = &Teleport{transport.DestStage, transport.DestY, transport.DestX}
 	}
-	updates := make(chan Update)
 	//go sendUpdates(updates)
-	return &Stage{tiles, make(map[string]*Player), sync.Mutex{}, updates, s}
+	return &outputStage
 }
 
 func getClinic() *Stage {
