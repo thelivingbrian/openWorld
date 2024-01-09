@@ -24,7 +24,6 @@ func BenchmarkMarkAllDirty(b *testing.B) {
 			b.Run(fmt.Sprintf("stage:%s players:%d Cores", stageName, playerCount), func(b *testing.B) {
 				b.StopTimer() // Stop the timer while setting up the benchmark
 
-				//fmt.Println("made stage")
 				players := make([]Player, playerCount)
 
 				for i := range players {

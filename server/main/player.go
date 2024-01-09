@@ -70,7 +70,6 @@ func updateScreenFromScratch(player *Player) {
 }
 
 func oobUpdateWithHud(player *Player, update string) {
-	// Turn off previous highlighted that are no longer highlighted.
 	player.stage.updates <- Update{player, []byte(update + hudAsOutOfBound(player))}
 }
 
@@ -94,7 +93,6 @@ func move(p *Player, yOffset int, xOffset int) {
 	destY := p.y + yOffset
 	destX := p.x + xOffset
 	if validCoordinate(destY, destX, p.stage.tiles) && walkable(p.stage.tiles[destY][destX]) {
-		//fmt.Println(p.stage.name)
 		currentTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
 
@@ -107,10 +105,8 @@ func move(p *Player, yOffset int, xOffset int) {
 
 		currentStage.updateAllExcept(oobAll, p)
 		if currentStage == p.stage {
-			//oobRemoveHighlights += ""
 			updateOne(oobAll+oobRemoveHighlights, p)
 		}
-		//p.stage.markAllDirty()
 	}
 }
 
@@ -148,16 +144,17 @@ func (player *Player) setSpaceHighlights() map[*Tile]bool {
 
 func (player *Player) turnSpaceOff() {
 	player.actions.space = false
-	html := ``
+
 	for tile := range player.actions.spaceHighlights {
 		tile.damageAll(25)
 	}
-	html += mapOfTileToOoB(player.actions.spaceHighlights)
+	htmlRemoveHighlights := mapOfTileToOoB(player.actions.spaceHighlights)
 
 	player.actions.spaceHighlights = map[*Tile]bool{}
 
+	htmlAddHud := hudAsOutOfBound(player)
 	//player.stage.damageAt(applyRelativeDistance(player.y, player.x, cross())) // put this method on tile and loop through highlighted map
-	player.stage.updates <- Update{player, []byte(html + hudAsOutOfBound(player))}
+	player.stage.updates <- Update{player, []byte(htmlRemoveHighlights + htmlAddHud)}
 }
 
 func mapOfTileToOoB(m map[*Tile]bool) string {

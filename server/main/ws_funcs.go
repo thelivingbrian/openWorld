@@ -10,7 +10,7 @@ import (
 
 type Update struct {
 	player *Player
-	update []byte // should be []byte not string, conversion cost twice
+	update []byte
 }
 
 var (
@@ -91,7 +91,6 @@ func ws_screen(w http.ResponseWriter, r *http.Request) {
 	if !success {
 		fmt.Println("Invalid Connection")
 		return
-		//panic("oops")
 	}
 
 	existingPlayer, playerExists := playerMap[token]

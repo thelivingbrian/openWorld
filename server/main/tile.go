@@ -61,26 +61,12 @@ func (tile *Tile) removePlayer(playerId string) string {
 
 func (tile *Tile) addPlayer(player *Player) string {
 	if tile.teleport != nil {
+		// Remove Player
 		tile.stage.removePlayerById(player.id)
 		tile.removePlayer(player.id)
-
-		/*player.y = tile.teleport.destY
-		player.x = tile.teleport.destX
-		player.stageName = tile.teleport.destStage
-
-		stageMutex.Lock()
-		existingStage, stageExists := stageMap[player.stageName]
-		if !stageExists {
-			fmt.Println("New Stage")
-			existingStage = createStageAndHandleUpdates(player.stageName)
-		}
-		stageMutex.Unlock()
-		*/
-
+		// Add on new stage
 		existingStage := getStageByName(tile.teleport.destStage)
 		placeOnTile(player, existingStage.tiles[tile.teleport.destY][tile.teleport.destX])
-		//player.stage = existingStage
-		//placeOnStage(player)
 	} else {
 		tile.playerMutex.Lock()
 		tile.playerMap[player.id] = player

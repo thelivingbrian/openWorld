@@ -8,10 +8,10 @@
         [51, 51, 51, 51]
     ],
     "transports" : [{
-        "sourceY": 2,
-        "sourceX": 8,
-        "destY": 2,
-        "destX": 2,
-        "destStage": "woods01"
+        "sourceY": 10,
+        "sourceX": 10,
+        "destY": 10,
+        "destX": 7,
+        "destStage": "big"
     }]
 }

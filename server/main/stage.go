@@ -35,7 +35,6 @@ func createStageAndHandleUpdates(name string) *Stage {
 }
 
 func createStageByName(s string) *Stage {
-
 	updatesForStage := make(chan Update)
 	area := areaFromName(s)
 	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, updatesForStage, s}
@@ -53,7 +52,7 @@ func createStageByName(s string) *Stage {
 		outputStage.tiles[transport.SourceY][transport.SourceX].currentCssClass = "pink"
 
 	}
-	//go sendUpdates(updates)
+
 	return &outputStage
 }
 
@@ -68,8 +67,7 @@ func (stage *Stage) sendUpdates() {
 			fmt.Println("Stage update channel closed")
 			return
 		}
-		//fmt.Println("yo")
-		//fmt.Println(update.player.stageName)
+
 		sendUpdate(websocket.TextMessage, update)
 	}
 }
@@ -81,7 +79,6 @@ func sendUpdate(messageType int, update Update) {
 func (stage *Stage) updateAll(update string) {
 	for _, player := range stage.playerMap {
 		oobUpdateWithHud(player, update)
-		//stage.updates <- Update{player, []byte(update)}
 	}
 }
 
@@ -121,28 +118,6 @@ func fullUpdate(stage *Stage) {
 		updateScreenFromScratch(player)
 	}
 }
-
-/*
-func (stage *Stage) damageAt(coords [][2]int) {
-	for _, pair := range coords {
-		if validCoordinate(pair[0], pair[1], stage.tiles) {
-			for _, player := range stage.tiles[pair[0]][pair[1]].playerMap {
-				player.health += -50
-				if player.isDead() {
-					fmt.Println(player.id + " has died")
-
-					deadPlayerTile := stage.tiles[pair[0]][pair[1]]
-					deadPlayerTile.removePlayer(player.id)
-					stage.removePlayerById(player.id)
-					stage.markAllDirty()
-
-					updateScreenWithStarter(player, "") // Player is no longer on screen, Should this be a different method or should update happen elsewhere?
-				}
-
-			}
-		}
-	}
-}*/
 
 func (stage *Stage) removePlayerById(id string) {
 	stage.playerMutex.Lock()

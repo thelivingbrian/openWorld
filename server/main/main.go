@@ -14,7 +14,6 @@ var (
 	stageMap    = make(map[string]*Stage)
 	stageMutex  sync.Mutex
 	broadcast   = make(chan string)
-	//updates     = make(chan Update)
 )
 
 func main() {
@@ -22,7 +21,8 @@ func main() {
 	loadFromJson()
 
 	fmt.Println("Establishing Routes...")
-	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./assets")))) // Last Handle take priority so dirs in /assets/ will be overwritten by handled funcs
+	// Last Handle take priority so dirs in /assets/ will be overwritten by handled funcs
+	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./assets"))))
 	http.HandleFunc("/signin", postSignin)
 
 	fmt.Println("Preparing for interactions...")
@@ -30,13 +30,12 @@ func main() {
 	http.HandleFunc("/s", postMovement(moveSouth))
 	http.HandleFunc("/a", postMovement(moveWest))
 	http.HandleFunc("/d", postMovement(moveEast))
-
 	http.HandleFunc("/clear", clearScreen)
 	http.HandleFunc("/spaceOn", postSpaceOn)
 	http.HandleFunc("/spaceOff", postSpaceOff)
 
 	fmt.Println("Initiating Websockets...")
-	http.HandleFunc("/screen", ws_screen) // Inject Channels here (probably no, in stage instead)
+	http.HandleFunc("/screen", ws_screen)
 	http.HandleFunc("/chat", ws_chat)
 	go func() {
 		for {
@@ -44,12 +43,6 @@ func main() {
 			sendMessageToAll(websocket.TextMessage, []byte(message))
 		}
 	}()
-	/*go func() {
-		for {
-			update := <-updates
-			sendUpdate(websocket.TextMessage, update)
-		}
-	}()*/
 
 	fmt.Println("Attempting to start server...")
 	err := http.ListenAndServe(":9090", nil)

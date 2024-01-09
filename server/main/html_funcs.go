@@ -54,13 +54,10 @@ func playerView(player *Player, tileColors [][]string) {
 func hudAsOutOfBound(player *Player) string {
 	highlights := ""
 	if player.actions.space {
-		// map *tile bool (previous highlighted), remove each highlighed and return default for rest
-		//highlights += highlightsAsOob(player, grid5x5, spaceHighlighter)
 		for tile, _ := range player.actions.spaceHighlights {
 			highlights += oobColoredTile(tile, spaceHighlighter(tile))
 		}
 	}
-	// else dehighlight?
 
 	playerIcon := fmt.Sprintf(`<div class="grid-square fusia" id="c%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
 
