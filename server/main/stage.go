@@ -36,9 +36,9 @@ func createStageAndHandleUpdates(name string) *Stage {
 
 func createStageByName(s string) *Stage {
 
-	updates := make(chan Update)
+	updatesForStage := make(chan Update)
 	area := areaFromName(s)
-	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, updates, s}
+	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, updatesForStage, s}
 
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
@@ -49,6 +49,9 @@ func createStageByName(s string) *Stage {
 	}
 	for _, transport := range area.Transports {
 		outputStage.tiles[transport.SourceY][transport.SourceX].teleport = &Teleport{transport.DestStage, transport.DestY, transport.DestX}
+		outputStage.tiles[transport.SourceY][transport.SourceX].originalCssClass = "pink"
+		outputStage.tiles[transport.SourceY][transport.SourceX].currentCssClass = "pink"
+
 	}
 	//go sendUpdates(updates)
 	return &outputStage
@@ -77,15 +80,17 @@ func sendUpdate(messageType int, update Update) {
 
 func (stage *Stage) updateAll(update string) {
 	for _, player := range stage.playerMap {
-
 		oobUpdateWithHud(player, update)
 		//stage.updates <- Update{player, []byte(update)}
 	}
 }
 
 func (stage *Stage) updateAllExcept(update string, ignore *Player) {
-	for _, player := range stage.playerMap {
+	fmt.Println(stage.name)
+	for name, player := range stage.playerMap {
+		fmt.Println(name)
 		if player == ignore {
+			fmt.Println("ignoring")
 			continue
 		}
 		oobUpdateWithHud(player, update)
@@ -142,5 +147,11 @@ func (stage *Stage) damageAt(coords [][2]int) {
 func (stage *Stage) removePlayerById(id string) {
 	stage.playerMutex.Lock()
 	delete(stage.playerMap, id)
+	stage.playerMutex.Unlock()
+}
+
+func (stage *Stage) addPlayer(player *Player) {
+	stage.playerMutex.Lock()
+	stage.playerMap[player.id] = player
 	stage.playerMutex.Unlock()
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -22,7 +21,8 @@ type Tile struct {
 	y int
 	x int
 	// Display
-	currentCssClass string
+	currentCssClass  string
+	originalCssClass string
 }
 
 func colorOf(tile *Tile) string {
@@ -38,7 +38,7 @@ func colorArray(row []Tile) []string {
 }
 
 func newTile(mat Material, y int, x int) *Tile {
-	return &Tile{mat, make(map[string]*Player), sync.Mutex{}, nil, nil, y, x, mat.CssClassName}
+	return &Tile{mat, make(map[string]*Player), sync.Mutex{}, nil, nil, y, x, mat.CssClassName, mat.CssClassName}
 }
 
 // newTile w/ teleport?
@@ -53,7 +53,7 @@ func (tile *Tile) removePlayer(playerId string) string {
 	tile.playerMutex.Unlock()
 
 	if len(tile.playerMap) == 0 {
-		tile.currentCssClass = tile.material.CssClassName
+		tile.currentCssClass = tile.originalCssClass //.material.CssClassName
 	}
 
 	return htmlFromTile(tile)
@@ -61,7 +61,10 @@ func (tile *Tile) removePlayer(playerId string) string {
 
 func (tile *Tile) addPlayer(player *Player) string {
 	if tile.teleport != nil {
-		player.y = tile.teleport.destY
+		tile.stage.removePlayerById(player.id)
+		tile.removePlayer(player.id)
+
+		/*player.y = tile.teleport.destY
 		player.x = tile.teleport.destX
 		player.stageName = tile.teleport.destStage
 
@@ -72,9 +75,12 @@ func (tile *Tile) addPlayer(player *Player) string {
 			existingStage = createStageAndHandleUpdates(player.stageName)
 		}
 		stageMutex.Unlock()
+		*/
 
-		player.stage = existingStage
-		placeOnStage(player)
+		existingStage := getStageByName(tile.teleport.destStage)
+		placeOnTile(player, existingStage.tiles[tile.teleport.destY][tile.teleport.destX])
+		//player.stage = existingStage
+		//placeOnStage(player)
 	} else {
 		tile.playerMutex.Lock()
 		tile.playerMap[player.id] = player
@@ -84,6 +90,13 @@ func (tile *Tile) addPlayer(player *Player) string {
 		tile.currentCssClass = cssClassFromHealth(player)
 	}
 	return htmlFromTile(tile)
+}
+
+func placeOnTile(player *Player, tile *Tile) {
+	player.stage = tile.stage
+	tile.addPlayer(player)
+	tile.stage.addPlayer(player)
+	tile.stage.markAllDirty()
 }
 
 func cssClassFromHealth(player *Player) string {

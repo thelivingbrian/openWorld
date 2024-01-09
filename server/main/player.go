@@ -30,7 +30,7 @@ func (player *Player) isDead() bool {
 }
 
 func placeOnStage(p *Player) {
-	x := p.x
+	x := p.x // Feels backwards but maybe needed for loading  from db?
 	y := p.y
 	p.stage.tiles[y][x].addPlayer(p)
 	p.stage.playerMap[p.id] = p
@@ -94,16 +94,20 @@ func move(p *Player, yOffset int, xOffset int) {
 	destY := p.y + yOffset
 	destX := p.x + xOffset
 	if validCoordinate(destY, destX, p.stage.tiles) && walkable(p.stage.tiles[destY][destX]) {
+		//fmt.Println(p.stage.name)
 		currentTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
 
 		currentStage := p.stage // Stage may change as result of teleport or etc
 		oobAll := currentTile.removePlayer(p.id)
 		oobAll = oobAll + destTile.addPlayer(p)
+
+		// This should be less complicated if space is off,
 		oobRemoveHighlights := mapOfTileToOoB(p.setSpaceHighlights())
 
 		currentStage.updateAllExcept(oobAll, p)
 		if currentStage == p.stage {
+			//oobRemoveHighlights += ""
 			updateOne(oobAll+oobRemoveHighlights, p)
 		}
 		//p.stage.markAllDirty()
