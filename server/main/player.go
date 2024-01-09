@@ -38,7 +38,7 @@ func placeOnStage(p *Player) {
 }
 
 func handleDeathOf(player *Player) {
-
+	// Implement??
 }
 
 func respawn(player *Player) {
@@ -99,11 +99,12 @@ func move(p *Player, yOffset int, xOffset int) {
 		currentStage := p.stage // Stage may change as result of teleport or etc
 		oobAll := currentTile.removePlayer(p.id)
 		oobAll = oobAll + destTile.addPlayer(p)
-
-		// This should be less complicated if space is off,
-		oobRemoveHighlights := mapOfTileToOoB(p.setSpaceHighlights())
-
 		currentStage.updateAllExcept(oobAll, p)
+
+		oobRemoveHighlights := ""
+		if p.actions.space {
+			oobRemoveHighlights = mapOfTileToOoB(p.setSpaceHighlights())
+		}
 		if currentStage == p.stage {
 			updateOne(oobAll+oobRemoveHighlights, p)
 		}
@@ -122,13 +123,12 @@ func validCoordinate(y int, x int, tiles [][]*Tile) bool {
 
 func (player *Player) turnSpaceOn() {
 	player.actions.space = true
-	removedHighlights := player.setSpaceHighlights()
-	html := mapOfTileToOoB(removedHighlights)
+	player.setSpaceHighlights()
 
-	player.stage.updates <- Update{player, []byte(html + hudAsOutOfBound(player))}
+	player.stage.updates <- Update{player, []byte(hudAsOutOfBound(player))}
 }
 
-func (player *Player) setSpaceHighlights() map[*Tile]bool {
+func (player *Player) setSpaceHighlights() map[*Tile]bool { // Returns removed highlights
 	previous := player.actions.spaceHighlights
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceShape)
@@ -153,14 +153,12 @@ func (player *Player) turnSpaceOff() {
 	player.actions.spaceHighlights = map[*Tile]bool{}
 
 	htmlAddHud := hudAsOutOfBound(player)
-	//player.stage.damageAt(applyRelativeDistance(player.y, player.x, cross())) // put this method on tile and loop through highlighted map
 	player.stage.updates <- Update{player, []byte(htmlRemoveHighlights + htmlAddHud)}
 }
 
 func mapOfTileToOoB(m map[*Tile]bool) string {
 	html := ``
 	for tile := range m {
-		//fmt.Println("hey")
 		html += htmlFromTile(tile)
 	}
 	return html

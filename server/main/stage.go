@@ -83,11 +83,8 @@ func (stage *Stage) updateAll(update string) {
 }
 
 func (stage *Stage) updateAllExcept(update string, ignore *Player) {
-	fmt.Println(stage.name)
-	for name, player := range stage.playerMap {
-		fmt.Println(name)
+	for _, player := range stage.playerMap {
 		if player == ignore {
-			fmt.Println("ignoring")
 			continue
 		}
 		oobUpdateWithHud(player, update)
