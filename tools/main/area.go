@@ -71,9 +71,17 @@ func getAreaPage(w http.ResponseWriter, r *http.Request) {
 	<div id="controls">
 		<form hx-post="/createGrid" hx-target="#panel" hx-swap="outerHTML">
 			<div>
-				<label>Enter Height and Width:</label>
-				<input type="text" name="height" value="10">
-				<input type="text" name="width" value="14">
+				<label>Input dimensions:</label>
+			</div>
+			<div>
+				<label for="height">Height:</label>
+				<input type="text" id="height" name="height" value="10">
+			</div>
+			<div>
+				<label for="width">Width:</label>
+				<input type="text" id="width" name="width" value="14">
+			</div>
+			<div>
 				<button>Create</button>
 			</div>
 		</form>
@@ -134,14 +142,22 @@ func createGrid(w http.ResponseWriter, r *http.Request) {
 	output := `
     <div id="panel">
         <div id="controls">
-            <form hx-post="/createGrid" hx-target="#panel" hx-swap="outerHTML">
-                <div>
-                <label>Enter Height and Width:</label>
-                <input type="text" name="height" value="10">
-                <input type="text" name="width" value="10">
-                </div>
-                <button>Create</button>
-            </form>
+			<form hx-post="/createGrid" hx-target="#panel" hx-swap="outerHTML">
+				<div>
+					<label>Input dimensions:</label>
+				</div>
+				<div>
+					<label for="height">Height:</label>
+					<input type="text" id="height" name="height" value="10">
+				</div>
+				<div>
+					<label for="width">Width:</label>
+					<input type="text" id="width" name="width" value="14">
+				</div>
+				<div>
+					<button>Create</button>
+				</div>
+			</form>
 			<form hx-post="/saveArea">
 				<label>Name:</label>
 				<input type="text" name="areaName">
