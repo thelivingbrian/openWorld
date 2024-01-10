@@ -36,7 +36,7 @@ func main() {
 
 	fmt.Println("Initiating Websockets...")
 	http.HandleFunc("/screen", ws_screen)
-	http.HandleFunc("/chat", ws_chat)
+	//http.HandleFunc("/chat", ws_chat)
 	go func() {
 		for {
 			message := <-broadcast

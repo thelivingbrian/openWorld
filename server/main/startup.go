@@ -55,11 +55,12 @@ func loadFromJson() {
 	fmt.Println(len(areas))
 }
 
-func areaFromName(s string) Area {
+func areaFromName(s string) (area Area, success bool) {
 	for _, area := range areas {
 		if area.Name == s {
-			return area
+			return area, true
 		}
 	}
-	panic("Area not found")
+	return Area{}, false
+	//panic("Area not found")
 }

@@ -29,7 +29,7 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 	playerMutex.Unlock()
 
 	if !playerExists {
-		fmt.Println("New Player: ")
+		fmt.Println("New Player: " + token)
 		newPlayer := &Player{
 			id:        token,
 			stage:     nil,
@@ -46,10 +46,17 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 		existingPlayer = newPlayer
 	}
 
-	existingStageName := existingPlayer.stageName
+	fmt.Println("Getting Stage")
+	existingStage := getStageByName(existingPlayer.stageName)
+	if existingStage == nil {
+		fmt.Println("Failed")
+		delete(playerMap, token)
+		fmt.Println("Deleted")
+		io.WriteString(w, invalidSignin())
+		return
+	}
 
-	existingStage := getStageByName(existingStageName)
-
+	fmt.Println("Assigning stage")
 	existingPlayer.stage = existingStage
 
 	fmt.Println("Printing Page Headers")
