@@ -117,7 +117,7 @@ func (tile *Tile) damageAll(dmg int) {
 		}
 		if first {
 			first = false
-			tile.stage.updateAll(htmlFromTile(tile))
+			tile.stage.updateAllExcept(htmlFromTile(tile), player)
 		}
 	}
 }

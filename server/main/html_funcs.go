@@ -47,7 +47,7 @@ func htmlFromStage(stage *Stage) string {
 func playerView(player *Player, tileColors [][]string) {
 	tileColors[player.y][player.x] = "fusia"
 	if player.actions.space {
-		applyHighlights(player, tileColors, player.actions.spaceShape, spaceHighlighter) // Modify to use space shape (Is this actually possible?)
+		applyHighlights(player, tileColors, player.actions.spaceShape, spaceHighlighter) // (Is this actually possible?)
 	}
 }
 
@@ -175,7 +175,7 @@ func invalidSignin() string {
 }
 
 func htmlFromTile(tile *Tile) string {
-	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true"></div>`, tile.currentCssClass, tile.y, tile.x)
+	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true"  ></div>`, tile.currentCssClass, tile.y, tile.x)
 }
 
 func oobColoredTile(tile *Tile, cssClass string) string {

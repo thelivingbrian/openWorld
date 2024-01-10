@@ -1,6 +1,8 @@
 package main
 
 import (
+	"sync"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -9,6 +11,7 @@ type Player struct {
 	stage     *Stage
 	stageName string
 	conn      *websocket.Conn
+	connLock  sync.Mutex
 	x         int
 	y         int
 	actions   *Actions
@@ -106,7 +109,7 @@ func move(p *Player, yOffset int, xOffset int) {
 			oobRemoveHighlights = mapOfTileToOoB(p.setSpaceHighlights())
 		}
 		if currentStage == p.stage {
-			updateOne(oobAll+oobRemoveHighlights, p)
+			updateOneWithHud(oobAll+oobRemoveHighlights, p)
 		}
 	}
 }

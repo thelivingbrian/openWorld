@@ -87,6 +87,8 @@ func (stage *Stage) sendUpdates() {
 }
 
 func sendUpdate(messageType int, update Update) {
+	update.player.connLock.Lock()
+	defer update.player.connLock.Unlock()
 	update.player.conn.WriteMessage(messageType, update.update)
 }
 
@@ -105,8 +107,12 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 	}
 }
 
-func updateOne(update string, player *Player) {
+func updateOneWithHud(update string, player *Player) {
 	oobUpdateWithHud(player, update)
+}
+
+func updateOne(update string, player *Player) {
+	player.stage.updates <- Update{player, []byte(update)}
 }
 
 func (stage *Stage) markAllDirty() { // This may become prohibitively slow upon players spawning, and full screen probably only needed for spawned player
