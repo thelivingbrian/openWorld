@@ -1,2 +1,4 @@
 server/main/main
 tools/main/main
+/*.sh
+/scratch.*

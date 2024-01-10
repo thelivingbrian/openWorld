@@ -51,15 +51,15 @@ func loadFromJson() {
 	populateStructUsingFileName[[]Material](&materials, "materials")
 	populateStructUsingFileName[[]Area](&areas, "areas")
 
-	fmt.Println(len(materials))
-	fmt.Println(len(areas))
+	fmt.Printf("Loaded %d materials.", len(materials))
+	fmt.Printf("Loaded %d areas.", len(areas))
 }
 
-func areaFromName(s string) Area {
+func areaFromName(s string) (area Area, success bool) {
 	for _, area := range areas {
 		if area.Name == s {
-			return area
+			return area, true
 		}
 	}
-	panic("Area not found")
+	return Area{}, false
 }

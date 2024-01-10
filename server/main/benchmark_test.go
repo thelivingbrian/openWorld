@@ -18,7 +18,7 @@ func BenchmarkMarkAllDirty(b *testing.B) {
 	playerCounts := []int{1, 5, 10, 100}
 
 	for _, stageName := range stageNames {
-		testStage := createStageByName(stageName)
+		testStage, _ := createStageByName(stageName)
 		go drainChannel(testStage.updates)
 		for _, playerCount := range playerCounts {
 			b.Run(fmt.Sprintf("stage:%s players:%d Cores", stageName, playerCount), func(b *testing.B) {

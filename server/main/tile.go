@@ -108,6 +108,7 @@ func (tile *Tile) damageAll(dmg int) {
 	first := true
 	for _, player := range tile.playerMap {
 		player.health += -dmg
+		updateOne(printHealthOf(player), player)
 		tile.currentCssClass = cssClassFromHealth(player)
 		if player.isDead() {
 			tile.removePlayer(player.id)
@@ -116,7 +117,7 @@ func (tile *Tile) damageAll(dmg int) {
 		}
 		if first {
 			first = false
-			tile.stage.updateAll(htmlFromTile(tile))
+			tile.stage.updateAllExcept(htmlFromTile(tile), player)
 		}
 	}
 }

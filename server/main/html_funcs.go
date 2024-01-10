@@ -47,7 +47,7 @@ func htmlFromStage(stage *Stage) string {
 func playerView(player *Player, tileColors [][]string) {
 	tileColors[player.y][player.x] = "fusia"
 	if player.actions.space {
-		applyHighlights(player, tileColors, player.actions.spaceShape, spaceHighlighter) // Modify to use space shape (Is this actually possible?)
+		applyHighlights(player, tileColors, player.actions.spaceShape, spaceHighlighter) // (Is this actually possible?)
 	}
 }
 
@@ -125,23 +125,57 @@ func printPageFor(player *Player) string {
 			<input hx-post="/spaceOff" hx-trigger="keyup[key==' '] from:body" hx-target="#spaceOn" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />	
 			<input id="tick" hx-ext="ws" ws-connect="/screen" ws-send hx-trigger="load once" type="hidden" name="token" value="` + player.id + `" />
 		</div>
+		<div id="info">
+			<b>Health: ` + fmt.Sprint(player.health) + `</b>
+		</div>
 		<div id="screen" class="grid">
 				
 		</div>
-		<div id="chat" hx-ext="ws" ws-connect="/chat">
-			<form id="form" ws-send hx-swap="outerHTML" hx-target="#msg">
-				<input type="hidden" name="token" value="` + player.id + `">
-				<input id="msg" type="text" name="chat_message" value="">
+	</div>`
+}
+
+func printHealthOf(player *Player) string {
+	return `
+	<div id="info" hx-swap-oob="true">
+		<b>Health: ` + fmt.Sprint(player.health) + `</b>
+	</div>`
+}
+
+func invalidSignin() string {
+	return `
+	<div id="page">
+		<div id="controls">
+			<form hx-post="/signin" hx-target="#page" hx-swap="outerHTML">
+				<div>
+				<h2 style='color:red'> %#Invalid sign-in@! </h1>
+				<label>Username:</label>
+				<input type="text" name="token" value="john"><br />
+				<label>Stage:</label>
+				<input type="text" name="stage" value="greenX"><br />
+				</div>
+				<button>Activate</button>
 			</form>
-			<div id="chat_room">
-				
+		</div>
+		<div id="screen" class="grid">
+			<div class="grid-row">
+				<div class="grid-square red" id="c0-0"></div>
+				<div class="grid-square green" id="c0-1"></div>
+				<div class="grid-square blue" id="c0-2"></div>
+				<div class="grid-square yellow" id="c0-3"></div>
+				<div class="grid-square" id="c0-4"></div>
+				<div class="grid-square fusia" id="c0-5"></div>
+				<div class="grid-square" id="c0-6"></div>
+				<div class="grid-square dark-blue" id="c0-7"></div>
+				<div class="grid-square pink" id="c0-8"></div>
+				<div class="grid-square" id="c0-9"></div>
+				<div class="grid-square" id="c0-10"></div>
 			</div>
 		</div>
 	</div>`
 }
 
 func htmlFromTile(tile *Tile) string {
-	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true"></div>`, tile.currentCssClass, tile.y, tile.x)
+	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true"  ></div>`, tile.currentCssClass, tile.y, tile.x)
 }
 
 func oobColoredTile(tile *Tile, cssClass string) string {

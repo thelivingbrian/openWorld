@@ -17,26 +17,40 @@ type Stage struct {
 
 func getStageByName(name string) *Stage {
 	stageMutex.Lock()
+	defer stageMutex.Unlock() // Can be broken into two shorter critical paths, worth it?
 	existingStage, stageExists := stageMap[name]
+	//stageMutex.Unlock()
 	if !stageExists {
-		existingStage = createStageAndHandleUpdates(name)
+		existingStage, stageExists = createStageAndHandleUpdates(name)
+		if !stageExists {
+			return nil
+		}
 	}
-	stageMutex.Unlock()
 	return existingStage
 }
 
-func createStageAndHandleUpdates(name string) *Stage {
+func createStageAndHandleUpdates(name string) (*Stage, bool) {
 	fmt.Println("New Stage " + name)
-	stage := createStageByName(name)
+	stage, success := createStageByName(name)
+	if !success {
+		fmt.Println("Failed to create")
+		return nil, false
+	}
+	//stageMutex.Lock()
 	stageMap[name] = stage
+	//stageMutex.Unlock()
+
 	go stage.sendUpdates()
-	return stage
+	return stage, true
 
 }
 
-func createStageByName(s string) *Stage {
+func createStageByName(s string) (*Stage, bool) {
 	updatesForStage := make(chan Update)
-	area := areaFromName(s)
+	area, success := areaFromName(s)
+	if !success {
+		return nil, false
+	}
 	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, updatesForStage, s}
 
 	for y := range outputStage.tiles {
@@ -53,7 +67,7 @@ func createStageByName(s string) *Stage {
 
 	}
 
-	return &outputStage
+	return &outputStage, true
 }
 
 func getClinic() *Stage {
@@ -73,6 +87,8 @@ func (stage *Stage) sendUpdates() {
 }
 
 func sendUpdate(messageType int, update Update) {
+	update.player.connLock.Lock()
+	defer update.player.connLock.Unlock()
 	update.player.conn.WriteMessage(messageType, update.update)
 }
 
@@ -91,8 +107,12 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 	}
 }
 
-func updateOne(update string, player *Player) {
+func updateOneWithHud(update string, player *Player) {
 	oobUpdateWithHud(player, update)
+}
+
+func updateOne(update string, player *Player) {
+	player.stage.updates <- Update{player, []byte(update)}
 }
 
 func (stage *Stage) markAllDirty() { // This may become prohibitively slow upon players spawning, and full screen probably only needed for spawned player
