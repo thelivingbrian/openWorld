@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -16,14 +15,18 @@ type Tile struct {
 	material    Material
 	playerMap   map[string]*Player
 	playerMutex sync.Mutex
-	Teleport    *Teleport
-	// Items and coords?
+	stage       *Stage
+	teleport    *Teleport
+	// Coords
+	y int
+	x int
 	// Display
-	CurrentCssClass string
+	currentCssClass  string
+	originalCssClass string
 }
 
 func colorOf(tile *Tile) string {
-	return tile.CurrentCssClass // Maybe like the old way better with the player count logic here
+	return tile.currentCssClass // Maybe like the old way better with the player count logic here
 }
 
 func colorArray(row []Tile) []string {
@@ -34,8 +37,8 @@ func colorArray(row []Tile) []string {
 	return output
 }
 
-func newTile(mat Material) *Tile {
-	return &Tile{mat, make(map[string]*Player), sync.Mutex{}, nil, mat.CssClassName}
+func newTile(mat Material, y int, x int) *Tile {
+	return &Tile{mat, make(map[string]*Player), sync.Mutex{}, nil, nil, y, x, mat.CssClassName, mat.CssClassName}
 }
 
 // newTile w/ teleport?
@@ -44,39 +47,76 @@ func walkable(tile *Tile) bool {
 	return tile.material.Walkable
 }
 
-func (tile *Tile) removePlayer(playerId string) {
+func (tile *Tile) removePlayer(playerId string) string {
 	tile.playerMutex.Lock()
 	delete(tile.playerMap, playerId)
 	tile.playerMutex.Unlock()
 
 	if len(tile.playerMap) == 0 {
-		tile.CurrentCssClass = tile.material.CssClassName
+		tile.currentCssClass = tile.originalCssClass //.material.CssClassName
 	}
+
+	return htmlFromTile(tile)
 }
 
-func (tile *Tile) addPlayer(player *Player) {
-	if tile.Teleport != nil {
-		player.y = tile.Teleport.destY
-		player.x = tile.Teleport.destX
-		player.stageName = tile.Teleport.destStage
-
-		stageMutex.Lock()
-		existingStage, stageExists := stageMap[player.stageName]
-		if !stageExists {
-			fmt.Println("New Stage")
-			newStage := createStageByName(player.stageName)
-			stagePtr := &newStage
-			stageMap[player.stageName] = stagePtr
-			existingStage = stagePtr
-		}
-		stageMutex.Unlock()
-
-		player.stage = existingStage
-		placeOnStage(player)
+func (tile *Tile) addPlayer(player *Player) string {
+	if tile.teleport != nil {
+		// Remove Player
+		tile.stage.removePlayerById(player.id)
+		tile.removePlayer(player.id)
+		// Add on new stage
+		existingStage := getStageByName(tile.teleport.destStage)
+		placeOnTile(player, existingStage.tiles[tile.teleport.destY][tile.teleport.destX])
 	} else {
 		tile.playerMutex.Lock()
 		tile.playerMap[player.id] = player
 		tile.playerMutex.Unlock()
-		tile.CurrentCssClass = "blue"
+		player.y = tile.y
+		player.x = tile.x
+		tile.currentCssClass = cssClassFromHealth(player)
+	}
+	return htmlFromTile(tile)
+}
+
+func placeOnTile(player *Player, tile *Tile) {
+	player.stage = tile.stage
+	tile.addPlayer(player)
+	tile.stage.addPlayer(player)
+	tile.stage.markAllDirty()
+}
+
+func cssClassFromHealth(player *Player) string {
+	if player.health >= 80 {
+		return "green"
+	}
+	if player.health >= 60 {
+		return "lime"
+	}
+	if player.health >= 40 {
+		return "yellow"
+	}
+	if player.health >= 20 {
+		return "orange"
+	}
+	if player.health >= 0 {
+		return "red"
+	}
+	return "blue" //shouldn't happen but want to be visible
+}
+
+func (tile *Tile) damageAll(dmg int) {
+	first := true
+	for _, player := range tile.playerMap {
+		player.health += -dmg
+		tile.currentCssClass = cssClassFromHealth(player)
+		if player.isDead() {
+			tile.removePlayer(player.id)
+			tile.stage.removePlayerById(player.id)
+			respawn(player)
+		}
+		if first {
+			first = false
+			tile.stage.updateAll(htmlFromTile(tile))
+		}
 	}
 }

@@ -47,14 +47,16 @@ func htmlFromStage(stage *Stage) string {
 func playerView(player *Player, tileColors [][]string) {
 	tileColors[player.y][player.x] = "fusia"
 	if player.actions.space {
-		applyHighlights(player, tileColors, grid5x5, spaceHighlighter)
+		applyHighlights(player, tileColors, player.actions.spaceShape, spaceHighlighter) // Modify to use space shape (Is this actually possible?)
 	}
 }
 
 func hudAsOutOfBound(player *Player) string {
 	highlights := ""
 	if player.actions.space {
-		highlights += highlightsAsOob(player, grid5x5, spaceHighlighter)
+		for tile := range player.actions.spaceHighlights {
+			highlights += oobColoredTile(tile, spaceHighlighter(tile))
+		}
 	}
 
 	playerIcon := fmt.Sprintf(`<div class="grid-square fusia" id="c%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
@@ -67,7 +69,7 @@ func tilesToColors(tiles [][]*Tile) [][]string {
 	for y := range output {
 		output[y] = make([]string, len(tiles[y]))
 		for x := range output[y] {
-			output[y][x] = tiles[y][x].CurrentCssClass
+			output[y][x] = tiles[y][x].currentCssClass
 		}
 	}
 	return output
@@ -101,7 +103,9 @@ func highlightsAsOob(player *Player, relativeCoords [][2]int, highligher func(*T
 }
 
 func spaceHighlighter(tile *Tile) string {
-	if walkable(tile) {
+	if len(tile.playerMap) > 0 {
+		return "dark-blue"
+	} else if walkable(tile) {
 		return "green"
 	} else {
 		return "red"
@@ -134,4 +138,12 @@ func printPageFor(player *Player) string {
 			</div>
 		</div>
 	</div>`
+}
+
+func htmlFromTile(tile *Tile) string {
+	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true"></div>`, tile.currentCssClass, tile.y, tile.x)
+}
+
+func oobColoredTile(tile *Tile, cssClass string) string {
+	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true"></div>`, cssClass, tile.y, tile.x)
 }

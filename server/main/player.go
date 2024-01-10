@@ -16,7 +16,13 @@ type Player struct {
 }
 
 type Actions struct {
-	space bool
+	space           bool
+	spaceShape      [][2]int
+	spaceHighlights map[*Tile]bool
+}
+
+func createDefaultActions() *Actions {
+	return &Actions{false, grid7x7, map[*Tile]bool{}}
 }
 
 func (player *Player) isDead() bool {
@@ -24,7 +30,7 @@ func (player *Player) isDead() bool {
 }
 
 func placeOnStage(p *Player) {
-	x := p.x
+	x := p.x // Feels backwards but maybe needed for loading  from db?
 	y := p.y
 	p.stage.tiles[y][x].addPlayer(p)
 	p.stage.playerMap[p.id] = p
@@ -32,30 +38,39 @@ func placeOnStage(p *Player) {
 }
 
 func handleDeathOf(player *Player) {
+	// Implement??
+}
+
+func respawn(player *Player) {
 	clinic := getClinic()
 	player.health = 100
 	player.stage = clinic
 	player.stageName = "clinic"
 	player.x = 2
 	player.y = 2
+	player.actions = createDefaultActions()
 	placeOnStage(player)
 }
 
-func updateScreenWithStarter(player *Player, html string, playerUpdates chan Update) {
+func updateScreenWithStarter(player *Player, html string) {
 	if player.isDead() {
-		handleDeathOf(player)
+		respawn(player)
 		return
 	}
 	html += hudAsOutOfBound(player)
-	playerUpdates <- Update{player, []byte(html)}
+	player.stage.updates <- Update{player, []byte(html)}
 }
 
-func updateScreenFromScratch(player *Player, playerUpdates chan Update) {
+func updateScreenFromScratch(player *Player) {
 	if player.isDead() {
-		handleDeathOf(player)
+		respawn(player)
 		return
 	}
-	playerUpdates <- Update{player, htmlFromPlayer(player)}
+	player.stage.updates <- Update{player, htmlFromPlayer(player)}
+}
+
+func oobUpdateWithHud(player *Player, update string) {
+	player.stage.updates <- Update{player, []byte(update + hudAsOutOfBound(player))}
 }
 
 func moveNorth(p *Player) {
@@ -80,11 +95,19 @@ func move(p *Player, yOffset int, xOffset int) {
 	if validCoordinate(destY, destX, p.stage.tiles) && walkable(p.stage.tiles[destY][destX]) {
 		currentTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
-		currentTile.removePlayer(p.id)
-		p.y = destY // Don't like this here, move to addPlayer?
-		p.x = destX
-		destTile.addPlayer(p)
-		p.stage.markAllDirty()
+
+		currentStage := p.stage // Stage may change as result of teleport or etc
+		oobAll := currentTile.removePlayer(p.id)
+		oobAll = oobAll + destTile.addPlayer(p)
+		currentStage.updateAllExcept(oobAll, p)
+
+		oobRemoveHighlights := ""
+		if p.actions.space {
+			oobRemoveHighlights = mapOfTileToOoB(p.setSpaceHighlights())
+		}
+		if currentStage == p.stage {
+			updateOne(oobAll+oobRemoveHighlights, p)
+		}
 	}
 }
 
@@ -96,4 +119,47 @@ func validCoordinate(y int, x int, tiles [][]*Tile) bool {
 		return false
 	}
 	return true
+}
+
+func (player *Player) turnSpaceOn() {
+	player.actions.space = true
+	player.setSpaceHighlights()
+
+	player.stage.updates <- Update{player, []byte(hudAsOutOfBound(player))}
+}
+
+func (player *Player) setSpaceHighlights() map[*Tile]bool { // Returns removed highlights
+	previous := player.actions.spaceHighlights
+	player.actions.spaceHighlights = map[*Tile]bool{}
+	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceShape)
+	for _, pair := range absCoordinatePairs {
+		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
+			tile := player.stage.tiles[pair[0]][pair[1]]
+			player.actions.spaceHighlights[tile] = true
+			delete(previous, tile)
+		}
+	}
+	return previous
+}
+
+func (player *Player) turnSpaceOff() {
+	player.actions.space = false
+
+	for tile := range player.actions.spaceHighlights {
+		tile.damageAll(25)
+	}
+	htmlRemoveHighlights := mapOfTileToOoB(player.actions.spaceHighlights)
+
+	player.actions.spaceHighlights = map[*Tile]bool{}
+
+	htmlAddHud := hudAsOutOfBound(player)
+	player.stage.updates <- Update{player, []byte(htmlRemoveHighlights + htmlAddHud)}
+}
+
+func mapOfTileToOoB(m map[*Tile]bool) string {
+	html := ``
+	for tile := range m {
+		html += htmlFromTile(tile)
+	}
+	return html
 }
