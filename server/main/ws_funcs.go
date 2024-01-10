@@ -14,70 +14,12 @@ type Update struct {
 }
 
 var (
-	clients  = make(map[*websocket.Conn]bool)
 	upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
 	}
 )
-
-func ws_chat(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer conn.Close()
-
-	clients[conn] = true // Should this be seperate from players?
-
-	broadcastMessages(conn, broadcast)
-}
-
-func broadcastMessages(conn *websocket.Conn, chats chan string) {
-	for {
-		_, bytes, err := conn.ReadMessage()
-		if err != nil {
-			fmt.Println(err)
-			delete(clients, conn)
-			return
-		}
-		fmt.Printf("Received message: %s\n", bytes)
-
-		var msg struct {
-			Token       string `json:"token"`
-			ChatMessage string `json:"chat_message"`
-		}
-		err = json.Unmarshal(bytes, &msg)
-		if err != nil {
-			fmt.Println("Error parsing JSON:", err)
-			return
-		}
-
-		fmt.Println("Token:", msg.Token)
-		fmt.Println("Chat Message:", msg.ChatMessage)
-
-		// This is a bug because it will wipe keyed messages if a new message comes in
-		message := `
-		<input id="msg" type="text" name="chat_message" value="">
-		
-		<div id="chat_room" hx-swap-oob="beforeend:#chat_room">
-			<p>` + msg.Token + `: ` + msg.ChatMessage + `</p>
-		</div>`
-
-		chats <- message
-	}
-}
-
-func sendMessageToAll(messageType int, message []byte) {
-	for client := range clients {
-		if err := client.WriteMessage(messageType, message); err != nil {
-			fmt.Println(err)
-			return
-		}
-	}
-}
 
 func ws_screen(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)

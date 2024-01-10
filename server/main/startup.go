@@ -51,8 +51,8 @@ func loadFromJson() {
 	populateStructUsingFileName[[]Material](&materials, "materials")
 	populateStructUsingFileName[[]Area](&areas, "areas")
 
-	fmt.Println(len(materials))
-	fmt.Println(len(areas))
+	fmt.Printf("Loaded %d materials.", len(materials))
+	fmt.Printf("Loaded %d areas.", len(areas))
 }
 
 func areaFromName(s string) (area Area, success bool) {
@@ -62,5 +62,4 @@ func areaFromName(s string) (area Area, success bool) {
 		}
 	}
 	return Area{}, false
-	//panic("Area not found")
 }

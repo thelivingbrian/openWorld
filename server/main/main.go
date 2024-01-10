@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-
-	"github.com/gorilla/websocket"
 )
 
 var (
@@ -36,16 +34,10 @@ func main() {
 
 	fmt.Println("Initiating Websockets...")
 	http.HandleFunc("/screen", ws_screen)
-	//http.HandleFunc("/chat", ws_chat)
-	go func() {
-		for {
-			message := <-broadcast
-			sendMessageToAll(websocket.TextMessage, []byte(message))
-		}
-	}()
 
-	fmt.Println("Attempting to start server...")
-	err := http.ListenAndServe(":9090", nil)
+	port := ":9090"
+	fmt.Println("Starting server, listen on port " + port)
+	err := http.ListenAndServe(port, nil)
 	if err != nil {
 		fmt.Println("Failed to start server", err)
 		return
