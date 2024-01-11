@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
 	"sync"
+
+	_ "github.com/lib/pq"
 )
 
 var (
@@ -15,7 +15,8 @@ var (
 )
 
 func main() {
-	fmt.Println("Loading data...")
+	connectDB()
+	/*fmt.Println("Loading data...")
 	loadFromJson()
 
 	fmt.Println("Establishing Routes...")
@@ -42,4 +43,5 @@ func main() {
 		fmt.Println("Failed to start server", err)
 		return
 	}
+	*/
 }
