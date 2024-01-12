@@ -2,6 +2,7 @@ package main
 
 import (
 	"sync"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -15,7 +16,36 @@ var (
 )
 
 func main() {
-	connectDB()
+	//connectDB()
+
+	//newDoc()
+	client := mongoClient()
+	collection := client.Database("bloopdb").Collection("users")
+	//addToPeople()
+
+	// Only needed once
+	//createIndex(client)
+
+	// Create an instance of the Person struct
+	person := User{
+		Email:     "example@example.com",
+		Verified:  true,
+		Username:  "exampleuser",
+		Hashword:  "hashedpassword",
+		CSSClass:  "exampleClass",
+		Created:   time.Now(),
+		LastLogin: time.Now(),
+		// Initialize other fields as required
+		Health:    100,
+		StageName: "big",
+		X:         2,
+		Y:         2,
+	}
+	addUser(collection, person)
+	setUserHealth(collection, person.Email)
+	//addToUsers(client, person)
+	//addToPeople(client)
+
 	/*fmt.Println("Loading data...")
 	loadFromJson()
 
@@ -25,7 +55,7 @@ func main() {
 	http.HandleFunc("/signin", postSignin)
 
 	fmt.Println("Preparing for interactions...")
-	http.HandleFunc("/w", postMovement(moveNorth))
+	http.HandleFunc("/w", postMovement(moveNorth)) // consider .Methods(http.MethodGet)
 	http.HandleFunc("/s", postMovement(moveSouth))
 	http.HandleFunc("/a", postMovement(moveWest))
 	http.HandleFunc("/d", postMovement(moveEast))

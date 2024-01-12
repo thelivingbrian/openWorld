@@ -1,0 +1,29 @@
+-- Drop the existing Users table if it exists
+DROP TABLE IF EXISTS Users;
+
+-- Create a new Users table with the specified columns
+CREATE TABLE user (
+    email string NOT NULL, // unique index
+    verified BOOL
+    username string NOT NULL,
+    hashword string NOT NULL,
+    cssClass string,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    lastLogin TIMESTAMP,
+    lastLogout TIMESTAMP,
+    lastRespawn TIMESTAMP, 
+    health INT
+    stagename string,
+    x INT,
+    y INT,
+    kills INT[],  // each value is id of a Respawn 
+    deaths INT[], // each value is id of a Respawn,
+    experience INT,
+    records INT[],  // each value is id of record 
+    money INT,
+    inventory INT[],  // each value is id of an Item
+    bank INT[] // each value is id of an Item
+);
+
+verified
+deaths

@@ -14,7 +14,7 @@ func x() [][2]int {
 	return [][2]int{{1, 1}, {-1, 1}, {1, -1}, {-1, -1}}
 }
 
-var grid3x3 [][2]int = createOddGrid(1)
+var grid3x3 [][2]int = createOddGrid(1) // Precompute others? var = [][]int{0,1, . . .}
 var grid5x5 [][2]int = createOddGrid(2)
 var grid7x7 [][2]int = createOddGrid(3)
 var grid9x9 [][2]int = createOddGrid(4)

@@ -48,3 +48,7 @@ func BenchmarkMarkAllDirty(b *testing.B) {
 		}
 	}
 }
+
+// Move in circles test
+
+// Teleport test
