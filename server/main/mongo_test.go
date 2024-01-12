@@ -3,60 +3,74 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"math/rand"
 	"strconv"
 	"testing"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func setupUsers() ([]User, *mongo.Collection) {
 	client := mongoClient()
-	collection := client.Database("bloopdb").Collection("testusers")
+	collection := client.Database("bloopdb").Collection("test-users")
+	emailIndex := mongo.IndexModel{
+		Keys: bson.M{
+			"email": 1,
+		},
+		Options: options.Index().SetUnique(true),
+	}
+	_, err := collection.Indexes().CreateOne(context.Background(), emailIndex)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	usernameIndex := mongo.IndexModel{
+		Keys: bson.M{
+			"username": 1,
+		},
+		Options: options.Index().SetUnique(true),
+	}
+	_, err = collection.Indexes().CreateOne(context.Background(), usernameIndex)
+	if err != nil {
+		log.Fatal(err)
+	}
 	testUsers := make([]User, 10000)
 	for i := range testUsers {
 		iStr := strconv.Itoa(i)
 		testUsers[i] = User{
-			Email:     iStr + "@example.com",
-			Verified:  true,
-			Username:  "testuser" + iStr,
-			Hashword:  "hashedpassword",
-			CSSClass:  "exampleClass",
-			Created:   time.Now(),
-			LastLogin: time.Now(),
-			Health:    100,
-			StageName: "big",
-			X:         2,
-			Y:         2,
+			Email:    iStr + "@example.com",
+			Verified: true,
+			Username: "testuser" + iStr,
+			Hashword: "hashedpassword",
+			Created:  time.Now(),
 		}
-		addUser(collection, testUsers[i])
+		insertUser(collection, testUsers[i])
 	}
 
 	return testUsers, collection
 }
 
 func cleanUsers(col *mongo.Collection) {
+	// A filter that matches all documents
+	//filter := bson.D{{}}
+	//res, err := collection.DeleteMany(context.Background(), filter)
+
 	col.Drop(context.Background())
 }
 
-func BenchmarkMongoInsert(b *testing.B) { // This has weird counterintuitive results, 1 add slower than 10, inconsistent etc.
+func BenchmarkMongoInsert(b *testing.B) {
 	testUsers := make([]User, 10000)
 	for i := range testUsers {
 		iStr := strconv.Itoa(i)
 		testUsers[i] = User{
-			Email:     iStr + "@example.com",
-			Verified:  true,
-			Username:  "testuser" + iStr,
-			Hashword:  "hashedpassword",
-			CSSClass:  "exampleClass",
-			Created:   time.Now(),
-			LastLogin: time.Now(),
-			// Initialize other fields as required
-			Health:    100,
-			StageName: "big",
-			X:         2,
-			Y:         2,
+			Email:    iStr + "@example.com",
+			Verified: true,
+			Username: "testuser" + iStr,
+			Hashword: "hashedpassword",
 		}
 	}
 	client := mongoClient()
@@ -65,21 +79,10 @@ func BenchmarkMongoInsert(b *testing.B) { // This has weird counterintuitive res
 	// Test
 	for i := 0; i < b.N; i++ {
 		for x := 0; x < 1; x++ {
-			addUser(collection, testUsers[x])
+			insertUser(collection, testUsers[x])
 		}
 	}
 
-	// Cleanup
-	// A filter that matches all documents
-	/*filter := bson.D{{}}
-
-	// Delete all documents
-	res, err := collection.DeleteMany(context.Background(), filter)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("Deleted %v documents\n", res.DeletedCount)
-	*/
 	collection.Drop(context.Background())
 }
 func BenchmarkMongoUpdate(b *testing.B) {
@@ -92,9 +95,8 @@ func BenchmarkMongoUpdate(b *testing.B) {
 	// Test
 	for i := 0; i < b.N; i++ {
 		randomNumber := rand.Intn(10000)
-		setUserHealth(collection, testUsers[randomNumber].Email)
+		setUserHealth(collection, testUsers[randomNumber].Email) // User shouldn't have health
 	}
 
-	//cleanUsers(collection)
 	b.StopTimer()
 }

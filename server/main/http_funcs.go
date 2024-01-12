@@ -1,10 +1,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"net/url"
 	"strings"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func getIndex(w http.ResponseWriter, r *http.Request) {
@@ -120,4 +126,72 @@ func clearScreen(w http.ResponseWriter, r *http.Request) {
 				
 	</div>`
 	io.WriteString(w, output)
+}
+
+/////////////////////////////////////////////
+// Home Page
+
+func getSignUp(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, signUpPage())
+}
+
+func (app *App) postSignUp(w http.ResponseWriter, r *http.Request) {
+	props, success := requestToProperties(r)
+	if !success {
+		log.Fatal("Failed to retreive properties")
+	}
+	email, err := url.QueryUnescape(props["email"])
+	username, err := url.QueryUnescape(props["username"])
+	password, err := url.QueryUnescape(props["password"])
+	if err != nil {
+		log.Fatal("Unescape failed")
+
+	}
+	if len(password) < 8 {
+		io.WriteString(w, passwordTooShortHTML())
+	}
+
+	hashword, err := hashPassword(props["password"])
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(email)
+
+	io.WriteString(w, app.newUser(email, username, hashword))
+}
+
+func getSignIn(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, signInPage())
+}
+
+func (app *App) postSignin(w http.ResponseWriter, r *http.Request) {
+	props, success := requestToProperties(r)
+	if !success {
+		log.Fatal("Failed to retreive properties")
+	}
+	email, err := url.QueryUnescape(props["email"])
+	if err != nil {
+		log.Fatal("Query unescape failed")
+	}
+	password, err := url.QueryUnescape(props["password"])
+	if err != nil {
+		log.Fatal("Password unescape failed")
+
+	}
+
+	var result User
+	collection := app.db.Collection("users")
+	err = collection.FindOne(context.TODO(), bson.M{"email": email}).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			fmt.Println("No document was found with the given email")
+		} else {
+			log.Fatal(err)
+		}
+	} else {
+		fmt.Printf("Found a user: %+v\n", result)
+		worked := checkPasswordHash(password, result.Hashword)
+		io.WriteString(w, fmt.Sprintf("Password matches: %t", worked))
+	}
 }

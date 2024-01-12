@@ -1,58 +1,43 @@
 package main
 
 import (
+	"fmt"
+	"net/http"
 	"sync"
-	"time"
 
 	_ "github.com/lib/pq"
+	"go.mongodb.org/mongo-driver/mongo"
 )
+
+type App struct {
+	db *mongo.Database
+}
 
 var (
 	playerMap   = make(map[string]*Player) // Consider sync.Map
 	playerMutex sync.Mutex
-	stageMap    = make(map[string]*Stage)
+	stageMap    = make(map[string]*Stage) // Make a game struct that includes this and has needed handlers
 	stageMutex  sync.Mutex
 	broadcast   = make(chan string)
 )
 
 func main() {
-	//connectDB()
+	app := App{mongoClient().Database("bloopdb")}
+	//collection := app.db.Collection("users")
 
-	//newDoc()
-	client := mongoClient()
-	collection := client.Database("bloopdb").Collection("users")
-	//addToPeople()
-
-	// Only needed once
-	//createIndex(client)
-
-	// Create an instance of the Person struct
-	person := User{
-		Email:     "example@example.com",
-		Verified:  true,
-		Username:  "exampleuser",
-		Hashword:  "hashedpassword",
-		CSSClass:  "exampleClass",
-		Created:   time.Now(),
-		LastLogin: time.Now(),
-		// Initialize other fields as required
-		Health:    100,
-		StageName: "big",
-		X:         2,
-		Y:         2,
-	}
-	addUser(collection, person)
-	setUserHealth(collection, person.Email)
-	//addToUsers(client, person)
-	//addToPeople(client)
-
-	/*fmt.Println("Loading data...")
+	fmt.Println("Loading data...")
 	loadFromJson()
 
 	fmt.Println("Establishing Routes...")
 	// Last Handle take priority so dirs in /assets/ will be overwritten by handled funcs
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./assets"))))
-	http.HandleFunc("/signin", postSignin)
+
+	// Home Page
+	http.HandleFunc("/home", postSignin)
+	http.HandleFunc("/homesignup", getSignUp)
+	http.HandleFunc("/signup", app.postSignUp)
+	http.HandleFunc("/homesignin", getSignIn)
+	http.HandleFunc("/signin", app.postSignin) // This is a gross overload now, but maybe an alternitave to gorilla mux for verbs
 
 	fmt.Println("Preparing for interactions...")
 	http.HandleFunc("/w", postMovement(moveNorth)) // consider .Methods(http.MethodGet)
@@ -73,5 +58,4 @@ func main() {
 		fmt.Println("Failed to start server", err)
 		return
 	}
-	*/
 }

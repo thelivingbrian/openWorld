@@ -147,7 +147,7 @@ func invalidSignin() string {
 		<div id="controls">
 			<form hx-post="/signin" hx-target="#page" hx-swap="outerHTML">
 				<div>
-				<h2 style='color:red'> %#Invalid sign-in@! </h1>
+				<h2 style='color:red'> %#Invalid sign-in@! </h2>
 				<label>Username:</label>
 				<input type="text" name="token" value="john"><br />
 				<label>Stage:</label>
