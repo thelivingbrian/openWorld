@@ -3,13 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"math/rand"
 	"strconv"
 	"testing"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -27,7 +25,6 @@ func setupUsers() ([]User, *mongo.Collection) {
 			CSSClass:  "exampleClass",
 			Created:   time.Now(),
 			LastLogin: time.Now(),
-			// Initialize other fields as required
 			Health:    100,
 			StageName: "big",
 			X:         2,
@@ -64,17 +61,17 @@ func BenchmarkMongoInsert(b *testing.B) { // This has weird counterintuitive res
 	}
 	client := mongoClient()
 	collection := client.Database("bloopdb").Collection("testusers")
-
+	b.ResetTimer()
 	// Test
 	for i := 0; i < b.N; i++ {
-		for x := 0; x < 1500; x++ {
+		for x := 0; x < 1; x++ {
 			addUser(collection, testUsers[x])
 		}
 	}
 
 	// Cleanup
 	// A filter that matches all documents
-	filter := bson.D{{}}
+	/*filter := bson.D{{}}
 
 	// Delete all documents
 	res, err := collection.DeleteMany(context.Background(), filter)
@@ -82,6 +79,8 @@ func BenchmarkMongoInsert(b *testing.B) { // This has weird counterintuitive res
 		log.Fatal(err)
 	}
 	log.Printf("Deleted %v documents\n", res.DeletedCount)
+	*/
+	collection.Drop(context.Background())
 }
 func BenchmarkMongoUpdate(b *testing.B) {
 	testUsers, collection := setupUsers()
