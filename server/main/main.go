@@ -33,7 +33,6 @@ func main() {
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./assets"))))
 
 	// Home Page
-	http.HandleFunc("/home", postSignin)
 	http.HandleFunc("/homesignup", getSignUp)
 	http.HandleFunc("/signup", app.postSignUp)
 	http.HandleFunc("/homesignin", getSignIn)

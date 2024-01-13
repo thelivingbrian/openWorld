@@ -103,3 +103,18 @@ func isEmailValid(email string) bool {
 	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 	return emailRegex.MatchString(email)
 }
+
+func invalidSignin() string {
+	return `
+	<h2 style='color:red'> Invalid Signin. </h2>
+	<form hx-post="/signin" hx-target="#landing">
+		<div>
+			<label>Email:</label>
+			<input type="text" name="email" value=""><br />
+			<label>Password:</label>
+			<input type="text" name="password" value=""><br />
+		</div>
+		<button>Sign In</button>
+	</form>
+	`
+}

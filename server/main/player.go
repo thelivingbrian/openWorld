@@ -16,6 +16,7 @@ type Player struct {
 	y         int
 	actions   *Actions
 	health    int
+	money     int
 }
 
 type Actions struct {

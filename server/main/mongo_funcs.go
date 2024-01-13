@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -84,7 +85,7 @@ func incrementUserCoordinates(collection *mongo.Collection, userEmail string) (*
 		"$inc": bson.M{"x": 1, "y": 1},
 	}
 
-	// Return the updated document
+	// Return the updated document // Investigate further
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
 	var updatedUser User
@@ -116,4 +117,34 @@ func setUserHealth(collection *mongo.Collection, userEmail string) (*User, error
 	}
 
 	return &updatedUser, nil
+}
+
+func getUserByEmail(db *mongo.Database, email string) (*User, error) {
+	var result User
+	collection := db.Collection("users")
+	err := collection.FindOne(context.TODO(), bson.M{"email": email}).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			fmt.Println("No document was found with the given email")
+			return nil, err
+		} else {
+			log.Fatal(err)
+		}
+	}
+	return &result, nil
+}
+
+func getPlayerRecord(db *mongo.Database, username string) (*PlayerRecord, error) {
+	var result PlayerRecord
+	collection := db.Collection("players")
+	err := collection.FindOne(context.TODO(), bson.M{"username": username}).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			fmt.Println("No document was found with the given email")
+			return nil, err
+		} else {
+			log.Fatal(err)
+		}
+	}
+	return &result, nil
 }

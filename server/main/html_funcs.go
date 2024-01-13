@@ -114,7 +114,7 @@ func spaceHighlighter(tile *Tile) string {
 
 func printPageFor(player *Player) string {
 	return `
-	<div id="page">
+	<div id="page" hx-swap-oob="true">
 		<div id="controls">      
 			<input hx-post="/w" hx-trigger="keydown[key=='w'] from:body" type="hidden" name="token" value="` + player.id + `" />
 			<input hx-post="/s" hx-trigger="keydown[key=='s'] from:body" type="hidden" name="token" value="` + player.id + `" />
@@ -141,7 +141,8 @@ func printHealthOf(player *Player) string {
 	</div>`
 }
 
-func invalidSignin() string {
+// This will go
+func invalidSignin2() string {
 	return `
 	<div id="page">
 		<div id="controls">

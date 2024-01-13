@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"log"
@@ -9,14 +8,14 @@ import (
 	"net/url"
 	"strings"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/google/uuid"
 )
 
 func getIndex(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./client/src")
 }
 
+/*
 func postSignin(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -68,6 +67,7 @@ func postSignin(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Printing Page Headers")
 	io.WriteString(w, printPageFor(existingPlayer))
 }
+*/
 
 func playerFromRequest(r *http.Request) (*Player, bool) {
 	body, err := io.ReadAll(r.Body)
@@ -76,7 +76,7 @@ func playerFromRequest(r *http.Request) (*Player, bool) {
 		return nil, false
 	}
 
-	bodyS := string(body[:])
+	bodyS := string(body[:]) // Benchmark this vs using proprties
 	input := strings.Split(bodyS, "&")
 	token := strings.Split(input[0], "=")[1]
 
@@ -177,21 +177,57 @@ func (app *App) postSignin(w http.ResponseWriter, r *http.Request) {
 	password, err := url.QueryUnescape(props["password"])
 	if err != nil {
 		log.Fatal("Password unescape failed")
-
 	}
 
-	var result User
-	collection := app.db.Collection("users")
-	err = collection.FindOne(context.TODO(), bson.M{"email": email}).Decode(&result)
+	user, err := getUserByEmail(app.db, email)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			fmt.Println("No document was found with the given email")
-		} else {
-			log.Fatal(err)
-		}
-	} else {
-		fmt.Printf("Found a user: %+v\n", result)
-		worked := checkPasswordHash(password, result.Hashword)
-		io.WriteString(w, fmt.Sprintf("Password matches: %t", worked))
+		io.WriteString(w, invalidSignin())
+		return
 	}
+	fmt.Printf("Found a user: %+v\n", user.Username)
+	worked := checkPasswordHash(password, user.Hashword)
+	//io.WriteString(w, fmt.Sprintf("Password matches: %t", worked))
+	if worked {
+		token := uuid.New().String()
+		player, err := getPlayerRecord(app.db, user.Username)
+		if err != nil {
+			log.Fatal("No player found for user")
+		}
+		join(w, player, token)
+	}
+
+}
+
+func join(w http.ResponseWriter, record *PlayerRecord, token string) {
+	fmt.Println("New Player: " + token)
+	newPlayer := &Player{
+		id:        token,
+		stage:     nil,
+		stageName: record.StageName,
+		x:         record.X,
+		y:         record.Y,
+		actions:   createDefaultActions(),
+		health:    record.Health,
+		money:     record.Money,
+	}
+
+	playerMutex.Lock()
+	defer playerMutex.Unlock() //sketchy?
+	playerMap[token] = newPlayer
+
+	fmt.Println("Getting Stage")
+	existingStage := getStageByName(newPlayer.stageName)
+	if existingStage == nil {
+		fmt.Println("Failed")
+		delete(playerMap, token)
+		fmt.Println("Deleted")
+		io.WriteString(w, invalidSignin())
+		return
+	}
+
+	fmt.Println("Assigning stage")
+	newPlayer.stage = existingStage
+
+	fmt.Println("Printing Page Headers")
+	io.WriteString(w, printPageFor(newPlayer))
 }
