@@ -18,8 +18,13 @@ func BenchmarkMarkAllDirty(b *testing.B) {
 	playerCounts := []int{1, 5, 10, 100}
 
 	for _, stageName := range stageNames {
+
 		testStage, _ := createStageByName(stageName)
+		//fmt.Println("Created Stage")
+
 		go drainChannel(testStage.updates)
+		//fmt.Println("draining Channel")
+
 		for _, playerCount := range playerCounts {
 			b.Run(fmt.Sprintf("stage:%s players:%d Cores", stageName, playerCount), func(b *testing.B) {
 				b.StopTimer() // Stop the timer while setting up the benchmark
@@ -27,6 +32,8 @@ func BenchmarkMarkAllDirty(b *testing.B) {
 				players := make([]Player, playerCount)
 
 				for i := range players {
+					fmt.Println("starting")
+					fmt.Println(i)
 					players[i] = Player{
 						id:        fmt.Sprintf("tp%d", i),
 						stage:     testStage,
@@ -36,13 +43,18 @@ func BenchmarkMarkAllDirty(b *testing.B) {
 						actions:   createDefaultActions(),
 						health:    100,
 					}
-					placeOnStage(&players[i])
+					players[i].placeOnStage()
+					fmt.Println("Placed On stage")
+					//if i == 0 {
+					//	go drainChannel(players[i].stage.updates)
+					//}
 				}
 
 				b.StartTimer() // Start the timer for the actual benchmarking
-
+				fmt.Println("hello")
 				for i := 0; i < b.N; i++ {
-					testStage.markAllDirty() // Test this with player.action.space on
+					fmt.Println("hello2")
+					players[0].stage.markAllDirty() // Test this with player.action.space on
 				}
 			})
 		}

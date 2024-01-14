@@ -8,8 +8,8 @@ import (
 )
 
 type Stage struct {
-	tiles       [][]*Tile // [][]**Tile would be weird and open up FP over mutation (also lookup is less fragile)
-	playerMap   map[string]*Player
+	tiles       [][]*Tile          // [][]**Tile would be weird and open up FP over mutation (also lookup is less fragile)
+	playerMap   map[string]*Player // Player Map to Bson map to save whole stage in one command
 	playerMutex sync.Mutex
 	updates     chan Update
 	name        string
@@ -17,15 +17,17 @@ type Stage struct {
 
 func getStageByName(name string) *Stage {
 	stageMutex.Lock()
-	defer stageMutex.Unlock() // Can be broken into two shorter critical paths, worth it?
+	//defer stageMutex.Unlock() // Can be broken into two shorter critical paths, worth it?
 	existingStage, stageExists := stageMap[name]
-	//stageMutex.Unlock()
+	stageMutex.Unlock()
 	if !stageExists {
+		fmt.Println("Creating a stage")
 		existingStage, stageExists = createStageAndHandleUpdates(name)
 		if !stageExists {
 			return nil
 		}
 	}
+	fmt.Println("stage exists")
 	return existingStage
 }
 
@@ -39,6 +41,8 @@ func createStageAndHandleUpdates(name string) (*Stage, bool) {
 	//stageMutex.Lock()
 	stageMap[name] = stage
 	//stageMutex.Unlock()
+
+	fmt.Println("Sending updates.")
 
 	go stage.sendUpdates()
 	return stage, true
@@ -93,12 +97,16 @@ func sendUpdate(messageType int, update Update) {
 }
 
 func (stage *Stage) updateAll(update string) {
+	stage.playerMutex.Lock()
+	defer stage.playerMutex.Unlock()
 	for _, player := range stage.playerMap {
 		oobUpdateWithHud(player, update)
 	}
 }
 
 func (stage *Stage) updateAllExcept(update string, ignore *Player) {
+	stage.playerMutex.Lock()
+	defer stage.playerMutex.Unlock()
 	for _, player := range stage.playerMap {
 		if player == ignore {
 			continue
@@ -116,7 +124,11 @@ func updateOne(update string, player *Player) {
 }
 
 func (stage *Stage) markAllDirty() { // This may become prohibitively slow upon players spawning, and full screen probably only needed for spawned player
-	if len(stage.playerMap) > 4 {
+	fmt.Println("About to mark dirty")
+	stage.playerMutex.Lock()
+	currentPlayerCount := len(stage.playerMap)
+	stage.playerMutex.Unlock()
+	if currentPlayerCount > 4 {
 		startingScreenUpdate(stage)
 	} else {
 		fullUpdate(stage)
@@ -124,6 +136,8 @@ func (stage *Stage) markAllDirty() { // This may become prohibitively slow upon 
 }
 
 func startingScreenUpdate(stage *Stage) {
+	stage.playerMutex.Lock()
+	defer stage.playerMutex.Unlock()
 	screenHtml := htmlFromStage(stage)
 	for _, player := range stage.playerMap {
 		updateScreenWithStarter(player, screenHtml)
@@ -131,7 +145,14 @@ func startingScreenUpdate(stage *Stage) {
 }
 
 func fullUpdate(stage *Stage) {
-	for _, player := range stage.playerMap {
+	stage.playerMutex.Lock()
+	defer stage.playerMutex.Unlock()
+	fmt.Println("hmm")
+	fmt.Println(stage)
+	fmt.Println("map")
+	fmt.Println(stage.playerMap)
+	for _, player := range stage.playerMap { // This throws if playermap is empty?!
+		fmt.Println("Updating Screen")
 		updateScreenFromScratch(player)
 	}
 }

@@ -106,19 +106,6 @@ func join(w http.ResponseWriter, record *PlayerRecord, token string) {
 	defer playerMutex.Unlock() //sketchy?
 	playerMap[token] = newPlayer
 
-	fmt.Println("Getting Stage")
-	existingStage := getStageByName(newPlayer.stageName)
-	if existingStage == nil {
-		fmt.Println("Failed")
-		delete(playerMap, token)
-		fmt.Println("Deleted")
-		io.WriteString(w, invalidSignin())
-		return
-	}
-
-	fmt.Println("Assigning stage")
-	newPlayer.stage = existingStage
-
 	fmt.Println("Printing Page Headers")
 	io.WriteString(w, printPageFor(newPlayer))
 }

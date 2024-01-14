@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -9,11 +11,12 @@ import (
 type Player struct {
 	id        string
 	username  string
-	stage     *Stage
+	stage     *Stage // may not need
+	tile      *Tile
 	stageName string
 	conn      *websocket.Conn
 	connLock  sync.Mutex
-	x         int
+	x         int // Definitely may not need
 	y         int
 	actions   *Actions
 	health    int
@@ -30,31 +33,80 @@ func createDefaultActions() *Actions {
 	return &Actions{false, grid7x7, map[*Tile]bool{}}
 }
 
+// Health observer, All Health changes should go through here
+func (player *Player) setHealth(n int) {
+	player.health = n
+	if player.isDead() {
+		player.handleDeath()
+		return
+	}
+	updateOne(divPlayerInformation(player), player)
+}
+
 func (player *Player) isDead() bool {
 	return player.health <= 0
 }
 
-func placeOnStage(p *Player) {
-	x := p.x // Feels backwards but maybe needed for loading  from db?
-	y := p.y
-	p.stage.tiles[y][x].addPlayer(p)
-	p.stage.playerMap[p.id] = p
-	p.stage.markAllDirty()
+func (player *Player) addToHealth(n int) {
+	player.setHealth(player.health + n)
 }
 
-func handleDeathOf(player *Player) {
-	// Implement??
+func (p *Player) assignStage() {
+	fmt.Println("Getting Stage")
+	existingStage := getStageByName(p.stageName)
+	if existingStage == nil {
+		playerMutex.Lock()
+		defer playerMutex.Unlock()
+		delete(playerMap, p.id)
+		log.Fatal("Stage Not Found.")
+
+	}
+	p.stage = existingStage
+}
+
+func (p *Player) placeOnStage() {
+
+	fmt.Println("Assigning stage and tile")
+	//p.stage = existingStage
+	p.stage.playerMutex.Lock()
+	p.stage.playerMap[p.id] = p
+	p.stage.playerMutex.Unlock()
+
+	p.stage.tiles[p.y][p.x].addPlayer(p)
+	fmt.Println("Added Player")
+	p.stage.markAllDirty()
+	fmt.Println("Marked dirty")
+}
+
+/*
+func (player *Player) placeOnTile(tile *Tile) {
+	player.stage = tile.stage
+	tile.addPlayer(player)
+	tile.stage.addPlayer(player)
+	tile.stage.markAllDirty()
+}
+*/
+
+func (player *Player) handleDeath() {
+	player.removeFromStage()
+	respawn(player)
+}
+
+func (player *Player) removeFromStage() {
+	player.tile.removePlayer(player.id)
+	player.stage.removePlayerById(player.id)
 }
 
 func respawn(player *Player) {
-	clinic := getClinic()
+	//clinic := getClinic()
 	player.health = 100
-	player.stage = clinic
+	//player.stage = clinic
 	player.stageName = "clinic"
 	player.x = 2
 	player.y = 2
 	player.actions = createDefaultActions()
-	placeOnStage(player)
+	player.assignStage()
+	player.placeOnStage()
 }
 
 func updateScreenWithStarter(player *Player, html string) {
@@ -79,22 +131,22 @@ func oobUpdateWithHud(player *Player, update string) {
 }
 
 func moveNorth(p *Player) {
-	move(p, -1, 0)
+	p.move(-1, 0)
 }
 
 func moveSouth(p *Player) {
-	move(p, 1, 0)
+	p.move(1, 0)
 }
 
 func moveEast(p *Player) {
-	move(p, 0, 1)
+	p.move(0, 1)
 }
 
 func moveWest(p *Player) {
-	move(p, 0, -1)
+	p.move(0, -1)
 }
 
-func move(p *Player, yOffset int, xOffset int) {
+func (p *Player) move(yOffset int, xOffset int) {
 	destY := p.y + yOffset
 	destX := p.x + xOffset
 	if validCoordinate(destY, destX, p.stage.tiles) && walkable(p.stage.tiles[destY][destX]) {
@@ -114,16 +166,6 @@ func move(p *Player, yOffset int, xOffset int) {
 			updateOneWithHud(oobAll+oobRemoveHighlights, p)
 		}
 	}
-}
-
-func validCoordinate(y int, x int, tiles [][]*Tile) bool {
-	if y < 0 || y >= len(tiles) {
-		return false
-	}
-	if x < 0 || x >= len(tiles[y]) {
-		return false
-	}
-	return true
 }
 
 func (player *Player) turnSpaceOn() {
@@ -161,10 +203,10 @@ func (player *Player) turnSpaceOff() {
 	player.stage.updates <- Update{player, []byte(htmlRemoveHighlights + htmlAddHud)}
 }
 
-func mapOfTileToOoB(m map[*Tile]bool) string {
-	html := ``
-	for tile := range m {
-		html += htmlFromTile(tile)
-	}
-	return html
+func (player *Player) applyTeleport(teleport *Teleport) {
+	player.stageName = teleport.destStage
+	player.y = teleport.destY
+	player.x = teleport.destX
+	player.assignStage()
+	player.placeOnStage()
 }

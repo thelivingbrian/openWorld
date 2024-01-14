@@ -45,7 +45,8 @@ func ws_screen(w http.ResponseWriter, r *http.Request) {
 
 func handleNewPlayer(existingPlayer *Player, conn *websocket.Conn) {
 	existingPlayer.conn = conn
-	placeOnStage(existingPlayer)
+	existingPlayer.assignStage()
+	existingPlayer.placeOnStage()
 	fmt.Println("New Connection")
 	for {
 		_, _, err := conn.ReadMessage()
