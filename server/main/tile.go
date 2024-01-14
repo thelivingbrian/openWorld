@@ -53,7 +53,7 @@ func (tile *Tile) removePlayer(playerId string) string {
 	tile.playerMutex.Unlock()
 
 	if len(tile.playerMap) == 0 {
-		tile.currentCssClass = tile.originalCssClass //.material.CssClassName
+		tile.currentCssClass = tile.originalCssClass
 	}
 
 	return htmlFromTile(tile)
@@ -61,6 +61,7 @@ func (tile *Tile) removePlayer(playerId string) string {
 
 func (tile *Tile) addPlayer(player *Player) string {
 	if tile.teleport != nil {
+		// New Func
 		// Remove Player
 		tile.stage.removePlayerById(player.id)
 		tile.removePlayer(player.id)
@@ -108,9 +109,11 @@ func (tile *Tile) damageAll(dmg int) {
 	first := true
 	for _, player := range tile.playerMap {
 		player.health += -dmg
-		updateOne(printHealthOf(player), player)
+		updateOne(divPlayerInformation(player), player)
 		tile.currentCssClass = cssClassFromHealth(player)
+		// Observer for player health handles all of this
 		if player.isDead() {
+			// Remove dead player from tile()
 			tile.removePlayer(player.id)
 			tile.stage.removePlayerById(player.id)
 			respawn(player)

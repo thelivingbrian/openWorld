@@ -8,6 +8,7 @@ import (
 
 type Player struct {
 	id        string
+	username  string
 	stage     *Stage
 	stageName string
 	conn      *websocket.Conn

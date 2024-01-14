@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"math/rand"
 	"strconv"
@@ -14,16 +13,24 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func setupUsers() ([]User, *mongo.Collection) {
-	client := mongoClient()
-	collection := client.Database("bloopdb").Collection("test-users")
+var testdb *DB = func() *DB {
+	testClient := mongoClient()
+	return &DB{
+		users:         testClient.Database("bloop-TESTdb").Collection("testusers"),
+		playerRecords: testClient.Database("bloop-TESTdb").Collection("testplayers"),
+	}
+}()
+
+const NUMBER_OF_TEST_ACOUNTS = 1000
+
+func setupUsers() []User {
 	emailIndex := mongo.IndexModel{
 		Keys: bson.M{
 			"email": 1,
 		},
 		Options: options.Index().SetUnique(true),
 	}
-	_, err := collection.Indexes().CreateOne(context.Background(), emailIndex)
+	_, err := testdb.users.Indexes().CreateOne(context.Background(), emailIndex)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,11 +41,11 @@ func setupUsers() ([]User, *mongo.Collection) {
 		},
 		Options: options.Index().SetUnique(true),
 	}
-	_, err = collection.Indexes().CreateOne(context.Background(), usernameIndex)
+	_, err = testdb.users.Indexes().CreateOne(context.Background(), usernameIndex)
 	if err != nil {
 		log.Fatal(err)
 	}
-	testUsers := make([]User, 10000)
+	testUsers := make([]User, 1000)
 	for i := range testUsers {
 		iStr := strconv.Itoa(i)
 		testUsers[i] = User{
@@ -48,55 +55,59 @@ func setupUsers() ([]User, *mongo.Collection) {
 			Hashword: "hashedpassword",
 			Created:  time.Now(),
 		}
-		insertUser(collection, testUsers[i])
+		testdb.newAccount(testUsers[i])
 	}
 
-	return testUsers, collection
+	return testUsers
 }
 
-func cleanUsers(col *mongo.Collection) {
+func cleanUp() {
 	// A filter that matches all documents
 	//filter := bson.D{{}}
 	//res, err := collection.DeleteMany(context.Background(), filter)
 
-	col.Drop(context.Background())
+	testdb.users.Drop(context.Background())
+	testdb.playerRecords.Drop(context.Background())
 }
 
 func BenchmarkMongoInsert(b *testing.B) {
-	testUsers := make([]User, 10000)
+	defer cleanUp()
+	numberToInsert := 1
+	testUsers := make([]User, numberToInsert)
 	for i := range testUsers {
 		iStr := strconv.Itoa(i)
 		testUsers[i] = User{
-			Email:    iStr + "@example.com",
+			Email:    iStr + "insertTest@example.com",
 			Verified: true,
-			Username: "testuser" + iStr,
+			Username: "testInsert" + iStr,
 			Hashword: "hashedpassword",
 		}
 	}
-	client := mongoClient()
-	collection := client.Database("bloopdb").Collection("testusers")
-	b.ResetTimer()
+
 	// Test
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		for x := 0; x < 1; x++ {
-			insertUser(collection, testUsers[x])
+		for x := 0; x < numberToInsert; x++ {
+			testdb.insertUser(testUsers[x])
 		}
 	}
-
-	collection.Drop(context.Background())
+	b.StopTimer()
 }
-func BenchmarkMongoUpdate(b *testing.B) {
-	testUsers, collection := setupUsers()
-	defer cleanUsers(collection) // Use defer to ensure cleanup happens after the benchmark.
 
-	fmt.Println("Added Users.")
-	b.ResetTimer()
+func BenchmarkMongoUpdate(b *testing.B) {
+	testUsers := setupUsers()
+	defer cleanUp()
+	testUpdate := make(map[string]any)
+	testUpdate["X"] = 7
+	testUpdate["Y"] = 11
+	testUpdate["stageName"] = "testStageNameHere"
 
 	// Test
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		randomNumber := rand.Intn(10000)
-		setUserHealth(collection, testUsers[randomNumber].Email) // User shouldn't have health
-	}
+		randomNumber := rand.Intn(1000)
+		testdb.updatePlayerRecord(testUsers[randomNumber].Username, testUpdate)
 
+	}
 	b.StopTimer()
 }

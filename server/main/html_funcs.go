@@ -126,7 +126,7 @@ func printPageFor(player *Player) string {
 			<input id="tick" hx-ext="ws" ws-connect="/screen" ws-send hx-trigger="load once" type="hidden" name="token" value="` + player.id + `" />
 		</div>
 		<div id="info">
-			<b>Health: ` + fmt.Sprint(player.health) + `</b>
+			<b>` + playerInformation(player) + `</b>
 		</div>
 		<div id="screen" class="grid">
 				
@@ -134,45 +134,15 @@ func printPageFor(player *Player) string {
 	</div>`
 }
 
-func printHealthOf(player *Player) string {
+func divPlayerInformation(player *Player) string {
 	return `
 	<div id="info" hx-swap-oob="true">
-		<b>Health: ` + fmt.Sprint(player.health) + `</b>
+		` + playerInformation(player) + `</b>
 	</div>`
 }
 
-// This will go
-func invalidSignin2() string {
-	return `
-	<div id="page">
-		<div id="controls">
-			<form hx-post="/signin" hx-target="#page" hx-swap="outerHTML">
-				<div>
-				<h2 style='color:red'> %#Invalid sign-in@! </h2>
-				<label>Username:</label>
-				<input type="text" name="token" value="john"><br />
-				<label>Stage:</label>
-				<input type="text" name="stage" value="greenX"><br />
-				</div>
-				<button>Activate</button>
-			</form>
-		</div>
-		<div id="screen" class="grid">
-			<div class="grid-row">
-				<div class="grid-square red" id="c0-0"></div>
-				<div class="grid-square green" id="c0-1"></div>
-				<div class="grid-square blue" id="c0-2"></div>
-				<div class="grid-square yellow" id="c0-3"></div>
-				<div class="grid-square" id="c0-4"></div>
-				<div class="grid-square fusia" id="c0-5"></div>
-				<div class="grid-square" id="c0-6"></div>
-				<div class="grid-square dark-blue" id="c0-7"></div>
-				<div class="grid-square pink" id="c0-8"></div>
-				<div class="grid-square" id="c0-9"></div>
-				<div class="grid-square" id="c0-10"></div>
-			</div>
-		</div>
-	</div>`
+func playerInformation(player *Player) string {
+	return fmt.Sprintf("%s Health : %d | Money : %d", player.username, player.health, player.money)
 }
 
 func htmlFromTile(tile *Tile) string {

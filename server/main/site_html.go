@@ -35,12 +35,12 @@ func signInPage() string {
 	`
 }
 
-func (app *App) newUser(email string, username string, hashword string) string {
+func (db *DB) newUser(email string, username string, hashword string) string {
 	if !isEmailValid(email) {
 		return invalidEmailHTML()
 	}
 	user := User{Email: email, Verified: true, Username: username, Hashword: hashword, Created: time.Now()}
-	err := newAccount(app.db, user)
+	err := db.newAccount(user)
 	if err != nil {
 		return failedToCreateHTML()
 		//log.Fatal(err)

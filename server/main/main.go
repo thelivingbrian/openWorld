@@ -9,8 +9,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type App struct {
-	db *mongo.Database
+type DB struct {
+	users         *mongo.Collection
+	playerRecords *mongo.Collection
 }
 
 var (
@@ -22,8 +23,8 @@ var (
 )
 
 func main() {
-	app := App{mongoClient().Database("bloopdb")}
-	//collection := app.db.Collection("users")
+	mongodb := mongoClient().Database("bloopdb")
+	db := DB{mongodb.Collection("users"), mongodb.Collection("players")}
 
 	fmt.Println("Loading data...")
 	loadFromJson()
@@ -34,9 +35,9 @@ func main() {
 
 	// Home Page
 	http.HandleFunc("/homesignup", getSignUp)
-	http.HandleFunc("/signup", app.postSignUp)
+	http.HandleFunc("/signup", db.postSignUp)
 	http.HandleFunc("/homesignin", getSignIn)
-	http.HandleFunc("/signin", app.postSignin) // This is a gross overload now, but maybe an alternitave to gorilla mux for verbs
+	http.HandleFunc("/signin", db.postSignin) // This is a gross overload now, but maybe an alternitave to gorilla mux for verbs
 
 	fmt.Println("Preparing for interactions...")
 	http.HandleFunc("/w", postMovement(moveNorth)) // consider .Methods(http.MethodGet)

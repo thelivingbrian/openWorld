@@ -38,7 +38,7 @@ type PlayerRecord struct {
 	Bank        []int     `bson:"bank,omitempty"`
 }
 
-func newAccount(db *mongo.Database, user User) error {
+func (db *DB) newAccount(user User) error {
 	player := PlayerRecord{
 		Username:  user.Username,
 		Health:    100,
@@ -47,81 +47,36 @@ func newAccount(db *mongo.Database, user User) error {
 		Y:         2,
 		Money:     80,
 	}
-	err := insertUser(db.Collection("users"), user)
+	err := db.insertUser(user)
 	if err != nil {
 		return err // This is fine
 	}
-	err = InsertPlayerRecord(db.Collection("players"), player)
+	err = db.InsertPlayerRecord(player)
 	if err != nil {
 		return err // This is not fun
 	}
 	return nil
 }
 
-func insertUser(collection *mongo.Collection, user User) error {
-	// Insert a single document
-	_, err := collection.InsertOne(context.TODO(), user)
+func (db *DB) insertUser(user User) error {
+	_, err := db.users.InsertOne(context.TODO(), user)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func InsertPlayerRecord(collection *mongo.Collection, player PlayerRecord) error {
-	_, err := collection.InsertOne(context.TODO(), player)
+func (db *DB) InsertPlayerRecord(player PlayerRecord) error {
+	_, err := db.playerRecords.InsertOne(context.TODO(), player)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func incrementUserCoordinates(collection *mongo.Collection, userEmail string) (*User, error) {
-	ctx := context.Background()
-
-	filter := bson.M{"email": userEmail}
-
-	// Update to increment X and Y
-	update := bson.M{
-		"$inc": bson.M{"x": 1, "y": 1},
-	}
-
-	// Return the updated document // Investigate further
-	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
-
-	var updatedUser User
-	err := collection.FindOneAndUpdate(ctx, filter, update, opts).Decode(&updatedUser)
-	if err != nil {
-		fmt.Println("oops")
-		return nil, err
-	}
-
-	return &updatedUser, nil
-}
-
-func setUserHealth(collection *mongo.Collection, userEmail string) (*User, error) {
-	ctx := context.Background()
-
-	// Do Player instead
-	filter := bson.M{"email": userEmail}
-	update := bson.M{
-		"$set": bson.M{"health": 110},
-	}
-
-	// Return the updated document // Investigate further
-	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
-
-	var updatedUser User
-	err := collection.FindOneAndUpdate(ctx, filter, update, opts).Decode(&updatedUser)
-	if err != nil {
-		return nil, err
-	}
-
-	return &updatedUser, nil
-}
-
-func getUserByEmail(db *mongo.Database, email string) (*User, error) {
+func (db *DB) getUserByEmail(email string) (*User, error) {
 	var result User
-	collection := db.Collection("users")
+	collection := db.users
 	err := collection.FindOne(context.TODO(), bson.M{"email": email}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -134,9 +89,9 @@ func getUserByEmail(db *mongo.Database, email string) (*User, error) {
 	return &result, nil
 }
 
-func getPlayerRecord(db *mongo.Database, username string) (*PlayerRecord, error) {
+func (db *DB) getPlayerRecord(username string) (*PlayerRecord, error) {
+	collection := db.playerRecords
 	var result PlayerRecord
-	collection := db.Collection("players")
 	err := collection.FindOne(context.TODO(), bson.M{"username": username}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -147,4 +102,27 @@ func getPlayerRecord(db *mongo.Database, username string) (*PlayerRecord, error)
 		}
 	}
 	return &result, nil
+}
+
+func (db *DB) updatePlayerRecord(username string, updates map[string]any) (*PlayerRecord, error) {
+	collection := db.playerRecords
+
+	filter := bson.M{"username": username}
+	updateBson := bson.M{}
+	for key, value := range updates {
+		updateBson[key] = value
+	}
+	setBson := bson.M{
+		"$set": updateBson,
+	}
+	ctx := context.Background()
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After) // Testing shows very small differnce 12ms vs 12.5ms differnce returning vs not
+
+	var updatedRecord PlayerRecord
+	err := collection.FindOneAndUpdate(ctx, filter, setBson, opts).Decode(&updatedRecord)
+	if err != nil {
+		return nil, err
+	}
+
+	return &updatedRecord, nil
 }
