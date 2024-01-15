@@ -60,7 +60,6 @@ func (p *Player) placeOnStage() {
 
 	p.stage.tiles[p.y][p.x].addPlayerAndNotifyOthers(p)
 	updateScreenFromScratch(p)
-	//p.stage.markAllDirty()
 }
 
 func (player *Player) handleDeath() {
@@ -106,10 +105,9 @@ func (p *Player) move(yOffset int, xOffset int) {
 		currentTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
 
-		currentStage := p.stage // Stage may change as result of teleport or etc
-		currentTile.removePlayerAndNotifyOthers(p)
+		currentStage := p.stage                    // Stage may change as result of teleport or etc
+		currentTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
 		destTile.addPlayerAndNotifyOthers(p)
-		//currentStage.updateAllExcept(oobAll, p)
 
 		oobRemoveHighlights := ""
 		if p.actions.space {
@@ -124,9 +122,7 @@ func (p *Player) move(yOffset int, xOffset int) {
 func (player *Player) turnSpaceOn() {
 	player.actions.space = true
 	player.setSpaceHighlights()
-
-	// Use Update One
-	player.stage.updates <- Update{player, []byte(hudAsOutOfBound(player))}
+	updateOne(hudAsOutOfBound(player), player)
 }
 
 func (player *Player) setSpaceHighlights() map[*Tile]bool { // Returns removed highlights
@@ -147,7 +143,7 @@ func (player *Player) turnSpaceOff() {
 	player.actions.space = false
 
 	for tile := range player.actions.spaceHighlights {
-		tile.damageAll(25)
+		tile.damageAll(25) // pass in *Player for kill credit
 	}
 	htmlRemoveHighlights := mapOfTileToOoB(player.actions.spaceHighlights)
 

@@ -30,15 +30,11 @@ func newTile(mat Material, y int, x int) *Tile {
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	tile.addPlayer(player)
-	tile.stage.updateAll(htmlFromTile(tile))
+	tile.stage.updateAllExcept(htmlFromTile(tile), player)
 }
 
 func (tile *Tile) addPlayer(player *Player) {
-	if tile.teleport != nil {
-		// Add on new stage // Not always a new stage?
-		player.removeFromStage()
-		player.applyTeleport(tile.teleport)
-	} else {
+	if tile.teleport == nil {
 		tile.playerMutex.Lock()
 		tile.playerMap[player.id] = player
 		tile.playerMutex.Unlock()
@@ -46,17 +42,22 @@ func (tile *Tile) addPlayer(player *Player) {
 		player.x = tile.x
 		player.tile = tile
 		tile.currentCssClass = cssClassFromHealth(player)
+	} else {
+		// Add on new stage // Not always a new stage?
+		player.removeFromStage()
+		player.applyTeleport(tile.teleport)
 	}
 }
 
 func (tile *Tile) removePlayer(playerId string) {
 	tile.playerMutex.Lock()
 	delete(tile.playerMap, playerId)
-	tile.playerMutex.Unlock()
+	tile.playerMutex.Unlock() // Defer instead?
 
 	if len(tile.playerMap) == 0 {
 		tile.currentCssClass = tile.originalCssClass
 	}
+	// else need to find another players health
 }
 
 func (tile *Tile) removePlayerAndNotifyOthers(player *Player) {
@@ -71,6 +72,7 @@ func (tile *Tile) damageAll(dmg int) {
 		tile.currentCssClass = cssClassFromHealth(player)
 		if !survived {
 			tile.currentCssClass = tile.originalCssClass
+			// give credit if aggressor != nil
 		}
 		if first {
 			first = !survived // Gross but this ensures that surviving players aren't hidden by death

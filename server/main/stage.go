@@ -60,6 +60,7 @@ func createStageByName(s string) (*Stage, bool) {
 	return &outputStage, true
 }
 
+/*
 func (stage *Stage) markAllDirty() { // This may become prohibitively slow upon players spawning, and full screen probably only needed for spawned player
 	stage.playerMutex.Lock()
 	currentPlayerCount := len(stage.playerMap)
@@ -71,6 +72,7 @@ func (stage *Stage) markAllDirty() { // This may become prohibitively slow upon 
 		fullUpdate(stage)
 	}
 }
+*/
 
 func (stage *Stage) removePlayerById(id string) {
 	stage.playerMutex.Lock()
@@ -132,6 +134,7 @@ func updateOne(update string, player *Player) {
 	player.stage.updates <- Update{player, []byte(update)}
 }
 
+/*
 func startingScreenUpdate(stage *Stage) {
 	stage.playerMutex.Lock()
 	defer stage.playerMutex.Unlock()
@@ -149,6 +152,7 @@ func fullUpdate(stage *Stage) {
 		updateScreenFromScratch(player)
 	}
 }
+*/
 
 func updateScreenWithStarter(player *Player, html string) {
 	if player.isDead() {

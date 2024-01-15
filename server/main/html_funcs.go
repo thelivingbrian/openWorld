@@ -137,7 +137,7 @@ func printPageFor(player *Player) string {
 func divPlayerInformation(player *Player) string {
 	return `
 	<div id="info" hx-swap-oob="true">
-		` + playerInformation(player) + `</b>
+		<b>` + playerInformation(player) + `</b>
 	</div>`
 }
 
