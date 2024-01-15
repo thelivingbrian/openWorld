@@ -16,12 +16,12 @@ type Stage struct {
 	name        string
 }
 
-func getStageByName(name string) (stage *Stage, new bool) {
+func (world *World) getStageByName(name string) (stage *Stage, new bool) {
 	new = false
 
-	stageMutex.Lock() // Inject this
-	existingStage, stageExists := stageMap[name]
-	stageMutex.Unlock()
+	world.wStageMutex.Lock() // New method
+	existingStage, stageExists := world.worldStages[name]
+	world.wStageMutex.Unlock()
 
 	if !stageExists {
 		new = true
@@ -29,7 +29,9 @@ func getStageByName(name string) (stage *Stage, new bool) {
 		if !stageExists {
 			log.Fatal("Unable to create stage")
 		}
-		stageMap[name] = existingStage
+		world.wStageMutex.Lock()
+		world.worldStages[name] = existingStage
+		world.wStageMutex.Unlock()
 	}
 
 	return existingStage, new
@@ -107,6 +109,8 @@ func sendUpdate(update Update) {
 	update.player.conn.WriteMessage(websocket.TextMessage, update.update)
 }
 
+// Queue updates
+
 func (stage *Stage) updateAll(update string) {
 	stage.playerMutex.Lock()
 	defer stage.playerMutex.Unlock()
@@ -134,26 +138,8 @@ func updateOne(update string, player *Player) {
 	player.stage.updates <- Update{player, []byte(update)}
 }
 
-/*
-func startingScreenUpdate(stage *Stage) {
-	stage.playerMutex.Lock()
-	defer stage.playerMutex.Unlock()
-	screenHtml := htmlFromStage(stage)
-	for _, player := range stage.playerMap {
-		updateScreenWithStarter(player, screenHtml)
-	}
-}
-
-func fullUpdate(stage *Stage) {
-	stage.playerMutex.Lock()
-	defer stage.playerMutex.Unlock()
-
-	for _, player := range stage.playerMap { // This throws if playermap is empty?!
-		updateScreenFromScratch(player)
-	}
-}
-*/
-
+// Same as oobUpdateWithHud with a death check. Delete?
+// Technically server cheaper than updateFromScratch I think.
 func updateScreenWithStarter(player *Player, html string) {
 	if player.isDead() {
 		respawn(player)
@@ -163,6 +149,7 @@ func updateScreenWithStarter(player *Player, html string) {
 	player.stage.updates <- Update{player, []byte(html)}
 }
 
+// Death check here feels weird, examine
 func updateScreenFromScratch(player *Player) {
 	if player.isDead() {
 		respawn(player)

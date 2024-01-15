@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/google/uuid"
 )
@@ -55,7 +54,7 @@ func getSignIn(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, signInPage())
 }
 
-func (db *DB) postSignin(w http.ResponseWriter, r *http.Request) {
+func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 	props, success := requestToProperties(r)
 	if !success {
 		log.Fatal("Failed to retreive properties")
@@ -69,7 +68,7 @@ func (db *DB) postSignin(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("Password unescape failed")
 	}
 
-	user, err := db.getUserByEmail(email)
+	user, err := world.db.getUserByEmail(email)
 	if err != nil {
 		io.WriteString(w, invalidSignin())
 		return
@@ -79,16 +78,16 @@ func (db *DB) postSignin(w http.ResponseWriter, r *http.Request) {
 
 	if worked {
 		token := uuid.New().String()
-		player, err := db.getPlayerRecord(user.Username)
+		player, err := world.db.getPlayerRecord(user.Username)
 		if err != nil {
 			log.Fatal("No player found for user")
 		}
-		join(w, player, token)
+		world.join(w, player, token)
 	}
 
 }
 
-func join(w http.ResponseWriter, record *PlayerRecord, token string) {
+func (world *World) join(w http.ResponseWriter, record *PlayerRecord, token string) {
 	fmt.Println("New Player: " + token)
 	newPlayer := &Player{
 		id:        token,
@@ -102,9 +101,12 @@ func join(w http.ResponseWriter, record *PlayerRecord, token string) {
 		money:     record.Money,
 	}
 
-	playerMutex.Lock()
-	defer playerMutex.Unlock() //sketchy?
-	playerMap[token] = newPlayer
+	//playerMutex.Lock()
+	//defer playerMutex.Unlock() //sketchy?
+	//playerMap[token] = newPlayer
+	world.wPlayerMutex.Lock()
+	world.worldPlayers[token] = newPlayer
+	world.wPlayerMutex.Unlock()
 
 	fmt.Println("Printing Page Headers")
 	io.WriteString(w, printPageFor(newPlayer))
@@ -113,7 +115,7 @@ func join(w http.ResponseWriter, record *PlayerRecord, token string) {
 /////////////////////////////////////////////
 // Game Controls
 
-func postMovement(f func(*Player)) func(w http.ResponseWriter, r *http.Request) {
+/*func postMovement(f func(*Player)) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		existingPlayer, success := playerFromRequest(r)
 		if !success {
@@ -144,6 +146,7 @@ func postSpaceOff(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+
 func playerFromRequest(r *http.Request) (*Player, bool) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -163,6 +166,7 @@ func playerFromRequest(r *http.Request) (*Player, bool) {
 
 	return existingPlayer, true
 }
+*/
 
 func clearScreen(w http.ResponseWriter, r *http.Request) {
 	output := `<div id="screen" class="grid">

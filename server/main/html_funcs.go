@@ -115,15 +115,16 @@ func spaceHighlighter(tile *Tile) string {
 func printPageFor(player *Player) string {
 	return `
 	<div id="page" hx-swap-oob="true">
-		<div id="controls">      
-			<input hx-post="/w" hx-trigger="keydown[key=='w'] from:body" type="hidden" name="token" value="` + player.id + `" />
-			<input hx-post="/s" hx-trigger="keydown[key=='s'] from:body" type="hidden" name="token" value="` + player.id + `" />
-			<input hx-post="/a" hx-trigger="keydown[key=='a'] from:body" type="hidden" name="token" value="` + player.id + `" />
-			<input hx-post="/d" hx-trigger="keydown[key=='d'] from:body" type="hidden" name="token" value="` + player.id + `" />
+		<div id="controls" hx-ext="ws" ws-connect="/screen">
+			<input id="token" type="hidden" name="token" value="` + player.id + `" />
+			<input id="w" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='W'] from:body" hx-include="#token" name="keypress" value="W" />
+			<input id="a" type="hidden" ws-send hx-trigger="keydown[key=='a'] from:body" hx-include="#token" name="keypress" value="A" />
+			<input id="s" type="hidden" ws-send hx-trigger="keydown[key=='s'] from:body" hx-include="#token" name="keypress" value="S" />
+			<input id="d" type="hidden" ws-send hx-trigger="keydown[key=='d'] from:body" hx-include="#token" name="keypress" value="D" />
+			<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />
+			<input id="space-off" type="hidden" ws-send hx-trigger="keyup[key==' '] from:body" hx-include="#token" name="keypress" value="Space-Off" />
 			<input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" name="token" value="` + player.id + `" />
-			<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="` + player.id + `" />
-			<input hx-post="/spaceOff" hx-trigger="keyup[key==' '] from:body" hx-target="#spaceOn" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />	
-			<input id="tick" hx-ext="ws" ws-connect="/screen" ws-send hx-trigger="load once" type="hidden" name="token" value="` + player.id + `" />
+			<input id="tick" ws-send hx-trigger="load once" type="hidden" name="token" value="` + player.id + `" />
 		</div>
 		<div id="info">
 			<b>` + playerInformation(player) + `</b>

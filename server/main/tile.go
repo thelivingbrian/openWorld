@@ -65,14 +65,14 @@ func (tile *Tile) removePlayerAndNotifyOthers(player *Player) {
 	tile.stage.updateAllExcept(htmlFromTile(tile), player)
 }
 
-func (tile *Tile) damageAll(dmg int) {
+func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	first := true
 	for _, player := range tile.playerMap {
 		survived := player.addToHealth(-dmg)
 		tile.currentCssClass = cssClassFromHealth(player)
 		if !survived {
 			tile.currentCssClass = tile.originalCssClass
-			// give credit if aggressor != nil
+			go player.world.db.saveKillEvent(*tile, *player, *initiator)
 		}
 		if first {
 			first = !survived // Gross but this ensures that surviving players aren't hidden by death

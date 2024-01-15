@@ -11,7 +11,7 @@ func drainChannel[T any](c chan T) {
 	}
 }
 
-func BenchmarkMarkAllDirty(b *testing.B) {
+func BenchmarkMoveTwice(b *testing.B) {
 	loadFromJson()
 
 	stageNames := []string{"small", "large"}

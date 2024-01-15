@@ -10,6 +10,7 @@ import (
 type Player struct {
 	id        string
 	username  string
+	world     *World
 	stage     *Stage
 	tile      *Tile
 	stageName string
@@ -43,7 +44,7 @@ func (player *Player) addToHealth(n int) bool {
 }
 
 func (p *Player) assignStageAndListen() {
-	stage, new := getStageByName(p.stageName)
+	stage, new := p.world.getStageByName(p.stageName)
 	if stage == nil {
 		log.Fatal("Fatal: Stage Not Found.")
 	}
@@ -143,7 +144,7 @@ func (player *Player) turnSpaceOff() {
 	player.actions.space = false
 
 	for tile := range player.actions.spaceHighlights {
-		tile.damageAll(25) // pass in *Player for kill credit
+		tile.damageAll(25, player)
 	}
 	htmlRemoveHighlights := mapOfTileToOoB(player.actions.spaceHighlights)
 

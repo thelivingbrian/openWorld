@@ -9,6 +9,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/google/uuid"
 )
 
 type User struct {
@@ -36,6 +38,18 @@ type PlayerRecord struct {
 	Money       int       `bson:"money,omitempty"`
 	Inventory   []int     `bson:"inventory,omitempty"` // What is ID of an Item? string?
 	Bank        []int     `bson:"bank,omitempty"`
+}
+
+type Event struct {
+	ID        string    `bson:"eventid"`
+	Owner     string    `bson:"owner"`
+	Secondary string    `bson:"secondary"`
+	Type      string    `bson:"eventtype"`
+	Created   time.Time `bson:"created"`
+	StageName string    `bson:"stagename,omitempty"`
+	X         int       `bson:"x,omitempty"`
+	Y         int       `bson:"y,omitempty"`
+	Details   string    `bson:"details,omitempty"`
 }
 
 func (db *DB) newAccount(user User) error {
@@ -125,4 +139,49 @@ func (db *DB) updatePlayerRecord(username string, updates map[string]any) (*Play
 	}
 
 	return &updatedRecord, nil
+}
+
+func (db *DB) saveKillEvent(tile Tile, initiator Player, defeated Player) error {
+	playerCollection := db.playerRecords
+	eventCollection := db.events
+
+	id := uuid.New().String()
+	event := Event{
+		ID:        id,
+		Owner:     initiator.username,
+		Secondary: defeated.username,
+		Type:      "Kill",
+		Created:   time.Now(),
+		X:         tile.x,
+		Y:         tile.y,
+	}
+
+	_, err := eventCollection.InsertOne(context.TODO(), event)
+	if err != nil {
+		log.Fatal("Event Insert Failed")
+	}
+
+	// Update the initiator player's kills array
+	_, err = playerCollection.UpdateOne(
+		context.TODO(),
+		bson.M{"username": initiator.username},
+		bson.M{"$push": bson.M{"kills": id}},
+	)
+	if err != nil {
+		log.Fatal("Update Initiator Kills Failed")
+		return err
+	}
+
+	// Update the defeated player's deaths array
+	_, err = playerCollection.UpdateOne(
+		context.TODO(),
+		bson.M{"username": defeated.username},
+		bson.M{"$push": bson.M{"deaths": id}},
+	)
+	if err != nil {
+		log.Fatal("Update Defeated Deaths Failed")
+		return err
+	}
+
+	return nil
 }
