@@ -28,15 +28,16 @@ func newTile(mat Material, y int, x int) *Tile {
 
 // newTile w/ teleport?
 
-func (tile *Tile) addPlayer(player *Player) string {
+func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
+	tile.addPlayer(player)
+	tile.stage.updateAll(htmlFromTile(tile))
+}
+
+func (tile *Tile) addPlayer(player *Player) {
 	if tile.teleport != nil {
 		// Add on new stage // Not always a new stage?
 		player.removeFromStage()
 		player.applyTeleport(tile.teleport)
-		// player apply teleport
-		// Use place on stage have it do tile stuff
-		//existingStage := getStageByName(tile.teleport.destStage)
-		//player.placeOnTile(existingStage.tiles[tile.teleport.destY][tile.teleport.destX])
 	} else {
 		tile.playerMutex.Lock()
 		tile.playerMap[player.id] = player
@@ -46,10 +47,9 @@ func (tile *Tile) addPlayer(player *Player) string {
 		player.tile = tile
 		tile.currentCssClass = cssClassFromHealth(player)
 	}
-	return htmlFromTile(tile)
 }
 
-func (tile *Tile) removePlayer(playerId string) string {
+func (tile *Tile) removePlayer(playerId string) {
 	tile.playerMutex.Lock()
 	delete(tile.playerMap, playerId)
 	tile.playerMutex.Unlock()
@@ -57,25 +57,23 @@ func (tile *Tile) removePlayer(playerId string) string {
 	if len(tile.playerMap) == 0 {
 		tile.currentCssClass = tile.originalCssClass
 	}
+}
 
-	return htmlFromTile(tile)
+func (tile *Tile) removePlayerAndNotifyOthers(player *Player) {
+	tile.removePlayer(player.id)
+	tile.stage.updateAllExcept(htmlFromTile(tile), player)
 }
 
 func (tile *Tile) damageAll(dmg int) {
 	first := true
 	for _, player := range tile.playerMap {
-		player.health += -dmg
-		updateOne(divPlayerInformation(player), player)
-		tile.currentCssClass = cssClassFromHealth(player) // Sketchy?
-		// Observer for player health handles all of this
-		if player.isDead() {
-			// Remove dead player from tile()
-			tile.removePlayer(player.id)
-			tile.stage.removePlayerById(player.id)
-			respawn(player)
+		survived := player.addToHealth(-dmg)
+		tile.currentCssClass = cssClassFromHealth(player)
+		if !survived {
+			tile.currentCssClass = tile.originalCssClass
 		}
 		if first {
-			first = false
+			first = !survived // Gross but this ensures that surviving players aren't hidden by death
 			tile.stage.updateAllExcept(htmlFromTile(tile), player)
 		}
 	}

@@ -10,12 +10,12 @@ import (
 type Player struct {
 	id        string
 	username  string
-	stage     *Stage // may not need
+	stage     *Stage
 	tile      *Tile
 	stageName string
 	conn      *websocket.Conn
 	connLock  sync.Mutex
-	x         int // Definitely may not need
+	x         int
 	y         int
 	actions   *Actions
 	health    int
@@ -36,12 +36,13 @@ func (player *Player) isDead() bool {
 	return player.health <= 0
 }
 
-func (player *Player) addToHealth(n int) {
-	player.setHealth(player.health + n)
+func (player *Player) addToHealth(n int) bool {
+	newHealth := player.health + n
+	player.setHealth(newHealth)
+	return newHealth > 0
 }
 
 func (p *Player) assignStageAndListen() {
-	//fmt.Println("Assign stage to player")
 	stage, new := getStageByName(p.stageName)
 	if stage == nil {
 		log.Fatal("Fatal: Stage Not Found.")
@@ -57,8 +58,9 @@ func (p *Player) placeOnStage() {
 	p.stage.playerMap[p.id] = p
 	p.stage.playerMutex.Unlock()
 
-	p.stage.tiles[p.y][p.x].addPlayer(p)
-	p.stage.markAllDirty()
+	p.stage.tiles[p.y][p.x].addPlayerAndNotifyOthers(p)
+	updateScreenFromScratch(p)
+	//p.stage.markAllDirty()
 }
 
 func (player *Player) handleDeath() {
@@ -67,12 +69,12 @@ func (player *Player) handleDeath() {
 }
 
 func (player *Player) removeFromStage() {
-	player.tile.removePlayer(player.id)
+	player.tile.removePlayerAndNotifyOthers(player)
 	player.stage.removePlayerById(player.id)
 }
 
 func respawn(player *Player) {
-	player.health = 100
+	player.setHealth(100)
 	player.stageName = "clinic"
 	player.x = 2
 	player.y = 2
@@ -105,16 +107,16 @@ func (p *Player) move(yOffset int, xOffset int) {
 		destTile := p.stage.tiles[destY][destX]
 
 		currentStage := p.stage // Stage may change as result of teleport or etc
-		oobAll := currentTile.removePlayer(p.id)
-		oobAll = oobAll + destTile.addPlayer(p)
-		currentStage.updateAllExcept(oobAll, p)
+		currentTile.removePlayerAndNotifyOthers(p)
+		destTile.addPlayerAndNotifyOthers(p)
+		//currentStage.updateAllExcept(oobAll, p)
 
 		oobRemoveHighlights := ""
 		if p.actions.space {
 			oobRemoveHighlights = mapOfTileToOoB(p.setSpaceHighlights())
 		}
 		if currentStage == p.stage {
-			updateOneWithHud(oobAll+oobRemoveHighlights, p)
+			updateOneWithHud(oobRemoveHighlights+htmlFromTile(currentTile), p)
 		}
 	}
 }
