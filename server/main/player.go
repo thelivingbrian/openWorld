@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"sync"
 
@@ -23,16 +22,6 @@ type Player struct {
 	money     int
 }
 
-type Actions struct {
-	space           bool
-	spaceShape      [][2]int
-	spaceHighlights map[*Tile]bool
-}
-
-func createDefaultActions() *Actions {
-	return &Actions{false, grid7x7, map[*Tile]bool{}}
-}
-
 // Health observer, All Health changes should go through here
 func (player *Player) setHealth(n int) {
 	player.health = n
@@ -51,41 +40,26 @@ func (player *Player) addToHealth(n int) {
 	player.setHealth(player.health + n)
 }
 
-func (p *Player) assignStage() {
-	fmt.Println("Getting Stage")
-	existingStage := getStageByName(p.stageName)
-	if existingStage == nil {
-		playerMutex.Lock()
-		defer playerMutex.Unlock()
-		delete(playerMap, p.id)
-		log.Fatal("Stage Not Found.")
-
+func (p *Player) assignStageAndListen() {
+	//fmt.Println("Assign stage to player")
+	stage, new := getStageByName(p.stageName)
+	if stage == nil {
+		log.Fatal("Fatal: Stage Not Found.")
 	}
-	p.stage = existingStage
+	if new {
+		go stage.sendUpdates()
+	}
+	p.stage = stage
 }
 
 func (p *Player) placeOnStage() {
-
-	fmt.Println("Assigning stage and tile")
-	//p.stage = existingStage
 	p.stage.playerMutex.Lock()
 	p.stage.playerMap[p.id] = p
 	p.stage.playerMutex.Unlock()
 
 	p.stage.tiles[p.y][p.x].addPlayer(p)
-	fmt.Println("Added Player")
 	p.stage.markAllDirty()
-	fmt.Println("Marked dirty")
 }
-
-/*
-func (player *Player) placeOnTile(tile *Tile) {
-	player.stage = tile.stage
-	tile.addPlayer(player)
-	tile.stage.addPlayer(player)
-	tile.stage.markAllDirty()
-}
-*/
 
 func (player *Player) handleDeath() {
 	player.removeFromStage()
@@ -98,36 +72,13 @@ func (player *Player) removeFromStage() {
 }
 
 func respawn(player *Player) {
-	//clinic := getClinic()
 	player.health = 100
-	//player.stage = clinic
 	player.stageName = "clinic"
 	player.x = 2
 	player.y = 2
 	player.actions = createDefaultActions()
-	player.assignStage()
+	player.assignStageAndListen()
 	player.placeOnStage()
-}
-
-func updateScreenWithStarter(player *Player, html string) {
-	if player.isDead() {
-		respawn(player)
-		return
-	}
-	html += hudAsOutOfBound(player)
-	player.stage.updates <- Update{player, []byte(html)}
-}
-
-func updateScreenFromScratch(player *Player) {
-	if player.isDead() {
-		respawn(player)
-		return
-	}
-	player.stage.updates <- Update{player, htmlFromPlayer(player)}
-}
-
-func oobUpdateWithHud(player *Player, update string) {
-	player.stage.updates <- Update{player, []byte(update + hudAsOutOfBound(player))}
 }
 
 func moveNorth(p *Player) {
@@ -172,6 +123,7 @@ func (player *Player) turnSpaceOn() {
 	player.actions.space = true
 	player.setSpaceHighlights()
 
+	// Use Update One
 	player.stage.updates <- Update{player, []byte(hudAsOutOfBound(player))}
 }
 
@@ -207,6 +159,19 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	player.stageName = teleport.destStage
 	player.y = teleport.destY
 	player.x = teleport.destX
-	player.assignStage()
+	player.assignStageAndListen()
 	player.placeOnStage()
+}
+
+/////////////////////////////////////////////////////////////
+// Actions
+
+type Actions struct {
+	space           bool
+	spaceShape      [][2]int
+	spaceHighlights map[*Tile]bool
+}
+
+func createDefaultActions() *Actions {
+	return &Actions{false, grid7x7, map[*Tile]bool{}}
 }
