@@ -119,16 +119,16 @@ func getKeyPress(input []byte) (key string, token string, success bool) {
 
 func (player *Player) handlePress(key string) {
 	if key == "W" {
-		moveNorth(player)
+		player.moveNorth()
 	}
 	if key == "A" {
-		moveWest(player)
+		player.moveWest()
 	}
 	if key == "S" {
-		moveSouth(player)
+		player.moveSouth()
 	}
 	if key == "D" {
-		moveEast(player)
+		player.moveEast()
 	}
 	if key == "Space-On" {
 		player.turnSpaceOn()

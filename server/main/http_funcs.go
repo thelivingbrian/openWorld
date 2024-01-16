@@ -24,7 +24,7 @@ func getSignUp(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, signUpPage())
 }
 
-func (app *DB) postSignUp(w http.ResponseWriter, r *http.Request) {
+func (db *DB) postSignUp(w http.ResponseWriter, r *http.Request) {
 	props, success := requestToProperties(r)
 	if !success {
 		log.Fatal("Failed to retreive properties")
@@ -47,7 +47,7 @@ func (app *DB) postSignUp(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(email)
 
-	io.WriteString(w, app.newUser(email, username, hashword))
+	io.WriteString(w, db.newUser(email, username, hashword))
 }
 
 func getSignIn(w http.ResponseWriter, r *http.Request) {
@@ -101,9 +101,7 @@ func (world *World) join(w http.ResponseWriter, record *PlayerRecord, token stri
 		money:     record.Money,
 	}
 
-	//playerMutex.Lock()
-	//defer playerMutex.Unlock() //sketchy?
-	//playerMap[token] = newPlayer
+	//New Method
 	world.wPlayerMutex.Lock()
 	world.worldPlayers[token] = newPlayer
 	world.wPlayerMutex.Unlock()
@@ -114,59 +112,6 @@ func (world *World) join(w http.ResponseWriter, record *PlayerRecord, token stri
 
 /////////////////////////////////////////////
 // Game Controls
-
-/*func postMovement(f func(*Player)) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		existingPlayer, success := playerFromRequest(r)
-		if !success {
-			fmt.Println("Invalid Request: ")
-			fmt.Println(r)
-			return
-		}
-		f(existingPlayer)
-	}
-}
-
-func postSpaceOn(w http.ResponseWriter, r *http.Request) {
-	existingPlayer, success := playerFromRequest(r)
-	if success {
-		existingPlayer.turnSpaceOn()
-	} else {
-		io.WriteString(w, "")
-	}
-}
-
-func postSpaceOff(w http.ResponseWriter, r *http.Request) {
-	existingPlayer, success := playerFromRequest(r)
-	if success {
-		existingPlayer.turnSpaceOff()
-		io.WriteString(w, `<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="`+existingPlayer.id+`" />`)
-	} else {
-		io.WriteString(w, "")
-	}
-}
-
-
-func playerFromRequest(r *http.Request) (*Player, bool) {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		fmt.Printf("Error reading body: %v", err)
-		return nil, false
-	}
-
-	bodyS := string(body[:]) // Benchmark this vs using proprties
-	input := strings.Split(bodyS, "&")
-	token := strings.Split(input[0], "=")[1]
-
-	existingPlayer, playerExists := playerMap[token]
-	if !playerExists {
-		fmt.Println("player not found with token: " + token)
-		return nil, false
-	}
-
-	return existingPlayer, true
-}
-*/
 
 func clearScreen(w http.ResponseWriter, r *http.Request) {
 	output := `<div id="screen" class="grid">

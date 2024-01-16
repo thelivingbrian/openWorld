@@ -90,19 +90,19 @@ func respawn(player *Player) {
 	player.placeOnStage()
 }
 
-func moveNorth(p *Player) {
+func (p *Player) moveNorth() {
 	p.move(-1, 0)
 }
 
-func moveSouth(p *Player) {
+func (p *Player) moveSouth() {
 	p.move(1, 0)
 }
 
-func moveEast(p *Player) {
+func (p *Player) moveEast() {
 	p.move(0, 1)
 }
 
-func moveWest(p *Player) {
+func (p *Player) moveWest() {
 	p.move(0, -1)
 }
 

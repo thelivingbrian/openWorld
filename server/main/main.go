@@ -23,13 +23,6 @@ type World struct {
 	wStageMutex  sync.Mutex
 }
 
-var (
-// playerMap   = make(map[string]*Player) // Consider sync.Map
-// playerMutex sync.Mutex
-// stageMap    = make(map[string]*Stage) // Make a game struct that includes this and has needed handlers
-// stageMutex  sync.Mutex
-)
-
 func main() {
 	mongodb := mongoClient().Database("bloopdb")
 	db := DB{mongodb.Collection("users"), mongodb.Collection("players"), mongodb.Collection("events")}
@@ -46,16 +39,10 @@ func main() {
 	http.HandleFunc("/homesignup", getSignUp)
 	http.HandleFunc("/signup", db.postSignUp)
 	http.HandleFunc("/homesignin", getSignIn)
-	http.HandleFunc("/signin", world.postSignin) // This is a gross overload now, but maybe an alternitave to gorilla mux for verbs
+	http.HandleFunc("/signin", world.postSignin)
 
 	fmt.Println("Preparing for interactions...")
-	//http.HandleFunc("/w", postMovement(moveNorth)) // consider .Methods(http.MethodGet)
-	//http.HandleFunc("/s", postMovement(moveSouth))
-	//http.HandleFunc("/a", postMovement(moveWest))
-	//http.HandleFunc("/d", postMovement(moveEast))
 	http.HandleFunc("/clear", clearScreen)
-	//http.HandleFunc("/spaceOn", postSpaceOn)
-	//http.HandleFunc("/spaceOff", postSpaceOff)
 
 	fmt.Println("Initiating Websockets...")
 	http.HandleFunc("/screen", world.NewSocketConnection)
