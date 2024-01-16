@@ -8,19 +8,20 @@ import (
 )
 
 type Player struct {
-	id        string
-	username  string
-	world     *World
-	stage     *Stage
-	tile      *Tile
-	stageName string
-	conn      *websocket.Conn
-	connLock  sync.Mutex
-	x         int
-	y         int
-	actions   *Actions
-	health    int
-	money     int
+	id         string
+	username   string
+	world      *World
+	stage      *Stage
+	tile       *Tile
+	stageName  string
+	conn       *websocket.Conn
+	connLock   sync.Mutex
+	x          int
+	y          int
+	actions    *Actions
+	health     int
+	money      int
+	experience int
 }
 
 // Health observer, All Health changes should go through here
@@ -68,17 +69,23 @@ func (player *Player) handleDeath() {
 	respawn(player)
 }
 
+func (player *Player) updateRecord() {
+	go player.world.db.updateRecordForPlayer(*player)
+}
+
 func (player *Player) removeFromStage() {
 	player.tile.removePlayerAndNotifyOthers(player)
 	player.stage.removePlayerById(player.id)
 }
 
+// Recv type
 func respawn(player *Player) {
 	player.setHealth(100)
 	player.stageName = "clinic"
 	player.x = 2
 	player.y = 2
 	player.actions = createDefaultActions()
+	player.updateRecord()
 	player.assignStageAndListen()
 	player.placeOnStage()
 }
@@ -158,6 +165,7 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	player.stageName = teleport.destStage
 	player.y = teleport.destY
 	player.x = teleport.destX
+	player.updateRecord()
 	player.assignStageAndListen()
 	player.placeOnStage()
 }

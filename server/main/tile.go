@@ -72,7 +72,7 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 		tile.currentCssClass = cssClassFromHealth(player)
 		if !survived {
 			tile.currentCssClass = tile.originalCssClass
-			go player.world.db.saveKillEvent(*tile, *player, *initiator)
+			go player.world.db.saveKillEvent(*tile, *initiator, *player)
 		}
 		if first {
 			first = !survived // Gross but this ensures that surviving players aren't hidden by death

@@ -118,6 +118,7 @@ func (db *DB) getPlayerRecord(username string) (*PlayerRecord, error) {
 	return &result, nil
 }
 
+// This is onnly being used by a test
 func (db *DB) updatePlayerRecord(username string, updates map[string]any) (*PlayerRecord, error) {
 	collection := db.playerRecords
 
@@ -165,7 +166,19 @@ func (db *DB) saveKillEvent(tile Tile, initiator Player, defeated Player) error 
 	_, err = playerCollection.UpdateOne(
 		context.TODO(),
 		bson.M{"username": initiator.username},
-		bson.M{"$push": bson.M{"kills": id}},
+		bson.M{
+			"$push": bson.M{"kills": id},
+			"$set": bson.M{
+				"x":         tile.x,
+				"y":         tile.y,
+				"health":    initiator.health,
+				"stagename": initiator.stageName,
+				"money":     initiator.money,
+			},
+			"$inc": bson.M{
+				"experience": 100,
+			},
+		},
 	)
 	if err != nil {
 		log.Fatal("Update Initiator Kills Failed")
@@ -184,4 +197,22 @@ func (db *DB) saveKillEvent(tile Tile, initiator Player, defeated Player) error 
 	}
 
 	return nil
+}
+
+func (db *DB) updateRecordForPlayer(p Player) error {
+	_, err := db.playerRecords.UpdateOne(
+		context.TODO(),
+		bson.M{"username": p.username},
+		bson.M{
+			"$set": bson.M{
+				"x":          p.x,
+				"y":          p.y,
+				"health":     p.health,
+				"stagename":  p.stageName,
+				"money":      p.money,
+				"experience": p.experience,
+			},
+		},
+	)
+	return err //Is nil or err
 }

@@ -54,6 +54,7 @@ func playerView(player *Player, tileColors [][]string) {
 func hudAsOutOfBound(player *Player) string {
 	highlights := ""
 	if player.actions.space {
+		// Any risk here of concurrent read/write?
 		for tile := range player.actions.spaceHighlights {
 			highlights += oobColoredTile(tile, spaceHighlighter(tile))
 		}

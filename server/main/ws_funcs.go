@@ -56,9 +56,8 @@ func handleNewPlayer(existingPlayer *Player) {
 	for {
 		_, msg, err := existingPlayer.conn.ReadMessage()
 		if err != nil {
-			fmt.Println(err)
-			fmt.Println("CONN ERROR HERE")
-			// Close connection remove player etc
+			// This allows for rage quit by pressing X, should add timeout to encourage finding safety
+			logOut(existingPlayer)
 			return
 		}
 
@@ -73,9 +72,17 @@ func handleNewPlayer(existingPlayer *Player) {
 		}
 
 		existingPlayer.handlePress(key)
-
-		//fmt.Println("new message: " + string(msg))
 	}
+}
+
+func logOut(player *Player) {
+	player.updateRecord() // Should return error
+	player.removeFromStage()
+	player.world.wPlayerMutex.Lock()
+	delete(player.world.worldPlayers, player.id)
+	player.world.wPlayerMutex.Unlock()
+	player.conn = nil
+	fmt.Println("Logging Out")
 }
 
 func getTokenFromFirstMessage(conn *websocket.Conn) (token string, success bool) {
