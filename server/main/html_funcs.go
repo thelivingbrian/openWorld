@@ -54,6 +54,7 @@ func playerView(player *Player, tileColors [][]string) {
 func hudAsOutOfBound(player *Player) string {
 	highlights := ""
 	if player.actions.space {
+		// Any risk here of concurrent read/write?
 		for tile := range player.actions.spaceHighlights {
 			highlights += oobColoredTile(tile, spaceHighlighter(tile))
 		}
@@ -114,19 +115,20 @@ func spaceHighlighter(tile *Tile) string {
 
 func printPageFor(player *Player) string {
 	return `
-	<div id="page">
-		<div id="controls">      
-			<input hx-post="/w" hx-trigger="keydown[key=='w'] from:body" type="hidden" name="token" value="` + player.id + `" />
-			<input hx-post="/s" hx-trigger="keydown[key=='s'] from:body" type="hidden" name="token" value="` + player.id + `" />
-			<input hx-post="/a" hx-trigger="keydown[key=='a'] from:body" type="hidden" name="token" value="` + player.id + `" />
-			<input hx-post="/d" hx-trigger="keydown[key=='d'] from:body" type="hidden" name="token" value="` + player.id + `" />
+	<div id="page" hx-swap-oob="true">
+		<div id="controls" hx-ext="ws" ws-connect="/screen">
+			<input id="token" type="hidden" name="token" value="` + player.id + `" />
+			<input id="w" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='W'] from:body" hx-include="#token" name="keypress" value="W" />
+			<input id="a" type="hidden" ws-send hx-trigger="keydown[key=='a'] from:body" hx-include="#token" name="keypress" value="A" />
+			<input id="s" type="hidden" ws-send hx-trigger="keydown[key=='s'] from:body" hx-include="#token" name="keypress" value="S" />
+			<input id="d" type="hidden" ws-send hx-trigger="keydown[key=='d'] from:body" hx-include="#token" name="keypress" value="D" />
+			<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />
+			<input id="space-off" type="hidden" ws-send hx-trigger="keyup[key==' '] from:body" hx-include="#token" name="keypress" value="Space-Off" />
 			<input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" name="token" value="` + player.id + `" />
-			<input id="spaceOn" hx-post="/spaceOn" hx-trigger="keydown[key==' '] from:body once" type="hidden" name="token" value="` + player.id + `" />
-			<input hx-post="/spaceOff" hx-trigger="keyup[key==' '] from:body" hx-target="#spaceOn" hx-swap="outerHTML" type="hidden" name="token" value="` + player.id + `" />	
-			<input id="tick" hx-ext="ws" ws-connect="/screen" ws-send hx-trigger="load once" type="hidden" name="token" value="` + player.id + `" />
+			<input id="tick" ws-send hx-trigger="load once" type="hidden" name="token" value="` + player.id + `" />
 		</div>
 		<div id="info">
-			<b>Health: ` + fmt.Sprint(player.health) + `</b>
+			<b>` + playerInformation(player) + `</b>
 		</div>
 		<div id="screen" class="grid">
 				
@@ -134,44 +136,15 @@ func printPageFor(player *Player) string {
 	</div>`
 }
 
-func printHealthOf(player *Player) string {
+func divPlayerInformation(player *Player) string {
 	return `
 	<div id="info" hx-swap-oob="true">
-		<b>Health: ` + fmt.Sprint(player.health) + `</b>
+		<b>` + playerInformation(player) + `</b>
 	</div>`
 }
 
-func invalidSignin() string {
-	return `
-	<div id="page">
-		<div id="controls">
-			<form hx-post="/signin" hx-target="#page" hx-swap="outerHTML">
-				<div>
-				<h2 style='color:red'> %#Invalid sign-in@! </h1>
-				<label>Username:</label>
-				<input type="text" name="token" value="john"><br />
-				<label>Stage:</label>
-				<input type="text" name="stage" value="greenX"><br />
-				</div>
-				<button>Activate</button>
-			</form>
-		</div>
-		<div id="screen" class="grid">
-			<div class="grid-row">
-				<div class="grid-square red" id="c0-0"></div>
-				<div class="grid-square green" id="c0-1"></div>
-				<div class="grid-square blue" id="c0-2"></div>
-				<div class="grid-square yellow" id="c0-3"></div>
-				<div class="grid-square" id="c0-4"></div>
-				<div class="grid-square fusia" id="c0-5"></div>
-				<div class="grid-square" id="c0-6"></div>
-				<div class="grid-square dark-blue" id="c0-7"></div>
-				<div class="grid-square pink" id="c0-8"></div>
-				<div class="grid-square" id="c0-9"></div>
-				<div class="grid-square" id="c0-10"></div>
-			</div>
-		</div>
-	</div>`
+func playerInformation(player *Player) string {
+	return fmt.Sprintf("%s Health : %d | Money : %d", player.username, player.health, player.money)
 }
 
 func htmlFromTile(tile *Tile) string {

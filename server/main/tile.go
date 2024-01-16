@@ -11,30 +11,15 @@ type Teleport struct {
 }
 
 type Tile struct {
-	//Game properties
-	material    Material
-	playerMap   map[string]*Player
-	playerMutex sync.Mutex
-	stage       *Stage
-	teleport    *Teleport
-	// Coords
-	y int
-	x int
-	// Display
+	material         Material
+	playerMap        map[string]*Player
+	playerMutex      sync.Mutex
+	stage            *Stage
+	teleport         *Teleport
+	y                int
+	x                int
 	currentCssClass  string
 	originalCssClass string
-}
-
-func colorOf(tile *Tile) string {
-	return tile.currentCssClass // Maybe like the old way better with the player count logic here
-}
-
-func colorArray(row []Tile) []string {
-	var output []string = make([]string, len(row))
-	for i := range row {
-		output[i] = colorOf(&row[i])
-	}
-	return output
 }
 
 func newTile(mat Material, y int, x int) *Tile {
@@ -43,49 +28,66 @@ func newTile(mat Material, y int, x int) *Tile {
 
 // newTile w/ teleport?
 
-func walkable(tile *Tile) bool {
-	return tile.material.Walkable
+func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
+	tile.addPlayer(player)
+	tile.stage.updateAllExcept(htmlFromTile(tile), player)
 }
 
-func (tile *Tile) removePlayer(playerId string) string {
-	tile.playerMutex.Lock()
-	delete(tile.playerMap, playerId)
-	tile.playerMutex.Unlock()
-
-	if len(tile.playerMap) == 0 {
-		tile.currentCssClass = tile.originalCssClass //.material.CssClassName
-	}
-
-	return htmlFromTile(tile)
-}
-
-func (tile *Tile) addPlayer(player *Player) string {
-	if tile.teleport != nil {
-		// Remove Player
-		tile.stage.removePlayerById(player.id)
-		tile.removePlayer(player.id)
-		// Add on new stage
-		existingStage := getStageByName(tile.teleport.destStage)
-		placeOnTile(player, existingStage.tiles[tile.teleport.destY][tile.teleport.destX])
-	} else {
+func (tile *Tile) addPlayer(player *Player) {
+	if tile.teleport == nil {
 		tile.playerMutex.Lock()
 		tile.playerMap[player.id] = player
 		tile.playerMutex.Unlock()
 		player.y = tile.y
 		player.x = tile.x
+		player.tile = tile
 		tile.currentCssClass = cssClassFromHealth(player)
+	} else {
+		// Add on new stage // Not always a new stage?
+		player.removeFromStage()
+		player.applyTeleport(tile.teleport)
 	}
-	return htmlFromTile(tile)
 }
 
-func placeOnTile(player *Player, tile *Tile) {
-	player.stage = tile.stage
-	tile.addPlayer(player)
-	tile.stage.addPlayer(player)
-	tile.stage.markAllDirty()
+func (tile *Tile) removePlayer(playerId string) {
+	tile.playerMutex.Lock()
+	delete(tile.playerMap, playerId)
+	tile.playerMutex.Unlock() // Defer instead?
+
+	if len(tile.playerMap) == 0 {
+		tile.currentCssClass = tile.originalCssClass
+	}
+	// else need to find another players health
+}
+
+func (tile *Tile) removePlayerAndNotifyOthers(player *Player) {
+	tile.removePlayer(player.id)
+	tile.stage.updateAllExcept(htmlFromTile(tile), player)
+}
+
+func (tile *Tile) damageAll(dmg int, initiator *Player) {
+	first := true
+	for _, player := range tile.playerMap {
+		survived := player.addToHealth(-dmg)
+		tile.currentCssClass = cssClassFromHealth(player)
+		if !survived {
+			tile.currentCssClass = tile.originalCssClass
+			go player.world.db.saveKillEvent(*tile, *initiator, *player)
+		}
+		if first {
+			first = !survived // Gross but this ensures that surviving players aren't hidden by death
+			tile.stage.updateAllExcept(htmlFromTile(tile), player)
+		}
+	}
+}
+
+func walkable(tile *Tile) bool {
+	return tile.material.Walkable
 }
 
 func cssClassFromHealth(player *Player) string {
+	// >120 indicator
+	// Middle range choosen color? or only in safe
 	if player.health >= 80 {
 		return "green"
 	}
@@ -104,20 +106,32 @@ func cssClassFromHealth(player *Player) string {
 	return "blue" //shouldn't happen but want to be visible
 }
 
-func (tile *Tile) damageAll(dmg int) {
-	first := true
-	for _, player := range tile.playerMap {
-		player.health += -dmg
-		updateOne(printHealthOf(player), player)
-		tile.currentCssClass = cssClassFromHealth(player)
-		if player.isDead() {
-			tile.removePlayer(player.id)
-			tile.stage.removePlayerById(player.id)
-			respawn(player)
-		}
-		if first {
-			first = false
-			tile.stage.updateAllExcept(htmlFromTile(tile), player)
-		}
+func validCoordinate(y int, x int, tiles [][]*Tile) bool {
+	if y < 0 || y >= len(tiles) {
+		return false
 	}
+	if x < 0 || x >= len(tiles[y]) {
+		return false
+	}
+	return true
+}
+
+func mapOfTileToOoB(m map[*Tile]bool) string {
+	html := ``
+	for tile := range m {
+		html += htmlFromTile(tile)
+	}
+	return html
+}
+
+func colorOf(tile *Tile) string {
+	return tile.currentCssClass // Maybe like the old way better with the player count logic here
+}
+
+func colorArray(row []Tile) []string {
+	var output []string = make([]string, len(row))
+	for i := range row {
+		output[i] = colorOf(&row[i])
+	}
+	return output
 }

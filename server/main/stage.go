@@ -2,47 +2,39 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/gorilla/websocket"
 )
 
 type Stage struct {
-	tiles       [][]*Tile // [][]**Tile would be weird and open up FP over mutation (also lookup is less fragile)
-	playerMap   map[string]*Player
+	tiles       [][]*Tile          // [][]**Tile would be weird and open up FP over mutation (also lookup is less fragile)
+	playerMap   map[string]*Player // Player Map to Bson map to save whole stage in one command
 	playerMutex sync.Mutex
 	updates     chan Update
 	name        string
 }
 
-func getStageByName(name string) *Stage {
-	stageMutex.Lock()
-	defer stageMutex.Unlock() // Can be broken into two shorter critical paths, worth it?
-	existingStage, stageExists := stageMap[name]
-	//stageMutex.Unlock()
+func (world *World) getStageByName(name string) (stage *Stage, new bool) {
+	new = false
+
+	world.wStageMutex.Lock() // New method
+	existingStage, stageExists := world.worldStages[name]
+	world.wStageMutex.Unlock()
+
 	if !stageExists {
-		existingStage, stageExists = createStageAndHandleUpdates(name)
+		new = true
+		existingStage, stageExists = createStageByName(name)
 		if !stageExists {
-			return nil
+			log.Fatal("Unable to create stage")
 		}
+		world.wStageMutex.Lock()
+		world.worldStages[name] = existingStage
+		world.wStageMutex.Unlock()
 	}
-	return existingStage
-}
 
-func createStageAndHandleUpdates(name string) (*Stage, bool) {
-	fmt.Println("New Stage " + name)
-	stage, success := createStageByName(name)
-	if !success {
-		fmt.Println("Failed to create")
-		return nil, false
-	}
-	//stageMutex.Lock()
-	stageMap[name] = stage
-	//stageMutex.Unlock()
-
-	go stage.sendUpdates()
-	return stage, true
-
+	return existingStage, new
 }
 
 func createStageByName(s string) (*Stage, bool) {
@@ -70,9 +62,34 @@ func createStageByName(s string) (*Stage, bool) {
 	return &outputStage, true
 }
 
-func getClinic() *Stage {
-	return getStageByName("clinic")
+/*
+func (stage *Stage) markAllDirty() { // This may become prohibitively slow upon players spawning, and full screen probably only needed for spawned player
+	stage.playerMutex.Lock()
+	currentPlayerCount := len(stage.playerMap)
+	stage.playerMutex.Unlock()
+
+	if currentPlayerCount > 4 {
+		startingScreenUpdate(stage)
+	} else {
+		fullUpdate(stage)
+	}
 }
+*/
+
+func (stage *Stage) removePlayerById(id string) {
+	stage.playerMutex.Lock()
+	delete(stage.playerMap, id)
+	stage.playerMutex.Unlock()
+}
+
+func (stage *Stage) addPlayer(player *Player) {
+	stage.playerMutex.Lock()
+	stage.playerMap[player.id] = player
+	stage.playerMutex.Unlock()
+}
+
+////////////////////////////////////////////////////////////
+//   Updates
 
 func (stage *Stage) sendUpdates() {
 	for {
@@ -82,23 +99,29 @@ func (stage *Stage) sendUpdates() {
 			return
 		}
 
-		sendUpdate(websocket.TextMessage, update)
+		sendUpdate(update)
 	}
 }
 
-func sendUpdate(messageType int, update Update) {
+func sendUpdate(update Update) {
 	update.player.connLock.Lock()
 	defer update.player.connLock.Unlock()
-	update.player.conn.WriteMessage(messageType, update.update)
+	update.player.conn.WriteMessage(websocket.TextMessage, update.update)
 }
 
+// Queue updates
+
 func (stage *Stage) updateAll(update string) {
+	stage.playerMutex.Lock()
+	defer stage.playerMutex.Unlock()
 	for _, player := range stage.playerMap {
 		oobUpdateWithHud(player, update)
 	}
 }
 
 func (stage *Stage) updateAllExcept(update string, ignore *Player) {
+	stage.playerMutex.Lock()
+	defer stage.playerMutex.Unlock()
 	for _, player := range stage.playerMap {
 		if player == ignore {
 			continue
@@ -115,35 +138,26 @@ func updateOne(update string, player *Player) {
 	player.stage.updates <- Update{player, []byte(update)}
 }
 
-func (stage *Stage) markAllDirty() { // This may become prohibitively slow upon players spawning, and full screen probably only needed for spawned player
-	if len(stage.playerMap) > 4 {
-		startingScreenUpdate(stage)
-	} else {
-		fullUpdate(stage)
+// Same as oobUpdateWithHud with a death check. Delete?
+// Technically server cheaper than updateFromScratch I think.
+func updateScreenWithStarter(player *Player, html string) {
+	if player.isDead() {
+		respawn(player)
+		return
 	}
+	html += hudAsOutOfBound(player)
+	player.stage.updates <- Update{player, []byte(html)}
 }
 
-func startingScreenUpdate(stage *Stage) {
-	screenHtml := htmlFromStage(stage)
-	for _, player := range stage.playerMap {
-		updateScreenWithStarter(player, screenHtml)
+// Death check here feels weird, examine
+func updateScreenFromScratch(player *Player) {
+	if player.isDead() {
+		respawn(player)
+		return
 	}
+	player.stage.updates <- Update{player, htmlFromPlayer(player)}
 }
 
-func fullUpdate(stage *Stage) {
-	for _, player := range stage.playerMap {
-		updateScreenFromScratch(player)
-	}
-}
-
-func (stage *Stage) removePlayerById(id string) {
-	stage.playerMutex.Lock()
-	delete(stage.playerMap, id)
-	stage.playerMutex.Unlock()
-}
-
-func (stage *Stage) addPlayer(player *Player) {
-	stage.playerMutex.Lock()
-	stage.playerMap[player.id] = player
-	stage.playerMutex.Unlock()
+func oobUpdateWithHud(player *Player, update string) {
+	player.stage.updates <- Update{player, []byte(update + hudAsOutOfBound(player))}
 }

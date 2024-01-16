@@ -11,7 +11,7 @@ func drainChannel[T any](c chan T) {
 	}
 }
 
-func BenchmarkMarkAllDirty(b *testing.B) {
+func BenchmarkMoveTwice(b *testing.B) {
 	loadFromJson()
 
 	stageNames := []string{"small", "large"}
@@ -36,15 +36,21 @@ func BenchmarkMarkAllDirty(b *testing.B) {
 						actions:   createDefaultActions(),
 						health:    100,
 					}
-					placeOnStage(&players[i])
+					players[i].placeOnStage()
 				}
 
 				b.StartTimer() // Start the timer for the actual benchmarking
-
 				for i := 0; i < b.N; i++ {
-					testStage.markAllDirty() // Test this with player.action.space on
+
+					//testStage.updateAll("")
+					players[0].move(-1, 0)
+					players[0].move(1, 0)
 				}
 			})
 		}
 	}
 }
+
+// Move in circles test
+
+// Teleport test
