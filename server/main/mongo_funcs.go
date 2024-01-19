@@ -142,7 +142,7 @@ func (db *DB) updatePlayerRecord(username string, updates map[string]any) (*Play
 	return &updatedRecord, nil
 }
 
-func (db *DB) saveKillEvent(tile Tile, initiator Player, defeated Player) error {
+func (db *DB) saveKillEvent(tile *Tile, initiator *Player, defeated *Player) error {
 	playerCollection := db.playerRecords
 	eventCollection := db.events
 
@@ -199,7 +199,7 @@ func (db *DB) saveKillEvent(tile Tile, initiator Player, defeated Player) error 
 	return nil
 }
 
-func (db *DB) updateRecordForPlayer(p Player) error {
+func (db *DB) updateRecordForPlayer(p *Player) error {
 	_, err := db.playerRecords.UpdateOne(
 		context.TODO(),
 		bson.M{"username": p.username},

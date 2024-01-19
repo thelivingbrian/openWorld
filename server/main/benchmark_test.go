@@ -43,6 +43,7 @@ func BenchmarkMoveTwice(b *testing.B) {
 				for i := 0; i < b.N; i++ {
 
 					//testStage.updateAll("")
+					players[0].turnSpaceOn()
 					players[0].move(-1, 0)
 					players[0].move(1, 0)
 				}

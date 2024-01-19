@@ -70,7 +70,7 @@ func (player *Player) handleDeath() {
 }
 
 func (player *Player) updateRecord() {
-	go player.world.db.updateRecordForPlayer(*player)
+	go player.world.db.updateRecordForPlayer(player)
 }
 
 func (player *Player) removeFromStage() {

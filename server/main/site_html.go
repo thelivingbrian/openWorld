@@ -7,30 +7,32 @@ import (
 
 func signUpPage() string {
 	return `
-	<form hx-post="/signup" hx-target="#landing"">
+	<form hx-post="/signup" hx-trigger="click from:#link_submit" hx-target="#landing"">
 		<div>
 			<label>Email:</label>
-			<input type="text" name="email" value=""><br />
+			<input class="retro-input" type="text" name="email" value=""><br />
 			<label>Username:</label>
-			<input type="text" name="username" value=""><br />
+			<input class="retro-input" type="text" name="username" value=""><br />
 			<label>Password:</label>
-			<input type="text" name="password" value=""><br />
+			<input class="retro-input" type="text" name="password" value=""><br />
+			<a id="link_submit" href="#">Submit</a><br /><br />
+			<a id="link_back" href="/">Back</a>
 		</div>
-		<button>Sign Up!</button>
 	</form>
 	`
 }
 
 func signInPage() string {
 	return `
-	<form hx-post="/signin" hx-target="#landing">
+	<form hx-post="/signin" hx-trigger="click from:#link_submit" hx-target="#landing">
 		<div>
 			<label>Email:</label>
-			<input type="text" name="email" value=""><br />
+			<input class="retro-input" type="text" name="email" value=""><br />
 			<label>Password:</label>
-			<input type="text" name="password" value=""><br />
+			<input class="retro-input" type="text" name="password" value=""><br />
+			<a id="link_submit" href="#">Submit</a><br />
+			<a id="link_back" href="/">Back</a>
 		</div>
-		<button>Sign In</button>
 	</form>
 	`
 }
@@ -54,13 +56,13 @@ func failedToCreateHTML() string {
 	<form hx-post="/signup" hx-target="#landing">
 		<div>
 			<label>Email:</label>
-			<input type="text" name="email" value=""><br />
+			<input class="retro-input" type="text" name="email" value=""><br />
 			<label>Username:</label>
-			<input type="text" name="username" value=""><br />
+			<input class="retro-input" type="text" name="username" value=""><br />
 			<label>Password:</label>
-			<input type="text" name="password" value=""><br />
+			<input class="retro-input" type="text" name="password" value=""><br />
+			<button>Sign Up!</button>
 		</div>
-		<button>Sign Up!</button>
 	</form>
 	`
 }
@@ -71,13 +73,13 @@ func invalidEmailHTML() string {
 	<form hx-post="/signup" hx-target="#landing">
 		<div>
 			<label>Email:</label>
-			<input type="text" name="email" value=""><br />
+			<input class="retro-input" type="text" name="email" value=""><br />
 			<label>Username:</label>
-			<input type="text" name="username" value=""><br />
+			<input class="retro-input" type="text" name="username" value=""><br />
 			<label>Password:</label>
-			<input type="text" name="password" value=""><br />
+			<input class="retro-input" type="text" name="password" value=""><br />
+			<button>Sign Up!</button>
 		</div>
-		<button>Sign Up!</button>
 	</form>
 	`
 }
@@ -88,11 +90,11 @@ func passwordTooShortHTML() string {
 	<form hx-post="/signup" hx-target="#landing">
 		<div>
 			<label>Email:</label>
-			<input type="text" name="email" value=""><br />
+			<input class="retro-input" type="text" name="email" value=""><br />
 			<label>Username:</label>
-			<input type="text" name="username" value=""><br />
+			<input class="retro-input" type="text" name="username" value=""><br />
 			<label>Password:</label>
-			<input type="text" name="password" value=""><br />
+			<input class="retro-input" type="text" name="password" value=""><br />
 		</div>
 		<button>Sign Up!</button>
 	</form>
@@ -110,9 +112,9 @@ func invalidSignin() string {
 	<form hx-post="/signin" hx-target="#landing">
 		<div>
 			<label>Email:</label>
-			<input type="text" name="email" value=""><br />
+			<input class="retro-input" type="text" name="email" value=""><br />
 			<label>Password:</label>
-			<input type="text" name="password" value=""><br />
+			<input class="retro-input" type="text" name="password" value=""><br />
 		</div>
 		<button>Sign In</button>
 	</form>
