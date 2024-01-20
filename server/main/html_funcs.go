@@ -118,10 +118,10 @@ func printPageFor(player *Player) string {
 	<div id="page" hx-swap-oob="true">
 		<div id="controls" hx-ext="ws" ws-connect="/screen">
 			<input id="token" type="hidden" name="token" value="` + player.id + `" />
-			<input id="w" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='W'] from:body" hx-include="#token" name="keypress" value="W" />
-			<input id="a" type="hidden" ws-send hx-trigger="keydown[key=='a'] from:body" hx-include="#token" name="keypress" value="A" />
-			<input id="s" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='ArrowDown'] from:body" hx-include="#token" name="keypress" value="S" />
-			<input id="d" type="hidden" ws-send hx-trigger="keydown[key=='d'] from:body" hx-include="#token" name="keypress" value="D" />
+			<input id="w" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='W'||key=='ArrowUp'] from:body" hx-include="#token" name="keypress" value="W" />
+			<input id="a" type="hidden" ws-send hx-trigger="keydown[key=='a'||key=='A'||key=='ArrowLeft'] from:body" hx-include="#token" name="keypress" value="A" />
+			<input id="s" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='S'||key=='ArrowDown'] from:body" hx-include="#token" name="keypress" value="S" />
+			<input id="d" type="hidden" ws-send hx-trigger="keydown[key=='d'||key=='D'||key=='ArrowRight'] from:body" hx-include="#token" name="keypress" value="D" />
 			<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />
 			<input id="space-off" type="hidden" ws-send hx-trigger="keyup[key==' '] from:body" hx-include="#token" name="keypress" value="Space-Off" />
 			<input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" name="token" value="` + player.id + `" />
@@ -144,7 +144,7 @@ func divPlayerInformation(player *Player) string {
 }
 
 func playerInformation(player *Player) string {
-	return fmt.Sprintf("%s | Health %d   $%d", player.username, player.health, player.money)
+	return fmt.Sprintf("%s | Health %d Money %d", player.username, player.health, player.money)
 }
 
 func htmlFromTile(tile *Tile) string {
