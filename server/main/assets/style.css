@@ -1,6 +1,48 @@
+@font-face {
+    font-family: 'BloopRetro';
+    src: url('PIXY.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.retro-input {
+    background-color: #120500;
+    caret-color: cyan;
+    color: white;
+    font-size: 20px;
+}
+
+body {
+    background-color: #120500;
+    font-family: 'BloopRetro', sans-serif;
+    width:100%;
+    display: flex;
+    justify-content: center;
+    color: white;
+    font-size: 28px;
+}
+
+#logo {
+    width:100%;
+    display: flex;
+    justify-content: center;
+}
+
+.large-font {
+    font-size: 35px;
+}
+
+#landing {
+    text-align: center;
+}
+
+a {
+    color: #00ffff;
+}
+
 .grid {
     display: grid;
-    grid-gap: 1px;
+    /*grid-gap: 1px;*/
   }
   
   .grid-row {
@@ -11,7 +53,7 @@
   .grid-square {
     width: 30px;
     height: 30px;
-    border: 1px solid #30a0f0;
+    border: 1px hidden #ffffff;
     background-color: rgb(172, 152, 219);
     cursor: pointer;
   }

@@ -72,7 +72,10 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 		tile.currentCssClass = cssClassFromHealth(player)
 		if !survived {
 			tile.currentCssClass = tile.originalCssClass
-			go player.world.db.saveKillEvent(*tile, *initiator, *player)
+			// Copying these structs in by vaue makes a compiler warning
+			// Maybe should just pass in required fields?
+			// Or this is fine event though it isn't really a snapshot
+			go player.world.db.saveKillEvent(tile, initiator, player)
 		}
 		if first {
 			first = !survived // Gross but this ensures that surviving players aren't hidden by death

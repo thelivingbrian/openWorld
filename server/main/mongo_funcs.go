@@ -31,7 +31,7 @@ type PlayerRecord struct {
 	StageName   string    `bson:"stagename,omitempty"`
 	X           int       `bson:"x,omitempty"`
 	Y           int       `bson:"y,omitempty"`
-	Kills       []string  `bson:"kills,omitempty"`
+	Kills       []string  `bson:"kills,omitempty"` // This might make loading a user expensive consider a ref table
 	Deaths      []string  `bson:"deaths,omitempty"`
 	Experience  int       `bson:"experience,omitempty"`
 	Records     []string  `bson:"records,omitempty"`
@@ -142,7 +142,7 @@ func (db *DB) updatePlayerRecord(username string, updates map[string]any) (*Play
 	return &updatedRecord, nil
 }
 
-func (db *DB) saveKillEvent(tile Tile, initiator Player, defeated Player) error {
+func (db *DB) saveKillEvent(tile *Tile, initiator *Player, defeated *Player) error {
 	playerCollection := db.playerRecords
 	eventCollection := db.events
 
@@ -199,7 +199,7 @@ func (db *DB) saveKillEvent(tile Tile, initiator Player, defeated Player) error 
 	return nil
 }
 
-func (db *DB) updateRecordForPlayer(p Player) error {
+func (db *DB) updateRecordForPlayer(p *Player) error {
 	_, err := db.playerRecords.UpdateOne(
 		context.TODO(),
 		bson.M{"username": p.username},

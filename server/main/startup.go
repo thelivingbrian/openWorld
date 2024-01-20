@@ -3,8 +3,105 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
+	"sync"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
+
+///////////////////////////////////////////////////
+// Game World
+
+type World struct {
+	db           *DB
+	worldPlayers map[string]*Player
+	wPlayerMutex sync.Mutex
+	worldStages  map[string]*Stage
+	wStageMutex  sync.Mutex
+}
+
+func createGameWorld(db *DB) *World {
+	return &World{db: db, worldPlayers: make(map[string]*Player), worldStages: make(map[string]*Stage)}
+}
+
+///////////////////////////////////////////////////
+//Database
+
+type DB struct {
+	users         *mongo.Collection
+	playerRecords *mongo.Collection
+	events        *mongo.Collection
+}
+
+func createDbConnection(config *Configuration) *DB {
+	mongodb := mongoClient(config).Database("bloopdb")
+	return &DB{mongodb.Collection("users"), mongodb.Collection("players"), mongodb.Collection("events")}
+
+}
+
+////////////////////////////////////////////////////
+// Configuration
+
+type Configuration struct {
+	envName     string
+	port        string
+	usesTLS     bool
+	tlsCertPath string
+	tlsKeyPath  string
+	mongoHost   string
+	mongoPort   string
+	mongoUser   string
+	mongoPass   string
+}
+
+func getConfiguration() *Configuration {
+	environmentName := os.Getenv("BLOOP_ENV")
+
+	if environmentName == "prod" {
+		log.Fatal("No Prod Environment")
+	} else if environmentName == "test" {
+		return &Configuration{
+			envName:     environmentName,
+			port:        ":443",
+			usesTLS:     true,
+			tlsCertPath: os.Getenv("BLOOP_TLS_CERT_PATH"),
+			tlsKeyPath:  os.Getenv("BLOOP_TLS_KEY_PATH"),
+			mongoHost:   "localhost",
+			mongoPort:   ":27017",
+			mongoUser:   "",
+			mongoPass:   "",
+		}
+	} else if environmentName == "dev" {
+		return &Configuration{
+			envName:     environmentName,
+			port:        ":9090",
+			usesTLS:     false,
+			tlsCertPath: "./certificate/localhost.pem",
+			tlsKeyPath:  "./certificate/localhost-key.pem",
+			mongoHost:   "localhost",
+			mongoPort:   ":27017",
+			mongoUser:   "",
+			mongoPass:   "",
+		}
+	}
+	log.Fatal("No Configuration, exiting")
+	return nil
+}
+
+func (config *Configuration) getMongoCredentialString() string {
+	if config.mongoUser != "" && config.mongoPass != "" {
+		return config.mongoUser + ":" + config.mongoPass + "@"
+	}
+	return ""
+}
+
+func (config *Configuration) getMongoURI() string {
+	return "mongodb://" + config.getMongoCredentialString() + config.mongoHost + config.mongoPort
+}
+
+////////////////////////////////////////////////////
+// Load Resources from JSON
 
 type Material struct {
 	ID           int    `json:"id"`
