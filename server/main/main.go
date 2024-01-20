@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-
-	_ "github.com/lib/pq" // Remove this and tidy mods
 )
 
 func main() {
