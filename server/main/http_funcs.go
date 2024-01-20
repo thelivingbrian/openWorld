@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -30,6 +31,7 @@ func (db *DB) postSignUp(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("Failed to retreive properties")
 	}
 	email, err := url.QueryUnescape(props["email"])
+	emailLowercase := strings.ToLower(email)
 	username, err := url.QueryUnescape(props["username"])
 	password, err := url.QueryUnescape(props["password"])
 	if err != nil {
@@ -37,17 +39,16 @@ func (db *DB) postSignUp(w http.ResponseWriter, r *http.Request) {
 
 	}
 	if len(password) < 8 {
-		io.WriteString(w, passwordTooShortHTML())
+		io.WriteString(w, passwordTooShortHTML()) // Use template to avoid duplication, merge error messages into one
+		return
 	}
 
-	hashword, err := hashPassword(props["password"])
+	hashword, err := hashPassword(password)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(email)
-
-	io.WriteString(w, db.newUser(email, username, hashword))
+	io.WriteString(w, db.newUser(emailLowercase, username, hashword))
 }
 
 func getSignIn(w http.ResponseWriter, r *http.Request) {
@@ -68,14 +69,14 @@ func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("Password unescape failed")
 	}
 
-	user, err := world.db.getUserByEmail(email)
+	user, err := world.db.getUserByEmail(strings.ToLower(email))
 	if err != nil {
 		io.WriteString(w, invalidSignin())
 		return
 	}
 	fmt.Printf("Found a user: %+v\n", user.Username)
-	worked := checkPasswordHash(password, user.Hashword)
 
+	worked := checkPasswordHash(password, user.Hashword)
 	if worked {
 		token := uuid.New().String()
 		player, err := world.db.getPlayerRecord(user.Username)
@@ -83,6 +84,9 @@ func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 			log.Fatal("No player found for user")
 		}
 		world.join(w, player, token)
+	} else {
+		io.WriteString(w, invalidSignin())
+		return
 	}
 
 }

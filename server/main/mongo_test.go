@@ -14,7 +14,7 @@ import (
 )
 
 var testdb *DB = func() *DB {
-	testClient := mongoClient()
+	testClient := mongoClient(getConfiguration()) // Make test config
 	return &DB{
 		users:         testClient.Database("bloop-TESTdb").Collection("testusers"),
 		playerRecords: testClient.Database("bloop-TESTdb").Collection("testplayers"),

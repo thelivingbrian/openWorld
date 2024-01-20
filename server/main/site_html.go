@@ -6,8 +6,9 @@ import (
 )
 
 func signUpPage() string {
+	// Trigger back link with backspace
 	return `
-	<form hx-post="/signup" hx-trigger="click from:#link_submit" hx-target="#landing"">
+	<form hx-post="/signup" hx-trigger="click from:#link_submit, keydown[key=='Enter']" hx-target="#landing"">
 		<div>
 			<label>Email:</label>
 			<input class="retro-input" type="text" name="email" value=""><br />
@@ -15,7 +16,7 @@ func signUpPage() string {
 			<input class="retro-input" type="text" name="username" value=""><br />
 			<label>Password:</label>
 			<input class="retro-input" type="text" name="password" value=""><br />
-			<a id="link_submit" href="#">Submit</a><br /><br />
+			<a id="link_submit" href="#">Submit</a><br />
 			<a id="link_back" href="/">Back</a>
 		</div>
 	</form>
@@ -24,7 +25,7 @@ func signUpPage() string {
 
 func signInPage() string {
 	return `
-	<form hx-post="/signin" hx-trigger="click from:#link_submit" hx-target="#landing">
+	<form hx-post="/signin" hx-trigger="click from:#link_submit, keydown[key=='Enter']" hx-target="#landing">
 		<div>
 			<label>Email:</label>
 			<input class="retro-input" type="text" name="email" value=""><br />
@@ -39,13 +40,12 @@ func signInPage() string {
 
 func (db *DB) newUser(email string, username string, hashword string) string {
 	if !isEmailValid(email) {
-		return invalidEmailHTML()
+		return invalidEmailHTML() // Use template to avoid duplication
 	}
 	user := User{Email: email, Verified: true, Username: username, Hashword: hashword, Created: time.Now()}
 	err := db.newAccount(user)
 	if err != nil {
 		return failedToCreateHTML()
-		//log.Fatal(err)
 	}
 	return "<h1>Success</h1>"
 }
@@ -53,7 +53,7 @@ func (db *DB) newUser(email string, username string, hashword string) string {
 func failedToCreateHTML() string {
 	return `
 	<h2> Username or Email unavailable  </h2>
-	<form hx-post="/signup" hx-target="#landing">
+	<form hx-post="/signup" hx-trigger="click from:#link_submit, keydown[key=='Enter']" hx-target="#landing">
 		<div>
 			<label>Email:</label>
 			<input class="retro-input" type="text" name="email" value=""><br />
@@ -61,7 +61,8 @@ func failedToCreateHTML() string {
 			<input class="retro-input" type="text" name="username" value=""><br />
 			<label>Password:</label>
 			<input class="retro-input" type="text" name="password" value=""><br />
-			<button>Sign Up!</button>
+			<a id="link_submit" href="#">Submit</a><br />
+			<a id="link_back" href="/">Back</a>
 		</div>
 	</form>
 	`
@@ -69,8 +70,8 @@ func failedToCreateHTML() string {
 
 func invalidEmailHTML() string {
 	return `
-	<h2 style='color:red'> Invalid Email. </h2>
-	<form hx-post="/signup" hx-target="#landing">
+	<h3 style='color:red'> Invalid Email. </h3>
+	<form hx-post="/signup" hx-trigger="click from:#link_submit, keydown[key=='Enter']" hx-target="#landing">
 		<div>
 			<label>Email:</label>
 			<input class="retro-input" type="text" name="email" value=""><br />
@@ -78,7 +79,8 @@ func invalidEmailHTML() string {
 			<input class="retro-input" type="text" name="username" value=""><br />
 			<label>Password:</label>
 			<input class="retro-input" type="text" name="password" value=""><br />
-			<button>Sign Up!</button>
+			<a id="link_submit" href="#">Submit</a><br />
+			<a id="link_back" href="/">Back</a>
 		</div>
 	</form>
 	`
@@ -86,17 +88,18 @@ func invalidEmailHTML() string {
 
 func passwordTooShortHTML() string {
 	return `
-	<h2 style='color:red'> Password must have 8 characters. </h2>
-	<form hx-post="/signup" hx-target="#landing">
+	<form hx-post="/signup" hx-trigger="click from:#link_submit, keydown[key=='Enter']" hx-target="#landing">
 		<div>
+			<p style='color:red'> Password must have 8 characters. </p>
 			<label>Email:</label>
 			<input class="retro-input" type="text" name="email" value=""><br />
 			<label>Username:</label>
 			<input class="retro-input" type="text" name="username" value=""><br />
 			<label>Password:</label>
 			<input class="retro-input" type="text" name="password" value=""><br />
+			<a id="link_submit" href="#">Submit</a><br />
+			<a id="link_back" href="/">Back</a>
 		</div>
-		<button>Sign Up!</button>
 	</form>
 	`
 }
@@ -108,15 +111,16 @@ func isEmailValid(email string) bool {
 
 func invalidSignin() string {
 	return `
-	<h2 style='color:red'> Invalid Signin. </h2>
-	<form hx-post="/signin" hx-target="#landing">
+	<form hx-post="/signin" hx-trigger="click from:#link_submit, keydown[key=='Enter']" hx-target="#landing">
 		<div>
+			<p style='color:red'> Invalid Sign-in. </p>
 			<label>Email:</label>
 			<input class="retro-input" type="text" name="email" value=""><br />
 			<label>Password:</label>
 			<input class="retro-input" type="text" name="password" value=""><br />
+			<a id="link_submit" href="#">Submit</a><br />
+			<a id="link_back" href="/">Back</a>
 		</div>
-		<button>Sign In</button>
 	</form>
 	`
 }

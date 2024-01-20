@@ -120,7 +120,7 @@ func printPageFor(player *Player) string {
 			<input id="token" type="hidden" name="token" value="` + player.id + `" />
 			<input id="w" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='W'] from:body" hx-include="#token" name="keypress" value="W" />
 			<input id="a" type="hidden" ws-send hx-trigger="keydown[key=='a'] from:body" hx-include="#token" name="keypress" value="A" />
-			<input id="s" type="hidden" ws-send hx-trigger="keydown[key=='s'] from:body" hx-include="#token" name="keypress" value="S" />
+			<input id="s" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='ArrowDown'] from:body" hx-include="#token" name="keypress" value="S" />
 			<input id="d" type="hidden" ws-send hx-trigger="keydown[key=='d'] from:body" hx-include="#token" name="keypress" value="D" />
 			<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />
 			<input id="space-off" type="hidden" ws-send hx-trigger="keyup[key==' '] from:body" hx-include="#token" name="keypress" value="Space-Off" />
@@ -144,7 +144,7 @@ func divPlayerInformation(player *Player) string {
 }
 
 func playerInformation(player *Player) string {
-	return fmt.Sprintf("%s Health : %d | Money : %d", player.username, player.health, player.money)
+	return fmt.Sprintf("%s | Health %d   $%d", player.username, player.health, player.money)
 }
 
 func htmlFromTile(tile *Tile) string {

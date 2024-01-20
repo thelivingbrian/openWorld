@@ -31,7 +31,7 @@ type PlayerRecord struct {
 	StageName   string    `bson:"stagename,omitempty"`
 	X           int       `bson:"x,omitempty"`
 	Y           int       `bson:"y,omitempty"`
-	Kills       []string  `bson:"kills,omitempty"`
+	Kills       []string  `bson:"kills,omitempty"` // This might make loading a user expensive consider a ref table
 	Deaths      []string  `bson:"deaths,omitempty"`
 	Experience  int       `bson:"experience,omitempty"`
 	Records     []string  `bson:"records,omitempty"`

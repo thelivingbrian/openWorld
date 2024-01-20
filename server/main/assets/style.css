@@ -22,6 +22,12 @@ body {
     font-size: 28px;
 }
 
+#logo {
+    width:100%;
+    display: flex;
+    justify-content: center;
+}
+
 .large-font {
     font-size: 35px;
 }
