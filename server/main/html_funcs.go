@@ -54,7 +54,7 @@ func playerView(player *Player, tileColors [][]string) {
 func hudAsOutOfBound(player *Player) string {
 	highlights := ""
 	if player.actions.space {
-		// Any risk here of concurrent read/write?
+		// Any risk here of concurrent read/write? // Yes confirmed failure point
 		for tile := range player.actions.spaceHighlights {
 			highlights += oobColoredTile(tile, spaceHighlighter(tile))
 		}
@@ -148,7 +148,7 @@ func playerInformation(player *Player) string {
 }
 
 func htmlFromTile(tile *Tile) string {
-	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true"  ></div>`, tile.currentCssClass, tile.y, tile.x)
+	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true"></div>`, tile.currentCssClass, tile.y, tile.x)
 }
 
 func oobColoredTile(tile *Tile, cssClass string) string {

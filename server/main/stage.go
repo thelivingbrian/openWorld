@@ -111,7 +111,7 @@ func sendUpdate(update Update) {
 
 // Queue updates
 
-func (stage *Stage) updateAll(update string) {
+func (stage *Stage) updateAllWithHud(update string) {
 	stage.playerMutex.Lock()
 	defer stage.playerMutex.Unlock()
 	for _, player := range stage.playerMap {
@@ -119,7 +119,15 @@ func (stage *Stage) updateAll(update string) {
 	}
 }
 
-func (stage *Stage) updateAllExcept(update string, ignore *Player) {
+func (stage *Stage) updateAll(update string) {
+	stage.playerMutex.Lock()
+	defer stage.playerMutex.Unlock()
+	for _, player := range stage.playerMap {
+		updateOne(update, player)
+	}
+}
+
+func (stage *Stage) updateAllWithHudExcept(update string, ignore *Player) {
 	stage.playerMutex.Lock()
 	defer stage.playerMutex.Unlock()
 	for _, player := range stage.playerMap {
