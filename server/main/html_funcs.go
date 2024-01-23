@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"math/rand"
 	"text/template"
 )
 
@@ -111,6 +112,17 @@ func spaceHighlighter(tile *Tile) string {
 	} else {
 		return "red"
 	}
+}
+
+func randomFieryColor() string {
+	randN := rand.Intn(4)
+	if randN < 1 {
+		return "yellow"
+	}
+	if randN < 2 {
+		return "orange"
+	}
+	return "red"
 }
 
 func printPageFor(player *Player) string {

@@ -86,19 +86,6 @@ func (tile *Tile) changeColorAndNotifyAll(cssClass string) {
 
 }
 
-func (tile *Tile) flashAColorAndThenTurnBack(cssClass string, delay int) {
-	tile.eventsInFlight.Add(1)
-	//tile.changeColorAndNotifyAll(cssClass) // Just send the color to everyone
-	tile.stage.updateAllWithHud(oobColoredTile(tile, "red"))
-	go func() {
-		time.Sleep(time.Millisecond * time.Duration(delay))
-		tile.eventsInFlight.Add(-1)
-		if tile.eventsInFlight.Load() == 0 {
-			tile.stage.updateAllWithHud(htmlFromTile(tile)) // send html + hud for tile
-		}
-	}()
-}
-
 func (tile *Tile) incrementAndReturnIfFirst() *Tile {
 	if tile.eventsInFlight.Load() == 0 {
 		tile.eventsInFlight.Add(1)
@@ -109,13 +96,12 @@ func (tile *Tile) incrementAndReturnIfFirst() *Tile {
 	}
 }
 
-// Have return string instead
 func (tile *Tile) tryToNotifyAfter(delay int) {
 	time.Sleep(time.Millisecond * time.Duration(delay))
 	tile.eventsInFlight.Add(-1)
 	if tile.eventsInFlight.Load() == 0 {
 		// return string instead?
-		tile.stage.updateAll(htmlFromTile(tile)) // Maybe can be more efficient without adding HUD
+		tile.stage.updateAll(htmlFromTile(tile))
 	}
 }
 
@@ -191,7 +177,7 @@ func sliceOfTileToColoredOoB(tiles []*Tile, cssClass string) string {
 }
 
 func colorOf(tile *Tile) string {
-	return tile.currentCssClass // Maybe like the old way better with the player count logic here
+	return tile.currentCssClass
 }
 
 func colorArray(row []Tile) []string {

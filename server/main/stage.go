@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -62,20 +63,6 @@ func createStageByName(s string) (*Stage, bool) {
 	return &outputStage, true
 }
 
-/*
-func (stage *Stage) markAllDirty() { // This may become prohibitively slow upon players spawning, and full screen probably only needed for spawned player
-	stage.playerMutex.Lock()
-	currentPlayerCount := len(stage.playerMap)
-	stage.playerMutex.Unlock()
-
-	if currentPlayerCount > 4 {
-		startingScreenUpdate(stage)
-	} else {
-		fullUpdate(stage)
-	}
-}
-*/
-
 func (stage *Stage) removePlayerById(id string) {
 	stage.playerMutex.Lock()
 	delete(stage.playerMap, id)
@@ -116,6 +103,15 @@ func (stage *Stage) updateAllWithHud(update string) {
 	defer stage.playerMutex.Unlock()
 	for _, player := range stage.playerMap {
 		oobUpdateWithHud(player, update)
+	}
+}
+
+func (stage *Stage) updateAllWithHudAfterDelay(delay int) {
+	time.Sleep(time.Duration(delay) * time.Millisecond)
+	stage.playerMutex.Lock()
+	defer stage.playerMutex.Unlock()
+	for _, player := range stage.playerMap {
+		oobUpdateWithHud(player, "")
 	}
 }
 

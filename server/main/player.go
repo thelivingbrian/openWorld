@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"sync"
-	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -151,31 +150,23 @@ func (player *Player) setSpaceHighlights() map[*Tile]bool { // Returns removed h
 func (player *Player) turnSpaceOff() {
 	player.actions.space = false
 
-	tilesToHighlight := make([]*Tile, 0, 55)
+	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
 	for tile := range player.actions.spaceHighlights {
-		//tile.flashAColorAndThenTurnBack("red", 100)
-		tile.damageAll(25, player) // Damage all except?
+		tile.damageAll(25, player)
+
 		tileToHighlight := tile.incrementAndReturnIfFirst()
-		go tile.tryToNotifyAfter(100)
 		if tileToHighlight != nil {
 			tilesToHighlight = append(tilesToHighlight, tileToHighlight)
 		}
-	}
-	//htmlRemoveHighlights := mapOfTileToOoB(player.actions.spaceHighlights)
 
-	highlightHtml := sliceOfTileToColoredOoB(tilesToHighlight, "red")
+		go tile.tryToNotifyAfter(100)
+	}
+	highlightHtml := sliceOfTileToColoredOoB(tilesToHighlight, randomFieryColor())
 	player.stage.updateAll(highlightHtml)
 
-	player.actions.spaceHighlights = map[*Tile]bool{}
-	go func() {
-		time.Sleep(110 * time.Millisecond)
-		//playerIcon := fmt.Sprintf(`<div class="grid-square fusia" id="c%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
-		//updateOne(playerIcon, player) // make sure player view not damaged
-		player.stage.updateAllWithHud("")
-	}()
+	go player.stage.updateAllWithHudAfterDelay(110)
 
-	//htmlAddHud := hudAsOutOfBound(player)
-	//player.stage.updates <- Update{player, []byte(htmlRemoveHighlights + htmlAddHud)}
+	player.actions.spaceHighlights = map[*Tile]bool{}
 }
 
 func (player *Player) applyTeleport(teleport *Teleport) {
