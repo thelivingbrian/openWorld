@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"math/rand"
 	"text/template"
 )
 
@@ -54,7 +55,7 @@ func playerView(player *Player, tileColors [][]string) {
 func hudAsOutOfBound(player *Player) string {
 	highlights := ""
 	if player.actions.space {
-		// Any risk here of concurrent read/write?
+		// Any risk here of concurrent read/write? // Yes confirmed failure point
 		for tile := range player.actions.spaceHighlights {
 			highlights += oobColoredTile(tile, spaceHighlighter(tile))
 		}
@@ -113,6 +114,17 @@ func spaceHighlighter(tile *Tile) string {
 	}
 }
 
+func randomFieryColor() string {
+	randN := rand.Intn(4)
+	if randN < 1 {
+		return "yellow"
+	}
+	if randN < 2 {
+		return "orange"
+	}
+	return "red"
+}
+
 func printPageFor(player *Player) string {
 	return `
 	<div id="page" hx-swap-oob="true">
@@ -148,7 +160,7 @@ func playerInformation(player *Player) string {
 }
 
 func htmlFromTile(tile *Tile) string {
-	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true"  ></div>`, tile.currentCssClass, tile.y, tile.x)
+	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true"></div>`, tile.currentCssClass, tile.y, tile.x)
 }
 
 func oobColoredTile(tile *Tile, cssClass string) string {

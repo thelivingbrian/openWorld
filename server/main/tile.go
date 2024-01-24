@@ -2,6 +2,8 @@ package main
 
 import (
 	"sync"
+	"sync/atomic"
+	"time"
 )
 
 type Teleport struct {
@@ -20,17 +22,18 @@ type Tile struct {
 	x                int
 	currentCssClass  string
 	originalCssClass string
+	eventsInFlight   atomic.Int32
 }
 
 func newTile(mat Material, y int, x int) *Tile {
-	return &Tile{mat, make(map[string]*Player), sync.Mutex{}, nil, nil, y, x, mat.CssClassName, mat.CssClassName}
+	return &Tile{mat, make(map[string]*Player), sync.Mutex{}, nil, nil, y, x, mat.CssClassName, mat.CssClassName, atomic.Int32{}}
 }
 
 // newTile w/ teleport?
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	tile.addPlayer(player)
-	tile.stage.updateAllExcept(htmlFromTile(tile), player)
+	tile.stage.updateAllWithHudExcept(htmlFromTile(tile), player)
 }
 
 func (tile *Tile) addPlayer(player *Player) {
@@ -49,37 +52,75 @@ func (tile *Tile) addPlayer(player *Player) {
 	}
 }
 
+func (tile *Tile) removePlayerAndNotifyOthers(player *Player) {
+	tile.removePlayer(player.id)
+	tile.stage.updateAllWithHudExcept(htmlFromTile(tile), player)
+}
+
 func (tile *Tile) removePlayer(playerId string) {
 	tile.playerMutex.Lock()
 	delete(tile.playerMap, playerId)
 	tile.playerMutex.Unlock() // Defer instead?
 
-	if len(tile.playerMap) == 0 {
+	samplePlayerRemaining := tile.getAPlayer()
+
+	if samplePlayerRemaining == nil {
 		tile.currentCssClass = tile.originalCssClass
+	} else {
+		tile.currentCssClass = cssClassFromHealth(samplePlayerRemaining)
 	}
-	// else need to find another players health
 }
 
-func (tile *Tile) removePlayerAndNotifyOthers(player *Player) {
-	tile.removePlayer(player.id)
-	tile.stage.updateAllExcept(htmlFromTile(tile), player)
+func (tile *Tile) getAPlayer() *Player {
+	tile.playerMutex.Lock()
+	defer tile.playerMutex.Unlock()
+	for _, player := range tile.playerMap {
+		return player
+	}
+	return nil
+}
+
+func (tile *Tile) changeColorAndNotifyAll(cssClass string) {
+	tile.currentCssClass = cssClass
+	tile.stage.updateAllWithHud(htmlFromTile(tile))
+
+}
+
+func (tile *Tile) incrementAndReturnIfFirst() *Tile {
+	if tile.eventsInFlight.Load() == 0 {
+		tile.eventsInFlight.Add(1)
+		return tile
+	} else {
+		tile.eventsInFlight.Add(1)
+		return nil
+	}
+}
+
+func (tile *Tile) tryToNotifyAfter(delay int) {
+	time.Sleep(time.Millisecond * time.Duration(delay))
+	tile.eventsInFlight.Add(-1)
+	if tile.eventsInFlight.Load() == 0 {
+		// return string instead?
+		tile.stage.updateAll(htmlFromTile(tile))
+	}
 }
 
 func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	first := true
 	for _, player := range tile.playerMap {
+		if player == initiator {
+			continue // Race condition nonsense
+		}
 		survived := player.addToHealth(-dmg)
 		tile.currentCssClass = cssClassFromHealth(player)
 		if !survived {
 			tile.currentCssClass = tile.originalCssClass
-			// Copying these structs in by vaue makes a compiler warning
 			// Maybe should just pass in required fields?
-			// Or this is fine event though it isn't really a snapshot
 			go player.world.db.saveKillEvent(tile, initiator, player)
 		}
 		if first {
 			first = !survived // Gross but this ensures that surviving players aren't hidden by death
-			tile.stage.updateAllExcept(htmlFromTile(tile), player)
+			tile.stage.updateAllWithHudExcept(htmlFromTile(tile), player)
 		}
 	}
 }
@@ -127,8 +168,16 @@ func mapOfTileToOoB(m map[*Tile]bool) string {
 	return html
 }
 
+func sliceOfTileToColoredOoB(tiles []*Tile, cssClass string) string {
+	html := ``
+	for _, tile := range tiles {
+		html += oobColoredTile(tile, cssClass)
+	}
+	return html
+}
+
 func colorOf(tile *Tile) string {
-	return tile.currentCssClass // Maybe like the old way better with the player count logic here
+	return tile.currentCssClass
 }
 
 func colorArray(row []Tile) []string {

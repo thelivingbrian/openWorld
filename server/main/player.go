@@ -150,15 +150,23 @@ func (player *Player) setSpaceHighlights() map[*Tile]bool { // Returns removed h
 func (player *Player) turnSpaceOff() {
 	player.actions.space = false
 
+	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
 	for tile := range player.actions.spaceHighlights {
 		tile.damageAll(25, player)
+
+		tileToHighlight := tile.incrementAndReturnIfFirst()
+		if tileToHighlight != nil {
+			tilesToHighlight = append(tilesToHighlight, tileToHighlight)
+		}
+
+		go tile.tryToNotifyAfter(100)
 	}
-	htmlRemoveHighlights := mapOfTileToOoB(player.actions.spaceHighlights)
+	highlightHtml := sliceOfTileToColoredOoB(tilesToHighlight, randomFieryColor())
+	player.stage.updateAll(highlightHtml)
+
+	go player.stage.updateAllWithHudAfterDelay(110)
 
 	player.actions.spaceHighlights = map[*Tile]bool{}
-
-	htmlAddHud := hudAsOutOfBound(player)
-	player.stage.updates <- Update{player, []byte(htmlRemoveHighlights + htmlAddHud)}
 }
 
 func (player *Player) applyTeleport(teleport *Teleport) {
