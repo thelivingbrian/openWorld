@@ -93,10 +93,14 @@ func (stage *Stage) sendUpdates() {
 func sendUpdate(update Update) {
 	update.player.connLock.Lock()
 	defer update.player.connLock.Unlock()
-	update.player.conn.WriteMessage(websocket.TextMessage, update.update)
+	if update.player.conn != nil {
+		update.player.conn.WriteMessage(websocket.TextMessage, update.update)
+	} else {
+		fmt.Println("WARN: Attempted to serve update to expired connection.")
+	}
 }
 
-// Queue updates
+// Enqueue updates
 
 func (stage *Stage) updateAllWithHud(update string) {
 	stage.playerMutex.Lock()

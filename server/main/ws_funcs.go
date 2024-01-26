@@ -131,12 +131,14 @@ func (player *Player) handlePress(key string) {
 		player.moveEast()
 	}
 	if key == "Space-On" {
-		player.turnSpaceOn()
-	}
-	if key == "Space-Off" {
 		reactivate := `<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />`
 		updateOne(reactivate, player)
 		player.turnSpaceOff()
+	}
+	if key == "Space-Off" {
+		//reactivate := `<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />`
+		//updateOne(reactivate, player)
+		//player.turnSpaceOff()
 	}
 
 }

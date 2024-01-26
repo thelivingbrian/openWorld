@@ -23,10 +23,26 @@ type Tile struct {
 	currentCssClass  string
 	originalCssClass string
 	eventsInFlight   atomic.Int32
+	powerUp          *PowerUp
+	powerMutex       sync.Mutex
+	money            int
 }
 
 func newTile(mat Material, y int, x int) *Tile {
-	return &Tile{mat, make(map[string]*Player), sync.Mutex{}, nil, nil, y, x, mat.CssClassName, mat.CssClassName, atomic.Int32{}}
+	return &Tile{
+		material:         mat,
+		playerMap:        make(map[string]*Player),
+		playerMutex:      sync.Mutex{},
+		stage:            nil,
+		teleport:         nil,
+		y:                y,
+		x:                x,
+		originalCssClass: mat.CssClassName,
+		currentCssClass:  mat.CssClassName,
+		eventsInFlight:   atomic.Int32{},
+		powerUp:          nil,
+		powerMutex:       sync.Mutex{},
+		money:            0}
 }
 
 // newTile w/ teleport?
@@ -37,6 +53,19 @@ func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 }
 
 func (tile *Tile) addPlayer(player *Player) {
+	if tile.powerUp != nil {
+		powerUp := tile.powerUp
+		tile.powerUp = nil
+		if player.actions.spaceReadyable {
+			player.actions.spaceStack.push(powerUp)
+		} else {
+			player.actions.spaceReadyable = true
+			player.actions.spacePower = powerUp
+			player.turnSpaceOn()
+			//player.actions.spacePower.areaOfInfluence = powerUp.areaOfInfluence
+			//player.actions.spacePower.damageAtRadius = powerUp.damageAtRadius
+		}
+	}
 	if tile.teleport == nil {
 		tile.playerMutex.Lock()
 		tile.playerMap[player.id] = player
@@ -127,6 +156,14 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 
 func walkable(tile *Tile) bool {
 	return tile.material.Walkable
+}
+
+func (tile *Tile) addPowerUpAndNotifyAll(player *Player) { // Except
+	tile.powerUp = &PowerUp{grid7x7, [4]int{100, 100, 100, 100}}
+	html := htmlFromTile(tile)
+	tile.stage.updateAllWithHudExcept(html, player)
+	updateOne(html, player)
+
 }
 
 func cssClassFromHealth(player *Player) string {

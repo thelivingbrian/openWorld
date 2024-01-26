@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -61,7 +63,10 @@ func (p *Player) placeOnStage() {
 	p.stage.playerMutex.Unlock()
 
 	p.stage.tiles[p.y][p.x].addPlayerAndNotifyOthers(p)
-	updateScreenFromScratch(p)
+	fmt.Println("updating from scratch")
+	updateScreenFromScratch(p) // This is using an old method for computing the highlights (Which weirdly works because space highlights have not yet been set)
+	fmt.Println("Adding power up")
+	p.stage.tiles[4][4].addPowerUpAndNotifyAll(p) // This is completing before the space highlights are being set after a teleport at the end of move()
 }
 
 func (player *Player) handleDeath() {
@@ -118,7 +123,7 @@ func (p *Player) move(yOffset int, xOffset int) {
 		destTile.addPlayerAndNotifyOthers(p)
 
 		oobRemoveHighlights := ""
-		if p.actions.space {
+		if p.actions.spaceActive {
 			oobRemoveHighlights = mapOfTileToOoB(p.setSpaceHighlights())
 		}
 		if currentStage == p.stage {
@@ -128,15 +133,17 @@ func (p *Player) move(yOffset int, xOffset int) {
 }
 
 func (player *Player) turnSpaceOn() {
-	player.actions.space = true
+	player.actions.spaceActive = true
+
 	player.setSpaceHighlights()
 	updateOne(hudAsOutOfBound(player), player)
 }
 
 func (player *Player) setSpaceHighlights() map[*Tile]bool { // Returns removed highlights
+	fmt.Println("Setting Space Highlights")
 	previous := player.actions.spaceHighlights
 	player.actions.spaceHighlights = map[*Tile]bool{}
-	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceShape)
+	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spacePower.areaOfInfluence)
 	for _, pair := range absCoordinatePairs {
 		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
 			tile := player.stage.tiles[pair[0]][pair[1]]
@@ -148,7 +155,7 @@ func (player *Player) setSpaceHighlights() map[*Tile]bool { // Returns removed h
 }
 
 func (player *Player) turnSpaceOff() {
-	player.actions.space = false
+	player.actions.spaceActive = false
 
 	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
 	for tile := range player.actions.spaceHighlights {
@@ -167,6 +174,15 @@ func (player *Player) turnSpaceOff() {
 	go player.stage.updateAllWithHudAfterDelay(110)
 
 	player.actions.spaceHighlights = map[*Tile]bool{}
+	if player.actions.spaceStack.hasPower() {
+		player.actions.spacePower = player.actions.spaceStack.pop()
+		go func() {
+			time.Sleep(250 * time.Millisecond)
+			player.turnSpaceOn()
+		}()
+	} else {
+		player.actions.spaceReadyable = false
+	}
 }
 
 func (player *Player) applyTeleport(teleport *Teleport) {
@@ -182,11 +198,48 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 // Actions
 
 type Actions struct {
-	space           bool
-	spaceShape      [][2]int
+	spaceReadyable bool
+	spaceActive    bool
+	//spaceShape      [][2]int // *PowerUp Instead
 	spaceHighlights map[*Tile]bool
+	spacePower      *PowerUp // Need to do this or add a peek method
+	spaceStack      *StackOfPowerUp
+}
+
+type PowerUp struct {
+	areaOfInfluence [][2]int
+	damageAtRadius  [4]int
+}
+
+type StackOfPowerUp struct {
+	powers     []*PowerUp
+	powerMutex sync.Mutex
+}
+
+func (stack *StackOfPowerUp) hasPower() bool {
+	stack.powerMutex.Lock()
+	defer stack.powerMutex.Unlock()
+	return len(stack.powers) > 0
+}
+
+func (stack *StackOfPowerUp) pop() *PowerUp {
+	if stack.hasPower() {
+		stack.powerMutex.Lock()
+		defer stack.powerMutex.Unlock()
+		out := stack.powers[len(stack.powers)-1]
+		stack.powers = stack.powers[:len(stack.powers)-1]
+		return out
+	}
+	return nil
+}
+
+func (stack *StackOfPowerUp) push(power *PowerUp) *StackOfPowerUp {
+	stack.powerMutex.Lock()
+	defer stack.powerMutex.Unlock()
+	stack.powers = append(stack.powers, power)
+	return stack
 }
 
 func createDefaultActions() *Actions {
-	return &Actions{false, grid7x7, map[*Tile]bool{}}
+	return &Actions{false, false, map[*Tile]bool{}, nil, &StackOfPowerUp{}}
 }

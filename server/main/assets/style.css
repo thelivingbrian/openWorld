@@ -99,3 +99,15 @@ a {
   .dark-blue {
     background-color: rgb(32, 32, 65);
   }
+
+/* SVG  */
+
+.svgGreen {
+    fill: green;
+    fill-opacity: .6;
+}
+
+.svgYellow {
+    fill: yellow;
+    fill-opacity: .6;
+}

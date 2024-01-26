@@ -47,15 +47,16 @@ func htmlFromStage(stage *Stage) string {
 
 func playerView(player *Player, tileColors [][]string) {
 	tileColors[player.y][player.x] = "fusia"
-	if player.actions.space {
-		applyHighlights(player, tileColors, player.actions.spaceShape, spaceHighlighter) // (Is this actually possible?)
+	if player.actions.spaceActive {
+		applyHighlights(player, tileColors, player.actions.spacePower.areaOfInfluence, spaceHighlighter) // (Is this actually possible?)
 	}
 }
 
 func hudAsOutOfBound(player *Player) string {
 	highlights := ""
-	if player.actions.space {
+	if player.actions.spaceActive {
 		// Any risk here of concurrent read/write? // Yes confirmed failure point
+		// Fix this
 		for tile := range player.actions.spaceHighlights {
 			highlights += oobColoredTile(tile, spaceHighlighter(tile))
 		}
@@ -160,9 +161,26 @@ func playerInformation(player *Player) string {
 }
 
 func htmlFromTile(tile *Tile) string {
-	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true"></div>`, tile.currentCssClass, tile.y, tile.x)
+	svgtag := svgFromTile(tile)
+	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true">%s</div>`, tile.currentCssClass, tile.y, tile.x, svgtag)
 }
 
 func oobColoredTile(tile *Tile, cssClass string) string {
-	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true"></div>`, cssClass, tile.y, tile.x)
+	svgtag := svgFromTile(tile)
+	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true">%s</div>`, cssClass, tile.y, tile.x, svgtag)
+}
+
+func svgFromTile(tile *Tile) string {
+	svgtag := ""
+	if tile.powerUp != nil || tile.money != 0 {
+		svgtag += `<svg width="30" height="30">`
+		if tile.powerUp != nil {
+			svgtag += `<circle class="svgGreen" cx="12" cy="12" r="10" />`
+		}
+		if tile.money != 0 {
+			svgtag += `<circle class="svgYellow" cx="18" cy="18" r="10" />`
+		}
+		svgtag += `</svg>`
+	}
+	return svgtag
 }
