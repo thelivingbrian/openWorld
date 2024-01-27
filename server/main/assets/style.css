@@ -112,6 +112,11 @@ a {
     fill-opacity: .6;
 }
 
+.svgBlue {
+    fill: blue;
+    fill-opacity: .6;
+}
+
 .svgYellow {
     fill: yellow;
     fill-opacity: .6;

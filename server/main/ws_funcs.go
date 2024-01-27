@@ -118,29 +118,51 @@ func getKeyPress(input []byte) (key string, token string, success bool) {
 }
 
 func (player *Player) handlePress(key string) {
-	if key == "W" {
+	if key == "w" {
 		player.moveNorth()
 	}
-	if key == "A" {
+	if key == "a" {
 		player.moveWest()
 	}
-	if key == "S" {
+	if key == "s" {
 		player.moveSouth()
 	}
-	if key == "D" {
+	if key == "d" {
 		player.moveEast()
+	}
+	if key == "W" {
+		player.moveNorthBoost()
+	}
+	if key == "A" {
+		player.moveWestBoost()
+	}
+	if key == "S" {
+		player.moveSouthBoost()
+	}
+	if key == "D" {
+		player.moveEastBoost()
 	}
 	if key == "Space-On" {
 		reactivate := `<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />`
 		updateOne(reactivate, player)
 		if player.actions.spaceStack.hasPower() {
-			player.turnSpaceOff()
+			player.activatePower()
 		}
 	}
 	if key == "Space-Off" {
 		//reactivate := `<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />`
 		//updateOne(reactivate, player)
 		//player.turnSpaceOff()
+	}
+	if key == "Shift-On" {
+		if player.actions.boostCounter > 0 {
+			player.showBoost()
+		}
+	}
+	if key == "Shift-Off" {
+		reactivate := `<input id="shift-on" type="hidden" ws-send hx-trigger="keydown[key=='Shift'] from:body once" hx-include="#token" name="keypress" value="Shift-On" />`
+		updateOne(reactivate, player)
+		player.hideBoost()
 	}
 
 }

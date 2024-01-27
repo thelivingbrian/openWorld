@@ -67,6 +67,7 @@ func (p *Player) placeOnStage() {
 	p.stage.tiles[4][4].addPowerUpAndNotifyAll(p, grid7x7) // This is completing before the space highlights are being set after a teleport at the end of move()
 	p.stage.tiles[5][5].addPowerUpAndNotifyAll(p, grid3x3)
 	p.stage.tiles[6][6].addPowerUpAndNotifyAll(p, x())
+	p.stage.tiles[6][7].addBoostsAndNotifyAll(p)
 }
 
 func (player *Player) handleDeath() {
@@ -111,6 +112,42 @@ func (p *Player) moveWest() {
 	p.move(0, -1)
 }
 
+func (p *Player) moveNorthBoost() {
+	if p.actions.boostCounter > 0 {
+		p.actions.boostCounter--
+		p.move(-2, 0)
+	} else {
+		p.move(-1, 0)
+	}
+}
+
+func (p *Player) moveSouthBoost() {
+	if p.actions.boostCounter > 0 {
+		p.actions.boostCounter--
+		p.move(2, 0)
+	} else {
+		p.move(1, 0)
+	}
+}
+
+func (p *Player) moveEastBoost() {
+	if p.actions.boostCounter > 0 {
+		p.actions.boostCounter--
+		p.move(0, 2)
+	} else {
+		p.move(0, 1)
+	}
+}
+
+func (p *Player) moveWestBoost() {
+	if p.actions.boostCounter > 0 {
+		p.actions.boostCounter--
+		p.move(0, -2)
+	} else {
+		p.move(0, -1)
+	}
+}
+
 func (p *Player) move(yOffset int, xOffset int) {
 	destY := p.y + yOffset
 	destX := p.x + xOffset
@@ -123,6 +160,8 @@ func (p *Player) move(yOffset int, xOffset int) {
 		destTile.addPlayerAndNotifyOthers(p)
 
 		oobRemoveHighlights := mapOfTileToOoB(p.updateSpaceHighlights())
+		//p.updateShiftHighlights()
+		oobRemoveHighlights += mapOfTileToOoB(p.updateShiftHighlights())
 
 		if currentStage == p.stage {
 			updateOneWithHud(oobRemoveHighlights+htmlFromTile(currentTile), p)
@@ -137,7 +176,7 @@ func (player *Player) nextPower() {
 	updateOneWithHud(mapOfTileToOoB(previous), player)
 }
 
-func (player *Player) setSpaceHighlights() map[*Tile]bool {
+func (player *Player) setSpaceHighlights() {
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceStack.peek().areaOfInfluence)
 	for _, pair := range absCoordinatePairs {
@@ -146,7 +185,6 @@ func (player *Player) setSpaceHighlights() map[*Tile]bool {
 			player.actions.spaceHighlights[tile] = true
 		}
 	}
-	return player.actions.spaceHighlights
 }
 
 func (player *Player) updateSpaceHighlights() map[*Tile]bool { // Returns removed highlights
@@ -163,7 +201,21 @@ func (player *Player) updateSpaceHighlights() map[*Tile]bool { // Returns remove
 	return previous
 }
 
-func (player *Player) turnSpaceOff() {
+func (player *Player) updateShiftHighlights() map[*Tile]bool { // Returns removed highlights
+	previous := player.actions.shiftHighlights
+	player.actions.shiftHighlights = map[*Tile]bool{}
+	absCoordinatePairs := applyRelativeDistance(player.y, player.x, jumpCross()) // Shift shape lives in multiple places
+	for _, pair := range absCoordinatePairs {
+		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
+			tile := player.stage.tiles[pair[0]][pair[1]]
+			player.actions.shiftHighlights[tile] = true
+			delete(previous, tile)
+		}
+	}
+	return previous
+}
+
+func (player *Player) activatePower() {
 	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
 	for tile := range player.actions.spaceHighlights {
 		tile.damageAll(25, player)
@@ -195,6 +247,25 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	player.placeOnStage()
 }
 
+func (player *Player) showBoost() {
+	player.actions.shiftEngaged = true
+	player.actions.shiftHighlights = map[*Tile]bool{}
+	absCoordinatePairs := applyRelativeDistance(player.y, player.x, jumpCross())
+	for _, pair := range absCoordinatePairs {
+		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
+			tile := player.stage.tiles[pair[0]][pair[1]]
+			player.actions.shiftHighlights[tile] = true
+		}
+	}
+	updateOneWithHud("", player)
+}
+func (player *Player) hideBoost() {
+	player.actions.shiftEngaged = false
+	previous := player.actions.shiftHighlights
+	player.actions.shiftHighlights = map[*Tile]bool{}
+	updateOneWithHud(mapOfTileToOoB(previous), player)
+}
+
 /////////////////////////////////////////////////////////////
 // Actions
 
@@ -202,6 +273,9 @@ type Actions struct {
 	spaceReadyable  bool
 	spaceHighlights map[*Tile]bool
 	spaceStack      *StackOfPowerUp
+	boostCounter    int
+	shiftHighlights map[*Tile]bool
+	shiftEngaged    bool
 }
 
 type PowerUp struct {
@@ -250,5 +324,5 @@ func (stack *StackOfPowerUp) push(power *PowerUp) *StackOfPowerUp {
 }
 
 func createDefaultActions() *Actions {
-	return &Actions{false, map[*Tile]bool{}, &StackOfPowerUp{}}
+	return &Actions{false, map[*Tile]bool{}, &StackOfPowerUp{}, 0, map[*Tile]bool{}, false}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -26,6 +27,7 @@ type Tile struct {
 	powerUp          *PowerUp
 	powerMutex       sync.Mutex
 	money            int
+	boosts           int
 }
 
 func newTile(mat Material, y int, x int) *Tile {
@@ -63,6 +65,11 @@ func (tile *Tile) addPlayer(player *Player) {
 		// I tex you tex
 		player.money += tile.money
 		tile.money = 0
+	}
+	if tile.boosts > 0 {
+		// We all tex
+		player.actions.boostCounter += tile.boosts
+		tile.boosts = 0
 	}
 	if tile.teleport == nil {
 		tile.playerMutex.Lock()
@@ -160,6 +167,14 @@ func walkable(tile *Tile) bool {
 
 func (tile *Tile) addPowerUpAndNotifyAll(player *Player, shape [][2]int) { // Except
 	tile.powerUp = &PowerUp{shape, [4]int{100, 100, 100, 100}}
+	html := htmlFromTile(tile)
+	tile.stage.updateAllWithHudExcept(html, player)
+	updateOne(html, player)
+}
+
+func (tile *Tile) addBoostsAndNotifyAll(player *Player) {
+	fmt.Println("Adding Boost")
+	tile.boosts += 5
 	html := htmlFromTile(tile)
 	tile.stage.updateAllWithHudExcept(html, player)
 	updateOne(html, player)
