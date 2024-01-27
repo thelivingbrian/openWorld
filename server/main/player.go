@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"sync"
 
@@ -62,9 +61,9 @@ func (p *Player) placeOnStage() {
 	p.stage.playerMutex.Unlock()
 
 	p.stage.tiles[p.y][p.x].addPlayerAndNotifyOthers(p)
-	fmt.Println("updating from scratch")
 	updateScreenFromScratch(p) // This is using an old method for computing the highlights (Which weirdly works because space highlights have not yet been set)
-	fmt.Println("Adding power ups")
+
+	// Need spawn logic
 	p.stage.tiles[4][4].addPowerUpAndNotifyAll(p, grid7x7) // This is completing before the space highlights are being set after a teleport at the end of move()
 	p.stage.tiles[5][5].addPowerUpAndNotifyAll(p, grid3x3)
 	p.stage.tiles[6][6].addPowerUpAndNotifyAll(p, x())

@@ -102,8 +102,13 @@ a {
 
 /* SVG  */
 
-.svgGreen {
+.svgGreen { /* Red a better color for power? */ 
     fill: green;
+    fill-opacity: .6;
+}
+
+.svgRed {
+    fill: red;
     fill-opacity: .6;
 }
 

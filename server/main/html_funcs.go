@@ -90,6 +90,7 @@ func applyHighlights(player *Player, tileColors [][]string, relativeCoords [][2]
 	}
 }
 
+// Can this help fix random not highlighting bugs?
 func highlightsAsOob(player *Player, relativeCoords [][2]int, highligher func(*Tile) string) string {
 	output := ``
 	absCoordinatePairs := applyRelativeDistance(player.y, player.x, relativeCoords)
@@ -111,7 +112,7 @@ func spaceHighlighter(tile *Tile) string {
 	} else if walkable(tile) {
 		return "green"
 	} else {
-		return "red"
+		return tile.originalCssClass //"red"
 	}
 }
 
@@ -175,10 +176,10 @@ func svgFromTile(tile *Tile) string {
 	if tile.powerUp != nil || tile.money != 0 {
 		svgtag += `<svg width="30" height="30">`
 		if tile.powerUp != nil {
-			svgtag += `<circle class="svgGreen" cx="12" cy="12" r="10" />`
+			svgtag += `<circle class="svgRed" cx="12" cy="12" r="10" />`
 		}
 		if tile.money != 0 {
-			svgtag += `<circle class="svgYellow" cx="18" cy="18" r="10" />`
+			svgtag += `<circle class="svgGreen" cx="18" cy="18" r="10" />`
 		}
 		svgtag += `</svg>`
 	}

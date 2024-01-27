@@ -54,18 +54,15 @@ func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 
 func (tile *Tile) addPlayer(player *Player) {
 	if tile.powerUp != nil {
-		// This should be mutexed I think but what if it locks?
+		// This should be mutexed I think
 		powerUp := tile.powerUp
 		tile.powerUp = nil
-		//if player.actions.spaceReadyable {
 		player.actions.spaceStack.push(powerUp)
-		//} else {
-		//	player.actions.spaceReadyable = true
-		//	player.actions.spacePower = powerUp
-		//player.nextPower()
-		//player.actions.spacePower.areaOfInfluence = powerUp.areaOfInfluence
-		//player.actions.spacePower.damageAtRadius = powerUp.damageAtRadius
-		//}
+	}
+	if tile.money != 0 {
+		// I tex you tex
+		player.money += tile.money
+		tile.money = 0
 	}
 	if tile.teleport == nil {
 		tile.playerMutex.Lock()
@@ -145,6 +142,8 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 		tile.currentCssClass = cssClassFromHealth(player)
 		if !survived {
 			tile.currentCssClass = tile.originalCssClass
+			tile.money += player.money / 2 // Use Observer, return diff
+			player.money = player.money / 2
 			// Maybe should just pass in required fields?
 			go player.world.db.saveKillEvent(tile, initiator, player)
 		}
