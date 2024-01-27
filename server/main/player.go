@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"sync"
-	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -65,8 +64,10 @@ func (p *Player) placeOnStage() {
 	p.stage.tiles[p.y][p.x].addPlayerAndNotifyOthers(p)
 	fmt.Println("updating from scratch")
 	updateScreenFromScratch(p) // This is using an old method for computing the highlights (Which weirdly works because space highlights have not yet been set)
-	fmt.Println("Adding power up")
-	p.stage.tiles[4][4].addPowerUpAndNotifyAll(p) // This is completing before the space highlights are being set after a teleport at the end of move()
+	fmt.Println("Adding power ups")
+	p.stage.tiles[4][4].addPowerUpAndNotifyAll(p, grid7x7) // This is completing before the space highlights are being set after a teleport at the end of move()
+	p.stage.tiles[5][5].addPowerUpAndNotifyAll(p, grid3x3)
+	p.stage.tiles[6][6].addPowerUpAndNotifyAll(p, x())
 }
 
 func (player *Player) handleDeath() {
@@ -122,28 +123,37 @@ func (p *Player) move(yOffset int, xOffset int) {
 		currentTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
 		destTile.addPlayerAndNotifyOthers(p)
 
-		oobRemoveHighlights := ""
-		if p.actions.spaceActive {
-			oobRemoveHighlights = mapOfTileToOoB(p.setSpaceHighlights())
-		}
+		oobRemoveHighlights := mapOfTileToOoB(p.updateSpaceHighlights())
+
 		if currentStage == p.stage {
 			updateOneWithHud(oobRemoveHighlights+htmlFromTile(currentTile), p)
 		}
 	}
 }
 
-func (player *Player) turnSpaceOn() {
-	player.actions.spaceActive = true
-
+func (player *Player) nextPower() {
+	player.actions.spaceStack.pop() // Throw old power away
+	previous := player.actions.spaceHighlights
 	player.setSpaceHighlights()
-	updateOne(hudAsOutOfBound(player), player)
+	updateOneWithHud(mapOfTileToOoB(previous), player)
 }
 
-func (player *Player) setSpaceHighlights() map[*Tile]bool { // Returns removed highlights
-	fmt.Println("Setting Space Highlights")
+func (player *Player) setSpaceHighlights() map[*Tile]bool {
+	player.actions.spaceHighlights = map[*Tile]bool{}
+	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceStack.peek().areaOfInfluence)
+	for _, pair := range absCoordinatePairs {
+		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
+			tile := player.stage.tiles[pair[0]][pair[1]]
+			player.actions.spaceHighlights[tile] = true
+		}
+	}
+	return player.actions.spaceHighlights
+}
+
+func (player *Player) updateSpaceHighlights() map[*Tile]bool { // Returns removed highlights
 	previous := player.actions.spaceHighlights
 	player.actions.spaceHighlights = map[*Tile]bool{}
-	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spacePower.areaOfInfluence)
+	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceStack.peek().areaOfInfluence)
 	for _, pair := range absCoordinatePairs {
 		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
 			tile := player.stage.tiles[pair[0]][pair[1]]
@@ -155,8 +165,6 @@ func (player *Player) setSpaceHighlights() map[*Tile]bool { // Returns removed h
 }
 
 func (player *Player) turnSpaceOff() {
-	player.actions.spaceActive = false
-
 	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
 	for tile := range player.actions.spaceHighlights {
 		tile.damageAll(25, player)
@@ -166,22 +174,16 @@ func (player *Player) turnSpaceOff() {
 			tilesToHighlight = append(tilesToHighlight, tileToHighlight)
 		}
 
-		go tile.tryToNotifyAfter(100)
+		go tile.tryToNotifyAfter(100) // Flat for player if more powers?
 	}
 	highlightHtml := sliceOfTileToColoredOoB(tilesToHighlight, randomFieryColor())
 	player.stage.updateAll(highlightHtml)
 
-	go player.stage.updateAllWithHudAfterDelay(110)
+	go player.stage.updateAllWithHudAfterDelay(110) // Undamage screen huds after the explosion
 
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	if player.actions.spaceStack.hasPower() {
-		player.actions.spacePower = player.actions.spaceStack.pop()
-		go func() {
-			time.Sleep(250 * time.Millisecond)
-			player.turnSpaceOn()
-		}()
-	} else {
-		player.actions.spaceReadyable = false
+		player.nextPower()
 	}
 }
 
@@ -198,11 +200,8 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 // Actions
 
 type Actions struct {
-	spaceReadyable bool
-	spaceActive    bool
-	//spaceShape      [][2]int // *PowerUp Instead
+	spaceReadyable  bool
 	spaceHighlights map[*Tile]bool
-	spacePower      *PowerUp // Need to do this or add a peek method
 	spaceStack      *StackOfPowerUp
 }
 
@@ -222,6 +221,7 @@ func (stack *StackOfPowerUp) hasPower() bool {
 	return len(stack.powers) > 0
 }
 
+// Don't even return anything? Delete?
 func (stack *StackOfPowerUp) pop() *PowerUp {
 	if stack.hasPower() {
 		stack.powerMutex.Lock()
@@ -230,7 +230,17 @@ func (stack *StackOfPowerUp) pop() *PowerUp {
 		stack.powers = stack.powers[:len(stack.powers)-1]
 		return out
 	}
-	return nil
+	return nil // Should be impossible but return default power instead?
+}
+
+// Watch this lead to item dupe bugs
+func (stack *StackOfPowerUp) peek() PowerUp {
+	if stack.hasPower() {
+		stack.powerMutex.Lock()
+		defer stack.powerMutex.Unlock()
+		return *stack.powers[len(stack.powers)-1]
+	}
+	return PowerUp{}
 }
 
 func (stack *StackOfPowerUp) push(power *PowerUp) *StackOfPowerUp {
@@ -241,5 +251,5 @@ func (stack *StackOfPowerUp) push(power *PowerUp) *StackOfPowerUp {
 }
 
 func createDefaultActions() *Actions {
-	return &Actions{false, false, map[*Tile]bool{}, nil, &StackOfPowerUp{}}
+	return &Actions{false, map[*Tile]bool{}, &StackOfPowerUp{}}
 }

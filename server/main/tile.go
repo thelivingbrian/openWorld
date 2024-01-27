@@ -54,17 +54,18 @@ func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 
 func (tile *Tile) addPlayer(player *Player) {
 	if tile.powerUp != nil {
+		// This should be mutexed I think but what if it locks?
 		powerUp := tile.powerUp
 		tile.powerUp = nil
-		if player.actions.spaceReadyable {
-			player.actions.spaceStack.push(powerUp)
-		} else {
-			player.actions.spaceReadyable = true
-			player.actions.spacePower = powerUp
-			player.turnSpaceOn()
-			//player.actions.spacePower.areaOfInfluence = powerUp.areaOfInfluence
-			//player.actions.spacePower.damageAtRadius = powerUp.damageAtRadius
-		}
+		//if player.actions.spaceReadyable {
+		player.actions.spaceStack.push(powerUp)
+		//} else {
+		//	player.actions.spaceReadyable = true
+		//	player.actions.spacePower = powerUp
+		//player.nextPower()
+		//player.actions.spacePower.areaOfInfluence = powerUp.areaOfInfluence
+		//player.actions.spacePower.damageAtRadius = powerUp.damageAtRadius
+		//}
 	}
 	if tile.teleport == nil {
 		tile.playerMutex.Lock()
@@ -158,8 +159,8 @@ func walkable(tile *Tile) bool {
 	return tile.material.Walkable
 }
 
-func (tile *Tile) addPowerUpAndNotifyAll(player *Player) { // Except
-	tile.powerUp = &PowerUp{grid7x7, [4]int{100, 100, 100, 100}}
+func (tile *Tile) addPowerUpAndNotifyAll(player *Player, shape [][2]int) { // Except
+	tile.powerUp = &PowerUp{shape, [4]int{100, 100, 100, 100}}
 	html := htmlFromTile(tile)
 	tile.stage.updateAllWithHudExcept(html, player)
 	updateOne(html, player)
