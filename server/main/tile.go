@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -63,12 +62,12 @@ func (tile *Tile) addPlayer(player *Player) {
 	}
 	if tile.money != 0 {
 		// I tex you tex
-		player.money += tile.money
+		player.setMoney(player.money + tile.money)
 		tile.money = 0
 	}
 	if tile.boosts > 0 {
 		// We all tex
-		player.actions.boostCounter += tile.boosts
+		player.addBoosts(tile.boosts)
 		tile.boosts = 0
 	}
 	if tile.teleport == nil {
@@ -173,7 +172,7 @@ func (tile *Tile) addPowerUpAndNotifyAll(player *Player, shape [][2]int) { // Ex
 }
 
 func (tile *Tile) addBoostsAndNotifyAll(player *Player) {
-	fmt.Println("Adding Boost")
+	//fmt.Println("Adding Boost")
 	tile.boosts += 5
 	html := htmlFromTile(tile)
 	tile.stage.updateAllWithHudExcept(html, player)

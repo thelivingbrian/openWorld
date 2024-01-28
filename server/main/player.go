@@ -34,6 +34,12 @@ func (player *Player) setHealth(n int) {
 	updateOne(divPlayerInformation(player), player)
 }
 
+// Money observer, All Money changes should go through here
+func (player *Player) setMoney(n int) {
+	player.money = n
+	updateOne(divPlayerInformation(player), player)
+}
+
 func (player *Player) isDead() bool {
 	return player.health <= 0
 }
@@ -67,7 +73,9 @@ func (p *Player) placeOnStage() {
 	p.stage.tiles[4][4].addPowerUpAndNotifyAll(p, grid7x7) // This is completing before the space highlights are being set after a teleport at the end of move()
 	p.stage.tiles[5][5].addPowerUpAndNotifyAll(p, grid3x3)
 	p.stage.tiles[6][6].addPowerUpAndNotifyAll(p, x())
-	p.stage.tiles[6][7].addBoostsAndNotifyAll(p)
+	p.stage.tiles[6][6].addBoostsAndNotifyAll(p)
+	p.stage.tiles[5][5].money += 10
+	p.stage.tiles[5][5].addBoostsAndNotifyAll(p)
 }
 
 func (player *Player) handleDeath() {
@@ -114,7 +122,7 @@ func (p *Player) moveWest() {
 
 func (p *Player) moveNorthBoost() {
 	if p.actions.boostCounter > 0 {
-		p.actions.boostCounter--
+		p.useBoost()
 		p.move(-2, 0)
 	} else {
 		p.move(-1, 0)
@@ -123,7 +131,7 @@ func (p *Player) moveNorthBoost() {
 
 func (p *Player) moveSouthBoost() {
 	if p.actions.boostCounter > 0 {
-		p.actions.boostCounter--
+		p.useBoost()
 		p.move(2, 0)
 	} else {
 		p.move(1, 0)
@@ -132,7 +140,7 @@ func (p *Player) moveSouthBoost() {
 
 func (p *Player) moveEastBoost() {
 	if p.actions.boostCounter > 0 {
-		p.actions.boostCounter--
+		p.useBoost()
 		p.move(0, 2)
 	} else {
 		p.move(0, 1)
@@ -141,7 +149,7 @@ func (p *Player) moveEastBoost() {
 
 func (p *Player) moveWestBoost() {
 	if p.actions.boostCounter > 0 {
-		p.actions.boostCounter--
+		p.useBoost()
 		p.move(0, -2)
 	} else {
 		p.move(0, -1)
@@ -286,6 +294,21 @@ type PowerUp struct {
 type StackOfPowerUp struct {
 	powers     []*PowerUp
 	powerMutex sync.Mutex
+}
+
+func (player *Player) addBoosts(n int) {
+	first := player.actions.boostCounter == 0
+	player.actions.boostCounter += n
+	if first {
+		player.showBoost()
+	}
+}
+
+func (player *Player) useBoost() {
+	player.actions.boostCounter--
+	if player.actions.boostCounter == 0 {
+		player.hideBoost()
+	}
 }
 
 func (stack *StackOfPowerUp) hasPower() bool {

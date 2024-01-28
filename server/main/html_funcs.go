@@ -155,8 +155,6 @@ func printPageFor(player *Player) string {
 			<input id="d" type="hidden" ws-send hx-trigger="keydown[key=='D'] from:body" hx-include="#token" name="keypress" value="D" />
 			<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />
 			<input id="space-off" type="hidden" ws-send hx-trigger="keyup[key==' '] from:body" hx-include="#token" name="keypress" value="Space-Off" />
-			<input id="shift-on" type="hidden" ws-send hx-trigger="keydown[key=='Shift'] from:body once" hx-include="#token" name="keypress" value="Shift-On" />
-			<input id="shift-off" type="hidden" ws-send hx-trigger="keyup[key=='Shift'] from:body" hx-include="#token" name="keypress" value="Shift-Off" />
 			<input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" name="token" value="` + player.id + `" />
 			<input id="tick" ws-send hx-trigger="load once" type="hidden" name="token" value="` + player.id + `" />
 		</div>
@@ -195,13 +193,13 @@ func svgFromTile(tile *Tile) string {
 	if tile.powerUp != nil || tile.money != 0 || tile.boosts != 0 {
 		svgtag += `<svg width="30" height="30">`
 		if tile.powerUp != nil {
-			svgtag += `<circle class="svgRed" cx="12" cy="12" r="10" />`
+			svgtag += `<circle class="svgRed" cx="10" cy="10" r="10" />`
 		}
 		if tile.money != 0 {
-			svgtag += `<circle class="svgGreen" cx="18" cy="18" r="10" />`
+			svgtag += `<circle class="svgYellow" cx="10" cy="20" r="10" />`
 		}
 		if tile.boosts != 0 {
-			svgtag += `<circle class="svgBlue" cx="12" cy="18" r="10" />`
+			svgtag += `<circle class="svgBlue" cx="20" cy="20" r="10" />`
 		}
 		svgtag += `</svg>`
 	}

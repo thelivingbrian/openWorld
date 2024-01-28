@@ -155,14 +155,14 @@ func (player *Player) handlePress(key string) {
 		//player.turnSpaceOff()
 	}
 	if key == "Shift-On" {
-		if player.actions.boostCounter > 0 {
-			player.showBoost()
-		}
+		//if player.actions.boostCounter > 0 {
+		//	player.showBoost()
+		//}
 	}
 	if key == "Shift-Off" {
-		reactivate := `<input id="shift-on" type="hidden" ws-send hx-trigger="keydown[key=='Shift'] from:body once" hx-include="#token" name="keypress" value="Shift-On" />`
-		updateOne(reactivate, player)
-		player.hideBoost()
+		//reactivate := `<input id="shift-on" type="hidden" ws-send hx-trigger="keydown[key=='Shift'] from:body once" hx-include="#token" name="keypress" value="Shift-On" />`
+		//updateOne(reactivate, player)
+		//player.hideBoost()
 	}
 
 }
