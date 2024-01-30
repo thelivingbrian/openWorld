@@ -302,6 +302,7 @@ func (player *Player) addBoosts(n int) {
 	if first {
 		player.showBoost()
 	}
+	updateOne(divPlayerInformation(player), player)
 }
 
 func (player *Player) useBoost() {
@@ -309,6 +310,7 @@ func (player *Player) useBoost() {
 	if player.actions.boostCounter == 0 {
 		player.hideBoost()
 	}
+	updateOne(divPlayerInformation(player), player)
 }
 
 func (stack *StackOfPowerUp) hasPower() bool {

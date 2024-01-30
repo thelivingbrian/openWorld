@@ -175,7 +175,7 @@ func divPlayerInformation(player *Player) string {
 }
 
 func playerInformation(player *Player) string {
-	return fmt.Sprintf("%s | Health %d Money %d", player.username, player.health, player.money)
+	return fmt.Sprintf(`%s <br /><span class="red">Health %d</span> | <span class="blue">^ %d</span>  | <span class="dark-green">$ %d</span>`, player.username, player.health, player.actions.boostCounter, player.money)
 }
 
 func htmlFromTile(tile *Tile) string {
@@ -196,7 +196,7 @@ func svgFromTile(tile *Tile) string {
 			svgtag += `<circle class="svgRed" cx="10" cy="10" r="10" />`
 		}
 		if tile.money != 0 {
-			svgtag += `<circle class="svgYellow" cx="10" cy="20" r="10" />`
+			svgtag += `<circle class="svgGreen" cx="10" cy="20" r="10" />`
 		}
 		if tile.boosts != 0 {
 			svgtag += `<circle class="svgBlue" cx="20" cy="20" r="10" />`
