@@ -226,7 +226,7 @@ func (player *Player) updateShiftHighlights() map[*Tile]bool { // Returns remove
 func (player *Player) activatePower() {
 	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
 	for tile := range player.actions.spaceHighlights {
-		tile.damageAll(25, player)
+		tile.damageAll(50, player)
 
 		tileToHighlight := tile.incrementAndReturnIfFirst()
 		if tileToHighlight != nil {

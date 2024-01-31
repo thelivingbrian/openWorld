@@ -95,6 +95,10 @@ a {
   .pink {
     background-color: rgb(253, 182, 215);
   }
+
+  .salmon {
+    background-color: rgb(255, 165, 145);
+  }
   
   .half-gray {
     background-color: rgb(120, 120, 129);

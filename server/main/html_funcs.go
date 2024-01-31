@@ -114,13 +114,16 @@ func spaceHighlighter(tile *Tile) string {
 	if len(tile.playerMap) > 0 {
 		return "dark-blue"
 	} else if walkable(tile) {
-		return "green"
+		return "salmon"
 	} else {
-		return tile.originalCssClass
+		return tile.originalCssClass // Probably should be current although currently no diff
 	}
 }
 
 func shiftHighlighter(tile *Tile) string {
+	if len(tile.playerMap) > 0 {
+		return "dark-blue"
+	}
 	if walkable(tile) {
 		return ""
 	}
@@ -173,7 +176,25 @@ func divPlayerInformation(player *Player) string {
 }
 
 func playerInformation(player *Player) string {
-	return fmt.Sprintf(`%s <br /><span class="red">Health %d</span> | <span class="blue">^ %d</span>  | <span class="dark-green">$ %d</span>`, player.username, player.health, player.actions.boostCounter, player.money)
+	hearts := getHeartsFromHealth(player.health)
+	return fmt.Sprintf(`%s %s<br /><span class="red">Streak %d</span> | <span class="blue">^ %d</span>  | <span class="dark-green">$ %d</span>`, player.username, hearts, 0, player.actions.boostCounter, player.money)
+}
+
+func getHeartsFromHealth(i int) string {
+	i = (i - (i % 50)) / 50
+	if i == 0 {
+		return ""
+	}
+	if i == 1 {
+		return "❤️"
+	}
+	if i == 2 {
+		return "❤️❤️"
+	}
+	if i == 3 {
+		return "❤️❤️❤️"
+	}
+	return fmt.Sprintf("❤️x%d", i)
 }
 
 func htmlFromTile(tile *Tile) string {
