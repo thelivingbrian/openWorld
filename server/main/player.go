@@ -34,6 +34,12 @@ func (player *Player) setHealth(n int) {
 	updateOne(divPlayerInformation(player), player)
 }
 
+// Money observer, All Money changes should go through here
+func (player *Player) setMoney(n int) {
+	player.money = n
+	updateOne(divPlayerInformation(player), player)
+}
+
 func (player *Player) isDead() bool {
 	return player.health <= 0
 }
@@ -61,7 +67,15 @@ func (p *Player) placeOnStage() {
 	p.stage.playerMutex.Unlock()
 
 	p.stage.tiles[p.y][p.x].addPlayerAndNotifyOthers(p)
-	updateScreenFromScratch(p)
+	updateScreenFromScratch(p) // This is using an old method for computing the highlights (Which weirdly works because space highlights have not yet been set)
+
+	// Need spawn logic
+	p.stage.tiles[2][2].addPowerUpAndNotifyAll(p, grid7x7) // This is completing before the space highlights are being set after a teleport at the end of move()
+	p.stage.tiles[2][3].addPowerUpAndNotifyAll(p, grid3x3)
+	p.stage.tiles[3][2].addPowerUpAndNotifyAll(p, x())
+	p.stage.tiles[3][3].addBoostsAndNotifyAll(p)
+	p.stage.tiles[2][2].money += 10
+	p.stage.tiles[2][2].addBoostsAndNotifyAll(p)
 }
 
 func (player *Player) handleDeath() {
@@ -106,6 +120,42 @@ func (p *Player) moveWest() {
 	p.move(0, -1)
 }
 
+func (p *Player) moveNorthBoost() {
+	if p.actions.boostCounter > 0 {
+		p.useBoost()
+		p.move(-2, 0)
+	} else {
+		p.move(-1, 0)
+	}
+}
+
+func (p *Player) moveSouthBoost() {
+	if p.actions.boostCounter > 0 {
+		p.useBoost()
+		p.move(2, 0)
+	} else {
+		p.move(1, 0)
+	}
+}
+
+func (p *Player) moveEastBoost() {
+	if p.actions.boostCounter > 0 {
+		p.useBoost()
+		p.move(0, 2)
+	} else {
+		p.move(0, 1)
+	}
+}
+
+func (p *Player) moveWestBoost() {
+	if p.actions.boostCounter > 0 {
+		p.useBoost()
+		p.move(0, -2)
+	} else {
+		p.move(0, -1)
+	}
+}
+
 func (p *Player) move(yOffset int, xOffset int) {
 	destY := p.y + yOffset
 	destX := p.x + xOffset
@@ -117,26 +167,38 @@ func (p *Player) move(yOffset int, xOffset int) {
 		currentTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
 		destTile.addPlayerAndNotifyOthers(p)
 
-		oobRemoveHighlights := ""
-		if p.actions.space {
-			oobRemoveHighlights = mapOfTileToOoB(p.setSpaceHighlights())
-		}
+		oobRemoveHighlights := mapOfTileToOoB(p.updateSpaceHighlights())
+		//p.updateShiftHighlights()
+		oobRemoveHighlights += mapOfTileToOoB(p.updateShiftHighlights())
+
 		if currentStage == p.stage {
 			updateOneWithHud(oobRemoveHighlights+htmlFromTile(currentTile), p)
 		}
 	}
 }
 
-func (player *Player) turnSpaceOn() {
-	player.actions.space = true
+func (player *Player) nextPower() {
+	player.actions.spaceStack.pop() // Throw old power away
+	previous := player.actions.spaceHighlights
 	player.setSpaceHighlights()
-	updateOne(hudAsOutOfBound(player), player)
+	updateOneWithHud(mapOfTileToOoB(previous), player)
 }
 
-func (player *Player) setSpaceHighlights() map[*Tile]bool { // Returns removed highlights
+func (player *Player) setSpaceHighlights() {
+	player.actions.spaceHighlights = map[*Tile]bool{}
+	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceStack.peek().areaOfInfluence)
+	for _, pair := range absCoordinatePairs {
+		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
+			tile := player.stage.tiles[pair[0]][pair[1]]
+			player.actions.spaceHighlights[tile] = true
+		}
+	}
+}
+
+func (player *Player) updateSpaceHighlights() map[*Tile]bool { // Returns removed highlights
 	previous := player.actions.spaceHighlights
 	player.actions.spaceHighlights = map[*Tile]bool{}
-	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceShape)
+	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceStack.peek().areaOfInfluence)
 	for _, pair := range absCoordinatePairs {
 		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
 			tile := player.stage.tiles[pair[0]][pair[1]]
@@ -147,9 +209,21 @@ func (player *Player) setSpaceHighlights() map[*Tile]bool { // Returns removed h
 	return previous
 }
 
-func (player *Player) turnSpaceOff() {
-	player.actions.space = false
+func (player *Player) updateShiftHighlights() map[*Tile]bool { // Returns removed highlights
+	previous := player.actions.shiftHighlights
+	player.actions.shiftHighlights = map[*Tile]bool{}
+	absCoordinatePairs := applyRelativeDistance(player.y, player.x, jumpCross()) // Shift shape lives in multiple places
+	for _, pair := range absCoordinatePairs {
+		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
+			tile := player.stage.tiles[pair[0]][pair[1]]
+			player.actions.shiftHighlights[tile] = true
+			delete(previous, tile)
+		}
+	}
+	return previous
+}
 
+func (player *Player) activatePower() {
 	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
 	for tile := range player.actions.spaceHighlights {
 		tile.damageAll(25, player)
@@ -159,14 +233,17 @@ func (player *Player) turnSpaceOff() {
 			tilesToHighlight = append(tilesToHighlight, tileToHighlight)
 		}
 
-		go tile.tryToNotifyAfter(100)
+		go tile.tryToNotifyAfter(100) // Flat for player if more powers?
 	}
 	highlightHtml := sliceOfTileToColoredOoB(tilesToHighlight, randomFieryColor())
 	player.stage.updateAll(highlightHtml)
 
-	go player.stage.updateAllWithHudAfterDelay(110)
+	go player.stage.updateAllWithHudAfterDelay(110) // Undamage screen huds after the explosion
 
 	player.actions.spaceHighlights = map[*Tile]bool{}
+	if player.actions.spaceStack.hasPower() {
+		player.nextPower()
+	}
 }
 
 func (player *Player) applyTeleport(teleport *Teleport) {
@@ -178,15 +255,99 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	player.placeOnStage()
 }
 
+func (player *Player) showBoost() {
+	player.actions.shiftEngaged = true
+	player.actions.shiftHighlights = map[*Tile]bool{}
+	absCoordinatePairs := applyRelativeDistance(player.y, player.x, jumpCross())
+	for _, pair := range absCoordinatePairs {
+		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
+			tile := player.stage.tiles[pair[0]][pair[1]]
+			player.actions.shiftHighlights[tile] = true
+		}
+	}
+	updateOneWithHud("", player)
+}
+func (player *Player) hideBoost() {
+	player.actions.shiftEngaged = false
+	previous := player.actions.shiftHighlights
+	player.actions.shiftHighlights = map[*Tile]bool{}
+	updateOneWithHud(mapOfTileToOoB(previous), player)
+}
+
 /////////////////////////////////////////////////////////////
 // Actions
 
 type Actions struct {
-	space           bool
-	spaceShape      [][2]int
+	spaceReadyable  bool
 	spaceHighlights map[*Tile]bool
+	spaceStack      *StackOfPowerUp
+	boostCounter    int
+	shiftHighlights map[*Tile]bool
+	shiftEngaged    bool
+}
+
+type PowerUp struct {
+	areaOfInfluence [][2]int
+	damageAtRadius  [4]int
+}
+
+type StackOfPowerUp struct {
+	powers     []*PowerUp
+	powerMutex sync.Mutex
+}
+
+func (player *Player) addBoosts(n int) {
+	first := player.actions.boostCounter == 0
+	player.actions.boostCounter += n
+	if first {
+		player.showBoost()
+	}
+	updateOne(divPlayerInformation(player), player)
+}
+
+func (player *Player) useBoost() {
+	player.actions.boostCounter--
+	if player.actions.boostCounter == 0 {
+		player.hideBoost()
+	}
+	updateOne(divPlayerInformation(player), player)
+}
+
+func (stack *StackOfPowerUp) hasPower() bool {
+	stack.powerMutex.Lock()
+	defer stack.powerMutex.Unlock()
+	return len(stack.powers) > 0
+}
+
+// Don't even return anything? Delete?
+func (stack *StackOfPowerUp) pop() *PowerUp {
+	if stack.hasPower() {
+		stack.powerMutex.Lock()
+		defer stack.powerMutex.Unlock()
+		out := stack.powers[len(stack.powers)-1]
+		stack.powers = stack.powers[:len(stack.powers)-1]
+		return out
+	}
+	return nil // Should be impossible but return default power instead?
+}
+
+// Watch this lead to item dupe bugs
+func (stack *StackOfPowerUp) peek() PowerUp {
+	if stack.hasPower() {
+		stack.powerMutex.Lock()
+		defer stack.powerMutex.Unlock()
+		return *stack.powers[len(stack.powers)-1]
+	}
+	return PowerUp{}
+}
+
+func (stack *StackOfPowerUp) push(power *PowerUp) *StackOfPowerUp {
+	stack.powerMutex.Lock()
+	defer stack.powerMutex.Unlock()
+	stack.powers = append(stack.powers, power)
+	return stack
 }
 
 func createDefaultActions() *Actions {
-	return &Actions{false, grid7x7, map[*Tile]bool{}}
+	return &Actions{false, map[*Tile]bool{}, &StackOfPowerUp{}, 0, map[*Tile]bool{}, false}
 }

@@ -64,6 +64,10 @@ a {
     background-color: rgb(32, 255, 60);
   }
 
+  .dark-green {
+    background-color: rgb(32, 155, 60);
+  }
+
   .lime {
     background-color: rgb(150, 255, 60);
   }
@@ -99,3 +103,25 @@ a {
   .dark-blue {
     background-color: rgb(32, 32, 65);
   }
+
+/* SVG  */
+
+.svgGreen {  
+    fill: rgb(105, 255, 100);
+    fill-opacity: .6;
+}
+
+.svgRed {
+    fill: rgb(255, 105, 100);
+    fill-opacity: .8;
+}
+
+.svgBlue {
+    fill: rgb(15, 100, 255);
+    fill-opacity: .8;
+}
+
+.svgYellow {
+    fill: rgb(255, 255, 100);
+    fill-opacity: .8;
+}

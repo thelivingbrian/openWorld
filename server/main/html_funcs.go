@@ -47,17 +47,22 @@ func htmlFromStage(stage *Stage) string {
 
 func playerView(player *Player, tileColors [][]string) {
 	tileColors[player.y][player.x] = "fusia"
-	if player.actions.space {
-		applyHighlights(player, tileColors, player.actions.spaceShape, spaceHighlighter) // (Is this actually possible?)
+	applyHighlights(player, tileColors, player.actions.spaceStack.peek().areaOfInfluence, spaceHighlighter)
+	if player.actions.boostCounter > 0 {
+		applyHighlights(player, tileColors, jumpCross(), shiftHighlighter)
 	}
 }
 
 func hudAsOutOfBound(player *Player) string {
 	highlights := ""
-	if player.actions.space {
-		// Any risk here of concurrent read/write? // Yes confirmed failure point
-		for tile := range player.actions.spaceHighlights {
-			highlights += oobColoredTile(tile, spaceHighlighter(tile))
+	// Any risk here of concurrent read/write? // Yes confirmed failure point
+	// Fix this
+	for tile := range player.actions.spaceHighlights {
+		highlights += oobColoredTile(tile, spaceHighlighter(tile))
+	}
+	if player.actions.shiftEngaged {
+		for tile := range player.actions.shiftHighlights {
+			highlights += oobColoredTile(tile, shiftHighlighter(tile))
 		}
 	}
 
@@ -89,6 +94,7 @@ func applyHighlights(player *Player, tileColors [][]string, relativeCoords [][2]
 	}
 }
 
+// Can this help fix random not highlighting bugs?
 func highlightsAsOob(player *Player, relativeCoords [][2]int, highligher func(*Tile) string) string {
 	output := ``
 	absCoordinatePairs := applyRelativeDistance(player.y, player.x, relativeCoords)
@@ -110,8 +116,15 @@ func spaceHighlighter(tile *Tile) string {
 	} else if walkable(tile) {
 		return "green"
 	} else {
-		return "red"
+		return tile.originalCssClass
 	}
+}
+
+func shiftHighlighter(tile *Tile) string {
+	if walkable(tile) {
+		return ""
+	}
+	return "red"
 }
 
 func randomFieryColor() string {
@@ -130,10 +143,14 @@ func printPageFor(player *Player) string {
 	<div id="page" hx-swap-oob="true">
 		<div id="controls" hx-ext="ws" ws-connect="/screen">
 			<input id="token" type="hidden" name="token" value="` + player.id + `" />
-			<input id="w" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='W'||key=='ArrowUp'] from:body" hx-include="#token" name="keypress" value="W" />
-			<input id="a" type="hidden" ws-send hx-trigger="keydown[key=='a'||key=='A'||key=='ArrowLeft'] from:body" hx-include="#token" name="keypress" value="A" />
-			<input id="s" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='S'||key=='ArrowDown'] from:body" hx-include="#token" name="keypress" value="S" />
-			<input id="d" type="hidden" ws-send hx-trigger="keydown[key=='d'||key=='D'||key=='ArrowRight'] from:body" hx-include="#token" name="keypress" value="D" />
+			<input id="w" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='ArrowUp'] from:body" hx-include="#token" name="keypress" value="w" />
+			<input id="a" type="hidden" ws-send hx-trigger="keydown[key=='a'||key=='ArrowLeft'] from:body" hx-include="#token" name="keypress" value="a" />
+			<input id="s" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='ArrowDown'] from:body" hx-include="#token" name="keypress" value="s" />
+			<input id="d" type="hidden" ws-send hx-trigger="keydown[key=='d'||key=='ArrowRight'] from:body" hx-include="#token" name="keypress" value="d" />
+			<input id="w" type="hidden" ws-send hx-trigger="keydown[key=='W'] from:body" hx-include="#token" name="keypress" value="W" />
+			<input id="a" type="hidden" ws-send hx-trigger="keydown[key=='A'] from:body" hx-include="#token" name="keypress" value="A" />
+			<input id="s" type="hidden" ws-send hx-trigger="keydown[key=='S'] from:body" hx-include="#token" name="keypress" value="S" />
+			<input id="d" type="hidden" ws-send hx-trigger="keydown[key=='D'] from:body" hx-include="#token" name="keypress" value="D" />
 			<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />
 			<input id="space-off" type="hidden" ws-send hx-trigger="keyup[key==' '] from:body" hx-include="#token" name="keypress" value="Space-Off" />
 			<input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" name="token" value="` + player.id + `" />
@@ -156,13 +173,33 @@ func divPlayerInformation(player *Player) string {
 }
 
 func playerInformation(player *Player) string {
-	return fmt.Sprintf("%s | Health %d Money %d", player.username, player.health, player.money)
+	return fmt.Sprintf(`%s <br /><span class="red">Health %d</span> | <span class="blue">^ %d</span>  | <span class="dark-green">$ %d</span>`, player.username, player.health, player.actions.boostCounter, player.money)
 }
 
 func htmlFromTile(tile *Tile) string {
-	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true"></div>`, tile.currentCssClass, tile.y, tile.x)
+	svgtag := svgFromTile(tile)
+	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true">%s</div>`, tile.currentCssClass, tile.y, tile.x, svgtag)
 }
 
 func oobColoredTile(tile *Tile, cssClass string) string {
-	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true"></div>`, cssClass, tile.y, tile.x)
+	svgtag := svgFromTile(tile)
+	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true">%s</div>`, cssClass, tile.y, tile.x, svgtag)
+}
+
+func svgFromTile(tile *Tile) string {
+	svgtag := ""
+	if tile.powerUp != nil || tile.money != 0 || tile.boosts != 0 {
+		svgtag += `<svg width="30" height="30">`
+		if tile.powerUp != nil {
+			svgtag += `<circle class="svgRed" cx="10" cy="10" r="10" />`
+		}
+		if tile.money != 0 {
+			svgtag += `<circle class="svgGreen" cx="10" cy="20" r="10" />`
+		}
+		if tile.boosts != 0 {
+			svgtag += `<circle class="svgBlue" cx="20" cy="20" r="10" />`
+		}
+		svgtag += `</svg>`
+	}
+	return svgtag
 }

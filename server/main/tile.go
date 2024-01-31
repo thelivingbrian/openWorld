@@ -23,10 +23,27 @@ type Tile struct {
 	currentCssClass  string
 	originalCssClass string
 	eventsInFlight   atomic.Int32
+	powerUp          *PowerUp
+	powerMutex       sync.Mutex
+	money            int
+	boosts           int
 }
 
 func newTile(mat Material, y int, x int) *Tile {
-	return &Tile{mat, make(map[string]*Player), sync.Mutex{}, nil, nil, y, x, mat.CssClassName, mat.CssClassName, atomic.Int32{}}
+	return &Tile{
+		material:         mat,
+		playerMap:        make(map[string]*Player),
+		playerMutex:      sync.Mutex{},
+		stage:            nil,
+		teleport:         nil,
+		y:                y,
+		x:                x,
+		originalCssClass: mat.CssClassName,
+		currentCssClass:  mat.CssClassName,
+		eventsInFlight:   atomic.Int32{},
+		powerUp:          nil,
+		powerMutex:       sync.Mutex{},
+		money:            0}
 }
 
 // newTile w/ teleport?
@@ -37,6 +54,22 @@ func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 }
 
 func (tile *Tile) addPlayer(player *Player) {
+	if tile.powerUp != nil {
+		// This should be mutexed I think
+		powerUp := tile.powerUp
+		tile.powerUp = nil
+		player.actions.spaceStack.push(powerUp)
+	}
+	if tile.money != 0 {
+		// I tex you tex
+		player.setMoney(player.money + tile.money)
+		tile.money = 0
+	}
+	if tile.boosts > 0 {
+		// We all tex
+		player.addBoosts(tile.boosts)
+		tile.boosts = 0
+	}
 	if tile.teleport == nil {
 		tile.playerMutex.Lock()
 		tile.playerMap[player.id] = player
@@ -115,6 +148,8 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 		tile.currentCssClass = cssClassFromHealth(player)
 		if !survived {
 			tile.currentCssClass = tile.originalCssClass
+			tile.money += player.money / 2 // Use Observer, return diff
+			player.money = player.money / 2
 			// Maybe should just pass in required fields?
 			go player.world.db.saveKillEvent(tile, initiator, player)
 		}
@@ -127,6 +162,22 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 
 func walkable(tile *Tile) bool {
 	return tile.material.Walkable
+}
+
+func (tile *Tile) addPowerUpAndNotifyAll(player *Player, shape [][2]int) { // Except
+	tile.powerUp = &PowerUp{shape, [4]int{100, 100, 100, 100}}
+	html := htmlFromTile(tile)
+	tile.stage.updateAllWithHudExcept(html, player)
+	updateOne(html, player)
+}
+
+func (tile *Tile) addBoostsAndNotifyAll(player *Player) {
+	//fmt.Println("Adding Boost")
+	tile.boosts += 5
+	html := htmlFromTile(tile)
+	tile.stage.updateAllWithHudExcept(html, player)
+	updateOne(html, player)
+
 }
 
 func cssClassFromHealth(player *Player) string {
