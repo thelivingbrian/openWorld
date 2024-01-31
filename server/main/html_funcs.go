@@ -47,14 +47,14 @@ func htmlFromStage(stage *Stage) string {
 
 func playerView(player *Player, tileColors [][]string) {
 	tileColors[player.y][player.x] = "fusia"
-	//if player.actions.spaceVisible {
-	applyHighlights(player, tileColors, player.actions.spaceStack.peek().areaOfInfluence, spaceHighlighter) // (Is this actually possible?) // Think yes, after teleport and old style of highlight is useful
-	//}
+	applyHighlights(player, tileColors, player.actions.spaceStack.peek().areaOfInfluence, spaceHighlighter)
+	if player.actions.boostCounter > 0 {
+		applyHighlights(player, tileColors, jumpCross(), shiftHighlighter)
+	}
 }
 
 func hudAsOutOfBound(player *Player) string {
 	highlights := ""
-	//if player.actions.spaceVisible {
 	// Any risk here of concurrent read/write? // Yes confirmed failure point
 	// Fix this
 	for tile := range player.actions.spaceHighlights {
@@ -65,7 +65,6 @@ func hudAsOutOfBound(player *Player) string {
 			highlights += oobColoredTile(tile, shiftHighlighter(tile))
 		}
 	}
-	//}
 
 	playerIcon := fmt.Sprintf(`<div class="grid-square fusia" id="c%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
 
@@ -117,16 +116,15 @@ func spaceHighlighter(tile *Tile) string {
 	} else if walkable(tile) {
 		return "green"
 	} else {
-		return tile.originalCssClass //"red"
+		return tile.originalCssClass
 	}
 }
 
 func shiftHighlighter(tile *Tile) string {
 	if walkable(tile) {
 		return ""
-	} else {
-		return "red" //"red"
 	}
+	return "red"
 }
 
 func randomFieryColor() string {
