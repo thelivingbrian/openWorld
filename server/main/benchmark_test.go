@@ -43,7 +43,7 @@ func BenchmarkMoveTwice(b *testing.B) {
 				for i := 0; i < b.N; i++ {
 
 					//testStage.updateAll("")
-					players[0].nextPower()
+					//players[0].nextPower() // This uses a pickup reducing the highlights decreasing time for one player
 					players[0].move(-1, 0)
 					players[0].move(1, 0)
 				}

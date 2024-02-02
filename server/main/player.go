@@ -94,7 +94,7 @@ func (player *Player) removeFromStage() {
 
 // Recv type
 func respawn(player *Player) {
-	player.setHealth(100)
+	player.setHealth(150)
 	player.stageName = "clinic"
 	player.x = 2
 	player.y = 2
@@ -167,21 +167,20 @@ func (p *Player) move(yOffset int, xOffset int) {
 		currentTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
 		destTile.addPlayerAndNotifyOthers(p)
 
-		oobRemoveHighlights := mapOfTileToOoB(p.updateSpaceHighlights())
-		//p.updateShiftHighlights()
-		oobRemoveHighlights += mapOfTileToOoB(p.updateShiftHighlights())
+		impactedTiles := p.updateSpaceHighlights()
+		impactedTiles = append(impactedTiles, p.updateShiftHighlights()...)
 
 		if currentStage == p.stage {
-			updateOneWithHud(oobRemoveHighlights+htmlFromTile(currentTile), p)
+			impactedTiles = append(impactedTiles, currentTile, destTile)
+			updateOneWithHud(p, impactedTiles)
 		}
 	}
 }
 
 func (player *Player) nextPower() {
 	player.actions.spaceStack.pop() // Throw old power away
-	previous := player.actions.spaceHighlights
 	player.setSpaceHighlights()
-	updateOneWithHud(mapOfTileToOoB(previous), player)
+	updateOneWithHud(player, mapOfTileToArray(player.actions.spaceHighlights))
 }
 
 func (player *Player) setSpaceHighlights() {
@@ -195,32 +194,43 @@ func (player *Player) setSpaceHighlights() {
 	}
 }
 
-func (player *Player) updateSpaceHighlights() map[*Tile]bool { // Returns removed highlights
+func (player *Player) updateSpaceHighlights() []*Tile {
 	previous := player.actions.spaceHighlights
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceStack.peek().areaOfInfluence)
+	var impactedTiles []*Tile
 	for _, pair := range absCoordinatePairs {
 		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
 			tile := player.stage.tiles[pair[0]][pair[1]]
 			player.actions.spaceHighlights[tile] = true
-			delete(previous, tile)
+			if _, contains := previous[tile]; contains {
+				delete(previous, tile)
+			} else {
+				impactedTiles = append(impactedTiles, tile)
+			}
 		}
 	}
-	return previous
+	return append(impactedTiles, mapOfTileToArray(previous)...)
 }
 
-func (player *Player) updateShiftHighlights() map[*Tile]bool { // Returns removed highlights
+func (player *Player) updateShiftHighlights() []*Tile { // Returns removed highlights
 	previous := player.actions.shiftHighlights
 	player.actions.shiftHighlights = map[*Tile]bool{}
 	absCoordinatePairs := applyRelativeDistance(player.y, player.x, jumpCross()) // Shift shape lives in multiple places
+	var impactedTiles []*Tile
 	for _, pair := range absCoordinatePairs {
 		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
 			tile := player.stage.tiles[pair[0]][pair[1]]
 			player.actions.shiftHighlights[tile] = true
-			delete(previous, tile)
+			if _, contains := previous[tile]; contains {
+				delete(previous, tile)
+			} else {
+				impactedTiles = append(impactedTiles, tile)
+			}
+
 		}
 	}
-	return previous
+	return append(impactedTiles, mapOfTileToArray(previous)...)
 }
 
 func (player *Player) activatePower() {
@@ -237,8 +247,6 @@ func (player *Player) activatePower() {
 	}
 	highlightHtml := sliceOfTileToColoredOoB(tilesToHighlight, randomFieryColor())
 	player.stage.updateAll(highlightHtml)
-
-	go player.stage.updateAllWithHudAfterDelay(110) // Undamage screen huds after the explosion
 
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	if player.actions.spaceStack.hasPower() {
@@ -265,13 +273,13 @@ func (player *Player) showBoost() {
 			player.actions.shiftHighlights[tile] = true
 		}
 	}
-	updateOneWithHud("", player)
+	updateOneWithHud(player, mapOfTileToArray(player.actions.shiftHighlights))
 }
 func (player *Player) hideBoost() {
 	player.actions.shiftEngaged = false
 	previous := player.actions.shiftHighlights
 	player.actions.shiftHighlights = map[*Tile]bool{}
-	updateOneWithHud(mapOfTileToOoB(previous), player)
+	updateOneWithHud(player, mapOfTileToArray(previous))
 }
 
 /////////////////////////////////////////////////////////////
