@@ -56,7 +56,7 @@ func main() {
 
 	http.HandleFunc("/areaPage", getAreaPage)
 	http.HandleFunc("/createGrid", createGrid)
-	http.HandleFunc("/replace", replaceSquare)
+	http.HandleFunc("/replace", clickOnSquare)
 	http.HandleFunc("/select", selectColor)
 	http.HandleFunc("/exampleSquare", exampleSquare)
 	http.HandleFunc("/saveArea", saveArea)

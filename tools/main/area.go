@@ -118,7 +118,7 @@ func getGridHTML(h int, w int) string {
 		for x := 0; x < w; x++ {
 			var yStr = strconv.Itoa(y)
 			var xStr = strconv.Itoa(x)
-			output += `<div hx-post="/replace" hx-trigger="click" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square" id="c` + yStr + `-` + xStr + `"></div>`
+			output += `<div hx-post="/replace" hx-trigger="click" hx-include="[name='radio-tool']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square" id="c` + yStr + `-` + xStr + `"></div>`
 		}
 		output += `</div>`
 	}
@@ -165,6 +165,18 @@ func createGrid(w http.ResponseWriter, r *http.Request) {
 				<input type="checkbox" name="safe">
 				<button>Save</button>
 			</form>
+			<div id="tool_select"> 
+				<input type="radio" id="rt-select" name="radio-tool" value="select" checked>
+				<label for="rt-select">Select</label><br>
+				<input type="radio" id="rt-replace" name="radio-tool" value="replace">
+				<label for="rt-replace">Replace</label><br>
+				<input type="radio" id="rt-fill" name="radio-tool" value="fill">
+				<label for="rt-fill">Fill</label>
+				<input type="radio" id="rt-right" name="radio-tool" value="right">
+				<label for="rt-right">Fill row to right</label>
+				<input type="radio" id="rt-down" name="radio-tool" value="fill">
+				<label for="rt-down">fill col down</label>
+			</div>
         </div>
         <div class="grid" id="screen">`
 
@@ -196,17 +208,38 @@ func createGrid(w http.ResponseWriter, r *http.Request) {
 func dataFromRequest(r *http.Request) (int, int, bool) {
 	yCoord, _ := strconv.Atoi(r.Header["Y"][0])
 	xCoord, _ := strconv.Atoi(r.Header["X"][0])
-	fmt.Printf("%d %d\n", yCoord, xCoord)
 
 	return yCoord, xCoord, true
 }
 
-func replaceSquare(w http.ResponseWriter, r *http.Request) {
+func clickOnSquare(w http.ResponseWriter, r *http.Request) {
 	y, x, success := dataFromRequest(r)
 	if !success {
 		panic(0)
 	}
+	properties, _ := requestToProperties(r)
+	selectedTool, ok := properties["radio-tool"]
+	if !ok {
+		panic(0)
+	}
+
+	if selectedTool == "select" {
+
+	} else if selectedTool == "replace" {
+		io.WriteString(w, replaceSquare(y, x))
+	} else if selectedTool == "fill" {
+		io.WriteString(w, fillFrom(y, x))
+	} else if selectedTool == "right" {
+
+	} else if selectedTool == "down" {
+
+	}
+	//fmt.Printf("%d %d %s", x, y, selectedTool)
+}
+
+func replaceSquare(y int, x int) string {
 	className := ""
+	// Inject this
 	if &selectedMaterial != nil {
 		className = selectedMaterial.CssClassName
 	}
@@ -215,10 +248,10 @@ func replaceSquare(w http.ResponseWriter, r *http.Request) {
 
 	var yStr = strconv.Itoa(y)
 	var xStr = strconv.Itoa(x)
-	div := fmt.Sprintf(`<div hx-post="/replace" hx-trigger="click" hx-include="#selectedColor" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s"></div>`, yStr, xStr, className, yStr, xStr)
-	io.WriteString(w, div)
+	return fmt.Sprintf(`<div hx-post="/replace" hx-trigger="click" hx-include="[name='radio-tool']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s"></div>`, yStr, xStr, className, yStr, xStr)
 }
 
+// This is insane
 func selectColor(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	id := queryValues.Get("materialId")
@@ -232,4 +265,38 @@ func selectColor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	io.WriteString(w, fmt.Sprintf(`<div class="grid-square %s"></div>`, selectedMaterial.CssClassName))
+}
+
+func fillFrom(y int, x int) string {
+	targetId := modifications[y][x].ID
+	fmt.Println(targetId)
+	seen := make([][]bool, len(modifications))
+	for row := range seen {
+		seen[row] = make([]bool, len(modifications[row]))
+	}
+	return fillAndCheckNeighbors(y, x, targetId, selectedMaterial, seen)
+}
+
+func fillAndCheckNeighbors(y int, x int, targetId int, selected Material, seen [][]bool) string {
+	seen[y][x] = true
+	modifications[y][x] = selected
+	var yStr = strconv.Itoa(y)
+	var xStr = strconv.Itoa(x)
+	cells := fmt.Sprintf(`<div hx-swap-oob="true" hx-post="/replace" hx-trigger="click" hx-include="[name='radio-tool']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s"></div>`, yStr, xStr, selected.CssClassName, yStr, xStr)
+	deltas := []int{-1, 1}
+	for _, i := range deltas {
+		if y+i >= 0 && y+i < len(modifications) {
+			shouldfill := !seen[y+i][x] && modifications[y+i][x].ID == targetId
+			if shouldfill {
+				cells += fillAndCheckNeighbors(y+i, x, targetId, selected, seen)
+			}
+		}
+		if x+i >= 0 && x+i < len(modifications[y]) {
+			shouldfill := !seen[y][x+i] && modifications[y][x+i].ID == targetId
+			if shouldfill {
+				cells += fillAndCheckNeighbors(y, x+i, targetId, selected, seen)
+			}
+		}
+	}
+	return cells
 }
