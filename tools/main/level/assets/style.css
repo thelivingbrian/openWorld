@@ -1,6 +1,5 @@
 .grid {
     display: grid;
-    grid-gap: 1px;
 }
 
 .grid-row {
@@ -14,4 +13,10 @@
     border: 1px solid #30a0f0;
     background-color: rgb(172, 152, 219);
     cursor: pointer;
+}
+
+
+
+.selected {
+    border: 1px solid #ff2020;
 }

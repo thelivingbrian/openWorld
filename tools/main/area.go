@@ -10,10 +10,11 @@ import (
 )
 
 type Transport struct {
-	MaterialID int    `json:"materialId"`
-	DestY      int    `json:"destY"`
-	DestX      int    `json:"destX"`
-	DestStage  string `json:"destStage"`
+	SourceY   int    `json:"sourceY"`
+	SourceX   int    `json:"sourceX"`
+	DestY     int    `json:"destY"`
+	DestX     int    `json:"destX"`
+	DestStage string `json:"destStage"`
 }
 
 type Area struct {
@@ -24,6 +25,9 @@ type Area struct {
 }
 
 var selectedMaterial Material
+var haveSelection bool = false
+var selectedX int
+var selectedY int
 var modifications [][]Material
 
 func saveArea(w http.ResponseWriter, r *http.Request) {
@@ -167,15 +171,13 @@ func createGrid(w http.ResponseWriter, r *http.Request) {
 			</form>
 			<div id="tool_select"> 
 				<input type="radio" id="rt-select" name="radio-tool" value="select" checked>
-				<label for="rt-select">Select</label><br>
+				<label for="rt-select">Select</label>
 				<input type="radio" id="rt-replace" name="radio-tool" value="replace">
-				<label for="rt-replace">Replace</label><br>
+				<label for="rt-replace">Replace</label>
 				<input type="radio" id="rt-fill" name="radio-tool" value="fill">
 				<label for="rt-fill">Fill</label>
-				<input type="radio" id="rt-right" name="radio-tool" value="right">
-				<label for="rt-right">Fill row to right</label>
-				<input type="radio" id="rt-down" name="radio-tool" value="fill">
-				<label for="rt-down">fill col down</label>
+				<input type="radio" id="rt-right" name="radio-tool" value="between">
+				<label for="rt-right">Fill between selected</label>
 			</div>
         </div>
         <div class="grid" id="screen">`
@@ -212,29 +214,58 @@ func dataFromRequest(r *http.Request) (int, int, bool) {
 	return yCoord, xCoord, true
 }
 
+// This is insane send as parameter instead?
+func selectColor(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	id := queryValues.Get("materialId")
+
+	//fmt.Printf("Received id: %s", id)
+
+	for _, material := range materials {
+		if id, _ := strconv.Atoi(id); id == material.ID {
+			selectedMaterial = material
+		}
+	}
+
+	io.WriteString(w, fmt.Sprintf(`<div class="grid-square %s"></div>`, selectedMaterial.CssClassName))
+}
+
 func clickOnSquare(w http.ResponseWriter, r *http.Request) {
 	y, x, success := dataFromRequest(r)
 	if !success {
-		panic(0)
+		panic("No Coordinates provided")
 	}
 	properties, _ := requestToProperties(r)
 	selectedTool, ok := properties["radio-tool"]
 	if !ok {
-		panic(0)
+		panic("No Tool Selected")
 	}
 
 	if selectedTool == "select" {
-
+		io.WriteString(w, selectSquare(y, x))
 	} else if selectedTool == "replace" {
 		io.WriteString(w, replaceSquare(y, x))
 	} else if selectedTool == "fill" {
 		io.WriteString(w, fillFrom(y, x))
-	} else if selectedTool == "right" {
-
-	} else if selectedTool == "down" {
-
+	} else if selectedTool == "between" {
+		io.WriteString(w, fillBetween(y, x))
 	}
 	//fmt.Printf("%d %d %s", x, y, selectedTool)
+}
+
+func selectSquare(y, x int) string {
+	output := ""
+	if haveSelection {
+		var yStr = strconv.Itoa(selectedY)
+		var xStr = strconv.Itoa(selectedX)
+		output += `<div hx-post="/replace" hx-swap-oob="true" hx-trigger="click" hx-include="[name='radio-tool']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[selectedY][selectedX].CssClassName + `" id="c` + yStr + `-` + xStr + `"></div>`
+	}
+	haveSelection = true
+	selectedY = y
+	selectedX = x
+	var yStr = strconv.Itoa(y)
+	var xStr = strconv.Itoa(x)
+	return output + `<div hx-post="/replace" hx-swap-oob="true" hx-trigger="click" hx-include="[name='radio-tool']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square selected ` + modifications[y][x].CssClassName + `" id="c` + yStr + `-` + xStr + `"></div>`
 }
 
 func replaceSquare(y int, x int) string {
@@ -248,23 +279,7 @@ func replaceSquare(y int, x int) string {
 
 	var yStr = strconv.Itoa(y)
 	var xStr = strconv.Itoa(x)
-	return fmt.Sprintf(`<div hx-post="/replace" hx-trigger="click" hx-include="[name='radio-tool']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s"></div>`, yStr, xStr, className, yStr, xStr)
-}
-
-// This is insane
-func selectColor(w http.ResponseWriter, r *http.Request) {
-	queryValues := r.URL.Query()
-	id := queryValues.Get("materialId")
-
-	fmt.Printf("Received id: %s", id)
-
-	for _, material := range materials {
-		if id, _ := strconv.Atoi(id); id == material.ID {
-			selectedMaterial = material
-		}
-	}
-
-	io.WriteString(w, fmt.Sprintf(`<div class="grid-square %s"></div>`, selectedMaterial.CssClassName))
+	return fmt.Sprintf(`<div hx-post="/replace" hx-swap-oob="true" hx-trigger="click" hx-include="[name='radio-tool']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s"></div>`, yStr, xStr, className, yStr, xStr)
 }
 
 func fillFrom(y int, x int) string {
@@ -299,4 +314,33 @@ func fillAndCheckNeighbors(y int, x int, targetId int, selected Material, seen [
 		}
 	}
 	return cells
+}
+
+func fillBetween(y int, x int) string {
+	if !haveSelection {
+		selectSquare(y, x)
+	}
+	var lowx, lowy, highx, highy int
+	if y <= selectedY {
+		lowy = y
+		highy = selectedY
+	} else {
+		lowy = selectedY
+		highy = y
+	}
+	if x <= selectedX {
+		lowx = x
+		highx = selectedX
+	} else {
+		lowx = selectedX
+		highx = x
+	}
+	output := ""
+	for i := lowy; i <= highy; i++ {
+		for j := lowx; j <= highx; j++ {
+			output += replaceSquare(i, j)
+		}
+	}
+	output += selectSquare(y, x)
+	return output
 }
