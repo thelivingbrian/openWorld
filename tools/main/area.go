@@ -202,7 +202,7 @@ func createGrid(w http.ResponseWriter, r *http.Request) {
 		output += fmt.Sprintf(`<div class="grid-square %s></div>`, selectedMaterial.CssClassName)
 	}
 
-	output += `</div></div></div>` // Too many /div?
+	output += `</div></div></div>`
 	io.WriteString(w, output)
 
 }
@@ -218,8 +218,6 @@ func dataFromRequest(r *http.Request) (int, int, bool) {
 func selectColor(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	id := queryValues.Get("materialId")
-
-	//fmt.Printf("Received id: %s", id)
 
 	for _, material := range materials {
 		if id, _ := strconv.Atoi(id); id == material.ID {
@@ -250,7 +248,6 @@ func clickOnSquare(w http.ResponseWriter, r *http.Request) {
 	} else if selectedTool == "between" {
 		io.WriteString(w, fillBetween(y, x))
 	}
-	//fmt.Printf("%d %d %s", x, y, selectedTool)
 }
 
 func selectSquare(y, x int) string {
@@ -297,6 +294,7 @@ func fillAndCheckNeighbors(y int, x int, targetId int, selected Material, seen [
 	modifications[y][x] = selected
 	var yStr = strconv.Itoa(y)
 	var xStr = strconv.Itoa(x)
+
 	cells := fmt.Sprintf(`<div hx-swap-oob="true" hx-post="/replace" hx-trigger="click" hx-include="[name='radio-tool']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s"></div>`, yStr, xStr, selected.CssClassName, yStr, xStr)
 	deltas := []int{-1, 1}
 	for _, i := range deltas {
