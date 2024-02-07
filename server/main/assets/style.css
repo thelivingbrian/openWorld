@@ -13,6 +13,10 @@
 }
 
 body {
+    /*
+    Sunset: #ef693c;
+    Day : Light cyan? #7aeeff
+    background-color: #120500;*/
     background-color: #120500;
     font-family: 'BloopRetro', sans-serif;
     width:100%;
@@ -20,6 +24,18 @@ body {
     justify-content: center;
     color: white;
     font-size: 28px;
+}
+
+.day {
+    background-color: #aaffff;
+}
+
+.night {
+    background-color: #120500;
+}
+
+.twilight {
+    background-color: #ff6a5c;
 }
 
 #logo {

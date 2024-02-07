@@ -158,6 +158,7 @@ func printPageFor(player *Player) string {
 			<input id="space-off" type="hidden" ws-send hx-trigger="keyup[key==' '] from:body" hx-include="#token" name="keypress" value="Space-Off" />
 			<input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" name="token" value="` + player.id + `" />
 			<input id="tick" ws-send hx-trigger="load once" type="hidden" name="token" value="` + player.id + `" />
+			<div id="script"></div>
 		</div>
 		<div id="info">
 			<b>` + playerInformation(player) + `</b>
