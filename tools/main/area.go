@@ -70,10 +70,15 @@ func saveArea(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func getAreaPage(w http.ResponseWriter, r *http.Request) {
-	output := `	
-	<div id="controls">
-		<form hx-post="/createGrid" hx-target="#panel" hx-swap="outerHTML">
+func getCreateArea(w http.ResponseWriter, r *http.Request) {
+	output := divCreateArea()
+	io.WriteString(w, output)
+}
+
+func divCreateArea() string {
+	return `	
+	<div id="create_form">
+		<form hx-post="/createGrid" hx-target="#panel">
 			<div>
 				<label>Input dimensions:</label>
 			</div>
@@ -90,7 +95,6 @@ func getAreaPage(w http.ResponseWriter, r *http.Request) {
 			</div>
 		</form>
 	</div>`
-	io.WriteString(w, output)
 }
 
 func getEditAreaPage(w http.ResponseWriter, r *http.Request) {
@@ -107,28 +111,6 @@ func getEditAreaPage(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, output)
 }
 
-func getHeightAndWidth(r *http.Request) (int, int, bool) {
-	properties, _ := requestToProperties(r)
-	height, _ := strconv.Atoi(properties["height"])
-	width, _ := strconv.Atoi(properties["width"])
-
-	return height, width, true
-}
-
-func getGridHTML(h int, w int) string {
-	output := ""
-	for y := 0; y < h; y++ {
-		output += `<div class="grid-row">`
-		for x := 0; x < w; x++ {
-			var yStr = strconv.Itoa(y)
-			var xStr = strconv.Itoa(x)
-			output += `<div hx-post="/replace" hx-trigger="click" hx-include="[name='radio-tool']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square" id="c` + yStr + `-` + xStr + `"></div>`
-		}
-		output += `</div>`
-	}
-	return output
-}
-
 func createGrid(w http.ResponseWriter, r *http.Request) {
 	height, width, success := getHeightAndWidth(r)
 	if !success {
@@ -143,48 +125,76 @@ func createGrid(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	output := `
-    <div id="panel">
-        <div id="controls">
-			<form hx-post="/createGrid" hx-target="#panel" hx-swap="outerHTML">
-				<div>
-					<label>Input dimensions:</label>
-				</div>
-				<div>
-					<label for="height">Height:</label>
-					<input type="text" id="height" name="height" value="10">
-				</div>
-				<div>
-					<label for="width">Width:</label>
-					<input type="text" id="width" name="width" value="14">
-				</div>
-				<div>
-					<button>Create</button>
-				</div>
-			</form>
-			<form hx-post="/saveArea">
-				<label>Name:</label>
-				<input type="text" name="areaName">
-				<label>Safe:</label>
-				<input type="checkbox" name="safe">
-				<button>Save</button>
-			</form>
-			<div id="tool_select"> 
-				<input type="radio" id="rt-select" name="radio-tool" value="select" checked>
-				<label for="rt-select">Select</label>
-				<input type="radio" id="rt-replace" name="radio-tool" value="replace">
-				<label for="rt-replace">Replace</label>
-				<input type="radio" id="rt-fill" name="radio-tool" value="fill">
-				<label for="rt-fill">Fill</label>
-				<input type="radio" id="rt-right" name="radio-tool" value="between">
-				<label for="rt-right">Fill between selected</label>
-			</div>
-        </div>
-        <div class="grid" id="screen">`
+	output := ``
+	output += divCreateArea()
+	output += divSaveArea()
+	output += divToolSelect()
+	output += getEmptyGridHTML(height, width)
+	output += divMaterialSelect()
 
-	output += getGridHTML(height, width)
-	output += `</div>
-	<div class="color-selector">
+	io.WriteString(w, output)
+}
+
+func getHeightAndWidth(r *http.Request) (int, int, bool) {
+	properties, _ := requestToProperties(r)
+	height, _ := strconv.Atoi(properties["height"])
+	width, _ := strconv.Atoi(properties["width"])
+
+	return height, width, true
+}
+
+func divSaveArea() string {
+	return `		
+	<div id="saveForm">
+		<form hx-post="/saveArea">
+			<label>Name:</label>
+			<input type="text" name="areaName">
+			<label>Safe:</label>
+			<input type="checkbox" name="safe">
+			<button>Save</button>
+		</form>
+	</div>`
+}
+
+func divToolSelect() string {
+	return `
+	<div id="tool_select"> 
+		<input type="radio" id="rt-select" name="radio-tool" value="select" checked>
+		<label for="rt-select">Select</label>
+		<input type="radio" id="rt-replace" name="radio-tool" value="replace">
+		<label for="rt-replace">Replace</label>
+		<input type="radio" id="rt-fill" name="radio-tool" value="fill">
+		<label for="rt-fill">Fill</label>
+		<input type="radio" id="rt-right" name="radio-tool" value="between">
+		<label for="rt-right">Fill between selected</label>
+	</div>
+	`
+}
+
+func getEmptyGridHTML(h int, w int) string {
+	output := `<div class="grid" id="screen">`
+	for y := 0; y < h; y++ {
+		output += `<div class="grid-row">`
+		for x := 0; x < w; x++ {
+			var yStr = strconv.Itoa(y)
+			var xStr = strconv.Itoa(x)
+			output += `<div hx-post="/replace" hx-trigger="click" hx-include="[name='radio-tool']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square" id="c` + yStr + `-` + xStr + `"></div>`
+		}
+		output += `</div>`
+	}
+	output += `</div>`
+	return output
+}
+
+func getHTMLFromArea(area Area) string {
+	output := `<div class="grid" id="screen">`
+	output += `</div>`
+	return output
+}
+
+func divMaterialSelect() string {
+	output := `
+	<div id="material-selector">
 		<label>Materials</label>
 		<select name="materialId" hx-get="/select" hx-target="#selectedMaterial">
 			<option value="">--</option>	
@@ -195,23 +205,17 @@ func createGrid(w http.ResponseWriter, r *http.Request) {
 
 	output += `
 		</select>
-	</div>
+	</div>`
+
+	output += `
 	<div id="selectedMaterial" class="grid-row">`
 
 	if &selectedMaterial != nil {
-		output += fmt.Sprintf(`<div class="grid-square %s></div>`, selectedMaterial.CssClassName)
+		output += fmt.Sprintf(`<div class="grid-square %s"></div>`, selectedMaterial.CssClassName)
 	}
 
-	output += `</div></div></div>`
-	io.WriteString(w, output)
-
-}
-
-func dataFromRequest(r *http.Request) (int, int, bool) {
-	yCoord, _ := strconv.Atoi(r.Header["Y"][0])
-	xCoord, _ := strconv.Atoi(r.Header["X"][0])
-
-	return yCoord, xCoord, true
+	output += `</div>`
+	return output
 }
 
 // This is insane send as parameter instead?
@@ -250,6 +254,13 @@ func clickOnSquare(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func dataFromRequest(r *http.Request) (int, int, bool) {
+	yCoord, _ := strconv.Atoi(r.Header["Y"][0])
+	xCoord, _ := strconv.Atoi(r.Header["X"][0])
+
+	return yCoord, xCoord, true
+}
+
 func selectSquare(y, x int) string {
 	output := ""
 	if haveSelection {
@@ -281,7 +292,6 @@ func replaceSquare(y int, x int) string {
 
 func fillFrom(y int, x int) string {
 	targetId := modifications[y][x].ID
-	fmt.Println(targetId)
 	seen := make([][]bool, len(modifications))
 	for row := range seen {
 		seen[row] = make([]bool, len(modifications[row]))
