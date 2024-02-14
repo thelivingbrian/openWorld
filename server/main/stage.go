@@ -102,11 +102,11 @@ func sendUpdate(update Update) {
 
 // Enqueue updates
 
-func (stage *Stage) updateAllWithHud(update string) {
+func (stage *Stage) updateAllWithHud(tiles []*Tile) {
 	stage.playerMutex.Lock()
 	defer stage.playerMutex.Unlock()
 	for _, player := range stage.playerMap {
-		oobUpdateWithHud(player, update)
+		oobUpdateWithHud(player, tiles)
 	}
 }
 
@@ -115,8 +115,55 @@ func (stage *Stage) updateAllWithHudAfterDelay(delay int) {
 	stage.playerMutex.Lock()
 	defer stage.playerMutex.Unlock()
 	for _, player := range stage.playerMap {
-		oobUpdateWithHud(player, "")
+		oobUpdateWithHud(player, nil)
 	}
+}
+
+func (stage *Stage) updateAllWithHudExcept(ignore *Player, tiles []*Tile) {
+	stage.playerMutex.Lock()
+	defer stage.playerMutex.Unlock()
+	for _, player := range stage.playerMap {
+		if player == ignore {
+			continue
+		}
+		oobUpdateWithHud(player, tiles)
+	}
+}
+
+func updateOneWithHud(player *Player, tiles []*Tile) {
+	oobUpdateWithHud(player, tiles)
+}
+
+func oobUpdateWithHud(player *Player, tiles []*Tile) {
+	player.stage.updates <- Update{player, []byte(tileHtmlWithHud(player, tiles))}
+}
+
+func tileHtmlWithHud(player *Player, tiles []*Tile) string {
+	highlights := ""
+	// Create slice of proper size? Currently has many null entries
+
+	// Still risk here of concurrent read/write?
+	for _, tile := range tiles {
+		if tile == nil {
+			continue
+		}
+		_, impactsHud := player.actions.shiftHighlights[tile]
+		if impactsHud && player.actions.boostCounter > 0 {
+			highlights += oobColoredTile(tile, shiftHighlighter(tile))
+			continue
+		}
+		_, impactsHud = player.actions.spaceHighlights[tile]
+		if impactsHud {
+			highlights += oobColoredTile(tile, spaceHighlighter(tile))
+			continue
+		}
+		highlights += htmlFromTile(tile)
+	}
+
+	// Maybe should just be the actual color, or do similar check to see if it was impacted
+	playerIcon := fmt.Sprintf(`<div class="grid-square fusia" id="c%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
+
+	return highlights + playerIcon
 }
 
 func (stage *Stage) updateAll(update string) {
@@ -127,45 +174,14 @@ func (stage *Stage) updateAll(update string) {
 	}
 }
 
-func (stage *Stage) updateAllWithHudExcept(update string, ignore *Player) {
-	stage.playerMutex.Lock()
-	defer stage.playerMutex.Unlock()
-	for _, player := range stage.playerMap {
-		if player == ignore {
-			continue
-		}
-		oobUpdateWithHud(player, update)
-	}
-}
-
-func updateOneWithHud(update string, player *Player) {
-	oobUpdateWithHud(player, update)
-}
-
 func updateOne(update string, player *Player) {
 	player.stage.updates <- Update{player, []byte(update)}
 }
 
-// Same as oobUpdateWithHud with a death check. Delete?
-// Technically server cheaper than updateFromScratch I think.
-func updateScreenWithStarter(player *Player, html string) {
-	if player.isDead() {
-		respawn(player)
-		return
-	}
-	html += hudAsOutOfBound(player)
-	player.stage.updates <- Update{player, []byte(html)}
-}
-
-// Death check here feels weird, examine
 func updateScreenFromScratch(player *Player) {
-	if player.isDead() {
-		respawn(player)
-		return
-	}
+	//if player.isDead() {
+	//	respawn(player)
+	//	return
+	//}
 	player.stage.updates <- Update{player, htmlFromPlayer(player)}
-}
-
-func oobUpdateWithHud(player *Player, update string) {
-	player.stage.updates <- Update{player, []byte(update + hudAsOutOfBound(player))}
 }

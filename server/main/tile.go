@@ -50,7 +50,7 @@ func newTile(mat Material, y int, x int) *Tile {
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	tile.addPlayer(player)
-	tile.stage.updateAllWithHudExcept(htmlFromTile(tile), player)
+	tile.stage.updateAllWithHudExcept(player, []*Tile{tile}) // Should take []Tile not html
 }
 
 func (tile *Tile) addPlayer(player *Player) {
@@ -87,7 +87,7 @@ func (tile *Tile) addPlayer(player *Player) {
 
 func (tile *Tile) removePlayerAndNotifyOthers(player *Player) {
 	tile.removePlayer(player.id)
-	tile.stage.updateAllWithHudExcept(htmlFromTile(tile), player)
+	tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
 }
 
 func (tile *Tile) removePlayer(playerId string) {
@@ -115,7 +115,7 @@ func (tile *Tile) getAPlayer() *Player {
 
 func (tile *Tile) changeColorAndNotifyAll(cssClass string) {
 	tile.currentCssClass = cssClass
-	tile.stage.updateAllWithHud(htmlFromTile(tile))
+	tile.stage.updateAllWithHud([]*Tile{tile})
 
 }
 
@@ -134,7 +134,8 @@ func (tile *Tile) tryToNotifyAfter(delay int) {
 	tile.eventsInFlight.Add(-1)
 	if tile.eventsInFlight.Load() == 0 {
 		// return string instead?
-		tile.stage.updateAll(htmlFromTile(tile))
+		//tile.stage.updateAll(htmlFromTile(tile))
+		tile.stage.updateAllWithHud([]*Tile{tile})
 	}
 }
 
@@ -155,7 +156,8 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 		}
 		if first {
 			first = !survived // Gross but this ensures that surviving players aren't hidden by death
-			tile.stage.updateAllWithHudExcept(htmlFromTile(tile), player)
+			// Does multiple updates could be improved
+			tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
 		}
 	}
 }
@@ -164,18 +166,18 @@ func walkable(tile *Tile) bool {
 	return tile.material.Walkable
 }
 
-func (tile *Tile) addPowerUpAndNotifyAll(player *Player, shape [][2]int) { // Except
+func (tile *Tile) addPowerUpAndNotifyAll(player *Player, shape [][2]int) {
 	tile.powerUp = &PowerUp{shape, [4]int{100, 100, 100, 100}}
 	html := htmlFromTile(tile)
-	tile.stage.updateAllWithHudExcept(html, player)
-	updateOne(html, player)
+	tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
+	updateOne(html, player) // Hides player token
 }
 
 func (tile *Tile) addBoostsAndNotifyAll(player *Player) {
 	//fmt.Println("Adding Boost")
 	tile.boosts += 5
 	html := htmlFromTile(tile)
-	tile.stage.updateAllWithHudExcept(html, player)
+	tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
 	updateOne(html, player)
 
 }
@@ -183,20 +185,11 @@ func (tile *Tile) addBoostsAndNotifyAll(player *Player) {
 func cssClassFromHealth(player *Player) string {
 	// >120 indicator
 	// Middle range choosen color? or only in safe
-	if player.health >= 80 {
-		return "green"
-	}
-	if player.health >= 60 {
-		return "lime"
-	}
-	if player.health >= 40 {
-		return "yellow"
-	}
-	if player.health >= 20 {
-		return "orange"
+	if player.health > 50 {
+		return "red"
 	}
 	if player.health >= 0 {
-		return "red"
+		return "dark-red"
 	}
 	return "blue" //shouldn't happen but want to be visible
 }
@@ -217,6 +210,14 @@ func mapOfTileToOoB(m map[*Tile]bool) string {
 		html += htmlFromTile(tile)
 	}
 	return html
+}
+
+func mapOfTileToArray(m map[*Tile]bool) []*Tile {
+	out := make([]*Tile, len(m))
+	for tile := range m {
+		out = append(out, tile)
+	}
+	return out
 }
 
 func sliceOfTileToColoredOoB(tiles []*Tile, cssClass string) string {

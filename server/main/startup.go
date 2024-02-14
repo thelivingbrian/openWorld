@@ -113,6 +113,7 @@ type Material struct {
 	B            int    `json:"B"`
 }
 
+// add color
 type Transport struct {
 	SourceY   int    `json:"sourceY"`
 	SourceX   int    `json:"sourceX"`

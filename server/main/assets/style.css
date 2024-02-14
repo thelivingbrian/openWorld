@@ -84,6 +84,10 @@ a {
     background-color: rgb(255, 32, 60);
   }
 
+  .dark-red {
+    background-color: rgb(155, 16, 30);
+  }
+
   .blue {
     background-color: rgb(72, 52, 238);
   }
@@ -94,6 +98,10 @@ a {
 
   .pink {
     background-color: rgb(253, 182, 215);
+  }
+
+  .salmon {
+    background-color: rgb(255, 165, 145);
   }
   
   .half-gray {
