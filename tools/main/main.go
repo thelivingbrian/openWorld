@@ -58,10 +58,11 @@ func main() {
 	http.HandleFunc("/createGrid", createGrid)
 	// rename /replace
 	http.HandleFunc("/clickOnSquare", clickOnSquare)
-	http.HandleFunc("/select", selectColor)
+	http.HandleFunc("/selectMaterial", selectMaterial)
 	http.HandleFunc("/exampleSquare", exampleSquare)
 	http.HandleFunc("/saveArea", saveArea)
 	http.HandleFunc("/editAreaPage", getEditAreaPage)
+	http.HandleFunc("/edit", edit)
 
 	err := http.ListenAndServe(":4444", nil)
 	if err != nil {

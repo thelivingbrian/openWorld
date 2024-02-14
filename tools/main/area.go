@@ -99,14 +99,33 @@ func divCreateArea() string {
 func getEditAreaPage(w http.ResponseWriter, r *http.Request) {
 	output := `
 	<div>
-		<label>Materials</label>
-		<select name="materialId">
+		<labelAreas</label>
+		<select name="area-name" hx-get="/edit" hx-target="#panel">
 			<option value="">--</option>
 	`
 	for _, area := range areas {
 		output += fmt.Sprintf(`<option value="%s">%s</option>`, area.Name, area.Name)
 	}
-	output += "</select></div>"
+	output += `</select>
+	</div>
+	<div id="edit-area">
+	
+	</div>`
+	io.WriteString(w, output)
+}
+
+func edit(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	name := queryValues.Get("area-name")
+
+	var selectedArea Area
+	for _, area := range areas {
+		if name == area.Name {
+			selectedArea = area
+		}
+	}
+
+	output := getHTMLFromArea(selectedArea)
 	io.WriteString(w, output)
 }
 
@@ -192,7 +211,7 @@ func getHTMLFromArea(area Area) string {
 		for x := range area.Tiles[y] {
 			var yStr = strconv.Itoa(y)
 			var xStr = strconv.Itoa(x)
-			output += `<div hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square` + materials[area.Tiles[y][x]].CssClassName + `" id="c` + yStr + `-` + xStr + `"></div>`
+			output += `<div hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + materials[area.Tiles[y][x]].CssClassName + `" id="c` + yStr + `-` + xStr + `"></div>`
 		}
 		output += `</div>`
 	}
@@ -204,7 +223,7 @@ func divMaterialSelect() string {
 	output := `
 	<div id="material-selector">
 		<label>Materials</label>
-		<select name="materialId" hx-get="/select" hx-target="#selected-material-div">
+		<select name="materialId" hx-get="/selectMaterial" hx-target="#selected-material-div">
 			<option value="">--</option>	
 	`
 	for _, material := range materials {
@@ -219,7 +238,7 @@ func divMaterialSelect() string {
 	return output
 }
 
-func selectColor(w http.ResponseWriter, r *http.Request) {
+func selectMaterial(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	id := queryValues.Get("materialId")
 
