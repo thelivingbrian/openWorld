@@ -33,6 +33,7 @@ func saveArea(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	name := properties["areaName"]
 	safe := (properties["safe"] == "on")
+	new := (properties["new"] == "true")
 
 	if len(modifications) == 0 {
 		return
@@ -48,7 +49,17 @@ func saveArea(w http.ResponseWriter, r *http.Request) {
 
 	area := Area{Name: name, Safe: safe, Tiles: tiles, Transports: nil}
 
-	areas = append(areas, area)
+	// This will delete any Transports
+	index := getIndexOfAreaByName(name)
+	if index < 0 {
+		areas = append(areas, area)
+	} else {
+		if new {
+			io.WriteString(w, `<h2>Invalid Name</h2>`)
+			return
+		}
+		areas[index] = area
+	}
 
 	data, err := json.Marshal(areas)
 	if err != nil {
@@ -66,6 +77,7 @@ func saveArea(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	io.WriteString(w, `<h2>Sucess</h2>`)
 	return
 }
 
@@ -100,7 +112,7 @@ func getEditAreaPage(w http.ResponseWriter, r *http.Request) {
 	output := `
 	<div>
 		<labelAreas</label>
-		<select name="area-name" hx-get="/edit" hx-target="#panel">
+		<select name="area-name" hx-get="/edit" hx-target="#edit-area">
 			<option value="">--</option>
 	`
 	for _, area := range areas {
@@ -118,15 +130,47 @@ func edit(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	name := queryValues.Get("area-name")
 
-	var selectedArea Area
-	for _, area := range areas {
+	index := getIndexOfAreaByName(name)
+	if index < 0 {
+		io.WriteString(w, "<h2>Invalid Area</h2>")
+		return
+	}
+	selectedArea := areas[index]
+
+	modifications = AreaToMaterialGrid(selectedArea)
+	output := divSaveArea(selectedArea)
+	output += `<div id="edit_window" class="side">
+					<div id="edit_material">`
+	output += getHTMLFromArea(selectedArea) + divToolSelect() + divMaterialSelect()
+
+	output += `		</div>
+					<div id="edit_transports">
+						
+					</div>
+				</div>`
+	io.WriteString(w, output)
+}
+
+func getIndexOfAreaByName(name string) int {
+	out := -1
+	for i, area := range areas {
 		if name == area.Name {
-			selectedArea = area
+			out = i
+			break
 		}
 	}
+	return out
+}
 
-	output := getHTMLFromArea(selectedArea)
-	io.WriteString(w, output)
+func AreaToMaterialGrid(area Area) [][]Material {
+	out := make([][]Material, len(area.Tiles))
+	for y, _ := range area.Tiles {
+		out[y] = make([]Material, len(area.Tiles[y]))
+		for x, _ := range area.Tiles[y] {
+			out[y][x] = materials[area.Tiles[y][x]]
+		}
+	}
+	return out
 }
 
 func createGrid(w http.ResponseWriter, r *http.Request) {
@@ -145,7 +189,7 @@ func createGrid(w http.ResponseWriter, r *http.Request) {
 
 	output := ``
 	output += divCreateArea()
-	output += divSaveArea()
+	output += divNewSaveArea()
 	output += divToolSelect()
 	output += getEmptyGridHTML(height, width)
 	output += divMaterialSelect()
@@ -161,14 +205,35 @@ func getHeightAndWidth(r *http.Request) (int, int, bool) {
 	return height, width, true
 }
 
-func divSaveArea() string {
+func divSaveArea(area Area) string {
+	checked := ""
+	if area.Safe {
+		checked = "checked"
+	}
 	return `		
 	<div id="saveForm">
-		<form hx-post="/saveArea">
+		<div id="save_notice"></div>
+		<form hx-post="/saveArea" hx-target="#save_notice">
 			<label>Name:</label>
-			<input type="text" name="areaName">
+			<input type="text" name="areaName" value="` + area.Name + `">
 			<label>Safe:</label>
-			<input type="checkbox" name="safe">
+			<input type="checkbox" name="safe" ` + checked + `>
+			<input type="hidden" name="new" value="false"/>
+			<button>Save</button>
+		</form>
+	</div>`
+}
+
+func divNewSaveArea() string {
+	return `		
+	<div id="saveForm">
+		<div id="save_notice"></div>
+		<form hx-post="/saveArea" hx-target="#save_notice">
+			<label>Name:</label>
+			<input type="text" name="areaName" value="" />
+			<label>Safe:</label>
+			<input type="checkbox" name="safe" />
+			<input type="hidden" name="new" value="true"/>
 			<button>Save</button>
 		</form>
 	</div>`

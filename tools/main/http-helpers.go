@@ -15,6 +15,7 @@ func requestToProperties(r *http.Request) (map[string]string, bool) {
 	}
 
 	bodyS := string(body[:])
+	fmt.Println(bodyS)
 	return bodyStringToProperties(bodyS), true
 }
 
