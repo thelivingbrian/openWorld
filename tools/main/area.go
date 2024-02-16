@@ -140,12 +140,12 @@ func edit(w http.ResponseWriter, r *http.Request) {
 	modifications = AreaToMaterialGrid(selectedArea)
 	output := divSaveArea(selectedArea)
 	output += `<div id="edit_window" class="side">
-					<div id="edit_material">`
+					<div id="edit_material" class="left">`
 	output += getHTMLFromArea(selectedArea) + divToolSelect() + divMaterialSelect()
 
 	output += `		</div>
-					<div id="edit_transports">
-						
+					<div id="edit_transports" class="left">
+						<h2>check</h2>
 					</div>
 				</div>`
 	io.WriteString(w, output)
