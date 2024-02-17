@@ -150,8 +150,8 @@ func edit(w http.ResponseWriter, r *http.Request) {
 					<div id="edit_sidebar" class="left">
 						<div id="edit_options">
 							<a hx-get="/editTransports" hx-target="#edit_tool" href="#">Edit Transports</a> | 
-							<a href="#">Edit Display</a> | 
-							<a href="#">Edit Neighbors</a>
+							<a hx-get="/editDisplay" hx-target="#edit_tool" href="#">Edit Display</a> | 
+							<a hx-get="/editNeighbors" hx-target="#edit_tool" href="#">Edit Neighbors</a>
 						</div>
 						<div id="edit_tool">
 						
@@ -184,6 +184,26 @@ func editTransport(w http.ResponseWriter, r *http.Request) {
 	currentTransport.DestStage = destStage
 
 	output := transportFormHtml(currentTransports)
+	io.WriteString(w, output)
+}
+
+func editDisplay(w http.ResponseWriter, r *http.Request) {
+	output := `<div id="edit_display">
+					<h3>Select BgColor</h3>
+					<h3>Show/Hide Grid-lines</h3>
+					<h3>Show/Hide Transports</h3>
+					<h3>Show/Hide Ceiling</h3>
+				</div>`
+	io.WriteString(w, output)
+}
+
+func editNeighbors(w http.ResponseWriter, r *http.Request) {
+	output := `<div id="edit_neighbors">
+					<h3>North: </h3>
+					<h3>South: </h3>
+					<h3>East: </h3>
+					<h3>West: </h3>
+				</div>`
 	io.WriteString(w, output)
 }
 

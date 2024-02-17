@@ -64,6 +64,8 @@ func main() {
 	http.HandleFunc("/edit", edit)
 	http.HandleFunc("/editTransports", editTransports)
 	http.HandleFunc("/editTransport", editTransport)
+	http.HandleFunc("/editDisplay", editDisplay)
+	http.HandleFunc("/editNeighbors", editNeighbors)
 
 	err := http.ListenAndServe(":4444", nil)
 	if err != nil {
