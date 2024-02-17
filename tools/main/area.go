@@ -28,6 +28,7 @@ var haveSelection bool = false
 var selectedX int
 var selectedY int
 var modifications [][]Material
+var currentTransports []Transport
 
 func saveArea(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
@@ -58,6 +59,7 @@ func saveArea(w http.ResponseWriter, r *http.Request) {
 			io.WriteString(w, `<h2>Invalid Name</h2>`)
 			return
 		}
+		area.Transports = currentTransports
 		areas[index] = area
 	}
 
@@ -138,17 +140,116 @@ func edit(w http.ResponseWriter, r *http.Request) {
 	selectedArea := areas[index]
 
 	modifications = AreaToMaterialGrid(selectedArea)
+	currentTransports = selectedArea.Transports
 	output := divSaveArea(selectedArea)
 	output += `<div id="edit_window" class="side">
 					<div id="edit_material" class="left">`
 	output += getHTMLFromArea(selectedArea) + divToolSelect() + divMaterialSelect()
 
 	output += `		</div>
-					<div id="edit_transports" class="left">
-						<h2>check</h2>
+					<div id="edit_sidebar" class="left">
+						<div id="edit_options">
+							<a hx-get="/editTransports" hx-target="#edit_tool" href="#">Edit Transports</a> | 
+							<a href="#">Edit Display</a> | 
+							<a href="#">Edit Neighbors</a>
+						</div>
+						<div id="edit_tool">
+						
+						</div>
 					</div>
 				</div>`
 	io.WriteString(w, output)
+}
+
+func editTransports(w http.ResponseWriter, r *http.Request) {
+	output := transportFormHtml(currentTransports)
+	output += transportsAsOob(currentTransports)
+	io.WriteString(w, output)
+}
+
+func editTransport(w http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	transportId, _ := strconv.Atoi(properties["transport-id"])
+	destStage := properties["transport-stage-name"]
+	destY, _ := strconv.Atoi(properties["transport-dest-y"])
+	destX, _ := strconv.Atoi(properties["transport-dest-x"])
+	sourceY, _ := strconv.Atoi(properties["transport-source-y"])
+	sourceX, _ := strconv.Atoi(properties["transport-source-x"])
+
+	currentTransport := &currentTransports[transportId]
+	currentTransport.DestY = destY
+	currentTransport.DestX = destX
+	currentTransport.SourceY = sourceY
+	currentTransport.SourceX = sourceX
+	currentTransport.DestStage = destStage
+
+	output := transportFormHtml(currentTransports)
+	io.WriteString(w, output)
+}
+
+func transportFormHtml(transports []Transport) string {
+	output := `<div id="edit_transports">
+					<h4>Transports: </h4>`
+	for i := range transports {
+		output += editTransportForm(i, transports[i])
+	}
+	output += `</div>`
+	return output
+}
+
+func transportsAsOob(transports []Transport) string {
+	output := ``
+	for range transports {
+		output += ``
+	}
+	output += ``
+	return output
+}
+
+func editTransportForm(i int, t Transport) string {
+	output := fmt.Sprintf(`
+	<form hx-post="/editTransport" hx-target="#edit_transports" hx-swap="outerHTML">
+		<input type="hidden" name="transport-id" value="%d" />
+		<table>
+			<tr>
+				<td align="right">Dest stage-name:</td>
+				<td align="left">
+					<input type="text" name="transport-stage-name" value="%s" />
+				</td>
+			</tr>
+			<tr>
+				<td align="right">Dest y</td>
+				<td align="left">
+					<input type="text" name="transport-dest-y" value="%d" />
+				</td>
+				<td align="right">x</td>
+				<td align="left">
+					<input type="text" name="transport-dest-x" value="%d" />
+				</td>
+			</tr>
+			<tr>
+				<td align="right">Source y</td>
+				<td align="left">
+					<input type="text" name="transport-source-y" value="%d" />
+				</td>
+				<td align="right">x</td>
+				<td align="left">
+					<input type="text" name="transport-source-x" value="%d" />
+				</td>
+			</tr>
+			<tr>
+				<td align="right">Css-class:</td>
+				<td align="left">
+					<input type="text" name="transport-css-class" value="%s" />
+				</td>
+			<tr />
+		</table>
+
+		<button class="btn">Submit</button>
+		<button class="btn" hx-post="/duplicateTransport">Duplicate</button>
+		<button class="btn" hx-post="/deleteTransport">Delete</button>
+	</form>`, i, t.DestStage, t.DestY, t.DestX, t.SourceY, t.SourceX, "pink")
+	return output
 }
 
 func getIndexOfAreaByName(name string) int {
