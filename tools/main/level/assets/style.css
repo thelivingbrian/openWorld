@@ -1,49 +1,59 @@
-.grid {
-    display: grid;
+/*@font-face {
+    font-family: 'BloopRetro';
+    src: url('PIXY.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
 }
 
-.grid-row {
+.retro-input {
+    background-color: #120500;
+    caret-color: cyan;
+    color: white;
+    font-size: 20px;
+}
+
+body {
+    background-color: #120500;
+    font-family: 'BloopRetro', sans-serif;
+    width:100%;
     display: flex;
-    grid-template-columns: repeat(40, 30px);
+    justify-content: center;
+    color: white;
+    font-size: 28px;
+}
+*/
+
+.day {
+    background-color: #aaffff;
 }
 
-.grid-square {
-    width: 26px;
-    height: 26px;
-    border: 2px solid rgb(42,136,255,1);
-    padding: 0px;
-    margin: 0px;
-    background-color: rgb(172, 152, 219);
-    cursor: pointer;
+.night {
+    background-color: #120500;
 }
 
-.box0 {
-    z-index: 5;
-    width: 26px;
-    height: 26px;
-    position: relative;
-    top: -1.5px;
-    left: -1.5px;
-    background: rgba(0,0,0,0);
-    opacity: 1.0;
-    border: 2px solid rgba(0,0,255,.5);
-    border-bottom-left-radius: 8px
-  }
-  
-.box1 {
-    z-index: 10;
-    width: 26px;
-    height: 26px;
-    position: relative;
-    top: -31px;
-    left: -1.5px;
-    margin: 0;
-    padding: 0;
-    opacity: .2;
-    background: #ee0000;
-    border: 2px solid rgba(255,255,255,0);
-  }
+.twilight {
+    background-color: #ff6a5c;
+}
 
+#logo {
+    width:100%;
+    display: flex;
+    justify-content: center;
+}
+
+.large-font {
+    font-size: 35px;
+}
+
+/*
+#landing {
+    text-align: center;
+}
+
+a {
+    color: #00ffff;
+}
+*/
 
 .left {
     float: left;
@@ -51,15 +61,204 @@
     padding: 15px;
 }
 
-.selected {
-    border: 2px solid rgb(253, 0, 0);
-    background-color: rgba(253, 182, 215, 0.5);
-}
+.grid {
+    display: grid;
+    /*grid-gap: 1px;*/
+  }
+  
+  .grid-row {
+    display: flex;
+    /*grid-template-columns: repeat(40, 30px);*/
+  }
+  
+  .grid-square {
+    width: 30px;
+    height: 30px;
+    background-color: rgb(172, 152, 219);
+    cursor: pointer;
+  }
+  
+/* these colors are needed by the game itself */
 
-.highlighted {
-    background-color: rgba(253, 182, 215, 0.5);
-}
+  .green {
+    background-color: rgb(32, 255, 60);
+  }
 
-.pink {
+  .dark-green {
+    background-color: rgb(32, 155, 60);
+  }
+
+  .lime {
+    background-color: rgb(150, 255, 60);
+  }
+
+  .yellow {
+    background-color: rgb(255, 255, 60);
+  }
+
+  .orange {
+    background-color: rgb(255, 150, 60);
+  }
+
+  .red {
+    background-color: rgb(255, 32, 60);
+  }
+
+  .dark-red {
+    background-color: rgb(155, 16, 30);
+  }
+
+  .blue {
+    background-color: rgb(72, 52, 238);
+  }
+
+  .fusia {
+    background-color: rgb(253, 52, 172);
+  }
+
+  .pink {
     background-color: rgb(253, 182, 215);
   }
+
+  .salmon {
+    background-color: rgb(255, 165, 145);
+  }
+  
+  .half-gray {
+    background-color: rgb(120, 120, 129);
+  }
+  
+  .dark-blue {
+    background-color: rgb(32, 32, 65);
+  }
+
+/* Overlays */
+* {
+    box-sizing: border-box;
+  }
+
+.box0 {
+    z-index: 5;
+    width: 30px;
+    height: 30px;
+    position: relative;
+    top: 0px;
+    left: 0px;
+    margin: 0px;
+    padding: 0px;
+    /*opacity: 1;
+    border-bottom-left-radius: 8px*/
+  }
+  
+.box1 {
+    z-index: 10;
+    width: 30px;
+    height: 30px;
+    position: relative;
+    top: -30px;
+    left: 0px;
+    margin: 0px;
+    padding: 0px;
+    /*opacity: 1;
+    background: rgba(255,255,255,0);
+    border: 2px solid rgba(255,0,0,1);*//
+  }
+  
+.box2 {
+    z-index: 15;
+    width: 30px;
+    height: 30px;
+    position: relative;
+    top: -60px;
+    left: 0px;
+    margin: 0px;
+    padding: 0px;
+    /*opacity: .5;
+    background: rgba(255,0,255,1);
+    border: 2px solid rgba(255,255,255,0);*/
+}
+
+.transparent {
+    opacity: 0;
+}
+
+.transparent20 {
+    opacity: .2;
+}
+
+.transparent40 {
+    opacity: .4;
+}
+
+.half-transparent {
+    opacity: .5;
+}
+
+.transparent60 {
+    opacity: .60;
+}
+
+.transparent80 {
+    opacity: .80;
+}
+
+.non-transparent {
+    opacity: 1;
+}
+
+.radius-bl {
+    border-bottom-left-radius: 10px
+}
+
+.radius-br {
+    border-bottom-right-radius: 10px
+}
+
+.radius-tl {
+    border-top-left-radius: 10px
+}
+
+.radius-tr {
+    border-top-right-radius: 10px
+}
+
+.radius-all {
+    border-radius: 10px
+}
+
+.thin {
+    border-style: solid;
+    border-width: 1px;
+}
+
+.med {
+    border-style: solid;
+    border-width: 2px;
+}
+
+.thick {
+    border-style: solid;
+    border-width: 5px;
+}
+
+/* SVG  */
+
+.svgGreen {  
+    fill: rgb(105, 255, 100);
+    fill-opacity: .6;
+}
+
+.svgRed {
+    fill: rgb(255, 105, 100);
+    fill-opacity: .8;
+}
+
+.svgBlue {
+    fill: rgb(15, 100, 255);
+    fill-opacity: .8;
+}
+
+.svgYellow {
+    fill: rgb(255, 255, 100);
+    fill-opacity: .8;
+}

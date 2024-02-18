@@ -119,18 +119,18 @@ func getKeyPress(input []byte) (key string, token string, success bool) {
 
 func (player *Player) handlePress(key string) {
 	if key == "w" {
-		class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "twilight"</script> </div>`
-		updateOne(class, player)
+		/*class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "twilight"</script> </div>`
+		updateOne(class, player)*/
 		player.moveNorth()
 	}
 	if key == "a" {
-		class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "day"</script> </div>`
-		updateOne(class, player)
+		/*class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "day"</script> </div>`
+		updateOne(class, player)*/
 		player.moveWest()
 	}
 	if key == "s" {
-		class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "night"</script> </div>`
-		updateOne(class, player)
+		/*class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "night"</script> </div>`
+		updateOne(class, player)*/
 		player.moveSouth()
 	}
 	if key == "d" {

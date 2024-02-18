@@ -241,7 +241,7 @@ func createCSSFile() {
 	defer cssFile.Close()
 
 	for _, material := range materials {
-		cssRule := fmt.Sprintf(".%s {\n    background-color: rgb(%d, %d, %d);\n}\n\n", material.CssClassName, material.R, material.G, material.B)
+		cssRule := fmt.Sprintf(".%s { background-color: rgb(%d, %d, %d); }\n\n.%s-b { border-color: rgb(%d, %d, %d); }\n\n", material.CssClassName, material.R, material.G, material.B, material.CssClassName, material.R, material.G, material.B)
 		_, err := cssFile.WriteString(cssRule)
 		if err != nil {
 			panic(err)
