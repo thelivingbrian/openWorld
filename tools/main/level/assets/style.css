@@ -1,66 +1,3 @@
-/*@font-face {
-    font-family: 'BloopRetro';
-    src: url('PIXY.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-}
-
-.retro-input {
-    background-color: #120500;
-    caret-color: cyan;
-    color: white;
-    font-size: 20px;
-}
-
-body {
-    background-color: #120500;
-    font-family: 'BloopRetro', sans-serif;
-    width:100%;
-    display: flex;
-    justify-content: center;
-    color: white;
-    font-size: 28px;
-}
-*/
-
-.day {
-    background-color: #aaffff;
-}
-
-.night {
-    background-color: #120500;
-}
-
-.twilight {
-    background-color: #ff6a5c;
-}
-
-#logo {
-    width:100%;
-    display: flex;
-    justify-content: center;
-}
-
-.large-font {
-    font-size: 35px;
-}
-
-/*
-#landing {
-    text-align: center;
-}
-
-a {
-    color: #00ffff;
-}
-*/
-
-.left {
-    float: left;
-    /*border: 2px solid red;*/
-    padding: 15px;
-}
-
 .grid {
     display: grid;
     /*grid-gap: 1px;*/
@@ -78,7 +15,23 @@ a {
     cursor: pointer;
   }
   
-/* these colors are needed by the game itself */
+  .left {
+      float: left;
+      /*border: 2px solid red;*/
+      padding: 15px;
+  }
+  
+  .day {
+      background-color: #aaffff;
+  }
+  
+  .night {
+      background-color: #120500;
+  }
+  
+  .twilight {
+      background-color: #ff6a5c;
+  }
 
   .green {
     background-color: rgb(32, 255, 60);
