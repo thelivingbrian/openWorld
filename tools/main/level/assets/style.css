@@ -8,12 +8,41 @@
 }
 
 .grid-square {
-    width: 30px;
-    height: 30px;
-    border: 1px solid #30a0f0;
+    width: 26px;
+    height: 26px;
+    border: 2px solid rgb(42,136,255,1);
+    padding: 0px;
+    margin: 0px;
     background-color: rgb(172, 152, 219);
     cursor: pointer;
 }
+
+.box0 {
+    z-index: 5;
+    width: 26px;
+    height: 26px;
+    position: relative;
+    top: -1.5px;
+    left: -1.5px;
+    background: rgba(0,0,0,0);
+    opacity: 1.0;
+    border: 2px solid rgba(0,0,255,.5);
+    border-bottom-left-radius: 8px
+  }
+  
+.box1 {
+    z-index: 10;
+    width: 26px;
+    height: 26px;
+    position: relative;
+    top: -31px;
+    left: -1.5px;
+    margin: 0;
+    padding: 0;
+    opacity: .2;
+    background: #ee0000;
+    border: 2px solid rgba(255,255,255,0);
+  }
 
 
 .left {
@@ -23,5 +52,14 @@
 }
 
 .selected {
-    border: 1px solid #ff2020;
+    border: 2px solid rgb(253, 0, 0);
+    background-color: rgba(253, 182, 215, 0.5);
 }
+
+.highlighted {
+    background-color: rgba(253, 182, 215, 0.5);
+}
+
+.pink {
+    background-color: rgb(253, 182, 215);
+  }
