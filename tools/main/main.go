@@ -1,14 +1,14 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 )
 
+/*
 var materials []Material
 var areas []Area
+
 
 func populateMaterialsFromJson() {
 	jsonData, err := os.ReadFile("./level/data/materials.json")
@@ -35,11 +35,7 @@ func populateAreasFromJson() {
 
 	fmt.Printf("Loaded %d area(s).\n", len(areas))
 }
-
-func populateFromJson() {
-	populateMaterialsFromJson()
-	populateAreasFromJson()
-}
+*/
 
 func main() {
 	fmt.Println("Attempting to start server...")
@@ -48,11 +44,18 @@ func main() {
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./level/assets"))))
 
 	http.HandleFunc("/materialPage", getMaterialPage)
-	http.HandleFunc("/material", getMaterial)
-	http.HandleFunc("/materialEdit", materialEdit)
-	http.HandleFunc("/newMaterialForm", newMaterialForm)
-	http.HandleFunc("/materialNew", materialNew)
-	http.HandleFunc("/submit", submit)
+
+	http.HandleFunc("/getEditMaterial", getEditMaterial)
+	http.HandleFunc("/editMaterial", editMaterial)
+	http.HandleFunc("/getNewMaterial", getNewMaterial)
+	http.HandleFunc("/newMaterial", newMaterial)
+
+	http.HandleFunc("/getEditColor", getEditColor)
+	http.HandleFunc("/editColor", editColor)
+	http.HandleFunc("/getNewColor", getNewColor)
+	http.HandleFunc("/newColor", newColor)
+
+	http.HandleFunc("/outputIngredients", outputIngredients)
 
 	http.HandleFunc("/areaPage", getCreateArea)
 	http.HandleFunc("/createGrid", createGrid)

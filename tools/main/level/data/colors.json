@@ -1,0 +1,24 @@
+[
+    {"cssClassName": "invisible", "R": 0, "G": 0, "B": 0, "A": "0"},
+    {"cssClassName": "day", "R": 170, "G": 255, "B": 255},
+    {"cssClassName": "night", "R": 18, "G": 5, "B": 0},
+    {"cssClassName": "twilight", "R": 255, "G": 106, "B": 92},
+    {"cssClassName": "green", "R": 32, "G": 255, "B": 60},
+    {"cssClassName": "dark-green", "R": 32, "G": 155, "B": 60},
+    {"cssClassName": "lime", "R": 150, "G": 255, "B": 60},
+    {"cssClassName": "yellow", "R": 255, "G": 255, "B": 60},
+    {"cssClassName": "orange", "R": 255, "G": 150, "B": 60},
+    {"cssClassName": "red", "R": 255, "G": 32, "B": 60},
+    {"cssClassName": "dark-red", "R": 155, "G": 16, "B": 30},
+    {"cssClassName": "blue", "R": 72, "G": 52, "B": 238},
+    {"cssClassName": "fusia", "R": 253, "G": 52, "B": 172},
+    {"cssClassName": "pink", "R": 253, "G": 182, "B": 215},
+    {"cssClassName": "salmon", "R": 255, "G": 165, "B": 145},
+    {"cssClassName": "half-gray", "R": 120, "G": 120, "B": 129},
+    {"cssClassName": "dark-blue", "R": 32, "G": 32, "B": 65},
+    {"cssClassName": "sand", "R": 250, "G": 245, "B": 175},
+    {"cssClassName": "grass", "R": 210, "G": 250, "B": 180},
+    {"cssClassName": "ice", "R": 225, "G": 240, "B": 255},
+    {"cssClassName": "wall", "R": 100, "G": 100, "B": 100}
+  ]
+  

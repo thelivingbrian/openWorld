@@ -14,7 +14,7 @@
     background-color: rgb(172, 152, 219);
     cursor: pointer;
   }
-  
+
   .left {
       float: left;
       /*border: 2px solid red;*/
@@ -75,15 +75,13 @@
 
   .salmon {
     background-color: rgb(255, 165, 145);
-  }
-  
-  .half-gray {
-    background-color: rgb(120, 120, 129);
-  }
-  
-  .dark-blue {
-    background-color: rgb(32, 32, 65);
-  }
+  } 
+.half-gray { background-color: rgb(120, 120, 129); }  
+.dark-blue { background-color: rgb(32, 32, 65); }
+.sand { background-color: rgb(250, 245, 175); }
+.grass { background-color: rgb(210, 250, 180); }
+.ice { background-color: rgb(225, 240, 255); }
+.wall { background-color: rgb(100, 100, 100); }
 
 /* Overlays */
 * {
