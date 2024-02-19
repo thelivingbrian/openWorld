@@ -110,6 +110,7 @@ func (stage *Stage) updateAllWithHud(tiles []*Tile) {
 	}
 }
 
+// Unused?
 func (stage *Stage) updateAllWithHudAfterDelay(delay int) {
 	time.Sleep(time.Duration(delay) * time.Millisecond)
 	stage.playerMutex.Lock()
@@ -154,7 +155,7 @@ func tileHtmlWithHud(player *Player, tiles []*Tile) string {
 		}
 		_, impactsHud = player.actions.spaceHighlights[tile]
 		if impactsHud {
-			highlights += oobColoredTile(tile, spaceHighlighter(tile))
+			highlights += oobHighlightTile(tile, "salmon") //oobColoredTile(tile, spaceHighlighter(tile))
 			continue
 		}
 		highlights += htmlFromTile(tile)

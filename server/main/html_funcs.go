@@ -53,6 +53,7 @@ func playerView(player *Player, tileColors [][]string) {
 	}
 }
 
+// Unused?
 func hudAsOutOfBound(player *Player) string {
 	highlights := ""
 	// Any risk here of concurrent read/write? // Yes confirmed failure point
@@ -158,6 +159,7 @@ func printPageFor(player *Player) string {
 			<input id="space-off" type="hidden" ws-send hx-trigger="keyup[key==' '] from:body" hx-include="#token" name="keypress" value="Space-Off" />
 			<input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" name="token" value="` + player.id + `" />
 			<input id="tick" ws-send hx-trigger="load once" type="hidden" name="token" value="` + player.id + `" />
+			<div id="script"></div>
 		</div>
 		<div id="info">
 			<b>` + playerInformation(player) + `</b>
@@ -205,6 +207,16 @@ func htmlFromTile(tile *Tile) string {
 func oobColoredTile(tile *Tile, cssClass string) string {
 	svgtag := svgFromTile(tile)
 	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true">%s</div>`, cssClass, tile.y, tile.x, svgtag)
+}
+
+func oobHighlightTile(tile *Tile, cssClass string) string {
+	svgtag := svgFromTile(tile)
+	template := `<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true">
+					<div class="box0">%s</div>
+					<div class="box1"></div>
+					<div class="box2 %s"></div>
+				</div>`
+	return fmt.Sprintf(template, tile.currentCssClass, tile.y, tile.x, svgtag, cssClass)
 }
 
 func svgFromTile(tile *Tile) string {

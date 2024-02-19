@@ -1,22 +1,217 @@
 .grid {
     display: grid;
-}
-
-.grid-row {
+    /*grid-gap: 1px;*/
+  }
+  
+  .grid-row {
     display: flex;
-    grid-template-columns: repeat(40, 30px);
-}
-
-.grid-square {
+    /*grid-template-columns: repeat(40, 30px);*/
+  }
+  
+  .grid-square {
     width: 30px;
     height: 30px;
-    border: 1px solid #30a0f0;
     background-color: rgb(172, 152, 219);
     cursor: pointer;
+  }
+  
+  .left {
+      float: left;
+      /*border: 2px solid red;*/
+      padding: 15px;
+  }
+  
+  .day {
+      background-color: #aaffff;
+  }
+  
+  .night {
+      background-color: #120500;
+  }
+  
+  .twilight {
+      background-color: #ff6a5c;
+  }
+
+  .green {
+    background-color: rgb(32, 255, 60);
+  }
+
+  .dark-green {
+    background-color: rgb(32, 155, 60);
+  }
+
+  .lime {
+    background-color: rgb(150, 255, 60);
+  }
+
+  .yellow {
+    background-color: rgb(255, 255, 60);
+  }
+
+  .orange {
+    background-color: rgb(255, 150, 60);
+  }
+
+  .red {
+    background-color: rgb(255, 32, 60);
+  }
+
+  .dark-red {
+    background-color: rgb(155, 16, 30);
+  }
+
+  .blue {
+    background-color: rgb(72, 52, 238);
+  }
+
+  .fusia {
+    background-color: rgb(253, 52, 172);
+  }
+
+  .pink {
+    background-color: rgb(253, 182, 215);
+  }
+
+  .salmon {
+    background-color: rgb(255, 165, 145);
+  }
+  
+  .half-gray {
+    background-color: rgb(120, 120, 129);
+  }
+  
+  .dark-blue {
+    background-color: rgb(32, 32, 65);
+  }
+
+/* Overlays */
+* {
+    box-sizing: border-box;
+  }
+
+.box0 {
+    z-index: 5;
+    width: 30px;
+    height: 30px;
+    position: relative;
+    top: 0px;
+    left: 0px;
+    margin: 0px;
+    padding: 0px;
+    /*opacity: 1;
+    border-bottom-left-radius: 8px*/
+  }
+  
+.box1 {
+    z-index: 10;
+    width: 30px;
+    height: 30px;
+    position: relative;
+    top: -30px;
+    left: 0px;
+    margin: 0px;
+    padding: 0px;
+    /*opacity: 1;
+    background: rgba(255,255,255,0);
+    border: 2px solid rgba(255,0,0,1);*//
+  }
+  
+.box2 {
+    z-index: 15;
+    width: 30px;
+    height: 30px;
+    position: relative;
+    top: -60px;
+    left: 0px;
+    margin: 0px;
+    padding: 0px;
+    /*opacity: .5;
+    background: rgba(255,0,255,1);
+    border: 2px solid rgba(255,255,255,0);*/
 }
 
+.transparent {
+    opacity: 0;
+}
 
+.transparent20 {
+    opacity: .2;
+}
 
-.selected {
-    border: 1px solid #ff2020;
+.transparent40 {
+    opacity: .4;
+}
+
+.half-transparent {
+    opacity: .5;
+}
+
+.transparent60 {
+    opacity: .60;
+}
+
+.transparent80 {
+    opacity: .80;
+}
+
+.non-transparent {
+    opacity: 1;
+}
+
+.radius-bl {
+    border-bottom-left-radius: 10px
+}
+
+.radius-br {
+    border-bottom-right-radius: 10px
+}
+
+.radius-tl {
+    border-top-left-radius: 10px
+}
+
+.radius-tr {
+    border-top-right-radius: 10px
+}
+
+.radius-all {
+    border-radius: 10px
+}
+
+.thin {
+    border-style: solid;
+    border-width: 1px;
+}
+
+.med {
+    border-style: solid;
+    border-width: 2px;
+}
+
+.thick {
+    border-style: solid;
+    border-width: 5px;
+}
+
+/* SVG  */
+
+.svgGreen {  
+    fill: rgb(105, 255, 100);
+    fill-opacity: .6;
+}
+
+.svgRed {
+    fill: rgb(255, 105, 100);
+    fill-opacity: .8;
+}
+
+.svgBlue {
+    fill: rgb(15, 100, 255);
+    fill-opacity: .8;
+}
+
+.svgYellow {
+    fill: rgb(255, 255, 100);
+    fill-opacity: .8;
 }

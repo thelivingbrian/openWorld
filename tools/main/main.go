@@ -54,13 +54,18 @@ func main() {
 	http.HandleFunc("/materialNew", materialNew)
 	http.HandleFunc("/submit", submit)
 
-	http.HandleFunc("/areaPage", getAreaPage)
+	http.HandleFunc("/areaPage", getCreateArea)
 	http.HandleFunc("/createGrid", createGrid)
-	http.HandleFunc("/replace", clickOnSquare)
-	http.HandleFunc("/select", selectColor)
+	http.HandleFunc("/clickOnSquare", clickOnSquare)
+	http.HandleFunc("/selectMaterial", selectMaterial)
 	http.HandleFunc("/exampleSquare", exampleSquare)
 	http.HandleFunc("/saveArea", saveArea)
 	http.HandleFunc("/editAreaPage", getEditAreaPage)
+	http.HandleFunc("/edit", edit)
+	http.HandleFunc("/editTransports", editTransports)
+	http.HandleFunc("/editTransport", editTransport)
+	http.HandleFunc("/editDisplay", editDisplay)
+	http.HandleFunc("/editNeighbors", editNeighbors)
 
 	err := http.ListenAndServe(":4444", nil)
 	if err != nil {
