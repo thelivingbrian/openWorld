@@ -1,11 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strconv"
 )
 
@@ -74,7 +72,7 @@ func divEditMaterialSelect() string {
 	}
 	output += `		
 		</select>
-		<button class="btn" hx-get="/getNewMaterial" hx-target="#selectedMaterial">New</button>
+		<button class="btn" hx-get="/getNewMaterial" hx-target="#edit-ingredient-window">New</button>
 	</div>`
 
 	return output
@@ -118,6 +116,27 @@ func getEditColor(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, output)
 }
 
+func editColor(w http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	colorId, _ := strconv.Atoi(properties["colorId"])
+	cssClassName := properties["CssClassName"]
+	red, _ := strconv.Atoi(properties["R"])
+	green, _ := strconv.Atoi(properties["G"])
+	blue, _ := strconv.Atoi(properties["B"])
+	alpha := properties["A"]
+
+	fmt.Printf("%d %s %d %d %d %s\n", colorId, cssClassName, red, green, blue, alpha)
+
+	color := &colors[colorId]
+	color.CssClassName = cssClassName
+	color.R = red
+	color.G = green
+	color.B = blue
+	color.A = alpha
+
+	io.WriteString(w, materialPageHTML())
+}
+
 func getEditMaterial(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	id, err := strconv.Atoi(queryValues.Get("materialId"))
@@ -153,11 +172,11 @@ func getEditMaterial(w http.ResponseWriter, r *http.Request) {
 		</div>
 		<div>
 			<label>Layer 1 Css: </label>
-			<input type="text" name="Layer1Css" value="">
+			<input hx-get="/exampleSquare" hx-trigger="change" hx-target="#exampleSquare" type="text" name="Layer1Css" value="">
 		</div>
 		<div>
 			<label>Layer 2 Css: </label>
-			<input type="text" name="Layer2Css" value="">
+			<input hx-get="/exampleSquare" hx-trigger="change" hx-target="#exampleSquare" type="text" name="Layer2Css" value="">
 		</div>
 
 		<input type="hidden" name="materialId" value="%d">
@@ -189,27 +208,6 @@ func editMaterial(w http.ResponseWriter, r *http.Request) {
 	material.Walkable = (walkable == "on")
 	material.Layer1Css = ""
 	material.Layer2Css = ""
-	io.WriteString(w, materialPageHTML())
-}
-
-func editColor(w http.ResponseWriter, r *http.Request) {
-	properties, _ := requestToProperties(r)
-	colorId, _ := strconv.Atoi(properties["colorId"])
-	cssClassName := properties["CssClassName"]
-	red, _ := strconv.Atoi(properties["R"])
-	green, _ := strconv.Atoi(properties["G"])
-	blue, _ := strconv.Atoi(properties["B"])
-	alpha := properties["A"]
-
-	fmt.Printf("%d %s %d %d %d %s\n", colorId, cssClassName, red, green, blue, alpha)
-
-	color := &colors[colorId]
-	color.CssClassName = cssClassName
-	color.R = red
-	color.G = green
-	color.B = blue
-	color.A = alpha
-
 	io.WriteString(w, materialPageHTML())
 }
 
@@ -337,7 +335,11 @@ func exampleSquare(w http.ResponseWriter, r *http.Request) {
 		B = blue
 	}
 
-	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square" style="background-color:rgb(%d,%d,%d)"></div></div>`, red, green, blue)
+	layer1 := r.URL.Query().Get("Layer1Css")
+	layer2 := r.URL.Query().Get("Layer2Css")
+	layers := fmt.Sprintf(`<div class="box0 %s"> </div><div class="box1 %s"></div>`, layer1, layer2)
+
+	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square" style="background-color:rgb(%d,%d,%d)">%s</div></div>`, red, green, blue, layers)
 	io.WriteString(w, output)
 }
 
@@ -355,64 +357,4 @@ func outputIngredients(w http.ResponseWriter, r *http.Request) {
 	createCSSFile()
 
 	getMaterialPage(w, r)
-}
-
-func WriteMaterialsToFile() error {
-	data, err := json.Marshal(materials)
-	if err != nil {
-		return fmt.Errorf("error marshalling materials: %w", err)
-	}
-
-	file, err := os.Create("./level/data/materials.json")
-	if err != nil {
-		return fmt.Errorf("error creating file: %w", err)
-	}
-	defer file.Close()
-
-	_, err = file.Write(data)
-	if err != nil {
-		return fmt.Errorf("error writing to file: %w", err)
-	}
-
-	return nil
-}
-
-func WriteColorsToFile() error {
-	data, err := json.Marshal(colors)
-	if err != nil {
-		return fmt.Errorf("error marshalling colorss: %w", err)
-	}
-
-	file, err := os.Create("./level/data/colors.json")
-	if err != nil {
-		return fmt.Errorf("error creating file: %w", err)
-	}
-	defer file.Close()
-
-	_, err = file.Write(data)
-	if err != nil {
-		return fmt.Errorf("error writing to file: %w", err)
-	}
-
-	return nil
-}
-
-func createCSSFile() {
-	cssFile, err := os.Create("./level/assets/colors.css")
-	if err != nil {
-		panic(err)
-	}
-	defer cssFile.Close()
-
-	for _, color := range colors {
-		rgbstring := fmt.Sprintf("rgb(%d, %d, %d)", color.R, color.G, color.B)
-		if color.A != "" {
-			rgbstring = fmt.Sprintf("rgba(%d, %d, %d, %s)", color.R, color.G, color.B, color.A)
-		}
-		cssRule := fmt.Sprintf(".%s { background-color: %s; }\n\n.%s-b { border-color: %s; }\n\n", color.CssClassName, rgbstring, color.CssClassName, rgbstring)
-		_, err := cssFile.WriteString(cssRule)
-		if err != nil {
-			panic(err)
-		}
-	}
 }

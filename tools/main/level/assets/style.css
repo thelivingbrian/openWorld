@@ -112,9 +112,10 @@
     padding: 0px;
     /*opacity: 1;
     background: rgba(255,255,255,0);
-    border: 2px solid rgba(255,0,0,1);*//
+    border: 2px solid rgba(255,0,0,1);*/
   }
-  
+
+/* make this box 0 so that svgs and highlights can go in without existence of others */
 .box2 {
     z-index: 15;
     width: 30px;

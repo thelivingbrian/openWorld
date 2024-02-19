@@ -9,19 +9,19 @@ import (
 	"strconv"
 )
 
+type Area struct {
+	Name       string      `json:"name"`
+	Safe       bool        `json:"safe"`
+	Tiles      [][]int     `json:"tiles"`
+	Transports []Transport `json:"transports"`
+}
+
 type Transport struct {
 	SourceY   int    `json:"sourceY"`
 	SourceX   int    `json:"sourceX"`
 	DestY     int    `json:"destY"`
 	DestX     int    `json:"destX"`
 	DestStage string `json:"destStage"`
-}
-
-type Area struct {
-	Name       string      `json:"name"`
-	Safe       bool        `json:"safe"`
-	Tiles      [][]int     `json:"tiles"`
-	Transports []Transport `json:"transports"`
 }
 
 var haveSelection bool = false
@@ -486,7 +486,7 @@ func selectSquare(y, x int) string {
 	selectedX = x
 	var yStr = strconv.Itoa(y)
 	var xStr = strconv.Itoa(x)
-	return output + `<div hx-post="/clickOnSquare" hx-swap-oob="true" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[y][x].CssColor + `" id="c` + yStr + `-` + xStr + `"><div class="box0 med red-b"></div>`
+	return output + `<div hx-post="/clickOnSquare" hx-swap-oob="true" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[y][x].CssColor + `" id="c` + yStr + `-` + xStr + `"><div class="box0 med red-b" /></div>`
 }
 
 func replaceSquare(y int, x int, selectedMaterial Material) string {
