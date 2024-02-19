@@ -105,7 +105,7 @@ func getEditColor(w http.ResponseWriter, r *http.Request) {
 			<label>B: </label>
 			<input hx-get="/exampleSquare" hx-trigger="change" hx-target="#exampleSquare" type="text" name="B" value="%d">
 			<label>A: </label>
-			<inputtype="text" name="A" value="%s">
+			<input type="text" name="A" value="%s">
 		</div>
 		<input type="hidden" name="colorId" value="%d">
 		<button class="btn">Save</button>
@@ -172,11 +172,11 @@ func getEditMaterial(w http.ResponseWriter, r *http.Request) {
 		</div>
 		<div>
 			<label>Layer 1 Css: </label>
-			<input hx-get="/exampleSquare" hx-trigger="change" hx-target="#exampleSquare" type="text" name="Layer1Css" value="">
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Layer2Css']" type="text" name="Layer1Css" value="">
 		</div>
 		<div>
 			<label>Layer 2 Css: </label>
-			<input hx-get="/exampleSquare" hx-trigger="change" hx-target="#exampleSquare" type="text" name="Layer2Css" value="">
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Layer1Css']" type="text" name="Layer2Css" value="">
 		</div>
 
 		<input type="hidden" name="materialId" value="%d">
@@ -251,7 +251,7 @@ func newMaterial(w http.ResponseWriter, r *http.Request) {
 	walkable := (properties["walkable"] == "on")
 	cssColor := properties["CssColor"]
 
-	fmt.Printf("%s %s\n%s\n", commonName, cssColor, properties["walkable"])
+	//fmt.Printf("%s %s\n%s\n", commonName, cssColor, properties["walkable"])
 
 	material := Material{ID: materialId, CommonName: commonName, CssColor: cssColor, Layer1Css: "", Layer2Css: "", Walkable: walkable}
 
@@ -291,14 +291,13 @@ func getNewColor(w http.ResponseWriter, r *http.Request) {
 
 func newColor(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
-	colorIndex := len(colors)
 	cssClassName := properties["CssClassName"]
 	R, _ := strconv.Atoi(properties["R"])
 	G, _ := strconv.Atoi(properties["G"])
 	B, _ := strconv.Atoi(properties["B"])
 	A := properties["A"]
 
-	fmt.Printf("%d %s\nr%d g%d b%d a%s\n", colorIndex, cssClassName, R, G, B, A)
+	//fmt.Printf("%d %s\nr%d g%d b%d a%s\n", colorIndex, cssClassName, R, G, B, A)
 
 	color := Color{CssClassName: cssClassName, R: R, G: G, B: B, A: A}
 
@@ -335,11 +334,16 @@ func exampleSquare(w http.ResponseWriter, r *http.Request) {
 		B = blue
 	}
 
+	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square" style="background-color:rgb(%d,%d,%d)"></div></div>`, red, green, blue)
+	io.WriteString(w, output)
+}
+
+func exampleMaterial(w http.ResponseWriter, r *http.Request) {
 	layer1 := r.URL.Query().Get("Layer1Css")
 	layer2 := r.URL.Query().Get("Layer2Css")
 	layers := fmt.Sprintf(`<div class="box0 %s"> </div><div class="box1 %s"></div>`, layer1, layer2)
 
-	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square" style="background-color:rgb(%d,%d,%d)">%s</div></div>`, red, green, blue, layers)
+	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square" style="background-color:rgb(%d,%d,%d)">%s</div></div>`, R, G, B, layers)
 	io.WriteString(w, output)
 }
 

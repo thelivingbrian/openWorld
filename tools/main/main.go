@@ -49,11 +49,13 @@ func main() {
 	http.HandleFunc("/editMaterial", editMaterial)
 	http.HandleFunc("/getNewMaterial", getNewMaterial)
 	http.HandleFunc("/newMaterial", newMaterial)
+	http.HandleFunc("/exampleMaterial", exampleMaterial)
 
 	http.HandleFunc("/getEditColor", getEditColor)
 	http.HandleFunc("/editColor", editColor)
 	http.HandleFunc("/getNewColor", getNewColor)
 	http.HandleFunc("/newColor", newColor)
+	http.HandleFunc("/exampleSquare", exampleSquare)
 
 	http.HandleFunc("/outputIngredients", outputIngredients)
 
@@ -61,7 +63,6 @@ func main() {
 	http.HandleFunc("/createGrid", createGrid)
 	http.HandleFunc("/clickOnSquare", clickOnSquare)
 	http.HandleFunc("/selectMaterial", selectMaterial)
-	http.HandleFunc("/exampleSquare", exampleSquare)
 	http.HandleFunc("/saveArea", saveArea)
 	http.HandleFunc("/editAreaPage", getEditAreaPage)
 	http.HandleFunc("/edit", edit)
