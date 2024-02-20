@@ -146,14 +146,18 @@ func getEditMaterial(w http.ResponseWriter, r *http.Request) {
 
 	material := materials[id] //materialMap[name]
 	color, ok := sliceToMap(colors, colorName)[material.CssColor]
+	A := "1.0"
 	if !ok {
 		fmt.Println("No Color")
-		return
+		color = colors[0]
+		A = "0"
 	}
 	R = color.R
 	G = color.G
 	B = color.B
-	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square" style="background-color:rgb(%d,%d,%d)"></div></div>`, R, G, B)
+
+	overlay := fmt.Sprintf(`<div class="box floor %s"></div><div class="box ceiling %s"></div>`, material.Layer1Css, material.Layer2Css)
+	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square" style="background-color:rgba(%d,%d,%d,%s)">%s</div></div>`, R, G, B, A, overlay)
 
 	walkableIndicator := ""
 	if material.Walkable {
@@ -172,11 +176,11 @@ func getEditMaterial(w http.ResponseWriter, r *http.Request) {
 		</div>
 		<div>
 			<label>Layer 1 Css: </label>
-			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Layer2Css']" type="text" name="Layer1Css" value="">
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Layer2Css'],[name='CssColor']" type="text" name="Layer1Css" value="%s">
 		</div>
 		<div>
 			<label>Layer 2 Css: </label>
-			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Layer1Css']" type="text" name="Layer2Css" value="">
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Layer1Css'],[name='CssColor']" type="text" name="Layer2Css" value="%s">
 		</div>
 
 		<input type="hidden" name="materialId" value="%d">
@@ -185,7 +189,7 @@ func getEditMaterial(w http.ResponseWriter, r *http.Request) {
 		<button class="btn">Save</button>
 	</form>
 	`
-	output += fmt.Sprintf(editForm, material.ID, material.CommonName, material.CssColor, material.ID, walkableIndicator)
+	output += fmt.Sprintf(editForm, material.ID, material.CommonName, material.CssColor, material.Layer1Css, material.Layer2Css, material.ID, walkableIndicator)
 
 	io.WriteString(w, output)
 }
@@ -219,12 +223,8 @@ func getNewMaterial(w http.ResponseWriter, r *http.Request) {
 			<input type="text" name="CommonName" value="">
 		</div>
 		<div>
-			<label>Class Name: </label>
-			<input type="text" name="CssClassName" value="">
-		</div>
-		<div>
 			<label>Css Color Name: </label>
-			<input type="text" name="CssColor" value="%s">
+			<input type="text" name="CssColor" value="">
 		</div>
 		<div>
 			<label>Layer 1 Css: </label>
@@ -236,7 +236,7 @@ func getNewMaterial(w http.ResponseWriter, r *http.Request) {
 		</div>
 		<div>
 			<label>Walkable: </label>
-			<input type="checkbox" name="walkable" %s />
+			<input type="checkbox" name="walkable" />
 		</div>
 	<button class="btn">Save</button>
 	</form>
@@ -250,10 +250,12 @@ func newMaterial(w http.ResponseWriter, r *http.Request) {
 	commonName := properties["CommonName"]
 	walkable := (properties["walkable"] == "on")
 	cssColor := properties["CssColor"]
+	layer1 := properties["Layer1Css"]
+	layer2 := properties["Layer2Css"]
 
-	//fmt.Printf("%s %s\n%s\n", commonName, cssColor, properties["walkable"])
+	fmt.Printf("%s %s\n%s\n", commonName, layer1, layer2)
 
-	material := Material{ID: materialId, CommonName: commonName, CssColor: cssColor, Layer1Css: "", Layer2Css: "", Walkable: walkable}
+	material := Material{ID: materialId, CommonName: commonName, CssColor: cssColor, Layer1Css: layer1, Layer2Css: layer2, Walkable: walkable}
 
 	materialMap := sliceToMap(materials, materialName)
 	_, ok := materialMap[commonName]
@@ -339,11 +341,12 @@ func exampleSquare(w http.ResponseWriter, r *http.Request) {
 }
 
 func exampleMaterial(w http.ResponseWriter, r *http.Request) {
+	cssClass := r.URL.Query().Get("CssColor")
 	layer1 := r.URL.Query().Get("Layer1Css")
 	layer2 := r.URL.Query().Get("Layer2Css")
-	layers := fmt.Sprintf(`<div class="box0 %s"> </div><div class="box1 %s"></div>`, layer1, layer2)
+	layers := fmt.Sprintf(`<div class="box floor %s"> </div><div class="box ceiling %s"></div>`, layer1, layer2)
 
-	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square" style="background-color:rgb(%d,%d,%d)">%s</div></div>`, R, G, B, layers)
+	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square %s">%s</div></div>`, cssClass, layers)
 	io.WriteString(w, output)
 }
 

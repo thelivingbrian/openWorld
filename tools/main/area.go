@@ -79,7 +79,7 @@ func saveArea(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	io.WriteString(w, `<h2>Sucess</h2>`)
+	io.WriteString(w, `<h2>Success</h2>`)
 }
 
 func getCreateArea(w http.ResponseWriter, r *http.Request) {
@@ -96,11 +96,11 @@ func divCreateArea() string {
 			</div>
 			<div>
 				<label for="height">Height:</label>
-				<input type="text" id="height" name="height" value="10">
+				<input type="text" id="height" name="height" value="16">
 			</div>
 			<div>
 				<label for="width">Width:</label>
-				<input type="text" id="width" name="width" value="14">
+				<input type="text" id="width" name="width" value="16">
 			</div>
 			<div>
 				<button>Create</button>
@@ -112,7 +112,7 @@ func divCreateArea() string {
 func getEditAreaPage(w http.ResponseWriter, r *http.Request) {
 	output := `
 	<div>
-		<labelAreas</label>
+		<label>Areas</label>
 		<select name="area-name" hx-get="/edit" hx-target="#edit-area">
 			<option value="">--</option>
 	`
@@ -396,9 +396,21 @@ func getHTMLFromArea(area Area) string {
 	for y := range area.Tiles {
 		output += `<div class="grid-row">`
 		for x := range area.Tiles[y] {
-			var yStr = strconv.Itoa(y)
-			var xStr = strconv.Itoa(x)
-			output += `<div hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + materials[area.Tiles[y][x]].CssColor + `" id="c` + yStr + `-` + xStr + `"></div>`
+			materialId := area.Tiles[y][x]
+			output += squareFromMaterial(y, x, materials[materialId])
+		}
+		output += `</div>`
+	}
+	output += `</div>`
+	return output
+}
+
+func getHTMLFromModifications() string {
+	output := `<div class="grid" id="screen" hx-swap-oob="true">`
+	for y := range modifications {
+		output += `<div class="grid-row">`
+		for x := range modifications[y] {
+			output += squareFromMaterial(y, x, modifications[y][x])
 		}
 		output += `</div>`
 	}
@@ -436,7 +448,7 @@ func selectMaterial(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	io.WriteString(w, fmt.Sprintf(`<div class="grid-square %s"><input name="selected-material" type="hidden" value="%d" /></div>`, selectedMaterial.CssColor, selectedMaterial.ID))
+	io.WriteString(w, exampleSquareFromMaterial(selectedMaterial))
 }
 
 func clickOnSquare(w http.ResponseWriter, r *http.Request) {
@@ -477,24 +489,48 @@ func dataFromRequest(r *http.Request) (int, int, bool) {
 func selectSquare(y, x int) string {
 	output := ""
 	if haveSelection {
-		var yStr = strconv.Itoa(selectedY)
+		/*var yStr = strconv.Itoa(selectedY)
 		var xStr = strconv.Itoa(selectedX)
 		output += `<div hx-post="/clickOnSquare" hx-swap-oob="true" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[selectedY][selectedX].CssColor + `" id="c` + yStr + `-` + xStr + `"></div>`
+		*/
+		output += oobSquareFromMaterial(selectedY, selectedX, modifications[selectedY][selectedX])
 	}
 	haveSelection = true // Probably should be a hidden input
 	selectedY = y
 	selectedX = x
-	var yStr = strconv.Itoa(y)
-	var xStr = strconv.Itoa(x)
-	return output + `<div hx-post="/clickOnSquare" hx-swap-oob="true" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[y][x].CssColor + `" id="c` + yStr + `-` + xStr + `"><div class="box0 med red-b" /></div>`
+	return output + oobSquareFromMaterialSelected(y, x, modifications[y][x])
 }
 
 func replaceSquare(y int, x int, selectedMaterial Material) string {
 	modifications[y][x] = selectedMaterial
+	return oobSquareFromMaterial(y, x, selectedMaterial)
+}
 
+func oobSquareFromMaterial(y int, x int, material Material) string {
+	overlay := fmt.Sprintf(`<div class="box floor %s"></div><div class="box ceiling %s"></div>`, material.Layer1Css, material.Layer2Css)
 	var yStr = strconv.Itoa(y)
 	var xStr = strconv.Itoa(x)
-	return fmt.Sprintf(`<div hx-post="/clickOnSquare" hx-swap-oob="true" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s"></div>`, yStr, xStr, selectedMaterial.CssColor, yStr, xStr)
+	return fmt.Sprintf(`<div hx-post="/clickOnSquare" hx-swap-oob="true" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s">%s</div>`, yStr, xStr, material.CssColor, yStr, xStr, overlay)
+}
+
+func squareFromMaterial(y int, x int, material Material) string {
+	overlay := fmt.Sprintf(`<div class="box floor %s"></div><div class="box ceiling %s"></div>`, material.Layer1Css, material.Layer2Css)
+	var yStr = strconv.Itoa(y)
+	var xStr = strconv.Itoa(x)
+	return fmt.Sprintf(`<div hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s">%s</div>`, yStr, xStr, material.CssColor, yStr, xStr, overlay)
+}
+
+func oobSquareFromMaterialSelected(y int, x int, material Material) string {
+	overlay := fmt.Sprintf(`<div class="box floor %s"></div><div class="box ceiling %s"></div><div class="box top red-b med"></div>`, material.Layer1Css, material.Layer2Css)
+	var yStr = strconv.Itoa(y)
+	var xStr = strconv.Itoa(x)
+	return fmt.Sprintf(`<div hx-post="/clickOnSquare" hx-swap-oob="true" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s">%s</div>`, yStr, xStr, material.CssColor, yStr, xStr, overlay)
+}
+
+func exampleSquareFromMaterial(material Material) string {
+	overlay := fmt.Sprintf(`<div class="box floor %s"></div><div class="box ceiling %s"></div>`, material.Layer1Css, material.Layer2Css)
+	idHiddenInput := fmt.Sprintf(`<input name="selected-material" type="hidden" value="%d" />`, material.ID)
+	return fmt.Sprintf(`<div class="grid-square %s" name="selected-material">%s%s</div>`, material.CssColor, overlay, idHiddenInput)
 }
 
 func fillFrom(y int, x int, selectedMaterial Material) string {
@@ -503,9 +539,31 @@ func fillFrom(y int, x int, selectedMaterial Material) string {
 	for row := range seen {
 		seen[row] = make([]bool, len(modifications[row]))
 	}
-	return fillAndCheckNeighbors(y, x, targetId, selectedMaterial, seen)
+	fillModifications(y, x, targetId, selectedMaterial, seen)
+	return getHTMLFromModifications()
 }
 
+func fillModifications(y int, x int, targetId int, selected Material, seen [][]bool) {
+	seen[y][x] = true
+	modifications[y][x] = selected
+	deltas := []int{-1, 1}
+	for _, i := range deltas {
+		if y+i >= 0 && y+i < len(modifications) {
+			shouldfill := !seen[y+i][x] && modifications[y+i][x].ID == targetId
+			if shouldfill {
+				fillModifications(y+i, x, targetId, selected, seen)
+			}
+		}
+		if x+i >= 0 && x+i < len(modifications[y]) {
+			shouldfill := !seen[y][x+i] && modifications[y][x+i].ID == targetId
+			if shouldfill {
+				fillModifications(y, x+i, targetId, selected, seen)
+			}
+		}
+	}
+}
+
+// This could be a good way to test arbitrary number of oobs
 func fillAndCheckNeighbors(y int, x int, targetId int, selected Material, seen [][]bool) string {
 	seen[y][x] = true
 	modifications[y][x] = selected
