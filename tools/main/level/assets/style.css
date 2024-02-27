@@ -50,18 +50,27 @@
 }
   
 .zP {
-    z-index: 10;
+    z-index: 20;
   }
   
 .top {
-    z-index: 30;
+    z-index: 40;
   }
 
-.floor {
-    z-index: 5;
-}  
+.floor1 {
+    z-index: 10;
+} 
+
+.floor2 {
+    z-index: 11;
+} 
+
 .ceiling {
-    z-index: 15;
+    z-index: 30;
+}
+
+.ceiling {
+    z-index: 31;
 }
 
 .trsp {

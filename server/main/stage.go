@@ -136,6 +136,7 @@ func updateOneWithHud(player *Player, tiles []*Tile) {
 }
 
 func oobUpdateWithHud(player *Player, tiles []*Tile) {
+	// Is this getting blocked? where does this return to
 	player.stage.updates <- Update{player, []byte(tileHtmlWithHud(player, tiles))}
 }
 

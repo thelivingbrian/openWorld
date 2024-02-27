@@ -84,3 +84,5 @@ func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 }
 
 // Add a func to go routine a player moving in backgroud
+
+// Put players on other stages to add additional go routunes/channels

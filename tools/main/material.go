@@ -8,12 +8,14 @@ import (
 )
 
 type Material struct {
-	ID         int    `json:"id"`
-	CommonName string `json:"commonName"`
-	CssColor   string `json:"cssColor"`
-	Walkable   bool   `json:"walkable"`
-	Layer1Css  string `json:"layer1css"`
-	Layer2Css  string `json:"layer2css"`
+	ID          int    `json:"id"`
+	CommonName  string `json:"commonName"`
+	CssColor    string `json:"cssColor"`
+	Walkable    bool   `json:"walkable"`
+	Floor1Css   string `json:"layer1css"`
+	Floor2Css   string `json:"layer2css"`
+	Ceiling1Css string `json:"ceiling1css"`
+	Ceiling2Css string `json:"ceiling2css"`
 }
 
 type Color struct {
@@ -156,7 +158,7 @@ func getEditMaterial(w http.ResponseWriter, r *http.Request) {
 	G = color.G
 	B = color.B
 
-	overlay := fmt.Sprintf(`<div class="box floor %s"></div><div class="box ceiling %s"></div>`, material.Layer1Css, material.Layer2Css)
+	overlay := fmt.Sprintf(`<div class="box floor %s"></div><div class="box ceiling %s"></div>`, material.Floor1Css, material.Floor2Css)
 	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square" style="background-color:rgba(%d,%d,%d,%s)">%s</div></div>`, R, G, B, A, overlay)
 
 	walkableIndicator := ""
@@ -170,17 +172,26 @@ func getEditMaterial(w http.ResponseWriter, r *http.Request) {
 			<label>Name: (ID: %d)</label>
 			<input type="text" name="CommonName" value="%s">
 		</div>
+		
 		<div>
 			<label>Css Color Name: </label>
-			<input type="text" name="CssColor" value="%s">
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Floor2Css'],[name='Ceiling1Css'],[name='Ceiling2Css']" type="text" name="CssColor" value="%s">
 		</div>
 		<div>
-			<label>Layer 1 Css: </label>
-			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Layer2Css'],[name='CssColor']" type="text" name="Layer1Css" value="%s">
+			<label>Floor 1 Css: </label>
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor2Css'],[name='Ceiling1Css'],[name='Ceiling2Css'],[name='CssColor']" type="text" name="Floor1Css" value="%s">
 		</div>
 		<div>
-			<label>Layer 2 Css: </label>
-			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Layer1Css'],[name='CssColor']" type="text" name="Layer2Css" value="%s">
+			<label>Floor 2 Css: </label>
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Ceiling1Css'],[name='Ceiling2Css'],[name='CssColor']" type="text" name="Floor2Css" value="%s">
+		</div>
+		<div>
+			<label>Ceiling 1 Css: </label>
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Ceiling2Css'],[name='Floor1Css'],[name='Floor2Css'],[name='CssColor']" type="text" name="Ceiling1Css" value="%s">
+		</div>
+		<div>
+			<label>Ceiling 2 Css: </label>
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Ceiling1Css'],[name='Floor1Css'],[name='Floor2Css'],[name='CssColor']" type="text" name="Ceiling2Css" value="%s">
 		</div>
 
 		<input type="hidden" name="materialId" value="%d">
@@ -189,7 +200,7 @@ func getEditMaterial(w http.ResponseWriter, r *http.Request) {
 		<button class="btn">Save</button>
 	</form>
 	`
-	output += fmt.Sprintf(editForm, material.ID, material.CommonName, material.CssColor, material.Layer1Css, material.Layer2Css, material.ID, walkableIndicator)
+	output += fmt.Sprintf(editForm, material.ID, material.CommonName, material.CssColor, material.Floor1Css, material.Floor2Css, material.Ceiling1Css, material.Ceiling2Css, material.ID, walkableIndicator)
 
 	io.WriteString(w, output)
 }
@@ -200,6 +211,10 @@ func editMaterial(w http.ResponseWriter, r *http.Request) {
 	commonName := properties["CommonName"]
 	cssColor := properties["CssColor"]
 	walkable := properties["walkable"]
+	floor1 := properties["Floor1Css"]
+	floor2 := properties["Floor2Css"]
+	ceiling1 := properties["Ceiling1Css"]
+	ceiling2 := properties["Ceiling2Css"]
 
 	fmt.Printf("%d %s %s\n%s\n", materialId, commonName, cssColor, walkable)
 
@@ -210,8 +225,10 @@ func editMaterial(w http.ResponseWriter, r *http.Request) {
 	material.CommonName = commonName
 	material.CssColor = cssColor
 	material.Walkable = (walkable == "on")
-	material.Layer1Css = ""
-	material.Layer2Css = ""
+	material.Floor1Css = floor1
+	material.Floor2Css = floor2
+	material.Ceiling1Css = ceiling1
+	material.Ceiling2Css = ceiling2
 	io.WriteString(w, materialPageHTML())
 }
 
@@ -227,12 +244,20 @@ func getNewMaterial(w http.ResponseWriter, r *http.Request) {
 			<input type="text" name="CssColor" value="">
 		</div>
 		<div>
-			<label>Layer 1 Css: </label>
-			<input type="text" name="Layer1Css" value="">
+			<label>Floor 1 Css: </label>
+			<input type="text" name="Floor1Css" value="">
 		</div>
 		<div>
-			<label>Layer 2 Css: </label>
-			<input type="text" name="Layer2Css" value="">
+			<label>Floor 2 Css: </label>
+			<input type="text" name="Floor2Css" value="">
+		</div>
+		<div>
+			<label>Ceiling 1 Css: </label>
+			<input type="text" name="Ceiling1Css" value="">
+		</div>
+		<div>
+			<label>Ceiling 2 Css: </label>
+			<input type="text" name="Ceiling2Css" value="">
 		</div>
 		<div>
 			<label>Walkable: </label>
@@ -250,12 +275,14 @@ func newMaterial(w http.ResponseWriter, r *http.Request) {
 	commonName := properties["CommonName"]
 	walkable := (properties["walkable"] == "on")
 	cssColor := properties["CssColor"]
-	layer1 := properties["Layer1Css"]
-	layer2 := properties["Layer2Css"]
+	floor1 := properties["Floor1Css"]
+	floor2 := properties["Floor2Css"]
+	ceiling1 := properties["Ceiling1Css"]
+	ceiling2 := properties["Ceiling2Css"]
 
-	fmt.Printf("%s %s\n%s\n", commonName, layer1, layer2)
+	fmt.Printf("%s | Floor: %s - %s Ceiling: %s - %s\n", commonName, floor1, floor2, ceiling1, ceiling2)
 
-	material := Material{ID: materialId, CommonName: commonName, CssColor: cssColor, Layer1Css: layer1, Layer2Css: layer2, Walkable: walkable}
+	material := Material{ID: materialId, CommonName: commonName, CssColor: cssColor, Floor1Css: floor1, Floor2Css: floor2, Ceiling1Css: ceiling1, Ceiling2Css: ceiling2, Walkable: walkable}
 
 	materialMap := sliceToMap(materials, materialName)
 	_, ok := materialMap[commonName]
@@ -342,9 +369,15 @@ func exampleSquare(w http.ResponseWriter, r *http.Request) {
 
 func exampleMaterial(w http.ResponseWriter, r *http.Request) {
 	cssClass := r.URL.Query().Get("CssColor")
-	layer1 := r.URL.Query().Get("Layer1Css")
-	layer2 := r.URL.Query().Get("Layer2Css")
-	layers := fmt.Sprintf(`<div class="box floor %s"> </div><div class="box ceiling %s"></div>`, layer1, layer2)
+	floor1 := r.URL.Query().Get("Floor1Css")
+	floor2 := r.URL.Query().Get("Floor2Css")
+	ceiling1 := r.URL.Query().Get("Ceiling1Css")
+	ceiling2 := r.URL.Query().Get("Ceiling2Css")
+	layers := fmt.Sprintf(`<div class="box floor1 %s"> </div>
+							<div class="box floor2 %s"> </div>
+							<div class="box ceiling1 %s"></div>
+							<div class="box ceiling2 %s"> </div>
+							`, floor1, floor2, ceiling1, ceiling2)
 
 	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square %s">%s</div></div>`, cssClass, layers)
 	io.WriteString(w, output)
