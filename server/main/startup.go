@@ -104,13 +104,14 @@ func (config *Configuration) getMongoURI() string {
 // Load Resources from JSON
 
 type Material struct {
-	ID           int    `json:"id"`
-	CommonName   string `json:"commonName"`
-	CssClassName string `json:"cssClassName"`
-	Walkable     bool   `json:"walkable"`
-	R            int    `json:"R"`
-	G            int    `json:"G"`
-	B            int    `json:"B"`
+	ID          int    `json:"id"`
+	CommonName  string `json:"commonName"`
+	CssColor    string `json:"cssColor"`
+	Walkable    bool   `json:"walkable"`
+	Floor1Css   string `json:"layer1css"`
+	Floor2Css   string `json:"layer2css"`
+	Ceiling1Css string `json:"ceiling1css"`
+	Ceiling2Css string `json:"ceiling2css"`
 }
 
 // add color

@@ -221,7 +221,7 @@ func transportsAsOob(transports []Transport) string {
 	for _, transport := range transports {
 		var yStr = strconv.Itoa(transport.SourceY)
 		var xStr = strconv.Itoa(transport.SourceX)
-		output += `<div hx-swap-oob="true" hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[transport.SourceY][transport.SourceX].CssColor + `" id="c` + yStr + `-` + xStr + `"><div class="box0 med red-b"></div></div></div>`
+		output += `<div hx-swap-oob="true" hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[transport.SourceY][transport.SourceX].CssColor + `" id="c` + yStr + `-` + xStr + `"><div class="box top med red-b"></div></div></div>`
 	}
 	output += ``
 	return output
@@ -503,28 +503,29 @@ func replaceSquare(y int, x int, selectedMaterial Material) string {
 }
 
 func oobSquareFromMaterial(y int, x int, material Material) string {
-	overlay := fmt.Sprintf(`<div class="box floor %s"></div><div class="box ceiling %s"></div>`, material.Floor1Css, material.Floor2Css)
+	overlay := fmt.Sprintf(`<div class="box floor1 %s"><div class="box floor2 %s"></div></div><div class="box ceiling1 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css)
 	var yStr = strconv.Itoa(y)
 	var xStr = strconv.Itoa(x)
 	return fmt.Sprintf(`<div hx-post="/clickOnSquare" hx-swap-oob="true" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s">%s</div>`, yStr, xStr, material.CssColor, yStr, xStr, overlay)
 }
 
 func squareFromMaterial(y int, x int, material Material) string {
-	overlay := fmt.Sprintf(`<div class="box floor %s"></div><div class="box ceiling %s"></div>`, material.Floor1Css, material.Floor2Css)
+	overlay := fmt.Sprintf(`<div class="box floor1 %s"></div><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css)
 	var yStr = strconv.Itoa(y)
 	var xStr = strconv.Itoa(x)
 	return fmt.Sprintf(`<div hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s">%s</div>`, yStr, xStr, material.CssColor, yStr, xStr, overlay)
 }
 
 func oobSquareFromMaterialSelected(y int, x int, material Material) string {
-	overlay := fmt.Sprintf(`<div class="box floor %s"></div><div class="box ceiling %s"></div><div class="box top red-b med"></div>`, material.Floor1Css, material.Floor2Css)
+	// Pull out
+	overlay := fmt.Sprintf(`<div class="box floor1 %s"><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div><div class="box top red-b med"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css)
 	var yStr = strconv.Itoa(y)
 	var xStr = strconv.Itoa(x)
 	return fmt.Sprintf(`<div hx-post="/clickOnSquare" hx-swap-oob="true" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s">%s</div>`, yStr, xStr, material.CssColor, yStr, xStr, overlay)
 }
 
 func exampleSquareFromMaterial(material Material) string {
-	overlay := fmt.Sprintf(`<div class="box floor %s"></div><div class="box ceiling %s"></div>`, material.Floor1Css, material.Floor2Css)
+	overlay := fmt.Sprintf(`<div class="box floor1 %s"></div><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css)
 	idHiddenInput := fmt.Sprintf(`<input name="selected-material" type="hidden" value="%d" />`, material.ID)
 	return fmt.Sprintf(`<div class="grid-square %s" name="selected-material">%s%s</div>`, material.CssColor, overlay, idHiddenInput)
 }

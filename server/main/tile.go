@@ -38,8 +38,8 @@ func newTile(mat Material, y int, x int) *Tile {
 		teleport:         nil,
 		y:                y,
 		x:                x,
-		originalCssClass: mat.CssClassName,
-		currentCssClass:  mat.CssClassName,
+		originalCssClass: mat.CssColor,
+		currentCssClass:  mat.CssColor,
 		eventsInFlight:   atomic.Int32{},
 		powerUp:          nil,
 		powerMutex:       sync.Mutex{},
@@ -232,6 +232,7 @@ func colorOf(tile *Tile) string {
 	return tile.currentCssClass
 }
 
+// Used?
 func colorArray(row []Tile) []string {
 	var output []string = make([]string, len(row))
 	for i := range row {
