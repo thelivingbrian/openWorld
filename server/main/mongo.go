@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -24,6 +23,7 @@ func mongoClient(config *Configuration) *mongo.Client {
 	return client
 }
 
+/*
 func createIndexes(client *mongo.Client) { // Move to tools?
 	collection := client.Database("bloopdb").Collection("users")
 
@@ -57,3 +57,4 @@ func createIndexes(client *mongo.Client) { // Move to tools?
 
 	log.Printf("Indexes created\n")
 }
+*/

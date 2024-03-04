@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -15,7 +16,14 @@ func requestToProperties(r *http.Request) (map[string]string, bool) {
 	}
 
 	bodyS := string(body[:])
+
+	// Not great, '&' included in body will be unescaped here producing weird results
+	bodyS, err = url.QueryUnescape(bodyS)
+	if err != nil {
+		return nil, false
+	}
 	//fmt.Println(bodyS)
+
 	return bodyStringToProperties(bodyS), true
 }
 

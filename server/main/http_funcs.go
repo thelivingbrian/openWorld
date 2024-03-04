@@ -12,13 +12,6 @@ import (
 )
 
 /////////////////////////////////////////////
-// Home Page / CSS / JS
-
-func getIndex(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "./client/src")
-}
-
-/////////////////////////////////////////////
 // User Creation
 
 func getSignUp(w http.ResponseWriter, r *http.Request) {
@@ -30,9 +23,20 @@ func (db *DB) postSignUp(w http.ResponseWriter, r *http.Request) {
 	if !success {
 		log.Fatal("Failed to retreive properties")
 	}
+
 	email, err := url.QueryUnescape(props["email"])
 	emailLowercase := strings.ToLower(email)
+	if err != nil {
+		log.Fatal("Unescape failed")
+
+	}
+
 	username, err := url.QueryUnescape(props["username"])
+	if err != nil {
+		log.Fatal("Unescape failed")
+
+	}
+
 	password, err := url.QueryUnescape(props["password"])
 	if err != nil {
 		log.Fatal("Unescape failed")

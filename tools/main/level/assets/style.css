@@ -1,182 +1,164 @@
 .grid {
     display: grid;
-    /*grid-gap: 1px;*/
-  }
-  
-  .grid-row {
+}
+
+.grid-row {
     display: flex;
-    /*grid-template-columns: repeat(40, 30px);*/
-  }
-  
-  .grid-square {
+}
+
+.grid-square {
     width: 30px;
     height: 30px;
     background-color: rgb(172, 152, 219);
+    border: 1px solid rgba(48, 152, 240, 1);
     cursor: pointer;
-  }
-  
-  .left {
+    position: relative;
+}
+
+.left {
       float: left;
-      /*border: 2px solid red;*/
       padding: 15px;
-  }
+}
+
+/* Site Backgrounds */
   
-  .day {
-      background-color: #aaffff;
-  }
-  
-  .night {
-      background-color: #120500;
-  }
-  
-  .twilight {
-      background-color: #ff6a5c;
-  }
+.day {
+    background-color: #aaffff;
+}
 
-  .green {
-    background-color: rgb(32, 255, 60);
-  }
+.night {
+    background-color: #120500;
+}
 
-  .dark-green {
-    background-color: rgb(32, 155, 60);
-  }
-
-  .lime {
-    background-color: rgb(150, 255, 60);
-  }
-
-  .yellow {
-    background-color: rgb(255, 255, 60);
-  }
-
-  .orange {
-    background-color: rgb(255, 150, 60);
-  }
-
-  .red {
-    background-color: rgb(255, 32, 60);
-  }
-
-  .dark-red {
-    background-color: rgb(155, 16, 30);
-  }
-
-  .blue {
-    background-color: rgb(72, 52, 238);
-  }
-
-  .fusia {
-    background-color: rgb(253, 52, 172);
-  }
-
-  .pink {
-    background-color: rgb(253, 182, 215);
-  }
-
-  .salmon {
-    background-color: rgb(255, 165, 145);
-  }
-  
-  .half-gray {
-    background-color: rgb(120, 120, 129);
-  }
-  
-  .dark-blue {
-    background-color: rgb(32, 32, 65);
-  }
+.twilight {
+    background-color: #ff6a5c;
+}
 
 /* Overlays */
 * {
     box-sizing: border-box;
   }
 
-.box0 {
-    z-index: 5;
+.box {
     width: 30px;
     height: 30px;
-    position: relative;
-    top: 0px;
-    left: 0px;
+    position: absolute;
+    top: -.5px;
+    left: -.5px;
     margin: 0px;
     padding: 0px;
-    /*opacity: 1;
-    border-bottom-left-radius: 8px*/
+}
+  
+.zP {
+    z-index: 20;
   }
   
-.box1 {
+.top {
+    z-index: 40;
+  }
+
+.floor1 {
     z-index: 10;
-    width: 30px;
-    height: 30px;
-    position: relative;
-    top: -30px;
-    left: 0px;
-    margin: 0px;
-    padding: 0px;
-    /*opacity: 1;
-    background: rgba(255,255,255,0);
-    border: 2px solid rgba(255,0,0,1);*//
-  }
-  
-.box2 {
-    z-index: 15;
-    width: 30px;
-    height: 30px;
-    position: relative;
-    top: -60px;
-    left: 0px;
-    margin: 0px;
-    padding: 0px;
-    /*opacity: .5;
-    background: rgba(255,0,255,1);
-    border: 2px solid rgba(255,255,255,0);*/
+} 
+
+.floor2 {
+    z-index: 11;
+} 
+
+.ceiling1 {
+    z-index: 30;
 }
 
-.transparent {
+.ceiling2 {
+    z-index: 31;
+}
+
+.trsp {
     opacity: 0;
 }
 
-.transparent20 {
+.trsp20 {
     opacity: .2;
 }
 
-.transparent40 {
+.trsp40 {
     opacity: .4;
 }
 
-.half-transparent {
+.half-trsp {
     opacity: .5;
 }
 
-.transparent60 {
+.trsp60 {
     opacity: .60;
 }
 
-.transparent80 {
+.trsp80 {
     opacity: .80;
 }
 
-.non-transparent {
+.trsp100 {
     opacity: 1;
 }
 
-.radius-bl {
-    border-bottom-left-radius: 10px
+.r0 {
+    border-radius: 8px
 }
 
-.radius-br {
-    border-bottom-right-radius: 10px
+.r0-bl {
+    border-bottom-left-radius: 8px
 }
 
-.radius-tl {
-    border-top-left-radius: 10px
+.r0-br {
+    border-bottom-right-radius: 8px
 }
 
-.radius-tr {
-    border-top-right-radius: 10px
+.r0-tl {
+    border-top-left-radius: 8px
 }
 
-.radius-all {
-    border-radius: 10px
+.r0-tr {
+    border-top-right-radius: 8px
+}
+
+.r1 {
+    border-radius: 15px
+}
+
+.r1-bl {
+    border-bottom-left-radius: 15px
+}
+
+.r1-br {
+    border-bottom-right-radius: 15px
+}
+
+.r1-tl {
+    border-top-left-radius: 15px
+}
+
+.r1-tr {
+    border-top-right-radius: 15px
+}
+
+.r2 {
+    border-radius: 25px
+}
+
+.r2-bl {
+    border-bottom-left-radius: 25px
+}
+
+.r2-br {
+    border-bottom-right-radius: 25px
+}
+
+.r2-tl {
+    border-top-left-radius: 25px
+}
+
+.r2-tr {
+    border-top-right-radius: 25px
 }
 
 .thin {
@@ -192,6 +174,10 @@
 .thick {
     border-style: solid;
     border-width: 5px;
+}
+
+.margin {
+    margin: 5px;
 }
 
 /* SVG  */

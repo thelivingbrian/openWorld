@@ -1,0 +1,88 @@
+.invisible { background-color: rgba(0, 0, 0, 0); }
+
+.invisible-b { border-color: rgba(0, 0, 0, 0); }
+
+.day { background-color: rgb(170, 255, 255); }
+
+.day-b { border-color: rgb(170, 255, 255); }
+
+.night { background-color: rgb(18, 5, 0); }
+
+.night-b { border-color: rgb(18, 5, 0); }
+
+.twilight { background-color: rgb(255, 106, 92); }
+
+.twilight-b { border-color: rgb(255, 106, 92); }
+
+.green { background-color: rgb(32, 255, 60); }
+
+.green-b { border-color: rgb(32, 255, 60); }
+
+.dark-green { background-color: rgb(32, 155, 60); }
+
+.dark-green-b { border-color: rgb(32, 155, 60); }
+
+.lime { background-color: rgb(150, 255, 60); }
+
+.lime-b { border-color: rgb(150, 255, 60); }
+
+.yellow { background-color: rgb(255, 255, 60); }
+
+.yellow-b { border-color: rgb(255, 255, 60); }
+
+.orange { background-color: rgb(255, 150, 60); }
+
+.orange-b { border-color: rgb(255, 150, 60); }
+
+.red { background-color: rgb(255, 32, 60); }
+
+.red-b { border-color: rgb(255, 32, 60); }
+
+.dark-red { background-color: rgb(155, 16, 30); }
+
+.dark-red-b { border-color: rgb(155, 16, 30); }
+
+.blue { background-color: rgb(72, 52, 238); }
+
+.blue-b { border-color: rgb(72, 52, 238); }
+
+.fusia { background-color: rgb(253, 52, 172); }
+
+.fusia-b { border-color: rgb(253, 52, 172); }
+
+.pink { background-color: rgb(253, 182, 215); }
+
+.pink-b { border-color: rgb(253, 182, 215); }
+
+.salmon { background-color: rgb(255, 165, 145); }
+
+.salmon-b { border-color: rgb(255, 165, 145); }
+
+.half-gray { background-color: rgb(120, 120, 129); }
+
+.half-gray-b { border-color: rgb(120, 120, 129); }
+
+.dark-blue { background-color: rgb(32, 32, 65); }
+
+.dark-blue-b { border-color: rgb(32, 32, 65); }
+
+.sand { background-color: rgb(250, 245, 175); }
+
+.sand-b { border-color: rgb(250, 245, 175); }
+
+.grass { background-color: rgb(210, 250, 180); }
+
+.grass-b { border-color: rgb(210, 250, 180); }
+
+.ice { background-color: rgb(225, 240, 255); }
+
+.ice-b { border-color: rgb(225, 240, 255); }
+
+.wall { background-color: rgb(100, 100, 100); }
+
+.wall-b { border-color: rgb(100, 100, 100); }
+
+.white { background-color: rgb(255, 255, 255); }
+
+.white-b { border-color: rgb(255, 255, 255); }
+

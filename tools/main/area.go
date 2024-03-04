@@ -9,19 +9,19 @@ import (
 	"strconv"
 )
 
+type Area struct {
+	Name       string      `json:"name"`
+	Safe       bool        `json:"safe"`
+	Tiles      [][]int     `json:"tiles"`
+	Transports []Transport `json:"transports"`
+}
+
 type Transport struct {
 	SourceY   int    `json:"sourceY"`
 	SourceX   int    `json:"sourceX"`
 	DestY     int    `json:"destY"`
 	DestX     int    `json:"destX"`
 	DestStage string `json:"destStage"`
-}
-
-type Area struct {
-	Name       string      `json:"name"`
-	Safe       bool        `json:"safe"`
-	Tiles      [][]int     `json:"tiles"`
-	Transports []Transport `json:"transports"`
 }
 
 var haveSelection bool = false
@@ -79,8 +79,7 @@ func saveArea(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	io.WriteString(w, `<h2>Sucess</h2>`)
-	return
+	io.WriteString(w, `<h2>Success</h2>`)
 }
 
 func getCreateArea(w http.ResponseWriter, r *http.Request) {
@@ -97,11 +96,11 @@ func divCreateArea() string {
 			</div>
 			<div>
 				<label for="height">Height:</label>
-				<input type="text" id="height" name="height" value="10">
+				<input type="text" id="height" name="height" value="16">
 			</div>
 			<div>
 				<label for="width">Width:</label>
-				<input type="text" id="width" name="width" value="14">
+				<input type="text" id="width" name="width" value="16">
 			</div>
 			<div>
 				<button>Create</button>
@@ -113,7 +112,7 @@ func divCreateArea() string {
 func getEditAreaPage(w http.ResponseWriter, r *http.Request) {
 	output := `
 	<div>
-		<labelAreas</label>
+		<label>Areas</label>
 		<select name="area-name" hx-get="/edit" hx-target="#edit-area">
 			<option value="">--</option>
 	`
@@ -222,7 +221,7 @@ func transportsAsOob(transports []Transport) string {
 	for _, transport := range transports {
 		var yStr = strconv.Itoa(transport.SourceY)
 		var xStr = strconv.Itoa(transport.SourceX)
-		output += `<div hx-swap-oob="true" hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square` + " white" + `" id="c` + yStr + `-` + xStr + `"><div class="box0 med red-b"></div></div></div>`
+		output += `<div hx-swap-oob="true" hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[transport.SourceY][transport.SourceX].CssColor + `" id="c` + yStr + `-` + xStr + `"><div class="box top med red-b"></div></div></div>`
 	}
 	output += ``
 	return output
@@ -287,9 +286,9 @@ func getIndexOfAreaByName(name string) int {
 
 func AreaToMaterialGrid(area Area) [][]Material {
 	out := make([][]Material, len(area.Tiles))
-	for y, _ := range area.Tiles {
+	for y := range area.Tiles {
 		out[y] = make([]Material, len(area.Tiles[y]))
-		for x, _ := range area.Tiles[y] {
+		for x := range area.Tiles[y] {
 			out[y][x] = materials[area.Tiles[y][x]]
 		}
 	}
@@ -306,7 +305,7 @@ func createGrid(w http.ResponseWriter, r *http.Request) {
 	for i := range modifications {
 		modifications[i] = make([]Material, width)
 		for j := range modifications[i] {
-			modifications[i][j] = Material{ID: 0, CommonName: "default", CssClassName: "", Walkable: true, R: 255, G: 255, B: 255}
+			modifications[i][j] = Material{ID: 0, CommonName: "default", CssColor: "", Walkable: true, Floor1Css: "", Floor2Css: ""}
 		}
 	}
 
@@ -397,9 +396,21 @@ func getHTMLFromArea(area Area) string {
 	for y := range area.Tiles {
 		output += `<div class="grid-row">`
 		for x := range area.Tiles[y] {
-			var yStr = strconv.Itoa(y)
-			var xStr = strconv.Itoa(x)
-			output += `<div hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + materials[area.Tiles[y][x]].CssClassName + `" id="c` + yStr + `-` + xStr + `"></div>`
+			materialId := area.Tiles[y][x]
+			output += squareFromMaterial(y, x, materials[materialId])
+		}
+		output += `</div>`
+	}
+	output += `</div>`
+	return output
+}
+
+func getHTMLFromModifications() string {
+	output := `<div class="grid" id="screen" hx-swap-oob="true">`
+	for y := range modifications {
+		output += `<div class="grid-row">`
+		for x := range modifications[y] {
+			output += squareFromMaterial(y, x, modifications[y][x])
 		}
 		output += `</div>`
 	}
@@ -437,7 +448,7 @@ func selectMaterial(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	io.WriteString(w, fmt.Sprintf(`<div class="grid-square %s"><input name="selected-material" type="hidden" value="%d" /></div>`, selectedMaterial.CssClassName, selectedMaterial.ID))
+	io.WriteString(w, exampleSquareFromMaterial(selectedMaterial))
 }
 
 func clickOnSquare(w http.ResponseWriter, r *http.Request) {
@@ -478,24 +489,45 @@ func dataFromRequest(r *http.Request) (int, int, bool) {
 func selectSquare(y, x int) string {
 	output := ""
 	if haveSelection {
-		var yStr = strconv.Itoa(selectedY)
-		var xStr = strconv.Itoa(selectedX)
-		output += `<div hx-post="/clickOnSquare" hx-swap-oob="true" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[selectedY][selectedX].CssClassName + `" id="c` + yStr + `-` + xStr + `"></div>`
+		output += oobSquareFromMaterial(selectedY, selectedX, modifications[selectedY][selectedX])
 	}
 	haveSelection = true // Probably should be a hidden input
 	selectedY = y
 	selectedX = x
-	var yStr = strconv.Itoa(y)
-	var xStr = strconv.Itoa(x)
-	return output + `<div hx-post="/clickOnSquare" hx-swap-oob="true" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[y][x].CssClassName + `" id="c` + yStr + `-` + xStr + `"><div class="box0 med red-b"></div>`
+	return output + oobSquareFromMaterialSelected(y, x, modifications[y][x])
 }
 
 func replaceSquare(y int, x int, selectedMaterial Material) string {
 	modifications[y][x] = selectedMaterial
+	return oobSquareFromMaterial(y, x, selectedMaterial)
+}
 
+func oobSquareFromMaterial(y int, x int, material Material) string {
+	overlay := fmt.Sprintf(`<div class="box floor1 %s"><div class="box floor2 %s"></div></div><div class="box ceiling1 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css)
 	var yStr = strconv.Itoa(y)
 	var xStr = strconv.Itoa(x)
-	return fmt.Sprintf(`<div hx-post="/clickOnSquare" hx-swap-oob="true" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s"></div>`, yStr, xStr, selectedMaterial.CssClassName, yStr, xStr)
+	return fmt.Sprintf(`<div hx-post="/clickOnSquare" hx-swap-oob="true" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s">%s</div>`, yStr, xStr, material.CssColor, yStr, xStr, overlay)
+}
+
+func squareFromMaterial(y int, x int, material Material) string {
+	overlay := fmt.Sprintf(`<div class="box floor1 %s"></div><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css)
+	var yStr = strconv.Itoa(y)
+	var xStr = strconv.Itoa(x)
+	return fmt.Sprintf(`<div hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s">%s</div>`, yStr, xStr, material.CssColor, yStr, xStr, overlay)
+}
+
+func oobSquareFromMaterialSelected(y int, x int, material Material) string {
+	// Pull out
+	overlay := fmt.Sprintf(`<div class="box floor1 %s"><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div><div class="box top red-b med"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css)
+	var yStr = strconv.Itoa(y)
+	var xStr = strconv.Itoa(x)
+	return fmt.Sprintf(`<div hx-post="/clickOnSquare" hx-swap-oob="true" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s">%s</div>`, yStr, xStr, material.CssColor, yStr, xStr, overlay)
+}
+
+func exampleSquareFromMaterial(material Material) string {
+	overlay := fmt.Sprintf(`<div class="box floor1 %s"></div><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css)
+	idHiddenInput := fmt.Sprintf(`<input name="selected-material" type="hidden" value="%d" />`, material.ID)
+	return fmt.Sprintf(`<div class="grid-square %s" name="selected-material">%s%s</div>`, material.CssColor, overlay, idHiddenInput)
 }
 
 func fillFrom(y int, x int, selectedMaterial Material) string {
@@ -504,16 +536,38 @@ func fillFrom(y int, x int, selectedMaterial Material) string {
 	for row := range seen {
 		seen[row] = make([]bool, len(modifications[row]))
 	}
-	return fillAndCheckNeighbors(y, x, targetId, selectedMaterial, seen)
+	fillModifications(y, x, targetId, selectedMaterial, seen)
+	return getHTMLFromModifications()
 }
 
+func fillModifications(y int, x int, targetId int, selected Material, seen [][]bool) {
+	seen[y][x] = true
+	modifications[y][x] = selected
+	deltas := []int{-1, 1}
+	for _, i := range deltas {
+		if y+i >= 0 && y+i < len(modifications) {
+			shouldfill := !seen[y+i][x] && modifications[y+i][x].ID == targetId
+			if shouldfill {
+				fillModifications(y+i, x, targetId, selected, seen)
+			}
+		}
+		if x+i >= 0 && x+i < len(modifications[y]) {
+			shouldfill := !seen[y][x+i] && modifications[y][x+i].ID == targetId
+			if shouldfill {
+				fillModifications(y, x+i, targetId, selected, seen)
+			}
+		}
+	}
+}
+
+// This could be a good way to test arbitrary number of oobs
 func fillAndCheckNeighbors(y int, x int, targetId int, selected Material, seen [][]bool) string {
 	seen[y][x] = true
 	modifications[y][x] = selected
 	var yStr = strconv.Itoa(y)
 	var xStr = strconv.Itoa(x)
 
-	cells := fmt.Sprintf(`<div hx-swap-oob="true" hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s"></div>`, yStr, xStr, selected.CssClassName, yStr, xStr)
+	cells := fmt.Sprintf(`<div hx-swap-oob="true" hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s"></div>`, yStr, xStr, selected.CssColor, yStr, xStr)
 	deltas := []int{-1, 1}
 	for _, i := range deltas {
 		if y+i >= 0 && y+i < len(modifications) {

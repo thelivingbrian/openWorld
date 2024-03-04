@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -13,62 +14,105 @@ type Teleport struct {
 }
 
 type Tile struct {
-	material         Material
-	playerMap        map[string]*Player
-	playerMutex      sync.Mutex
-	stage            *Stage
-	teleport         *Teleport
-	y                int
-	x                int
-	currentCssClass  string
-	originalCssClass string
-	eventsInFlight   atomic.Int32
-	powerUp          *PowerUp
-	powerMutex       sync.Mutex
-	money            int
-	boosts           int
+	material       Material
+	playerMap      map[string]*Player
+	playerMutex    sync.Mutex
+	stage          *Stage
+	teleport       *Teleport
+	y              int
+	x              int
+	eventsInFlight atomic.Int32
+	powerUp        *PowerUp
+	powerMutex     sync.Mutex
+	money          int
+	boosts         int
+	htmlTemplate   string
 }
 
 func newTile(mat Material, y int, x int) *Tile {
 	return &Tile{
-		material:         mat,
-		playerMap:        make(map[string]*Player),
-		playerMutex:      sync.Mutex{},
-		stage:            nil,
-		teleport:         nil,
-		y:                y,
-		x:                x,
-		originalCssClass: mat.CssClassName,
-		currentCssClass:  mat.CssClassName,
-		eventsInFlight:   atomic.Int32{},
-		powerUp:          nil,
-		powerMutex:       sync.Mutex{},
-		money:            0}
+		material:       mat,
+		playerMap:      make(map[string]*Player),
+		playerMutex:    sync.Mutex{},
+		stage:          nil,
+		teleport:       nil,
+		y:              y,
+		x:              x,
+		eventsInFlight: atomic.Int32{},
+		powerUp:        nil,
+		powerMutex:     sync.Mutex{},
+		money:          0,
+		htmlTemplate:   makeTileTemplate(mat, y, x)}
+}
+
+func makeTileTemplate(mat Material, y, x int) string {
+	placeHold := "%s"
+	tileCoord := fmt.Sprintf("%d-%d", y, x)
+	cId := "c" + tileCoord
+	tId := "t" + tileCoord
+
+	floor1css := ""
+	if mat.Floor1Css != "" {
+		floor1css = fmt.Sprintf(`<div class="box floor1 %s"></div>`, mat.Floor1Css)
+	}
+
+	floor2css := ""
+	if mat.Floor2Css != "" {
+		floor2css = fmt.Sprintf(`<div class="box floor2 %s"></div>`, mat.Floor2Css)
+	}
+
+	ceil1css := ""
+	if mat.Floor1Css != "" {
+		ceil1css = fmt.Sprintf(`<div class="box ceiling1 %s"></div>`, mat.Ceiling1Css)
+	}
+
+	ceil2css := ""
+	if mat.Floor2Css != "" {
+		ceil2css = fmt.Sprintf(`<div class="box ceiling2 %s"></div>`, mat.Ceiling2Css)
+	}
+
+	template := `<div class="grid-square %s" id="%s" hx-swap-oob="true">				
+					%s
+					%s
+					%s
+					%s
+					%s
+					%s
+					<div id="%s" class="box top" id=""></div>
+				</div>`
+	return fmt.Sprintf(template, mat.CssColor, cId, floor1css, floor2css, placeHold, placeHold, ceil1css, ceil2css, tId)
 }
 
 // newTile w/ teleport?
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	tile.addPlayer(player)
-	tile.stage.updateAllWithHudExcept(player, []*Tile{tile}) // Should take []Tile not html
+	tile.stage.updateAllExcept(playerBox(tile), player)
 }
 
 func (tile *Tile) addPlayer(player *Player) {
+	itemChange := false
 	if tile.powerUp != nil {
 		// This should be mutexed I think
 		powerUp := tile.powerUp
 		tile.powerUp = nil
 		player.actions.spaceStack.push(powerUp)
+		itemChange = true
 	}
 	if tile.money != 0 {
 		// I tex you tex
 		player.setMoney(player.money + tile.money)
 		tile.money = 0
+		itemChange = true
 	}
 	if tile.boosts > 0 {
 		// We all tex
 		player.addBoosts(tile.boosts)
 		tile.boosts = 0
+		itemChange = true
+	}
+	if itemChange {
+		player.stage.updateAll(svgFromTile(tile))
 	}
 	if tile.teleport == nil {
 		tile.playerMutex.Lock()
@@ -77,7 +121,6 @@ func (tile *Tile) addPlayer(player *Player) {
 		player.y = tile.y
 		player.x = tile.x
 		player.tile = tile
-		tile.currentCssClass = cssClassFromHealth(player)
 	} else {
 		// Add on new stage // Not always a new stage?
 		player.removeFromStage()
@@ -87,21 +130,13 @@ func (tile *Tile) addPlayer(player *Player) {
 
 func (tile *Tile) removePlayerAndNotifyOthers(player *Player) {
 	tile.removePlayer(player.id)
-	tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
+	tile.stage.updateAllExcept(playerBox(tile), player)
 }
 
 func (tile *Tile) removePlayer(playerId string) {
 	tile.playerMutex.Lock()
 	delete(tile.playerMap, playerId)
 	tile.playerMutex.Unlock() // Defer instead?
-
-	samplePlayerRemaining := tile.getAPlayer()
-
-	if samplePlayerRemaining == nil {
-		tile.currentCssClass = tile.originalCssClass
-	} else {
-		tile.currentCssClass = cssClassFromHealth(samplePlayerRemaining)
-	}
 }
 
 func (tile *Tile) getAPlayer() *Player {
@@ -111,12 +146,6 @@ func (tile *Tile) getAPlayer() *Player {
 		return player
 	}
 	return nil
-}
-
-func (tile *Tile) changeColorAndNotifyAll(cssClass string) {
-	tile.currentCssClass = cssClass
-	tile.stage.updateAllWithHud([]*Tile{tile})
-
 }
 
 func (tile *Tile) incrementAndReturnIfFirst() *Tile {
@@ -133,8 +162,6 @@ func (tile *Tile) tryToNotifyAfter(delay int) {
 	time.Sleep(time.Millisecond * time.Duration(delay))
 	tile.eventsInFlight.Add(-1)
 	if tile.eventsInFlight.Load() == 0 {
-		// return string instead?
-		//tile.stage.updateAll(htmlFromTile(tile))
 		tile.stage.updateAllWithHud([]*Tile{tile})
 	}
 }
@@ -146,9 +173,7 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 			continue // Race condition nonsense
 		}
 		survived := player.addToHealth(-dmg)
-		tile.currentCssClass = cssClassFromHealth(player)
 		if !survived {
-			tile.currentCssClass = tile.originalCssClass
 			tile.money += player.money / 2 // Use Observer, return diff
 			player.money = player.money / 2
 			// Maybe should just pass in required fields?
@@ -166,11 +191,13 @@ func walkable(tile *Tile) bool {
 	return tile.material.Walkable
 }
 
+/// These two need to get looked at
+
 func (tile *Tile) addPowerUpAndNotifyAll(player *Player, shape [][2]int) {
 	tile.powerUp = &PowerUp{shape, [4]int{100, 100, 100, 100}}
 	html := htmlFromTile(tile)
 	tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
-	updateOne(html, player) // Hides player token
+	updateOne(html, player) // Hides player token // Still true?
 }
 
 func (tile *Tile) addBoostsAndNotifyAll(player *Player) {
@@ -182,6 +209,8 @@ func (tile *Tile) addBoostsAndNotifyAll(player *Player) {
 
 }
 
+///
+
 func cssClassFromHealth(player *Player) string {
 	// >120 indicator
 	// Middle range choosen color? or only in safe
@@ -191,7 +220,7 @@ func cssClassFromHealth(player *Player) string {
 	if player.health >= 0 {
 		return "dark-red"
 	}
-	return "blue" //shouldn't happen but want to be visible
+	return "blue" // shouldn't happen but want to be visible
 }
 
 func validCoordinate(y int, x int, tiles [][]*Tile) bool {
@@ -202,14 +231,6 @@ func validCoordinate(y int, x int, tiles [][]*Tile) bool {
 		return false
 	}
 	return true
-}
-
-func mapOfTileToOoB(m map[*Tile]bool) string {
-	html := ``
-	for tile := range m {
-		html += htmlFromTile(tile)
-	}
-	return html
 }
 
 func mapOfTileToArray(m map[*Tile]bool) []*Tile {
@@ -223,19 +244,7 @@ func mapOfTileToArray(m map[*Tile]bool) []*Tile {
 func sliceOfTileToColoredOoB(tiles []*Tile, cssClass string) string {
 	html := ``
 	for _, tile := range tiles {
-		html += oobColoredTile(tile, cssClass)
+		html += oobHighlightBox(tile, cssClass)
 	}
 	return html
-}
-
-func colorOf(tile *Tile) string {
-	return tile.currentCssClass
-}
-
-func colorArray(row []Tile) []string {
-	var output []string = make([]string, len(row))
-	for i := range row {
-		output[i] = colorOf(&row[i])
-	}
-	return output
 }

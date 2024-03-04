@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"sync"
-	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -55,8 +54,11 @@ func createStageByName(s string) (*Stage, bool) {
 	}
 	for _, transport := range area.Transports {
 		outputStage.tiles[transport.SourceY][transport.SourceX].teleport = &Teleport{transport.DestStage, transport.DestY, transport.DestX}
-		outputStage.tiles[transport.SourceY][transport.SourceX].originalCssClass = "pink"
-		outputStage.tiles[transport.SourceY][transport.SourceX].currentCssClass = "pink"
+
+		// Change this
+		mat := outputStage.tiles[transport.SourceY][transport.SourceX].material
+		mat.CssColor = "pink"
+		outputStage.tiles[transport.SourceY][transport.SourceX].htmlTemplate = makeTileTemplate(mat, transport.SourceY, transport.SourceX)
 
 	}
 
@@ -110,16 +112,6 @@ func (stage *Stage) updateAllWithHud(tiles []*Tile) {
 	}
 }
 
-// Unused?
-func (stage *Stage) updateAllWithHudAfterDelay(delay int) {
-	time.Sleep(time.Duration(delay) * time.Millisecond)
-	stage.playerMutex.Lock()
-	defer stage.playerMutex.Unlock()
-	for _, player := range stage.playerMap {
-		oobUpdateWithHud(player, nil)
-	}
-}
-
 func (stage *Stage) updateAllWithHudExcept(ignore *Player, tiles []*Tile) {
 	stage.playerMutex.Lock()
 	defer stage.playerMutex.Unlock()
@@ -131,40 +123,16 @@ func (stage *Stage) updateAllWithHudExcept(ignore *Player, tiles []*Tile) {
 	}
 }
 
-func updateOneWithHud(player *Player, tiles []*Tile) {
-	oobUpdateWithHud(player, tiles)
+func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
+	playerIcon := fmt.Sprintf(`<div class="box zp fusia" id="p%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
+	previousBox := playerBox(previous)
+
+	player.stage.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles) + previousBox + playerIcon)}
 }
 
 func oobUpdateWithHud(player *Player, tiles []*Tile) {
-	player.stage.updates <- Update{player, []byte(tileHtmlWithHud(player, tiles))}
-}
-
-func tileHtmlWithHud(player *Player, tiles []*Tile) string {
-	highlights := ""
-	// Create slice of proper size? Currently has many null entries
-
-	// Still risk here of concurrent read/write?
-	for _, tile := range tiles {
-		if tile == nil {
-			continue
-		}
-		_, impactsHud := player.actions.shiftHighlights[tile]
-		if impactsHud && player.actions.boostCounter > 0 {
-			highlights += oobColoredTile(tile, shiftHighlighter(tile))
-			continue
-		}
-		_, impactsHud = player.actions.spaceHighlights[tile]
-		if impactsHud {
-			highlights += oobHighlightTile(tile, "salmon") //oobColoredTile(tile, spaceHighlighter(tile))
-			continue
-		}
-		highlights += htmlFromTile(tile)
-	}
-
-	// Maybe should just be the actual color, or do similar check to see if it was impacted
-	playerIcon := fmt.Sprintf(`<div class="grid-square fusia" id="c%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
-
-	return highlights + playerIcon
+	// Is this getting blocked? where does this return to
+	player.stage.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles))}
 }
 
 func (stage *Stage) updateAll(update string) {
@@ -175,14 +143,21 @@ func (stage *Stage) updateAll(update string) {
 	}
 }
 
+func (stage *Stage) updateAllExcept(update string, ignore *Player) {
+	stage.playerMutex.Lock()
+	defer stage.playerMutex.Unlock()
+	for _, player := range stage.playerMap {
+		if player == ignore {
+			continue
+		}
+		updateOne(update, player)
+	}
+}
+
 func updateOne(update string, player *Player) {
 	player.stage.updates <- Update{player, []byte(update)}
 }
 
 func updateScreenFromScratch(player *Player) {
-	//if player.isDead() {
-	//	respawn(player)
-	//	return
-	//}
 	player.stage.updates <- Update{player, htmlFromPlayer(player)}
 }
