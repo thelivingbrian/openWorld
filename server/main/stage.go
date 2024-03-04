@@ -135,41 +135,6 @@ func oobUpdateWithHud(player *Player, tiles []*Tile) {
 	player.stage.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles))}
 }
 
-// Wrong file
-func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
-	highlights := ""
-	// Create slice of proper size? Currently has many null entries
-
-	// Still risk here of concurrent read/write?
-	for _, tile := range tiles {
-		if tile == nil {
-			continue
-		}
-		if tile.stage != player.stage {
-			continue
-		}
-		_, impactsHud := player.actions.shiftHighlights[tile]
-		if impactsHud && player.actions.boostCounter > 0 {
-			highlights += oobHighlightBox(tile, shiftHighlighter(tile))
-			continue
-		}
-		_, impactsHud = player.actions.spaceHighlights[tile]
-		if impactsHud {
-			highlights += oobHighlightBox(tile, spaceHighlighter(tile)) //oobColoredTile(tile, spaceHighlighter(tile))
-			continue
-		}
-
-		// Empty Highlight?
-		highlights += oobHighlightBox(tile, "")
-	}
-
-	// Maybe should just be the actual color, or do similar check to see if it was impacted
-	// To work this way needs to come without classic swap
-	//playerIcon := fmt.Sprintf(`<div class="box zp fusia" id="p%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
-
-	return highlights // + playerIcon
-}
-
 func (stage *Stage) updateAll(update string) {
 	stage.playerMutex.Lock()
 	defer stage.playerMutex.Unlock()

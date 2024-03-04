@@ -58,9 +58,6 @@ func spaceHighlighter(tile *Tile) string {
 }
 
 func shiftHighlighter(tile *Tile) string {
-	//if len(tile.playerMap) > 0 {
-	//	return "half-trsp dark-blue"
-	//}
 	if walkable(tile) {
 		return "half-trsp blue"
 	}
@@ -137,21 +134,6 @@ func getHeartsFromHealth(i int) string {
 
 func htmlFromTile(tile *Tile) string {
 	svgtag := svgFromTile(tile)
-	// Create Template on Tile creation
-	/*tileCoord := fmt.Sprintf("%d-%d", tile.y, tile.x)
-	cId := "c" + tileCoord
-	tId := "t" + tileCoord
-	template := `<div class="grid-square %s" id="%s" hx-swap-oob="true">
-					<div class="box floor1 %s"></div>
-					<div class="box floor2 %s"></div>
-					%s
-					%s
-					<div class="box ceiling1 %s"></div>
-					<div class="box ceiling2 %s"></div>
-					<div id="%s" class="box top" id=""></div>
-				</div>`
-	return fmt.Sprintf(template, tile.material.CssColor, cId, tile.material.Floor1Css, tile.material.Floor2Css, playerBox(tile), svgtag, tile.material.Ceiling1Css, tile.material.Ceiling2Css, tId)
-	*/
 	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), svgtag)
 }
 
@@ -161,6 +143,35 @@ func playerBox(tile *Tile) string {
 		playerIndicator = cssClassFromHealth(p)
 	}
 	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s" id=""></div>`, tile.y, tile.x, playerIndicator)
+}
+
+func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
+	highlights := ""
+	// Create slice of proper size? Currently has many null entries
+
+	// Still risk here of concurrent read/write?
+	for _, tile := range tiles {
+		if tile == nil {
+			continue
+		}
+		if tile.stage != player.stage {
+			continue
+		}
+		_, impactsHud := player.actions.shiftHighlights[tile]
+		if impactsHud && player.actions.boostCounter > 0 {
+			highlights += oobHighlightBox(tile, shiftHighlighter(tile))
+			continue
+		}
+		_, impactsHud = player.actions.spaceHighlights[tile]
+		if impactsHud {
+			highlights += oobHighlightBox(tile, spaceHighlighter(tile)) //oobColoredTile(tile, spaceHighlighter(tile))
+			continue
+		}
+
+		highlights += oobHighlightBox(tile, "")
+	}
+
+	return highlights
 }
 
 func oobHighlightBox(tile *Tile, cssClass string) string {

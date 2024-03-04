@@ -144,11 +144,7 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 			var settleInfo = api.makeSettleInfo(socketElt);
 			var fragment = api.makeFragment(response);
 
-            //console.log(JSON.stringify(fragment))
-
 			if (fragment.children.length) {
-                //console.log("Hello")
-                console.log(fragment.children.length)
 				var children = Array.from(fragment.children);
 				for (var i = 0; i < children.length; i++) {
 					api.oobSwap(api.getAttributeValue(children[i], "hx-swap-oob") || "true", children[i], settleInfo);
