@@ -53,7 +53,7 @@ func spaceHighlighter(tile *Tile) string {
 	} else if walkable(tile) {
 		return "half-trsp salmon"
 	} else {
-		return "salmon"
+		return "half-trsp salmon"
 	}
 }
 

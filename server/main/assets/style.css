@@ -198,24 +198,64 @@ a {
     opacity: 1;
 }
 
-.radius-bl {
-    border-bottom-left-radius: 10px
+.r0 {
+    border-radius: 8px
 }
 
-.radius-br {
-    border-bottom-right-radius: 10px
+.r0-bl {
+    border-bottom-left-radius: 8px
 }
 
-.radius-tl {
-    border-top-left-radius: 10px
+.r0-br {
+    border-bottom-right-radius: 8px
 }
 
-.radius-tr {
-    border-top-right-radius: 10px
+.r0-tl {
+    border-top-left-radius: 8px
 }
 
-.radius-all {
-    border-radius: 10px
+.r0-tr {
+    border-top-right-radius: 8px
+}
+
+.r1 {
+    border-radius: 15px
+}
+
+.r1-bl {
+    border-bottom-left-radius: 15px
+}
+
+.r1-br {
+    border-bottom-right-radius: 15px
+}
+
+.r1-tl {
+    border-top-left-radius: 15px
+}
+
+.r1-tr {
+    border-top-right-radius: 15px
+}
+
+.r2 {
+    border-radius: 25px
+}
+
+.r2-bl {
+    border-bottom-left-radius: 25px
+}
+
+.r2-br {
+    border-bottom-right-radius: 25px
+}
+
+.r2-tl {
+    border-top-left-radius: 25px
+}
+
+.r2-tr {
+    border-top-right-radius: 25px
 }
 
 .thin {
