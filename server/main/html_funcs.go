@@ -47,46 +47,6 @@ func htmlFromTileGrid(tiles [][]*Tile) [][]string {
 	return output
 }
 
-/*
-func playerView(player *Player, tileHtml [][]string) {
-	// Add oobPlayerTile method?
-	tileHtml[player.y][player.x] = oobColoredTile(player.tile, "fusia")
-	applyHighlights(player, tileHtml, player.actions.spaceStack.peek().areaOfInfluence, spaceHighlighter)
-	if player.actions.boostCounter > 0 {
-		applyHighlights(player, tileHtml, jumpCross(), shiftHighlighter)
-	}
-}
-
-
-func applyHighlights(player *Player, tileHtml [][]string, relativeCoords [][2]int, highligher func(*Tile) string) {
-	absCoordinatePairs := applyRelativeDistance(player.y, player.x, relativeCoords)
-	for _, pair := range absCoordinatePairs {
-		if pair[0] >= 0 &&
-			pair[1] >= 0 &&
-			pair[0] < len(player.stage.tiles) &&
-			pair[1] < len(player.stage.tiles[0]) {
-			color := highligher(player.stage.tiles[pair[0]][pair[1]])
-			tileHtml[pair[0]][pair[1]] = oobHighlightBox(player.stage.tiles[pair[0]][pair[1]], color) //highligher(player.stage.tiles[pair[0]][pair[1]])
-		}
-	}
-}
-*/
-
-func highlightsFromScratch(player *Player, relativeCoords [][2]int, highligher func(*Tile) string) []string {
-	output := make([]string, len(relativeCoords))
-	absCoordinatePairs := applyRelativeDistance(player.y, player.x, relativeCoords)
-	for i, pair := range absCoordinatePairs {
-		if pair[0] >= 0 &&
-			pair[1] >= 0 &&
-			pair[0] < len(player.stage.tiles) &&
-			pair[1] < len(player.stage.tiles[0]) {
-			color := highligher(player.stage.tiles[pair[0]][pair[1]])
-			output[i] = oobHighlightBox(player.stage.tiles[pair[0]][pair[1]], color)
-		}
-	}
-	return output
-}
-
 func spaceHighlighter(tile *Tile) string {
 	if len(tile.playerMap) > 0 {
 		return "half-trsp dark-blue"
@@ -98,13 +58,13 @@ func spaceHighlighter(tile *Tile) string {
 }
 
 func shiftHighlighter(tile *Tile) string {
-	if len(tile.playerMap) > 0 {
-		return "half-trsp dark-blue"
-	}
+	//if len(tile.playerMap) > 0 {
+	//	return "half-trsp dark-blue"
+	//}
 	if walkable(tile) {
 		return "half-trsp blue"
 	}
-	return "red"
+	return "half-trsp red"
 }
 
 func randomFieryColor() string {
@@ -181,8 +141,7 @@ func htmlFromTile(tile *Tile) string {
 	tileCoord := fmt.Sprintf("%d-%d", tile.y, tile.x)
 	cId := "c" + tileCoord
 	tId := "t" + tileCoord
-	template := `<div class="grid-square %s" id="%s" hx-swap-oob="true">
-					
+	template := `<div class="grid-square %s" id="%s" hx-swap-oob="true">				
 					<div class="box floor1 %s"></div>
 					<div class="box floor2 %s"></div>
 					%s

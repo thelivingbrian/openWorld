@@ -55,7 +55,9 @@ func createStageByName(s string) (*Stage, bool) {
 	for _, transport := range area.Transports {
 		outputStage.tiles[transport.SourceY][transport.SourceX].teleport = &Teleport{transport.DestStage, transport.DestY, transport.DestX}
 		//outputStage.tiles[transport.SourceY][transport.SourceX].originalCssClass = "pink"
-		outputStage.tiles[transport.SourceY][transport.SourceX].currentCssClass = "pink"
+
+		// Change this
+		outputStage.tiles[transport.SourceY][transport.SourceX].material.CssColor = "pink"
 
 	}
 
@@ -120,21 +122,20 @@ func (stage *Stage) updateAllWithHudExcept(ignore *Player, tiles []*Tile) {
 	}
 }
 
-// duplicte of oobUpdateWIthHud?
 func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
 	playerIcon := fmt.Sprintf(`<div class="box zp fusia" id="p%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
 	previousBox := playerBox(previous)
 
-	player.stage.updates <- Update{player, []byte(tileHtmlWithHud(player, tiles) + previousBox + playerIcon)}
+	player.stage.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles) + previousBox + playerIcon)}
 }
 
 func oobUpdateWithHud(player *Player, tiles []*Tile) {
 	// Is this getting blocked? where does this return to
-	player.stage.updates <- Update{player, []byte(tileHtmlWithHud(player, tiles))}
+	player.stage.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles))}
 }
 
 // Wrong file
-func tileHtmlWithHud(player *Player, tiles []*Tile) string {
+func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 	highlights := ""
 	// Create slice of proper size? Currently has many null entries
 
@@ -163,9 +164,9 @@ func tileHtmlWithHud(player *Player, tiles []*Tile) string {
 
 	// Maybe should just be the actual color, or do similar check to see if it was impacted
 	// To work this way needs to come without classic swap
-	playerIcon := fmt.Sprintf(`<div class="box zp fusia" id="p%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
+	//playerIcon := fmt.Sprintf(`<div class="box zp fusia" id="p%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
 
-	return highlights + playerIcon
+	return highlights // + playerIcon
 }
 
 func (stage *Stage) updateAll(update string) {
@@ -192,16 +193,5 @@ func updateOne(update string, player *Player) {
 }
 
 func updateScreenFromScratch(player *Player) {
-	//if player.isDead() {
-	//	respawn(player)
-	//	return
-	//}
-	/*hl := highlightsFromScratch(player, player.actions.spaceStack.peek().areaOfInfluence, spaceHighlighter)
-	if player.actions.boostCounter > 0 {
-		hl = append(hl, highlightsFromScratch(player, jumpCross(), shiftHighlighter)...)
-	}
-	hl = append(hl, fmt.Sprintf(`<div id="p%d-%d" class="box zp fusia" id=""></div>`, player.y, player.x))
-	*/
 	player.stage.updates <- Update{player, htmlFromPlayer(player)}
-	//player.stage.updates <- Update{player, []byte(strings.Join(hl, ""))}
 }
