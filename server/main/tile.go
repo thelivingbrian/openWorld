@@ -13,62 +13,70 @@ type Teleport struct {
 }
 
 type Tile struct {
-	material         Material
-	playerMap        map[string]*Player
-	playerMutex      sync.Mutex
-	stage            *Stage
-	teleport         *Teleport
-	y                int
-	x                int
-	currentCssClass  string
-	originalCssClass string
-	eventsInFlight   atomic.Int32
-	powerUp          *PowerUp
-	powerMutex       sync.Mutex
-	money            int
-	boosts           int
+	material        Material
+	playerMap       map[string]*Player
+	playerMutex     sync.Mutex
+	stage           *Stage
+	teleport        *Teleport
+	y               int
+	x               int
+	currentCssClass string
+	//originalCssClass string
+	eventsInFlight atomic.Int32
+	powerUp        *PowerUp
+	powerMutex     sync.Mutex
+	money          int
+	boosts         int
 }
 
 func newTile(mat Material, y int, x int) *Tile {
 	return &Tile{
-		material:         mat,
-		playerMap:        make(map[string]*Player),
-		playerMutex:      sync.Mutex{},
-		stage:            nil,
-		teleport:         nil,
-		y:                y,
-		x:                x,
-		originalCssClass: mat.CssColor,
-		currentCssClass:  mat.CssColor,
-		eventsInFlight:   atomic.Int32{},
-		powerUp:          nil,
-		powerMutex:       sync.Mutex{},
-		money:            0}
+		material:    mat,
+		playerMap:   make(map[string]*Player),
+		playerMutex: sync.Mutex{},
+		stage:       nil,
+		teleport:    nil,
+		y:           y,
+		x:           x,
+		//originalCssClass: mat.CssColor,
+		currentCssClass: mat.CssColor,
+		eventsInFlight:  atomic.Int32{},
+		powerUp:         nil,
+		powerMutex:      sync.Mutex{},
+		money:           0}
 }
 
 // newTile w/ teleport?
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	tile.addPlayer(player)
-	tile.stage.updateAllWithHudExcept(player, []*Tile{tile}) // Should take []Tile not html
+	tile.stage.updateAllExcept(playerBox(tile), player)
+	//tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
 }
 
 func (tile *Tile) addPlayer(player *Player) {
+	itemChange := false
 	if tile.powerUp != nil {
 		// This should be mutexed I think
 		powerUp := tile.powerUp
 		tile.powerUp = nil
 		player.actions.spaceStack.push(powerUp)
+		itemChange = true
 	}
 	if tile.money != 0 {
 		// I tex you tex
 		player.setMoney(player.money + tile.money)
 		tile.money = 0
+		itemChange = true
 	}
 	if tile.boosts > 0 {
 		// We all tex
 		player.addBoosts(tile.boosts)
 		tile.boosts = 0
+		itemChange = true
+	}
+	if itemChange {
+		player.stage.updateAll(svgFromTile(tile))
 	}
 	if tile.teleport == nil {
 		tile.playerMutex.Lock()
@@ -87,7 +95,8 @@ func (tile *Tile) addPlayer(player *Player) {
 
 func (tile *Tile) removePlayerAndNotifyOthers(player *Player) {
 	tile.removePlayer(player.id)
-	tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
+	tile.stage.updateAllExcept(playerBox(tile), player)
+	//tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
 }
 
 func (tile *Tile) removePlayer(playerId string) {
@@ -98,7 +107,8 @@ func (tile *Tile) removePlayer(playerId string) {
 	samplePlayerRemaining := tile.getAPlayer()
 
 	if samplePlayerRemaining == nil {
-		tile.currentCssClass = tile.originalCssClass
+		tile.currentCssClass = tile.material.CssColor
+		//fmt.Println(tile.material.CssColor)
 	} else {
 		tile.currentCssClass = cssClassFromHealth(samplePlayerRemaining)
 	}
@@ -111,12 +121,6 @@ func (tile *Tile) getAPlayer() *Player {
 		return player
 	}
 	return nil
-}
-
-func (tile *Tile) changeColorAndNotifyAll(cssClass string) {
-	tile.currentCssClass = cssClass
-	tile.stage.updateAllWithHud([]*Tile{tile})
-
 }
 
 func (tile *Tile) incrementAndReturnIfFirst() *Tile {
@@ -148,7 +152,7 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 		survived := player.addToHealth(-dmg)
 		tile.currentCssClass = cssClassFromHealth(player)
 		if !survived {
-			tile.currentCssClass = tile.originalCssClass
+			tile.currentCssClass = tile.material.CssColor
 			tile.money += player.money / 2 // Use Observer, return diff
 			player.money = player.money / 2
 			// Maybe should just pass in required fields?
@@ -223,7 +227,7 @@ func mapOfTileToArray(m map[*Tile]bool) []*Tile {
 func sliceOfTileToColoredOoB(tiles []*Tile, cssClass string) string {
 	html := ``
 	for _, tile := range tiles {
-		html += oobColoredTile(tile, cssClass)
+		html += oobHighlightBox(tile, cssClass)
 	}
 	return html
 }

@@ -62,9 +62,7 @@ func (p *Player) assignStageAndListen() {
 }
 
 func (p *Player) placeOnStage() {
-	p.stage.playerMutex.Lock()
-	p.stage.playerMap[p.id] = p
-	p.stage.playerMutex.Unlock()
+	p.stage.addPlayer(p)
 
 	p.stage.tiles[p.y][p.x].addPlayerAndNotifyOthers(p)
 	updateScreenFromScratch(p) // This is using an old method for computing the highlights (Which weirdly works because space highlights have not yet been set)
@@ -163,16 +161,16 @@ func (p *Player) move(yOffset int, xOffset int) {
 		currentTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
 
-		currentStage := p.stage                    // Stage may change as result of teleport or etc
+		//currentStage := p.stage                    // Stage may change as result of teleport or etc
 		currentTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
 		destTile.addPlayerAndNotifyOthers(p)
 
-		impactedTiles := p.updateSpaceHighlights()
-		impactedTiles = append(impactedTiles, p.updateShiftHighlights()...)
-
-		if currentStage == p.stage {
-			impactedTiles = append(impactedTiles, currentTile, destTile)
-			updateOneWithHud(p, impactedTiles)
+		//if currentStage == p.stage {
+		if true {
+			previousTile := currentTile
+			impactedTiles := p.updateSpaceHighlights()
+			impactedTiles = append(impactedTiles, p.updateShiftHighlights()...)
+			updateOneAfterMovement(p, impactedTiles, previousTile)
 		}
 	}
 }
@@ -180,7 +178,7 @@ func (p *Player) move(yOffset int, xOffset int) {
 func (player *Player) nextPower() {
 	player.actions.spaceStack.pop() // Throw old power away
 	player.setSpaceHighlights()
-	updateOneWithHud(player, mapOfTileToArray(player.actions.spaceHighlights))
+	oobUpdateWithHud(player, mapOfTileToArray(player.actions.spaceHighlights))
 }
 
 func (player *Player) setSpaceHighlights() {
@@ -273,13 +271,13 @@ func (player *Player) showBoost() {
 			player.actions.shiftHighlights[tile] = true
 		}
 	}
-	updateOneWithHud(player, mapOfTileToArray(player.actions.shiftHighlights))
+	oobUpdateWithHud(player, mapOfTileToArray(player.actions.shiftHighlights))
 }
 func (player *Player) hideBoost() {
 	player.actions.shiftEngaged = false
 	previous := player.actions.shiftHighlights
 	player.actions.shiftHighlights = map[*Tile]bool{}
-	updateOneWithHud(player, mapOfTileToArray(previous))
+	oobUpdateWithHud(player, mapOfTileToArray(previous))
 }
 
 /////////////////////////////////////////////////////////////

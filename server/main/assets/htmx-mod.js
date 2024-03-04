@@ -780,7 +780,19 @@ return (function () {
          * @returns
          */
         function oobSwap(oobValue, oobElement, settleInfo) {
-            var selector = "#" + getRawAttribute(oobElement, "id");
+            const id = getRawAttribute(oobElement, "id")
+
+            const regex = /^[pt]\d+-\d+$/;
+             //return regex.test(str);
+            if (regex.test(id)) {
+                var target = getDocument().getElementById(getRawAttribute(oobElement, "id"))
+                target.classList = oobElement.classList
+                console.log(target)
+                return "true"
+            }
+
+            var selector = "#" + id;
+
             var swapStyle = "outerHTML";
             if (oobValue === "true") {
                 // do nothing
@@ -999,7 +1011,10 @@ return (function () {
                     }
                     newElt = newElt.nextElementSibling;
                 }
-                cleanUpElement(target);
+
+                // Saves time but at what cost?
+                //cleanUpElement(target);
+
                 parentElt(target).removeChild(target);
             }
         }
@@ -1621,6 +1636,9 @@ return (function () {
 
             getInternalData(elt).webSocket = socket;
             socket.addEventListener('message', function (event) {
+                
+                console.log("Hello from htmx")
+
                 if (maybeCloseWebSocketSource(elt)) {
                     return;
                 }

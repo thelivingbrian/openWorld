@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"sync"
-	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -55,7 +54,7 @@ func createStageByName(s string) (*Stage, bool) {
 	}
 	for _, transport := range area.Transports {
 		outputStage.tiles[transport.SourceY][transport.SourceX].teleport = &Teleport{transport.DestStage, transport.DestY, transport.DestX}
-		outputStage.tiles[transport.SourceY][transport.SourceX].originalCssClass = "pink"
+		//outputStage.tiles[transport.SourceY][transport.SourceX].originalCssClass = "pink"
 		outputStage.tiles[transport.SourceY][transport.SourceX].currentCssClass = "pink"
 
 	}
@@ -110,16 +109,6 @@ func (stage *Stage) updateAllWithHud(tiles []*Tile) {
 	}
 }
 
-// Unused?
-func (stage *Stage) updateAllWithHudAfterDelay(delay int) {
-	time.Sleep(time.Duration(delay) * time.Millisecond)
-	stage.playerMutex.Lock()
-	defer stage.playerMutex.Unlock()
-	for _, player := range stage.playerMap {
-		oobUpdateWithHud(player, nil)
-	}
-}
-
 func (stage *Stage) updateAllWithHudExcept(ignore *Player, tiles []*Tile) {
 	stage.playerMutex.Lock()
 	defer stage.playerMutex.Unlock()
@@ -131,8 +120,12 @@ func (stage *Stage) updateAllWithHudExcept(ignore *Player, tiles []*Tile) {
 	}
 }
 
-func updateOneWithHud(player *Player, tiles []*Tile) {
-	oobUpdateWithHud(player, tiles)
+// duplicte of oobUpdateWIthHud?
+func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
+	playerIcon := fmt.Sprintf(`<div class="box zp fusia" id="p%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
+	previousBox := playerBox(previous)
+
+	player.stage.updates <- Update{player, []byte(tileHtmlWithHud(player, tiles) + previousBox + playerIcon)}
 }
 
 func oobUpdateWithHud(player *Player, tiles []*Tile) {
@@ -140,6 +133,7 @@ func oobUpdateWithHud(player *Player, tiles []*Tile) {
 	player.stage.updates <- Update{player, []byte(tileHtmlWithHud(player, tiles))}
 }
 
+// Wrong file
 func tileHtmlWithHud(player *Player, tiles []*Tile) string {
 	highlights := ""
 	// Create slice of proper size? Currently has many null entries
@@ -149,21 +143,27 @@ func tileHtmlWithHud(player *Player, tiles []*Tile) string {
 		if tile == nil {
 			continue
 		}
+		if tile.stage != player.stage {
+			continue
+		}
 		_, impactsHud := player.actions.shiftHighlights[tile]
 		if impactsHud && player.actions.boostCounter > 0 {
-			highlights += oobColoredTile(tile, shiftHighlighter(tile))
+			highlights += oobHighlightBox(tile, shiftHighlighter(tile))
 			continue
 		}
 		_, impactsHud = player.actions.spaceHighlights[tile]
 		if impactsHud {
-			highlights += oobHighlightTile(tile, "salmon") //oobColoredTile(tile, spaceHighlighter(tile))
+			highlights += oobHighlightBox(tile, spaceHighlighter(tile)) //oobColoredTile(tile, spaceHighlighter(tile))
 			continue
 		}
-		highlights += htmlFromTile(tile)
+
+		// Empty Highlight?
+		highlights += oobHighlightBox(tile, "")
 	}
 
 	// Maybe should just be the actual color, or do similar check to see if it was impacted
-	playerIcon := fmt.Sprintf(`<div class="grid-square fusia" id="c%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
+	// To work this way needs to come without classic swap
+	playerIcon := fmt.Sprintf(`<div class="box zp fusia" id="p%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
 
 	return highlights + playerIcon
 }
@@ -172,6 +172,17 @@ func (stage *Stage) updateAll(update string) {
 	stage.playerMutex.Lock()
 	defer stage.playerMutex.Unlock()
 	for _, player := range stage.playerMap {
+		updateOne(update, player)
+	}
+}
+
+func (stage *Stage) updateAllExcept(update string, ignore *Player) {
+	stage.playerMutex.Lock()
+	defer stage.playerMutex.Unlock()
+	for _, player := range stage.playerMap {
+		if player == ignore {
+			continue
+		}
 		updateOne(update, player)
 	}
 }
@@ -185,5 +196,12 @@ func updateScreenFromScratch(player *Player) {
 	//	respawn(player)
 	//	return
 	//}
+	/*hl := highlightsFromScratch(player, player.actions.spaceStack.peek().areaOfInfluence, spaceHighlighter)
+	if player.actions.boostCounter > 0 {
+		hl = append(hl, highlightsFromScratch(player, jumpCross(), shiftHighlighter)...)
+	}
+	hl = append(hl, fmt.Sprintf(`<div id="p%d-%d" class="box zp fusia" id=""></div>`, player.y, player.x))
+	*/
 	player.stage.updates <- Update{player, htmlFromPlayer(player)}
+	//player.stage.updates <- Update{player, []byte(strings.Join(hl, ""))}
 }

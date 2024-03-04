@@ -70,6 +70,7 @@ a {
     border: 0px solid rgba(172, 152, 219,0);
     background-color: rgb(172, 152, 219);
     cursor: pointer;
+    position: relative;
   }
   
 /* these colors are needed by the game itself */
@@ -131,64 +132,69 @@ a {
     box-sizing: border-box;
   }
 
-.box0 {
-    z-index: 5;
+  .box {
     width: 30px;
     height: 30px;
-    position: relative;
+    position: absolute;
     top: 0px;
     left: 0px;
     margin: 0px;
     padding: 0px;
+}
+  
+.zP {
+    z-index: 20;
   }
   
-.box1 {
+.zS {
+    z-index: 21;
+}
+  
+.top {
+    z-index: 40;
+  }
+
+.floor1 {
     z-index: 10;
-    width: 30px;
-    height: 30px;
-    position: relative;
-    top: -30px;
-    left: 0px;
-    margin: 0px;
-    padding: 0px;
-  }
-  
-.box2 {
-    z-index: 15;
-    width: 30px;
-    height: 30px;
-    position: relative;
-    top: -60px;
-    left: 0px;
-    margin: 0px;
-    padding: 0px;
+} 
+
+.floor2 {
+    z-index: 11;
+} 
+
+.ceiling1 {
+    z-index: 30;
 }
 
-.transparent {
+.ceiling2 {
+    z-index: 31;
+}
+
+.trsp {
     opacity: 0;
 }
 
-.transparent20 {
+.trsp20 {
     opacity: .2;
 }
 
-.transparent40 {
+.trsp40 {
     opacity: .4;
 }
 
-.half-transparent {
+.half-trsp {
     opacity: .5;
 }
 
-.transparent60 {
+.trsp60 {
     opacity: .60;
 }
 
-.transparent80 {
+.trsp80 {
     opacity: .80;
 }
 
-.non-transparent {
+.trsp100 {
     opacity: 1;
 }
 

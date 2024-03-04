@@ -11,8 +11,8 @@ const screenTemplate = `
 <div id="screen" class="grid">
 	{{range $y, $row := .}}
 	<div class="grid-row">
-		{{range $x, $color := $row}}
-		<div class="grid-square {{$color}}" id="c{{$y}}-{{$x}}"></div>
+		{{range $x, $html := $row}}
+		{{$html}}
 		{{end}}
 	</div>
 	{{end}}
@@ -20,92 +20,68 @@ const screenTemplate = `
 
 var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(screenTemplate))
 
+// ooooooooooooooo
 func htmlFromPlayer(player *Player) []byte {
 	var buf bytes.Buffer
-	tileColors := tilesToColors(player.stage.tiles)
-	playerView(player, tileColors)
+	tileHtml := htmlFromTileGrid(player.stage.tiles) //tilesToColors(player.stage.tiles)
+	//playerView(player, tileHtml)
 
-	err := parsedScreenTemplate.Execute(&buf, tileColors)
+	err := parsedScreenTemplate.Execute(&buf, tileHtml)
 	if err != nil {
 		panic(err)
 	}
+
+	buf.WriteString(fmt.Sprintf(`<div id="p%d-%d" class="box zp fusia" id=""></div>`, player.y, player.x))
 
 	return buf.Bytes()
 }
 
-func htmlFromStage(stage *Stage) string {
-	var buf bytes.Buffer
-	tileColors := tilesToColors(stage.tiles)
-
-	err := parsedScreenTemplate.Execute(&buf, tileColors)
-	if err != nil {
-		panic(err)
-	}
-
-	return buf.String()
-}
-
-func playerView(player *Player, tileColors [][]string) {
-	tileColors[player.y][player.x] = "fusia"
-	applyHighlights(player, tileColors, player.actions.spaceStack.peek().areaOfInfluence, spaceHighlighter)
-	if player.actions.boostCounter > 0 {
-		applyHighlights(player, tileColors, jumpCross(), shiftHighlighter)
-	}
-}
-
-// Unused?
-func hudAsOutOfBound(player *Player) string {
-	highlights := ""
-	// Any risk here of concurrent read/write? // Yes confirmed failure point
-	// Fix this
-	for tile := range player.actions.spaceHighlights {
-		highlights += oobColoredTile(tile, spaceHighlighter(tile))
-	}
-	if player.actions.shiftEngaged {
-		for tile := range player.actions.shiftHighlights {
-			highlights += oobColoredTile(tile, shiftHighlighter(tile))
-		}
-	}
-
-	playerIcon := fmt.Sprintf(`<div class="grid-square fusia" id="c%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
-
-	return highlights + playerIcon
-}
-
-func tilesToColors(tiles [][]*Tile) [][]string {
+func htmlFromTileGrid(tiles [][]*Tile) [][]string {
 	output := make([][]string, len(tiles))
 	for y := range output {
 		output[y] = make([]string, len(tiles[y]))
 		for x := range output[y] {
-			output[y][x] = tiles[y][x].currentCssClass
+			output[y][x] = htmlFromTile(tiles[y][x])
 		}
 	}
 	return output
 }
 
-func applyHighlights(player *Player, tileColors [][]string, relativeCoords [][2]int, highligher func(*Tile) string) {
-	absCoordinatePairs := applyRelativeDistance(player.y, player.x, relativeCoords)
-	for _, pair := range absCoordinatePairs {
-		if pair[0] >= 0 &&
-			pair[1] >= 0 &&
-			pair[0] < len(player.stage.tiles) &&
-			pair[1] < len(player.stage.tiles[0]) {
-			tileColors[pair[0]][pair[1]] = highligher(player.stage.tiles[pair[0]][pair[1]])
-		}
+/*
+func playerView(player *Player, tileHtml [][]string) {
+	// Add oobPlayerTile method?
+	tileHtml[player.y][player.x] = oobColoredTile(player.tile, "fusia")
+	applyHighlights(player, tileHtml, player.actions.spaceStack.peek().areaOfInfluence, spaceHighlighter)
+	if player.actions.boostCounter > 0 {
+		applyHighlights(player, tileHtml, jumpCross(), shiftHighlighter)
 	}
 }
 
-// Can this help fix random not highlighting bugs?
-func highlightsAsOob(player *Player, relativeCoords [][2]int, highligher func(*Tile) string) string {
-	output := ``
+
+func applyHighlights(player *Player, tileHtml [][]string, relativeCoords [][2]int, highligher func(*Tile) string) {
 	absCoordinatePairs := applyRelativeDistance(player.y, player.x, relativeCoords)
 	for _, pair := range absCoordinatePairs {
 		if pair[0] >= 0 &&
 			pair[1] >= 0 &&
 			pair[0] < len(player.stage.tiles) &&
 			pair[1] < len(player.stage.tiles[0]) {
-			highlight := highligher(player.stage.tiles[pair[0]][pair[1]])
-			output += fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true"></div>`, highlight, pair[0], pair[1])
+			color := highligher(player.stage.tiles[pair[0]][pair[1]])
+			tileHtml[pair[0]][pair[1]] = oobHighlightBox(player.stage.tiles[pair[0]][pair[1]], color) //highligher(player.stage.tiles[pair[0]][pair[1]])
+		}
+	}
+}
+*/
+
+func highlightsFromScratch(player *Player, relativeCoords [][2]int, highligher func(*Tile) string) []string {
+	output := make([]string, len(relativeCoords))
+	absCoordinatePairs := applyRelativeDistance(player.y, player.x, relativeCoords)
+	for i, pair := range absCoordinatePairs {
+		if pair[0] >= 0 &&
+			pair[1] >= 0 &&
+			pair[0] < len(player.stage.tiles) &&
+			pair[1] < len(player.stage.tiles[0]) {
+			color := highligher(player.stage.tiles[pair[0]][pair[1]])
+			output[i] = oobHighlightBox(player.stage.tiles[pair[0]][pair[1]], color)
 		}
 	}
 	return output
@@ -113,20 +89,20 @@ func highlightsAsOob(player *Player, relativeCoords [][2]int, highligher func(*T
 
 func spaceHighlighter(tile *Tile) string {
 	if len(tile.playerMap) > 0 {
-		return "dark-blue"
+		return "half-trsp dark-blue"
 	} else if walkable(tile) {
-		return "salmon"
+		return "half-trsp salmon"
 	} else {
-		return tile.originalCssClass // Probably should be current although currently no diff
+		return "salmon"
 	}
 }
 
 func shiftHighlighter(tile *Tile) string {
 	if len(tile.playerMap) > 0 {
-		return "dark-blue"
+		return "half-trsp dark-blue"
 	}
 	if walkable(tile) {
-		return ""
+		return "half-trsp blue"
 	}
 	return "red"
 }
@@ -201,26 +177,38 @@ func getHeartsFromHealth(i int) string {
 
 func htmlFromTile(tile *Tile) string {
 	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true">%s</div>`, tile.currentCssClass, tile.y, tile.x, svgtag)
-}
-
-func oobColoredTile(tile *Tile, cssClass string) string {
-	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(`<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true">%s</div>`, cssClass, tile.y, tile.x, svgtag)
-}
-
-func oobHighlightTile(tile *Tile, cssClass string) string {
-	svgtag := svgFromTile(tile)
-	template := `<div class="grid-square %s" id="c%d-%d" hx-swap-oob="true">
-					<div class="box0">%s</div>
-					<div class="box1"></div>
-					<div class="box2 %s"></div>
+	// Create Template on Tile creation
+	tileCoord := fmt.Sprintf("%d-%d", tile.y, tile.x)
+	cId := "c" + tileCoord
+	tId := "t" + tileCoord
+	template := `<div class="grid-square %s" id="%s" hx-swap-oob="true">
+					
+					<div class="box floor1 %s"></div>
+					<div class="box floor2 %s"></div>
+					%s
+					%s
+					<div class="box ceiling1 %s"></div>
+					<div class="box ceiling2 %s"></div>
+					<div id="%s" class="box top" id=""></div>
 				</div>`
-	return fmt.Sprintf(template, tile.currentCssClass, tile.y, tile.x, svgtag, cssClass)
+	return fmt.Sprintf(template, tile.material.CssColor, cId, tile.material.Floor1Css, tile.material.Floor2Css, playerBox(tile), svgtag, tile.material.Ceiling1Css, tile.material.Ceiling2Css, tId)
+}
+
+func playerBox(tile *Tile) string {
+	playerIndicator := ""
+	if p := tile.getAPlayer(); p != nil {
+		playerIndicator = cssClassFromHealth(p)
+	}
+	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s" id=""></div>`, tile.y, tile.x, playerIndicator)
+}
+
+func oobHighlightBox(tile *Tile, cssClass string) string {
+	template := `<div id="t%d-%d" class="box top %s"></div>`
+	return fmt.Sprintf(template, tile.y, tile.x, cssClass)
 }
 
 func svgFromTile(tile *Tile) string {
-	svgtag := ""
+	svgtag := `<div id="%s" class="box zS">`
 	if tile.powerUp != nil || tile.money != 0 || tile.boosts != 0 {
 		// fmt.sprintf this or just don't concat plz
 		svgtag += `<svg width="30" height="30">`
@@ -235,5 +223,8 @@ func svgFromTile(tile *Tile) string {
 		}
 		svgtag += `</svg>`
 	}
-	return svgtag
+	svgtag += "</div>"
+	tileCoord := fmt.Sprintf("%d-%d", tile.y, tile.x)
+	sId := "s" + tileCoord
+	return fmt.Sprintf(svgtag, sId)
 }
