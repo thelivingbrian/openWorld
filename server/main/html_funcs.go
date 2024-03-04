@@ -138,10 +138,10 @@ func getHeartsFromHealth(i int) string {
 func htmlFromTile(tile *Tile) string {
 	svgtag := svgFromTile(tile)
 	// Create Template on Tile creation
-	tileCoord := fmt.Sprintf("%d-%d", tile.y, tile.x)
+	/*tileCoord := fmt.Sprintf("%d-%d", tile.y, tile.x)
 	cId := "c" + tileCoord
 	tId := "t" + tileCoord
-	template := `<div class="grid-square %s" id="%s" hx-swap-oob="true">				
+	template := `<div class="grid-square %s" id="%s" hx-swap-oob="true">
 					<div class="box floor1 %s"></div>
 					<div class="box floor2 %s"></div>
 					%s
@@ -151,6 +151,8 @@ func htmlFromTile(tile *Tile) string {
 					<div id="%s" class="box top" id=""></div>
 				</div>`
 	return fmt.Sprintf(template, tile.material.CssColor, cId, tile.material.Floor1Css, tile.material.Floor2Css, playerBox(tile), svgtag, tile.material.Ceiling1Css, tile.material.Ceiling2Css, tId)
+	*/
+	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), svgtag)
 }
 
 func playerBox(tile *Tile) string {
@@ -183,7 +185,6 @@ func svgFromTile(tile *Tile) string {
 		svgtag += `</svg>`
 	}
 	svgtag += "</div>"
-	tileCoord := fmt.Sprintf("%d-%d", tile.y, tile.x)
-	sId := "s" + tileCoord
+	sId := fmt.Sprintf("s%d-%d", tile.y, tile.x)
 	return fmt.Sprintf(svgtag, sId)
 }

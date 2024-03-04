@@ -161,17 +161,13 @@ func (p *Player) move(yOffset int, xOffset int) {
 		currentTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
 
-		//currentStage := p.stage                    // Stage may change as result of teleport or etc
 		currentTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
 		destTile.addPlayerAndNotifyOthers(p)
 
-		//if currentStage == p.stage {
-		if true {
-			previousTile := currentTile
-			impactedTiles := p.updateSpaceHighlights()
-			impactedTiles = append(impactedTiles, p.updateShiftHighlights()...)
-			updateOneAfterMovement(p, impactedTiles, previousTile)
-		}
+		previousTile := currentTile
+		impactedTiles := p.updateSpaceHighlights()
+		impactedTiles = append(impactedTiles, p.updateShiftHighlights()...)
+		updateOneAfterMovement(p, impactedTiles, previousTile)
 	}
 }
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -25,6 +26,7 @@ type Tile struct {
 	powerMutex     sync.Mutex
 	money          int
 	boosts         int
+	htmlTemplate   string
 }
 
 func newTile(mat Material, y int, x int) *Tile {
@@ -39,7 +41,46 @@ func newTile(mat Material, y int, x int) *Tile {
 		eventsInFlight: atomic.Int32{},
 		powerUp:        nil,
 		powerMutex:     sync.Mutex{},
-		money:          0}
+		money:          0,
+		htmlTemplate:   makeTileTemplate(mat, y, x)}
+}
+
+func makeTileTemplate(mat Material, y, x int) string {
+	placeHold := "%s"
+	tileCoord := fmt.Sprintf("%d-%d", y, x)
+	cId := "c" + tileCoord
+	tId := "t" + tileCoord
+
+	floor1css := ""
+	if mat.Floor1Css != "" {
+		floor1css = fmt.Sprintf(`<div class="box floor1 %s"></div>`, mat.Floor1Css)
+	}
+
+	floor2css := ""
+	if mat.Floor2Css != "" {
+		floor2css = fmt.Sprintf(`<div class="box floor2 %s"></div>`, mat.Floor2Css)
+	}
+
+	ceil1css := ""
+	if mat.Floor1Css != "" {
+		ceil1css = fmt.Sprintf(`<div class="box ceiling1 %s"></div>`, mat.Ceiling1Css)
+	}
+
+	ceil2css := ""
+	if mat.Floor2Css != "" {
+		ceil2css = fmt.Sprintf(`<div class="box ceiling2 %s"></div>`, mat.Ceiling2Css)
+	}
+
+	template := `<div class="grid-square %s" id="%s" hx-swap-oob="true">				
+					%s
+					%s
+					%s
+					%s
+					%s
+					%s
+					<div id="%s" class="box top" id=""></div>
+				</div>`
+	return fmt.Sprintf(template, mat.CssColor, cId, floor1css, floor2css, placeHold, placeHold, ceil1css, ceil2css, tId)
 }
 
 // newTile w/ teleport?

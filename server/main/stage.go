@@ -54,10 +54,11 @@ func createStageByName(s string) (*Stage, bool) {
 	}
 	for _, transport := range area.Transports {
 		outputStage.tiles[transport.SourceY][transport.SourceX].teleport = &Teleport{transport.DestStage, transport.DestY, transport.DestX}
-		//outputStage.tiles[transport.SourceY][transport.SourceX].originalCssClass = "pink"
 
 		// Change this
-		outputStage.tiles[transport.SourceY][transport.SourceX].material.CssColor = "pink"
+		mat := outputStage.tiles[transport.SourceY][transport.SourceX].material
+		mat.CssColor = "pink"
+		outputStage.tiles[transport.SourceY][transport.SourceX].htmlTemplate = makeTileTemplate(mat, transport.SourceY, transport.SourceX)
 
 	}
 
