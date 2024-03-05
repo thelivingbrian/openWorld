@@ -68,6 +68,8 @@ func main() {
 	http.HandleFunc("/edit", edit)
 	http.HandleFunc("/editTransports", editTransports)
 	http.HandleFunc("/editTransport", editTransport)
+	http.HandleFunc("/dupeTransport", dupeTransport)
+	http.HandleFunc("/deleteTransport", deleteTransport)
 	http.HandleFunc("/editDisplay", editDisplay)
 	http.HandleFunc("/editNeighbors", editNeighbors)
 

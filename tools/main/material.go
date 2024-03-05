@@ -146,7 +146,7 @@ func getEditMaterial(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	material := materials[id] //materialMap[name]
+	material := materials[id]
 	color, ok := sliceToMap(colors, colorName)[material.CssColor]
 	A := "1.0"
 	if !ok {
@@ -158,7 +158,7 @@ func getEditMaterial(w http.ResponseWriter, r *http.Request) {
 	G = color.G
 	B = color.B
 
-	overlay := fmt.Sprintf(`<div class="box floor %s"></div><div class="box ceiling %s"></div>`, material.Floor1Css, material.Floor2Css)
+	overlay := fmt.Sprintf(`<div class="box floor1 %s"></div><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div><div class="box ceiling2 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css, material.Ceiling2Css)
 	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square" style="background-color:rgba(%d,%d,%d,%s)">%s</div></div>`, R, G, B, A, overlay)
 
 	walkableIndicator := ""
@@ -235,29 +235,32 @@ func editMaterial(w http.ResponseWriter, r *http.Request) {
 func getNewMaterial(w http.ResponseWriter, r *http.Request) {
 	newForm := `
 	<form hx-post="/newMaterial" hx-target="#panel">
+		<div id="exampleSquare" class="grid-row">
+			<div class="grid-square"></div>
+		</div>
 		<div>
 			<label>Name: </label>
 			<input type="text" name="CommonName" value="">
 		</div>
 		<div>
 			<label>Css Color Name: </label>
-			<input type="text" name="CssColor" value="">
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Floor2Css'],[name='Ceiling1Css'],[name='Ceiling2Css']" type="text" name="CssColor" value="">
 		</div>
 		<div>
 			<label>Floor 1 Css: </label>
-			<input type="text" name="Floor1Css" value="">
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='CssColor'],[name='Floor2Css'],[name='Ceiling1Css'],[name='Ceiling2Css']" type="text" name="Floor1Css" value="">
 		</div>
 		<div>
 			<label>Floor 2 Css: </label>
-			<input type="text" name="Floor2Css" value="">
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='CssColor'],[name='Ceiling1Css'],[name='Ceiling2Css']" type="text" name="Floor2Css" value="">
 		</div>
 		<div>
 			<label>Ceiling 1 Css: </label>
-			<input type="text" name="Ceiling1Css" value="">
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Floor2Css'],[name='CssColor'],[name='Ceiling2Css']" type="text" name="Ceiling1Css" value="">
 		</div>
 		<div>
 			<label>Ceiling 2 Css: </label>
-			<input type="text" name="Ceiling2Css" value="">
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Floor2Css'],[name='Ceiling1Css'],[name='CssColor']" type="text" name="Ceiling2Css" value="">
 		</div>
 		<div>
 			<label>Walkable: </label>
