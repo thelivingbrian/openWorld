@@ -400,5 +400,4 @@ func outputIngredients(w http.ResponseWriter, r *http.Request) {
 	createLocalCSSFile()
 
 	io.WriteString(w, "<h2>Changes Exported.</h2>")
-	//getMaterialPage(w, r)
 }

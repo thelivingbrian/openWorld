@@ -13,10 +13,10 @@ type Area struct {
 	Tiles            [][]int     `json:"tiles"`
 	Transports       []Transport `json:"transports"`
 	DefaultTileColor string      `json:"defaultTileColor"`
-	North            string      `json:"north"`
-	South            string      `json:"south"`
-	East             string      `json:"east"`
-	West             string      `json:"west"`
+	North            string      `json:"north,omitempty"`
+	South            string      `json:"south,omitempty"`
+	East             string      `json:"east,omitempty"`
+	West             string      `json:"west,omitempty"`
 }
 
 type Transport struct {
@@ -70,21 +70,6 @@ func saveArea(w http.ResponseWriter, r *http.Request) {
 	if attempt != nil {
 		panic("Area Write Failure")
 	}
-	/*data, err := json.Marshal(areas)
-	if err != nil {
-		return
-	}
-
-	file, err := os.Create("./level/data/areas.json")
-	if err != nil {
-		return
-	}
-	defer file.Close()
-
-	_, err = file.Write(data)
-	if err != nil {
-		return
-	} */
 
 	io.WriteString(w, `<h2>Success</h2>`)
 }
@@ -137,7 +122,37 @@ func getEditAreaPage(w http.ResponseWriter, r *http.Request) {
 func edit(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	name := queryValues.Get("area-name")
+	editByName(w, r, name)
+}
 
+func editFromTransport(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	name := queryValues.Get("north_input")
+	if name != "" {
+		editByName(w, r, name)
+		return
+	}
+	name = queryValues.Get("south_input")
+	if name != "" {
+		editByName(w, r, name)
+		return
+	}
+	name = queryValues.Get("east_input")
+	if name != "" {
+		editByName(w, r, name)
+		return
+	}
+	name = queryValues.Get("west_input")
+	if name != "" {
+		editByName(w, r, name)
+		return
+	}
+
+	io.WriteString(w, "<h2>invalid</h2>")
+
+}
+
+func editByName(w http.ResponseWriter, r *http.Request, name string) {
 	index := getIndexOfAreaByName(name)
 	if index < 0 {
 		io.WriteString(w, "<h2>Invalid Area</h2>")
@@ -157,7 +172,7 @@ func edit(w http.ResponseWriter, r *http.Request) {
 						<div id="edit_options">
 							<a hx-get="/editTransports" hx-target="#edit_tool" href="#">Edit Transports</a> | 
 							<a hx-get="/editDisplay" hx-target="#edit_tool" href="#">Edit Display</a> | 
-							<a hx-get="/editNeighbors" hx-target="#edit_tool" href="#">Edit Neighbors</a> |
+							<a hx-get="/getEditNeighbors" hx-target="#edit_tool" hx-include="[name='areaName']" href="#">Edit Neighbors</a> |
 							<a hx-get="/materialPage"  hx-target="#edit_tool" href="#">Edit Colors/Materials</a>
 						</div>
 						<div id="edit_tool">
@@ -226,18 +241,74 @@ func editDisplay(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, output)
 }
 
-func editNeighbors(w http.ResponseWriter, r *http.Request) {
+func getEditNeighbors(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	name := queryValues.Get("areaName")
+
+	index := getIndexOfAreaByName(name)
+	if index < 0 {
+		io.WriteString(w, "<h2>Invalid Area</h2>")
+		return
+	}
+	selectedArea := areas[index]
+
+	io.WriteString(w, divEditNeighborsForArea(selectedArea))
+}
+
+func divEditNeighborsForArea(selectedArea Area) string {
 	output := `<div id="edit_neighbors">
-					<h3>North: </h3>
-					<h3>South: </h3>
-					<h3>East: </h3>
-					<h3>West: </h3>
+					<div id="edit_north">
+						<h3>North: </h3>
+						<input type="text" name="north_input" value="` + selectedArea.North + `"/>
+						<a hx-get="/editFromTransport" hx-include="[name='north_input']" hx-target="#edit-area" hx href="#">Go</a>
+					</div>
+					<div id="edit_south">
+						<h3>South: </h3>
+						<input type="text" name="south_input" value="` + selectedArea.South + `"/>
+						<a hx-get="/editFromTransport" hx-include="[name='south_input']" hx-target="#edit-area" href="#">Go</a>
+					</div>
+					<div id="edit_east">
+						<h3>East: </h3>
+						<input type="text" name="east_input" value="` + selectedArea.East + `"/>
+						<a hx-get="/editFromTransport" hx-include="[name='east_input']" hx-target="#edit-area" href="#">Go</a>
+					</div>
+					<div id="edit_west">
+						<h3>West: </h3>
+						<input type="text" name="west_input" value="` + selectedArea.West + `"/>
+						<a hx-get="/editFromTransport" hx-include="[name='west_input']" hx-target="#edit-area" href="#">Go</a>
+					</div>
+					<a hx-post="/editNeighbors" hx-include="[name='areaName'],[name='north_input'],[name='south_input'],[name='east_input'],[name='west_input']" hx-target="#edit_tool" href="#">Save</a>
 				</div>`
-	io.WriteString(w, output)
+	return output
+}
+
+func editNeighbors(w http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	name := properties["areaName"]
+	north := properties["north_input"]
+	south := properties["south_input"]
+	east := properties["east_input"]
+	west := properties["west_input"]
+
+	index := getIndexOfAreaByName(name)
+	if index < 0 {
+		io.WriteString(w, "<h2>Invalid Area</h2>")
+		return
+	}
+	selectedArea := &areas[index]
+	selectedArea.North = north
+	selectedArea.South = south
+	selectedArea.East = east
+	selectedArea.West = west
+
+	note := `<div id="confirmation_neighbor_change"><p>saved</p></div>`
+
+	io.WriteString(w, note+divEditNeighborsForArea(*selectedArea))
 }
 
 func transportFormHtml(transports []Transport) string {
 	output := `<div id="edit_transports">
+					<a hx-get="/newTransport" 
 					<h4>Transports: </h4>`
 	for i := range transports {
 		output += editTransportForm(i, transports[i])

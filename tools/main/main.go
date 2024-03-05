@@ -71,7 +71,9 @@ func main() {
 	http.HandleFunc("/dupeTransport", dupeTransport)
 	http.HandleFunc("/deleteTransport", deleteTransport)
 	http.HandleFunc("/editDisplay", editDisplay)
+	http.HandleFunc("/getEditNeighbors", getEditNeighbors)
 	http.HandleFunc("/editNeighbors", editNeighbors)
+	http.HandleFunc("/editFromTransport", editFromTransport)
 
 	err := http.ListenAndServe(":4444", nil)
 	if err != nil {
