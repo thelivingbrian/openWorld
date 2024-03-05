@@ -41,7 +41,7 @@ func materialPageHTML() string {
 				
 				</div><br />
 				<div id="output-ingredients">
-					<button class="btn" hx-post="/outputIngredients" hx-target="#panel">Output changes</button>
+					<button class="btn" hx-post="/outputIngredients" hx-target="#edit-ingredient-window">Output changes</button>
 				</div>`
 	return output
 }
@@ -94,7 +94,7 @@ func getEditColor(w http.ResponseWriter, r *http.Request) {
 	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square" style="background-color:rgb(%d,%d,%d)"></div></div>`, R, G, B)
 
 	editForm := `
-	<form hx-put="/editMaterial" hx-target="#panel">
+	<form hx-put="/editMaterial" hx-target="#edit-ingredient-window">
 		<div>
 			<label>Css Class</label>
 			<input type="text" name="CommonName" value="%s">
@@ -167,7 +167,7 @@ func getEditMaterial(w http.ResponseWriter, r *http.Request) {
 	}
 
 	editForm := `
-	<form hx-put="/editMaterial" hx-target="#panel">
+	<form hx-put="/editMaterial" hx-target="#edit-ingredient-window">
 		<div>
 			<label>Name: (ID: %d)</label>
 			<input type="text" name="CommonName" value="%s">
@@ -229,12 +229,12 @@ func editMaterial(w http.ResponseWriter, r *http.Request) {
 	material.Floor2Css = floor2
 	material.Ceiling1Css = ceiling1
 	material.Ceiling2Css = ceiling2
-	io.WriteString(w, materialPageHTML())
+	io.WriteString(w, "<h2>Done.</h2>") //materialPageHTML())
 }
 
 func getNewMaterial(w http.ResponseWriter, r *http.Request) {
 	newForm := `
-	<form hx-post="/newMaterial" hx-target="#panel">
+	<form hx-post="/newMaterial" hx-target="#edit-ingredient-window">
 		<div id="exampleSquare" class="grid-row">
 			<div class="grid-square"></div>
 		</div>
@@ -283,7 +283,7 @@ func newMaterial(w http.ResponseWriter, r *http.Request) {
 	ceiling1 := properties["Ceiling1Css"]
 	ceiling2 := properties["Ceiling2Css"]
 
-	fmt.Printf("%s | Floor: %s - %s Ceiling: %s - %s\n", commonName, floor1, floor2, ceiling1, ceiling2)
+	//fmt.Printf("%s | Floor: %s - %s Ceiling: %s - %s\n", commonName, floor1, floor2, ceiling1, ceiling2)
 
 	material := Material{ID: materialId, CommonName: commonName, CssColor: cssColor, Floor1Css: floor1, Floor2Css: floor2, Ceiling1Css: ceiling1, Ceiling2Css: ceiling2, Walkable: walkable}
 
@@ -295,25 +295,25 @@ func newMaterial(w http.ResponseWriter, r *http.Request) {
 		panic("Duplicate name")
 	}
 
-	io.WriteString(w, materialPageHTML())
+	io.WriteString(w, "<h2>done.</h2>")
 }
 
 func getNewColor(w http.ResponseWriter, r *http.Request) {
 	newForm := `
-	<form hx-post="/newColor" hx-target="#panel">
+	<form hx-post="/newColor" hx-target="#edit-ingredient-window">
 		<div>
 			<label>Css Class Name: </label>
 			<input type="text" name="CssClassName" value="">
 		</div>
 		<div>
 			<label>R: </label>
-			<input type="text" name="R" value="">
+			<input type="text" name="R" value=""><br />
 			<label>G: </label>
-			<input type="text" name="G" value="">
+			<input type="text" name="G" value=""><br />
 			<label>B: </label>
-			<input type="text" name="B" value="">
+			<input type="text" name="B" value=""><br />
 			<label>A: </label>
-			<input type="text" name="A" value="">
+			<input type="text" name="A" value=""><br />
 		</div>
 		<button class="btn">Save</button>
 	</form>
@@ -341,7 +341,7 @@ func newColor(w http.ResponseWriter, r *http.Request) {
 		panic("Duplicate name")
 	}
 
-	io.WriteString(w, materialPageHTML())
+	io.WriteString(w, "<h2>done.</h2>") //materialPageHTML())
 }
 
 func exampleSquare(w http.ResponseWriter, r *http.Request) {
@@ -387,17 +387,18 @@ func exampleMaterial(w http.ResponseWriter, r *http.Request) {
 }
 
 func outputIngredients(w http.ResponseWriter, r *http.Request) {
-	err := WriteMaterialsToFile()
+	err := writeMaterialsToLocalFile()
 	if err != nil {
 		panic(1)
 	}
 
-	err = WriteColorsToFile()
+	err = writeColorsToLocalFile()
 	if err != nil {
 		panic(1)
 	}
 
-	createCSSFile()
+	createLocalCSSFile()
 
-	getMaterialPage(w, r)
+	io.WriteString(w, "<h2>Changes Exported.</h2>")
+	//getMaterialPage(w, r)
 }

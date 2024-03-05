@@ -10,15 +10,19 @@ var materials []Material
 var areas []Area
 var colors []Color
 
+const colorPath = "./level/data/colors.json"
+const materialPath = "./level/data/materials.json"
+const areaPath = "./level/data/areas.json"
+const cssPath = "./level/assets/colors.css"
+
+const DEPLOY_materialPath = "../../server/main/data/materials.json"
+const DEPLOY_areaPath = "../../server/main/data/areas.json"
+const DEPLOY_cssPath = "../../server/main/assets/colors.css"
+
 func populateFromJson() {
-	colorFile := "./level/data/colors.json"
-	colors = parseJsonFile[Color](colorFile)
-
-	materialFile := "./level/data/materials.json"
-	materials = parseJsonFile[Material](materialFile)
-
-	areaFile := "./level/data/areas.json"
-	areas = parseJsonFile[Area](areaFile)
+	colors = parseJsonFile[Color](colorPath)
+	materials = parseJsonFile[Material](materialPath)
+	areas = parseJsonFile[Area](areaPath)
 }
 
 func sliceToMap[T any](slice []T, f func(T) string) map[string]T {
@@ -46,6 +50,26 @@ func parseJsonFile[T any](filename string) []T {
 	return out
 }
 
+func writeJsonFile[T any](path string, entries []T) error {
+	data, err := json.Marshal(entries)
+	if err != nil {
+		return fmt.Errorf("error marshalling materials: %w", err)
+	}
+
+	file, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf("error creating file: %w", err)
+	}
+	defer file.Close()
+
+	_, err = file.Write(data)
+	if err != nil {
+		return fmt.Errorf("error writing to file: %w", err)
+	}
+
+	return nil
+}
+
 func colorName(c Color) string {
 	return c.CssClassName
 }
@@ -54,48 +78,20 @@ func materialName(m Material) string {
 	return m.CommonName
 }
 
-func WriteMaterialsToFile() error {
-	data, err := json.Marshal(materials)
-	if err != nil {
-		return fmt.Errorf("error marshalling materials: %w", err)
-	}
-
-	file, err := os.Create("./level/data/materials.json")
-	if err != nil {
-		return fmt.Errorf("error creating file: %w", err)
-	}
-	defer file.Close()
-
-	_, err = file.Write(data)
-	if err != nil {
-		return fmt.Errorf("error writing to file: %w", err)
-	}
-
-	return nil
+func writeMaterialsToLocalFile() error {
+	return writeJsonFile(materialPath, materials)
 }
 
-func WriteColorsToFile() error {
-	data, err := json.Marshal(colors)
-	if err != nil {
-		return fmt.Errorf("error marshalling colorss: %w", err)
-	}
-
-	file, err := os.Create("./level/data/colors.json")
-	if err != nil {
-		return fmt.Errorf("error creating file: %w", err)
-	}
-	defer file.Close()
-
-	_, err = file.Write(data)
-	if err != nil {
-		return fmt.Errorf("error writing to file: %w", err)
-	}
-
-	return nil
+func writeColorsToLocalFile() error {
+	return writeJsonFile(colorPath, colors)
 }
 
-func createCSSFile() {
-	cssFile, err := os.Create("./level/assets/colors.css")
+func createLocalCSSFile() {
+	createCSSFile(cssPath)
+}
+
+func createCSSFile(path string) {
+	cssFile, err := os.Create(path)
 	if err != nil {
 		panic(err)
 	}
@@ -112,4 +108,13 @@ func createCSSFile() {
 			panic(err)
 		}
 	}
+}
+
+func deployLocalChanges() {
+	populateFromJson()
+	createCSSFile(DEPLOY_cssPath)
+	//writeJsonFile(DEPLOY_areaPath, areas)
+	// convert areas n/s/e/w to transports before deploy
+
+	//writeJsonFile(DEPLOY_materialPath, materials)
 }

@@ -1,11 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strconv"
 )
 
@@ -15,6 +13,10 @@ type Area struct {
 	Tiles            [][]int     `json:"tiles"`
 	Transports       []Transport `json:"transports"`
 	DefaultTileColor string      `json:"defaultTileColor"`
+	North            string      `json:"north"`
+	South            string      `json:"south"`
+	East             string      `json:"east"`
+	West             string      `json:"west"`
 }
 
 type Transport struct {
@@ -64,7 +66,11 @@ func saveArea(w http.ResponseWriter, r *http.Request) {
 		areas[index] = area
 	}
 
-	data, err := json.Marshal(areas)
+	attempt := writeJsonFile(areaPath, areas)
+	if attempt != nil {
+		panic("Area Write Failure")
+	}
+	/*data, err := json.Marshal(areas)
 	if err != nil {
 		return
 	}
@@ -78,7 +84,7 @@ func saveArea(w http.ResponseWriter, r *http.Request) {
 	_, err = file.Write(data)
 	if err != nil {
 		return
-	}
+	} */
 
 	io.WriteString(w, `<h2>Success</h2>`)
 }
@@ -151,7 +157,8 @@ func edit(w http.ResponseWriter, r *http.Request) {
 						<div id="edit_options">
 							<a hx-get="/editTransports" hx-target="#edit_tool" href="#">Edit Transports</a> | 
 							<a hx-get="/editDisplay" hx-target="#edit_tool" href="#">Edit Display</a> | 
-							<a hx-get="/editNeighbors" hx-target="#edit_tool" href="#">Edit Neighbors</a>
+							<a hx-get="/editNeighbors" hx-target="#edit_tool" href="#">Edit Neighbors</a> |
+							<a hx-get="/materialPage"  hx-target="#edit_tool" href="#">Edit Colors/Materials</a>
 						</div>
 						<div id="edit_tool">
 						
@@ -493,7 +500,6 @@ func clickOnSquare(w http.ResponseWriter, r *http.Request) {
 	}
 	selectedMaterial := materials[selectedMaterialId]
 	defaultTileColor := properties["defaultTileColor"]
-	fmt.Println(defaultTileColor)
 
 	if selectedTool == "select" {
 		io.WriteString(w, selectSquare(y, x, defaultTileColor))
