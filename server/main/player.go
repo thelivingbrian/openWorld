@@ -124,6 +124,7 @@ func (p *Player) tryGoNorth() {
 		t := &Teleport{destStage: area.Name, destY: destY, destX: destX}
 		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
 		p.applyTeleport(t)
+		p.move(0, 0)
 	}
 }
 
@@ -148,6 +149,7 @@ func (p *Player) tryGoSouth() {
 		t := &Teleport{destStage: area.Name, destY: destY, destX: destX}
 		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
 		p.applyTeleport(t)
+		p.move(0, 0)
 	}
 }
 
@@ -172,6 +174,7 @@ func (p *Player) tryGoEast() {
 		t := &Teleport{destStage: area.Name, destY: destY, destX: destX}
 		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
 		p.applyTeleport(t)
+		p.move(0, 0)
 	}
 }
 
@@ -196,6 +199,7 @@ func (p *Player) tryGoWest() {
 		t := &Teleport{destStage: area.Name, destY: destY, destX: destX}
 		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
 		p.applyTeleport(t)
+		p.move(0, 0)
 	}
 }
 

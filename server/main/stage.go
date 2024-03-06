@@ -163,5 +163,7 @@ func updateOne(update string, player *Player) {
 }
 
 func updateScreenFromScratch(player *Player) {
+
+	//updateOneAfterMovement(player, player.updateSpaceHighlights(), player.tile)
 	player.stage.updates <- Update{player, htmlFromPlayer(player)}
 }
