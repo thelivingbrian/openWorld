@@ -52,24 +52,26 @@ func saveArea(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	area := Area{Name: name, Safe: safe, Tiles: tiles, Transports: nil, DefaultTileColor: defaultTileColor}
-
 	index := getIndexOfAreaByName(name)
 	if index < 0 {
+		area := Area{Name: name, Safe: safe, Tiles: tiles, Transports: nil, DefaultTileColor: defaultTileColor}
 		areas = append(areas, area)
 	} else {
 		if new {
 			io.WriteString(w, `<h2>Invalid Name</h2>`)
 			return
 		}
-		area.Transports = currentTransports
-		areas[index] = area
+		areas[index].Safe = safe
+		areas[index].Tiles = tiles
+		areas[index].DefaultTileColor = defaultTileColor
 	}
 
 	attempt := writeJsonFile(areaPath, areas)
 	if attempt != nil {
 		panic("Area Write Failure")
 	}
+
+	//convertAllNeighbors()
 
 	io.WriteString(w, `<h2>Success</h2>`)
 }
@@ -170,7 +172,7 @@ func editByName(w http.ResponseWriter, r *http.Request, name string) {
 	output += `		</div>
 					<div id="edit_sidebar" class="left">
 						<div id="edit_options">
-							<a hx-get="/editTransports" hx-target="#edit_tool" href="#">Edit Transports</a> | 
+							<a hx-get="/editTransports" hx-target="#edit_tool" hx-include="[name='areaName']" href="#">Edit Transports</a> | 
 							<a hx-get="/editDisplay" hx-target="#edit_tool" href="#">Edit Display</a> | 
 							<a hx-get="/getEditNeighbors" hx-target="#edit_tool" hx-include="[name='areaName']" href="#">Edit Neighbors</a> |
 							<a hx-get="/materialPage"  hx-target="#edit_tool" href="#">Edit Colors/Materials</a>
@@ -184,7 +186,9 @@ func editByName(w http.ResponseWriter, r *http.Request, name string) {
 }
 
 func editTransports(w http.ResponseWriter, r *http.Request) {
-	output := transportFormHtml(currentTransports)
+	queryValues := r.URL.Query()
+	name := queryValues.Get("areaName")
+	output := transportFormHtml(currentTransports, name)
 	output += transportsAsOob(currentTransports)
 	io.WriteString(w, output)
 }
@@ -197,6 +201,7 @@ func editTransport(w http.ResponseWriter, r *http.Request) {
 	destX, _ := strconv.Atoi(properties["transport-dest-x"])
 	sourceY, _ := strconv.Atoi(properties["transport-source-y"])
 	sourceX, _ := strconv.Atoi(properties["transport-source-x"])
+	sourceName := properties["transport-area-name"]
 
 	currentTransport := &currentTransports[transportId]
 	currentTransport.DestY = destY
@@ -205,29 +210,7 @@ func editTransport(w http.ResponseWriter, r *http.Request) {
 	currentTransport.SourceX = sourceX
 	currentTransport.DestStage = destStage
 
-	output := transportFormHtml(currentTransports)
-	io.WriteString(w, output)
-}
-
-func dupeTransport(w http.ResponseWriter, r *http.Request) {
-	properties, _ := requestToProperties(r)
-	transportId, _ := strconv.Atoi(properties["transport-id"])
-
-	currentTransport := &currentTransports[transportId]
-	newTransport := *currentTransport
-	currentTransports = append(currentTransports, newTransport)
-
-	output := transportFormHtml(currentTransports)
-	io.WriteString(w, output)
-}
-
-func deleteTransport(w http.ResponseWriter, r *http.Request) {
-	properties, _ := requestToProperties(r)
-	id, _ := strconv.Atoi(properties["transport-id"])
-
-	currentTransports = append(currentTransports[:id], currentTransports[id+1:]...)
-
-	output := transportFormHtml(currentTransports)
+	output := transportFormHtml(currentTransports, sourceName)
 	io.WriteString(w, output)
 }
 
@@ -306,32 +289,22 @@ func editNeighbors(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, note+divEditNeighborsForArea(*selectedArea))
 }
 
-func transportFormHtml(transports []Transport) string {
+func transportFormHtml(transports []Transport, sourceName string) string {
 	output := `<div id="edit_transports">
-					<a hx-get="/newTransport" 
-					<h4>Transports: </h4>`
+					<h4>Transports: </h4>
+					<a hx-get="/newTransport" href="#" > New </a><br />`
 	for i := range transports {
-		output += editTransportForm(i, transports[i])
+		output += editTransportForm(i, transports[i], sourceName)
 	}
 	output += `</div>`
 	return output
 }
 
-func transportsAsOob(transports []Transport) string {
-	output := ``
-	for _, transport := range transports {
-		var yStr = strconv.Itoa(transport.SourceY)
-		var xStr = strconv.Itoa(transport.SourceX)
-		output += `<div hx-swap-oob="true" hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[transport.SourceY][transport.SourceX].CssColor + `" id="c` + yStr + `-` + xStr + `"><div class="box top med red-b"></div></div></div>`
-	}
-	output += ``
-	return output
-}
-
-func editTransportForm(i int, t Transport) string {
+func editTransportForm(i int, t Transport, sourceName string) string {
 	output := fmt.Sprintf(`
 	<form hx-post="/editTransport" hx-target="#edit_transports" hx-swap="outerHTML">
 		<input type="hidden" name="transport-id" value="%d" />
+		<input type="hidden" name="transport-area-name" value="%s" />
 		<table>
 			<tr>
 				<td align="right">Dest stage-name:</td>
@@ -368,9 +341,62 @@ func editTransportForm(i int, t Transport) string {
 		</table>
 
 		<button class="btn">Submit</button>
-		<button class="btn" hx-post="/dupeTransport">Duplicate</button>
-		<button class="btn" hx-post="/deleteTransport">Delete</button>
-	</form>`, i, t.DestStage, t.DestY, t.DestX, t.SourceY, t.SourceX, "pink")
+		<button class="btn" hx-post="/dupeTransport" hx-include="[name='areaName]">Duplicate</button>
+		<button class="btn" hx-post="/deleteTransport" hx-include="[name='areaName]">Delete</button>
+	</form>`, i, sourceName, t.DestStage, t.DestY, t.DestX, t.SourceY, t.SourceX, "pink")
+	return output
+}
+
+func dupeTransport(w http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	transportId, _ := strconv.Atoi(properties["transport-id"])
+	name := properties["transport-area-name"]
+
+	index := getIndexOfAreaByName(name)
+	if index < 0 {
+		io.WriteString(w, "<h2>Invalid Area</h2>")
+		return
+	}
+	selectedArea := &areas[index]
+
+	currentTransport := &currentTransports[transportId]
+	newTransport := *currentTransport
+	currentTransports = append(currentTransports, newTransport)
+	selectedArea.Transports = currentTransports
+
+	output := transportFormHtml(currentTransports, name)
+	io.WriteString(w, output)
+}
+
+func deleteTransport(w http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	id, _ := strconv.Atoi(properties["transport-id"])
+	name := properties["transport-area-name"]
+
+	index := getIndexOfAreaByName(name)
+	if index < 0 {
+		io.WriteString(w, "<h2>Invalid Area</h2>")
+		return
+	}
+	selectedArea := &areas[index]
+
+	currentTransports = append(currentTransports[:id], currentTransports[id+1:]...)
+	fmt.Println(len(currentTransports))
+	selectedArea.Transports = currentTransports
+
+	output := transportFormHtml(currentTransports, selectedArea.Name)
+	// Remove highlight for deleted transport
+	io.WriteString(w, output)
+}
+
+func transportsAsOob(transports []Transport) string {
+	output := ``
+	for _, transport := range transports {
+		var yStr = strconv.Itoa(transport.SourceY)
+		var xStr = strconv.Itoa(transport.SourceX)
+		output += `<div hx-swap-oob="true" hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[transport.SourceY][transport.SourceX].CssColor + `" id="c` + yStr + `-` + xStr + `"><div class="box top med red-b"></div></div></div>`
+	}
+	output += ``
 	return output
 }
 

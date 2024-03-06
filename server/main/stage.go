@@ -14,6 +14,10 @@ type Stage struct {
 	playerMutex sync.Mutex
 	updates     chan Update
 	name        string
+	north       string
+	south       string
+	east        string
+	west        string
 }
 
 func (world *World) getStageByName(name string) (stage *Stage, new bool) {
@@ -43,12 +47,12 @@ func createStageByName(s string) (*Stage, bool) {
 	if !success {
 		return nil, false
 	}
-	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, updatesForStage, s}
+	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, updatesForStage, s, area.North, area.South, area.East, area.West}
 
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
 		for x := range outputStage.tiles[y] {
-			outputStage.tiles[y][x] = newTile(materials[area.Tiles[y][x]], y, x)
+			outputStage.tiles[y][x] = newTile(materials[area.Tiles[y][x]], y, x, area.DefaultTileColor)
 			outputStage.tiles[y][x].stage = &outputStage
 		}
 	}

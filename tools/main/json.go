@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 )
 
@@ -110,11 +111,38 @@ func createCSSFile(path string) {
 	}
 }
 
+func deploy(w http.ResponseWriter, r *http.Request) {
+	deployLocalChanges()
+}
+
 func deployLocalChanges() {
 	populateFromJson()
 	createCSSFile(DEPLOY_cssPath)
-	//writeJsonFile(DEPLOY_areaPath, areas)
-	// convert areas n/s/e/w to transports before deploy
-
-	//writeJsonFile(DEPLOY_materialPath, materials)
+	writeJsonFile(DEPLOY_areaPath, areas)
+	writeJsonFile(DEPLOY_materialPath, materials)
 }
+
+/*
+func convertAllNeighbors() {
+	outAreas := make([]Area, len(areas))
+	for i, area := range areas {
+		fmt.Println(area.Name)
+		fmt.Println(area.North)
+		fmt.Println(".")
+		outAreas[i] = convertNeighborsToTransports(area)
+	}
+}
+
+func convertNeighborsToTransports(a Area) Area {
+	outArea := a
+	fmt.Println(a.North)
+	outArea.North = ""
+	if a.North != "" {
+		fmt.Println("Heyo")
+	}
+	outArea.South = ""
+	outArea.East = ""
+	outArea.West = ""
+	return outArea
+}
+*/

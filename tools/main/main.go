@@ -75,6 +75,8 @@ func main() {
 	http.HandleFunc("/editNeighbors", editNeighbors)
 	http.HandleFunc("/editFromTransport", editFromTransport)
 
+	http.HandleFunc("/deploy", deploy)
+
 	err := http.ListenAndServe(":4444", nil)
 	if err != nil {
 		fmt.Println("Failed to start server", err)

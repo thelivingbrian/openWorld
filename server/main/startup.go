@@ -124,10 +124,15 @@ type Transport struct {
 }
 
 type Area struct {
-	Name       string      `json:"name"`
-	Safe       bool        `json:"safe"`
-	Tiles      [][]int     `json:"tiles"`
-	Transports []Transport `json:"transports"`
+	Name             string      `json:"name"`
+	Safe             bool        `json:"safe"`
+	Tiles            [][]int     `json:"tiles"`
+	Transports       []Transport `json:"transports"`
+	DefaultTileColor string      `json:"defaultTileColor"`
+	North            string      `json:"north,omitempty"`
+	South            string      `json:"south,omitempty"`
+	East             string      `json:"east,omitempty"`
+	West             string      `json:"west,omitempty"`
 }
 
 var (

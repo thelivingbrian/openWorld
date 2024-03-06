@@ -29,7 +29,10 @@ type Tile struct {
 	htmlTemplate   string
 }
 
-func newTile(mat Material, y int, x int) *Tile {
+func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
+	if mat.CssColor == "" {
+		mat.CssColor = defaultTileColor
+	}
 	return &Tile{
 		material:       mat,
 		playerMap:      make(map[string]*Player),
