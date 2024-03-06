@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"sync"
 
@@ -332,12 +331,8 @@ func (player *Player) activatePower() {
 
 func (player *Player) applyTeleport(teleport *Teleport) {
 	player.stageName = teleport.destStage
-	fmt.Println("Dest X: ")
-	fmt.Println(teleport.destX)
 	player.y = teleport.destY
 	player.x = teleport.destX
-	fmt.Println("final Value: ")
-	fmt.Println(player.x)
 	player.updateRecord()
 	player.assignStageAndListen()
 	player.placeOnStage()

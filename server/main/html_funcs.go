@@ -59,9 +59,9 @@ func spaceHighlighter(tile *Tile) string {
 
 func shiftHighlighter(tile *Tile) string {
 	if walkable(tile) {
-		return "half-trsp blue"
+		return "red trsp20"
 	}
-	return "half-trsp red"
+	return ""
 }
 
 func randomFieryColor() string {
@@ -160,7 +160,7 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 		_, impactsHud := player.actions.shiftHighlights[tile]
 		if impactsHud && player.actions.boostCounter > 0 {
 			highlights += oobHighlightBox(tile, shiftHighlighter(tile))
-			continue
+			//continue
 		}
 		_, impactsHud = player.actions.spaceHighlights[tile]
 		if impactsHud {
