@@ -142,8 +142,6 @@ func oobUpdateWithHud(player *Player, tiles []*Tile) {
 func (stage *Stage) updateAll(update string) {
 	stage.playerMutex.Lock()
 	defer stage.playerMutex.Unlock()
-	fmt.Println(stage.name)
-	fmt.Println(len(stage.playerMap))
 	for _, player := range stage.playerMap {
 		updateOne(update, player)
 	}
