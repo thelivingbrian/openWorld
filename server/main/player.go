@@ -330,6 +330,9 @@ func (player *Player) activatePower() {
 }
 
 func (player *Player) applyTeleport(teleport *Teleport) {
+	if player.stageName != teleport.destStage {
+		player.removeFromStage()
+	}
 	player.stageName = teleport.destStage
 	player.y = teleport.destY
 	player.x = teleport.destX
