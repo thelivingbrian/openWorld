@@ -94,10 +94,10 @@ func getEditColor(w http.ResponseWriter, r *http.Request) {
 	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square" style="background-color:rgb(%d,%d,%d)"></div></div>`, R, G, B)
 
 	editForm := `
-	<form hx-put="/editMaterial" hx-target="#edit-ingredient-window">
+	<form hx-put="/editColor" hx-target="#edit-ingredient-window">
 		<div>
 			<label>Css Class</label>
-			<input type="text" name="CommonName" value="%s">
+			<input type="text" name="CssClassName" value="%s">
 		</div>
 		<div>
 			<label>R: </label>
@@ -216,7 +216,7 @@ func editMaterial(w http.ResponseWriter, r *http.Request) {
 	ceiling1 := properties["Ceiling1Css"]
 	ceiling2 := properties["Ceiling2Css"]
 
-	fmt.Printf("%d %s %s\n%s\n", materialId, commonName, cssColor, walkable)
+	fmt.Printf("%d common name: %s color: %s walkable: %s\n", materialId, commonName, cssColor, walkable)
 
 	material := &materials[materialId]
 	if material.ID != materialId {
@@ -229,6 +229,9 @@ func editMaterial(w http.ResponseWriter, r *http.Request) {
 	material.Floor2Css = floor2
 	material.Ceiling1Css = ceiling1
 	material.Ceiling2Css = ceiling2
+
+	fmt.Print(material.CommonName)
+
 	io.WriteString(w, "<h2>Done.</h2>") //materialPageHTML())
 }
 

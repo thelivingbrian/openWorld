@@ -199,7 +199,7 @@ func (p *Player) tryGoWest() {
 		t := &Teleport{destStage: area.Name, destY: destY, destX: destX}
 		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
 		p.applyTeleport(t)
-		p.move(0, 0)
+		p.move(0, 0) // Hacky but resets player icon and highlights
 	}
 }
 

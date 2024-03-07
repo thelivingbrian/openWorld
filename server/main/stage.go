@@ -128,7 +128,7 @@ func (stage *Stage) updateAllWithHudExcept(ignore *Player, tiles []*Tile) {
 }
 
 func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
-	playerIcon := fmt.Sprintf(`<div class="box zp fusia" id="p%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
+	playerIcon := fmt.Sprintf(`<div class="box zp fusia r0" id="p%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
 	previousBox := playerBox(previous)
 
 	player.stage.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles) + previousBox + playerIcon)}
@@ -163,7 +163,6 @@ func updateOne(update string, player *Player) {
 }
 
 func updateScreenFromScratch(player *Player) {
-
-	//updateOneAfterMovement(player, player.updateSpaceHighlights(), player.tile)
+	// This could be improved view is inaccurate
 	player.stage.updates <- Update{player, htmlFromPlayer(player)}
 }

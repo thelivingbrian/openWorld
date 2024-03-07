@@ -31,7 +31,8 @@ var haveSelection bool = false
 var selectedX int
 var selectedY int
 var modifications [][]Material
-var currentTransports []Transport
+
+//var currentTransports []Transport // This should only exist if its showing the highlights and not even then
 
 func saveArea(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
@@ -70,8 +71,6 @@ func saveArea(w http.ResponseWriter, r *http.Request) {
 	if attempt != nil {
 		panic("Area Write Failure")
 	}
-
-	//convertAllNeighbors()
 
 	io.WriteString(w, `<h2>Success</h2>`)
 }
@@ -163,7 +162,7 @@ func editByName(w http.ResponseWriter, r *http.Request, name string) {
 	selectedArea := areas[index]
 
 	modifications = AreaToMaterialGrid(selectedArea)
-	currentTransports = selectedArea.Transports
+	//currentTransports = selectedArea.Transports
 	output := divSaveArea(selectedArea)
 	output += `<div id="edit_window" class="side">
 					<div id="edit_material" class="left">`
@@ -185,11 +184,11 @@ func editByName(w http.ResponseWriter, r *http.Request, name string) {
 	io.WriteString(w, output)
 }
 
-func editTransports(w http.ResponseWriter, r *http.Request) {
+func getEditTransports(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	name := queryValues.Get("areaName")
-	output := transportFormHtml(currentTransports, name)
-	output += transportsAsOob(currentTransports)
+	output := transportFormHtml(name)
+	output += transportsAsOob(name)
 	io.WriteString(w, output)
 }
 
@@ -201,17 +200,60 @@ func editTransport(w http.ResponseWriter, r *http.Request) {
 	destX, _ := strconv.Atoi(properties["transport-dest-x"])
 	sourceY, _ := strconv.Atoi(properties["transport-source-y"])
 	sourceX, _ := strconv.Atoi(properties["transport-source-x"])
-	sourceName := properties["transport-area-name"]
+	areaName := properties["transport-area-name"]
 
-	currentTransport := &currentTransports[transportId]
+	index := getIndexOfAreaByName(areaName)
+	if index < 0 {
+		io.WriteString(w, "<h2>Invalid Area</h2>")
+		return
+	}
+	selectedArea := areas[index]
+
+	currentTransport := &selectedArea.Transports[transportId]
 	currentTransport.DestY = destY
 	currentTransport.DestX = destX
 	currentTransport.SourceY = sourceY
 	currentTransport.SourceX = sourceX
 	currentTransport.DestStage = destStage
 
-	output := transportFormHtml(currentTransports, sourceName)
+	output := transportFormHtml(areaName)
 	io.WriteString(w, output)
+}
+
+func newTransport(w http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	areaName := properties["areaName"]
+	fmt.Println(areaName)
+
+	index := getIndexOfAreaByName(areaName)
+	if index < 0 {
+		io.WriteString(w, "<h2>Invalid Area</h2>")
+		return
+	}
+	selectedArea := &areas[index]
+
+	selectedArea.Transports = append(selectedArea.Transports, Transport{})
+
+	output := transportFormHtml(areaName)
+	io.WriteString(w, output)
+
+}
+
+func transportFormHtml(areaName string) string {
+	index := getIndexOfAreaByName(areaName)
+	if index < 0 {
+		return "<h2>Invalid Area</h2>"
+	}
+	selectedArea := areas[index]
+
+	output := `<div id="edit_transports">
+					<h4>Transports: </h4>
+					<a hx-post="/newTransport" hx-include="[name='areaName']" hx-target="#edit_transports" href="#"> New </a><br />`
+	for i, t := range selectedArea.Transports {
+		output += editTransportForm(i, t, areaName)
+	}
+	output += `</div>`
+	return output
 }
 
 func editDisplay(w http.ResponseWriter, r *http.Request) {
@@ -289,17 +331,6 @@ func editNeighbors(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, note+divEditNeighborsForArea(*selectedArea))
 }
 
-func transportFormHtml(transports []Transport, sourceName string) string {
-	output := `<div id="edit_transports">
-					<h4>Transports: </h4>
-					<a hx-get="/newTransport" href="#" > New </a><br />`
-	for i := range transports {
-		output += editTransportForm(i, transports[i], sourceName)
-	}
-	output += `</div>`
-	return output
-}
-
 func editTransportForm(i int, t Transport, sourceName string) string {
 	output := fmt.Sprintf(`
 	<form hx-post="/editTransport" hx-target="#edit_transports" hx-swap="outerHTML">
@@ -359,12 +390,11 @@ func dupeTransport(w http.ResponseWriter, r *http.Request) {
 	}
 	selectedArea := &areas[index]
 
-	currentTransport := &currentTransports[transportId]
+	currentTransport := &selectedArea.Transports[transportId]
 	newTransport := *currentTransport
-	currentTransports = append(currentTransports, newTransport)
-	selectedArea.Transports = currentTransports
+	selectedArea.Transports = append(selectedArea.Transports, newTransport)
 
-	output := transportFormHtml(currentTransports, name)
+	output := transportFormHtml(name)
 	io.WriteString(w, output)
 }
 
@@ -380,18 +410,22 @@ func deleteTransport(w http.ResponseWriter, r *http.Request) {
 	}
 	selectedArea := &areas[index]
 
-	currentTransports = append(currentTransports[:id], currentTransports[id+1:]...)
-	fmt.Println(len(currentTransports))
-	selectedArea.Transports = currentTransports
+	selectedArea.Transports = append(selectedArea.Transports[:id], selectedArea.Transports[id+1:]...)
+	fmt.Println(len(selectedArea.Transports))
 
-	output := transportFormHtml(currentTransports, selectedArea.Name)
+	output := transportFormHtml(selectedArea.Name)
 	// Remove highlight for deleted transport
 	io.WriteString(w, output)
 }
 
-func transportsAsOob(transports []Transport) string {
+func transportsAsOob(areaName string) string {
+	index := getIndexOfAreaByName(areaName)
+	if index < 0 {
+		return "<h2>Invalid Area</h2>"
+	}
+	selectedArea := areas[index]
 	output := ``
-	for _, transport := range transports {
+	for _, transport := range selectedArea.Transports {
 		var yStr = strconv.Itoa(transport.SourceY)
 		var xStr = strconv.Itoa(transport.SourceX)
 		output += `<div hx-swap-oob="true" hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[transport.SourceY][transport.SourceX].CssColor + `" id="c` + yStr + `-` + xStr + `"><div class="box top med red-b"></div></div></div>`
@@ -664,7 +698,7 @@ func squareUnselected(y int, x int, material Material, defaultColor string) stri
 }
 
 func exampleSquareFromMaterial(material Material) string {
-	overlay := fmt.Sprintf(`<div class="box floor1 %s"></div><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css)
+	overlay := fmt.Sprintf(`<div class="box floor1 %s"></div><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div><div class="box ceiling2 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css, material.Ceiling2Css)
 	idHiddenInput := fmt.Sprintf(`<input name="selected-material" type="hidden" value="%d" />`, material.ID)
 	return fmt.Sprintf(`<div class="grid-square %s" name="selected-material">%s%s</div>`, material.CssColor, overlay, idHiddenInput)
 }
