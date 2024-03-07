@@ -151,6 +151,7 @@ func populateStructUsingFileName[T any](ptr *T, fn string) {
 	}
 }
 
+// This should return values instead of populating globals
 func loadFromJson() {
 	populateStructUsingFileName[[]Material](&materials, "materials")
 	populateStructUsingFileName[[]Area](&areas, "areas")
