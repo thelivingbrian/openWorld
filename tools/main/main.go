@@ -9,13 +9,6 @@ func main() {
 	fmt.Println("Attempting to start server...")
 	c := populateFromJson()
 
-	/*for _, col := range c.Collections {
-		for key, value := range col.Spaces {
-			fmt.Println(key)
-			fmt.Println(len(value))
-		}
-	}*/
-
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./assets"))))
 
 	http.HandleFunc("/materialPage", c.getMaterialPage)
@@ -34,12 +27,9 @@ func main() {
 
 	http.HandleFunc("/outputIngredients", c.outputIngredients)
 
-	//http.HandleFunc("/areaPage", getCreateArea)
-	//http.HandleFunc("/createGrid", c.createGrid)
 	http.HandleFunc("/clickOnSquare", c.clickOnSquare)
 	http.HandleFunc("/selectMaterial", c.selectMaterial)
 	http.HandleFunc("/saveArea", c.saveArea)
-	//http.HandleFunc("/editAreaPage", getEditAreaPage)
 	http.HandleFunc("/edit", c.getEditArea)
 	http.HandleFunc("/editTransports", c.getEditTransports)
 	http.HandleFunc("/editTransport", c.editTransport)
@@ -54,7 +44,6 @@ func main() {
 	http.HandleFunc("/collections", c.collectionHandler)
 	http.HandleFunc("/spaces", c.spacesHandler)
 	http.HandleFunc("/areas", c.areasHandler)
-	//http.HandleFunc("/planesMakes", planesMake)
 
 	http.HandleFunc("/deploy", c.deploy)
 

@@ -20,13 +20,6 @@ type Context struct {
 	collectionPath string
 }
 
-// var materials []Material
-//var areas []Area
-
-//var colors []Color
-
-//const areaPath = "./level/data/areas.json"
-
 const DEPLOY_materialPath = "../../server/main/data/materials2.json"
 const DEPLOY_areaPath = "../../server/main/data/areas2.json"
 const DEPLOY_cssPath = "../../server/main/assets/colors2.css"
@@ -36,6 +29,7 @@ const DEPLOY_cssPath = "../../server/main/assets/colors2.css"
 func populateFromJson() Context {
 	var c Context
 
+	// I don't like this
 	c.colorPath = "./data/colors/colors.json"
 	c.materialPath = "./data/materials/materials.json"
 	c.cssPath = "./assets/colors.css"
@@ -44,8 +38,6 @@ func populateFromJson() Context {
 	c.colors = parseJsonFile[Color](c.colorPath)
 	c.materials = parseJsonFile[Material](c.materialPath)
 	c.Collections = getAllCollections(c.collectionPath)
-
-	//areas = parseJsonFile[Area](areaPath)
 
 	return c
 }
@@ -111,7 +103,7 @@ func (c Context) writeColorsToLocalFile() error {
 	return writeJsonFile(c.colorPath, c.colors)
 }
 
-// This is a little awkward
+// Combine with below
 func (c Context) createLocalCSSFile() {
 	c.createCSSFile(c.cssPath)
 }
@@ -191,7 +183,6 @@ func (c Context) deploy(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Context) deployLocalChanges(collectionName string) {
-	//ghcontext := populateFromJson()
 	c.createCSSFile(DEPLOY_cssPath)
 	flatAreas := collectionToAreas(c.Collections[collectionName])
 	writeJsonFile(DEPLOY_areaPath, flatAreas)
