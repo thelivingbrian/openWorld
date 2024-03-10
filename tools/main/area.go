@@ -33,6 +33,44 @@ var selectedX int
 var selectedY int
 var modifications [][]Material // This is probably going to be a problem. At minimum implies one user max
 
+var divArea = `
+	<div id="area-page">
+		<input type="hidden" name="currentCollection" value="{{.CollectionName}}" />
+		<input type="hidden" name="currentSpace" value="{{.Name}}" />
+		<div id="select-area">
+			<label>Areas</label>
+			<select name="area-name" hx-get="/edit" hx-include="[name='currentSpace'],[name='currentCollection']" hx-target="#edit-area">
+				<option value="">--</option>
+				{{range  $i, $area := .Areas}}
+					<option value="{{$area.Name}}">{{$area.Name}}</option>
+				{{end}}
+			</select>
+		</div>
+		<div id="edit-area">
+		
+		</div>
+	</div>
+`
+
+var areaTmpl = template.Must(template.New("AreaSelect").Parse(divArea))
+
+func (c Context) areasHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		queryValues := r.URL.Query()
+		collectionName := queryValues.Get("currentCollection")
+		spaceName := queryValues.Get("spaceName")
+		s := c.getSpace(collectionName, spaceName)
+		getAreaPage(w, r, s)
+	}
+}
+
+func getAreaPage(w http.ResponseWriter, r *http.Request, space *Space) {
+	err := areaTmpl.Execute(w, *space)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
 func (c Context) saveArea(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	name := properties["areaName"]
@@ -78,88 +116,6 @@ func (c Context) saveArea(w http.ResponseWriter, r *http.Request) {
 
 	io.WriteString(w, `<h2>Success</h2>`)
 }
-
-/*
-func getCreateArea(w http.ResponseWriter, r *http.Request) {
-	output := divCreateArea()
-	io.WriteString(w, output)
-}
-
-
-func divCreateArea() string {
-	return `
-	<div id="create_form">
-		<form hx-post="/createGrid" hx-target="#panel">
-			<div>
-				<label>Input dimensions:</label>
-			</div>
-			<div>
-				<label for="height">Height:</label>
-				<input type="text" id="height" name="height" value="16">
-			</div>
-			<div>
-				<label for="width">Width:</label>
-				<input type="text" id="width" name="width" value="16">
-			</div>
-			<div>
-				<button>Create</button>
-			</div>
-		</form>
-	</div>`
-}
-*/
-
-/*
-func getEditAreaPage(w http.ResponseWriter, r *http.Request, areas []Area) {
-	output := `
-	<div>
-		<label>Areas</label>
-		<select name="area-name" hx-get="/edit" hx-target="#edit-area">
-			<option value="">--</option>
-	`
-	for _, area := range areas {
-		output += fmt.Sprintf(`<option value="%s">%s</option>`, area.Name, area.Name)
-	}
-	output += `</select>
-	</div>
-	<div id="edit-area">
-
-	</div>`
-	io.WriteString(w, output)
-}
-*/
-
-//
-
-var divArea = `
-	<div id="area-page">
-		<input type="hidden" name="currentCollection" value="{{.CollectionName}}" />
-		<input type="hidden" name="currentSpace" value="{{.Name}}" />
-		<div id="select-area">
-			<label>Areas</label>
-			<select name="area-name" hx-get="/edit" hx-include="[name='currentSpace'],[name='currentCollection']" hx-target="#edit-area">
-				<option value="">--</option>
-				{{range  $i, $area := .Areas}}
-					<option value="{{$area.Name}}">{{$area.Name}}</option>
-				{{end}}
-			</select>
-		</div>
-		<div id="edit-area">
-		
-		</div>
-	</div>
-`
-
-var areaTmpl = template.Must(template.New("AreaSelect").Parse(divArea))
-
-func getAreaPage(w http.ResponseWriter, r *http.Request, space *Space) {
-	err := areaTmpl.Execute(w, *space)
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
-//
 
 func (c Context) getEditArea(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
@@ -335,41 +291,6 @@ func (c Context) AreaToMaterialGrid(area Area) [][]Material {
 	return out
 }
 
-/*
-func (c Context) createGrid(w http.ResponseWriter, r *http.Request) {
-	height, width, success := getHeightAndWidth(r)
-	if !success {
-		panic(0)
-	}
-
-	modifications = make([][]Material, height)
-	for i := range modifications {
-		modifications[i] = make([]Material, width)
-		for j := range modifications[i] {
-			modifications[i][j] = Material{ID: 0, CommonName: "default", CssColor: "", Walkable: true, Floor1Css: "", Floor2Css: ""}
-		}
-	}
-
-	output := ``
-	output += divCreateArea()
-	output += divNewSaveArea()
-	output += divToolSelect()
-	output += getEmptyGridHTML(height, width)
-	output += c.divMaterialSelect()
-
-	io.WriteString(w, output)
-}
-
-func getHeightAndWidth(r *http.Request) (int, int, bool) {
-	properties, _ := requestToProperties(r)
-	height, _ := strconv.Atoi(properties["height"])
-	width, _ := strconv.Atoi(properties["width"])
-
-	return height, width, true
-}
-
-*/
-
 // Have default tile color change trigger getHtmlFromModifications()
 func divSaveArea(area Area, currentCollection string, currentSpace string) string {
 	checked := ""
@@ -388,29 +309,12 @@ func divSaveArea(area Area, currentCollection string, currentSpace string) strin
 			<label>Safe:</label>
 			<input type="checkbox" name="safe" ` + checked + `>
 			<button>Save</button><br />
+			<label>Default Tile Color:</label>
 			<input type="text" name="defaultTileColor" value="` + area.DefaultTileColor + `">
 		</form>
 	</div>`
 }
 
-/*
-	func divNewSaveArea(currentCollection string, currentSpace string) string {
-		return `
-		<div id="saveForm">
-			<div id="save_notice"></div>
-			<form hx-post="/saveArea" hx-target="#save_notice">
-				<input type="hidden" name="new" value="true"/>
-				<input type="hidden" name="currentCollection" value="` + currentCollection + `"/>
-				<input type="hidden" name="currentSpace" value="` + currentSpace + `"/>
-				<label>Name:</label>
-				<input type="text" name="areaName" value="" />
-				<label>Safe:</label>
-				<input type="checkbox" name="safe" />
-				<button>Save</button>
-			</form>
-		</div>`
-	}
-*/
 func divToolSelect() string {
 	return `
 	<div id="tool_select"> 
@@ -425,23 +329,6 @@ func divToolSelect() string {
 	</div>
 	`
 }
-
-/*
-func getEmptyGridHTML(h int, w int) string {
-	output := `<div class="grid" id="screen">`
-	for y := 0; y < h; y++ {
-		output += `<div class="grid-row">`
-		for x := 0; x < w; x++ {
-			var yStr = strconv.Itoa(y)
-			var xStr = strconv.Itoa(x)
-			output += `<div hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material'],[name='defaultTileColor']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square" id="c` + yStr + `-` + xStr + `"></div>`
-		}
-		output += `</div>`
-	}
-	output += `</div>`
-	return output
-}
-*/
 
 func (c Context) getHTMLFromArea(area Area) string {
 	output := `<div class="grid" id="screen">`
