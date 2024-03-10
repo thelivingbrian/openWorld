@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"strconv"
@@ -30,16 +31,18 @@ type Transport struct {
 var haveSelection bool = false
 var selectedX int
 var selectedY int
-var modifications [][]Material
+var modifications [][]Material // This is probably going to be a problem. At minimum implies one user max
 
-//var currentTransports []Transport // This should only exist if its showing the highlights and not even then
-
-func saveArea(w http.ResponseWriter, r *http.Request) {
+func (c Context) saveArea(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	name := properties["areaName"]
 	safe := (properties["safe"] == "on")
 	new := (properties["new"] == "true")
 	defaultTileColor := properties["defaultTileColor"]
+	collectionName := properties["currentCollection"]
+	spaceName := properties["currentSpace"]
+
+	space := c.getSpace(collectionName, spaceName)
 
 	if len(modifications) == 0 {
 		return
@@ -53,35 +56,38 @@ func saveArea(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	index := getIndexOfAreaByName(name)
-	if index < 0 {
+	selectedArea := getAreaByName(space.Areas, name)
+	if selectedArea == nil {
 		area := Area{Name: name, Safe: safe, Tiles: tiles, Transports: nil, DefaultTileColor: defaultTileColor}
-		areas = append(areas, area)
+		space.Areas = append(space.Areas, area)
 	} else {
 		if new {
 			io.WriteString(w, `<h2>Invalid Name</h2>`)
 			return
 		}
-		areas[index].Safe = safe
-		areas[index].Tiles = tiles
-		areas[index].DefaultTileColor = defaultTileColor
+		selectedArea.Safe = safe
+		selectedArea.Tiles = tiles
+		selectedArea.DefaultTileColor = defaultTileColor
 	}
 
-	attempt := writeJsonFile(areaPath, areas)
-	if attempt != nil {
-		panic("Area Write Failure")
+	outFile := c.collectionPath + collectionName + "/spaces/" + spaceName + "2.json"
+	err := writeJsonFile(outFile, space.Areas)
+	if err != nil {
+		panic(err)
 	}
 
 	io.WriteString(w, `<h2>Success</h2>`)
 }
 
+/*
 func getCreateArea(w http.ResponseWriter, r *http.Request) {
 	output := divCreateArea()
 	io.WriteString(w, output)
 }
 
+
 func divCreateArea() string {
-	return `	
+	return `
 	<div id="create_form">
 		<form hx-post="/createGrid" hx-target="#panel">
 			<div>
@@ -101,8 +107,10 @@ func divCreateArea() string {
 		</form>
 	</div>`
 }
+*/
 
-func getEditAreaPage(w http.ResponseWriter, r *http.Request) {
+/*
+func getEditAreaPage(w http.ResponseWriter, r *http.Request, areas []Area) {
 	output := `
 	<div>
 		<label>Areas</label>
@@ -115,37 +123,80 @@ func getEditAreaPage(w http.ResponseWriter, r *http.Request) {
 	output += `</select>
 	</div>
 	<div id="edit-area">
-	
+
 	</div>`
 	io.WriteString(w, output)
 }
+*/
 
-func edit(w http.ResponseWriter, r *http.Request) {
-	queryValues := r.URL.Query()
-	name := queryValues.Get("area-name")
-	editByName(w, r, name)
+//
+
+var divArea = `
+	<div id="area-page">
+		<input type="hidden" name="currentCollection" value="{{.CollectionName}}" />
+		<input type="hidden" name="currentSpace" value="{{.Name}}" />
+		<div id="select-area">
+			<label>Areas</label>
+			<select name="area-name" hx-get="/edit" hx-include="[name='currentSpace'],[name='currentCollection']" hx-target="#edit-area">
+				<option value="">--</option>
+				{{range  $i, $area := .Areas}}
+					<option value="{{$area.Name}}">{{$area.Name}}</option>
+				{{end}}
+			</select>
+		</div>
+		<div id="edit-area">
+		
+		</div>
+	</div>
+`
+
+var areaTmpl = template.Must(template.New("AreaSelect").Parse(divArea))
+
+func getAreaPage(w http.ResponseWriter, r *http.Request, space *Space) {
+	err := areaTmpl.Execute(w, *space)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
-func editFromTransport(w http.ResponseWriter, r *http.Request) {
+//
+
+func (c Context) getEditArea(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
+	collectionName := queryValues.Get("currentCollection")
+	spaceName := queryValues.Get("currentSpace")
+	name := queryValues.Get("area-name")
+
+	space := c.getSpace(collectionName, spaceName)
+
+	c.editArea(w, r, space, name)
+}
+
+func (c Context) editFromTransport(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+
+	collectionName := queryValues.Get("currentCollection")
+	spaceName := queryValues.Get("currentSpace")
+	space := c.getSpace(collectionName, spaceName)
+
 	name := queryValues.Get("north_input")
 	if name != "" {
-		editByName(w, r, name)
+		c.editArea(w, r, space, name)
 		return
 	}
 	name = queryValues.Get("south_input")
 	if name != "" {
-		editByName(w, r, name)
+		c.editArea(w, r, space, name)
 		return
 	}
 	name = queryValues.Get("east_input")
 	if name != "" {
-		editByName(w, r, name)
+		c.editArea(w, r, space, name)
 		return
 	}
 	name = queryValues.Get("west_input")
 	if name != "" {
-		editByName(w, r, name)
+		c.editArea(w, r, space, name)
 		return
 	}
 
@@ -153,27 +204,26 @@ func editFromTransport(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func editByName(w http.ResponseWriter, r *http.Request, name string) {
-	index := getIndexOfAreaByName(name)
-	if index < 0 {
-		io.WriteString(w, "<h2>Invalid Area</h2>")
+func (c Context) editArea(w http.ResponseWriter, r *http.Request, space *Space, name string) {
+	selectedArea := getAreaByName(space.Areas, name)
+	if selectedArea == nil {
+		io.WriteString(w, "<h2>no Area</h2>")
 		return
 	}
-	selectedArea := areas[index]
 
-	modifications = AreaToMaterialGrid(selectedArea)
-	//currentTransports = selectedArea.Transports
-	output := divSaveArea(selectedArea)
+	modifications = c.AreaToMaterialGrid(*selectedArea)
+
+	output := divSaveArea(*selectedArea, space.CollectionName, space.Name)
 	output += `<div id="edit_window" class="side">
 					<div id="edit_material" class="left">`
-	output += getHTMLFromArea(selectedArea) + divToolSelect() + divMaterialSelect()
+	output += c.getHTMLFromArea(*selectedArea) + divToolSelect() + c.divMaterialSelect()
 
 	output += `		</div>
 					<div id="edit_sidebar" class="left">
 						<div id="edit_options">
-							<a hx-get="/editTransports" hx-target="#edit_tool" hx-include="[name='areaName']" href="#">Edit Transports</a> | 
+							<a hx-get="/editTransports" hx-target="#edit_tool" hx-include="[name='areaName'],[name='currentCollection'],[name='currentSpace']" href="#">Edit Transports</a> | 
 							<a hx-get="/editDisplay" hx-target="#edit_tool" href="#">Edit Display</a> | 
-							<a hx-get="/getEditNeighbors" hx-target="#edit_tool" hx-include="[name='areaName']" href="#">Edit Neighbors</a> |
+							<a hx-get="/getEditNeighbors" hx-target="#edit_tool" hx-include="[name='areaName'],[name='currentCollection'],[name='currentSpace']" href="#">Edit Neighbors</a> |
 							<a hx-get="/materialPage"  hx-target="#edit_tool" href="#">Edit Colors/Materials</a>
 						</div>
 						<div id="edit_tool">
@@ -182,78 +232,6 @@ func editByName(w http.ResponseWriter, r *http.Request, name string) {
 					</div>
 				</div>`
 	io.WriteString(w, output)
-}
-
-func getEditTransports(w http.ResponseWriter, r *http.Request) {
-	queryValues := r.URL.Query()
-	name := queryValues.Get("areaName")
-	output := transportFormHtml(name)
-	output += transportsAsOob(name)
-	io.WriteString(w, output)
-}
-
-func editTransport(w http.ResponseWriter, r *http.Request) {
-	properties, _ := requestToProperties(r)
-	transportId, _ := strconv.Atoi(properties["transport-id"])
-	destStage := properties["transport-stage-name"]
-	destY, _ := strconv.Atoi(properties["transport-dest-y"])
-	destX, _ := strconv.Atoi(properties["transport-dest-x"])
-	sourceY, _ := strconv.Atoi(properties["transport-source-y"])
-	sourceX, _ := strconv.Atoi(properties["transport-source-x"])
-	areaName := properties["transport-area-name"]
-
-	index := getIndexOfAreaByName(areaName)
-	if index < 0 {
-		io.WriteString(w, "<h2>Invalid Area</h2>")
-		return
-	}
-	selectedArea := areas[index]
-
-	currentTransport := &selectedArea.Transports[transportId]
-	currentTransport.DestY = destY
-	currentTransport.DestX = destX
-	currentTransport.SourceY = sourceY
-	currentTransport.SourceX = sourceX
-	currentTransport.DestStage = destStage
-
-	output := transportFormHtml(areaName)
-	io.WriteString(w, output)
-}
-
-func newTransport(w http.ResponseWriter, r *http.Request) {
-	properties, _ := requestToProperties(r)
-	areaName := properties["areaName"]
-	fmt.Println(areaName)
-
-	index := getIndexOfAreaByName(areaName)
-	if index < 0 {
-		io.WriteString(w, "<h2>Invalid Area</h2>")
-		return
-	}
-	selectedArea := &areas[index]
-
-	selectedArea.Transports = append(selectedArea.Transports, Transport{})
-
-	output := transportFormHtml(areaName)
-	io.WriteString(w, output)
-
-}
-
-func transportFormHtml(areaName string) string {
-	index := getIndexOfAreaByName(areaName)
-	if index < 0 {
-		return "<h2>Invalid Area</h2>"
-	}
-	selectedArea := areas[index]
-
-	output := `<div id="edit_transports">
-					<h4>Transports: </h4>
-					<a hx-post="/newTransport" hx-include="[name='areaName']" hx-target="#edit_transports" href="#"> New </a><br />`
-	for i, t := range selectedArea.Transports {
-		output += editTransportForm(i, t, areaName)
-	}
-	output += `</div>`
-	return output
 }
 
 func editDisplay(w http.ResponseWriter, r *http.Request) {
@@ -266,48 +244,51 @@ func editDisplay(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, output)
 }
 
-func getEditNeighbors(w http.ResponseWriter, r *http.Request) {
+func (c Context) getEditNeighbors(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	name := queryValues.Get("areaName")
 
-	index := getIndexOfAreaByName(name)
-	if index < 0 {
-		io.WriteString(w, "<h2>Invalid Area</h2>")
+	collectionName := queryValues.Get("currentCollection")
+	spaceName := queryValues.Get("currentSpace")
+	space := c.getSpace(collectionName, spaceName)
+	selectedArea := getAreaByName(space.Areas, name)
+	if selectedArea == nil {
+		io.WriteString(w, "<h2>no Area</h2>")
 		return
 	}
-	selectedArea := areas[index]
 
-	io.WriteString(w, divEditNeighborsForArea(selectedArea))
+	io.WriteString(w, divEditNeighborsForArea(*selectedArea))
 }
 
+// template
 func divEditNeighborsForArea(selectedArea Area) string {
 	output := `<div id="edit_neighbors">
 					<div id="edit_north">
 						<h3>North: </h3>
 						<input type="text" name="north_input" value="` + selectedArea.North + `"/>
-						<a hx-get="/editFromTransport" hx-include="[name='north_input']" hx-target="#edit-area" hx href="#">Go</a>
+						<a hx-get="/editFromTransport" hx-include="[name='north_input'],[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" hx href="#">Go</a>
 					</div>
 					<div id="edit_south">
 						<h3>South: </h3>
 						<input type="text" name="south_input" value="` + selectedArea.South + `"/>
-						<a hx-get="/editFromTransport" hx-include="[name='south_input']" hx-target="#edit-area" href="#">Go</a>
+						<a hx-get="/editFromTransport" hx-include="[name='south_input'],[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">Go</a>
 					</div>
 					<div id="edit_east">
 						<h3>East: </h3>
 						<input type="text" name="east_input" value="` + selectedArea.East + `"/>
-						<a hx-get="/editFromTransport" hx-include="[name='east_input']" hx-target="#edit-area" href="#">Go</a>
+						<a hx-get="/editFromTransport" hx-include="[name='east_input'],[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">Go</a>
 					</div>
 					<div id="edit_west">
 						<h3>West: </h3>
 						<input type="text" name="west_input" value="` + selectedArea.West + `"/>
-						<a hx-get="/editFromTransport" hx-include="[name='west_input']" hx-target="#edit-area" href="#">Go</a>
+						<a hx-get="/editFromTransport" hx-include="[name='west_input'],[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">Go</a>
 					</div>
-					<a hx-post="/editNeighbors" hx-include="[name='areaName'],[name='north_input'],[name='south_input'],[name='east_input'],[name='west_input']" hx-target="#edit_tool" href="#">Save</a>
+					<a hx-post="/editNeighbors" hx-include="[name='areaName'],[name='north_input'],[name='south_input'],[name='east_input'],[name='west_input'],[name='currentCollection'],[name='currentSpace']" hx-target="#edit_tool" href="#">Save</a>
 				</div>`
 	return output
 }
 
-func editNeighbors(w http.ResponseWriter, r *http.Request) {
+func (c Context) editNeighbors(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	name := properties["areaName"]
 	north := properties["north_input"]
@@ -315,12 +296,15 @@ func editNeighbors(w http.ResponseWriter, r *http.Request) {
 	east := properties["east_input"]
 	west := properties["west_input"]
 
-	index := getIndexOfAreaByName(name)
-	if index < 0 {
-		io.WriteString(w, "<h2>Invalid Area</h2>")
+	collectionName := properties["currentCollection"]
+	spaceName := properties["currentSpace"]
+	space := c.getSpace(collectionName, spaceName)
+	selectedArea := getAreaByName(space.Areas, name)
+	if selectedArea == nil {
+		io.WriteString(w, "<h2>no Area</h2>")
 		return
 	}
-	selectedArea := &areas[index]
+
 	selectedArea.North = north
 	selectedArea.South = south
 	selectedArea.East = east
@@ -331,132 +315,28 @@ func editNeighbors(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, note+divEditNeighborsForArea(*selectedArea))
 }
 
-func editTransportForm(i int, t Transport, sourceName string) string {
-	output := fmt.Sprintf(`
-	<form hx-post="/editTransport" hx-target="#edit_transports" hx-swap="outerHTML">
-		<input type="hidden" name="transport-id" value="%d" />
-		<input type="hidden" name="transport-area-name" value="%s" />
-		<table>
-			<tr>
-				<td align="right">Dest stage-name:</td>
-				<td align="left">
-					<input type="text" name="transport-stage-name" value="%s" />
-				</td>
-			</tr>
-			<tr>
-				<td align="right">Dest y</td>
-				<td align="left">
-					<input type="text" name="transport-dest-y" value="%d" />
-				</td>
-				<td align="right">x</td>
-				<td align="left">
-					<input type="text" name="transport-dest-x" value="%d" />
-				</td>
-			</tr>
-			<tr>
-				<td align="right">Source y</td>
-				<td align="left">
-					<input type="text" name="transport-source-y" value="%d" />
-				</td>
-				<td align="right">x</td>
-				<td align="left">
-					<input type="text" name="transport-source-x" value="%d" />
-				</td>
-			</tr>
-			<tr>
-				<td align="right">Css-class:</td>
-				<td align="left">
-					<input type="text" name="transport-css-class" value="%s" />
-				</td>
-			<tr />
-		</table>
-
-		<button class="btn">Submit</button>
-		<button class="btn" hx-post="/dupeTransport" hx-include="[name='areaName]">Duplicate</button>
-		<button class="btn" hx-post="/deleteTransport" hx-include="[name='areaName]">Delete</button>
-	</form>`, i, sourceName, t.DestStage, t.DestY, t.DestX, t.SourceY, t.SourceX, "pink")
-	return output
-}
-
-func dupeTransport(w http.ResponseWriter, r *http.Request) {
-	properties, _ := requestToProperties(r)
-	transportId, _ := strconv.Atoi(properties["transport-id"])
-	name := properties["transport-area-name"]
-
-	index := getIndexOfAreaByName(name)
-	if index < 0 {
-		io.WriteString(w, "<h2>Invalid Area</h2>")
-		return
-	}
-	selectedArea := &areas[index]
-
-	currentTransport := &selectedArea.Transports[transportId]
-	newTransport := *currentTransport
-	selectedArea.Transports = append(selectedArea.Transports, newTransport)
-
-	output := transportFormHtml(name)
-	io.WriteString(w, output)
-}
-
-func deleteTransport(w http.ResponseWriter, r *http.Request) {
-	properties, _ := requestToProperties(r)
-	id, _ := strconv.Atoi(properties["transport-id"])
-	name := properties["transport-area-name"]
-
-	index := getIndexOfAreaByName(name)
-	if index < 0 {
-		io.WriteString(w, "<h2>Invalid Area</h2>")
-		return
-	}
-	selectedArea := &areas[index]
-
-	selectedArea.Transports = append(selectedArea.Transports[:id], selectedArea.Transports[id+1:]...)
-	fmt.Println(len(selectedArea.Transports))
-
-	output := transportFormHtml(selectedArea.Name)
-	// Remove highlight for deleted transport
-	io.WriteString(w, output)
-}
-
-func transportsAsOob(areaName string) string {
-	index := getIndexOfAreaByName(areaName)
-	if index < 0 {
-		return "<h2>Invalid Area</h2>"
-	}
-	selectedArea := areas[index]
-	output := ``
-	for _, transport := range selectedArea.Transports {
-		var yStr = strconv.Itoa(transport.SourceY)
-		var xStr = strconv.Itoa(transport.SourceX)
-		output += `<div hx-swap-oob="true" hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[transport.SourceY][transport.SourceX].CssColor + `" id="c` + yStr + `-` + xStr + `"><div class="box top med red-b"></div></div></div>`
-	}
-	output += ``
-	return output
-}
-
-func getIndexOfAreaByName(name string) int {
-	out := -1
+func getAreaByName(areas []Area, name string) *Area {
 	for i, area := range areas {
 		if name == area.Name {
-			out = i
-			break
+			return &areas[i]
 		}
 	}
-	return out
+	return nil
 }
 
-func AreaToMaterialGrid(area Area) [][]Material {
+func (c Context) AreaToMaterialGrid(area Area) [][]Material {
 	out := make([][]Material, len(area.Tiles))
 	for y := range area.Tiles {
 		out[y] = make([]Material, len(area.Tiles[y]))
 		for x := range area.Tiles[y] {
-			out[y][x] = materials[area.Tiles[y][x]]
+			out[y][x] = c.materials[area.Tiles[y][x]]
 		}
 	}
 	return out
 }
 
-func createGrid(w http.ResponseWriter, r *http.Request) {
+/*
+func (c Context) createGrid(w http.ResponseWriter, r *http.Request) {
 	height, width, success := getHeightAndWidth(r)
 	if !success {
 		panic(0)
@@ -475,7 +355,7 @@ func createGrid(w http.ResponseWriter, r *http.Request) {
 	output += divNewSaveArea()
 	output += divToolSelect()
 	output += getEmptyGridHTML(height, width)
-	output += divMaterialSelect()
+	output += c.divMaterialSelect()
 
 	io.WriteString(w, output)
 }
@@ -488,8 +368,10 @@ func getHeightAndWidth(r *http.Request) (int, int, bool) {
 	return height, width, true
 }
 
+*/
+
 // Have default tile color change trigger getHtmlFromModifications()
-func divSaveArea(area Area) string {
+func divSaveArea(area Area, currentCollection string, currentSpace string) string {
 	checked := ""
 	if area.Safe {
 		checked = "checked"
@@ -497,28 +379,32 @@ func divSaveArea(area Area) string {
 	return `		
 	<div id="saveForm">
 		<div id="save_notice"></div>
-		<form hx-post="/saveArea" hx-target="#save_notice">
+		<form hx-post="/saveArea" hx-include hx-target="#save_notice">
+			<input type="hidden" name="currentCollection" value="` + currentCollection + `"/>
+			<input type="hidden" name="currentSpace" value="` + currentSpace + `"/>
+			<input type="hidden" name="new" value="false"/>
 			<label>Name:</label>
 			<input type="text" name="areaName" value="` + area.Name + `">
 			<label>Safe:</label>
 			<input type="checkbox" name="safe" ` + checked + `>
-			<input type="hidden" name="new" value="false"/>
 			<button>Save</button><br />
 			<input type="text" name="defaultTileColor" value="` + area.DefaultTileColor + `">
 		</form>
 	</div>`
 }
 
-func divNewSaveArea() string {
+func divNewSaveArea(currentCollection string, currentSpace string) string {
 	return `		
 	<div id="saveForm">
 		<div id="save_notice"></div>
 		<form hx-post="/saveArea" hx-target="#save_notice">
+			<input type="hidden" name="new" value="true"/>
+			<input type="hidden" name="currentCollection" value="` + currentCollection + `"/>
+			<input type="hidden" name="currentSpace" value="` + currentSpace + `"/>
 			<label>Name:</label>
 			<input type="text" name="areaName" value="" />
 			<label>Safe:</label>
 			<input type="checkbox" name="safe" />
-			<input type="hidden" name="new" value="true"/>
 			<button>Save</button>
 		</form>
 	</div>`
@@ -554,13 +440,13 @@ func getEmptyGridHTML(h int, w int) string {
 	return output
 }
 
-func getHTMLFromArea(area Area) string {
+func (c Context) getHTMLFromArea(area Area) string {
 	output := `<div class="grid" id="screen">`
 	for y := range area.Tiles {
 		output += `<div class="grid-row">`
 		for x := range area.Tiles[y] {
 			materialId := area.Tiles[y][x]
-			output += squareUnselected(y, x, materials[materialId], area.DefaultTileColor)
+			output += squareUnselected(y, x, c.materials[materialId], area.DefaultTileColor)
 		}
 		output += `</div>`
 	}
@@ -581,14 +467,14 @@ func getHTMLFromModifications(defaultTileColor string) string {
 	return output
 }
 
-func divMaterialSelect() string {
+func (c Context) divMaterialSelect() string {
 	output := `
 	<div id="material-selector">
 		<label>Materials</label>
 		<select name="materialId" hx-get="/selectMaterial" hx-target="#selected-material-div">
 			<option value="">--</option>	
 	`
-	for _, material := range materials {
+	for _, material := range c.materials {
 		output += fmt.Sprintf(`<option value="%d">%s</option>`, material.ID, material.CommonName)
 	}
 
@@ -600,12 +486,12 @@ func divMaterialSelect() string {
 	return output
 }
 
-func selectMaterial(w http.ResponseWriter, r *http.Request) {
+func (c Context) selectMaterial(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	id := queryValues.Get("materialId")
 
 	var selectedMaterial Material
-	for _, material := range materials {
+	for _, material := range c.materials {
 		if id, _ := strconv.Atoi(id); id == material.ID {
 			selectedMaterial = material
 		}
@@ -614,7 +500,7 @@ func selectMaterial(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, exampleSquareFromMaterial(selectedMaterial))
 }
 
-func clickOnSquare(w http.ResponseWriter, r *http.Request) {
+func (c Context) clickOnSquare(w http.ResponseWriter, r *http.Request) {
 	y, x, success := dataFromRequest(r)
 	if !success {
 		panic("No Coordinates provided")
@@ -629,7 +515,7 @@ func clickOnSquare(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("No Material Selected.")
 		selectedMaterialId = 0
 	}
-	selectedMaterial := materials[selectedMaterialId]
+	selectedMaterial := c.materials[selectedMaterialId]
 	defaultTileColor := properties["defaultTileColor"]
 
 	if selectedTool == "select" {
@@ -731,32 +617,6 @@ func fillModifications(y int, x int, targetId int, selected Material, seen [][]b
 			}
 		}
 	}
-}
-
-// This could be a good way to test arbitrary number of oobs
-func fillAndCheckNeighbors(y int, x int, targetId int, selected Material, seen [][]bool) string {
-	seen[y][x] = true
-	modifications[y][x] = selected
-	var yStr = strconv.Itoa(y)
-	var xStr = strconv.Itoa(x)
-
-	cells := fmt.Sprintf(`<div hx-swap-oob="true" hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s"></div>`, yStr, xStr, selected.CssColor, yStr, xStr)
-	deltas := []int{-1, 1}
-	for _, i := range deltas {
-		if y+i >= 0 && y+i < len(modifications) {
-			shouldfill := !seen[y+i][x] && modifications[y+i][x].ID == targetId
-			if shouldfill {
-				cells += fillAndCheckNeighbors(y+i, x, targetId, selected, seen)
-			}
-		}
-		if x+i >= 0 && x+i < len(modifications[y]) {
-			shouldfill := !seen[y][x+i] && modifications[y][x+i].ID == targetId
-			if shouldfill {
-				cells += fillAndCheckNeighbors(y, x+i, targetId, selected, seen)
-			}
-		}
-	}
-	return cells
 }
 
 func fillBetween(y int, x int, selectedMaterial Material, defaultTileColor string) string {

@@ -28,14 +28,14 @@ type Color struct {
 
 var R, G, B int
 
-func getMaterialPage(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, materialPageHTML())
+func (c *Context) getMaterialPage(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, c.materialPageHTML())
 }
 
-func materialPageHTML() string {
+func (c *Context) materialPageHTML() string {
 	output := ""
-	output += divEditColorSelect()
-	output += divEditMaterialSelect()
+	output += c.divEditColorSelect()
+	output += c.divEditMaterialSelect()
 	output += `<br/>
 				<div id="edit-ingredient-window">
 				
@@ -46,13 +46,13 @@ func materialPageHTML() string {
 	return output
 }
 
-func divEditColorSelect() string {
+func (c *Context) divEditColorSelect() string {
 	output := `
 	<div>
 		<label>Colors</label>
 		<select name="colorId" hx-get="/getEditColor" hx-target="#edit-ingredient-window">
 			<option value="">--</option>			`
-	for i, color := range colors {
+	for i, color := range c.colors {
 		output += fmt.Sprintf(`<option value="%d">%s</option>`, i, color.CssClassName)
 	}
 	output += `		
@@ -63,13 +63,13 @@ func divEditColorSelect() string {
 	return output
 }
 
-func divEditMaterialSelect() string {
+func (c *Context) divEditMaterialSelect() string {
 	output := `
 	<div>
 		<label>Materials</label>
 		<select name="materialId" hx-get="/getEditMaterial" hx-target="#edit-ingredient-window">
 			<option value="">--</option>			`
-	for _, material := range materials {
+	for _, material := range c.materials {
 		output += fmt.Sprintf(`<option value="%d">%s</option>`, material.ID, material.CommonName)
 	}
 	output += `		
@@ -80,14 +80,14 @@ func divEditMaterialSelect() string {
 	return output
 }
 
-func getEditColor(w http.ResponseWriter, r *http.Request) {
+func (c *Context) getEditColor(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	id, err := strconv.Atoi(queryValues.Get("colorId"))
 	if err != nil {
 		return
 	}
 
-	color := colors[id]
+	color := c.colors[id]
 	R = color.R
 	G = color.G
 	B = color.B
@@ -118,7 +118,7 @@ func getEditColor(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, output)
 }
 
-func editColor(w http.ResponseWriter, r *http.Request) {
+func (c *Context) editColor(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	colorId, _ := strconv.Atoi(properties["colorId"])
 	cssClassName := properties["CssClassName"]
@@ -129,29 +129,29 @@ func editColor(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("%d %s %d %d %d %s\n", colorId, cssClassName, red, green, blue, alpha)
 
-	color := &colors[colorId]
+	color := &c.colors[colorId]
 	color.CssClassName = cssClassName
 	color.R = red
 	color.G = green
 	color.B = blue
 	color.A = alpha
 
-	io.WriteString(w, materialPageHTML())
+	io.WriteString(w, c.materialPageHTML())
 }
 
-func getEditMaterial(w http.ResponseWriter, r *http.Request) {
+func (c *Context) getEditMaterial(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	id, err := strconv.Atoi(queryValues.Get("materialId"))
 	if err != nil {
 		return
 	}
 
-	material := materials[id]
-	color, ok := sliceToMap(colors, colorName)[material.CssColor]
+	material := c.materials[id]
+	color, ok := sliceToMap(c.colors, colorName)[material.CssColor]
 	A := "1.0"
 	if !ok {
 		fmt.Println("No Color")
-		color = colors[0]
+		color = c.colors[0]
 		A = "0"
 	}
 	R = color.R
@@ -205,7 +205,7 @@ func getEditMaterial(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, output)
 }
 
-func editMaterial(w http.ResponseWriter, r *http.Request) {
+func (c *Context) editMaterial(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	materialId, _ := strconv.Atoi(properties["materialId"])
 	commonName := properties["CommonName"]
@@ -218,7 +218,7 @@ func editMaterial(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("%d common name: %s color: %s walkable: %s\n", materialId, commonName, cssColor, walkable)
 
-	material := &materials[materialId]
+	material := &c.materials[materialId]
 	if material.ID != materialId {
 		panic("Material IDs are corrupted")
 	}
@@ -275,9 +275,9 @@ func getNewMaterial(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, newForm)
 }
 
-func newMaterial(w http.ResponseWriter, r *http.Request) {
+func (c *Context) newMaterial(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
-	materialId := len(materials)
+	materialId := len(c.materials)
 	commonName := properties["CommonName"]
 	walkable := (properties["walkable"] == "on")
 	cssColor := properties["CssColor"]
@@ -286,14 +286,14 @@ func newMaterial(w http.ResponseWriter, r *http.Request) {
 	ceiling1 := properties["Ceiling1Css"]
 	ceiling2 := properties["Ceiling2Css"]
 
-	//fmt.Printf("%s | Floor: %s - %s Ceiling: %s - %s\n", commonName, floor1, floor2, ceiling1, ceiling2)
+	fmt.Printf("%s | Floor: %s - %s Ceiling: %s - %s\n", commonName, floor1, floor2, ceiling1, ceiling2)
 
 	material := Material{ID: materialId, CommonName: commonName, CssColor: cssColor, Floor1Css: floor1, Floor2Css: floor2, Ceiling1Css: ceiling1, Ceiling2Css: ceiling2, Walkable: walkable}
 
-	materialMap := sliceToMap(materials, materialName)
+	materialMap := sliceToMap(c.materials, materialName)
 	_, ok := materialMap[commonName]
 	if !ok {
-		materials = append(materials, material)
+		c.materials = append(c.materials, material)
 	} else {
 		panic("Duplicate name")
 	}
@@ -324,7 +324,7 @@ func getNewColor(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, newForm)
 }
 
-func newColor(w http.ResponseWriter, r *http.Request) {
+func (c *Context) newColor(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	cssClassName := properties["CssClassName"]
 	R, _ := strconv.Atoi(properties["R"])
@@ -336,10 +336,10 @@ func newColor(w http.ResponseWriter, r *http.Request) {
 
 	color := Color{CssClassName: cssClassName, R: R, G: G, B: B, A: A}
 
-	colorMap := sliceToMap(colors, colorName)
+	colorMap := sliceToMap(c.colors, colorName)
 	_, ok := colorMap[cssClassName]
 	if !ok {
-		colors = append(colors, color)
+		c.colors = append(c.colors, color)
 	} else {
 		panic("Duplicate name")
 	}
@@ -389,18 +389,18 @@ func exampleMaterial(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, output)
 }
 
-func outputIngredients(w http.ResponseWriter, r *http.Request) {
-	err := writeMaterialsToLocalFile()
+func (c *Context) outputIngredients(w http.ResponseWriter, r *http.Request) {
+	err := c.writeMaterialsToLocalFile()
 	if err != nil {
 		panic(1)
 	}
 
-	err = writeColorsToLocalFile()
+	err = c.writeColorsToLocalFile()
 	if err != nil {
 		panic(1)
 	}
 
-	createLocalCSSFile()
+	c.createLocalCSSFile()
 
 	io.WriteString(w, "<h2>Changes Exported.</h2>")
 }

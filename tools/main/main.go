@@ -5,78 +5,58 @@ import (
 	"net/http"
 )
 
-/*
-var materials []Material
-var areas []Area
-
-
-func populateMaterialsFromJson() {
-	jsonData, err := os.ReadFile("./level/data/materials.json")
-	if err != nil {
-		panic(err)
-	}
-
-	if err := json.Unmarshal(jsonData, &materials); err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("Loaded %d material(s).\n", len(materials))
-}
-
-func populateAreasFromJson() {
-	jsonData, err := os.ReadFile("./level/data/areas.json")
-	if err != nil {
-		panic(err)
-	}
-
-	if err := json.Unmarshal(jsonData, &areas); err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("Loaded %d area(s).\n", len(areas))
-}
-*/
-
 func main() {
 	fmt.Println("Attempting to start server...")
-	populateFromJson()
+	c := populateFromJson()
 
-	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./level/assets"))))
+	/*for _, col := range c.Collections {
+		for key, value := range col.Spaces {
+			fmt.Println(key)
+			fmt.Println(len(value))
+		}
+	}*/
 
-	http.HandleFunc("/materialPage", getMaterialPage)
+	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./assets"))))
 
-	http.HandleFunc("/getEditMaterial", getEditMaterial)
-	http.HandleFunc("/editMaterial", editMaterial)
+	http.HandleFunc("/materialPage", c.getMaterialPage)
+
+	http.HandleFunc("/getEditMaterial", c.getEditMaterial)
+	http.HandleFunc("/editMaterial", c.editMaterial)
 	http.HandleFunc("/getNewMaterial", getNewMaterial)
-	http.HandleFunc("/newMaterial", newMaterial)
+	http.HandleFunc("/newMaterial", c.newMaterial)
 	http.HandleFunc("/exampleMaterial", exampleMaterial)
 
-	http.HandleFunc("/getEditColor", getEditColor)
-	http.HandleFunc("/editColor", editColor)
+	http.HandleFunc("/getEditColor", c.getEditColor)
+	http.HandleFunc("/editColor", c.editColor)
 	http.HandleFunc("/getNewColor", getNewColor)
-	http.HandleFunc("/newColor", newColor)
+	http.HandleFunc("/newColor", c.newColor)
 	http.HandleFunc("/exampleSquare", exampleSquare)
 
-	http.HandleFunc("/outputIngredients", outputIngredients)
+	http.HandleFunc("/outputIngredients", c.outputIngredients)
 
-	http.HandleFunc("/areaPage", getCreateArea)
-	http.HandleFunc("/createGrid", createGrid)
-	http.HandleFunc("/clickOnSquare", clickOnSquare)
-	http.HandleFunc("/selectMaterial", selectMaterial)
-	http.HandleFunc("/saveArea", saveArea)
-	http.HandleFunc("/editAreaPage", getEditAreaPage)
-	http.HandleFunc("/edit", edit)
-	http.HandleFunc("/editTransports", getEditTransports)
-	http.HandleFunc("/editTransport", editTransport)
-	http.HandleFunc("/newTransport", newTransport)
-	http.HandleFunc("/dupeTransport", dupeTransport)
-	http.HandleFunc("/deleteTransport", deleteTransport)
+	//http.HandleFunc("/areaPage", getCreateArea)
+	//http.HandleFunc("/createGrid", c.createGrid)
+	http.HandleFunc("/clickOnSquare", c.clickOnSquare)
+	http.HandleFunc("/selectMaterial", c.selectMaterial)
+	http.HandleFunc("/saveArea", c.saveArea)
+	//http.HandleFunc("/editAreaPage", getEditAreaPage)
+	http.HandleFunc("/edit", c.getEditArea)
+	http.HandleFunc("/editTransports", c.getEditTransports)
+	http.HandleFunc("/editTransport", c.editTransport)
+	http.HandleFunc("/newTransport", c.newTransport)
+	http.HandleFunc("/dupeTransport", c.dupeTransport)
+	http.HandleFunc("/deleteTransport", c.deleteTransport)
 	http.HandleFunc("/editDisplay", editDisplay)
-	http.HandleFunc("/getEditNeighbors", getEditNeighbors)
-	http.HandleFunc("/editNeighbors", editNeighbors)
-	http.HandleFunc("/editFromTransport", editFromTransport)
+	http.HandleFunc("/getEditNeighbors", c.getEditNeighbors)
+	http.HandleFunc("/editNeighbors", c.editNeighbors)
+	http.HandleFunc("/editFromTransport", c.editFromTransport)
 
-	http.HandleFunc("/deploy", deploy)
+	http.HandleFunc("/collections", c.collectionHandler)
+	http.HandleFunc("/spaces", c.spacesHandler)
+	http.HandleFunc("/areas", c.areasHandler)
+	//http.HandleFunc("/planesMakes", planesMake)
+
+	http.HandleFunc("/deploy", c.deploy)
 
 	err := http.ListenAndServe(":4444", nil)
 	if err != nil {

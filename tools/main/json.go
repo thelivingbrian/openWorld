@@ -5,25 +5,49 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
-var materials []Material
-var areas []Area
-var colors []Color
+type Context struct {
+	Collections map[string]Collection
+	materials   []Material
+	colors      []Color
 
-const colorPath = "./level/data/colors.json"
-const materialPath = "./level/data/materials.json"
-const areaPath = "./level/data/areas.json"
-const cssPath = "./level/assets/colors.css"
+	colorPath      string
+	materialPath   string
+	cssPath        string
+	collectionPath string
+}
+
+// var materials []Material
+//var areas []Area
+
+//var colors []Color
+
+//const areaPath = "./level/data/areas.json"
 
 const DEPLOY_materialPath = "../../server/main/data/materials.json"
 const DEPLOY_areaPath = "../../server/main/data/areas.json"
 const DEPLOY_cssPath = "../../server/main/assets/colors.css"
 
-func populateFromJson() {
-	colors = parseJsonFile[Color](colorPath)
-	materials = parseJsonFile[Material](materialPath)
-	areas = parseJsonFile[Area](areaPath)
+// Startup
+
+func populateFromJson() Context {
+	var c Context
+
+	c.colorPath = "./data/colors/colors.json"
+	c.materialPath = "./data/materials/materials.json"
+	c.cssPath = "./assets/colors.css"
+	c.collectionPath = "./data/collections/"
+
+	c.colors = parseJsonFile[Color](c.colorPath)
+	c.materials = parseJsonFile[Material](c.materialPath)
+	c.Collections = getAllCollections(c.collectionPath)
+
+	//areas = parseJsonFile[Area](areaPath)
+
+	return c
 }
 
 func sliceToMap[T any](slice []T, f func(T) string) map[string]T {
@@ -46,7 +70,7 @@ func parseJsonFile[T any](filename string) []T {
 		panic(err)
 	}
 
-	fmt.Printf("Loaded %d entries.\n", len(out))
+	fmt.Printf("Loaded %d entries of %T.\n", len(out), *new(T))
 
 	return out
 }
@@ -79,26 +103,27 @@ func materialName(m Material) string {
 	return m.CommonName
 }
 
-func writeMaterialsToLocalFile() error {
-	return writeJsonFile(materialPath, materials)
+func (c Context) writeMaterialsToLocalFile() error {
+	return writeJsonFile(c.materialPath, c.materials)
 }
 
-func writeColorsToLocalFile() error {
-	return writeJsonFile(colorPath, colors)
+func (c Context) writeColorsToLocalFile() error {
+	return writeJsonFile(c.colorPath, c.colors)
 }
 
-func createLocalCSSFile() {
-	createCSSFile(cssPath)
+// This is a little awkward
+func (c Context) createLocalCSSFile() {
+	c.createCSSFile(c.cssPath)
 }
 
-func createCSSFile(path string) {
+func (c Context) createCSSFile(path string) {
 	cssFile, err := os.Create(path)
 	if err != nil {
 		panic(err)
 	}
 	defer cssFile.Close()
 
-	for _, color := range colors {
+	for _, color := range c.colors {
 		rgbstring := fmt.Sprintf("rgb(%d, %d, %d)", color.R, color.G, color.B)
 		if color.A != "" {
 			rgbstring = fmt.Sprintf("rgba(%d, %d, %d, %s)", color.R, color.G, color.B, color.A)
@@ -111,13 +136,66 @@ func createCSSFile(path string) {
 	}
 }
 
-func deploy(w http.ResponseWriter, r *http.Request) {
-	deployLocalChanges()
+// Collections
+func getAllCollections(collectionPath string) map[string]Collection {
+	dirs, err := os.ReadDir(collectionPath)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	collections := make(map[string]Collection)
+	for _, dir := range dirs {
+		entry, _ := dir.Info()
+		if entry.IsDir() {
+			collection := Collection{Name: entry.Name(), Spaces: make(map[string][]Area), Fragments: make(map[string][]Fragment)}
+
+			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
+			populateMaps(collection.Spaces, pathToSpaces)
+
+			pathToFragments := filepath.Join(collectionPath, entry.Name(), "fragments")
+			populateMaps(collection.Fragments, pathToFragments)
+
+			collections[entry.Name()] = collection
+
+		}
+	}
+	return collections
 }
 
-func deployLocalChanges() {
-	populateFromJson()
-	createCSSFile(DEPLOY_cssPath)
-	writeJsonFile(DEPLOY_areaPath, areas)
-	writeJsonFile(DEPLOY_materialPath, materials)
+func populateMaps[T any](m map[string][]T, pathToJsonDirectory string) {
+	subEntries, err := os.ReadDir(pathToJsonDirectory)
+	if err != nil {
+		panic("Invalid directory: " + pathToJsonDirectory)
+	}
+
+	for _, subEntry := range subEntries {
+		if subEntry.IsDir() {
+			fmt.Println("Ignoring misc directory: " + subEntry.Name())
+			continue
+		}
+		parts := strings.Split(subEntry.Name(), ".")
+		if len(parts) == 2 && strings.ToLower(parts[1]) == "json" {
+			nameOfFile := strings.ToLower(parts[0])
+			items := parseJsonFile[T](filepath.Join(pathToJsonDirectory, subEntry.Name()))
+			m[nameOfFile] = items
+		}
+	}
+}
+
+// DEPLOYMENT
+
+func (c Context) deploy(w http.ResponseWriter, r *http.Request) {
+	c.deployLocalChanges()
+}
+
+func (c Context) deployLocalChanges() {
+	//ghcontext := populateFromJson()
+	c.createCSSFile(DEPLOY_cssPath)
+	flatAreas := c.collectionsAsAreas()
+	writeJsonFile(DEPLOY_areaPath, flatAreas)
+	writeJsonFile(DEPLOY_materialPath, c.materials)
+}
+
+func (c Context) collectionsAsAreas() []Area {
+	return nil
 }
