@@ -1,0 +1,203 @@
+.grid {
+    display: grid;
+}
+
+.grid-row {
+    display: flex;
+}
+
+.grid-square {
+    width: 30px;
+    height: 30px;
+    background-color: rgb(172, 152, 219);
+    border: 1px solid rgba(48, 152, 240, 1);
+    cursor: pointer;
+    position: relative;
+}
+
+.left {
+      float: left;
+      padding: 15px;
+}
+
+/* Site Backgrounds */
+  
+.day {
+    background-color: #aaffff;
+}
+
+.night {
+    background-color: #120500;
+}
+
+.twilight {
+    background-color: #ff6a5c;
+}
+
+/* Overlays */
+* {
+    box-sizing: border-box;
+  }
+
+.box {
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    top: -.5px;
+    left: -.5px;
+    margin: 0px;
+    padding: 0px;
+}
+  
+.zP {
+    z-index: 20;
+  }
+  
+.top {
+    z-index: 40;
+  }
+
+.floor1 {
+    z-index: 10;
+} 
+
+.floor2 {
+    z-index: 11;
+} 
+
+.ceiling1 {
+    z-index: 30;
+}
+
+.ceiling2 {
+    z-index: 31;
+}
+
+.trsp {
+    opacity: 0;
+}
+
+.trsp20 {
+    opacity: .2;
+}
+
+.trsp40 {
+    opacity: .4;
+}
+
+.half-trsp {
+    opacity: .5;
+}
+
+.trsp60 {
+    opacity: .60;
+}
+
+.trsp80 {
+    opacity: .80;
+}
+
+.trsp100 {
+    opacity: 1;
+}
+
+.r0 {
+    border-radius: 8px
+}
+
+.r0-bl {
+    border-bottom-left-radius: 8px
+}
+
+.r0-br {
+    border-bottom-right-radius: 8px
+}
+
+.r0-tl {
+    border-top-left-radius: 8px
+}
+
+.r0-tr {
+    border-top-right-radius: 8px
+}
+
+.r1 {
+    border-radius: 15px
+}
+
+.r1-bl {
+    border-bottom-left-radius: 15px
+}
+
+.r1-br {
+    border-bottom-right-radius: 15px
+}
+
+.r1-tl {
+    border-top-left-radius: 15px
+}
+
+.r1-tr {
+    border-top-right-radius: 15px
+}
+
+.r2 {
+    border-radius: 25px
+}
+
+.r2-bl {
+    border-bottom-left-radius: 25px
+}
+
+.r2-br {
+    border-bottom-right-radius: 25px
+}
+
+.r2-tl {
+    border-top-left-radius: 25px
+}
+
+.r2-tr {
+    border-top-right-radius: 25px
+}
+
+.thin {
+    border-style: solid;
+    border-width: 1px;
+}
+
+.med {
+    border-style: solid;
+    border-width: 2px;
+}
+
+.thick {
+    border-style: solid;
+    border-width: 5px;
+}
+
+.margin {
+    margin: 5px;
+}
+
+/* SVG  */
+
+.svgGreen {  
+    fill: rgb(105, 255, 100);
+    fill-opacity: .6;
+}
+
+.svgRed {
+    fill: rgb(255, 105, 100);
+    fill-opacity: .8;
+}
+
+.svgBlue {
+    fill: rgb(15, 100, 255);
+    fill-opacity: .8;
+}
+
+.svgYellow {
+    fill: rgb(255, 255, 100);
+    fill-opacity: .8;
+}

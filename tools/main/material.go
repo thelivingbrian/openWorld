@@ -28,31 +28,31 @@ type Color struct {
 
 var R, G, B int
 
-func getMaterialPage(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, materialPageHTML())
+func (c *Context) getMaterialPage(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, c.materialPageHTML())
 }
 
-func materialPageHTML() string {
+func (c *Context) materialPageHTML() string {
 	output := ""
-	output += divEditColorSelect()
-	output += divEditMaterialSelect()
+	output += c.divEditColorSelect()
+	output += c.divEditMaterialSelect()
 	output += `<br/>
 				<div id="edit-ingredient-window">
 				
 				</div><br />
 				<div id="output-ingredients">
-					<button class="btn" hx-post="/outputIngredients" hx-target="#panel">Output changes</button>
+					<button class="btn" hx-post="/outputIngredients" hx-target="#edit-ingredient-window">Output changes</button>
 				</div>`
 	return output
 }
 
-func divEditColorSelect() string {
+func (c *Context) divEditColorSelect() string {
 	output := `
 	<div>
 		<label>Colors</label>
 		<select name="colorId" hx-get="/getEditColor" hx-target="#edit-ingredient-window">
 			<option value="">--</option>			`
-	for i, color := range colors {
+	for i, color := range c.colors {
 		output += fmt.Sprintf(`<option value="%d">%s</option>`, i, color.CssClassName)
 	}
 	output += `		
@@ -63,13 +63,13 @@ func divEditColorSelect() string {
 	return output
 }
 
-func divEditMaterialSelect() string {
+func (c *Context) divEditMaterialSelect() string {
 	output := `
 	<div>
 		<label>Materials</label>
 		<select name="materialId" hx-get="/getEditMaterial" hx-target="#edit-ingredient-window">
 			<option value="">--</option>			`
-	for _, material := range materials {
+	for _, material := range c.materials {
 		output += fmt.Sprintf(`<option value="%d">%s</option>`, material.ID, material.CommonName)
 	}
 	output += `		
@@ -80,24 +80,24 @@ func divEditMaterialSelect() string {
 	return output
 }
 
-func getEditColor(w http.ResponseWriter, r *http.Request) {
+func (c *Context) getEditColor(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	id, err := strconv.Atoi(queryValues.Get("colorId"))
 	if err != nil {
 		return
 	}
 
-	color := colors[id]
+	color := c.colors[id]
 	R = color.R
 	G = color.G
 	B = color.B
 	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square" style="background-color:rgb(%d,%d,%d)"></div></div>`, R, G, B)
 
 	editForm := `
-	<form hx-put="/editMaterial" hx-target="#panel">
+	<form hx-put="/editColor" hx-target="#edit-ingredient-window">
 		<div>
 			<label>Css Class</label>
-			<input type="text" name="CommonName" value="%s">
+			<input type="text" name="CssClassName" value="%s">
 		</div>
 		<div>
 			<label>R: </label>
@@ -118,7 +118,7 @@ func getEditColor(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, output)
 }
 
-func editColor(w http.ResponseWriter, r *http.Request) {
+func (c *Context) editColor(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	colorId, _ := strconv.Atoi(properties["colorId"])
 	cssClassName := properties["CssClassName"]
@@ -129,36 +129,36 @@ func editColor(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("%d %s %d %d %d %s\n", colorId, cssClassName, red, green, blue, alpha)
 
-	color := &colors[colorId]
+	color := &c.colors[colorId]
 	color.CssClassName = cssClassName
 	color.R = red
 	color.G = green
 	color.B = blue
 	color.A = alpha
 
-	io.WriteString(w, materialPageHTML())
+	io.WriteString(w, c.materialPageHTML())
 }
 
-func getEditMaterial(w http.ResponseWriter, r *http.Request) {
+func (c *Context) getEditMaterial(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	id, err := strconv.Atoi(queryValues.Get("materialId"))
 	if err != nil {
 		return
 	}
 
-	material := materials[id] //materialMap[name]
-	color, ok := sliceToMap(colors, colorName)[material.CssColor]
+	material := c.materials[id]
+	color, ok := sliceToMap(c.colors, colorName)[material.CssColor]
 	A := "1.0"
 	if !ok {
 		fmt.Println("No Color")
-		color = colors[0]
+		color = c.colors[0]
 		A = "0"
 	}
 	R = color.R
 	G = color.G
 	B = color.B
 
-	overlay := fmt.Sprintf(`<div class="box floor %s"></div><div class="box ceiling %s"></div>`, material.Floor1Css, material.Floor2Css)
+	overlay := fmt.Sprintf(`<div class="box floor1 %s"></div><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div><div class="box ceiling2 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css, material.Ceiling2Css)
 	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square" style="background-color:rgba(%d,%d,%d,%s)">%s</div></div>`, R, G, B, A, overlay)
 
 	walkableIndicator := ""
@@ -167,7 +167,7 @@ func getEditMaterial(w http.ResponseWriter, r *http.Request) {
 	}
 
 	editForm := `
-	<form hx-put="/editMaterial" hx-target="#panel">
+	<form hx-put="/editMaterial" hx-target="#edit-ingredient-window">
 		<div>
 			<label>Name: (ID: %d)</label>
 			<input type="text" name="CommonName" value="%s">
@@ -205,7 +205,7 @@ func getEditMaterial(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, output)
 }
 
-func editMaterial(w http.ResponseWriter, r *http.Request) {
+func (c *Context) editMaterial(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	materialId, _ := strconv.Atoi(properties["materialId"])
 	commonName := properties["CommonName"]
@@ -216,9 +216,9 @@ func editMaterial(w http.ResponseWriter, r *http.Request) {
 	ceiling1 := properties["Ceiling1Css"]
 	ceiling2 := properties["Ceiling2Css"]
 
-	fmt.Printf("%d %s %s\n%s\n", materialId, commonName, cssColor, walkable)
+	fmt.Printf("%d common name: %s color: %s walkable: %s\n", materialId, commonName, cssColor, walkable)
 
-	material := &materials[materialId]
+	material := &c.materials[materialId]
 	if material.ID != materialId {
 		panic("Material IDs are corrupted")
 	}
@@ -229,35 +229,41 @@ func editMaterial(w http.ResponseWriter, r *http.Request) {
 	material.Floor2Css = floor2
 	material.Ceiling1Css = ceiling1
 	material.Ceiling2Css = ceiling2
-	io.WriteString(w, materialPageHTML())
+
+	fmt.Print(material.CommonName)
+
+	io.WriteString(w, "<h2>Done.</h2>") //materialPageHTML())
 }
 
 func getNewMaterial(w http.ResponseWriter, r *http.Request) {
 	newForm := `
-	<form hx-post="/newMaterial" hx-target="#panel">
+	<form hx-post="/newMaterial" hx-target="#edit-ingredient-window">
+		<div id="exampleSquare" class="grid-row">
+			<div class="grid-square"></div>
+		</div>
 		<div>
 			<label>Name: </label>
 			<input type="text" name="CommonName" value="">
 		</div>
 		<div>
 			<label>Css Color Name: </label>
-			<input type="text" name="CssColor" value="">
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Floor2Css'],[name='Ceiling1Css'],[name='Ceiling2Css']" type="text" name="CssColor" value="">
 		</div>
 		<div>
 			<label>Floor 1 Css: </label>
-			<input type="text" name="Floor1Css" value="">
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='CssColor'],[name='Floor2Css'],[name='Ceiling1Css'],[name='Ceiling2Css']" type="text" name="Floor1Css" value="">
 		</div>
 		<div>
 			<label>Floor 2 Css: </label>
-			<input type="text" name="Floor2Css" value="">
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='CssColor'],[name='Ceiling1Css'],[name='Ceiling2Css']" type="text" name="Floor2Css" value="">
 		</div>
 		<div>
 			<label>Ceiling 1 Css: </label>
-			<input type="text" name="Ceiling1Css" value="">
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Floor2Css'],[name='CssColor'],[name='Ceiling2Css']" type="text" name="Ceiling1Css" value="">
 		</div>
 		<div>
 			<label>Ceiling 2 Css: </label>
-			<input type="text" name="Ceiling2Css" value="">
+			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Floor2Css'],[name='Ceiling1Css'],[name='CssColor']" type="text" name="Ceiling2Css" value="">
 		</div>
 		<div>
 			<label>Walkable: </label>
@@ -269,9 +275,9 @@ func getNewMaterial(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, newForm)
 }
 
-func newMaterial(w http.ResponseWriter, r *http.Request) {
+func (c *Context) newMaterial(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
-	materialId := len(materials)
+	materialId := len(c.materials)
 	commonName := properties["CommonName"]
 	walkable := (properties["walkable"] == "on")
 	cssColor := properties["CssColor"]
@@ -284,33 +290,33 @@ func newMaterial(w http.ResponseWriter, r *http.Request) {
 
 	material := Material{ID: materialId, CommonName: commonName, CssColor: cssColor, Floor1Css: floor1, Floor2Css: floor2, Ceiling1Css: ceiling1, Ceiling2Css: ceiling2, Walkable: walkable}
 
-	materialMap := sliceToMap(materials, materialName)
+	materialMap := sliceToMap(c.materials, materialName)
 	_, ok := materialMap[commonName]
 	if !ok {
-		materials = append(materials, material)
+		c.materials = append(c.materials, material)
 	} else {
 		panic("Duplicate name")
 	}
 
-	io.WriteString(w, materialPageHTML())
+	io.WriteString(w, "<h2>done.</h2>")
 }
 
 func getNewColor(w http.ResponseWriter, r *http.Request) {
 	newForm := `
-	<form hx-post="/newColor" hx-target="#panel">
+	<form hx-post="/newColor" hx-target="#edit-ingredient-window">
 		<div>
 			<label>Css Class Name: </label>
 			<input type="text" name="CssClassName" value="">
 		</div>
 		<div>
 			<label>R: </label>
-			<input type="text" name="R" value="">
+			<input type="text" name="R" value=""><br />
 			<label>G: </label>
-			<input type="text" name="G" value="">
+			<input type="text" name="G" value=""><br />
 			<label>B: </label>
-			<input type="text" name="B" value="">
+			<input type="text" name="B" value=""><br />
 			<label>A: </label>
-			<input type="text" name="A" value="">
+			<input type="text" name="A" value=""><br />
 		</div>
 		<button class="btn">Save</button>
 	</form>
@@ -318,7 +324,7 @@ func getNewColor(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, newForm)
 }
 
-func newColor(w http.ResponseWriter, r *http.Request) {
+func (c *Context) newColor(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	cssClassName := properties["CssClassName"]
 	R, _ := strconv.Atoi(properties["R"])
@@ -330,15 +336,15 @@ func newColor(w http.ResponseWriter, r *http.Request) {
 
 	color := Color{CssClassName: cssClassName, R: R, G: G, B: B, A: A}
 
-	colorMap := sliceToMap(colors, colorName)
+	colorMap := sliceToMap(c.colors, colorName)
 	_, ok := colorMap[cssClassName]
 	if !ok {
-		colors = append(colors, color)
+		c.colors = append(c.colors, color)
 	} else {
 		panic("Duplicate name")
 	}
 
-	io.WriteString(w, materialPageHTML())
+	io.WriteString(w, "<h2>done.</h2>") //materialPageHTML())
 }
 
 func exampleSquare(w http.ResponseWriter, r *http.Request) {
@@ -383,18 +389,18 @@ func exampleMaterial(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, output)
 }
 
-func outputIngredients(w http.ResponseWriter, r *http.Request) {
-	err := WriteMaterialsToFile()
+func (c *Context) outputIngredients(w http.ResponseWriter, r *http.Request) {
+	err := c.writeMaterialsToLocalFile()
 	if err != nil {
 		panic(1)
 	}
 
-	err = WriteColorsToFile()
+	err = c.writeColorsToLocalFile()
 	if err != nil {
 		panic(1)
 	}
 
-	createCSSFile()
+	c.createLocalCSSFile()
 
-	getMaterialPage(w, r)
+	io.WriteString(w, "<h2>Changes Exported.</h2>")
 }

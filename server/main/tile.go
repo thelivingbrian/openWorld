@@ -29,7 +29,10 @@ type Tile struct {
 	htmlTemplate   string
 }
 
-func newTile(mat Material, y int, x int) *Tile {
+func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
+	if mat.CssColor == "" {
+		mat.CssColor = defaultTileColor
+	}
 	return &Tile{
 		material:       mat,
 		playerMap:      make(map[string]*Player),
@@ -62,12 +65,12 @@ func makeTileTemplate(mat Material, y, x int) string {
 	}
 
 	ceil1css := ""
-	if mat.Floor1Css != "" {
+	if mat.Ceiling1Css != "" {
 		ceil1css = fmt.Sprintf(`<div class="box ceiling1 %s"></div>`, mat.Ceiling1Css)
 	}
 
 	ceil2css := ""
-	if mat.Floor2Css != "" {
+	if mat.Ceiling2Css != "" {
 		ceil2css = fmt.Sprintf(`<div class="box ceiling2 %s"></div>`, mat.Ceiling2Css)
 	}
 

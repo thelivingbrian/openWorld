@@ -31,7 +31,7 @@ func htmlFromPlayer(player *Player) []byte {
 		panic(err)
 	}
 
-	buf.WriteString(fmt.Sprintf(`<div id="p%d-%d" class="box zp fusia" id=""></div>`, player.y, player.x))
+	buf.WriteString(fmt.Sprintf(`<div id="p%d-%d" class="box zp fusia r0" id=""></div>`, player.y, player.x))
 
 	return buf.Bytes()
 }
@@ -59,9 +59,9 @@ func spaceHighlighter(tile *Tile) string {
 
 func shiftHighlighter(tile *Tile) string {
 	if walkable(tile) {
-		return "half-trsp blue"
+		return "red trsp20"
 	}
-	return "half-trsp red"
+	return ""
 }
 
 func randomFieryColor() string {
@@ -145,6 +145,7 @@ func playerBox(tile *Tile) string {
 	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s" id=""></div>`, tile.y, tile.x, playerIndicator)
 }
 
+// This will not include svgs if it needs to like  on stage placement
 func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 	highlights := ""
 	// Create slice of proper size? Currently has many null entries
@@ -160,7 +161,7 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 		_, impactsHud := player.actions.shiftHighlights[tile]
 		if impactsHud && player.actions.boostCounter > 0 {
 			highlights += oobHighlightBox(tile, shiftHighlighter(tile))
-			continue
+			//continue
 		}
 		_, impactsHud = player.actions.spaceHighlights[tile]
 		if impactsHud {

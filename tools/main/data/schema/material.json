@@ -1,0 +1,11 @@
+{
+    "id": 0,
+    "commonName": "empty",
+    "cssColor": "",
+    "walkable": true,
+    "layer1css": "",
+    "layer2css": "",
+    "ceiling1css": "",
+    "ceiling2css": "",
+    "clockwiseRotations": []
+}
