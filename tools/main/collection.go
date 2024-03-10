@@ -107,8 +107,14 @@ func planesMake(w http.ResponseWriter, r *http.Request) {
 
 var divSpacePage = `
 <div id="space_page">
-	<input type="hidden" name="currentCollection" value="{{.Name}}" />
-
+	<div id="space_select">
+		<input type="hidden" name="currentCollection" value="{{.Name}}" />
+		<span>
+			<b>Collection:</b>  {{.Name}}  
+			<b>(<a hx-get="/deploy" hx-include="[name='currentCollection']" hx-target="#panel" href="#">Deploy</a>)</b>
+		</span>
+		<br />
+	</div>
 	<div id="space_select">
 		<label><b>Select Space: </b></label>
 		<select name="spaceName" hx-get="/areas" hx-include="[name='currentCollection']" hx-target="#area_select">
@@ -202,10 +208,10 @@ func (c Context) areasHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Context) getSpace(collectionName string, spaceName string) *Space {
-	fmt.Println("Spaces to choose:  ")
+	/*fmt.Println("Spaces to choose:  ")
 	fmt.Println(len(c.Collections[collectionName].Spaces))
 	fmt.Println("Areas found in selected space: ")
-	fmt.Println(len(c.Collections[collectionName].Spaces[spaceName]))
+	fmt.Println(len(c.Collections[collectionName].Spaces[spaceName]))*/
 	return &Space{CollectionName: collectionName, Name: spaceName, Areas: c.Collections[collectionName].Spaces[spaceName]}
 }
 

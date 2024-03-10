@@ -27,9 +27,9 @@ type Context struct {
 
 //const areaPath = "./level/data/areas.json"
 
-const DEPLOY_materialPath = "../../server/main/data/materials.json"
-const DEPLOY_areaPath = "../../server/main/data/areas.json"
-const DEPLOY_cssPath = "../../server/main/assets/colors.css"
+const DEPLOY_materialPath = "../../server/main/data/materials2.json"
+const DEPLOY_areaPath = "../../server/main/data/areas2.json"
+const DEPLOY_cssPath = "../../server/main/assets/colors2.css"
 
 // Startup
 
@@ -185,17 +185,23 @@ func populateMaps[T any](m map[string][]T, pathToJsonDirectory string) {
 // DEPLOYMENT
 
 func (c Context) deploy(w http.ResponseWriter, r *http.Request) {
-	c.deployLocalChanges()
+	queryValues := r.URL.Query()
+	collectionName := queryValues.Get("currentCollection")
+	c.deployLocalChanges(collectionName)
 }
 
-func (c Context) deployLocalChanges() {
+func (c Context) deployLocalChanges(collectionName string) {
 	//ghcontext := populateFromJson()
 	c.createCSSFile(DEPLOY_cssPath)
-	flatAreas := c.collectionsAsAreas()
+	flatAreas := collectionToAreas(c.Collections[collectionName])
 	writeJsonFile(DEPLOY_areaPath, flatAreas)
 	writeJsonFile(DEPLOY_materialPath, c.materials)
 }
 
-func (c Context) collectionsAsAreas() []Area {
-	return nil
+func collectionToAreas(collection Collection) []Area {
+	var out []Area
+	for _, space := range collection.Spaces {
+		out = append(out, space...)
+	}
+	return out
 }

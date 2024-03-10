@@ -393,23 +393,24 @@ func divSaveArea(area Area, currentCollection string, currentSpace string) strin
 	</div>`
 }
 
-func divNewSaveArea(currentCollection string, currentSpace string) string {
-	return `		
-	<div id="saveForm">
-		<div id="save_notice"></div>
-		<form hx-post="/saveArea" hx-target="#save_notice">
-			<input type="hidden" name="new" value="true"/>
-			<input type="hidden" name="currentCollection" value="` + currentCollection + `"/>
-			<input type="hidden" name="currentSpace" value="` + currentSpace + `"/>
-			<label>Name:</label>
-			<input type="text" name="areaName" value="" />
-			<label>Safe:</label>
-			<input type="checkbox" name="safe" />
-			<button>Save</button>
-		</form>
-	</div>`
-}
-
+/*
+	func divNewSaveArea(currentCollection string, currentSpace string) string {
+		return `
+		<div id="saveForm">
+			<div id="save_notice"></div>
+			<form hx-post="/saveArea" hx-target="#save_notice">
+				<input type="hidden" name="new" value="true"/>
+				<input type="hidden" name="currentCollection" value="` + currentCollection + `"/>
+				<input type="hidden" name="currentSpace" value="` + currentSpace + `"/>
+				<label>Name:</label>
+				<input type="text" name="areaName" value="" />
+				<label>Safe:</label>
+				<input type="checkbox" name="safe" />
+				<button>Save</button>
+			</form>
+		</div>`
+	}
+*/
 func divToolSelect() string {
 	return `
 	<div id="tool_select"> 
@@ -425,6 +426,7 @@ func divToolSelect() string {
 	`
 }
 
+/*
 func getEmptyGridHTML(h int, w int) string {
 	output := `<div class="grid" id="screen">`
 	for y := 0; y < h; y++ {
@@ -439,6 +441,7 @@ func getEmptyGridHTML(h int, w int) string {
 	output += `</div>`
 	return output
 }
+*/
 
 func (c Context) getHTMLFromArea(area Area) string {
 	output := `<div class="grid" id="screen">`
