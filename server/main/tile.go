@@ -196,22 +196,14 @@ func walkable(tile *Tile) bool {
 
 /// These two need to get looked at
 
-func (tile *Tile) addPowerUpAndNotifyAll(player *Player, shape [][2]int) {
+func (tile *Tile) addPowerUpAndNotifyAll(shape [][2]int) {
 	tile.powerUp = &PowerUp{shape, [4]int{100, 100, 100, 100}}
-	//html := htmlFromTile(tile)
 	tile.stage.updateAll(svgFromTile(tile))
-	//tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
-	//updateOne(html, player) // Hides player token // Still true?
 }
 
-func (tile *Tile) addBoostsAndNotifyAll(player *Player) {
-	//fmt.Println("Adding Boost")
+func (tile *Tile) addBoostsAndNotifyAll() {
 	tile.boosts += 5
-	//html := htmlFromTile(tile)
 	tile.stage.updateAll(svgFromTile(tile))
-	//tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
-	//updateOne(html, player)
-
 }
 
 ///

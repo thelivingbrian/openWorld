@@ -19,9 +19,9 @@ func (stage *Stage) spawnItems() {
 		randomIndex := rand.Intn(len(coveredTiles))
 		if heads {
 			randomIndex2 := rand.Intn(len(shapes))
-			coveredTiles[randomIndex].addPowerUpAndNotifyAll(nil, shapes[randomIndex2])
+			coveredTiles[randomIndex].addPowerUpAndNotifyAll(shapes[randomIndex2])
 		} else {
-			coveredTiles[randomIndex].addBoostsAndNotifyAll(nil)
+			coveredTiles[randomIndex].addBoostsAndNotifyAll()
 		}
 	}
 
@@ -30,9 +30,9 @@ func (stage *Stage) spawnItems() {
 		randomIndex := rand.Intn(len(uncoveredTiles))
 		if heads {
 			randomIndex2 := rand.Intn(len(shapes))
-			uncoveredTiles[randomIndex].addPowerUpAndNotifyAll(nil, shapes[randomIndex2])
+			uncoveredTiles[randomIndex].addPowerUpAndNotifyAll(shapes[randomIndex2])
 		} else {
-			uncoveredTiles[randomIndex].addBoostsAndNotifyAll(nil)
+			uncoveredTiles[randomIndex].addBoostsAndNotifyAll()
 		}
 	}
 }
