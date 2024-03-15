@@ -90,7 +90,7 @@ func makeTileTemplate(mat Material, y, x int) string {
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	tile.addPlayer(player)
-	tile.stage.updateAllExcept(playerBox(tile), player)
+	tile.stage.updateAllExcept(playerBox(tile), player) // Add highlight box or no? test performance
 }
 
 func (tile *Tile) addPlayer(player *Player) {
@@ -198,17 +198,19 @@ func walkable(tile *Tile) bool {
 
 func (tile *Tile) addPowerUpAndNotifyAll(player *Player, shape [][2]int) {
 	tile.powerUp = &PowerUp{shape, [4]int{100, 100, 100, 100}}
-	html := htmlFromTile(tile)
-	tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
-	updateOne(html, player) // Hides player token // Still true?
+	//html := htmlFromTile(tile)
+	tile.stage.updateAll(svgFromTile(tile))
+	//tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
+	//updateOne(html, player) // Hides player token // Still true?
 }
 
 func (tile *Tile) addBoostsAndNotifyAll(player *Player) {
 	//fmt.Println("Adding Boost")
 	tile.boosts += 5
-	html := htmlFromTile(tile)
-	tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
-	updateOne(html, player)
+	//html := htmlFromTile(tile)
+	tile.stage.updateAll(svgFromTile(tile))
+	//tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
+	//updateOne(html, player)
 
 }
 
@@ -218,10 +220,10 @@ func cssClassFromHealth(player *Player) string {
 	// >120 indicator
 	// Middle range choosen color? or only in safe
 	if player.health > 50 {
-		return "red"
+		return "red r0"
 	}
 	if player.health >= 0 {
-		return "dark-red"
+		return "dark-red r0"
 	}
 	return "blue" // shouldn't happen but want to be visible
 }

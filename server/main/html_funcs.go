@@ -183,7 +183,7 @@ func oobHighlightBox(tile *Tile, cssClass string) string {
 func svgFromTile(tile *Tile) string {
 	svgtag := `<div id="%s" class="box zS">`
 	if tile.powerUp != nil || tile.money != 0 || tile.boosts != 0 {
-		// fmt.sprintf this or just don't concat plz
+		// Split into different svg tags, control visibility via cssgg
 		svgtag += `<svg width="30" height="30">`
 		if tile.powerUp != nil {
 			svgtag += `<circle class="svgRed" cx="10" cy="10" r="10" />`

@@ -22,7 +22,6 @@ type Stage struct {
 
 func (world *World) getStageByName(name string) (stage *Stage, new bool) {
 	new = false
-
 	world.wStageMutex.Lock() // New method
 	existingStage, stageExists := world.worldStages[name]
 	world.wStageMutex.Unlock()
