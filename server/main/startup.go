@@ -158,7 +158,6 @@ func loadFromJson() {
 
 	fmt.Printf("Loaded %d materials.", len(materials))
 	fmt.Printf("Loaded %d areas.", len(areas))
-	//panic("trace hopefully?")
 }
 
 func areaFromName(s string) (area Area, success bool) {

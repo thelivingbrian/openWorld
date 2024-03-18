@@ -90,7 +90,7 @@ func makeTileTemplate(mat Material, y, x int) string {
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	tile.addPlayer(player)
-	tile.stage.updateAllExcept(playerBox(tile), player) // Add highlight box or no? test performance
+	tile.stage.updateAllExcept(playerBox(tile), player) // What about impact to other layers? Should highlights vary for player?
 }
 
 func (tile *Tile) addPlayer(player *Player) {
@@ -183,7 +183,7 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 			go player.world.db.saveKillEvent(tile, initiator, player)
 		}
 		if first {
-			first = !survived // Gross but this ensures that surviving players aren't hidden by death
+			first = !survived // Gross but this ensures that surviving players aren't hidden by death // Probably no longer needed
 			// Does multiple updates could be improved
 			tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
 		}
