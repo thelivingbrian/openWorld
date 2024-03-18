@@ -81,7 +81,7 @@ func makeTileTemplate(mat Material, y, x int) string {
 					%s
 					%s
 					%s
-					<div id="%s" class="box top" id=""></div>
+					<div id="%s" class="box top"></div>
 				</div>`
 	return fmt.Sprintf(template, mat.CssColor, cId, floor1css, floor2css, placeHold, placeHold, ceil1css, ceil2css, tId)
 }

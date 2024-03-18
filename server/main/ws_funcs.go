@@ -148,6 +148,9 @@ func (player *Player) handlePress(key string) {
 	if key == "D" {
 		player.moveEastBoost()
 	}
+	if key == "f" {
+		updateScreenFromScratch(player)
+	}
 	if key == "Space-On" {
 		reactivate := `<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />`
 		updateOne(reactivate, player)

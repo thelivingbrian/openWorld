@@ -165,3 +165,8 @@ func updateScreenFromScratch(player *Player) {
 	// This could be improved view is inaccurate
 	player.stage.updates <- Update{player, htmlFromPlayer(player)}
 }
+
+func sendStuffToPlayerScreen(player *Player) {
+	// This could be improved view is inaccurate
+	player.stage.updates <- Update{player, htmlFromPlayer(player)}
+}

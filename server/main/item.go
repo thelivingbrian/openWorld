@@ -39,8 +39,8 @@ func (stage *Stage) spawnItems() {
 
 func sortWalkableTiles(tiles [][]*Tile) ([]*Tile, []*Tile) {
 	var outCovered, outUncovered []*Tile
-	for y, _ := range tiles {
-		for x, _ := range tiles[y] {
+	for y := range tiles {
+		for x := range tiles[y] {
 			if tiles[y][x].material.Walkable {
 				if tiles[y][x].material.Ceiling1Css != "" || tiles[y][x].material.Ceiling2Css != "" {
 					outCovered = append(outCovered, tiles[y][x])
