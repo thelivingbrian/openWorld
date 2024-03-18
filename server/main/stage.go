@@ -162,11 +162,10 @@ func updateOne(update string, player *Player) {
 }
 
 func updateScreenFromScratch(player *Player) {
-	// This could be improved view is inaccurate
 	player.stage.updates <- Update{player, htmlFromPlayer(player)}
 }
 
 func sendStuffToPlayerScreen(player *Player) {
-	// This could be improved view is inaccurate
-	player.stage.updates <- Update{player, htmlFromPlayer(player)}
+	// Use for testing/benchmarking
+	player.stage.updates <- Update{player, []byte("")}
 }
