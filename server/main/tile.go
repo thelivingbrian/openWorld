@@ -81,7 +81,7 @@ func makeTileTemplate(mat Material, y, x int) string {
 					%s
 					%s
 					%s
-					<div id="%s" class="box top" id=""></div>
+					<div id="%s" class="box top"></div>
 				</div>`
 	return fmt.Sprintf(template, mat.CssColor, cId, floor1css, floor2css, placeHold, placeHold, ceil1css, ceil2css, tId)
 }
@@ -90,7 +90,7 @@ func makeTileTemplate(mat Material, y, x int) string {
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	tile.addPlayer(player)
-	tile.stage.updateAllExcept(playerBox(tile), player)
+	tile.stage.updateAllExcept(playerBox(tile), player) // What about impact to other layers? Should highlights vary for player?
 }
 
 func (tile *Tile) addPlayer(player *Player) {
@@ -183,7 +183,7 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 			go player.world.db.saveKillEvent(tile, initiator, player)
 		}
 		if first {
-			first = !survived // Gross but this ensures that surviving players aren't hidden by death
+			first = !survived // Gross but this ensures that surviving players aren't hidden by death // Probably no longer needed
 			// Does multiple updates could be improved
 			tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
 		}
@@ -196,20 +196,14 @@ func walkable(tile *Tile) bool {
 
 /// These two need to get looked at
 
-func (tile *Tile) addPowerUpAndNotifyAll(player *Player, shape [][2]int) {
+func (tile *Tile) addPowerUpAndNotifyAll(shape [][2]int) {
 	tile.powerUp = &PowerUp{shape, [4]int{100, 100, 100, 100}}
-	html := htmlFromTile(tile)
-	tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
-	updateOne(html, player) // Hides player token // Still true?
+	tile.stage.updateAll(svgFromTile(tile))
 }
 
-func (tile *Tile) addBoostsAndNotifyAll(player *Player) {
-	//fmt.Println("Adding Boost")
+func (tile *Tile) addBoostsAndNotifyAll() {
 	tile.boosts += 5
-	html := htmlFromTile(tile)
-	tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
-	updateOne(html, player)
-
+	tile.stage.updateAll(svgFromTile(tile))
 }
 
 ///
@@ -218,10 +212,10 @@ func cssClassFromHealth(player *Player) string {
 	// >120 indicator
 	// Middle range choosen color? or only in safe
 	if player.health > 50 {
-		return "red"
+		return "red r0"
 	}
 	if player.health >= 0 {
-		return "dark-red"
+		return "dark-red r0"
 	}
 	return "blue" // shouldn't happen but want to be visible
 }

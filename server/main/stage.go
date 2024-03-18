@@ -22,7 +22,6 @@ type Stage struct {
 
 func (world *World) getStageByName(name string) (stage *Stage, new bool) {
 	new = false
-
 	world.wStageMutex.Lock() // New method
 	existingStage, stageExists := world.worldStages[name]
 	world.wStageMutex.Unlock()
@@ -163,6 +162,10 @@ func updateOne(update string, player *Player) {
 }
 
 func updateScreenFromScratch(player *Player) {
-	// This could be improved view is inaccurate
 	player.stage.updates <- Update{player, htmlFromPlayer(player)}
+}
+
+func sendStuffToPlayerScreen(player *Player) {
+	// Use for testing/benchmarking
+	player.stage.updates <- Update{player, []byte("")}
 }

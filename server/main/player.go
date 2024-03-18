@@ -66,15 +66,10 @@ func (p *Player) placeOnStage() {
 
 	// This is unsafe  (out of range)
 	p.stage.tiles[p.y][p.x].addPlayerAndNotifyOthers(p)
-	updateScreenFromScratch(p) // This is using an old method for computing the highlights (Which weirdly works because space highlights have not yet been set)
+	updateScreenFromScratch(p)
 
-	// Need spawn logic
-	p.stage.tiles[2][2].addPowerUpAndNotifyAll(p, grid7x7) // This is completing before the space highlights are being set after a teleport at the end of move()
-	p.stage.tiles[2][3].addPowerUpAndNotifyAll(p, grid3x3)
-	p.stage.tiles[3][2].addPowerUpAndNotifyAll(p, x())
-	p.stage.tiles[3][3].addBoostsAndNotifyAll(p)
-	p.stage.tiles[2][2].money += 10
-	p.stage.tiles[2][2].addBoostsAndNotifyAll(p)
+	// Could be enhanced
+	p.stage.spawnItems()
 }
 
 func (player *Player) handleDeath() {

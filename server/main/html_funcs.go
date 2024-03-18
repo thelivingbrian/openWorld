@@ -20,28 +20,29 @@ const screenTemplate = `
 
 var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(screenTemplate))
 
-// ooooooooooooooo
 func htmlFromPlayer(player *Player) []byte {
 	var buf bytes.Buffer
-	tileHtml := htmlFromTileGrid(player.stage.tiles) //tilesToColors(player.stage.tiles)
-	//playerView(player, tileHtml)
+
+	tileHtml := htmlFromTileGrid(player.stage.tiles, player.y, player.x)
 
 	err := parsedScreenTemplate.Execute(&buf, tileHtml)
 	if err != nil {
 		panic(err)
 	}
 
-	buf.WriteString(fmt.Sprintf(`<div id="p%d-%d" class="box zp fusia r0" id=""></div>`, player.y, player.x))
-
 	return buf.Bytes()
 }
 
-func htmlFromTileGrid(tiles [][]*Tile) [][]string {
+func htmlFromTileGrid(tiles [][]*Tile, py, px int) [][]string {
 	output := make([][]string, len(tiles))
 	for y := range output {
 		output[y] = make([]string, len(tiles[y]))
 		for x := range output[y] {
-			output[y][x] = htmlFromTile(tiles[y][x])
+			if x == px && y == py {
+				output[y][x] = htmlForPlayerTile(tiles[y][x])
+				continue
+			}
+			output[y][x] = htmlForTile(tiles[y][x])
 		}
 	}
 	return output
@@ -88,6 +89,8 @@ func printPageFor(player *Player) string {
 			<input id="a" type="hidden" ws-send hx-trigger="keydown[key=='A'] from:body" hx-include="#token" name="keypress" value="A" />
 			<input id="s" type="hidden" ws-send hx-trigger="keydown[key=='S'] from:body" hx-include="#token" name="keypress" value="S" />
 			<input id="d" type="hidden" ws-send hx-trigger="keydown[key=='D'] from:body" hx-include="#token" name="keypress" value="D" />
+			<input id="f" type="hidden" ws-send hx-trigger="keydown[key=='f'] from:body" hx-include="#token" name="keypress" value="f" />
+			<input id="g" type="hidden" ws-send hx-trigger="keydown[key=='g'] from:body" hx-include="#token" name="keypress" value="g" />
 			<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />
 			<input id="space-off" type="hidden" ws-send hx-trigger="keyup[key==' '] from:body" hx-include="#token" name="keypress" value="Space-Off" />
 			<input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" name="token" value="` + player.id + `" />
@@ -132,7 +135,7 @@ func getHeartsFromHealth(i int) string {
 	return fmt.Sprintf("❤️x%d", i)
 }
 
-func htmlFromTile(tile *Tile) string {
+func htmlForTile(tile *Tile) string {
 	svgtag := svgFromTile(tile)
 	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), svgtag)
 }
@@ -145,10 +148,18 @@ func playerBox(tile *Tile) string {
 	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s" id=""></div>`, tile.y, tile.x, playerIndicator)
 }
 
-// This will not include svgs if it needs to like  on stage placement
+func htmlForPlayerTile(tile *Tile) string {
+	svgtag := svgFromTile(tile)
+	return fmt.Sprintf(tile.htmlTemplate, fusiaBox(tile.y, tile.x), svgtag)
+}
+
+func fusiaBox(y, x int) string {
+	return fmt.Sprintf(`<div id="p%d-%d" class="box zp fusia r0" id=""></div>`, y, x)
+}
+
+// Create slice of proper size? Currently has many null entries
 func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 	highlights := ""
-	// Create slice of proper size? Currently has many null entries
 
 	// Still risk here of concurrent read/write?
 	for _, tile := range tiles {
@@ -158,6 +169,8 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 		if tile.stage != player.stage {
 			continue
 		}
+
+		// shiftHighlights not needed, want generic highlight option
 		_, impactsHud := player.actions.shiftHighlights[tile]
 		if impactsHud && player.actions.boostCounter > 0 {
 			highlights += oobHighlightBox(tile, shiftHighlighter(tile))
@@ -165,7 +178,7 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 		}
 		_, impactsHud = player.actions.spaceHighlights[tile]
 		if impactsHud {
-			highlights += oobHighlightBox(tile, spaceHighlighter(tile)) //oobColoredTile(tile, spaceHighlighter(tile))
+			highlights += oobHighlightBox(tile, spaceHighlighter(tile))
 			continue
 		}
 
@@ -183,7 +196,6 @@ func oobHighlightBox(tile *Tile, cssClass string) string {
 func svgFromTile(tile *Tile) string {
 	svgtag := `<div id="%s" class="box zS">`
 	if tile.powerUp != nil || tile.money != 0 || tile.boosts != 0 {
-		// fmt.sprintf this or just don't concat plz
 		svgtag += `<svg width="30" height="30">`
 		if tile.powerUp != nil {
 			svgtag += `<circle class="svgRed" cx="10" cy="10" r="10" />`
