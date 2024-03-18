@@ -5,10 +5,12 @@ import (
 )
 
 func (stage *Stage) spawnItems() {
+	// Very basic spawn algorithm
+	// Will spawn on convered tiles with higher freq. than uncovered
+	// Will spawn boost and powers with equal probability
 	shapes := [][][2]int{grid3x3, grid5x5, grid7x7, grid9x9, jumpCross(), cross(), x()}
 
 	randn := rand.Intn(30)
-	//fmt.Println(randn)
 	spawnCovered := randn%3 == 0
 	spawnUncovered := randn%10 == 0
 	heads := randn%2 == 0
@@ -26,7 +28,6 @@ func (stage *Stage) spawnItems() {
 	}
 
 	if spawnUncovered {
-		//fmt.Println("spawnUncovered")
 		randomIndex := rand.Intn(len(uncoveredTiles))
 		if heads {
 			randomIndex2 := rand.Intn(len(shapes))
