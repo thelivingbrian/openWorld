@@ -52,7 +52,9 @@ func (db *DB) postSignUp(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	io.WriteString(w, db.newUser(emailLowercase, username, hashword))
+	// New user creation is disabled
+	fmt.Printf("Using variables %s %s %s \n", emailLowercase, username, hashword)
+	io.WriteString(w, "<h2>Sorry, Bloop World is currently under developmment.</h2>") //db.newUser(emailLowercase, username, hashword))
 }
 
 func getSignIn(w http.ResponseWriter, r *http.Request) {
