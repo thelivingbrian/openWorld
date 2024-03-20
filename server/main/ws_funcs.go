@@ -151,6 +151,24 @@ func (player *Player) handlePress(key string) {
 	if key == "f" {
 		updateScreenFromScratch(player)
 	}
+	if key == "g" {
+		exTile := `<div class="grid-square blue" id="c0-0">				
+						<div id="p0-0" class="box zp "></div>
+						<div id="s0-0" class="box zS"></div>
+						<div id="t0-0" class="box top"></div>
+					</div>
+					<div class="grid-square blue" id="c0-1">				
+						<div id="p0-1" class="box zp "></div>
+						<div id="s0-1" class="box zS"></div>
+						<div id="t0-1" class="box top"></div>
+					</div>
+					`
+		updateOne(exTile, player)
+	}
+	if key == "h" {
+		exTile := `<div id="t1-0" class="box top green"></div>`
+		updateOne(exTile, player)
+	}
 	if key == "Space-On" {
 		reactivate := `<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />`
 		updateOne(reactivate, player)

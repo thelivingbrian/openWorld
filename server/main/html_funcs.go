@@ -91,6 +91,7 @@ func printPageFor(player *Player) string {
 			<input id="d" type="hidden" ws-send hx-trigger="keydown[key=='D'] from:body" hx-include="#token" name="keypress" value="D" />
 			<input id="f" type="hidden" ws-send hx-trigger="keydown[key=='f'] from:body" hx-include="#token" name="keypress" value="f" />
 			<input id="g" type="hidden" ws-send hx-trigger="keydown[key=='g'] from:body" hx-include="#token" name="keypress" value="g" />
+			<input id="h" type="hidden" ws-send hx-trigger="keydown[key=='h'] from:body" hx-include="#token" name="keypress" value="h" />
 			<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />
 			<input id="space-off" type="hidden" ws-send hx-trigger="keyup[key==' '] from:body" hx-include="#token" name="keypress" value="Space-Off" />
 			<input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" name="token" value="` + player.id + `" />
