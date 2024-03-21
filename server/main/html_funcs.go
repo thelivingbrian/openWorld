@@ -79,6 +79,17 @@ func randomFieryColor() string {
 func printPageFor(player *Player) string {
 	return `
 	<div id="page" hx-swap-oob="true">
+		<div id="modal" class="modal">
+			<div class="modal_content">
+			
+			</div> 
+		</div>
+		<div id="info">
+			<b>` + playerInformation(player) + `</b>
+		</div>
+		<div id="screen" class="grid">
+				
+		</div>
 		<div id="controls" hx-ext="ws" ws-connect="/screen">
 			<input id="token" type="hidden" name="token" value="` + player.id + `" />
 			<input id="w" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='ArrowUp'] from:body" hx-include="#token" name="keypress" value="w" />
@@ -97,12 +108,6 @@ func printPageFor(player *Player) string {
 			<input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" name="token" value="` + player.id + `" />
 			<input id="tick" ws-send hx-trigger="load once" type="hidden" name="token" value="` + player.id + `" />
 			<div id="script"></div>
-		</div>
-		<div id="info">
-			<b>` + playerInformation(player) + `</b>
-		</div>
-		<div id="screen" class="grid">
-				
 		</div>
 	</div>`
 }
