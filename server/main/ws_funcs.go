@@ -163,11 +163,12 @@ func (player *Player) handlePress(key string) {
 						<div id="t0-1" class="box top"></div>
 					</div>
 					`
+
+		exTile += `<div id="t1-0" class="box top green"></div>`
 		updateOne(exTile, player)
 	}
 	if key == "h" {
-		exTile := `<div id="t1-0" class="box top green"></div>`
-		updateOne(exTile, player)
+		updateOne(divModalMenu(), player)
 	}
 	if key == "Space-On" {
 		reactivate := `<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />`
