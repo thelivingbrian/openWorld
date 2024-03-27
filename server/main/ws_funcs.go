@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/websocket"
 )
@@ -61,7 +62,7 @@ func handleNewPlayer(existingPlayer *Player) {
 			return
 		}
 
-		key, token, success := getKeyPress(msg)
+		key, token, arg0, success := getKeyPress(msg)
 		if !success {
 			fmt.Println("Invalid input")
 			continue
@@ -71,7 +72,7 @@ func handleNewPlayer(existingPlayer *Player) {
 			break
 		}
 
-		existingPlayer.handlePress(key)
+		existingPlayer.handlePress(key, arg0)
 	}
 }
 
@@ -104,21 +105,23 @@ func getTokenFromFirstMessage(conn *websocket.Conn) (token string, success bool)
 	return msg.Token, true
 }
 
-func getKeyPress(input []byte) (key string, token string, success bool) {
+func getKeyPress(input []byte) (key string, token string, arg0 string, success bool) {
 	// rename Keypress to event?
+	// Reuse this struct somehow? Player.LatestMessage *msg
 	var msg struct {
 		Token    string `json:"token"`
 		KeyPress string `json:"keypress"`
+		Arg0     string `json:"arg0"`
 	}
 	err := json.Unmarshal(input, &msg)
 	if err != nil {
 		fmt.Println("Error parsing JSON:", err)
-		return "", "", false
+		return "", "", "", false
 	}
-	return msg.KeyPress, msg.Token, true
+	return msg.KeyPress, msg.Token, msg.Arg0, true
 }
 
-func (player *Player) handlePress(key string) {
+func (player *Player) handlePress(key string, arg0 string) {
 	if key == "w" {
 		/*class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "twilight"</script> </div>`
 		updateOne(class, player)*/
@@ -173,6 +176,12 @@ func (player *Player) handlePress(key string) {
 	if key == "menuOff" {
 		updateOne(divModalDisabled()+divInputDesktop(), player)
 	}
+	if key == "menuDown" {
+		updateOne(menuSelectDown(arg0), player)
+	}
+	if key == "menuUp" {
+		updateOne(menuSelectUp(arg0), player)
+	}
 	if key == "Space-On" {
 		reactivate := `<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />`
 		updateOne(reactivate, player)
@@ -180,4 +189,20 @@ func (player *Player) handlePress(key string) {
 			player.activatePower()
 		}
 	}
+}
+
+func menuSelectDown(index string) string {
+	i, err := strconv.Atoi(index)
+	if err != nil {
+		return ""
+	}
+	return divPauseMenu(i + 1)
+}
+
+func menuSelectUp(index string) string {
+	i, err := strconv.Atoi(index)
+	if err != nil {
+		return ""
+	}
+	return divPauseMenu(i - 1)
 }

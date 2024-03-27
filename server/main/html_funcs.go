@@ -86,14 +86,14 @@ func printPageFor(player *Player) string {
 					
 			</div>
 			<div id="bottom_text">
-				&nbsp;&nbsp;> Press 'h' for Menu.
+				&nbsp;&nbsp;> Press 'm' for Menu.
 			</div>
 		</div>
 		<div id="controls" hx-ext="ws" ws-connect="/screen">
 			<input id="token" type="hidden" name="token" value="` + player.id + `" />
 			<input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" />
 			<input id="tick" ws-send hx-trigger="load once" type="hidden" name="token" value="` + player.id + `" />
-			<div id="modal_menu">
+			<div id="modal_background">
 				
 			</div>
 			` + divInputDesktop() + `
@@ -111,15 +111,14 @@ func divPlayerInformation(player *Player) string {
 
 func divModalMenu() string {
 	return `
-	<div id="modal_menu" class="modal_bg">
-		<div class="modal_content">
-			<a class="selected" href="#"> Resume </a><br />
-			<a href="#"> You </a><br />
-			<a href="#"> Map </a><br />
-			<a href="#"> Exit </a><br />
-		</div>
+	<div id="modal_background" class="modal_bg">
+		
+			` + divPauseMenu(0) + `
+		
 		<div id="modal_input">	
-			<input id="menuOff" type="hidden" ws-send hx-trigger="keydown[key=='h'] from:body" hx-include="#token" name="keypress" value="menuOff" />
+			<input id="menuOff" type="hidden" ws-send hx-trigger="keydown[key=='m'||key=='M'||key=='Escape'] from:body" hx-include="#token" name="keypress" value="menuOff" />
+			<input id="menuUp" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='W'||key=='ArrowUp'] from:body" hx-include="#token, #menu_selected_index" name="keypress" value="menuUp" />
+			<input id="menuDown" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='S'||key=='ArrowDown'] from:body" hx-include="#token, #menu_selected_index" name="keypress" value="menuDown" />
 		</div> 
 	</div>
 	`
@@ -127,10 +126,34 @@ func divModalMenu() string {
 
 func divModalDisabled() string {
 	return `
-	<div id="modal_menu">
+	<div id="modal_background">
 		
 	</div>
 	`
+}
+
+func divPauseMenu(i int) string {
+	var menuOptions = [4]string{"Resume", "You", "Map", "Exit"}
+	menuIndex := mod(i, len(menuOptions))
+
+	options := ""
+	for i := range menuOptions {
+		if i == menuIndex {
+			options += fmt.Sprintf(`<a class="selected" href="#"> %s </a><br />`, menuOptions[i])
+		} else {
+			options += fmt.Sprintf(`<a href="#"> %s </a><br />`, menuOptions[i])
+		}
+	}
+	output := `<div id="modal_menu" class="modal_content">
+					<input id="menu_selected_index" type="hidden" name="arg0" value="%d">
+					%s	
+				</div>`
+	return fmt.Sprintf(output, menuIndex, options)
+
+}
+
+func mod(i, n int) int {
+	return ((i % n) + n) % n
 }
 
 func divInputDesktop() string {
@@ -146,7 +169,7 @@ func divInputDesktop() string {
 		<input id="dShift" type="hidden" ws-send hx-trigger="keydown[key=='D'] from:body" hx-include="#token" name="keypress" value="D" />
 		<input id="f" type="hidden" ws-send hx-trigger="keydown[key=='f'] from:body" hx-include="#token" name="keypress" value="f" />
 		<input id="g" type="hidden" ws-send hx-trigger="keydown[key=='g'] from:body" hx-include="#token" name="keypress" value="g" />
-		<input id="h" type="hidden" ws-send hx-trigger="keydown[key=='h'] from:body" hx-include="#token" name="keypress" value="menuOn" />
+		<input id="menuOn" type="hidden" ws-send hx-trigger="keydown[key=='m'||key=='M'||key=='Escape'] from:body" hx-include="#token" name="keypress" value="menuOn" />
 		<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />
 	</div>
 `

@@ -24,6 +24,7 @@ body {
     justify-content: center;
     color: white;
     font-size: 28px;
+    overflow: none;
 }
 
 .day {
