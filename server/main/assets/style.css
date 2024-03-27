@@ -56,6 +56,11 @@ a {
     color: #00ffff;
 }
 
+.selected {
+    background-color: #00ffff;
+    color:#120500
+}
+
 .modal_bg {
     display: block; 
     position: fixed;

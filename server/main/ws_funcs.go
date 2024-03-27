@@ -105,6 +105,7 @@ func getTokenFromFirstMessage(conn *websocket.Conn) (token string, success bool)
 }
 
 func getKeyPress(input []byte) (key string, token string, success bool) {
+	// rename Keypress to event?
 	var msg struct {
 		Token    string `json:"token"`
 		KeyPress string `json:"keypress"`
@@ -163,12 +164,14 @@ func (player *Player) handlePress(key string) {
 						<div id="t0-1" class="box top"></div>
 					</div>
 					`
-
 		exTile += `<div id="t1-0" class="box top green"></div>`
 		updateOne(exTile, player)
 	}
-	if key == "h" {
-		updateOne(divModalMenu(), player)
+	if key == "menuOn" {
+		updateOne(divModalMenu()+divInputDisabled(), player)
+	}
+	if key == "menuOff" {
+		updateOne(divModalDisabled()+divInputDesktop(), player)
 	}
 	if key == "Space-On" {
 		reactivate := `<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />`

@@ -21,6 +21,7 @@ const screenTemplate = `
 var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(screenTemplate))
 
 func htmlFromPlayer(player *Player) []byte {
+	// pass byte buffer in from http writer w ?
 	var buf bytes.Buffer
 
 	tileHtml := htmlFromTileGrid(player.stage.tiles, player.y, player.x)
@@ -79,34 +80,23 @@ func randomFieryColor() string {
 func printPageFor(player *Player) string {
 	return `
 	<div id="page" hx-swap-oob="true">
-		<div id="info">
-			<b>` + playerInformation(player) + `</b>
-		</div>
-		<div id="screen" class="grid">
-				
+		<div id="main_view">
+			` + divPlayerInformation(player) + `
+			<div id="screen" class="grid">
+					
+			</div>
+			<div id="bottom_text">
+				&nbsp;&nbsp;> Press 'h' for Menu.
+			</div>
 		</div>
 		<div id="controls" hx-ext="ws" ws-connect="/screen">
 			<input id="token" type="hidden" name="token" value="` + player.id + `" />
+			<input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" />
+			<input id="tick" ws-send hx-trigger="load once" type="hidden" name="token" value="` + player.id + `" />
 			<div id="modal_menu">
 				
 			</div>
-			<div id="input_desktop">
-				<input id="w" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='ArrowUp'] from:body" hx-include="#token" name="keypress" value="w" />
-				<input id="a" type="hidden" ws-send hx-trigger="keydown[key=='a'||key=='ArrowLeft'] from:body" hx-include="#token" name="keypress" value="a" />
-				<input id="s" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='ArrowDown'] from:body" hx-include="#token" name="keypress" value="s" />
-				<input id="d" type="hidden" ws-send hx-trigger="keydown[key=='d'||key=='ArrowRight'] from:body" hx-include="#token" name="keypress" value="d" />
-				<input id="w" type="hidden" ws-send hx-trigger="keydown[key=='W'] from:body" hx-include="#token" name="keypress" value="W" />
-				<input id="a" type="hidden" ws-send hx-trigger="keydown[key=='A'] from:body" hx-include="#token" name="keypress" value="A" />
-				<input id="s" type="hidden" ws-send hx-trigger="keydown[key=='S'] from:body" hx-include="#token" name="keypress" value="S" />
-				<input id="d" type="hidden" ws-send hx-trigger="keydown[key=='D'] from:body" hx-include="#token" name="keypress" value="D" />
-				<input id="f" type="hidden" ws-send hx-trigger="keydown[key=='f'] from:body" hx-include="#token" name="keypress" value="f" />
-				<input id="g" type="hidden" ws-send hx-trigger="keydown[key=='g'] from:body" hx-include="#token" name="keypress" value="g" />
-				<input id="h" type="hidden" ws-send hx-trigger="keydown[key=='h'] from:body" hx-include="#token" name="keypress" value="h" />
-				<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />
-				<input id="space-off" type="hidden" ws-send hx-trigger="keyup[key==' '] from:body" hx-include="#token" name="keypress" value="Space-Off" />
-				<input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" name="token" value="` + player.id + `" />
-				<input id="tick" ws-send hx-trigger="load once" type="hidden" name="token" value="` + player.id + `" />
-			</div>
+			` + divInputDesktop() + `
 			<div id="script"></div>
 		</div>
 	</div>`
@@ -123,13 +113,51 @@ func divModalMenu() string {
 	return `
 	<div id="modal_menu" class="modal_bg">
 		<div class="modal_content">
-			<a href="#"> Resume </a><br />
+			<a class="selected" href="#"> Resume </a><br />
 			<a href="#"> You </a><br />
 			<a href="#"> Map </a><br />
 			<a href="#"> Exit </a><br />
+		</div>
+		<div id="modal_input">	
+			<input id="menuOff" type="hidden" ws-send hx-trigger="keydown[key=='h'] from:body" hx-include="#token" name="keypress" value="menuOff" />
 		</div> 
 	</div>
 	`
+}
+
+func divModalDisabled() string {
+	return `
+	<div id="modal_menu">
+		
+	</div>
+	`
+}
+
+func divInputDesktop() string {
+	return `
+	<div id="input">
+		<input id="w" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='ArrowUp'] from:body" hx-include="#token" name="keypress" value="w" />
+		<input id="a" type="hidden" ws-send hx-trigger="keydown[key=='a'||key=='ArrowLeft'] from:body" hx-include="#token" name="keypress" value="a" />
+		<input id="s" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='ArrowDown'] from:body" hx-include="#token" name="keypress" value="s" />
+		<input id="d" type="hidden" ws-send hx-trigger="keydown[key=='d'||key=='ArrowRight'] from:body" hx-include="#token" name="keypress" value="d" />
+		<input id="wShift" type="hidden" ws-send hx-trigger="keydown[key=='W'] from:body" hx-include="#token" name="keypress" value="W" />
+		<input id="aShift" type="hidden" ws-send hx-trigger="keydown[key=='A'] from:body" hx-include="#token" name="keypress" value="A" />
+		<input id="sShift" type="hidden" ws-send hx-trigger="keydown[key=='S'] from:body" hx-include="#token" name="keypress" value="S" />
+		<input id="dShift" type="hidden" ws-send hx-trigger="keydown[key=='D'] from:body" hx-include="#token" name="keypress" value="D" />
+		<input id="f" type="hidden" ws-send hx-trigger="keydown[key=='f'] from:body" hx-include="#token" name="keypress" value="f" />
+		<input id="g" type="hidden" ws-send hx-trigger="keydown[key=='g'] from:body" hx-include="#token" name="keypress" value="g" />
+		<input id="h" type="hidden" ws-send hx-trigger="keydown[key=='h'] from:body" hx-include="#token" name="keypress" value="menuOn" />
+		<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />
+	</div>
+`
+}
+
+func divInputDisabled() string {
+	return `
+	<div id="input">
+
+	</div>
+`
 }
 
 func playerInformation(player *Player) string {
