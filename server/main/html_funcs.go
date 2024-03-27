@@ -139,7 +139,9 @@ func divPauseMenu(i int) string {
 	options := ""
 	for i := range menuOptions {
 		if i == menuIndex {
-			options += fmt.Sprintf(`<a class="selected" href="#"> %s </a><br />`, menuOptions[i])
+			keyListener := `<input id="menuKey" type="hidden" ws-send hx-trigger="keydown[key=='Enter'] from:body" hx-include="#token" name="keypress" value="menuOff" />`
+			clickListener := `<input id="menuClick" type="hidden" ws-send hx-trigger="click from:#menu_selected" hx-include="#token" name="keypress" value="menuOff" />`
+			options += fmt.Sprintf(`%s %s <a id="menu_selected" class="selected" href="#"> %s </a><br />`, keyListener, clickListener, menuOptions[i])
 		} else {
 			options += fmt.Sprintf(`<a href="#"> %s </a><br />`, menuOptions[i])
 		}
