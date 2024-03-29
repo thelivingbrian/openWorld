@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -62,17 +63,17 @@ func handleNewPlayer(existingPlayer *Player) {
 			return
 		}
 
-		key, token, arg0, success := getKeyPress(msg)
+		event, success := getKeyPress(msg)
 		if !success {
 			fmt.Println("Invalid input")
 			continue
 		}
-		if token != existingPlayer.id {
+		if event.Token != existingPlayer.id {
 			fmt.Println("Cheating")
 			break
 		}
 
-		existingPlayer.handlePress(key, arg0)
+		existingPlayer.handlePress(event)
 	}
 }
 
@@ -105,57 +106,66 @@ func getTokenFromFirstMessage(conn *websocket.Conn) (token string, success bool)
 	return msg.Token, true
 }
 
-func getKeyPress(input []byte) (key string, token string, arg0 string, success bool) {
-	// rename Keypress to event?
-	// Reuse this struct somehow? Player.LatestMessage *msg
-	var msg struct {
-		Token    string `json:"token"`
-		KeyPress string `json:"keypress"`
-		Arg0     string `json:"arg0"`
-	}
-	err := json.Unmarshal(input, &msg)
-	if err != nil {
-		fmt.Println("Error parsing JSON:", err)
-		return "", "", "", false
-	}
-	return msg.KeyPress, msg.Token, msg.Arg0, true
+type PlayerSocketEvent struct {
+	Token    string `json:"token"`
+	Name     string `json:"eventname"`
+	MenuName string `json:"menuName"`
+	Arg0     string `json:"arg0"`
 }
 
-func (player *Player) handlePress(key string, arg0 string) {
-	if key == "w" {
+func getKeyPress(input []byte) (event *PlayerSocketEvent, success bool) {
+	// rename Keypress to event?
+	// Reuse this struct somehow? Player.LatestMessage *event
+	/*var event struct {
+		Token    string `json:"token"`
+		KeyPress string `json:"keypress"`
+		MenuName string `json:"menuName"`
+		Arg0     string `json:"arg0"`
+	}*/
+	event = &PlayerSocketEvent{}
+	err := json.Unmarshal(input, event)
+	if err != nil {
+		fmt.Println("Error parsing JSON:", err)
+		return nil, false
+	}
+	return event, true
+}
+
+func (player *Player) handlePress(event *PlayerSocketEvent) {
+	if event.Name == "w" {
 		/*class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "twilight"</script> </div>`
 		updateOne(class, player)*/
 		player.moveNorth()
 	}
-	if key == "a" {
+	if event.Name == "a" {
 		/*class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "day"</script> </div>`
 		updateOne(class, player)*/
 		player.moveWest()
 	}
-	if key == "s" {
+	if event.Name == "s" {
 		/*class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "night"</script> </div>`
 		updateOne(class, player)*/
 		player.moveSouth()
 	}
-	if key == "d" {
+	if event.Name == "d" {
 		player.moveEast()
 	}
-	if key == "W" {
+	if event.Name == "W" {
 		player.moveNorthBoost()
 	}
-	if key == "A" {
+	if event.Name == "A" {
 		player.moveWestBoost()
 	}
-	if key == "S" {
+	if event.Name == "S" {
 		player.moveSouthBoost()
 	}
-	if key == "D" {
+	if event.Name == "D" {
 		player.moveEastBoost()
 	}
-	if key == "f" {
+	if event.Name == "f" {
 		updateScreenFromScratch(player)
 	}
-	if key == "g" {
+	if event.Name == "g" {
 		exTile := `<div class="grid-square blue" id="c0-0">				
 						<div id="p0-0" class="box zp "></div>
 						<div id="s0-0" class="box zS"></div>
@@ -167,36 +177,54 @@ func (player *Player) handlePress(key string, arg0 string) {
 						<div id="t0-1" class="box top"></div>
 					</div>
 					`
-		exTile += `<div id="t1-0" class="box top green"></div>`
+		exTile += `<div id="t1-0" class="box top green"></div>
+					<div id="t0-0" class="box top green"></div>`
 		updateOne(exTile, player)
 	}
-	if key == "menuOn" {
-		updateOne(divModalMenu()+divInputDisabled(), player)
-	}
-	if key == "menuOff" {
-		updateOne(divModalDisabled()+divInputDesktop(), player)
-	}
-	if key == "menuDown" {
-		updateOne(menuSelectDown(arg0), player)
-	}
-	if key == "menuUp" {
-		updateOne(menuSelectUp(arg0), player)
-	}
-	if key == "Space-On" {
-		reactivate := `<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />`
-		updateOne(reactivate, player)
+	if event.Name == "Space-On" {
+		// I don't think there is any advantage in reactivating in this way?
+		//reactivate := `<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="eventname" value="Space-On" />`
+		//updateOne(reactivate, player)
 		if player.actions.spaceStack.hasPower() {
 			player.activatePower()
 		}
 	}
+	if event.Name == "menuOn" {
+		var buf bytes.Buffer
+		err := menuTmpl.Execute(&buf, pauseMenu)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		buf.WriteString(divInputDisabled())
+		player.conn.WriteMessage(websocket.TextMessage, buf.Bytes())
+	}
+	if event.Name == "menuOff" {
+		turnMenuOff(player, *event)
+	}
+	if event.Name == "menuDown" {
+		updateOne(menuSelectDown(event.Arg0), player)
+	}
+	if event.Name == "menuUp" {
+		updateOne(menuSelectUp(event.Arg0), player)
+	}
+	if event.Name == "menuClick" {
+		//fmt.Println(event.Arg0)
+		//fmt.Println(event.MenuName)
+		menu, ok := menues[event.MenuName]
+		if ok {
+			menu.attemptClick(player, *event)
+		}
+	}
 }
 
+// add recv of Menu
 func menuSelectDown(index string) string {
 	i, err := strconv.Atoi(index)
 	if err != nil {
 		return ""
 	}
-	return divPauseMenu(i + 1)
+	return pauseMenu.selectedLinkAt(i+1) + pauseMenu.unselectedLinkAt(i)
 }
 
 func menuSelectUp(index string) string {
@@ -204,5 +232,5 @@ func menuSelectUp(index string) string {
 	if err != nil {
 		return ""
 	}
-	return divPauseMenu(i - 1)
+	return pauseMenu.selectedLinkAt(i-1) + pauseMenu.unselectedLinkAt(i)
 }

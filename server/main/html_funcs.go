@@ -109,21 +109,6 @@ func divPlayerInformation(player *Player) string {
 	</div>`
 }
 
-func divModalMenu() string {
-	return `
-	<div id="modal_background" class="modal_bg">
-		
-			` + divPauseMenu(0) + `
-		
-		<div id="modal_input">	
-			<input id="menuOff" type="hidden" ws-send hx-trigger="keydown[key=='m'||key=='M'||key=='Escape'] from:body" hx-include="#token" name="keypress" value="menuOff" />
-			<input id="menuUp" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='W'||key=='ArrowUp'] from:body" hx-include="#token, #menu_selected_index" name="keypress" value="menuUp" />
-			<input id="menuDown" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='S'||key=='ArrowDown'] from:body" hx-include="#token, #menu_selected_index" name="keypress" value="menuDown" />
-		</div> 
-	</div>
-	`
-}
-
 func divModalDisabled() string {
 	return `
 	<div id="modal_background">
@@ -132,47 +117,21 @@ func divModalDisabled() string {
 	`
 }
 
-func divPauseMenu(i int) string {
-	var menuOptions = [4]string{"Resume", "You", "Map", "Exit"}
-	menuIndex := mod(i, len(menuOptions))
-
-	options := ""
-	for i := range menuOptions {
-		if i == menuIndex {
-			keyListener := `<input id="menuKey" type="hidden" ws-send hx-trigger="keydown[key=='Enter'] from:body" hx-include="#token" name="keypress" value="menuOff" />`
-			clickListener := `<input id="menuClick" type="hidden" ws-send hx-trigger="click from:#menu_selected" hx-include="#token" name="keypress" value="menuOff" />`
-			options += fmt.Sprintf(`%s %s <a id="menu_selected" class="selected" href="#"> %s </a><br />`, keyListener, clickListener, menuOptions[i])
-		} else {
-			options += fmt.Sprintf(`<a href="#"> %s </a><br />`, menuOptions[i])
-		}
-	}
-	output := `<div id="modal_menu" class="modal_content">
-					<input id="menu_selected_index" type="hidden" name="arg0" value="%d">
-					%s	
-				</div>`
-	return fmt.Sprintf(output, menuIndex, options)
-
-}
-
-func mod(i, n int) int {
-	return ((i % n) + n) % n
-}
-
 func divInputDesktop() string {
 	return `
 	<div id="input">
-		<input id="w" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='ArrowUp'] from:body" hx-include="#token" name="keypress" value="w" />
-		<input id="a" type="hidden" ws-send hx-trigger="keydown[key=='a'||key=='ArrowLeft'] from:body" hx-include="#token" name="keypress" value="a" />
-		<input id="s" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='ArrowDown'] from:body" hx-include="#token" name="keypress" value="s" />
-		<input id="d" type="hidden" ws-send hx-trigger="keydown[key=='d'||key=='ArrowRight'] from:body" hx-include="#token" name="keypress" value="d" />
-		<input id="wShift" type="hidden" ws-send hx-trigger="keydown[key=='W'] from:body" hx-include="#token" name="keypress" value="W" />
-		<input id="aShift" type="hidden" ws-send hx-trigger="keydown[key=='A'] from:body" hx-include="#token" name="keypress" value="A" />
-		<input id="sShift" type="hidden" ws-send hx-trigger="keydown[key=='S'] from:body" hx-include="#token" name="keypress" value="S" />
-		<input id="dShift" type="hidden" ws-send hx-trigger="keydown[key=='D'] from:body" hx-include="#token" name="keypress" value="D" />
-		<input id="f" type="hidden" ws-send hx-trigger="keydown[key=='f'] from:body" hx-include="#token" name="keypress" value="f" />
-		<input id="g" type="hidden" ws-send hx-trigger="keydown[key=='g'] from:body" hx-include="#token" name="keypress" value="g" />
-		<input id="menuOn" type="hidden" ws-send hx-trigger="keydown[key=='m'||key=='M'||key=='Escape'] from:body" hx-include="#token" name="keypress" value="menuOn" />
-		<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />
+		<input id="w" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='ArrowUp'] from:body" hx-include="#token" name="eventname" value="w" />
+		<input id="a" type="hidden" ws-send hx-trigger="keydown[key=='a'||key=='ArrowLeft'] from:body" hx-include="#token" name="eventname" value="a" />
+		<input id="s" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='ArrowDown'] from:body" hx-include="#token" name="eventname" value="s" />
+		<input id="d" type="hidden" ws-send hx-trigger="keydown[key=='d'||key=='ArrowRight'] from:body" hx-include="#token" name="eventname" value="d" />
+		<input id="wShift" type="hidden" ws-send hx-trigger="keydown[key=='W'] from:body" hx-include="#token" name="eventname" value="W" />
+		<input id="aShift" type="hidden" ws-send hx-trigger="keydown[key=='A'] from:body" hx-include="#token" name="eventname" value="A" />
+		<input id="sShift" type="hidden" ws-send hx-trigger="keydown[key=='S'] from:body" hx-include="#token" name="eventname" value="S" />
+		<input id="dShift" type="hidden" ws-send hx-trigger="keydown[key=='D'] from:body" hx-include="#token" name="eventname" value="D" />
+		<input id="f" type="hidden" ws-send hx-trigger="keydown[key=='f'] from:body" hx-include="#token" name="eventname" value="f" />
+		<input id="g" type="hidden" ws-send hx-trigger="keydown[key=='g'] from:body" hx-include="#token" name="eventname" value="g" />
+		<input id="menuOn" type="hidden" ws-send hx-trigger="keydown[key=='m'||key=='M'||key=='Escape'] from:body" hx-include="#token" name="eventname" value="menuOn" />
+		<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body" hx-include="#token" name="eventname" value="Space-On" />
 	</div>
 `
 }
