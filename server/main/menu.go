@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
 	"strconv"
@@ -118,11 +119,57 @@ func (m *Menu) attemptClick(p *Player, e PlayerSocketEvent) {
 
 // Menu actions
 
-func turnMenuOff(p *Player, event PlayerSocketEvent) {
-	// Should be own function
+func (p *Player) trySend(msg []byte) {
 	if p.conn != nil {
-		p.conn.WriteMessage(websocket.TextMessage, []byte(divModalDisabled()+divInputDesktop()))
+		p.conn.WriteMessage(websocket.TextMessage, msg)
 	}
+}
+
+func turnMenuOn(p *Player, event PlayerSocketEvent) {
+	menu, ok := menues[event.MenuName]
+	if ok {
+		var buf bytes.Buffer
+		err := menuTmpl.Execute(&buf, menu)
+		if err != nil {
+			fmt.Println(err)
+		}
+		buf.WriteString(divInputDisabled())
+		p.trySend(buf.Bytes())
+	}
+}
+
+func turnMenuOff(p *Player, event PlayerSocketEvent) {
+	p.trySend([]byte(divModalDisabled() + divInputDesktop()))
+}
+
+func menuUp(p *Player, event PlayerSocketEvent) {
+	menu, ok := menues[event.MenuName]
+	if ok {
+		p.trySend([]byte(menu.menuSelectUp(event.Arg0)))
+	}
+}
+
+func (menu *Menu) menuSelectUp(index string) string {
+	i, err := strconv.Atoi(index)
+	if err != nil {
+		return ""
+	}
+	return pauseMenu.selectedLinkAt(i-1) + pauseMenu.unselectedLinkAt(i)
+}
+
+func menuDown(p *Player, event PlayerSocketEvent) {
+	menu, ok := menues[event.MenuName]
+	if ok {
+		p.trySend([]byte(menu.menuSelectDown(event.Arg0)))
+	}
+}
+
+func (menu *Menu) menuSelectDown(index string) string {
+	i, err := strconv.Atoi(index)
+	if err != nil {
+		return ""
+	}
+	return menu.selectedLinkAt(i+1) + menu.unselectedLinkAt(i)
 }
 
 func Quit(p *Player, event PlayerSocketEvent) {

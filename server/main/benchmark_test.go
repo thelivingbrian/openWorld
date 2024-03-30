@@ -6,7 +6,7 @@ import (
 )
 
 var stageNames = [2]string{"small", "large"}
-var playerCounts = [4]int{1, 5, 10, 100}
+var playerCounts = [2]int{1, 100}
 
 func BenchmarkMoveTwice(b *testing.B) {
 	loadFromJson()

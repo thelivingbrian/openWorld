@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/websocket"
 )
@@ -118,14 +116,6 @@ type PlayerSocketEvent struct {
 }
 
 func getKeyPress(input []byte) (event *PlayerSocketEvent, success bool) {
-	// rename Keypress to event?
-	// Reuse this struct somehow? Player.LatestMessage *event
-	/*var event struct {
-		Token    string `json:"token"`
-		KeyPress string `json:"keypress"`
-		MenuName string `json:"menuName"`
-		Arg0     string `json:"arg0"`
-	}*/
 	event = &PlayerSocketEvent{}
 	err := json.Unmarshal(input, event)
 	if err != nil {
@@ -142,13 +132,9 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 		player.moveNorth()
 	}
 	if event.Name == "a" {
-		/*class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "day"</script> </div>`
-		updateOne(class, player)*/
 		player.moveWest()
 	}
 	if event.Name == "s" {
-		/*class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "night"</script> </div>`
-		updateOne(class, player)*/
 		player.moveSouth()
 	}
 	if event.Name == "d" {
@@ -182,59 +168,31 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 					</div>
 					`
 		exTile += `<div id="t1-0" class="box top green"></div>
-					<div id="t0-0" class="box top green"></div>`
+				<div id="t0-0" class="box top green"></div>`
 		updateOne(exTile, player)
 	}
 	if event.Name == "Space-On" {
-		// I don't think there is any advantage in reactivating in this way?
-		//reactivate := `<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="eventname" value="Space-On" />`
-		//updateOne(reactivate, player)
 		if player.actions.spaceStack.hasPower() {
 			player.activatePower()
 		}
 	}
 	if event.Name == "menuOn" {
-		var buf bytes.Buffer
-		err := menuTmpl.Execute(&buf, pauseMenu)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		buf.WriteString(divInputDisabled())
-		player.conn.WriteMessage(websocket.TextMessage, buf.Bytes())
+		event.MenuName = "pause" // Gross but need to think about
+		turnMenuOn(player, *event)
 	}
 	if event.Name == "menuOff" {
 		turnMenuOff(player, *event)
 	}
 	if event.Name == "menuDown" {
-		updateOne(menuSelectDown(event.Arg0), player)
+		menuDown(player, *event)
 	}
 	if event.Name == "menuUp" {
-		updateOne(menuSelectUp(event.Arg0), player)
+		menuUp(player, *event)
 	}
 	if event.Name == "menuClick" {
-		//fmt.Println(event.Arg0)
-		//fmt.Println(event.MenuName)
 		menu, ok := menues[event.MenuName]
 		if ok {
 			menu.attemptClick(player, *event)
 		}
 	}
-}
-
-// add recv of Menu
-func menuSelectDown(index string) string {
-	i, err := strconv.Atoi(index)
-	if err != nil {
-		return ""
-	}
-	return pauseMenu.selectedLinkAt(i+1) + pauseMenu.unselectedLinkAt(i)
-}
-
-func menuSelectUp(index string) string {
-	i, err := strconv.Atoi(index)
-	if err != nil {
-		return ""
-	}
-	return pauseMenu.selectedLinkAt(i-1) + pauseMenu.unselectedLinkAt(i)
 }
