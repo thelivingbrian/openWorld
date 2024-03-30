@@ -72,8 +72,12 @@ func handleNewPlayer(existingPlayer *Player) {
 			fmt.Println("Cheating")
 			break
 		}
+		// Throttle input here?
 
 		existingPlayer.handlePress(event)
+		if existingPlayer.conn == nil {
+			return
+		}
 	}
 }
 
@@ -84,7 +88,7 @@ func logOut(player *Player) {
 	delete(player.world.worldPlayers, player.id)
 	player.world.wPlayerMutex.Unlock()
 	player.conn = nil
-	fmt.Println("Logging Out")
+	fmt.Println("Logging Out " + player.username)
 }
 
 func getTokenFromFirstMessage(conn *websocket.Conn) (token string, success bool) {

@@ -84,12 +84,11 @@ func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 
 	worked := checkPasswordHash(password, user.Hashword)
 	if worked {
-		token := uuid.New().String()
 		player, err := world.db.getPlayerRecord(user.Username)
 		if err != nil {
 			log.Fatal("No player found for user")
 		}
-		world.join(w, player, token)
+		world.join(w, player)
 	} else {
 		io.WriteString(w, invalidSignin())
 		return
@@ -97,8 +96,17 @@ func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (world *World) join(w http.ResponseWriter, record *PlayerRecord, token string) {
-	fmt.Println("New Player: " + token)
+func (world *World) join(w http.ResponseWriter, record *PlayerRecord) {
+	token := uuid.New().String()
+	fmt.Println("New Player: " + record.Username)
+	fmt.Println("Token: " + token)
+
+	if world.isLoggedInAlready(record.Username) {
+		fmt.Println("User attempting to log in but is logged in already: " + record.Username)
+		io.WriteString(w, "<h2>Invalid (User logged in already)</h2>")
+		return
+	}
+
 	newPlayer := &Player{
 		id:        token,
 		username:  record.Username,
@@ -118,6 +126,17 @@ func (world *World) join(w http.ResponseWriter, record *PlayerRecord, token stri
 
 	fmt.Println("Printing Page Headers")
 	io.WriteString(w, printPageFor(newPlayer))
+}
+
+func (world *World) isLoggedInAlready(username string) bool {
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	for _, player := range world.worldPlayers {
+		if player.username == username {
+			return true
+		}
+	}
+	return false
 }
 
 /////////////////////////////////////////////
