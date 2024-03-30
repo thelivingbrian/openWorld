@@ -117,7 +117,7 @@ func (m *Menu) attemptClick(p *Player, e PlayerSocketEvent) {
 	}
 }
 
-// Menu actions
+// Menu event handlers
 
 func (p *Player) trySend(msg []byte) {
 	if p.conn != nil {
@@ -125,6 +125,8 @@ func (p *Player) trySend(msg []byte) {
 	}
 }
 
+// Not sure this should be a handler/take an event?
+// take name and/or default "" to "pause"?
 func turnMenuOn(p *Player, event PlayerSocketEvent) {
 	menu, ok := menues[event.MenuName]
 	if ok {

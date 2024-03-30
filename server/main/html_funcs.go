@@ -21,7 +21,6 @@ const screenTemplate = `
 var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(screenTemplate))
 
 func htmlFromPlayer(player *Player) []byte {
-	// pass byte buffer in from http writer w ?
 	var buf bytes.Buffer
 
 	tileHtml := htmlFromTileGrid(player.stage.tiles, player.y, player.x)
