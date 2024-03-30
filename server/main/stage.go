@@ -164,8 +164,3 @@ func updateOne(update string, player *Player) {
 func updateScreenFromScratch(player *Player) {
 	player.stage.updates <- Update{player, htmlFromPlayer(player)}
 }
-
-func sendStuffToPlayerScreen(player *Player) {
-	// Use for testing/benchmarking
-	player.stage.updates <- Update{player, []byte("")}
-}

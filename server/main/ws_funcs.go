@@ -61,17 +61,21 @@ func handleNewPlayer(existingPlayer *Player) {
 			return
 		}
 
-		key, token, success := getKeyPress(msg)
+		event, success := getKeyPress(msg)
 		if !success {
 			fmt.Println("Invalid input")
 			continue
 		}
-		if token != existingPlayer.id {
+		if event.Token != existingPlayer.id {
 			fmt.Println("Cheating")
 			break
 		}
+		// Throttle input here?
 
-		existingPlayer.handlePress(key)
+		existingPlayer.handlePress(event)
+		if existingPlayer.conn == nil {
+			return
+		}
 	}
 }
 
@@ -82,7 +86,7 @@ func logOut(player *Player) {
 	delete(player.world.worldPlayers, player.id)
 	player.world.wPlayerMutex.Unlock()
 	player.conn = nil
-	fmt.Println("Logging Out")
+	fmt.Println("Logging Out " + player.username)
 }
 
 func getTokenFromFirstMessage(conn *websocket.Conn) (token string, success bool) {
@@ -104,58 +108,91 @@ func getTokenFromFirstMessage(conn *websocket.Conn) (token string, success bool)
 	return msg.Token, true
 }
 
-func getKeyPress(input []byte) (key string, token string, success bool) {
-	var msg struct {
-		Token    string `json:"token"`
-		KeyPress string `json:"keypress"`
-	}
-	err := json.Unmarshal(input, &msg)
-	if err != nil {
-		fmt.Println("Error parsing JSON:", err)
-		return "", "", false
-	}
-	return msg.KeyPress, msg.Token, true
+type PlayerSocketEvent struct {
+	Token    string `json:"token"`
+	Name     string `json:"eventname"`
+	MenuName string `json:"menuName"`
+	Arg0     string `json:"arg0"`
 }
 
-func (player *Player) handlePress(key string) {
-	if key == "w" {
+func getKeyPress(input []byte) (event *PlayerSocketEvent, success bool) {
+	event = &PlayerSocketEvent{}
+	err := json.Unmarshal(input, event)
+	if err != nil {
+		fmt.Println("Error parsing JSON:", err)
+		return nil, false
+	}
+	return event, true
+}
+
+func (player *Player) handlePress(event *PlayerSocketEvent) {
+	if event.Name == "w" {
 		/*class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "twilight"</script> </div>`
 		updateOne(class, player)*/
 		player.moveNorth()
 	}
-	if key == "a" {
-		/*class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "day"</script> </div>`
-		updateOne(class, player)*/
+	if event.Name == "a" {
 		player.moveWest()
 	}
-	if key == "s" {
-		/*class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "night"</script> </div>`
-		updateOne(class, player)*/
+	if event.Name == "s" {
 		player.moveSouth()
 	}
-	if key == "d" {
+	if event.Name == "d" {
 		player.moveEast()
 	}
-	if key == "W" {
+	if event.Name == "W" {
 		player.moveNorthBoost()
 	}
-	if key == "A" {
+	if event.Name == "A" {
 		player.moveWestBoost()
 	}
-	if key == "S" {
+	if event.Name == "S" {
 		player.moveSouthBoost()
 	}
-	if key == "D" {
+	if event.Name == "D" {
 		player.moveEastBoost()
 	}
-	if key == "f" {
+	if event.Name == "f" {
 		updateScreenFromScratch(player)
 	}
-	if key == "Space-On" {
-		reactivate := `<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body once" hx-include="#token" name="keypress" value="Space-On" />`
-		updateOne(reactivate, player)
+	if event.Name == "g" {
+		exTile := `<div class="grid-square blue" id="c0-0">				
+						<div id="p0-0" class="box zp "></div>
+						<div id="s0-0" class="box zS"></div>
+						<div id="t0-0" class="box top"></div>
+					</div>
+					<div class="grid-square blue" id="c0-1">				
+						<div id="p0-1" class="box zp "></div>
+						<div id="s0-1" class="box zS"></div>
+						<div id="t0-1" class="box top"></div>
+					</div>
+					`
+		exTile += `<div id="t1-0" class="box top green"></div>
+				<div id="t0-0" class="box top green"></div>`
+		updateOne(exTile, player)
+	}
+	if event.Name == "Space-On" {
 		if player.actions.spaceStack.hasPower() {
 			player.activatePower()
+		}
+	}
+	if event.Name == "menuOn" {
+		event.MenuName = "pause" // Gross but need to think about
+		turnMenuOn(player, *event)
+	}
+	if event.Name == "menuOff" {
+		turnMenuOff(player, *event)
+	}
+	if event.Name == "menuDown" {
+		menuDown(player, *event)
+	}
+	if event.Name == "menuUp" {
+		menuUp(player, *event)
+	}
+	if event.Name == "menuClick" {
+		menu, ok := menues[event.MenuName]
+		if ok {
+			menu.attemptClick(player, *event)
 		}
 	}
 }
