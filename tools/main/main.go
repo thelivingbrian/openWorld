@@ -43,6 +43,7 @@ func main() {
 
 	http.HandleFunc("/collections", c.collectionHandler)
 	http.HandleFunc("/spaces", c.spacesHandler)
+	http.HandleFunc("/spaces/new", c.newSpaceHandler)
 	http.HandleFunc("/areas", c.areasHandler)
 
 	http.HandleFunc("/deploy", c.deploy)

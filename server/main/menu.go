@@ -175,6 +175,7 @@ func (menu *Menu) menuSelectDown(index string) string {
 }
 
 func Quit(p *Player, event PlayerSocketEvent) {
+	defer logOut(p)
 	logOutSuccess := `
 	  <div id="page">
 	      <div id="logo">
@@ -186,5 +187,4 @@ func Quit(p *Player, event PlayerSocketEvent) {
 	      </div>
 	  </div>`
 	p.conn.WriteMessage(websocket.TextMessage, []byte(logOutSuccess))
-	logOut(p)
 }
