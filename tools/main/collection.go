@@ -13,7 +13,7 @@ type Fragment struct {
 
 type Collection struct {
 	Name      string
-	Spaces    map[string][]Area
+	Spaces    map[string]*Space
 	Fragments map[string][]Fragment
 }
 

@@ -10,7 +10,7 @@ import (
 )
 
 type Context struct {
-	Collections map[string]Collection
+	Collections map[string]*Collection
 	materials   []Material
 	colors      []Color
 
@@ -129,29 +129,39 @@ func (c Context) createCSSFile(path string) {
 }
 
 // Collections
-func getAllCollections(collectionPath string) map[string]Collection {
+func getAllCollections(collectionPath string) map[string]*Collection {
 	dirs, err := os.ReadDir(collectionPath)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	collections := make(map[string]Collection)
+	collections := make(map[string]*Collection)
 	for _, dir := range dirs {
 		entry, _ := dir.Info()
 		if entry.IsDir() {
-			collection := Collection{Name: entry.Name(), Spaces: make(map[string][]Area), Fragments: make(map[string][]Fragment)}
+			collection := Collection{Name: entry.Name(), Spaces: make(map[string]*Space), Fragments: make(map[string][]Fragment)}
 
 			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
-			populateMaps(collection.Spaces, pathToSpaces)
+			areaMap := make(map[string][]Area)
+			populateMaps(areaMap, pathToSpaces)
+			collection.Spaces = areasToSpaces(areaMap, entry.Name())
 
 			pathToFragments := filepath.Join(collectionPath, entry.Name(), "fragments")
 			populateMaps(collection.Fragments, pathToFragments)
 
-			collections[entry.Name()] = collection
+			collections[entry.Name()] = &collection
 
 		}
 	}
 	return collections
+}
+
+func areasToSpaces(areaMap map[string][]Area, collectionName string) map[string]*Space {
+	out := make(map[string]*Space)
+	for name, areas := range areaMap {
+		out[name] = &Space{CollectionName: collectionName, Name: name, Areas: areas}
+	}
+	return out
 }
 
 func populateMaps[T any](m map[string][]T, pathToJsonDirectory string) {
@@ -189,10 +199,10 @@ func (c Context) deployLocalChanges(collectionName string) {
 	writeJsonFile(DEPLOY_materialPath, c.materials)
 }
 
-func collectionToAreas(collection Collection) []Area {
+func collectionToAreas(collection *Collection) []Area {
 	var out []Area
 	for _, space := range collection.Spaces {
-		out = append(out, space...)
+		out = append(out, space.Areas...)
 	}
 	return out
 }
