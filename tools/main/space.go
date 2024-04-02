@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
 	"strconv"
 )
@@ -97,14 +98,16 @@ func (c Context) postSpaces(w http.ResponseWriter, r *http.Request) {
 	props, ok := requestToProperties(r)
 	if !ok {
 		fmt.Println("Invalid POST to /spaces. Properties are invalid.")
+		io.WriteString(w, `<h3> Properties are invalid. </h3>`)
 		return
 	}
-	name, ok := props["currentCollection"]
+	cName, ok := props["currentCollection"]
 	if !ok {
 		fmt.Println("Invalid POST to /spaces. Collection not found.")
+		io.WriteString(w, `<h3> Collection not found. </h3>`)
 		return
 	}
-	if col, ok := c.Collections[name]; ok {
+	if col, ok := c.Collections[cName]; ok {
 		fmt.Println(col.Name)
 		valid := true
 
@@ -130,6 +133,8 @@ func (c Context) postSpaces(w http.ResponseWriter, r *http.Request) {
 		valid = valid && ok
 		if !valid {
 			fmt.Println("Invalid, failed to get properties by name.")
+			io.WriteString(w, `<h3> Properties are invalid.</h3>`)
+			return
 		}
 
 		latitude, err := strconv.Atoi(lat)
@@ -137,13 +142,64 @@ func (c Context) postSpaces(w http.ResponseWriter, r *http.Request) {
 
 		longitude, err := strconv.Atoi(long)
 		valid = valid && (err == nil)
+
+		width, err := strconv.Atoi(areaWidth)
+		valid = valid && (err == nil)
+
+		height, err := strconv.Atoi(areaHeight)
+		valid = valid && (err == nil)
 		if !valid {
 			fmt.Println(err)
-			fmt.Println("Invalid, failed to cast latitude and longitude.")
+			fmt.Println("Invalid, failed to cast lat/long/h/w.")
+			io.WriteString(w, `<h3> Failed to cast. </h3>`)
+			return
 		}
 
 		fmt.Printf("%s %s %s %s %s %d %d", name, topology, areaWidth, areaHeight, tileColor, latitude, longitude)
+
+		area := createBaseArea(height, width, tileColor)
+		space := createSpace(cName, name, latitude, longitude, topology, area)
+		col.Spaces[name] = &space
+		io.WriteString(w, `<h3>Success</h3>`)
+		return
 	}
+	io.WriteString(w, `<h3>Invalid collection Name.</h3>`)
+}
+
+func createSpace(cName, name string, latitude, longitude int, topology string, area Area) Space {
+	areas := make([][]Area, latitude)
+	for y := 0; y < latitude; y++ {
+		for x := 0; x < longitude; x++ {
+			// This is consistent with Tiles
+			area.Name = fmt.Sprintf("%s:%d-%d", name, y, x)
+			area.North = fmt.Sprintf("%s:%d-%d", name, mod(y-1, latitude), x)
+			area.South = fmt.Sprintf("%s:%d-%d", name, mod(y+1, latitude), x)
+			area.East = fmt.Sprintf("%s:%d-%d", name, y, mod(x+1, longitude))
+			area.West = fmt.Sprintf("%s:%d-%d", name, y, mod(x-1, longitude))
+			areas[y] = append(areas[y], area)
+		}
+	}
+	// Remove edges if plane topology
+
+	flatAreas := make([]Area, 0)
+	for i := range areas {
+		flatAreas = append(flatAreas, areas[i]...)
+	}
+
+	out := Space{CollectionName: cName, Name: name, Areas: flatAreas}
+	return out
+}
+
+func mod(i, n int) int {
+	return ((i % n) + n) % n
+}
+
+func createBaseArea(height, width int, tileColor string) Area {
+	tiles := make([][]int, height)
+	for i := range tiles {
+		tiles[i] = make([]int, width)
+	}
+	return Area{Name: "", Safe: true, Tiles: tiles, Transports: make([]Transport, 0), DefaultTileColor: tileColor}
 }
 
 //
