@@ -25,15 +25,13 @@ var divSpacePage = `
 	</div>
 	<br />
 	<div id="space_select">
-		<label><b>Select Space: </b></label>
-		<select name="spaceName" hx-get="/areas" hx-include="[name='currentCollection']" hx-target="#area_select">
+		<label>Space: <a hx-get="/spaces/new" hx-include="[name='currentCollection']" hx-target="#space_select" href="#">New</a></label>
+		<select name="currentSpace" hx-get="/areas" hx-include="[name='currentCollection']" hx-target="#area_select">
 			<option value=""></option>
 			{{range  $key, $value := .Spaces}}
 				<option value="{{$key}}">{{$key}}</option>
 			{{end}}
 		</select>
-		<button class="btn" hx-get="/spaces/new" hx-include="[name='currentCollection']" hx-target="#space_select">New</button>
-		<br />
 		<div id="area_select">
 
 		</div>
@@ -48,24 +46,25 @@ var divNewSpace = `
 		<input type="hidden" name="currentCollection" value="{{.Name}}" />
 		
 		<h3>Create New Space</h3>
-		<label><b>Space Name: </b><label>
+		<label><b>Space Name: </b></label>
 		<input type="text" name="newSpaceName" /><br />
 		<br />
-		<label><b>Latitude: </b><label>
+		<label><b>Latitude: </b></label>
 		<input type="text" name="latitude" /><br />
 		
-		<label><b>Longitude: </b><label>
+		<label><b>Longitude: </b></label>
 		<input type="text" name="longitude" /><br />
 
-		<label><b>Topology: </b><label><br />
+		<label><b>Topology: </b></label><br />
 		<span><input type="radio" name="topology" value="plane" checked />Plane</span><br />
 		<span><input type="radio" name="topology" value="Torus" />Torus</span><br />
+		<br /> 
 
-		</label><b>Area Dimensions: </b></label><br />
+		</label><b>Area Dimensions</b></label><br />
 		<label>Width : </label><input type="text" name="areaWidth" value="16"/>
 		<label>Height : </label><input type="text" name="areaHeight" value="16" /><br />
 		
-		<label>Default Tile Color : <label>
+		<label>Default Tile Color : </label>
 		<input type="text" name="tileColor" /><br />
 
 		<input type="submit" />
@@ -202,6 +201,15 @@ func createBaseArea(height, width int, tileColor string) Area {
 	return Area{Name: "", Safe: true, Tiles: tiles, Transports: make([]Transport, 0), DefaultTileColor: tileColor}
 }
 
+func getAreaByName(areas []Area, name string) *Area {
+	for i, area := range areas {
+		if name == area.Name {
+			return &areas[i]
+		}
+	}
+	return nil
+}
+
 //
 
 func (c Context) newSpaceHandler(w http.ResponseWriter, r *http.Request) {
@@ -220,14 +228,4 @@ func (col Collection) getNewSpace(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
-}
-
-// Where does this belong?
-func (c Context) getSpace(collectionName string, spaceName string) *Space {
-	collection, ok := c.Collections[collectionName]
-	if !ok {
-		return nil
-	}
-	return collection.Spaces[spaceName]
-	//return &Space{CollectionName: collectionName, Name: spaceName, Areas: }
 }

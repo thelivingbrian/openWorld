@@ -27,6 +27,6 @@
         <input id="west-go" type="hidden" name="area-name" value="{{.West}}"/>
         <a hx-get="/area" hx-include="#west-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">Go</a>
     </div>
-    <a hx-post="/editNeighbors" hx-include="#area-name,[name='north_input'],[name='south_input'],[name='east_input'],[name='west_input'],[name='currentCollection'],[name='currentSpace']" hx-target="#edit_tool" href="#">Save</a>
+    <a hx-post="/neighbors" hx-include="#area-name,[name='north_input'],[name='south_input'],[name='east_input'],[name='west_input'],[name='currentCollection'],[name='currentSpace']" hx-target="#edit_tool" href="#">Save</a>
 </div>
 {{end}}

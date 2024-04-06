@@ -7,6 +7,14 @@ import (
 	"strconv"
 )
 
+type Transport struct {
+	SourceY   int    `json:"sourceY"`
+	SourceX   int    `json:"sourceX"`
+	DestY     int    `json:"destY"`
+	DestX     int    `json:"destX"`
+	DestStage string `json:"destStage"`
+}
+
 func (c Context) getEditTransports(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	name := queryValues.Get("area-name")

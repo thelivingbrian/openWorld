@@ -4,26 +4,18 @@
     <div id="edit_material" class="left">
         {{template "grid" .GridDetails}}
 
-        <div id="tool_select"> 
-            <input type="radio" id="rt-select" name="radio-tool" value="select" checked>
-            <label for="rt-select">Select</label>
-            <input type="radio" id="rt-replace" name="radio-tool" value="replace">
-            <label for="rt-replace">Replace</label>
-            <input type="radio" id="rt-fill" name="radio-tool" value="fill">
-            <label for="rt-fill">Fill</label>
-            <input type="radio" id="rt-right" name="radio-tool" value="between">
-            <label for="rt-right">Fill between selected</label>
+        <div id="bottom_window">
+            {{template "area-modify" .AvailableMaterials}}
         </div>
-
-        {{template "material-select" .AvailableMaterials}}
+        
     </div>
     <div id="edit_sidebar" class="left">
         <div id="edit_options">
-            Details |
+            <a hx-get="/area/details" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Details</a> |
             Modify |
             <a hx-get="/editTransports" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Transports</a> | 
-            <a hx-get="/editDisplay" hx-target="#edit_tool" href="#">Display</a> | 
-            <a hx-get="/getEditNeighbors" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Neighbors</a> |
+            <a hx-get="/area/display" hx-target="#edit_tool" href="#">Display</a> | 
+            <a hx-get="/area/neighbors" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Neighbors</a> |
             <a hx-get="/materialPage"  hx-target="#edit_tool" href="#">Colors/Materials</a>
         </div>
         <div id="edit_tool">

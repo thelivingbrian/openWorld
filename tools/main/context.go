@@ -184,6 +184,14 @@ func populateMaps[T any](m map[string][]T, pathToJsonDirectory string) {
 	}
 }
 
+func (c Context) getSpace(collectionName string, spaceName string) *Space {
+	collection, ok := c.Collections[collectionName]
+	if !ok {
+		return nil
+	}
+	return collection.Spaces[spaceName]
+}
+
 // DEPLOYMENT
 
 func (c Context) deploy(w http.ResponseWriter, r *http.Request) {
