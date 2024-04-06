@@ -1,0 +1,12 @@
+{{define "material-select"}}
+<div id="material-selector">
+    <label>Materials</label>
+    <select name="materialId" hx-get="/selectMaterial" hx-target="#selected-material-div">
+        <option value="">--</option>
+        {{range $i, $mat := .}}
+        <option value="{{$mat.ID}}">{{$mat.CommonName}}</option>
+        {{end}}
+    </select>
+</div>
+<div id="selected-material-div" class="grid-row"></div>
+{{end}}

@@ -1,0 +1,34 @@
+{{define "area-edit"}}
+<div id="edit_window" class="side">
+    <input id="area-name" type="hidden" name="area-name" value="{{.Name}}"/>
+    <div id="edit_material" class="left">
+        {{template "grid" .GridDetails}}
+
+        <div id="tool_select"> 
+            <input type="radio" id="rt-select" name="radio-tool" value="select" checked>
+            <label for="rt-select">Select</label>
+            <input type="radio" id="rt-replace" name="radio-tool" value="replace">
+            <label for="rt-replace">Replace</label>
+            <input type="radio" id="rt-fill" name="radio-tool" value="fill">
+            <label for="rt-fill">Fill</label>
+            <input type="radio" id="rt-right" name="radio-tool" value="between">
+            <label for="rt-right">Fill between selected</label>
+        </div>
+
+        {{template "material-select" .AvailableMaterials}}
+    </div>
+    <div id="edit_sidebar" class="left">
+        <div id="edit_options">
+            Details |
+            Modify |
+            <a hx-get="/editTransports" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Transports</a> | 
+            <a hx-get="/editDisplay" hx-target="#edit_tool" href="#">Display</a> | 
+            <a hx-get="/getEditNeighbors" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Neighbors</a> |
+            <a hx-get="/materialPage"  hx-target="#edit_tool" href="#">Colors/Materials</a>
+        </div>
+        <div id="edit_tool">
+        
+        </div>
+    </div>
+</div>
+{{end}}

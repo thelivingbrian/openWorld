@@ -1,0 +1,25 @@
+{{define "grid"}}
+<div id="screen" class="grid">
+    {{range $y, $row := .MaterialGrid}}
+    <div class="grid-row">
+        {{range $x, $mat := $row}}
+            {{$cssColor := $mat.CssColor}}
+            {{if eq $cssColor ""}}
+                {{$cssColor = $.DefaultTileColor}}
+            {{end}}
+        <div id="c{{$y}}-{{$x}}" class="grid-square {{$cssColor}}" hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material'],[name='defaultTileColor']" hx-headers='{"y": "{{$y}}", "x": "{{$x}}"}'>
+            <div class="box floor1 {{$mat.Floor1Css}}"></div>
+            <div class="box floor2 {{$mat.Floor2Css}}"></div>
+            <div class="box ceiling1 {{$mat.Ceiling1Css}}"></div>
+            <div class="box ceiling2 {{$mat.Ceiling2Css}}"></div>
+            <div class="box top"></div>
+        </div>
+        {{end}}
+    </div>
+    {{end}}
+</div>
+{{end}}
+
+{{define "grid-square"}}
+
+{{end}}

@@ -33,6 +33,7 @@ var selectedX int
 var selectedY int
 var modifications [][]Material // This is probably going to be a problem. At minimum implies one user max
 
+/*
 var divArea = `
 	<div id="area-page">
 		<input type="hidden" name="currentCollection" value="{{.CollectionName}}" />
@@ -47,30 +48,85 @@ var divArea = `
 			</select>
 		</div>
 		<div id="edit-area">
-		
+
 		</div>
 	</div>
 `
 
 var areaTmpl = template.Must(template.New("AreaSelect").Parse(divArea))
+*/
+
+var tmpl = template.Must(template.ParseGlob("templates/*.tmpl.html"))
 
 func (c Context) areasHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		queryValues := r.URL.Query()
-		collectionName := queryValues.Get("currentCollection")
-		spaceName := queryValues.Get("spaceName")
-		s := c.getSpace(collectionName, spaceName)
-		getAreaPage(w, r, s)
+		c.getAreas(w, r)
 	}
 }
 
-func getAreaPage(w http.ResponseWriter, r *http.Request, space *Space) {
-	err := areaTmpl.Execute(w, *space)
+func (c Context) getAreas(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	collectionName := queryValues.Get("currentCollection")
+	spaceName := queryValues.Get("spaceName")
+
+	space := c.getSpace(collectionName, spaceName)
+	err := tmpl.ExecuteTemplate(w, "area", *space)
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
+// Area
+
+func (c Context) areaHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		c.getArea(w, r)
+	}
+}
+
+func (c Context) getArea(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	collectionName := queryValues.Get("currentCollection")
+	spaceName := queryValues.Get("currentSpace")
+	name := queryValues.Get("area-name")
+
+	space := c.getSpace(collectionName, spaceName)
+	selectedArea := getAreaByName(space.Areas, name)
+	if selectedArea == nil {
+		io.WriteString(w, "<h2>no Area</h2>")
+		return
+	}
+
+	modifications = c.AreaToMaterialGrid(*selectedArea)
+
+	type GridDetails struct {
+		MaterialGrid     [][]Material
+		DefaultTileColor string
+	}
+
+	type PageData struct {
+		GridDetails        GridDetails
+		AvailableMaterials []Material
+		Name               string
+	}
+
+	var pageData = PageData{
+		GridDetails: GridDetails{
+			MaterialGrid:     modifications,
+			DefaultTileColor: selectedArea.DefaultTileColor,
+		},
+		AvailableMaterials: c.materials,
+		Name:               selectedArea.Name,
+	}
+
+	fmt.Println(modifications[2][2].CssColor)
+	err := tmpl.ExecuteTemplate(w, "area-edit", pageData)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+// POST?
 func (c Context) saveArea(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	name := properties["areaName"]
@@ -117,6 +173,7 @@ func (c Context) saveArea(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, `<h2>Success</h2>`)
 }
 
+/*
 func (c Context) getEditArea(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")
@@ -127,7 +184,8 @@ func (c Context) getEditArea(w http.ResponseWriter, r *http.Request) {
 
 	c.editArea(w, r, space, name)
 }
-
+*/
+/*
 func (c Context) editFromTransport(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 
@@ -137,7 +195,8 @@ func (c Context) editFromTransport(w http.ResponseWriter, r *http.Request) {
 
 	name := queryValues.Get("north_input")
 	if name != "" {
-		c.editArea(w, r, space, name)
+		c.getArea(w, r)
+		//c.editArea(w, r, space, name)
 		return
 	}
 	name = queryValues.Get("south_input")
@@ -159,7 +218,8 @@ func (c Context) editFromTransport(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "<h2>invalid</h2>")
 
 }
-
+*/
+/*
 func (c Context) editArea(w http.ResponseWriter, r *http.Request, space *Space, name string) {
 	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
@@ -177,19 +237,19 @@ func (c Context) editArea(w http.ResponseWriter, r *http.Request, space *Space, 
 	output += `		</div>
 					<div id="edit_sidebar" class="left">
 						<div id="edit_options">
-							<a hx-get="/editTransports" hx-target="#edit_tool" hx-include="[name='areaName'],[name='currentCollection'],[name='currentSpace']" href="#">Edit Transports</a> | 
-							<a hx-get="/editDisplay" hx-target="#edit_tool" href="#">Edit Display</a> | 
+							<a hx-get="/editTransports" hx-target="#edit_tool" hx-include="[name='areaName'],[name='currentCollection'],[name='currentSpace']" href="#">Edit Transports</a> |
+							<a hx-get="/editDisplay" hx-target="#edit_tool" href="#">Edit Display</a> |
 							<a hx-get="/getEditNeighbors" hx-target="#edit_tool" hx-include="[name='areaName'],[name='currentCollection'],[name='currentSpace']" href="#">Edit Neighbors</a> |
 							<a hx-get="/materialPage"  hx-target="#edit_tool" href="#">Edit Colors/Materials</a>
 						</div>
 						<div id="edit_tool">
-						
+
 						</div>
 					</div>
 				</div>`
 	io.WriteString(w, output)
 }
-
+*/
 func editDisplay(w http.ResponseWriter, r *http.Request) {
 	output := `<div id="edit_display">
 					<h3>Select BgColor</h3>
@@ -202,21 +262,28 @@ func editDisplay(w http.ResponseWriter, r *http.Request) {
 
 func (c Context) getEditNeighbors(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
-	name := queryValues.Get("areaName")
 
 	collectionName := queryValues.Get("currentCollection")
 	spaceName := queryValues.Get("currentSpace")
 	space := c.getSpace(collectionName, spaceName)
+
+	name := queryValues.Get("area-name")
 	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
 		io.WriteString(w, "<h2>no Area</h2>")
 		return
 	}
 
-	io.WriteString(w, divEditNeighborsForArea(*selectedArea))
+	err := tmpl.ExecuteTemplate(w, "neighbors-edit", *selectedArea)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	//io.WriteString(w, divEditNeighborsForArea(*selectedArea))
 }
 
 // template
+/*
 func divEditNeighborsForArea(selectedArea Area) string {
 	output := `<div id="edit_neighbors">
 					<div id="edit_north">
@@ -243,10 +310,11 @@ func divEditNeighborsForArea(selectedArea Area) string {
 				</div>`
 	return output
 }
+*/
 
 func (c Context) editNeighbors(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
-	name := properties["areaName"]
+	name := properties["area-name"]
 	north := properties["north_input"]
 	south := properties["south_input"]
 	east := properties["east_input"]
@@ -268,7 +336,9 @@ func (c Context) editNeighbors(w http.ResponseWriter, r *http.Request) {
 
 	note := `<div id="confirmation_neighbor_change"><p>saved</p></div>`
 
-	io.WriteString(w, note+divEditNeighborsForArea(*selectedArea))
+	io.WriteString(w, note)
+
+	tmpl.ExecuteTemplate(w, "neighbors-edit", *selectedArea)
 }
 
 func getAreaByName(areas []Area, name string) *Area {
@@ -315,9 +385,10 @@ func divSaveArea(area Area, currentCollection string, currentSpace string) strin
 	</div>`
 }
 
+/*
 func divToolSelect() string {
 	return `
-	<div id="tool_select"> 
+	<div id="tool_select">
 		<input type="radio" id="rt-select" name="radio-tool" value="select" checked>
 		<label for="rt-select">Select</label>
 		<input type="radio" id="rt-replace" name="radio-tool" value="replace">
@@ -329,7 +400,8 @@ func divToolSelect() string {
 	</div>
 	`
 }
-
+*/
+/*
 func (c Context) getHTMLFromArea(area Area) string {
 	output := `<div class="grid" id="screen">`
 	for y := range area.Tiles {
@@ -343,6 +415,7 @@ func (c Context) getHTMLFromArea(area Area) string {
 	output += `</div>`
 	return output
 }
+*/
 
 func getHTMLFromModifications(defaultTileColor string) string {
 	output := `<div class="grid" id="screen" hx-swap-oob="true">`
@@ -357,12 +430,13 @@ func getHTMLFromModifications(defaultTileColor string) string {
 	return output
 }
 
+/*
 func (c Context) divMaterialSelect() string {
 	output := `
 	<div id="material-selector">
 		<label>Materials</label>
 		<select name="materialId" hx-get="/selectMaterial" hx-target="#selected-material-div">
-			<option value="">--</option>	
+			<option value="">--</option>
 	`
 	for _, material := range c.materials {
 		output += fmt.Sprintf(`<option value="%d">%s</option>`, material.ID, material.CommonName)
@@ -374,7 +448,7 @@ func (c Context) divMaterialSelect() string {
 	<div id="selected-material-div" class="grid-row"></div>`
 
 	return output
-}
+}*/
 
 func (c Context) selectMaterial(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()

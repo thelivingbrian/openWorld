@@ -9,7 +9,7 @@ import (
 
 func (c Context) getEditTransports(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
-	name := queryValues.Get("areaName")
+	name := queryValues.Get("area-name")
 	collectionName := queryValues.Get("currentCollection")
 	spaceName := queryValues.Get("currentSpace")
 	space := c.getSpace(collectionName, spaceName)
@@ -56,7 +56,7 @@ func (c Context) editTransport(w http.ResponseWriter, r *http.Request) {
 
 func (c Context) newTransport(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
-	areaName := properties["areaName"]
+	areaName := properties["area-name"]
 	fmt.Println(areaName)
 
 	collectionName := properties["currentCollection"]
@@ -116,8 +116,8 @@ func editTransportForm(i int, t Transport, sourceName string) string {
 		</table>
 
 		<button class="btn">Submit</button>
-		<button class="btn" hx-post="/dupeTransport" hx-include="[name='areaName],[name='currentCollection'],[name='currentSpace']">Duplicate</button>
-		<button class="btn" hx-post="/deleteTransport" hx-include="[name='areaName],[name='currentCollection'],[name='currentSpace']">Delete</button>
+		<button class="btn" hx-post="/dupeTransport" hx-include="[name='area-name'],[name='currentCollection'],[name='currentSpace']">Duplicate</button>
+		<button class="btn" hx-post="/deleteTransport" hx-include="[name='area-name'],[name='currentCollection'],[name='currentSpace']">Delete</button>
 	</form>`, i, sourceName, t.DestStage, t.DestY, t.DestX, t.SourceY, t.SourceX, "pink")
 	return output
 }
@@ -125,7 +125,7 @@ func editTransportForm(i int, t Transport, sourceName string) string {
 func transportFormHtml(area Area) string {
 	output := `<div id="edit_transports">
 					<h4>Transports: </h4>
-					<a hx-post="/newTransport" hx-include="[name='areaName'],[name='currentCollection'],[name='currentSpace']" hx-target="#edit_transports" href="#"> New </a><br />`
+					<a hx-post="/newTransport" hx-include="[name='area-name'],[name='currentCollection'],[name='currentSpace']" hx-target="#edit_transports" href="#"> New </a><br />`
 	for i, transport := range area.Transports {
 		output += editTransportForm(i, transport, area.Name)
 	}

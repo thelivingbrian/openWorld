@@ -1,0 +1,67 @@
+/* Basic Reset
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  */
+  
+  body {
+    font-family: Arial, sans-serif; /* Use a modern, easy-to-read font */
+  }
+  
+  /* Form Styles */
+  form {
+    max-width: 500px; /* Adjust based on preference */
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f3f3f3;
+    border-radius: 8px;
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: inset 0 1px 3px #ddd;
+    display: block;
+  }
+  
+  input[type="submit"],
+  button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  input[type="submit"]:hover,
+  button:hover {
+    background-color: #0056b3;
+  }
+  
+  label {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    display: inline-block;
+    font-weight: bold;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 600px) {
+    form {
+      width: 90%;
+      padding: 15px;
+    }
+  }
+  

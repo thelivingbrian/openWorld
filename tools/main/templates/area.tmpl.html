@@ -1,0 +1,18 @@
+{{define "area"}}
+<div id="area-page">
+    <input type="hidden" name="currentCollection" value="{{.CollectionName}}" />
+    <input type="hidden" name="currentSpace" value="{{.Name}}" />
+    <div id="select-area">
+        <label>Areas</label>
+        <select name="area-name" hx-get="/area" hx-include="[name='currentSpace'],[name='currentCollection']" hx-target="#edit-area">
+            <option value="">--</option>
+            {{range  $i, $area := .Areas}}
+                <option value="{{$area.Name}}">{{$area.Name}}</option>
+            {{end}}
+        </select>
+    </div>
+    <div id="edit-area">
+    
+    </div>
+</div>
+{{end}}

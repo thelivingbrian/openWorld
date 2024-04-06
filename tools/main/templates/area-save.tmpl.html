@@ -1,0 +1,17 @@
+{{define "area-save"}}
+<div id="saveForm">
+    <div id="save_notice"></div>
+    <form hx-post="/saveArea" hx-include hx-target="#save_notice">
+        <input type="hidden" name="currentCollection" value="{{.currentCollection}}"/>
+        <input type="hidden" name="currentSpace" value="{{.currentSpace}}"/>
+        <input type="hidden" name="new" value="false"/>
+        <label>Name:</label>
+        <input type="text" name="areaName" value="{{.area.Name}}">
+        <label>Safe:</label>
+        <input type="checkbox" name="safe" {{.checked}}>
+        <button>Save</button><br />
+        <label>Default Tile Color:</label>
+        <input type="text" name="defaultTileColor" value="{{.area.DefaultTileColor}}">
+    </form>
+</div>
+{{end}}
