@@ -12,9 +12,9 @@ func main() {
 	fmt.Println("Attempting to start server...")
 	c := populateFromJson()
 
-	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./assets"))))
+	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./assets"))))
 
-	http.HandleFunc("/collections", c.collectionHandler)
+	http.HandleFunc("/collections", c.collectionsHandler)
 	http.HandleFunc("/spaces", c.spacesHandler)
 	http.HandleFunc("/spaces/new", c.newSpaceHandler)
 	http.HandleFunc("/areas", c.areasHandler)
@@ -22,6 +22,7 @@ func main() {
 	http.HandleFunc("/area/details", c.areaDetailsHandler)
 	http.HandleFunc("/area/display", c.areaDisplayHandler)
 	http.HandleFunc("/area/neighbors", c.areaNeighborsHandler)
+	http.HandleFunc("/fragments", c.fragmentsHandler)
 
 	http.HandleFunc("/materialPage", c.getMaterialPage)
 	http.HandleFunc("/getEditMaterial", c.getEditMaterial)
@@ -46,6 +47,13 @@ func main() {
 	http.HandleFunc("/deleteTransport", c.deleteTransport)
 
 	http.HandleFunc("/deploy", c.deploy)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+		tmpl.ExecuteTemplate(w, "home", c.Collections)
+	})
 
 	err := http.ListenAndServe(":4444", nil)
 	if err != nil {

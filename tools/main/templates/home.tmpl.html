@@ -1,7 +1,8 @@
-<script src="htmx-199.min.js"></script>
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="colors.css">
-<link rel="stylesheet" href="form.css">
+{{define "home"}}
+<script src="assets/htmx-199.min.js"></script>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/colors.css">
+<link rel="stylesheet" href="assets/form.css">
 <head>
     <meta charset="UTF-8">
     <title>Design Workspace</title>
@@ -11,10 +12,11 @@
         <div id="navigation">
             <a hx-get="/materialPage" hx-target="#panel" href="#">Colors/Materials</a>  |  
             <a hx-get="/collections" hx-target="#panel" href="#">Collections</a> |
-            <span>Latest Collection</span>
+            <span>Latest Collection</span> 
         </div>
         <div id="panel">
-            
+            {{template "collections" .}}
         </div>
     </div>
 </body>
+{{end}}

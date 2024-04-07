@@ -5,6 +5,14 @@
     padding: 0;
   }
   */
+
+  a, a:visited, a:hover, a:active {
+    color: #007BdF;
+}
+
+a:hover, a:focus {
+    color: #0056b4;
+}
   
   body {
     font-family: Arial, sans-serif; /* Use a modern, easy-to-read font */

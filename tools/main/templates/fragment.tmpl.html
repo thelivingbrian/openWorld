@@ -1,0 +1,20 @@
+{{define "fragments"}}
+<div id="fragments">
+        {{template "fragment-select"}}
+</div>
+{{end}}
+
+{{define "fragment-select"}}
+<div id="fragment-select">
+    <form hx-trigger="change" hx-get="/fragment/select" hx-target="#fragment-select">
+        <select name="fragment-set">
+            <option value="">--</option>
+            <option value="0">Hello</option>
+        </select>
+        <select name="fragment">
+            <option value="">--</option>
+            <option value="0">Goodbye</option>
+        </select>
+    </form>
+</div>
+{{end}}
