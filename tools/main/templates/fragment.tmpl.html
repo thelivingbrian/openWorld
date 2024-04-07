@@ -1,20 +1,39 @@
 {{define "fragments"}}
 <div id="fragments">
-        {{template "fragment-select"}}
+        {{template "fragment-select" .}}
 </div>
 {{end}}
 
 {{define "fragment-select"}}
 <div id="fragment-select">
-    <form hx-trigger="change" hx-get="/fragment/select" hx-target="#fragment-select">
-        <select name="fragment-set">
-            <option value="">--</option>
-            <option value="0">Hello</option>
+    <form hx-trigger="change" hx-include="[name='currentCollection']" hx-get="/fragments" hx-target="#fragment-select">
+        <label>Set: <a hx-get="/fragments/new" hx-include="[name='currentCollection']" href="#">New</a></label>
+        <select id="fragment-set" name="fragment-set">
+            <option value="{{.CurrentSet}}">{{.CurrentSet}}</option>
+            {{range $i, $name := .FragmentSets}}
+            <option value="{{$name}}">{{$name}}</option>
+            {{end}}
         </select>
+        {{if .Fragments}}
+        <label>Fragment: <a hx-get="/fragments" hx-include="#fragment-set,[name='currentCollection']" href="#">New</a></label>
         <select name="fragment">
             <option value="">--</option>
-            <option value="0">Goodbye</option>
+            {{range $i, $frag := .Fragments}}
+            <option value="{{$frag.Name}}">{{$frag.Name}}</option>
+            {{end}}
         </select>
+        {{end}}
     </form>
+    {{if .FragmentDetails}}
+        {{template "fragment" .FragmentDetails}}
+    {{end}}
+</div>
+{{end}}
+
+
+{{define "fragment"}}
+<div id="fragments-window">
+    <label>{{.Name}} <a href="#">edit</a></label>
+    {{template "grid" .GridDetails}}
 </div>
 {{end}}

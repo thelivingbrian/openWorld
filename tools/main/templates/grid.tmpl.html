@@ -1,5 +1,5 @@
 {{define "grid"}}
-<div id="screen" class="grid">
+<div id="screen{{.ScreenID}}" class="grid">
     {{range $y, $row := .MaterialGrid}}
     <div class="grid-row">
         {{range $x, $mat := $row}}
@@ -18,8 +18,4 @@
     </div>
     {{end}}
 </div>
-{{end}}
-
-{{define "grid-square"}}
-
 {{end}}

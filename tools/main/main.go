@@ -23,6 +23,7 @@ func main() {
 	http.HandleFunc("/area/display", c.areaDisplayHandler)
 	http.HandleFunc("/area/neighbors", c.areaNeighborsHandler)
 	http.HandleFunc("/fragments", c.fragmentsHandler)
+	//http.HandleFunc("/fragment/select", c.fragmentSelectHandler)
 
 	http.HandleFunc("/materialPage", c.getMaterialPage)
 	http.HandleFunc("/getEditMaterial", c.getEditMaterial)

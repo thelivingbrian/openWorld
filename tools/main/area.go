@@ -22,6 +22,7 @@ type Area struct {
 type GridDetails struct {
 	MaterialGrid     [][]Material
 	DefaultTileColor string
+	ScreenID         string
 }
 
 type PageData struct {
@@ -80,6 +81,7 @@ func (c Context) getArea(w http.ResponseWriter, r *http.Request) {
 		GridDetails: GridDetails{
 			MaterialGrid:     modifications,
 			DefaultTileColor: selectedArea.DefaultTileColor,
+			ScreenID:         "",
 		},
 		AvailableMaterials: c.materials,
 		Name:               selectedArea.Name,
@@ -91,11 +93,15 @@ func (c Context) getArea(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Context) AreaToMaterialGrid(area Area) [][]Material {
-	out := make([][]Material, len(area.Tiles))
-	for y := range area.Tiles {
-		out[y] = make([]Material, len(area.Tiles[y]))
-		for x := range area.Tiles[y] {
-			out[y][x] = c.materials[area.Tiles[y][x]]
+	return c.DereferenceIntMatrix(area.Tiles)
+}
+
+func (c Context) DereferenceIntMatrix(matrix [][]int) [][]Material {
+	out := make([][]Material, len(matrix))
+	for y := range matrix {
+		out[y] = make([]Material, len(matrix))
+		for x := range matrix[y] {
+			out[y][x] = c.materials[matrix[y][x]]
 		}
 	}
 	return out
