@@ -20,6 +20,7 @@
                     hx-headers='{   "Y": "{{$y}}", 
                                     "X": "{{$x}}", 
                                     "Sid": "{{$screenId}}",
+                                    "Location": "{{$.Location}}",
                                     "Default-Tile-Color": "{{$.DefaultTileColor}}" }'>
                 <div class="box floor1 {{$mat.Floor1Css}}"></div>
                 <div class="box floor2 {{$mat.Floor2Css}}"></div>
@@ -48,6 +49,7 @@
     hx-headers='{   "Y": "{{.ClickEvent.Y}}", 
                     "X": "{{.ClickEvent.X}}", 
                     "Sid": "{{.ClickEvent.ScreenID}}",
+                    "Location": "{{.ClickEvent.Location}}",
                     "Default-Tile-Color": "{{.ClickEvent.DefaultTileColor}}" }'
     hx-swap-oob="true">
     <div class="box floor1 {{.Material.Floor1Css}}"></div>

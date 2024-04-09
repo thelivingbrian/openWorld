@@ -22,6 +22,7 @@ type Area struct {
 type GridDetails struct {
 	MaterialGrid     [][]Material
 	DefaultTileColor string
+	Location         string
 	ScreenID         string
 	GridType         string
 	Oob              bool
@@ -84,8 +85,9 @@ func (c Context) getArea(w http.ResponseWriter, r *http.Request) {
 		GridDetails: GridDetails{
 			MaterialGrid:     modifications,
 			DefaultTileColor: selectedArea.DefaultTileColor,
-			ScreenID:         space.Name + "_" + selectedArea.Name, // "screen?"
+			Location:         space.Name + "_" + selectedArea.Name, // "screen?"
 			GridType:         "area",
+			ScreenID:         "screen",
 		},
 		AvailableMaterials: c.materials,
 		Name:               selectedArea.Name,
@@ -316,22 +318,26 @@ func dataFromClickRequest(r *http.Request, gridtype string) (ClickEvent, bool) {
 	xCoord, _ := strconv.Atoi(r.Header["X"][0])
 
 	sidHeaders := r.Header["Sid"]
-	if len(sidHeaders) == 0 {
-		fmt.Println("No screen id headers")
-		return ClickEvent{yCoord, xCoord, gridtype, "", "", false}, false
-	}
 	sid := sidHeaders[0]
 	fmt.Println(sid)
+
+	LocationHeaders := r.Header["Location"]
+	if len(LocationHeaders) == 0 {
+		fmt.Println("No Location headers")
+		return ClickEvent{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: "", Location: ""}, false
+	}
+	location := LocationHeaders[0]
+	fmt.Println(location)
 
 	defaultTileColorHeaders := r.Header["Default-Tile-Color"]
 	if len(defaultTileColorHeaders) == 0 {
 		fmt.Println("No screen id headers")
-		return ClickEvent{yCoord, xCoord, gridtype, "", sid, false}, false
+		return ClickEvent{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: "", Location: location}, false
 	}
 	dtc := defaultTileColorHeaders[0]
-	fmt.Println(sid)
+	fmt.Println(location)
 
-	return ClickEvent{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: dtc, ScreenID: sid}, true
+	return ClickEvent{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: dtc, Location: location, ScreenID: sid}, true
 }
 
 func selectSquare(y, x int, defaultTileColor string) string {

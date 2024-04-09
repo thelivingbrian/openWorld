@@ -51,7 +51,7 @@ func (c Context) getFragments(w http.ResponseWriter, r *http.Request) {
 	} else {
 		for i, fragment := range collection.Fragments[setName] {
 			details := c.DetailsFromFragment(&fragment, false)
-			details.GridDetails.ScreenID += "_" + strconv.Itoa(i)
+			details.GridDetails.ScreenID += strconv.Itoa(i)
 			fragDetails = append(fragDetails, details)
 		}
 	}
@@ -83,7 +83,8 @@ func (c Context) DetailsFromFragment(fragment *Fragment, clickable bool) *Fragme
 		GridDetails: GridDetails{
 			MaterialGrid:     c.DereferenceIntMatrix(fragment.Tiles),
 			DefaultTileColor: "",
-			ScreenID:         fragment.SetName + "_" + fragment.Name,
+			Location:         fragment.SetName + "_" + fragment.Name,
+			ScreenID:         "fragment",
 			GridType:         gridtype},
 	}
 }

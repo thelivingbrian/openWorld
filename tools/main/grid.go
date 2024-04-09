@@ -14,6 +14,7 @@ type ClickEvent struct {
 	X                int
 	GridType         string
 	DefaultTileColor string
+	Location         string
 	ScreenID         string
 	Selected         bool
 }
@@ -36,9 +37,9 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 	if !success {
 		panic("No Coordinates provided")
 	}
-	fmt.Printf("%d %d %s %s\n", event.Y, event.X, event.ScreenID, event.DefaultTileColor)
+	fmt.Printf("%d %d %s %s\n", event.Y, event.X, event.Location, event.DefaultTileColor)
 
-	parts := strings.Split(event.ScreenID, "_")
+	parts := strings.Split(event.Location, "_")
 	if len(parts) < 2 {
 		fmt.Println("Invalid Sid")
 	}
@@ -65,7 +66,8 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 		area := getAreaByName(space.Areas, areaName)
 		fmt.Println("Have: " + area.Name)
 		if selectedTool == "select" {
-			io.WriteString(w, gridSelect(event))
+			// should oob update hiddens
+			io.WriteString(w, c.gridSelect(event, area.Tiles))
 		} else if selectedTool == "replace" {
 			selectedMaterial := c.getMaterialFromRequestProperties(properties)
 			io.WriteString(w, gridReplace(event, area.Tiles, selectedMaterial))
@@ -75,7 +77,8 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 			var pageData = GridDetails{
 				MaterialGrid:     c.DereferenceIntMatrix(area.Tiles),
 				DefaultTileColor: area.DefaultTileColor,
-				ScreenID:         event.ScreenID, // "screen?"
+				Location:         event.Location,
+				ScreenID:         event.ScreenID,
 				GridType:         "area",
 				Oob:              true,
 			}
@@ -84,13 +87,12 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				fmt.Println(err)
 			}
+		} else if selectedTool == "between" {
+			selectedMaterial := c.getMaterialFromRequestProperties(properties)
+			selectedMaterial.ID += 0
+			io.WriteString(w, c.gridFillBetween(event, area.Tiles, selectedMaterial))
 		}
-
 	}
-
-	//fmt.Println("using: " + selectedTool + " : " + event.DefaultTileColor)
-	//c.clickOnSquare(w, r)
-	// Get [][]int from Area and pass to tool for mutation
 }
 
 func (c Context) gridClickFragmentHandler(w http.ResponseWriter, r *http.Request) {
@@ -101,7 +103,7 @@ func (c Context) gridClickFragmentHandler(w http.ResponseWriter, r *http.Request
 }
 
 // / Tools
-func gridSelect(event ClickEvent) string {
+func (c Context) gridSelect(event ClickEvent, modifications [][]int) string {
 	//output := ""
 	var buf bytes.Buffer
 	if haveSelection {
@@ -109,12 +111,13 @@ func gridSelect(event ClickEvent) string {
 			Material   Material
 			ClickEvent ClickEvent
 		}{
-			Material: modifications[selectedY][selectedX],
+			Material: c.materials[modifications[selectedY][selectedX]],
 			ClickEvent: ClickEvent{
 				Y:                selectedY,
 				X:                selectedX,
 				GridType:         "area",
 				DefaultTileColor: event.DefaultTileColor,
+				Location:         event.Location,
 				ScreenID:         event.ScreenID},
 		}
 		err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)
@@ -130,7 +133,7 @@ func gridSelect(event ClickEvent) string {
 		Material   Material
 		ClickEvent ClickEvent
 	}{
-		Material:   modifications[selectedY][selectedX],
+		Material:   c.materials[modifications[selectedY][selectedX]],
 		ClickEvent: event,
 	}
 	err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)
@@ -164,7 +167,6 @@ func gridFill(event ClickEvent, modifications [][]int, selectedMaterial Material
 		seen[row] = make([]bool, len(modifications[row]))
 	}
 	fill(event, modifications, selectedMaterial, seen, targetId)
-	//return getHTMLFromModifications(event.DefaultTileColor)
 }
 
 func fill(event ClickEvent, modifications [][]int, selectedMaterial Material, seen [][]bool, targetId int) {
@@ -187,6 +189,39 @@ func fill(event ClickEvent, modifications [][]int, selectedMaterial Material, se
 			}
 		}
 	}
+}
+
+func (c Context) gridFillBetween(event ClickEvent, modifications [][]int, selectedMaterial Material) string {
+	if !haveSelection {
+		c.gridSelect(event, modifications)
+	}
+	var lowx, lowy, highx, highy int
+	if event.Y <= selectedY {
+		lowy = event.Y
+		highy = selectedY
+	} else {
+		lowy = selectedY
+		highy = event.Y
+	}
+	if event.X <= selectedX {
+		lowx = event.X
+		highx = selectedX
+	} else {
+		lowx = selectedX
+		highx = event.X
+	}
+	output := ""
+	for i := lowy; i <= highy; i++ {
+		for j := lowx; j <= highx; j++ {
+			newEvent := event
+			newEvent.Y = i
+			newEvent.X = j
+			output += gridReplace(newEvent, modifications, selectedMaterial)
+			//output += replaceSquare(i, j, selectedMaterial, defaultTileColor)
+		}
+	}
+	output += c.gridSelect(event, modifications)
+	return output
 }
 
 ///
