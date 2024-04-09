@@ -239,6 +239,7 @@ func (c Context) selectMaterial(w http.ResponseWriter, r *http.Request) {
 
 	io.WriteString(w, exampleSquareFromMaterial(selectedMaterial))
 }
+
 func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	fixtureType := queryValues.Get("current-fixture")
@@ -257,7 +258,7 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var setOptions []string
-		for key, _ := range collection.Fragments {
+		for key := range collection.Fragments {
 			fmt.Println(key)
 			setOptions = append(setOptions, key)
 		}
@@ -275,4 +276,49 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 		}
 		tmpl.ExecuteTemplate(w, "fixture-fragment", pageData)
 	}
+}
+
+func (c Context) getMaterialFromRequestProperties(properties map[string]string) Material {
+	//properties, _ := requestToProperties(r)
+	fmt.Println(properties)
+	fmt.Println(properties["selected-material"])
+	selectedMaterialId, err := strconv.Atoi(properties["selected-material"])
+	if err != nil {
+		fmt.Println(err)
+		selectedMaterialId = 0
+	}
+	return c.materials[selectedMaterialId]
+}
+
+func dataFromClickRequest(r *http.Request, gridtype string) (ClickEvent, bool) {
+	yCoord, _ := strconv.Atoi(r.Header["Y"][0])
+	xCoord, _ := strconv.Atoi(r.Header["X"][0])
+
+	sidHeaders := r.Header["Sid"]
+	sid := sidHeaders[0]
+	fmt.Println(sid)
+
+	LocationHeaders := r.Header["Location"]
+	if len(LocationHeaders) == 0 {
+		fmt.Println("No Location headers")
+		return ClickEvent{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: "", Location: ""}, false
+	}
+	location := LocationHeaders[0]
+	fmt.Println(location)
+
+	defaultTileColorHeaders := r.Header["Default-Tile-Color"]
+	if len(defaultTileColorHeaders) == 0 {
+		fmt.Println("No screen id headers")
+		return ClickEvent{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: "", Location: location}, false
+	}
+	dtc := defaultTileColorHeaders[0]
+	fmt.Println(location)
+
+	return ClickEvent{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: dtc, Location: location, ScreenID: sid}, true
+}
+
+func exampleSquareFromMaterial(material Material) string {
+	overlay := fmt.Sprintf(`<div class="box floor1 %s"></div><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div><div class="box ceiling2 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css, material.Ceiling2Css)
+	idHiddenInput := fmt.Sprintf(`<input name="selected-material" type="hidden" value="%d" />`, material.ID)
+	return fmt.Sprintf(`<div class="grid-square %s" name="selected-material">%s%s</div>`, material.CssColor, overlay, idHiddenInput)
 }

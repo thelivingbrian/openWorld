@@ -44,7 +44,7 @@ func main() {
 	http.HandleFunc("/exampleSquare", exampleSquare)
 	http.HandleFunc("/outputIngredients", c.outputIngredients)
 
-	http.HandleFunc("/clickOnSquare", c.clickOnSquare)
+	//http.HandleFunc("/clickOnSquare", c.clickOnSquare)
 	http.HandleFunc("/selectMaterial", c.selectMaterial)
 	http.HandleFunc("/selectFixture", c.selectFixture)
 

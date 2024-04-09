@@ -188,9 +188,10 @@ func (c Context) deleteTransport(w http.ResponseWriter, r *http.Request) {
 func transportsAsOob(area Area) string {
 	output := ``
 	for _, transport := range area.Transports {
-		var yStr = strconv.Itoa(transport.SourceY)
-		var xStr = strconv.Itoa(transport.SourceX)
-		output += `<div hx-swap-oob="true" hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[transport.SourceY][transport.SourceX].CssColor + `" id="c` + yStr + `-` + xStr + `"><div class="box top med red-b"></div></div></div>`
+		fmt.Println(transport)
+		//var yStr = strconv.Itoa(transport.SourceY)
+		//var xStr = strconv.Itoa(transport.SourceX)
+		//output += `<div hx-swap-oob="true" hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[transport.SourceY][transport.SourceX].CssColor + `" id="c` + yStr + `-` + xStr + `"><div class="box top med red-b"></div></div></div>`
 	}
 	output += ``
 	return output

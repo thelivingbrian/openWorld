@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 )
 
 type Area struct {
@@ -40,7 +39,8 @@ type PageData struct {
 var haveSelection bool = false
 var selectedX int
 var selectedY int
-var modifications [][]Material
+
+//var modifications [][]Material
 
 // ///////////////////////////////////////////////////////////
 // Areas
@@ -79,7 +79,7 @@ func (c Context) getArea(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	modifications = c.AreaToMaterialGrid(*selectedArea)
+	modifications := c.AreaToMaterialGrid(*selectedArea)
 
 	var pageData = PageData{
 		GridDetails: GridDetails{
@@ -124,30 +124,34 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 
 	space := c.getSpace(collectionName, spaceName)
 
-	if len(modifications) == 0 {
-		return
-	}
-
-	tiles := make([][]int, len(modifications))
-	for y := range modifications {
-		tiles[y] = make([]int, len(modifications[y]))
-		for x, material := range modifications[y] {
-			tiles[y][x] = material.ID
+	/*
+		if len(modifications) == 0 {
+			return
 		}
-	}
 
+		tiles := make([][]int, len(modifications))
+		for y := range modifications {
+			tiles[y] = make([]int, len(modifications[y]))
+			for x, material := range modifications[y] {
+				tiles[y][x] = material.ID
+			}
+		}
+	*/
+
+	// This needs changing no that modifications are local
+	// Can make name static or add oldname as property
 	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
-		area := Area{Name: name, Safe: safe, Tiles: tiles, Transports: nil, DefaultTileColor: defaultTileColor}
+		area := Area{Name: name, Safe: safe, Tiles: nil, Transports: nil, DefaultTileColor: defaultTileColor}
 		space.Areas = append(space.Areas, area)
 	} else {
 		if new {
 			io.WriteString(w, `<h2>Invalid Name</h2>`)
 			return
 		}
-		selectedArea.Safe = safe
-		selectedArea.Tiles = tiles
-		selectedArea.DefaultTileColor = defaultTileColor
+		//selectedArea.Safe = safe
+		//selectedArea.Tiles = tiles
+		//selectedArea.DefaultTileColor = defaultTileColor
 	}
 
 	outFile := c.collectionPath + collectionName + "/spaces/" + spaceName + "2.json"
@@ -257,210 +261,4 @@ func (c Context) postNeighbors(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, note)
 
 	tmpl.ExecuteTemplate(w, "neighbors-edit", *selectedArea)
-}
-
-////////////////////////////////////////////////////////////////////////
-//  Painting
-
-func (c Context) clickOnSquare(w http.ResponseWriter, r *http.Request) {
-
-	y := 0
-	x := 0
-	/*
-		y, x, success := dataFromClickRequest(r)
-		if !success {
-			panic("No Coordinates provided")
-		}
-	*/
-
-	properties, _ := requestToProperties(r)
-	selectedTool, ok := properties["radio-tool"]
-	if !ok {
-		fmt.Println("No Tool Selected")
-		return
-	}
-	defaultTileColor := properties["defaultTileColor"]
-
-	// click event
-	// [][]int grid from fragment or area
-	// y, x
-	// selected material
-	// default tile color?
-
-	if selectedTool == "select" {
-		io.WriteString(w, selectSquare(y, x, defaultTileColor))
-	} else if selectedTool == "replace" {
-		selectedMaterial := c.getMaterialFromRequestProperties(properties)
-		io.WriteString(w, replaceSquare(y, x, selectedMaterial, defaultTileColor))
-	} else if selectedTool == "fill" {
-		selectedMaterial := c.getMaterialFromRequestProperties(properties)
-		io.WriteString(w, fillFrom(y, x, selectedMaterial, defaultTileColor))
-	} else if selectedTool == "between" {
-		selectedMaterial := c.getMaterialFromRequestProperties(properties)
-		io.WriteString(w, fillBetween(y, x, selectedMaterial, defaultTileColor))
-	}
-}
-
-func (c Context) getMaterialFromRequestProperties(properties map[string]string) Material {
-	//properties, _ := requestToProperties(r)
-	fmt.Println(properties)
-	fmt.Println(properties["selected-material"])
-	selectedMaterialId, err := strconv.Atoi(properties["selected-material"])
-	if err != nil {
-		fmt.Println(err)
-		selectedMaterialId = 0
-	}
-	return c.materials[selectedMaterialId]
-}
-
-func dataFromClickRequest(r *http.Request, gridtype string) (ClickEvent, bool) {
-	yCoord, _ := strconv.Atoi(r.Header["Y"][0])
-	xCoord, _ := strconv.Atoi(r.Header["X"][0])
-
-	sidHeaders := r.Header["Sid"]
-	sid := sidHeaders[0]
-	fmt.Println(sid)
-
-	LocationHeaders := r.Header["Location"]
-	if len(LocationHeaders) == 0 {
-		fmt.Println("No Location headers")
-		return ClickEvent{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: "", Location: ""}, false
-	}
-	location := LocationHeaders[0]
-	fmt.Println(location)
-
-	defaultTileColorHeaders := r.Header["Default-Tile-Color"]
-	if len(defaultTileColorHeaders) == 0 {
-		fmt.Println("No screen id headers")
-		return ClickEvent{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: "", Location: location}, false
-	}
-	dtc := defaultTileColorHeaders[0]
-	fmt.Println(location)
-
-	return ClickEvent{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: dtc, Location: location, ScreenID: sid}, true
-}
-
-func selectSquare(y, x int, defaultTileColor string) string {
-	output := ""
-	if haveSelection {
-		output += oobSquareUnselected(selectedY, selectedX, modifications[selectedY][selectedX], defaultTileColor)
-	}
-	haveSelection = true // Probably should be a hidden input
-	selectedY = y
-	selectedX = x
-	return output + oobSquareSelected(y, x, modifications[y][x], defaultTileColor)
-}
-
-func replaceSquare(y int, x int, selectedMaterial Material, defaultTileColor string) string {
-	modifications[y][x] = selectedMaterial
-	return oobSquareUnselected(y, x, selectedMaterial, defaultTileColor)
-}
-
-func oobSquare(y int, x int, material Material, defaultColor string, selected bool, oob bool) string {
-	redBox := ""
-	if selected {
-		redBox = `<div class="box top red-b med"></div>`
-	}
-	overlay := fmt.Sprintf(`<div class="box floor1 %s"></div><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div><div class="box ceiling2 %s"></div>%s`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css, material.Ceiling2Css, redBox)
-	var yStr = strconv.Itoa(y)
-	var xStr = strconv.Itoa(x)
-	tileColor := material.CssColor
-	if tileColor == "" {
-		tileColor = defaultColor
-	}
-	oobString := ""
-	if oob {
-		oobString = `hx-swap-oob="true"`
-	}
-	return fmt.Sprintf(`<div hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material'],[name='defaultTileColor']" hx-headers='{"y": "%s", "x": "%s"}' class="grid-square %s" id="c%s-%s" %s>%s</div>`, yStr, xStr, tileColor, yStr, xStr, oobString, overlay)
-}
-
-func oobSquareSelected(y int, x int, material Material, defaultColor string) string {
-	return oobSquare(y, x, material, defaultColor, true, true)
-}
-
-func oobSquareUnselected(y int, x int, material Material, defaultColor string) string {
-	return oobSquare(y, x, material, defaultColor, false, true)
-}
-
-func squareUnselected(y int, x int, material Material, defaultColor string) string {
-	return oobSquare(y, x, material, defaultColor, false, false)
-}
-
-func exampleSquareFromMaterial(material Material) string {
-	overlay := fmt.Sprintf(`<div class="box floor1 %s"></div><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div><div class="box ceiling2 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css, material.Ceiling2Css)
-	idHiddenInput := fmt.Sprintf(`<input name="selected-material" type="hidden" value="%d" />`, material.ID)
-	return fmt.Sprintf(`<div class="grid-square %s" name="selected-material">%s%s</div>`, material.CssColor, overlay, idHiddenInput)
-}
-
-func fillFrom(y int, x int, selectedMaterial Material, defaultTileColor string) string {
-	targetId := modifications[y][x].ID
-	seen := make([][]bool, len(modifications))
-	for row := range seen {
-		seen[row] = make([]bool, len(modifications[row]))
-	}
-	fillModifications(y, x, targetId, selectedMaterial, seen, defaultTileColor)
-	return getHTMLFromModifications(defaultTileColor)
-}
-
-func getHTMLFromModifications(defaultTileColor string) string {
-	output := `<div class="grid" id="screen" hx-swap-oob="true">`
-	for y := range modifications {
-		output += `<div class="grid-row">`
-		for x := range modifications[y] {
-			output += squareUnselected(y, x, modifications[y][x], defaultTileColor)
-		}
-		output += `</div>`
-	}
-	output += `</div>`
-	return output
-}
-
-func fillModifications(y int, x int, targetId int, selected Material, seen [][]bool, defaultTileColor string) {
-	seen[y][x] = true
-	modifications[y][x] = selected
-	deltas := []int{-1, 1}
-	for _, i := range deltas {
-		if y+i >= 0 && y+i < len(modifications) {
-			shouldfill := !seen[y+i][x] && modifications[y+i][x].ID == targetId
-			if shouldfill {
-				fillModifications(y+i, x, targetId, selected, seen, defaultTileColor)
-			}
-		}
-		if x+i >= 0 && x+i < len(modifications[y]) {
-			shouldfill := !seen[y][x+i] && modifications[y][x+i].ID == targetId
-			if shouldfill {
-				fillModifications(y, x+i, targetId, selected, seen, defaultTileColor)
-			}
-		}
-	}
-}
-
-func fillBetween(y int, x int, selectedMaterial Material, defaultTileColor string) string {
-	if !haveSelection {
-		selectSquare(y, x, defaultTileColor)
-	}
-	var lowx, lowy, highx, highy int
-	if y <= selectedY {
-		lowy = y
-		highy = selectedY
-	} else {
-		lowy = selectedY
-		highy = y
-	}
-	if x <= selectedX {
-		lowx = x
-		highx = selectedX
-	} else {
-		lowx = selectedX
-		highx = x
-	}
-	output := ""
-	for i := lowy; i <= highy; i++ {
-		for j := lowx; j <= highx; j++ {
-			output += replaceSquare(i, j, selectedMaterial, defaultTileColor)
-		}
-	}
-	output += selectSquare(y, x, defaultTileColor)
-	return output
 }
