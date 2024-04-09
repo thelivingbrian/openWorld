@@ -16,24 +16,33 @@
         </select>
         {{if .Fragments}}
         <label>Fragment: <a hx-get="/fragments" hx-include="#fragment-set,[name='currentCollection']" href="#">New</a></label>
-        <select name="fragment">
-            <option value="">--</option>
+        <select id="fragment-name" name="fragment">
+            <option value="{{.CurrentFragment}}">{{.CurrentFragment}}</option>
             {{range $i, $frag := .Fragments}}
             <option value="{{$frag.Name}}">{{$frag.Name}}</option>
             {{end}}
         </select>
         {{end}}
+        {{if .FragmentDetails}}
+            {{template "fragment" .FragmentDetails}}
+        {{end}}
     </form>
-    {{if .FragmentDetails}}
-        {{template "fragment" .FragmentDetails}}
-    {{end}}
 </div>
 {{end}}
 
 
 {{define "fragment"}}
+{{range $i, $details := .}}
 <div id="fragments-window">
-    <label>{{.Name}} <a href="#">edit</a></label>
-    {{template "grid" .GridDetails}}
+    <label>{{$details.Name}} <a href="#" hx-get="/fragment" hx-target="#edit_tool" hx-include="#fragment-set,#fragment-name,[name='currentCollection']">edit</a></label>
+    {{template "grid" $details.GridDetails}}
+</div>
+{{end}}
+{{end}}
+
+{{define "fragment-edit"}}
+<div id="fragement-edit">
+    {{template "fragment" .SelectedFragmentDetails}}
+    {{template "grid-modify" .AvailableMaterials}}
 </div>
 {{end}}

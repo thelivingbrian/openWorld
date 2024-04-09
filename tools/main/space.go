@@ -210,6 +210,15 @@ func getAreaByName(areas []Area, name string) *Area {
 	return nil
 }
 
+func getFragmentByName(fragments []Fragment, name string) *Fragment {
+	for i, fragment := range fragments {
+		if name == fragment.Name {
+			return &fragments[i]
+		}
+	}
+	return nil
+}
+
 //
 
 func (c Context) newSpaceHandler(w http.ResponseWriter, r *http.Request) {

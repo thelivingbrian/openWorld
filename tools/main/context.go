@@ -147,13 +147,24 @@ func getAllCollections(collectionPath string) map[string]*Collection {
 			collection.Spaces = areasToSpaces(areaMap, entry.Name())
 
 			pathToFragments := filepath.Join(collectionPath, entry.Name(), "fragments")
-			populateMaps(collection.Fragments, pathToFragments)
+			fragmentMap := make(map[string][]Fragment)
+			populateMaps(fragmentMap, pathToFragments)
+			collection.Fragments = addSetNamesToFragments(fragmentMap)
 
 			collections[entry.Name()] = &collection
 
 		}
 	}
 	return collections
+}
+
+func addSetNamesToFragments(fragmentMap map[string][]Fragment) map[string][]Fragment {
+	for setName := range fragmentMap {
+		for i := range fragmentMap[setName] {
+			fragmentMap[setName][i].SetName = setName
+		}
+	}
+	return fragmentMap
 }
 
 func areasToSpaces(areaMap map[string][]Area, collectionName string) map[string]*Space {

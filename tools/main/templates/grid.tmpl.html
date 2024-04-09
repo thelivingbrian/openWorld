@@ -1,5 +1,7 @@
 {{define "grid"}}
-<div id="screen{{.ScreenID}}" class="grid">
+{{$screenId := .ScreenID}}
+{{$gridtype := .GridType}}
+<div id="{{$screenId}}" class="grid" {{if .Oob}} hx-swap-oob="true" {{end}}>
     {{range $y, $row := .MaterialGrid}}
     <div class="grid-row">
         {{range $x, $mat := $row}}
@@ -7,15 +9,51 @@
             {{if eq $cssColor ""}}
                 {{$cssColor = $.DefaultTileColor}}
             {{end}}
-        <div id="c{{$y}}-{{$x}}" class="grid-square {{$cssColor}}" hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material'],[name='defaultTileColor']" hx-headers='{"y": "{{$y}}", "x": "{{$x}}"}'>
-            <div class="box floor1 {{$mat.Floor1Css}}"></div>
-            <div class="box floor2 {{$mat.Floor2Css}}"></div>
-            <div class="box ceiling1 {{$mat.Ceiling1Css}}"></div>
-            <div class="box ceiling2 {{$mat.Ceiling2Css}}"></div>
-            <div class="box top"></div>
-        </div>
+            <div id="{{$screenId}}c{{$y}}-{{$x}}" 
+                    class="grid-square {{$cssColor}}" 
+                    hx-post="/grid/click/{{$gridtype}}"
+                    hx-trigger="click" 
+                    hx-include="[name='currentCollection'],
+                                [name='radio-tool'],
+                                [name='selected-material'],
+                                [name='defaultTileColor']"
+                    hx-headers='{   "Y": "{{$y}}", 
+                                    "X": "{{$x}}", 
+                                    "Sid": "{{$screenId}}",
+                                    "Default-Tile-Color": "{{$.DefaultTileColor}}" }'>
+                <div class="box floor1 {{$mat.Floor1Css}}"></div>
+                <div class="box floor2 {{$mat.Floor2Css}}"></div>
+                <div class="box ceiling1 {{$mat.Ceiling1Css}}"></div>
+                <div class="box ceiling2 {{$mat.Ceiling2Css}}"></div>
+                <div class="box top"></div>
+            </div>
         {{end}}
     </div>
     {{end}}
+</div>
+{{end}}
+
+{{define "grid-square"}}
+{{$cssColor := .Material.CssColor}}
+{{if eq $cssColor ""}}
+    {{$cssColor = .ClickEvent.DefaultTileColor}}
+{{end}}
+<div id="{{.ClickEvent.ScreenID}}c{{.ClickEvent.Y}}-{{.ClickEvent.X}}" 
+    class="grid-square {{$cssColor}}" 
+    hx-post="/grid/click/{{.ClickEvent.GridType}}"
+    hx-trigger="click" 
+    hx-include="[name='currentCollection'],
+                [name='radio-tool'],
+                [name='selected-material']"
+    hx-headers='{   "Y": "{{.ClickEvent.Y}}", 
+                    "X": "{{.ClickEvent.X}}", 
+                    "Sid": "{{.ClickEvent.ScreenID}}",
+                    "Default-Tile-Color": "{{.ClickEvent.DefaultTileColor}}" }'
+    hx-swap-oob="true">
+    <div class="box floor1 {{.Material.Floor1Css}}"></div>
+    <div class="box floor2 {{.Material.Floor2Css}}"></div>
+    <div class="box ceiling1 {{.Material.Ceiling1Css}}"></div>
+    <div class="box ceiling2 {{.Material.Ceiling2Css}}"></div>
+    <div class="box top {{if .ClickEvent.Selected}} red-b med {{end}}"></div>
 </div>
 {{end}}

@@ -5,14 +5,13 @@
         {{template "grid" .GridDetails}}
 
         <div id="bottom_window">
-            {{template "area-modify" .AvailableMaterials}}
         </div>
         
     </div>
     <div id="edit_sidebar" class="left">
         <div id="edit_options">
             <a hx-get="/area/details" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Details</a> |
-            Modify |
+            <a hx-get="/grid/edit" hx-target="#edit_tool" hx-include="[name='currentCollection']" href="#">Modify</a> |
             <a hx-get="/editTransports" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Transports</a> | 
             <a hx-get="/area/display" hx-target="#edit_tool" href="#">Display</a> | 
             <a hx-get="/area/neighbors" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Neighbors</a> |
@@ -20,7 +19,7 @@
             <a hx-get="/fragments" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection']" href="#">Fragments</a>
         </div>
         <div id="edit_tool">
-        
+            {{template "grid-modify" .AvailableMaterials}}
         </div>
     </div>
 </div>

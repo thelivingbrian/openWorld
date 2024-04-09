@@ -23,6 +23,8 @@ type GridDetails struct {
 	MaterialGrid     [][]Material
 	DefaultTileColor string
 	ScreenID         string
+	GridType         string
+	Oob              bool
 }
 
 type PageData struct {
@@ -69,6 +71,7 @@ func (c Context) areaHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Context) getArea(w http.ResponseWriter, r *http.Request) {
+	space := c.spaceFromGET(r)
 	selectedArea := c.areaFromGET(r)
 	if selectedArea == nil {
 		io.WriteString(w, "<h2>no Area</h2>")
@@ -81,7 +84,8 @@ func (c Context) getArea(w http.ResponseWriter, r *http.Request) {
 		GridDetails: GridDetails{
 			MaterialGrid:     modifications,
 			DefaultTileColor: selectedArea.DefaultTileColor,
-			ScreenID:         "",
+			ScreenID:         space.Name + "_" + selectedArea.Name, // "screen?"
+			GridType:         "area",
 		},
 		AvailableMaterials: c.materials,
 		Name:               selectedArea.Name,
@@ -99,7 +103,7 @@ func (c Context) AreaToMaterialGrid(area Area) [][]Material {
 func (c Context) DereferenceIntMatrix(matrix [][]int) [][]Material {
 	out := make([][]Material, len(matrix))
 	for y := range matrix {
-		out[y] = make([]Material, len(matrix))
+		out[y] = make([]Material, len(matrix[y]))
 		for x := range matrix[y] {
 			out[y][x] = c.materials[matrix[y][x]]
 		}
@@ -256,54 +260,78 @@ func (c Context) postNeighbors(w http.ResponseWriter, r *http.Request) {
 ////////////////////////////////////////////////////////////////////////
 //  Painting
 
-func (c Context) selectMaterial(w http.ResponseWriter, r *http.Request) {
-	queryValues := r.URL.Query()
-	id := queryValues.Get("materialId")
-
-	var selectedMaterial Material
-	for _, material := range c.materials {
-		if id, _ := strconv.Atoi(id); id == material.ID {
-			selectedMaterial = material
-		}
-	}
-
-	io.WriteString(w, exampleSquareFromMaterial(selectedMaterial))
-}
-
 func (c Context) clickOnSquare(w http.ResponseWriter, r *http.Request) {
-	y, x, success := dataFromRequest(r)
-	if !success {
-		panic("No Coordinates provided")
-	}
+
+	y := 0
+	x := 0
+	/*
+		y, x, success := dataFromClickRequest(r)
+		if !success {
+			panic("No Coordinates provided")
+		}
+	*/
+
 	properties, _ := requestToProperties(r)
 	selectedTool, ok := properties["radio-tool"]
 	if !ok {
-		panic("No Tool Selected")
+		fmt.Println("No Tool Selected")
+		return
 	}
-	selectedMaterialId, err := strconv.Atoi(properties["selected-material"])
-	if err != nil {
-		fmt.Println("No Material Selected.")
-		selectedMaterialId = 0
-	}
-	selectedMaterial := c.materials[selectedMaterialId]
 	defaultTileColor := properties["defaultTileColor"]
+
+	// click event
+	// [][]int grid from fragment or area
+	// y, x
+	// selected material
+	// default tile color?
 
 	if selectedTool == "select" {
 		io.WriteString(w, selectSquare(y, x, defaultTileColor))
 	} else if selectedTool == "replace" {
+		selectedMaterial := c.getMaterialFromRequestProperties(properties)
 		io.WriteString(w, replaceSquare(y, x, selectedMaterial, defaultTileColor))
 	} else if selectedTool == "fill" {
+		selectedMaterial := c.getMaterialFromRequestProperties(properties)
 		io.WriteString(w, fillFrom(y, x, selectedMaterial, defaultTileColor))
 	} else if selectedTool == "between" {
+		selectedMaterial := c.getMaterialFromRequestProperties(properties)
 		io.WriteString(w, fillBetween(y, x, selectedMaterial, defaultTileColor))
 	}
 }
 
-func dataFromRequest(r *http.Request) (int, int, bool) {
+func (c Context) getMaterialFromRequestProperties(properties map[string]string) Material {
+	//properties, _ := requestToProperties(r)
+	fmt.Println(properties)
+	fmt.Println(properties["selected-material"])
+	selectedMaterialId, err := strconv.Atoi(properties["selected-material"])
+	if err != nil {
+		fmt.Println(err)
+		selectedMaterialId = 0
+	}
+	return c.materials[selectedMaterialId]
+}
+
+func dataFromClickRequest(r *http.Request, gridtype string) (ClickEvent, bool) {
 	yCoord, _ := strconv.Atoi(r.Header["Y"][0])
 	xCoord, _ := strconv.Atoi(r.Header["X"][0])
 
-	return yCoord, xCoord, true
+	sidHeaders := r.Header["Sid"]
+	if len(sidHeaders) == 0 {
+		fmt.Println("No screen id headers")
+		return ClickEvent{yCoord, xCoord, gridtype, "", "", false}, false
+	}
+	sid := sidHeaders[0]
+	fmt.Println(sid)
+
+	defaultTileColorHeaders := r.Header["Default-Tile-Color"]
+	if len(defaultTileColorHeaders) == 0 {
+		fmt.Println("No screen id headers")
+		return ClickEvent{yCoord, xCoord, gridtype, "", sid, false}, false
+	}
+	dtc := defaultTileColorHeaders[0]
+	fmt.Println(sid)
+
+	return ClickEvent{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: dtc, ScreenID: sid}, true
 }
 
 func selectSquare(y, x int, defaultTileColor string) string {
