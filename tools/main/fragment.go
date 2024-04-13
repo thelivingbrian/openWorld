@@ -83,7 +83,7 @@ func (c Context) DetailsFromFragment(fragment *Fragment, clickable bool) *Fragme
 		GridDetails: GridDetails{
 			MaterialGrid:     c.DereferenceIntMatrix(fragment.Tiles),
 			DefaultTileColor: "",
-			Location:         fragment.SetName + "_" + fragment.Name,
+			Location:         fragment.SetName + "." + fragment.Name,
 			ScreenID:         "fragment",
 			GridType:         gridtype},
 	}

@@ -9,14 +9,21 @@ import (
 	"strings"
 )
 
-type ClickEvent struct {
+// grid-square info
+type GridSquareDetails struct {
+	CollectionName   string
+	Location         []string
+	GridType         string
+	ScreenID         string
 	Y                int
 	X                int
-	GridType         string
 	DefaultTileColor string
-	Location         string
-	ScreenID         string
 	Selected         bool
+	//SelectedTool     string
+}
+
+func (gridSquare GridSquareDetails) stringifyLocation() string {
+	return strings.Join(gridSquare.Location, ".")
 }
 
 func (c Context) gridEditHandler(w http.ResponseWriter, r *http.Request) {
@@ -33,64 +40,40 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		return
 	}
-	event, success := dataFromClickRequest(r, "area")
-	if !success {
-		panic("No Coordinates provided")
-	}
-	fmt.Printf("%d %d %s %s\n", event.Y, event.X, event.Location, event.DefaultTileColor)
-
-	parts := strings.Split(event.Location, "_")
-	if len(parts) < 2 {
-		fmt.Println("Invalid Sid")
-	}
-	spaceName := parts[0]
-	areaName := parts[1]
 
 	properties, _ := requestToProperties(r)
-	selectedTool, ok := properties["radio-tool"]
-	if !ok {
-		fmt.Println("No Tool Selected")
-		return
+	details := createGridSquareDetails(properties, "area")
+
+	// new func
+	//parts := strings.Split(event.Location, "_")
+	//if len(parts) < 2 {
+	//	fmt.Println("Invalid Sid")
+	//}
+	spaceName := details.Location[0]
+	areaName := details.Location[1]
+	space := c.getSpace(details.CollectionName, spaceName)
+	if space == nil {
+		panic("Hey")
 	}
-	collectionName, ok := properties["currentCollection"]
-	if !ok {
-		fmt.Println("No Collection")
-		return
-	}
+	area := getAreaByName(space.Areas, areaName)
+	fmt.Println("Have: " + area.Name)
 
-	// Move into headers?
-	//defaultTileColor := properties["defaultTileColor"]
+	//c.gridAction(event, area.Tiles, properties)
+	result := c.gridAction(details, area.Tiles, properties)
+	io.WriteString(w, result)
+	if result == "" {
+		var pageData = GridDetails{
+			MaterialGrid:     c.DereferenceIntMatrix(area.Tiles),
+			DefaultTileColor: details.DefaultTileColor,
+			Location:         details.stringifyLocation(),
+			ScreenID:         details.ScreenID,
+			GridType:         details.GridType,
+			Oob:              true,
+		}
 
-	space := c.getSpace(collectionName, spaceName)
-	if space != nil {
-		area := getAreaByName(space.Areas, areaName)
-		fmt.Println("Have: " + area.Name)
-		if selectedTool == "select" {
-			// should oob update hiddens
-			io.WriteString(w, c.gridSelect(event, area.Tiles))
-		} else if selectedTool == "replace" {
-			selectedMaterial := c.getMaterialFromRequestProperties(properties)
-			io.WriteString(w, gridReplace(event, area.Tiles, selectedMaterial))
-		} else if selectedTool == "fill" {
-			selectedMaterial := c.getMaterialFromRequestProperties(properties)
-			gridFill(event, area.Tiles, selectedMaterial)
-			var pageData = GridDetails{
-				MaterialGrid:     c.DereferenceIntMatrix(area.Tiles),
-				DefaultTileColor: area.DefaultTileColor,
-				Location:         event.Location,
-				ScreenID:         event.ScreenID,
-				GridType:         "area",
-				Oob:              true,
-			}
-
-			err := tmpl.ExecuteTemplate(w, "grid", pageData)
-			if err != nil {
-				fmt.Println(err)
-			}
-		} else if selectedTool == "between" {
-			selectedMaterial := c.getMaterialFromRequestProperties(properties)
-			selectedMaterial.ID += 0
-			io.WriteString(w, c.gridFillBetween(event, area.Tiles, selectedMaterial))
+		err := tmpl.ExecuteTemplate(w, "grid", pageData)
+		if err != nil {
+			fmt.Println(err)
 		}
 	}
 }
@@ -99,23 +82,173 @@ func (c Context) gridClickFragmentHandler(w http.ResponseWriter, r *http.Request
 	if r.Method != "POST" {
 		return
 	}
-	// Get [][]int from Fragment and pass to tool for mutation
+
+	properties, _ := requestToProperties(r)
+	details := createGridSquareDetails(properties, "fragment")
+
+	// new func
+
+	setName := details.Location[0]
+	fragmentName := details.Location[1]
+
+	col, ok := c.Collections[details.CollectionName]
+	if !ok {
+		panic("no collection")
+	}
+	set, ok := col.Fragments[setName]
+	if !ok {
+		panic("no Set")
+	}
+	fragment := getFragmentByName(set, fragmentName)
+	result := c.gridAction(details, fragment.Tiles, properties)
+	io.WriteString(w, result)
+	if result == "" {
+		var pageData = GridDetails{
+			MaterialGrid:     c.DereferenceIntMatrix(fragment.Tiles),
+			DefaultTileColor: details.DefaultTileColor,
+			Location:         details.stringifyLocation(),
+			ScreenID:         details.ScreenID,
+			GridType:         details.GridType,
+			Oob:              true,
+		}
+
+		err := tmpl.ExecuteTemplate(w, "grid", pageData)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
+func createGridSquareDetails(properties map[string]string, gridType string) GridSquareDetails {
+	currentCollection, ok := properties["currentCollection"]
+	if !ok {
+		panic("No Collection")
+		//return
+	}
+	x, ok := properties["x"]
+	if !ok {
+		panic("No x")
+		//return
+	}
+	xInt, err := strconv.Atoi(x)
+	if err != nil {
+		panic("invalid x")
+	}
+	y, ok := properties["y"]
+	if !ok {
+		panic("No y")
+		//return
+	}
+	yInt, err := strconv.Atoi(y)
+	if err != nil {
+		panic("invalid y")
+	}
+	sid, ok := properties["sid"]
+	if !ok {
+		panic("No sid")
+		//return
+	}
+	defaultTileColor, ok := properties["default-tile-color"]
+	if !ok {
+		panic("location")
+		//return
+	}
+	location, ok := properties["location"]
+	if !ok {
+		panic("location")
+		//return
+	}
+	parts := strings.Split(location, ".")
+	if len(parts) < 2 {
+		fmt.Println("Invalid Location")
+	}
+	return GridSquareDetails{CollectionName: currentCollection, Location: parts, GridType: gridType, ScreenID: sid, Y: yInt, X: xInt, DefaultTileColor: defaultTileColor}
 }
 
 // / Tools
-func (c Context) gridSelect(event ClickEvent, modifications [][]int) string {
+func (c Context) gridAction(details GridSquareDetails, grid [][]int, properties map[string]string) string {
+	tool, ok := properties["radio-tool"]
+	if !ok {
+		panic("No Tool Selected")
+		//return
+	}
+	if tool == "select" {
+		// should oob update hiddens
+		return c.gridSelect(details, grid)
+	} else if tool == "replace" {
+		selectedMaterial := c.getMaterialFromRequestProperties(properties)
+		return gridReplace(details, grid, selectedMaterial)
+	} else if tool == "fill" {
+		selectedMaterial := c.getMaterialFromRequestProperties(properties)
+		gridFill(details, grid, selectedMaterial)
+		return ""
+	} else if tool == "between" {
+		selectedMaterial := c.getMaterialFromRequestProperties(properties)
+		//selectedMaterial.ID += 0
+		return c.gridFillBetween(details, grid, selectedMaterial)
+	} else if tool == "place" {
+		// Pull isSelected & location (selectedLocation) into hidden field
+		//panic("Tell me your status") // No response
+		fragment := c.getFragmentFromRequestProperties(properties)
+		c.gridPlaceFragment(details, grid, fragment)
+	}
+	return ""
+}
+
+func (c Context) gridPlaceFragment(details GridSquareDetails, modifications [][]int, selectedFragment Fragment) {
+	for i := range selectedFragment.Tiles {
+		if details.Y+i < len(modifications) {
+			for j := range selectedFragment.Tiles[i] {
+				if details.X+j < len(modifications[i]) {
+					modifications[details.Y+i][details.X+j] = selectedFragment.Tiles[i][j]
+				}
+			}
+		}
+	}
+}
+
+func (c Context) getFragmentFromRequestProperties(properties map[string]string) Fragment {
+	currentCollection, ok := properties["currentCollection"]
+	if !ok {
+		panic("No Collection Name")
+		//return
+	}
+	collection, ok := c.Collections[currentCollection]
+	if !ok {
+		panic("no collection")
+	}
+	setName, ok := properties["fragment-set"]
+	if !ok {
+		panic("no set name")
+	}
+	set, ok := collection.Fragments[setName]
+	if !ok {
+		panic("no set")
+	}
+	fragmentName, ok := properties["selected-fragment-name"]
+	if !ok {
+		panic("no fragment name")
+	}
+	fragment := getFragmentByName(set, fragmentName)
+	if fragment == nil {
+		panic("No Fragment")
+	}
+	return *fragment
+}
+
+func (c Context) gridSelect(event GridSquareDetails, modifications [][]int) string {
 	//output := ""
 	var buf bytes.Buffer
 	if haveSelection {
 		var pageData = struct {
 			Material   Material
-			ClickEvent ClickEvent
+			ClickEvent GridSquareDetails
 		}{
 			Material: c.materials[modifications[selectedY][selectedX]],
-			ClickEvent: ClickEvent{
+			ClickEvent: GridSquareDetails{
 				Y:                selectedY,
 				X:                selectedX,
-				GridType:         "area",
+				GridType:         event.GridType,
 				DefaultTileColor: event.DefaultTileColor,
 				Location:         event.Location,
 				ScreenID:         event.ScreenID},
@@ -131,7 +264,7 @@ func (c Context) gridSelect(event ClickEvent, modifications [][]int) string {
 	event.Selected = true
 	var pageData = struct {
 		Material   Material
-		ClickEvent ClickEvent
+		ClickEvent GridSquareDetails
 	}{
 		Material:   c.materials[modifications[selectedY][selectedX]],
 		ClickEvent: event,
@@ -143,12 +276,12 @@ func (c Context) gridSelect(event ClickEvent, modifications [][]int) string {
 	return buf.String()
 }
 
-func gridReplace(event ClickEvent, modifications [][]int, selectedMaterial Material) string {
+func gridReplace(event GridSquareDetails, modifications [][]int, selectedMaterial Material) string {
 	modifications[event.Y][event.X] = selectedMaterial.ID
 	var buf bytes.Buffer
 	var pageData = struct {
 		Material   Material
-		ClickEvent ClickEvent
+		ClickEvent GridSquareDetails
 	}{
 		Material:   selectedMaterial,
 		ClickEvent: event,
@@ -160,7 +293,7 @@ func gridReplace(event ClickEvent, modifications [][]int, selectedMaterial Mater
 	return buf.String()
 }
 
-func gridFill(event ClickEvent, modifications [][]int, selectedMaterial Material) {
+func gridFill(event GridSquareDetails, modifications [][]int, selectedMaterial Material) {
 	targetId := modifications[event.Y][event.X]
 	seen := make([][]bool, len(modifications))
 	for row := range seen {
@@ -169,7 +302,7 @@ func gridFill(event ClickEvent, modifications [][]int, selectedMaterial Material
 	fill(event, modifications, selectedMaterial, seen, targetId)
 }
 
-func fill(event ClickEvent, modifications [][]int, selectedMaterial Material, seen [][]bool, targetId int) {
+func fill(event GridSquareDetails, modifications [][]int, selectedMaterial Material, seen [][]bool, targetId int) {
 	seen[event.Y][event.X] = true
 	modifications[event.Y][event.X] = selectedMaterial.ID
 	deltas := []int{-1, 1}
@@ -177,21 +310,23 @@ func fill(event ClickEvent, modifications [][]int, selectedMaterial Material, se
 		if event.Y+i >= 0 && event.Y+i < len(modifications) {
 			shouldfill := !seen[event.Y+i][event.X] && modifications[event.Y+i][event.X] == targetId
 			if shouldfill {
-				event.Y += i
-				fill(event, modifications, selectedMaterial, seen, targetId)
+				newEvent := event
+				newEvent.Y += i
+				fill(newEvent, modifications, selectedMaterial, seen, targetId)
 			}
 		}
 		if event.X+i >= 0 && event.X+i < len(modifications[event.Y]) {
 			shouldfill := !seen[event.Y][event.X+i] && modifications[event.Y][event.X+i] == targetId
 			if shouldfill {
-				event.X += i
-				fill(event, modifications, selectedMaterial, seen, targetId)
+				newEvent := event
+				newEvent.X += i
+				fill(newEvent, modifications, selectedMaterial, seen, targetId)
 			}
 		}
 	}
 }
 
-func (c Context) gridFillBetween(event ClickEvent, modifications [][]int, selectedMaterial Material) string {
+func (c Context) gridFillBetween(event GridSquareDetails, modifications [][]int, selectedMaterial Material) string {
 	if !haveSelection {
 		c.gridSelect(event, modifications)
 	}
@@ -245,11 +380,9 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 	fixtureType := queryValues.Get("current-fixture")
 
 	if fixtureType == "material" {
-		//fmt.Println("Fixture Material")
 		tmpl.ExecuteTemplate(w, "fixture-material", c.materials)
 	}
 	if fixtureType == "fragment" {
-		//fmt.Println("Fixture Fragments")
 		collectionName := queryValues.Get("currentCollection")
 		collection, ok := c.Collections[collectionName]
 		if !ok {
@@ -262,7 +395,8 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(key)
 			setOptions = append(setOptions, key)
 		}
-		//fmt.Println(setOptions)
+
+		// Make type
 		var pageData = struct {
 			FragmentSets    []string
 			CurrentSet      string
@@ -280,7 +414,7 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 
 func (c Context) getMaterialFromRequestProperties(properties map[string]string) Material {
 	//properties, _ := requestToProperties(r)
-	fmt.Println(properties)
+	//fmt.Println(properties)
 	fmt.Println(properties["selected-material"])
 	selectedMaterialId, err := strconv.Atoi(properties["selected-material"])
 	if err != nil {
@@ -290,7 +424,9 @@ func (c Context) getMaterialFromRequestProperties(properties map[string]string) 
 	return c.materials[selectedMaterialId]
 }
 
-func dataFromClickRequest(r *http.Request, gridtype string) (ClickEvent, bool) {
+// gross no
+/*
+func headerDataFromClick(r *http.Request, gridtype string) (GridSquareDetails, bool) {
 	yCoord, _ := strconv.Atoi(r.Header["Y"][0])
 	xCoord, _ := strconv.Atoi(r.Header["X"][0])
 
@@ -301,7 +437,7 @@ func dataFromClickRequest(r *http.Request, gridtype string) (ClickEvent, bool) {
 	LocationHeaders := r.Header["Location"]
 	if len(LocationHeaders) == 0 {
 		fmt.Println("No Location headers")
-		return ClickEvent{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: "", Location: ""}, false
+		return GridSquareDetails{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: "", Location: ""}, false
 	}
 	location := LocationHeaders[0]
 	fmt.Println(location)
@@ -309,13 +445,14 @@ func dataFromClickRequest(r *http.Request, gridtype string) (ClickEvent, bool) {
 	defaultTileColorHeaders := r.Header["Default-Tile-Color"]
 	if len(defaultTileColorHeaders) == 0 {
 		fmt.Println("No screen id headers")
-		return ClickEvent{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: "", Location: location}, false
+		return GridSquareDetails{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: "", Location: location}, false
 	}
 	dtc := defaultTileColorHeaders[0]
 	fmt.Println(location)
 
-	return ClickEvent{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: dtc, Location: location, ScreenID: sid}, true
+	return GridSquareDetails{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: dtc, Location: location, ScreenID: sid}, true
 }
+*/
 
 func exampleSquareFromMaterial(material Material) string {
 	overlay := fmt.Sprintf(`<div class="box floor1 %s"></div><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div><div class="box ceiling2 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css, material.Ceiling2Css)

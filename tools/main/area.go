@@ -85,7 +85,7 @@ func (c Context) getArea(w http.ResponseWriter, r *http.Request) {
 		GridDetails: GridDetails{
 			MaterialGrid:     modifications,
 			DefaultTileColor: selectedArea.DefaultTileColor,
-			Location:         space.Name + "_" + selectedArea.Name, // "screen?"
+			Location:         space.Name + "." + selectedArea.Name, // "screen?"
 			GridType:         "area",
 			ScreenID:         "screen",
 		},

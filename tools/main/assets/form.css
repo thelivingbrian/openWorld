@@ -17,6 +17,7 @@ a:hover, a:focus {
     padding: 20px;
     background-color: #f3f3f3;
     border-radius: 8px;
+    overflow: auto;
   }
   
   input[type="text"],
