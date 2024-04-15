@@ -27,7 +27,7 @@
     <form>
         <div id="fragment-container">
             {{if .FragmentDetails}}
-                {{template "fragment" .FragmentDetails}}
+                {{template "fragment-list" .FragmentDetails}}
             {{end}}
         </div>
     </form>
@@ -35,7 +35,7 @@
 {{end}}
 
 
-{{define "fragment"}}
+{{define "fragment-list"}}
 {{range $i, $details := .}}
 <div id="fragment-window-{{$i}}" class="left">
     <input type="hidden" name="fragment" value="{{$details.Name}}" />
@@ -49,7 +49,17 @@
 
 {{define "fragment-edit"}}
 <div id="fragement-edit">
-    {{template "fragment" .SelectedFragmentDetails}}
+    {{template "fragment" .FragmentDetails}}
     {{template "grid-modify" .AvailableMaterials}}
+</div>
+{{end}}
+
+{{define "fragment"}}
+<div id="fragment-window">
+    <input type="hidden" name="fragment-set" value="{{.SetName}}" />
+    <input type="hidden" name="fragment" value="{{.Name}}" />
+    <h3>{{.Name}} </h3>
+    <a href="#" hx-post="/fragment" hx-target="#edit_tool" hx-include="#fragment-window [name='fragment-set'],#fragment-window [name='fragment'],[name='currentCollection']">Save</a>
+    {{template "grid" .GridDetails}}
 </div>
 {{end}}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 )
@@ -13,6 +14,7 @@ type Fragment struct {
 }
 type FragmentDetails struct {
 	Name        string
+	SetName     string
 	GridDetails GridDetails
 }
 
@@ -38,21 +40,21 @@ func (c Context) getFragments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var setOptions []string
-	for key, _ := range collection.Fragments {
+	for key := range collection.Fragments {
 		setOptions = append(setOptions, key)
 	}
 
-	var fragDetails []*FragmentDetails
+	var fragmentDetails []*FragmentDetails
 	if fragmentName != "" {
 		fragment := getFragmentByName(collection.Fragments[setName], fragmentName)
 		if fragment != nil {
-			fragDetails = append(fragDetails, c.DetailsFromFragment(fragment, false))
+			fragmentDetails = append(fragmentDetails, c.DetailsFromFragment(fragment, false))
 		}
 	} else {
 		for i, fragment := range collection.Fragments[setName] {
 			details := c.DetailsFromFragment(&fragment, false)
 			details.GridDetails.ScreenID += strconv.Itoa(i)
-			fragDetails = append(fragDetails, details)
+			fragmentDetails = append(fragmentDetails, details)
 		}
 	}
 
@@ -67,7 +69,7 @@ func (c Context) getFragments(w http.ResponseWriter, r *http.Request) {
 		CurrentSet:      setName,
 		Fragments:       collection.Fragments[setName],
 		CurrentFragment: fragmentName,
-		FragmentDetails: fragDetails,
+		FragmentDetails: fragmentDetails,
 	}
 	tmpl.ExecuteTemplate(w, "fragments", PageData)
 }
@@ -79,7 +81,8 @@ func (c Context) DetailsFromFragment(fragment *Fragment, clickable bool) *Fragme
 		gridtype = "fragment"
 	}
 	return &FragmentDetails{
-		Name: fragment.Name,
+		Name:    fragment.Name,
+		SetName: fragment.SetName,
 		GridDetails: GridDetails{
 			MaterialGrid:     c.DereferenceIntMatrix(fragment.Tiles),
 			DefaultTileColor: "",
@@ -94,6 +97,10 @@ func (c Context) DetailsFromFragment(fragment *Fragment, clickable bool) *Fragme
 func (c Context) fragmentHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		c.getFragment(w, r)
+	}
+	if r.Method == "POST" {
+		fmt.Println("POST for /fragment")
+		io.WriteString(w, "<h3>Done.</h3>")
 	}
 }
 
@@ -115,11 +122,11 @@ func (c Context) getFragment(w http.ResponseWriter, r *http.Request) {
 	fragment := getFragmentByName(collection.Fragments[setName], fragmentName)
 	if fragment != nil {
 		var pageData = struct {
-			AvailableMaterials      []Material
-			SelectedFragmentDetails []*FragmentDetails
+			AvailableMaterials []Material
+			FragmentDetails    *FragmentDetails
 		}{
-			AvailableMaterials:      c.materials,
-			SelectedFragmentDetails: append(make([]*FragmentDetails, 0), c.DetailsFromFragment(fragment, true)),
+			AvailableMaterials: c.materials,
+			FragmentDetails:    c.DetailsFromFragment(fragment, true),
 		}
 		err := tmpl.ExecuteTemplate(w, "fragment-edit", pageData)
 		if err != nil {
