@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -28,7 +29,7 @@ func (c Context) getEditTransports(w http.ResponseWriter, r *http.Request) {
 	}
 
 	output := transportFormHtml(*selectedArea)
-	output += transportsAsOob(*selectedArea)
+	output += c.transportsAsOob(*selectedArea, spaceName)
 	io.WriteString(w, output)
 }
 
@@ -185,14 +186,30 @@ func (c Context) deleteTransport(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, output)
 }
 
-func transportsAsOob(area Area) string {
+func (c Context) transportsAsOob(area Area, spacename string) string {
 	output := ``
 	for _, transport := range area.Transports {
 		fmt.Println(transport)
-		//var yStr = strconv.Itoa(transport.SourceY)
-		//var xStr = strconv.Itoa(transport.SourceX)
-		//output += `<div hx-swap-oob="true" hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[transport.SourceY][transport.SourceX].CssColor + `" id="c` + yStr + `-` + xStr + `"><div class="box top med red-b"></div></div></div>`
+		var buf bytes.Buffer
+		var pageData = struct {
+			Material   Material
+			ClickEvent GridSquareDetails
+		}{
+			Material: c.materials[area.Tiles[transport.SourceY][transport.SourceX]],
+			ClickEvent: GridSquareDetails{
+				Y:                transport.SourceY,
+				X:                transport.SourceX,
+				GridType:         "area",
+				ScreenID:         "screen",
+				DefaultTileColor: area.DefaultTileColor,
+				Selected:         true,
+				Location:         []string{spacename, area.Name}},
+		}
+		err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)
+		if err != nil {
+			fmt.Println(err)
+		}
+		output += buf.String()
 	}
-	output += ``
 	return output
 }

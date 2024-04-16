@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// grid-square info
+// Does location get or stringifyLocation get used by template?
 type GridSquareDetails struct {
 	CollectionName   string
 	Location         []string
@@ -352,7 +352,6 @@ func (c Context) gridFillBetween(event GridSquareDetails, modifications [][]int,
 			newEvent.Y = i
 			newEvent.X = j
 			output += gridReplace(newEvent, modifications, selectedMaterial)
-			//output += replaceSquare(i, j, selectedMaterial, defaultTileColor)
 		}
 	}
 	output += c.gridSelect(event, modifications)
@@ -413,8 +412,6 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Context) getMaterialFromRequestProperties(properties map[string]string) Material {
-	//properties, _ := requestToProperties(r)
-	//fmt.Println(properties)
 	fmt.Println(properties["selected-material"])
 	selectedMaterialId, err := strconv.Atoi(properties["selected-material"])
 	if err != nil {
@@ -423,36 +420,6 @@ func (c Context) getMaterialFromRequestProperties(properties map[string]string) 
 	}
 	return c.materials[selectedMaterialId]
 }
-
-// gross no
-/*
-func headerDataFromClick(r *http.Request, gridtype string) (GridSquareDetails, bool) {
-	yCoord, _ := strconv.Atoi(r.Header["Y"][0])
-	xCoord, _ := strconv.Atoi(r.Header["X"][0])
-
-	sidHeaders := r.Header["Sid"]
-	sid := sidHeaders[0]
-	fmt.Println(sid)
-
-	LocationHeaders := r.Header["Location"]
-	if len(LocationHeaders) == 0 {
-		fmt.Println("No Location headers")
-		return GridSquareDetails{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: "", Location: ""}, false
-	}
-	location := LocationHeaders[0]
-	fmt.Println(location)
-
-	defaultTileColorHeaders := r.Header["Default-Tile-Color"]
-	if len(defaultTileColorHeaders) == 0 {
-		fmt.Println("No screen id headers")
-		return GridSquareDetails{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: "", Location: location}, false
-	}
-	dtc := defaultTileColorHeaders[0]
-	fmt.Println(location)
-
-	return GridSquareDetails{Y: yCoord, X: xCoord, GridType: gridtype, DefaultTileColor: dtc, Location: location, ScreenID: sid}, true
-}
-*/
 
 func exampleSquareFromMaterial(material Material) string {
 	overlay := fmt.Sprintf(`<div class="box floor1 %s"></div><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div><div class="box ceiling2 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css, material.Ceiling2Css)
