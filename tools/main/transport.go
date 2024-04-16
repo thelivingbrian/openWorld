@@ -86,7 +86,7 @@ func (c Context) newTransport(w http.ResponseWriter, r *http.Request) {
 
 func editTransportForm(i int, t Transport, sourceName string) string {
 	output := fmt.Sprintf(`
-	<form hx-post="/editTransport" hx-target="#edit_transports" hx-swap="outerHTML">
+	<form hx-post="/editTransport" hx-target="#edit_transports" hx-swap="outerHTML" hx-include="[name='currentCollection'],[name='currentSpace']">
 		<input type="hidden" name="transport-id" value="%d" />
 		<input type="hidden" name="transport-area-name" value="%s" />
 		<table>
