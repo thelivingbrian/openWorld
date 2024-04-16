@@ -1,0 +1,54 @@
+{{define "grid-modify"}}
+    <select id="fixture_select" name="current-fixture" hx-get="/selectFixture" hx-target="#fixture-window" hx-include="[name='currentCollection']">
+        <option value="material" selected>Materials</option>
+        <option value="fragment">Fragments</option>
+    </select>
+    <div id="fixture-window">
+        {{template "fixture-material" .}}
+    </div>
+{{end}}
+
+{{define "fixture-material"}}
+    {{template "available-tools-material"}}
+    {{template "material-select" .}}
+{{end}}
+
+{{define "available-tools-material"}}
+<!-- Associate with a screen id so that selecting changes request type of click -->
+<div id="tool_select"> 
+    <input type="radio" id="rt-select" name="radio-tool" value="select" checked>
+    <label for="rt-select">Select</label>
+    <input type="radio" id="rt-replace" name="radio-tool" value="replace">
+    <label for="rt-replace">Replace</label>
+    <input type="radio" id="rt-fill" name="radio-tool" value="fill">
+    <label for="rt-fill">Fill</label>
+    <input type="radio" id="rt-right" name="radio-tool" value="between">
+    <label for="rt-right">Fill between selected</label>
+</div>
+{{end}}
+
+{{define "material-select"}}
+<div id="material-selector">
+    <label>Materials</label>
+    <select name="materialId" hx-get="/selectMaterial" hx-target="#selected-material-div">
+        <option value="">--</option>
+        {{range $i, $mat := .}}
+        <option value="{{$mat.ID}}">{{$mat.CommonName}}</option>
+        {{end}}
+    </select>
+</div>
+<div id="selected-material-div" class="grid-row"></div>
+{{end}}
+
+
+{{define "fixture-fragment"}}
+    {{template "available-tools-fragment"}}
+    {{template "fragments" .}}
+{{end}}
+
+{{define "available-tools-fragment"}}
+<div id="tool_select"> 
+    <input type="radio" id="rt-fragment-place" name="radio-tool" value="place" checked>
+    <label for="rt-select">Place</label>
+</div>
+{{end}}

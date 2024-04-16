@@ -1,0 +1,73 @@
+{{define "grid"}}
+{{$screenId := .ScreenID}}
+{{$gridtype := .GridType}}
+<div id="{{$screenId}}" class="grid" {{if .Oob}} hx-swap-oob="true" {{end}}>
+    <input name="sid" type="hidden" value="{{$screenId}}" />
+    <input name="location" type="hidden" value="{{.Location}}" />
+    <input name="default-tile-color" type="hidden" value="{{.DefaultTileColor}}" />
+    {{range $y, $row := .MaterialGrid}}
+    <div class="grid-row">
+        {{range $x, $mat := $row}}
+            {{$cssColor := $mat.CssColor}}
+            {{if eq $cssColor ""}}
+                {{$cssColor = $.DefaultTileColor}}
+            {{end}}
+            <div id="{{$screenId}}c{{$y}}-{{$x}}" 
+                    class="grid-square {{$cssColor}}" 
+                    hx-post="/grid/click/{{$gridtype}}"
+                    hx-trigger="click" 
+                    hx-include="[name='currentCollection'],
+                                [name='radio-tool'],
+                                [name='selected-material'],
+                                [name='selected-fragment-name'],
+                                #fragment-set,
+                                [name='defaultTileColor'],
+                                #{{$screenId}} [name='sid'],
+                                #{{$screenId}} [name='location'],
+                                #{{$screenId}} [name='default-tile-color'],
+                                #{{$screenId}}c{{$y}}-{{$x}} [name='x'],
+                                #{{$screenId}}c{{$y}}-{{$x}} [name='y']           
+                                ">
+                <div class="box floor1 {{$mat.Floor1Css}}"></div>
+                <div class="box floor2 {{$mat.Floor2Css}}"></div>
+                <div class="box ceiling1 {{$mat.Ceiling1Css}}"></div>
+                <div class="box ceiling2 {{$mat.Ceiling2Css}}"></div>
+                <div class="box top"></div>
+                <input name="x" type="hidden" value="{{$x}}" />
+                <input name="y" type="hidden" value="{{$y}}" />
+            </div>
+        {{end}}
+    </div>
+    {{end}}
+</div>
+{{end}}
+
+{{define "grid-square"}}
+{{$cssColor := .Material.CssColor}}
+{{if eq $cssColor ""}}
+    {{$cssColor = .ClickEvent.DefaultTileColor}}
+{{end}}
+<div id="{{.ClickEvent.ScreenID}}c{{.ClickEvent.Y}}-{{.ClickEvent.X}}" 
+    class="grid-square {{$cssColor}}" 
+    hx-post="/grid/click/{{.ClickEvent.GridType}}"
+    hx-trigger="click" 
+    hx-include="[name='currentCollection'],
+    [name='radio-tool'],
+    [name='selected-material'],
+    [name='selected-fragment-name'],
+    #fragment-set,
+    #{{.ClickEvent.ScreenID}} [name='sid'],
+    #{{.ClickEvent.ScreenID}} [name='location'],
+    #{{.ClickEvent.ScreenID}} [name='default-tile-color'],
+    #{{.ClickEvent.ScreenID}}c{{.ClickEvent.Y}}-{{.ClickEvent.X}} [name='x'],
+    #{{.ClickEvent.ScreenID}}c{{.ClickEvent.Y}}-{{.ClickEvent.X}} [name='y']"
+    hx-swap-oob="true">
+    <div class="box floor1 {{.Material.Floor1Css}}"></div>
+    <div class="box floor2 {{.Material.Floor2Css}}"></div>
+    <div class="box ceiling1 {{.Material.Ceiling1Css}}"></div>
+    <div class="box ceiling2 {{.Material.Ceiling2Css}}"></div>
+    <div class="box top {{if .ClickEvent.Selected}} red-b med {{end}}"></div>
+    <input name="x" type="hidden" value="{{.ClickEvent.X}}" />
+    <input name="y" type="hidden" value="{{.ClickEvent.Y}}" />
+</div>
+{{end}}

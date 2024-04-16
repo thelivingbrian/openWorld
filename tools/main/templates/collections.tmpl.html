@@ -1,0 +1,21 @@
+{{define "collections"}}
+<div id="collection_page"> 
+	<div id="collection_select">
+		<h3>Select Existing Collection: </h3>
+		<select name="collectionName" hx-get="/spaces" hx-target="#collection_page">
+		<option value=""></option>
+		{{range  $key, $value := .}}
+			<option value="{{$key}}">{{$key}}</option>
+		{{end}}
+		</select>
+	</div> 
+	<div id="collection_new">
+		<h3>Create New Colletion</h3>
+		<form>
+			<label>Collection Name: </label>
+			<input type="text" name="newCollectionName" /><br />
+            <input type="submit" value="submit" />
+		</form>
+	</div>
+</div>
+{{end}}

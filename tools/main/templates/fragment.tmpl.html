@@ -1,0 +1,66 @@
+{{define "fragments"}}
+<div id="fragments">
+        {{template "fragment-select" .}}
+</div>
+{{end}}
+
+{{define "fragment-select"}}
+<div id="fragment-select">
+    <form hx-trigger="change" hx-include="[name='currentCollection']" hx-get="/fragments" hx-target="#fragment-select">
+        <label>Set: <a hx-get="/fragments/new" hx-include="[name='currentCollection']" href="#">New</a></label>
+        <select id="fragment-set" name="fragment-set">
+            <option value="{{.CurrentSet}}">{{.CurrentSet}}</option>
+            {{range $i, $name := .FragmentSets}}
+            <option value="{{$name}}">{{$name}}</option>
+            {{end}}
+        </select>
+        {{if .Fragments}}
+        <label>Fragment: <a hx-get="/fragments" hx-include="#fragment-set,[name='currentCollection']" href="#">New</a></label>
+        <select id="fragment-name" name="fragment">
+            <option value="{{.CurrentFragment}}">{{.CurrentFragment}}</option>
+            {{range $i, $frag := .Fragments}}
+            <option value="{{$frag.Name}}">{{$frag.Name}}</option>
+            {{end}}
+        </select>
+        {{end}}
+    </form>
+    <form>
+        <div id="fragment-container">
+            {{if .FragmentDetails}}
+                {{template "fragment-list" .FragmentDetails}}
+            {{end}}
+        </div>
+    </form>
+</div>
+{{end}}
+
+
+{{define "fragment-list"}}
+{{range $i, $details := .}}
+<div id="fragment-window-{{$i}}" class="left">
+    <input type="hidden" name="fragment" value="{{$details.Name}}" />
+    <input type="radio" name="selected-fragment-name" value="{{$details.Name}}" {{if eq $i 0}} checked {{end}} />
+    <br />
+    <label>{{$details.Name}} <a href="#" hx-get="/fragment" hx-target="#edit_tool" hx-include="#fragment-set,#fragment-window-{{$i}} [name='fragment'],[name='currentCollection']">edit</a></label>
+    {{template "grid" $details.GridDetails}}
+</div>
+{{end}}
+{{end}}
+
+{{define "fragment-edit"}}
+<div id="fragement-edit">
+    {{template "fragment" .FragmentDetails}}
+    {{template "grid-modify" .AvailableMaterials}}
+</div>
+{{end}}
+
+{{define "fragment"}}
+<div id="fragment-window">
+    <input type="hidden" name="fragment-set" value="{{.SetName}}" />
+    <input type="hidden" name="fragment" value="{{.Name}}" />
+    <b>{{.Name}}; </b>
+    <a href="#" hx-post="/fragment" hx-target="#edit_tool" hx-include="#fragment-window [name='fragment-set'],#fragment-window [name='fragment'],[name='currentCollection']">Save (entire set)</a>
+    <br />
+    {{template "grid" .GridDetails}}
+</div>
+{{end}}

@@ -1,15 +1,24 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 )
 
+type Transport struct {
+	SourceY   int    `json:"sourceY"`
+	SourceX   int    `json:"sourceX"`
+	DestY     int    `json:"destY"`
+	DestX     int    `json:"destX"`
+	DestStage string `json:"destStage"`
+}
+
 func (c Context) getEditTransports(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
-	name := queryValues.Get("areaName")
+	name := queryValues.Get("area-name")
 	collectionName := queryValues.Get("currentCollection")
 	spaceName := queryValues.Get("currentSpace")
 	space := c.getSpace(collectionName, spaceName)
@@ -20,7 +29,7 @@ func (c Context) getEditTransports(w http.ResponseWriter, r *http.Request) {
 	}
 
 	output := transportFormHtml(*selectedArea)
-	output += transportsAsOob(*selectedArea)
+	output += c.transportsAsOob(*selectedArea, spaceName)
 	io.WriteString(w, output)
 }
 
@@ -56,7 +65,7 @@ func (c Context) editTransport(w http.ResponseWriter, r *http.Request) {
 
 func (c Context) newTransport(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
-	areaName := properties["areaName"]
+	areaName := properties["area-name"]
 	fmt.Println(areaName)
 
 	collectionName := properties["currentCollection"]
@@ -77,7 +86,7 @@ func (c Context) newTransport(w http.ResponseWriter, r *http.Request) {
 
 func editTransportForm(i int, t Transport, sourceName string) string {
 	output := fmt.Sprintf(`
-	<form hx-post="/editTransport" hx-target="#edit_transports" hx-swap="outerHTML">
+	<form hx-post="/editTransport" hx-target="#edit_transports" hx-swap="outerHTML" hx-include="[name='currentCollection'],[name='currentSpace']">
 		<input type="hidden" name="transport-id" value="%d" />
 		<input type="hidden" name="transport-area-name" value="%s" />
 		<table>
@@ -116,8 +125,8 @@ func editTransportForm(i int, t Transport, sourceName string) string {
 		</table>
 
 		<button class="btn">Submit</button>
-		<button class="btn" hx-post="/dupeTransport" hx-include="[name='areaName],[name='currentCollection'],[name='currentSpace']">Duplicate</button>
-		<button class="btn" hx-post="/deleteTransport" hx-include="[name='areaName],[name='currentCollection'],[name='currentSpace']">Delete</button>
+		<button class="btn" hx-post="/dupeTransport" hx-include="[name='area-name'],[name='currentCollection'],[name='currentSpace']">Duplicate</button>
+		<button class="btn" hx-post="/deleteTransport" hx-include="[name='area-name'],[name='currentCollection'],[name='currentSpace']">Delete</button>
 	</form>`, i, sourceName, t.DestStage, t.DestY, t.DestX, t.SourceY, t.SourceX, "pink")
 	return output
 }
@@ -125,7 +134,7 @@ func editTransportForm(i int, t Transport, sourceName string) string {
 func transportFormHtml(area Area) string {
 	output := `<div id="edit_transports">
 					<h4>Transports: </h4>
-					<a hx-post="/newTransport" hx-include="[name='areaName'],[name='currentCollection'],[name='currentSpace']" hx-target="#edit_transports" href="#"> New </a><br />`
+					<a hx-post="/newTransport" hx-include="[name='area-name'],[name='currentCollection'],[name='currentSpace']" hx-target="#edit_transports" href="#"> New </a><br />`
 	for i, transport := range area.Transports {
 		output += editTransportForm(i, transport, area.Name)
 	}
@@ -177,13 +186,30 @@ func (c Context) deleteTransport(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, output)
 }
 
-func transportsAsOob(area Area) string {
+func (c Context) transportsAsOob(area Area, spacename string) string {
 	output := ``
 	for _, transport := range area.Transports {
-		var yStr = strconv.Itoa(transport.SourceY)
-		var xStr = strconv.Itoa(transport.SourceX)
-		output += `<div hx-swap-oob="true" hx-post="/clickOnSquare" hx-trigger="click" hx-include="[name='radio-tool'],[name='selected-material']" hx-headers='{"y": "` + yStr + `", "x": "` + xStr + `"}' class="grid-square ` + modifications[transport.SourceY][transport.SourceX].CssColor + `" id="c` + yStr + `-` + xStr + `"><div class="box top med red-b"></div></div></div>`
+		fmt.Println(transport)
+		var buf bytes.Buffer
+		var pageData = struct {
+			Material   Material
+			ClickEvent GridSquareDetails
+		}{
+			Material: c.materials[area.Tiles[transport.SourceY][transport.SourceX]],
+			ClickEvent: GridSquareDetails{
+				Y:                transport.SourceY,
+				X:                transport.SourceX,
+				GridType:         "area",
+				ScreenID:         "screen",
+				DefaultTileColor: area.DefaultTileColor,
+				Selected:         true,
+				Location:         []string{spacename, area.Name}},
+		}
+		err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)
+		if err != nil {
+			fmt.Println(err)
+		}
+		output += buf.String()
 	}
-	output += ``
 	return output
 }

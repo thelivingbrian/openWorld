@@ -1,0 +1,26 @@
+{{define "area-edit"}}
+<div id="edit_window" class="side">
+    <input id="area-name" type="hidden" name="area-name" value="{{.Name}}"/>
+    <div id="edit_material" class="left">
+        {{template "grid" .GridDetails}}
+
+        <div id="bottom_window">
+        </div>
+        
+    </div>
+    <div id="edit_sidebar" class="left">
+        <div id="edit_options">
+            <a hx-get="/area/details" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Details</a> |
+            <a hx-get="/grid/edit" hx-target="#edit_tool" hx-include="[name='currentCollection']" href="#">Modify</a> |
+            <a hx-get="/editTransports" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Transports</a> | 
+            <a hx-get="/area/display" hx-target="#edit_tool" href="#">Display</a> | 
+            <a hx-get="/area/neighbors" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Neighbors</a> |
+            <a hx-get="/materialPage"  hx-target="#edit_tool" href="#">Colors/Materials</a> |
+            <a hx-get="/fragments" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection']" href="#">Fragments</a>
+        </div>
+        <div id="edit_tool">
+            {{template "grid-modify" .AvailableMaterials}}
+        </div>
+    </div>
+</div>
+{{end}}

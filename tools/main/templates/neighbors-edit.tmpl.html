@@ -1,0 +1,32 @@
+{{define "neighbors-edit"}}
+<div id="edit_neighbors">
+    <div id="edit_north">
+        <h3>North: </h3>
+        <input type="text" name="north_input" value="{{.North}}"/>
+        <input id="north-go" type="hidden" name="area-name" value="{{.North}}"/>
+        <a hx-get="/area" hx-include="#north-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">Go</a>
+    </div>
+    
+    <div id="edit_south">
+        <h3>South: </h3>
+        <input type="text" name="south_input" value="{{.South}}"/>
+        <input id="south-go" type="hidden" name="area-name" value="{{.South}}"/>
+        <a hx-get="/area" hx-include="#south-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">Go</a>
+    </div>
+    
+    <div id="edit_east">
+        <h3>East: </h3>
+        <input type="text" name="east_input" value="{{.East}}"/>
+        <input id="east-go" type="hidden" name="area-name" value="{{.East}}"/>
+        <a hx-get="/area" hx-include="#east-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">Go</a>
+    </div>
+    
+    <div id="edit_west">
+        <h3>West: </h3>
+        <input type="text" name="west_input" value="{{.West}}"/>
+        <input id="west-go" type="hidden" name="area-name" value="{{.West}}"/>
+        <a hx-get="/area" hx-include="#west-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">Go</a>
+    </div>
+    <a hx-post="/neighbors" hx-include="#area-name,[name='north_input'],[name='south_input'],[name='east_input'],[name='west_input'],[name='currentCollection'],[name='currentSpace']" hx-target="#edit_tool" href="#">Save</a>
+</div>
+{{end}}
