@@ -22,7 +22,7 @@ func requestToProperties(r *http.Request) (map[string]string, bool) {
 	if err != nil {
 		return nil, false
 	}
-	fmt.Println(bodyS)
+	//fmt.Println(bodyS)
 
 	return bodyStringToProperties(bodyS), true
 }

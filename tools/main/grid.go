@@ -22,8 +22,14 @@ type GridSquareDetails struct {
 	//SelectedTool     string
 }
 
+var CONNECTING_CHAR = "."
+
 func (gridSquare GridSquareDetails) stringifyLocation() string {
-	return strings.Join(gridSquare.Location, ".")
+	return strings.Join(gridSquare.Location, CONNECTING_CHAR)
+}
+
+func locationStringFromArea(area *Area, spacename string) string {
+	return spacename + CONNECTING_CHAR + area.Name
 }
 
 func (c Context) gridEditHandler(w http.ResponseWriter, r *http.Request) {
