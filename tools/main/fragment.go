@@ -111,28 +111,26 @@ func (c Context) getFragment(w http.ResponseWriter, r *http.Request) {
 
 	collection, ok := c.Collections[collectionName]
 	if !ok {
-		fmt.Println("Collection Name Invalid")
-		return
+		panic("Collection Name Invalid")
+	}
+	if len(collection.Fragments[setName]) == 0 {
+		panic("No Fragments in set: " + setName)
 	}
 
-	fmt.Println("Number of fragments:")
-	fmt.Println(len(collection.Fragments[setName]))
-
 	fragment := getFragmentByName(collection.Fragments[setName], fragmentName)
-	if fragment != nil {
-		var pageData = struct {
-			AvailableMaterials []Material
-			FragmentDetails    *FragmentDetails
-		}{
-			AvailableMaterials: c.materials,
-			FragmentDetails:    c.DetailsFromFragment(fragment, true),
-		}
-		err := tmpl.ExecuteTemplate(w, "fragment-edit", pageData)
-		if err != nil {
-			fmt.Println(err)
-		}
-	} else {
-		fmt.Println("No fragment with name: " + fragmentName)
+	if fragment == nil {
+		panic("No fragment with name: " + fragmentName)
+	}
+	var pageData = struct {
+		AvailableMaterials []Material
+		FragmentDetails    *FragmentDetails
+	}{
+		AvailableMaterials: c.materials,
+		FragmentDetails:    c.DetailsFromFragment(fragment, true),
+	}
+	err := tmpl.ExecuteTemplate(w, "fragment-edit", pageData)
+	if err != nil {
+		fmt.Println(err)
 	}
 }
 
