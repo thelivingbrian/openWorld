@@ -23,13 +23,11 @@ func main() {
 	http.HandleFunc("/area/display", c.areaDisplayHandler)
 	http.HandleFunc("/area/neighbors", c.areaNeighborsHandler)
 	http.HandleFunc("/fragments", c.fragmentsHandler)
-	//http.HandleFunc("/fragments/new", c.fragmentsHandler)
 	http.HandleFunc("/fragment", c.fragmentHandler)
+	//http.HandleFunc("/fragment/new", c.fragmentHandler)
 	http.HandleFunc("/grid/edit", c.gridEditHandler)
 	http.HandleFunc("/grid/click/area", c.gridClickAreaHandler)
 	http.HandleFunc("/grid/click/fragment", c.gridClickFragmentHandler)
-
-	//http.HandleFunc("/fragment/select", c.fragmentSelectHandler)
 
 	http.HandleFunc("/materialPage", c.getMaterialPage)
 	http.HandleFunc("/getEditMaterial", c.getEditMaterial)
@@ -44,7 +42,6 @@ func main() {
 	http.HandleFunc("/exampleSquare", exampleSquare)
 	http.HandleFunc("/outputIngredients", c.outputIngredients)
 
-	//http.HandleFunc("/clickOnSquare", c.clickOnSquare)
 	http.HandleFunc("/selectMaterial", c.selectMaterial)
 	http.HandleFunc("/selectFixture", c.selectFixture)
 
