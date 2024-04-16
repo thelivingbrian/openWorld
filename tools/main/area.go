@@ -40,8 +40,6 @@ var haveSelection bool = false
 var selectedX int
 var selectedY int
 
-//var modifications [][]Material
-
 // ///////////////////////////////////////////////////////////
 // Areas
 
@@ -124,22 +122,8 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 
 	space := c.getSpace(collectionName, spaceName)
 
-	/*
-		if len(modifications) == 0 {
-			return
-		}
-
-		tiles := make([][]int, len(modifications))
-		for y := range modifications {
-			tiles[y] = make([]int, len(modifications[y]))
-			for x, material := range modifications[y] {
-				tiles[y][x] = material.ID
-			}
-		}
-	*/
-
-	// This needs changing no that modifications are local
-	// Can make name static or add oldname as property
+	// This needs changing
+	// Can make name immutable or add oldname as property
 	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
 		area := Area{Name: name, Safe: safe, Tiles: nil, Transports: nil, DefaultTileColor: defaultTileColor}
@@ -149,9 +133,6 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 			io.WriteString(w, `<h2>Invalid Name</h2>`)
 			return
 		}
-		//selectedArea.Safe = safe
-		//selectedArea.Tiles = tiles
-		//selectedArea.DefaultTileColor = defaultTileColor
 	}
 
 	outFile := c.collectionPath + collectionName + "/spaces/" + spaceName + ".json"
