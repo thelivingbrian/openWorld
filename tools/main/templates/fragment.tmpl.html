@@ -58,8 +58,9 @@
 <div id="fragment-window">
     <input type="hidden" name="fragment-set" value="{{.SetName}}" />
     <input type="hidden" name="fragment" value="{{.Name}}" />
-    <h3>{{.Name}} </h3>
-    <a href="#" hx-post="/fragment" hx-target="#edit_tool" hx-include="#fragment-window [name='fragment-set'],#fragment-window [name='fragment'],[name='currentCollection']">Save</a>
+    <b>{{.Name}}; </b>
+    <a href="#" hx-post="/fragment" hx-target="#edit_tool" hx-include="#fragment-window [name='fragment-set'],#fragment-window [name='fragment'],[name='currentCollection']">Save (entire set)</a>
+    <br />
     {{template "grid" .GridDetails}}
 </div>
 {{end}}

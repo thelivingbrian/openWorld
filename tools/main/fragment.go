@@ -99,8 +99,7 @@ func (c Context) fragmentHandler(w http.ResponseWriter, r *http.Request) {
 		c.getFragment(w, r)
 	}
 	if r.Method == "POST" {
-		fmt.Println("POST for /fragment")
-		io.WriteString(w, "<h3>Done.</h3>")
+		c.postFragment(w, r)
 	}
 }
 
@@ -135,4 +134,29 @@ func (c Context) getFragment(w http.ResponseWriter, r *http.Request) {
 	} else {
 		fmt.Println("No fragment with name: " + fragmentName)
 	}
+}
+
+func (c Context) postFragment(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("POST for /fragment")
+
+	properties, _ := requestToProperties(r)
+	collectionName := properties["currentCollection"]
+	setName := properties["fragment-set"]
+
+	collection, ok := c.Collections[collectionName]
+	if !ok {
+		panic("no collection")
+	}
+	set, ok := collection.Fragments[setName]
+	if !ok {
+		panic("no set")
+	}
+
+	outFile := c.collectionPath + collectionName + "/fragments/" + setName + ".json"
+	err := writeJsonFile(outFile, set)
+	if err != nil {
+		panic(err)
+	}
+
+	io.WriteString(w, "<h3>Done.</h3>")
 }
