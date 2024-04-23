@@ -60,7 +60,7 @@ func (c Context) getAreas(w http.ResponseWriter, r *http.Request) {
 // ///////////////////////////////////////////////////////////
 // Area
 
-func (c Context) areaHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Context) areaHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		c.getArea(w, r)
 	}
@@ -69,7 +69,7 @@ func (c Context) areaHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c Context) getArea(w http.ResponseWriter, r *http.Request) {
+func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 	space := c.spaceFromGET(r)
 	selectedArea := c.areaFromGET(r)
 	if selectedArea == nil {
@@ -78,6 +78,8 @@ func (c Context) getArea(w http.ResponseWriter, r *http.Request) {
 	}
 
 	modifications := c.AreaToMaterialGrid(*selectedArea)
+
+	fmt.Printf("Materials Available: %d", len(c.materials))
 
 	var pageData = PageData{
 		GridDetails: GridDetails{

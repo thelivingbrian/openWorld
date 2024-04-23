@@ -94,7 +94,7 @@ func (c Context) DetailsFromFragment(fragment *Fragment, clickable bool) *Fragme
 
 // Fragment
 
-func (c Context) fragmentHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Context) fragmentHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		c.getFragment(w, r)
 	}
@@ -103,7 +103,7 @@ func (c Context) fragmentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c Context) getFragment(w http.ResponseWriter, r *http.Request) {
+func (c *Context) getFragment(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")
 	setName := queryValues.Get("fragment-set")

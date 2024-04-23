@@ -118,7 +118,7 @@ func (db *DB) getPlayerRecord(username string) (*PlayerRecord, error) {
 	return &result, nil
 }
 
-// This is onnly being used by a test
+// This is only being used by a test
 func (db *DB) updatePlayerRecord(username string, updates map[string]any) (*PlayerRecord, error) {
 	collection := db.playerRecords
 

@@ -32,13 +32,13 @@ func locationStringFromArea(area *Area, spacename string) string {
 	return spacename + CONNECTING_CHAR + area.Name
 }
 
-func (c Context) gridEditHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Context) gridEditHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		c.getGridEdit(w, r)
 	}
 }
 
-func (c Context) getGridEdit(w http.ResponseWriter, r *http.Request) {
+func (c *Context) getGridEdit(w http.ResponseWriter, r *http.Request) {
 	tmpl.ExecuteTemplate(w, "grid-modify", c.materials)
 }
 

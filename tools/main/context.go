@@ -20,9 +20,9 @@ type Context struct {
 	collectionPath string
 }
 
-const DEPLOY_materialPath = "../../server/main/data/materials2.json"
-const DEPLOY_areaPath = "../../server/main/data/areas2.json"
-const DEPLOY_cssPath = "../../server/main/assets/colors2.css"
+const DEPLOY_materialPath = "../../server/main/data/materials.json"
+const DEPLOY_areaPath = "../../server/main/data/areas.json"
+const DEPLOY_cssPath = "../../server/main/assets/colors.css"
 
 // Startup
 

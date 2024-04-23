@@ -64,6 +64,7 @@ func (c *Context) divEditColorSelect() string {
 }
 
 func (c *Context) divEditMaterialSelect() string {
+	fmt.Printf("Material(s) Available: %d", len(c.materials))
 	output := `
 	<div>
 		<label>Materials</label>
