@@ -26,7 +26,8 @@
     <input type="radio" name="selected-prototype-id" value="{{$proto.ID}}" {{if eq $i 0}} checked {{end}} />
     <br />
     {{template "proto-square" $proto}}
-    <label>{{$proto.CommonName}} <a href="#" hx-get="/prototype" hx-target="#edit_tool" hx-include="#prototype-set,#prototype-window-{{$i}} [name='prototype'],[name='currentCollection']">edit</a></label>
+    <label>{{$proto.CommonName}}</label><br />
+    <a href="#" hx-get="/prototype" hx-target="#edit_tool" hx-include="#prototype-set,#prototype-window-{{$i}} [name='prototype'],[name='currentCollection']">edit</a>
 </div>
 {{end}}
 {{end}}
@@ -35,7 +36,7 @@
 <div id="exampleSquare" class="grid-row">
     <div class="grid-square {{.CssColor}}">
         <div class="box floor1 {{.Floor1Css}}"> </div>
-        <div class="box floor2 {{.Floor1Css}}"> </div>
+        <div class="box floor2 {{.Floor2Css}}"> </div>
         <div class="box ceiling1 {{.Ceiling1Css}}"></div>
         <div class="box ceiling2 {{.Ceiling2Css}}"> </div>
     </div>

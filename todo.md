@@ -9,9 +9,14 @@
 - [ ] Rotations
   - [-] New collection
   - [ ] Convert materials to protos
-    - [] Unique id 
-    - [] define rotate(proto)
+    - [-] Create default protos
+    - [ ] Unique id 
+    - [ ] define rotate(proto)
   - [ ] Update fragment schema to have transformations 
+    - [-] New Fragment Set
+    - [-] New Fragment
+    - [ ] Fragment has protos
+    - [ ] Fragment applies transformations
   - [ ] Blueprint page 
     - [ ] Place fragment on blueprint
     - [ ] Compile blueprint (blueprint layers/actions -> defaultFragment)
