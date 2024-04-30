@@ -139,10 +139,12 @@ func getAllCollections(collectionPath string) map[string]*Collection {
 	for _, dir := range dirs {
 		entry, _ := dir.Info()
 		if entry.IsDir() {
-			collection := Collection{Name: entry.Name(), Spaces: make(map[string]*Space), Fragments: make(map[string][]Fragment)}
+			collection := Collection{Name: entry.Name()}
 
 			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
 			areaMap := make(map[string][]Area)
+			// getListOfSubDirectorries
+			// getListOfJSONFiles
 			populateMaps(areaMap, pathToSpaces)
 			collection.Spaces = areasToSpaces(areaMap, entry.Name())
 
@@ -150,6 +152,11 @@ func getAllCollections(collectionPath string) map[string]*Collection {
 			fragmentMap := make(map[string][]Fragment)
 			populateMaps(fragmentMap, pathToFragments)
 			collection.Fragments = addSetNamesToFragments(fragmentMap)
+
+			pathToPrototypes := filepath.Join(collectionPath, entry.Name(), "prototypes")
+			prototypeMap := make(map[string][]Prototype)
+			populateMaps(prototypeMap, pathToPrototypes)
+			collection.Prototypes = prototypeMap
 
 			collections[entry.Name()] = &collection
 
@@ -176,9 +183,11 @@ func areasToSpaces(areaMap map[string][]Area, collectionName string) map[string]
 }
 
 func populateMaps[T any](m map[string][]T, pathToJsonDirectory string) {
+	// Don't do this. Too specific. Just have .jsons be correct types (FragmentSet, etc)
 	subEntries, err := os.ReadDir(pathToJsonDirectory)
 	if err != nil {
-		panic("Invalid directory: " + pathToJsonDirectory)
+		fmt.Println("Invalid directory: " + pathToJsonDirectory)
+		return
 	}
 
 	for _, subEntry := range subEntries {

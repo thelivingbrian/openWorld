@@ -12,13 +12,12 @@ type Fragment struct {
 	SetName string
 	Tiles   [][]int `json:"tiles"`
 }
+
 type FragmentDetails struct {
 	Name        string
 	SetName     string
 	GridDetails GridDetails
 }
-
-// placeholder tile?
 
 func (c Context) fragmentsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {

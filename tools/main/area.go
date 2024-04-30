@@ -79,7 +79,7 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 
 	modifications := c.AreaToMaterialGrid(*selectedArea)
 
-	fmt.Printf("Materials Available: %d", len(c.materials))
+	//fmt.Printf("Materials Available: %d", len(c.materials))
 
 	var pageData = PageData{
 		GridDetails: GridDetails{

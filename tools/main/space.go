@@ -156,8 +156,7 @@ func (c Context) postSpaces(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Printf("%s %s %s %s %s %d %d", name, topology, areaWidth, areaHeight, tileColor, latitude, longitude)
 
-		area := createBaseArea(height, width, tileColor)
-		space := createSpace(cName, name, latitude, longitude, topology, area)
+		space := createSpace(cName, name, latitude, longitude, topology, height, width, tileColor)
 		col.Spaces[name] = &space
 		io.WriteString(w, `<h3>Success</h3>`)
 		return
@@ -165,10 +164,11 @@ func (c Context) postSpaces(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, `<h3>Invalid collection Name.</h3>`)
 }
 
-func createSpace(cName, name string, latitude, longitude int, topology string, area Area) Space {
+func createSpace(cName, name string, latitude, longitude int, topology string, height, width int, tileColor string) Space {
 	areas := make([][]Area, latitude)
 	for y := 0; y < latitude; y++ {
 		for x := 0; x < longitude; x++ {
+			area := createBaseArea(height, width, tileColor)
 			// This is consistent with Tiles
 			area.Name = fmt.Sprintf("%s:%d-%d", name, y, x)
 			area.North = fmt.Sprintf("%s:%d-%d", name, mod(y-1, latitude), x)

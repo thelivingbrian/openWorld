@@ -25,6 +25,8 @@ func main() {
 	http.HandleFunc("/fragments", c.fragmentsHandler)
 	http.HandleFunc("/fragment", c.fragmentHandler)
 	//http.HandleFunc("/fragment/new", c.fragmentHandler)
+	http.HandleFunc("/prototypes", c.PrototypesHandler)
+	//http.HandleFunc("/prototype", c.PrototypeHandler)
 	http.HandleFunc("/grid/edit", c.gridEditHandler)
 	http.HandleFunc("/grid/click/area", c.gridClickAreaHandler)
 	http.HandleFunc("/grid/click/fragment", c.gridClickFragmentHandler)

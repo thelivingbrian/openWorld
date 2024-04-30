@@ -62,7 +62,7 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 		panic("Hey")
 	}
 	area := getAreaByName(space.Areas, areaName)
-	fmt.Println("Have: " + area.Name)
+	//fmt.Println("Have: " + area.Name)
 
 	//c.gridAction(event, area.Tiles, properties)
 	result := c.gridAction(details, area.Tiles, properties)

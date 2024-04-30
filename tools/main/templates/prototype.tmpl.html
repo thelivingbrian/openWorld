@@ -1,0 +1,43 @@
+{{define "prototype-select"}}
+<div id="prototype-select">
+    <form hx-trigger="change" hx-include="[name='currentCollection']" hx-get="/prototypes" hx-target="#prototype-select">
+        <label>Prototype Set: <a hx-get="/prototypes/new" hx-include="[name='currentCollection']" href="#">New</a></label>
+        <select id="prototype-set" name="prototype-set">
+            <option value="{{.CurrentSet}}">{{.CurrentSet}}</option>
+            {{range $i, $name := .PrototypeSets}}
+            <option value="{{$name}}">{{$name}}</option>
+            {{end}}
+        </select>
+    </form>
+    <form>
+        <div id="prototype-container">
+            {{if .Prototypes}}
+                {{template "prototype-list" .Prototypes}}
+            {{end}}
+        </div>
+    </form>
+</div>
+{{end}}
+
+{{define "prototype-list"}}
+{{range $i, $proto := .}}
+<div id="prototype-window-{{$i}}" class="left">
+    <input type="hidden" name="prototype" value="{{$proto.ID}}" />
+    <input type="radio" name="selected-prototype-id" value="{{$proto.ID}}" {{if eq $i 0}} checked {{end}} />
+    <br />
+    {{template "proto-square" $proto}}
+    <label>{{$proto.CommonName}} <a href="#" hx-get="/prototype" hx-target="#edit_tool" hx-include="#prototype-set,#prototype-window-{{$i}} [name='prototype'],[name='currentCollection']">edit</a></label>
+</div>
+{{end}}
+{{end}}
+
+{{define "proto-square"}}
+<div id="exampleSquare" class="grid-row">
+    <div class="grid-square {{.CssColor}}">
+        <div class="box floor1 {{.Floor1Css}}"> </div>
+        <div class="box floor2 {{.Floor1Css}}"> </div>
+        <div class="box ceiling1 {{.Ceiling1Css}}"></div>
+        <div class="box ceiling2 {{.Ceiling2Css}}"> </div>
+    </div>
+</div>
+{{end}}
