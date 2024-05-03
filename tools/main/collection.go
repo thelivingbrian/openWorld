@@ -9,10 +9,11 @@ import (
 )
 
 type Collection struct {
-	Name       string
-	Spaces     map[string]*Space
-	Fragments  map[string][]Fragment
-	Prototypes map[string][]Prototype
+	Name          string
+	Spaces        map[string]*Space
+	Fragments     map[string][]Fragment
+	PrototypeSets map[string][]Prototype
+	Prototypes    map[string]*Prototype
 }
 
 func (c Context) collectionsHandler(w http.ResponseWriter, r *http.Request) {

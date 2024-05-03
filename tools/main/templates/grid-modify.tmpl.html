@@ -2,6 +2,7 @@
     <select id="fixture_select" name="current-fixture" hx-get="/selectFixture" hx-target="#fixture-window" hx-include="[name='currentCollection']">
         <option value="material" selected>Materials</option>
         <option value="fragment">Fragments</option>
+        <option value="prototype">Prototypes</option>
     </select>
     <div id="fixture-window">
         {{template "fixture-material" .}}
@@ -51,4 +52,9 @@
     <input type="radio" id="rt-fragment-place" name="radio-tool" value="place" checked>
     <label for="rt-select">Place</label>
 </div>
+{{end}}
+
+{{define "fixture-prototype"}}
+    {{template "available-tools-material"}}
+    {{template "prototype-select" .}}
 {{end}}

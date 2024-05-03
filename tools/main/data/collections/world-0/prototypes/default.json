@@ -101,10 +101,10 @@
     },
     {
         "id": "10",
-        "commonName": "water-bl",
+        "commonName": "water-corner",
         "cssColor": "",
         "walkable": false,
-        "layer1css": "blue r1-bl",
+        "layer1css": "blue r1-{rotate:tr}",
         "layer2css": "",
         "ceiling1css": "",
         "ceiling2css": ""

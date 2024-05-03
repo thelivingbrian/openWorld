@@ -1,1 +1,1 @@
-[{"name":"name","SetName":"water","tiles":[[0,6,0,6,0,0,0]]}]
+[{"name":"name","SetName":"water","tiles":[[{"PrototypeId": "10", "Transformation": {"ClockwiseRotations":2}}]]}]

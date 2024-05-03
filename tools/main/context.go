@@ -156,13 +156,27 @@ func getAllCollections(collectionPath string) map[string]*Collection {
 			pathToPrototypes := filepath.Join(collectionPath, entry.Name(), "prototypes")
 			prototypeMap := make(map[string][]Prototype)
 			populateMaps(prototypeMap, pathToPrototypes)
-			collection.Prototypes = prototypeMap
+			collection.PrototypeSets = addSetNamesToProtypes(prototypeMap)
+			collection.Prototypes = consolidate(collection.PrototypeSets) // consolidate prototypes
 
 			collections[entry.Name()] = &collection
 
 		}
 	}
 	return collections
+}
+
+func consolidate(prototypeSets map[string][]Prototype) map[string]*Prototype {
+	out := make(map[string]*Prototype)
+	for name, set := range prototypeSets {
+		for i, _ := range set {
+			if out[set[i].ID] != nil {
+				panic("Invalid: duplicate ID for prototypes: " + set[i].ID + " in: " + name)
+			}
+			out[set[i].ID] = &set[i]
+		}
+	}
+	return out
 }
 
 func addSetNamesToFragments(fragmentMap map[string][]Fragment) map[string][]Fragment {
@@ -172,6 +186,20 @@ func addSetNamesToFragments(fragmentMap map[string][]Fragment) map[string][]Frag
 		}
 	}
 	return fragmentMap
+}
+
+func addSetNamesToProtypes(protoMap map[string][]Prototype) map[string][]Prototype {
+	out := make(map[string][]Prototype)
+	for setName := range protoMap {
+		arr := make([]Prototype, 0)
+		for i := range protoMap[setName] {
+			proto := protoMap[setName][i]
+			proto.setName = setName
+			arr = append(arr, proto)
+		}
+		out[setName] = arr
+	}
+	return out
 }
 
 func areasToSpaces(areaMap map[string][]Area, collectionName string) map[string]*Space {

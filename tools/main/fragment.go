@@ -4,13 +4,21 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
 )
 
 type Fragment struct {
 	Name    string `json:"name"`
 	SetName string
-	Tiles   [][]int `json:"tiles"`
+	//Tiles           [][]string `json:"tiles"` // change to string
+	//Transformations [][]*Transformation
+	Tiles [][]TileData
+}
+
+type TileData struct {
+	PrototypeId    string
+	Transformation *Transformation
 }
 
 type FragmentDetails struct {
@@ -19,7 +27,7 @@ type FragmentDetails struct {
 	GridDetails GridDetails
 }
 
-func (c Context) fragmentsHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Context) fragmentsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		c.getFragments(w, r)
 	}
@@ -28,7 +36,7 @@ func (c Context) fragmentsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c Context) getFragments(w http.ResponseWriter, r *http.Request) {
+func (c *Context) getFragments(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")
 	setName := queryValues.Get("fragment-set")
@@ -50,11 +58,11 @@ func (c Context) getFragments(w http.ResponseWriter, r *http.Request) {
 	if fragmentName != "" {
 		fragment := getFragmentByName(collection.Fragments[setName], fragmentName)
 		if fragment != nil {
-			fragmentDetails = append(fragmentDetails, c.DetailsFromFragment(fragment, false))
+			fragmentDetails = append(fragmentDetails, collection.DetailsFromFragment(fragment, false))
 		}
 	} else {
 		for i, fragment := range collection.Fragments[setName] {
-			details := c.DetailsFromFragment(&fragment, false)
+			details := collection.DetailsFromFragment(&fragment, false)
 			details.GridDetails.ScreenID += strconv.Itoa(i)
 			fragmentDetails = append(fragmentDetails, details)
 		}
@@ -76,7 +84,7 @@ func (c Context) getFragments(w http.ResponseWriter, r *http.Request) {
 	tmpl.ExecuteTemplate(w, "fragments", pageData)
 }
 
-func (c Context) DetailsFromFragment(fragment *Fragment, clickable bool) *FragmentDetails {
+func (c *Collection) DetailsFromFragment(fragment *Fragment, clickable bool) *FragmentDetails {
 	gridtype := "unclickable"
 	if clickable {
 		gridtype = "fragment"
@@ -85,12 +93,92 @@ func (c Context) DetailsFromFragment(fragment *Fragment, clickable bool) *Fragme
 		Name:    fragment.Name,
 		SetName: fragment.SetName,
 		GridDetails: GridDetails{
-			MaterialGrid:     c.DereferenceIntMatrix(fragment.Tiles),
+			MaterialGrid:     c.generateMaterials(fragment),
 			DefaultTileColor: "",
 			Location:         fragment.SetName + "." + fragment.Name,
 			ScreenID:         "fragment",
 			GridType:         gridtype},
 	}
+}
+
+func (col *Collection) generateMaterials(fragment *Fragment) [][]Material {
+	out := make([][]Material, len(fragment.Tiles))
+	for i := range fragment.Tiles {
+		out[i] = make([]Material, len(fragment.Tiles[i]))
+		for j := range fragment.Tiles[i] {
+			out[i][j] = col.createMaterial(fragment.Tiles[i][j])
+		}
+	}
+	return out
+}
+
+func (col *Collection) createMaterial(data TileData) Material {
+	proto, ok := col.Prototypes[data.PrototypeId]
+	if !ok {
+		panic("No Matching Protype has been loaded.j")
+	}
+	return proto.applyTransform(data.Transformation)
+}
+
+func (proto *Prototype) toMaterial() Material {
+	return proto.applyTransform(nil)
+}
+
+func (proto *Prototype) applyTransform(transformation *Transformation) Material {
+	return Material{
+		ID:          15793,
+		CommonName:  proto.CommonName,
+		CssColor:    proto.CssColor,
+		Floor1Css:   transformCss(proto.Floor1Css, transformation),
+		Floor2Css:   transformCss(proto.Floor2Css, transformation),
+		Ceiling1Css: transformCss(proto.Ceiling1Css, transformation),
+		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation)}
+}
+
+func transformCss(input string, transformation *Transformation) string {
+
+	if transformation == nil {
+		return input
+	}
+	// We are looking for {key:value} : key, value => string
+	pattern := regexp.MustCompile(`{([^:]*):([^}]*)}`)
+
+	result := pattern.ReplaceAllStringFunc(input, func(s string) string {
+		matches := pattern.FindStringSubmatch(s)
+		// matches[0] is the full match, matches[1] is the key, matches[2] is the value
+		fmt.Println(s)
+		fmt.Println(matches[0])
+
+		if len(matches) == 3 { // Nil check instead?
+			if transformation == nil {
+				return matches[2]
+			}
+			if matches[1] == "rotate" {
+				return rotateCss(matches[2], transformation.ClockwiseRotations)
+			}
+		}
+		return s // return original if not enough matches? -Check this chatgpt made it
+	})
+	return result
+}
+
+func rotateCss(input string, clockwiseRotations int) string {
+	options := []string{"tr", "br", "bl", "tl"}
+	currentIndex := findIndex(input, options)
+	if currentIndex == -1 {
+		panic("invalid rotation attempted")
+	}
+	return options[mod(currentIndex+clockwiseRotations, 4)]
+
+}
+
+func findIndex(s string, list []string) int {
+	for i := range list {
+		if list[i] == s {
+			return i
+		}
+	}
+	return -1
 }
 
 func (c Context) postFragments(w http.ResponseWriter, r *http.Request) {
@@ -181,7 +269,7 @@ func (c *Context) getFragment(w http.ResponseWriter, r *http.Request) {
 		FragmentDetails    *FragmentDetails
 	}{
 		AvailableMaterials: c.materials,
-		FragmentDetails:    c.DetailsFromFragment(fragment, true),
+		FragmentDetails:    collection.DetailsFromFragment(fragment, true),
 	}
 	err := tmpl.ExecuteTemplate(w, "fragment-edit", pageData)
 	if err != nil {
@@ -215,7 +303,7 @@ func (c Context) putFragment(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Context) postFragment(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("PUT for /fragment")
+	fmt.Println("POST for /fragment")
 
 	properties, _ := requestToProperties(r)
 	collectionName := properties["currentCollection"]
@@ -244,9 +332,9 @@ func (c Context) postFragment(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	grid := make([][]int, height)
+	grid := make([][]TileData, height)
 	for i := range grid {
-		grid[i] = make([]int, width)
+		grid[i] = make([]TileData, width)
 	}
 
 	collection.Fragments[setName] = append(set, Fragment{Name: name, SetName: setName, Tiles: grid})

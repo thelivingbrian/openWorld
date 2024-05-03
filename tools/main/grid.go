@@ -51,10 +51,6 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 	details := createGridSquareDetails(properties, "area")
 
 	// new func
-	//parts := strings.Split(event.Location, "_")
-	//if len(parts) < 2 {
-	//	fmt.Println("Invalid Sid")
-	//}
 	spaceName := details.Location[0]
 	areaName := details.Location[1]
 	space := c.getSpace(details.CollectionName, spaceName)
@@ -64,8 +60,8 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 	area := getAreaByName(space.Areas, areaName)
 	//fmt.Println("Have: " + area.Name)
 
-	//c.gridAction(event, area.Tiles, properties)
-	result := c.gridAction(details, area.Tiles, properties)
+	// Todo: fix area.Tiles
+	result := c.gridAction(details, nil, properties)
 	io.WriteString(w, result)
 	if result == "" {
 		var pageData = GridDetails{
@@ -110,7 +106,7 @@ func (c Context) gridClickFragmentHandler(w http.ResponseWriter, r *http.Request
 	io.WriteString(w, result)
 	if result == "" {
 		var pageData = GridDetails{
-			MaterialGrid:     c.DereferenceIntMatrix(fragment.Tiles),
+			MaterialGrid:     col.generateMaterials(fragment),
 			DefaultTileColor: details.DefaultTileColor,
 			Location:         details.stringifyLocation(),
 			ScreenID:         details.ScreenID,
@@ -172,36 +168,50 @@ func createGridSquareDetails(properties map[string]string, gridType string) Grid
 }
 
 // / Tools
-func (c Context) gridAction(details GridSquareDetails, grid [][]int, properties map[string]string) string {
+func (c *Context) gridAction(details GridSquareDetails, grid [][]TileData, properties map[string]string) string {
 	tool, ok := properties["radio-tool"]
 	if !ok {
 		panic("No Tool Selected")
 		//return
 	}
+	currentCollection, ok := properties["currentCollection"]
+	if !ok {
+		panic("No Collection Name")
+		//return
+	}
+	col, ok := c.Collections[currentCollection]
+	if !ok {
+		panic("no collection")
+	}
 	if tool == "select" {
 		// should oob update hiddens
-		return c.gridSelect(details, grid)
+		return col.gridSelect(details, grid)
 	} else if tool == "replace" {
-		selectedMaterial := c.getMaterialFromRequestProperties(properties)
-		return gridReplace(details, grid, selectedMaterial)
+		selectedPrototype := col.getPrototypeFromRequestProperties(properties)
+		return gridReplace(details, grid, selectedPrototype)
 	} else if tool == "fill" {
-		selectedMaterial := c.getMaterialFromRequestProperties(properties)
-		gridFill(details, grid, selectedMaterial)
+		selectedPrototype := col.getPrototypeFromRequestProperties(properties)
+		gridFill(details, grid, selectedPrototype)
 		return ""
 	} else if tool == "between" {
-		selectedMaterial := c.getMaterialFromRequestProperties(properties)
+		selectedPrototype := col.getPrototypeFromRequestProperties(properties)
 		//selectedMaterial.ID += 0
-		return c.gridFillBetween(details, grid, selectedMaterial)
+		return col.gridFillBetween(details, grid, selectedPrototype)
 	} else if tool == "place" {
 		// Pull isSelected & location (selectedLocation) into hidden field
 		//panic("Tell me your status") // No response
-		fragment := c.getFragmentFromRequestProperties(properties)
-		c.gridPlaceFragment(details, grid, fragment)
+		fragment := col.getFragmentFromRequestProperties(properties)
+		gridPlaceFragment(details, grid, fragment)
 	}
 	return ""
 }
 
-func (c Context) gridPlaceFragment(details GridSquareDetails, modifications [][]int, selectedFragment Fragment) {
+func (col *Collection) getPrototypeFromRequestProperties(properties map[string]string) Prototype {
+	protoId := properties["selected-prototype-id"]
+	return *col.Prototypes[protoId]
+}
+
+func gridPlaceFragment(details GridSquareDetails, modifications [][]TileData, selectedFragment Fragment) {
 	for i := range selectedFragment.Tiles {
 		if details.Y+i < len(modifications) {
 			for j := range selectedFragment.Tiles[i] {
@@ -213,21 +223,12 @@ func (c Context) gridPlaceFragment(details GridSquareDetails, modifications [][]
 	}
 }
 
-func (c Context) getFragmentFromRequestProperties(properties map[string]string) Fragment {
-	currentCollection, ok := properties["currentCollection"]
-	if !ok {
-		panic("No Collection Name")
-		//return
-	}
-	collection, ok := c.Collections[currentCollection]
-	if !ok {
-		panic("no collection")
-	}
+func (col *Collection) getFragmentFromRequestProperties(properties map[string]string) Fragment {
 	setName, ok := properties["fragment-set"]
 	if !ok {
 		panic("no set name")
 	}
-	set, ok := collection.Fragments[setName]
+	set, ok := col.Fragments[setName]
 	if !ok {
 		panic("no set")
 	}
@@ -242,15 +243,16 @@ func (c Context) getFragmentFromRequestProperties(properties map[string]string) 
 	return *fragment
 }
 
-func (c Context) gridSelect(event GridSquareDetails, modifications [][]int) string {
+func (col *Collection) gridSelect(event GridSquareDetails, grid [][]TileData) string {
 	//output := ""
 	var buf bytes.Buffer
 	if haveSelection {
+		selectedCell := grid[selectedY][selectedX]
 		var pageData = struct {
 			Material   Material
 			ClickEvent GridSquareDetails
 		}{
-			Material: c.materials[modifications[selectedY][selectedX]],
+			Material: col.Prototypes[selectedCell.PrototypeId].applyTransform(selectedCell.Transformation),
 			ClickEvent: GridSquareDetails{
 				Y:                selectedY,
 				X:                selectedX,
@@ -267,12 +269,13 @@ func (c Context) gridSelect(event GridSquareDetails, modifications [][]int) stri
 	haveSelection = true // Probably should be a hidden input
 	selectedY = event.Y
 	selectedX = event.X
+	selectedCell := grid[selectedY][selectedX]
 	event.Selected = true
 	var pageData = struct {
 		Material   Material
 		ClickEvent GridSquareDetails
 	}{
-		Material:   c.materials[modifications[selectedY][selectedX]],
+		Material:   col.Prototypes[selectedCell.PrototypeId].applyTransform(selectedCell.Transformation),
 		ClickEvent: event,
 	}
 	err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)
@@ -282,14 +285,14 @@ func (c Context) gridSelect(event GridSquareDetails, modifications [][]int) stri
 	return buf.String()
 }
 
-func gridReplace(event GridSquareDetails, modifications [][]int, selectedMaterial Material) string {
-	modifications[event.Y][event.X] = selectedMaterial.ID
+func gridReplace(event GridSquareDetails, modifications [][]TileData, selectedProto Prototype) string {
+	modifications[event.Y][event.X].PrototypeId = selectedProto.ID
 	var buf bytes.Buffer
 	var pageData = struct {
 		Material   Material
 		ClickEvent GridSquareDetails
 	}{
-		Material:   selectedMaterial,
+		Material:   selectedProto.applyTransform(modifications[event.Y][event.X].Transformation),
 		ClickEvent: event,
 	}
 	err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)
@@ -299,42 +302,42 @@ func gridReplace(event GridSquareDetails, modifications [][]int, selectedMateria
 	return buf.String()
 }
 
-func gridFill(event GridSquareDetails, modifications [][]int, selectedMaterial Material) {
-	targetId := modifications[event.Y][event.X]
-	seen := make([][]bool, len(modifications))
+func gridFill(event GridSquareDetails, grid [][]TileData, selectedPrototype Prototype) {
+	targetId := grid[event.Y][event.X].PrototypeId
+	seen := make([][]bool, len(grid))
 	for row := range seen {
-		seen[row] = make([]bool, len(modifications[row]))
+		seen[row] = make([]bool, len(grid[row]))
 	}
-	fill(event, modifications, selectedMaterial, seen, targetId)
+	fill(event, grid, selectedPrototype, seen, targetId)
 }
 
-func fill(event GridSquareDetails, modifications [][]int, selectedMaterial Material, seen [][]bool, targetId int) {
+func fill(event GridSquareDetails, modifications [][]TileData, selectedPrototype Prototype, seen [][]bool, targetId string) {
 	seen[event.Y][event.X] = true
-	modifications[event.Y][event.X] = selectedMaterial.ID
+	modifications[event.Y][event.X].PrototypeId = selectedPrototype.ID
 	deltas := []int{-1, 1}
 	for _, i := range deltas {
 		if event.Y+i >= 0 && event.Y+i < len(modifications) {
-			shouldfill := !seen[event.Y+i][event.X] && modifications[event.Y+i][event.X] == targetId
+			shouldfill := !seen[event.Y+i][event.X] && modifications[event.Y+i][event.X].PrototypeId == targetId
 			if shouldfill {
 				newEvent := event
 				newEvent.Y += i
-				fill(newEvent, modifications, selectedMaterial, seen, targetId)
+				fill(newEvent, modifications, selectedPrototype, seen, targetId)
 			}
 		}
 		if event.X+i >= 0 && event.X+i < len(modifications[event.Y]) {
-			shouldfill := !seen[event.Y][event.X+i] && modifications[event.Y][event.X+i] == targetId
+			shouldfill := !seen[event.Y][event.X+i] && modifications[event.Y][event.X+i].PrototypeId == targetId
 			if shouldfill {
 				newEvent := event
 				newEvent.X += i
-				fill(newEvent, modifications, selectedMaterial, seen, targetId)
+				fill(newEvent, modifications, selectedPrototype, seen, targetId)
 			}
 		}
 	}
 }
 
-func (c Context) gridFillBetween(event GridSquareDetails, modifications [][]int, selectedMaterial Material) string {
+func (col *Collection) gridFillBetween(event GridSquareDetails, modifications [][]TileData, selectedPrototype Prototype) string {
 	if !haveSelection {
-		c.gridSelect(event, modifications)
+		col.gridSelect(event, modifications)
 	}
 	var lowx, lowy, highx, highy int
 	if event.Y <= selectedY {
@@ -357,10 +360,10 @@ func (c Context) gridFillBetween(event GridSquareDetails, modifications [][]int,
 			newEvent := event
 			newEvent.Y = i
 			newEvent.X = j
-			output += gridReplace(newEvent, modifications, selectedMaterial)
+			output += gridReplace(newEvent, modifications, selectedPrototype)
 		}
 	}
-	output += c.gridSelect(event, modifications)
+	output += col.gridSelect(event, modifications)
 	return output
 }
 
@@ -415,18 +418,23 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 		}
 		tmpl.ExecuteTemplate(w, "fixture-fragment", pageData)
 	}
-}
+	if fixtureType == "prototype" {
+		tmpl.ExecuteTemplate(w, "fixture-prototype", c.prototypeSelectFromRequest(r))
 
-func (c Context) getMaterialFromRequestProperties(properties map[string]string) Material {
-	fmt.Println(properties["selected-material"])
-	selectedMaterialId, err := strconv.Atoi(properties["selected-material"])
-	if err != nil {
-		fmt.Println(err)
-		selectedMaterialId = 0
 	}
-	return c.materials[selectedMaterialId]
 }
 
+/*
+	func (c Context) getMaterialFromRequestProperties(properties map[string]string) Material {
+		fmt.Println(properties["selected-material"])
+		selectedMaterialId, err := strconv.Atoi(properties["selected-material"])
+		if err != nil {
+			fmt.Println("unable to select material", err)
+			selectedMaterialId = 0
+		}
+		return c.materials[selectedMaterialId]
+	}
+*/
 func exampleSquareFromMaterial(material Material) string {
 	overlay := fmt.Sprintf(`<div class="box floor1 %s"></div><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div><div class="box ceiling2 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css, material.Ceiling2Css)
 	idHiddenInput := fmt.Sprintf(`<input name="selected-material" type="hidden" value="%d" />`, material.ID)

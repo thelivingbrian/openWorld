@@ -14,7 +14,8 @@ type Prototype struct {
 	Floor2Css   string `json:"layer2css"`
 	Ceiling1Css string `json:"ceiling1css"`
 	Ceiling2Css string `json:"ceiling2css"`
-	// Tranformation pointer
+	// Tranformation pointer - no
+	setName string
 }
 
 type Transformation struct {
@@ -28,7 +29,21 @@ func (c Context) PrototypesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c Context) getPrototypes(w http.ResponseWriter, r *http.Request) {
+type PrototypeSelectPage struct {
+	PrototypeSets []string
+	CurrentSet    string
+	Prototypes    []Prototype
+}
+
+func (c *Context) getPrototypes(w http.ResponseWriter, r *http.Request) {
+	var PageData = c.prototypeSelectFromRequest(r)
+	err := tmpl.ExecuteTemplate(w, "prototype-select", PageData)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func (c *Context) prototypeSelectFromRequest(r *http.Request) PrototypeSelectPage {
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")
 	setName := queryValues.Get("prototype-set")
@@ -37,26 +52,18 @@ func (c Context) getPrototypes(w http.ResponseWriter, r *http.Request) {
 	collection, ok := c.Collections[collectionName]
 	if !ok {
 		fmt.Println("Collection Name Invalid")
-		return
+		return PrototypeSelectPage{}
 	}
 
 	var setOptions []string
-	for key := range collection.Prototypes {
+	for key := range collection.PrototypeSets {
 		setOptions = append(setOptions, key)
 	}
 	fmt.Println(setOptions)
 
-	var PageData = struct {
-		PrototypeSets []string
-		CurrentSet    string
-		Prototypes    []Prototype
-	}{
+	return PrototypeSelectPage{
 		PrototypeSets: setOptions,
 		CurrentSet:    setName,
-		Prototypes:    collection.Prototypes[setName],
-	}
-	err := tmpl.ExecuteTemplate(w, "prototype-select", PageData)
-	if err != nil {
-		fmt.Println(err)
+		Prototypes:    collection.PrototypeSets[setName],
 	}
 }
