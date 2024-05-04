@@ -39,6 +39,12 @@ func bodyStringToProperties(body string) map[string]string {
 	return propMap
 }
 
+func (c Context) collectionFromGet(r *http.Request) *Collection {
+	queryValues := r.URL.Query()
+	collectionName := queryValues.Get("currentCollection")
+	return c.Collections[collectionName]
+}
+
 func (c Context) spaceFromGET(r *http.Request) *Space {
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")

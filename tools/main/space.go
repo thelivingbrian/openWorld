@@ -194,9 +194,9 @@ func mod(i, n int) int {
 }
 
 func createBaseArea(height, width int, tileColor string) Area {
-	tiles := make([][]int, height)
+	tiles := make([][]TileData, height)
 	for i := range tiles {
-		tiles[i] = make([]int, width)
+		tiles[i] = make([]TileData, width)
 	}
 	return Area{Name: "", Safe: true, Tiles: tiles, Transports: make([]Transport, 0), DefaultTileColor: tileColor}
 }

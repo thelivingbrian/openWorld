@@ -1,1 +1,1 @@
-[{"name":"name","SetName":"water","tiles":[[{"PrototypeId": "10", "Transformation": {"ClockwiseRotations":2}}]]}]
+[{"name":"name","SetName":"water","Tiles":[[{"PrototypeId":"10","Transformation":{"ClockwiseRotations":2,"ColorPalette":""}}]]},{"name":"pond","SetName":"water","Tiles":[[{"PrototypeId":"10","Transformation":null},{"PrototypeId":"10","Transformation":null}],[{"PrototypeId":"10","Transformation":null},{"PrototypeId":"10","Transformation":null}]]}]

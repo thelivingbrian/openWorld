@@ -16,10 +16,14 @@ type Transport struct {
 	DestStage string `json:"destStage"`
 }
 
-func (c Context) getEditTransports(w http.ResponseWriter, r *http.Request) {
+func (c *Context) getEditTransports(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	name := queryValues.Get("area-name")
 	collectionName := queryValues.Get("currentCollection")
+	collection := c.Collections[collectionName]
+	if collection == nil {
+		panic("ooo spooky")
+	}
 	spaceName := queryValues.Get("currentSpace")
 	space := c.getSpace(collectionName, spaceName)
 	selectedArea := getAreaByName(space.Areas, name)
@@ -29,7 +33,7 @@ func (c Context) getEditTransports(w http.ResponseWriter, r *http.Request) {
 	}
 
 	output := transportFormHtml(*selectedArea)
-	output += c.transportsAsOob(*selectedArea, spaceName)
+	output += collection.transportsAsOob(*selectedArea, spaceName)
 	io.WriteString(w, output)
 }
 
@@ -186,16 +190,17 @@ func (c Context) deleteTransport(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, output)
 }
 
-func (c Context) transportsAsOob(area Area, spacename string) string {
+func (col *Collection) transportsAsOob(area Area, spacename string) string {
 	output := ``
 	for _, transport := range area.Transports {
 		fmt.Println(transport)
+		tile := area.Tiles[transport.SourceY][transport.SourceX]
 		var buf bytes.Buffer
 		var pageData = struct {
 			Material   Material
 			ClickEvent GridSquareDetails
 		}{
-			Material: c.materials[area.Tiles[transport.SourceY][transport.SourceX]],
+			Material: col.Prototypes[tile.PrototypeId].applyTransform(tile.Transformation),
 			ClickEvent: GridSquareDetails{
 				Y:                transport.SourceY,
 				X:                transport.SourceX,

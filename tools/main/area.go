@@ -7,15 +7,15 @@ import (
 )
 
 type Area struct {
-	Name             string      `json:"name"`
-	Safe             bool        `json:"safe"`
-	Tiles            [][]int     `json:"tiles"`
-	Transports       []Transport `json:"transports"`
-	DefaultTileColor string      `json:"defaultTileColor"`
-	North            string      `json:"north,omitempty"`
-	South            string      `json:"south,omitempty"`
-	East             string      `json:"east,omitempty"`
-	West             string      `json:"west,omitempty"`
+	Name             string       `json:"name"`
+	Safe             bool         `json:"safe"`
+	Tiles            [][]TileData `json:"tiles"`
+	Transports       []Transport  `json:"transports"`
+	DefaultTileColor string       `json:"defaultTileColor"`
+	North            string       `json:"north,omitempty"`
+	South            string       `json:"south,omitempty"`
+	East             string       `json:"east,omitempty"`
+	West             string       `json:"west,omitempty"`
 }
 
 type GridDetails struct {
@@ -28,9 +28,9 @@ type GridDetails struct {
 }
 
 type PageData struct {
-	GridDetails        GridDetails
-	AvailableMaterials []Material
-	Name               string
+	GridDetails     GridDetails
+	PrototypeSelect PrototypeSelectPage
+	Name            string
 }
 
 // //////////////////////////////////////////////////////////
@@ -77,9 +77,14 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	modifications := c.AreaToMaterialGrid(*selectedArea)
+	collection := c.collectionFromGet(r)
 
-	//fmt.Printf("Materials Available: %d", len(c.materials))
+	var setOptions []string
+	for key := range collection.PrototypeSets {
+		setOptions = append(setOptions, key)
+	}
+
+	modifications := collection.generateMaterials(selectedArea.Tiles)
 
 	var pageData = PageData{
 		GridDetails: GridDetails{
@@ -89,8 +94,12 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 			GridType:         "area",
 			ScreenID:         "screen",
 		},
-		AvailableMaterials: c.materials,
-		Name:               selectedArea.Name,
+		PrototypeSelect: PrototypeSelectPage{
+			PrototypeSets: setOptions,
+			CurrentSet:    "",
+			Prototypes:    nil,
+		},
+		Name: selectedArea.Name,
 	}
 	err := tmpl.ExecuteTemplate(w, "area-edit", pageData)
 	if err != nil {
@@ -98,11 +107,24 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
 func (c Context) AreaToMaterialGrid(area Area) [][]Material {
-	return c.DereferenceIntMatrix(area.Tiles)
+	return c.DereferencStringMatrix(area.Tiles)
 }
+*/
 
 func (c Context) DereferenceIntMatrix(matrix [][]int) [][]Material {
+	out := make([][]Material, len(matrix))
+	for y := range matrix {
+		out[y] = make([]Material, len(matrix[y]))
+		for x := range matrix[y] {
+			out[y][x] = c.materials[matrix[y][x]]
+		}
+	}
+	return out
+}
+
+func (c Context) DereferencStringMatrix(matrix [][]int) [][]Material {
 	out := make([][]Material, len(matrix))
 	for y := range matrix {
 		out[y] = make([]Material, len(matrix[y]))

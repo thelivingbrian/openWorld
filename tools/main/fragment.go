@@ -93,7 +93,7 @@ func (c *Collection) DetailsFromFragment(fragment *Fragment, clickable bool) *Fr
 		Name:    fragment.Name,
 		SetName: fragment.SetName,
 		GridDetails: GridDetails{
-			MaterialGrid:     c.generateMaterials(fragment),
+			MaterialGrid:     c.generateMaterials(fragment.Tiles),
 			DefaultTileColor: "",
 			Location:         fragment.SetName + "." + fragment.Name,
 			ScreenID:         "fragment",
@@ -101,12 +101,12 @@ func (c *Collection) DetailsFromFragment(fragment *Fragment, clickable bool) *Fr
 	}
 }
 
-func (col *Collection) generateMaterials(fragment *Fragment) [][]Material {
-	out := make([][]Material, len(fragment.Tiles))
-	for i := range fragment.Tiles {
-		out[i] = make([]Material, len(fragment.Tiles[i]))
-		for j := range fragment.Tiles[i] {
-			out[i][j] = col.createMaterial(fragment.Tiles[i][j])
+func (col *Collection) generateMaterials(tiles [][]TileData) [][]Material {
+	out := make([][]Material, len(tiles))
+	for i := range tiles {
+		out[i] = make([]Material, len(tiles[i]))
+		for j := range tiles[i] {
+			out[i][j] = col.createMaterial(tiles[i][j])
 		}
 	}
 	return out
@@ -115,7 +115,7 @@ func (col *Collection) generateMaterials(fragment *Fragment) [][]Material {
 func (col *Collection) createMaterial(data TileData) Material {
 	proto, ok := col.Prototypes[data.PrototypeId]
 	if !ok {
-		panic("No Matching Protype has been loaded.j")
+		panic("No Matching Protype has been loaded for: " + data.PrototypeId)
 	}
 	return proto.applyTransform(data.Transformation)
 }
@@ -135,11 +135,22 @@ func (proto *Prototype) applyTransform(transformation *Transformation) Material 
 		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation)}
 }
 
+func (proto *Prototype) peekTransform(transformation *Transformation) Prototype {
+	return Prototype{
+		ID:          proto.ID,
+		CommonName:  proto.CommonName,
+		CssColor:    proto.CssColor,
+		Floor1Css:   transformCss(proto.Floor1Css, transformation),
+		Floor2Css:   transformCss(proto.Floor2Css, transformation),
+		Ceiling1Css: transformCss(proto.Ceiling1Css, transformation),
+		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation)}
+}
+
 func transformCss(input string, transformation *Transformation) string {
 
-	if transformation == nil {
-		return input
-	}
+	//if transformation == nil {
+	//return input
+	//}
 	// We are looking for {key:value} : key, value => string
 	pattern := regexp.MustCompile(`{([^:]*):([^}]*)}`)
 

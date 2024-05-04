@@ -169,7 +169,7 @@ func getAllCollections(collectionPath string) map[string]*Collection {
 func consolidate(prototypeSets map[string][]Prototype) map[string]*Prototype {
 	out := make(map[string]*Prototype)
 	for name, set := range prototypeSets {
-		for i, _ := range set {
+		for i := range set {
 			if out[set[i].ID] != nil {
 				panic("Invalid: duplicate ID for prototypes: " + set[i].ID + " in: " + name)
 			}

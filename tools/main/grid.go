@@ -49,6 +49,11 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 
 	properties, _ := requestToProperties(r)
 	details := createGridSquareDetails(properties, "area")
+	collectionName := properties["currentCollection"]
+	collection, ok := c.Collections[collectionName]
+	if !ok {
+		panic("No Collection")
+	}
 
 	// new func
 	spaceName := details.Location[0]
@@ -61,11 +66,11 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 	//fmt.Println("Have: " + area.Name)
 
 	// Todo: fix area.Tiles
-	result := c.gridAction(details, nil, properties)
+	result := c.gridAction(details, area.Tiles, properties)
 	io.WriteString(w, result)
 	if result == "" {
 		var pageData = GridDetails{
-			MaterialGrid:     c.DereferenceIntMatrix(area.Tiles),
+			MaterialGrid:     collection.generateMaterials(area.Tiles),
 			DefaultTileColor: details.DefaultTileColor,
 			Location:         details.stringifyLocation(),
 			ScreenID:         details.ScreenID,
@@ -106,7 +111,7 @@ func (c Context) gridClickFragmentHandler(w http.ResponseWriter, r *http.Request
 	io.WriteString(w, result)
 	if result == "" {
 		var pageData = GridDetails{
-			MaterialGrid:     col.generateMaterials(fragment),
+			MaterialGrid:     col.generateMaterials(fragment.Tiles),
 			DefaultTileColor: details.DefaultTileColor,
 			Location:         details.stringifyLocation(),
 			ScreenID:         details.ScreenID,
@@ -208,6 +213,7 @@ func (c *Context) gridAction(details GridSquareDetails, grid [][]TileData, prope
 
 func (col *Collection) getPrototypeFromRequestProperties(properties map[string]string) Prototype {
 	protoId := properties["selected-prototype-id"]
+	fmt.Println(protoId)
 	return *col.Prototypes[protoId]
 }
 

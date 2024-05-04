@@ -14,8 +14,7 @@ type Prototype struct {
 	Floor2Css   string `json:"layer2css"`
 	Ceiling1Css string `json:"ceiling1css"`
 	Ceiling2Css string `json:"ceiling2css"`
-	// Tranformation pointer - no
-	setName string
+	setName     string
 }
 
 type Transformation struct {
@@ -61,9 +60,14 @@ func (c *Context) prototypeSelectFromRequest(r *http.Request) PrototypeSelectPag
 	}
 	fmt.Println(setOptions)
 
+	protos := collection.PrototypeSets[setName]
+	transformedProtos := make([]Prototype, len(protos))
+	for i := range protos {
+		transformedProtos[i] = protos[i].peekTransform(nil)
+	}
 	return PrototypeSelectPage{
 		PrototypeSets: setOptions,
 		CurrentSet:    setName,
-		Prototypes:    collection.PrototypeSets[setName],
+		Prototypes:    transformedProtos,
 	}
 }

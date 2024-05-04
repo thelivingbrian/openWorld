@@ -11,14 +11,19 @@
   - [ ] Convert materials to protos
     - [-] Create default protos
     - [ ] Unique id 
-    - [ ] define rotate(proto)
-  - [ ] Update fragment schema to have transformations 
+    - [ ] Edit Proto
+    - [-] define rotate(proto)
+  - [-] Update fragment schema to have transformations 
     - [-] New Fragment Set
     - [-] New Fragment
-    - [ ] Fragment has protos
-    - [ ] Fragment applies transformations
+    - [-] Fragment has protos
+    - [-] Fragment applies transformations
+  - [ ] Modify Transformations
+    - [ ] Fragment Transform Proto
+    - [ ] Area transform proto? 
   - [ ] Blueprint page 
     - [ ] Place fragment on blueprint
+    - [ ] Transform fragment 
     - [ ] Compile blueprint (blueprint layers/actions -> defaultFragment)
   - [ ] Compile Collection 
     - [ ] DefaultFragements([][]proto) -> areas + materials
