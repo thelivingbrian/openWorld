@@ -211,7 +211,6 @@ func areasToSpaces(areaMap map[string][]Area, collectionName string) map[string]
 }
 
 func populateMaps[T any](m map[string][]T, pathToJsonDirectory string) {
-	// Don't do this. Too specific. Just have .jsons be correct types (FragmentSet, etc)
 	subEntries, err := os.ReadDir(pathToJsonDirectory)
 	if err != nil {
 		fmt.Println("Invalid directory: " + pathToJsonDirectory)

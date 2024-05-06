@@ -31,11 +31,7 @@
 
 
 ### Transformation syntax:
- "ceiling1css": "#{bg2} .{r2}@{tr} _{thick#{fg0}.{r2}@{tr}} ={hoz|vert#{black}*{2})"
- #color 
- .radius
- @orientation
- _border(#.@)
- =lines(#*quantity) @
+layerXCss : "static {transformationType:value} string"
+
 
  

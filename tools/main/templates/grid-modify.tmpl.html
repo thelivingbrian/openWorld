@@ -8,14 +8,8 @@
         {{template "fixture-prototype" .}}
     </div>
 {{end}}
-<!--
-{{define "fixture-material"}}
-    {{template "available-tools-material"}}
-    {{template "material-select" .}}
-{{end}} -->
 
 {{define "available-tools-material"}}
-<!-- Associate with a screen id so that selecting changes request type of click -->
 <div id="tool_select"> 
     <input type="radio" id="rt-select" name="radio-tool" value="select" checked>
     <label for="rt-select">Select</label>
@@ -27,21 +21,6 @@
     <label for="rt-right">Fill between selected</label>
 </div>
 {{end}}
-
-<!--
-{{define "material-select"}}
-<div id="material-selector">
-    <label>Materials</label>
-    <select name="materialId" hx-get="/selectMaterial" hx-target="#selected-material-div">
-        <option value="">--</option>
-        {{range $i, $mat := .}}
-        <option value="{{$mat.ID}}">{{$mat.CommonName}}</option>
-        {{end}}
-    </select>
-</div>
-<div id="selected-material-div" class="grid-row"></div>
-{{end}}
- -->
 
 {{define "fixture-fragment"}}
     {{template "available-tools-fragment"}}
