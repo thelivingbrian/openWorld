@@ -62,3 +62,19 @@ func (c Context) createCollectionDirectories(name string) {
 		fmt.Println("Created directory:", fullPath)
 	}
 }
+
+func (col *Collection) getProtoSelect() PrototypeSelectPage {
+	return PrototypeSelectPage{
+		PrototypeSets: col.getProtoSets(),
+		CurrentSet:    "",
+		Prototypes:    nil,
+	}
+}
+
+func (col *Collection) getProtoSets() []string {
+	var setOptions []string
+	for key := range col.PrototypeSets {
+		setOptions = append(setOptions, key)
+	}
+	return setOptions
+}

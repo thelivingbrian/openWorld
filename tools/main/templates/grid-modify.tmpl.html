@@ -2,6 +2,7 @@
     <select id="fixture_select" name="current-fixture" hx-get="/selectFixture" hx-target="#fixture-window" hx-include="[name='currentCollection']">
         <option value="prototype" selected>Prototypes</option>
         <option value="fragment">Fragments</option>
+        <option value="transformation">Transformations</option>
     </select>
     <div id="fixture-window">
         {{template "fixture-prototype" .}}
@@ -57,4 +58,26 @@
 {{define "fixture-prototype"}}
     {{template "available-tools-material"}}
     {{template "prototype-select" .}}
+{{end}}
+
+{{define "fixture-transformation"}}
+    {{template "available-tools-transformation"}}
+    {{template "transformation-edit" . }}
+{{end}} 
+
+{{define "available-tools-transformation"}}
+<div id="tool_select"> 
+    <input type="radio" id="rt-select" name="radio-tool" value="select" checked>
+    <label for="rt-select">Select</label>
+    <input type="radio" id="rt-rotate" name="radio-tool" value="rotate">
+    <label for="rt-select">Rotate</label>
+</div>
+{{end}}
+
+{{define "transformation-edit"}}
+<div id="transformation-edit">
+    <form>
+
+    </form>
+</div>
 {{end}}

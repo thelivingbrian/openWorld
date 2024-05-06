@@ -12,6 +12,7 @@
     - [-] Create default protos
     - [ ] Unique id 
     - [ ] Edit Proto
+    - [ ] New Prototype set
     - [-] define rotate(proto)
   - [-] Update fragment schema to have transformations 
     - [-] New Fragment Set
@@ -19,8 +20,8 @@
     - [-] Fragment has protos
     - [-] Fragment applies transformations
   - [ ] Modify Transformations
-    - [ ] Fragment Transform Proto
-    - [ ] Area transform proto? 
+    - [-] Fragment Transform Proto
+    - [-] Area transform proto? 
   - [ ] Blueprint page 
     - [ ] Place fragment on blueprint
     - [ ] Transform fragment 

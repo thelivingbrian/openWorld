@@ -19,7 +19,6 @@ type GridSquareDetails struct {
 	X                int
 	DefaultTileColor string
 	Selected         bool
-	//SelectedTool     string
 }
 
 var CONNECTING_CHAR = "."
@@ -39,7 +38,17 @@ func (c *Context) gridEditHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Context) getGridEdit(w http.ResponseWriter, r *http.Request) {
-	tmpl.ExecuteTemplate(w, "grid-modify", c.materials)
+	queryValues := r.URL.Query()
+	collectionName := queryValues.Get("currentCollection")
+	col, ok := c.Collections[collectionName]
+	if !ok {
+		panic("invalid collection")
+	}
+	/*var setOptions []string
+	for key := range col.PrototypeSets {
+		setOptions = append(setOptions, key)
+	}*/
+	tmpl.ExecuteTemplate(w, "grid-modify", col.getProtoSelect())
 }
 
 func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
@@ -63,9 +72,7 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 		panic("Hey")
 	}
 	area := getAreaByName(space.Areas, areaName)
-	//fmt.Println("Have: " + area.Name)
 
-	// Todo: fix area.Tiles
 	result := c.gridAction(details, area.Tiles, properties)
 	io.WriteString(w, result)
 	if result == "" {
@@ -207,6 +214,9 @@ func (c *Context) gridAction(details GridSquareDetails, grid [][]TileData, prope
 		//panic("Tell me your status") // No response
 		fragment := col.getFragmentFromRequestProperties(properties)
 		gridPlaceFragment(details, grid, fragment)
+	} else if tool == "rotate" {
+		//fmt.Println("Rotating")
+		gridRotate(details, grid)
 	}
 	return ""
 }
@@ -373,6 +383,18 @@ func (col *Collection) gridFillBetween(event GridSquareDetails, modifications []
 	return output
 }
 
+func gridRotate(event GridSquareDetails, modifications [][]TileData) {
+	//fmt.Println(event)
+	//fmt.Println(modifications)
+	// Could always replace never mutate (Duplicate(*Transformation))
+	transformation := &modifications[event.Y][event.X].Transformation
+	/*if transformation == nil {
+		modifications[event.Y][event.X].Transformation = &Transformation{}
+		transformation = modifications[event.Y][event.X].Transformation
+	}*/
+	transformation.ClockwiseRotations = mod(transformation.ClockwiseRotations+1, 4)
+}
+
 ///
 
 func (c Context) selectMaterial(w http.ResponseWriter, r *http.Request) {
@@ -393,9 +415,9 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	fixtureType := queryValues.Get("current-fixture")
 
-	if fixtureType == "material" {
+	/*if fixtureType == "material" {
 		tmpl.ExecuteTemplate(w, "fixture-material", c.materials)
-	}
+	}*/
 	if fixtureType == "fragment" {
 		collectionName := queryValues.Get("currentCollection")
 		collection, ok := c.Collections[collectionName]
@@ -406,7 +428,7 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 
 		var setOptions []string
 		for key := range collection.Fragments {
-			fmt.Println(key)
+			//fmt.Println(key)
 			setOptions = append(setOptions, key)
 		}
 
@@ -427,6 +449,9 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 	if fixtureType == "prototype" {
 		tmpl.ExecuteTemplate(w, "fixture-prototype", c.prototypeSelectFromRequest(r))
 
+	}
+	if fixtureType == "transformation" {
+		tmpl.ExecuteTemplate(w, "fixture-transformation", nil)
 	}
 }
 

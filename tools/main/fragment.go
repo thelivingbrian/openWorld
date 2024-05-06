@@ -10,15 +10,10 @@ import (
 
 type Fragment struct {
 	Name    string `json:"name"`
-	SetName string
+	SetName string `json:"setName"`
 	//Tiles           [][]string `json:"tiles"` // change to string
 	//Transformations [][]*Transformation
-	Tiles [][]TileData
-}
-
-type TileData struct {
-	PrototypeId    string
-	Transformation *Transformation
+	Tiles [][]TileData `json:"tiles"`
 }
 
 type FragmentDetails struct {
@@ -41,7 +36,7 @@ func (c *Context) getFragments(w http.ResponseWriter, r *http.Request) {
 	collectionName := queryValues.Get("currentCollection")
 	setName := queryValues.Get("fragment-set")
 	fragmentName := queryValues.Get("fragment")
-	fmt.Printf("%s %s %s\n", collectionName, setName, fragmentName)
+	//fmt.Printf("%s %s %s\n", collectionName, setName, fragmentName)
 
 	collection, ok := c.Collections[collectionName]
 	if !ok {
@@ -120,11 +115,12 @@ func (col *Collection) createMaterial(data TileData) Material {
 	return proto.applyTransform(data.Transformation)
 }
 
-func (proto *Prototype) toMaterial() Material {
-	return proto.applyTransform(nil)
-}
-
-func (proto *Prototype) applyTransform(transformation *Transformation) Material {
+/*
+	func (proto *Prototype) toMaterial() Material {
+		return proto.applyTransform(nil)
+	}
+*/
+func (proto *Prototype) applyTransform(transformation Transformation) Material {
 	return Material{
 		ID:          15793,
 		CommonName:  proto.CommonName,
@@ -135,7 +131,7 @@ func (proto *Prototype) applyTransform(transformation *Transformation) Material 
 		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation)}
 }
 
-func (proto *Prototype) peekTransform(transformation *Transformation) Prototype {
+func (proto *Prototype) peekTransform(transformation Transformation) Prototype {
 	return Prototype{
 		ID:          proto.ID,
 		CommonName:  proto.CommonName,
@@ -146,27 +142,20 @@ func (proto *Prototype) peekTransform(transformation *Transformation) Prototype 
 		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation)}
 }
 
-func transformCss(input string, transformation *Transformation) string {
-
-	//if transformation == nil {
-	//return input
-	//}
+func transformCss(input string, transformation Transformation) string {
 	// We are looking for {key:value} : key, value => string
 	pattern := regexp.MustCompile(`{([^:]*):([^}]*)}`)
 
 	result := pattern.ReplaceAllStringFunc(input, func(s string) string {
 		matches := pattern.FindStringSubmatch(s)
 		// matches[0] is the full match, matches[1] is the key, matches[2] is the value
-		fmt.Println(s)
-		fmt.Println(matches[0])
-
+		//fmt.Println(s)
+		//fmt.Println(matches[0])
 		if len(matches) == 3 { // Nil check instead?
-			if transformation == nil {
-				return matches[2]
-			}
 			if matches[1] == "rotate" {
 				return rotateCss(matches[2], transformation.ClockwiseRotations)
 			}
+			return matches[2]
 		}
 		return s // return original if not enough matches? -Check this chatgpt made it
 	})
@@ -276,11 +265,11 @@ func (c *Context) getFragment(w http.ResponseWriter, r *http.Request) {
 		panic("No fragment with name: " + fragmentName)
 	}
 	var pageData = struct {
-		AvailableMaterials []Material
-		FragmentDetails    *FragmentDetails
+		AvailableProtos PrototypeSelectPage
+		FragmentDetails *FragmentDetails
 	}{
-		AvailableMaterials: c.materials,
-		FragmentDetails:    collection.DetailsFromFragment(fragment, true),
+		AvailableProtos: collection.getProtoSelect(),
+		FragmentDetails: collection.DetailsFromFragment(fragment, true),
 	}
 	err := tmpl.ExecuteTemplate(w, "fragment-edit", pageData)
 	if err != nil {

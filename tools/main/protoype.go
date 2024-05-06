@@ -14,12 +14,17 @@ type Prototype struct {
 	Floor2Css   string `json:"layer2css"`
 	Ceiling1Css string `json:"ceiling1css"`
 	Ceiling2Css string `json:"ceiling2css"`
-	setName     string
+	SetName     string `json:"setName"`
 }
 
 type Transformation struct {
-	ClockwiseRotations int
-	ColorPalette       string
+	ClockwiseRotations int    `json:"clockwiseRotations,omitempty"`
+	ColorPalette       string `json:"colorPalette,omitempty"`
+}
+
+type TileData struct {
+	PrototypeId    string         `json:"prototypeId,omitempty"`
+	Transformation Transformation `json:"transformation,omitempty"`
 }
 
 func (c Context) PrototypesHandler(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +51,7 @@ func (c *Context) prototypeSelectFromRequest(r *http.Request) PrototypeSelectPag
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")
 	setName := queryValues.Get("prototype-set")
-	fmt.Printf("%s %s \n", collectionName, setName)
+	//fmt.Printf("%s %s \n", collectionName, setName)
 
 	collection, ok := c.Collections[collectionName]
 	if !ok {
@@ -58,12 +63,12 @@ func (c *Context) prototypeSelectFromRequest(r *http.Request) PrototypeSelectPag
 	for key := range collection.PrototypeSets {
 		setOptions = append(setOptions, key)
 	}
-	fmt.Println(setOptions)
+	//fmt.Println(setOptions)
 
 	protos := collection.PrototypeSets[setName]
 	transformedProtos := make([]Prototype, len(protos))
 	for i := range protos {
-		transformedProtos[i] = protos[i].peekTransform(nil)
+		transformedProtos[i] = protos[i].peekTransform(Transformation{})
 	}
 	return PrototypeSelectPage{
 		PrototypeSets: setOptions,

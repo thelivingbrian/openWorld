@@ -194,7 +194,7 @@ func addSetNamesToProtypes(protoMap map[string][]Prototype) map[string][]Prototy
 		arr := make([]Prototype, 0)
 		for i := range protoMap[setName] {
 			proto := protoMap[setName][i]
-			proto.setName = setName
+			proto.SetName = setName
 			arr = append(arr, proto)
 		}
 		out[setName] = arr
