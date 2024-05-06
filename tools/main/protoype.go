@@ -51,7 +51,6 @@ func (c *Context) prototypeSelectFromRequest(r *http.Request) PrototypeSelectPag
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")
 	setName := queryValues.Get("prototype-set")
-	//fmt.Printf("%s %s \n", collectionName, setName)
 
 	collection, ok := c.Collections[collectionName]
 	if !ok {
@@ -63,7 +62,6 @@ func (c *Context) prototypeSelectFromRequest(r *http.Request) PrototypeSelectPag
 	for key := range collection.PrototypeSets {
 		setOptions = append(setOptions, key)
 	}
-	//fmt.Println(setOptions)
 
 	protos := collection.PrototypeSets[setName]
 	transformedProtos := make([]Prototype, len(protos))

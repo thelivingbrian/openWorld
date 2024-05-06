@@ -44,10 +44,6 @@ func (c *Context) getGridEdit(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		panic("invalid collection")
 	}
-	/*var setOptions []string
-	for key := range col.PrototypeSets {
-		setOptions = append(setOptions, key)
-	}*/
 	tmpl.ExecuteTemplate(w, "grid-modify", col.getProtoSelect())
 }
 
@@ -69,7 +65,7 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 	areaName := details.Location[1]
 	space := c.getSpace(details.CollectionName, spaceName)
 	if space == nil {
-		panic("Hey")
+		panic("No Space")
 	}
 	area := getAreaByName(space.Areas, areaName)
 
@@ -99,8 +95,6 @@ func (c Context) gridClickFragmentHandler(w http.ResponseWriter, r *http.Request
 
 	properties, _ := requestToProperties(r)
 	details := createGridSquareDetails(properties, "fragment")
-
-	// new func
 
 	setName := details.Location[0]
 	fragmentName := details.Location[1]
@@ -137,12 +131,10 @@ func createGridSquareDetails(properties map[string]string, gridType string) Grid
 	currentCollection, ok := properties["currentCollection"]
 	if !ok {
 		panic("No Collection")
-		//return
 	}
 	x, ok := properties["x"]
 	if !ok {
 		panic("No x")
-		//return
 	}
 	xInt, err := strconv.Atoi(x)
 	if err != nil {
@@ -151,7 +143,6 @@ func createGridSquareDetails(properties map[string]string, gridType string) Grid
 	y, ok := properties["y"]
 	if !ok {
 		panic("No y")
-		//return
 	}
 	yInt, err := strconv.Atoi(y)
 	if err != nil {
@@ -160,17 +151,14 @@ func createGridSquareDetails(properties map[string]string, gridType string) Grid
 	sid, ok := properties["sid"]
 	if !ok {
 		panic("No sid")
-		//return
 	}
 	defaultTileColor, ok := properties["default-tile-color"]
 	if !ok {
 		panic("location")
-		//return
 	}
 	location, ok := properties["location"]
 	if !ok {
 		panic("location")
-		//return
 	}
 	parts := strings.Split(location, ".")
 	if len(parts) < 2 {
@@ -184,12 +172,10 @@ func (c *Context) gridAction(details GridSquareDetails, grid [][]TileData, prope
 	tool, ok := properties["radio-tool"]
 	if !ok {
 		panic("No Tool Selected")
-		//return
 	}
 	currentCollection, ok := properties["currentCollection"]
 	if !ok {
 		panic("No Collection Name")
-		//return
 	}
 	col, ok := c.Collections[currentCollection]
 	if !ok {
@@ -207,15 +193,12 @@ func (c *Context) gridAction(details GridSquareDetails, grid [][]TileData, prope
 		return ""
 	} else if tool == "between" {
 		selectedPrototype := col.getPrototypeFromRequestProperties(properties)
-		//selectedMaterial.ID += 0
 		return col.gridFillBetween(details, grid, selectedPrototype)
 	} else if tool == "place" {
 		// Pull isSelected & location (selectedLocation) into hidden field
-		//panic("Tell me your status") // No response
 		fragment := col.getFragmentFromRequestProperties(properties)
 		gridPlaceFragment(details, grid, fragment)
 	} else if tool == "rotate" {
-		//fmt.Println("Rotating")
 		gridRotate(details, grid)
 	}
 	return ""
@@ -384,14 +367,7 @@ func (col *Collection) gridFillBetween(event GridSquareDetails, modifications []
 }
 
 func gridRotate(event GridSquareDetails, modifications [][]TileData) {
-	//fmt.Println(event)
-	//fmt.Println(modifications)
-	// Could always replace never mutate (Duplicate(*Transformation))
 	transformation := &modifications[event.Y][event.X].Transformation
-	/*if transformation == nil {
-		modifications[event.Y][event.X].Transformation = &Transformation{}
-		transformation = modifications[event.Y][event.X].Transformation
-	}*/
 	transformation.ClockwiseRotations = mod(transformation.ClockwiseRotations+1, 4)
 }
 
@@ -415,9 +391,6 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	fixtureType := queryValues.Get("current-fixture")
 
-	/*if fixtureType == "material" {
-		tmpl.ExecuteTemplate(w, "fixture-material", c.materials)
-	}*/
 	if fixtureType == "fragment" {
 		collectionName := queryValues.Get("currentCollection")
 		collection, ok := c.Collections[collectionName]
@@ -428,11 +401,9 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 
 		var setOptions []string
 		for key := range collection.Fragments {
-			//fmt.Println(key)
 			setOptions = append(setOptions, key)
 		}
 
-		// Make type
 		var pageData = struct {
 			FragmentSets    []string
 			CurrentSet      string
@@ -455,17 +426,6 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*
-	func (c Context) getMaterialFromRequestProperties(properties map[string]string) Material {
-		fmt.Println(properties["selected-material"])
-		selectedMaterialId, err := strconv.Atoi(properties["selected-material"])
-		if err != nil {
-			fmt.Println("unable to select material", err)
-			selectedMaterialId = 0
-		}
-		return c.materials[selectedMaterialId]
-	}
-*/
 func exampleSquareFromMaterial(material Material) string {
 	overlay := fmt.Sprintf(`<div class="box floor1 %s"></div><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div><div class="box ceiling2 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css, material.Ceiling2Css)
 	idHiddenInput := fmt.Sprintf(`<input name="selected-material" type="hidden" value="%d" />`, material.ID)

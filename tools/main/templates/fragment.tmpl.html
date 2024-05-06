@@ -17,15 +17,6 @@
         {{if not (eq .CurrentSet "")}}
             <a hx-get="/fragment/new" hx-include="#fragment-set,[name='currentCollection']" hx-target="#fragment-select" href="#">New [{{.CurrentSet}}] Fragment</a>
         {{end}}
-        <!-- {{if .Fragments}}
-        <label>Fragment: <a hx-get="/fragments" hx-include="#fragment-set,[name='currentCollection']" href="#">New</a></label>
-        <select id="fragment-name" name="fragment">
-            <option value="{{.CurrentFragment}}">{{.CurrentFragment}}</option>
-            {{range $i, $frag := .Fragments}}
-            <option value="{{$frag.Name}}">{{$frag.Name}}</option>
-            {{end}}
-        </select>
-        {{end}} -->
     </form>
     <form>
         <div id="fragment-container">

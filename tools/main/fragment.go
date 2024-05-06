@@ -9,11 +9,9 @@ import (
 )
 
 type Fragment struct {
-	Name    string `json:"name"`
-	SetName string `json:"setName"`
-	//Tiles           [][]string `json:"tiles"` // change to string
-	//Transformations [][]*Transformation
-	Tiles [][]TileData `json:"tiles"`
+	Name    string       `json:"name"`
+	SetName string       `json:"setName"`
+	Tiles   [][]TileData `json:"tiles"`
 }
 
 type FragmentDetails struct {
@@ -36,7 +34,6 @@ func (c *Context) getFragments(w http.ResponseWriter, r *http.Request) {
 	collectionName := queryValues.Get("currentCollection")
 	setName := queryValues.Get("fragment-set")
 	fragmentName := queryValues.Get("fragment")
-	//fmt.Printf("%s %s %s\n", collectionName, setName, fragmentName)
 
 	collection, ok := c.Collections[collectionName]
 	if !ok {
@@ -115,11 +112,6 @@ func (col *Collection) createMaterial(data TileData) Material {
 	return proto.applyTransform(data.Transformation)
 }
 
-/*
-	func (proto *Prototype) toMaterial() Material {
-		return proto.applyTransform(nil)
-	}
-*/
 func (proto *Prototype) applyTransform(transformation Transformation) Material {
 	return Material{
 		ID:          15793,
@@ -143,21 +135,19 @@ func (proto *Prototype) peekTransform(transformation Transformation) Prototype {
 }
 
 func transformCss(input string, transformation Transformation) string {
-	// We are looking for {key:value} : key, value => string
+	// We are looking for {key:value} : key, value are strings
 	pattern := regexp.MustCompile(`{([^:]*):([^}]*)}`)
 
 	result := pattern.ReplaceAllStringFunc(input, func(s string) string {
 		matches := pattern.FindStringSubmatch(s)
 		// matches[0] is the full match, matches[1] is the key, matches[2] is the value
-		//fmt.Println(s)
-		//fmt.Println(matches[0])
 		if len(matches) == 3 { // Nil check instead?
 			if matches[1] == "rotate" {
 				return rotateCss(matches[2], transformation.ClockwiseRotations)
 			}
 			return matches[2]
 		}
-		return s // return original if not enough matches? -Check this chatgpt made it
+		panic("Have match " + s + " But submatch behavior is undefined (submatches != 3)")
 	})
 	return result
 }
