@@ -106,6 +106,9 @@ func (col *Collection) generateMaterials(tiles [][]TileData) [][]Material {
 
 func (col *Collection) createMaterial(data TileData) Material {
 	proto := col.findPrototypeById(data.PrototypeId)
+	if proto == nil {
+		proto = &Prototype{ID: "INVALID-", CssColor: "blue", Floor1Css: "green red-b thick"}
+	}
 	/*proto, ok := col.Prototypes[data.PrototypeId]
 	if !ok {
 		panic("No Matching Protype has been loaded for: " + data.PrototypeId)
@@ -127,6 +130,7 @@ func (proto *Prototype) applyTransform(transformation Transformation) Material {
 func (proto *Prototype) peekTransform(transformation Transformation) Prototype {
 	return Prototype{
 		ID:          proto.ID,
+		SetName:     proto.SetName,
 		CommonName:  proto.CommonName,
 		CssColor:    proto.CssColor,
 		Floor1Css:   transformCss(proto.Floor1Css, transformation),
@@ -334,6 +338,11 @@ func (c Context) postFragment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	collection.Fragments[setName] = append(set, Fragment{Name: name, SetName: setName, Tiles: grid})
+	outFile := c.collectionPath + collectionName + "/fragments/" + setName + ".json"
+	err = writeJsonFile(outFile, collection.Fragments[setName])
+	if err != nil {
+		panic(err)
+	}
 	io.WriteString(w, "<h3>Done.</h3>")
 }
 

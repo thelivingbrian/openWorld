@@ -169,13 +169,15 @@ func getAllCollections(collectionPath string) map[string]*Collection {
 // Probably belongs in Collection.go
 func (col *Collection) findPrototypeById(id string) *Prototype {
 	for _, set := range col.PrototypeSets {
-		for _, proto := range set {
-			if proto.ID == id {
-				return &proto
+		for i, _ := range set {
+			if set[i].ID == id {
+				return &set[i]
 			}
 		}
 	}
-	panic("Invalid Prototype lookup (proto not found): " + id)
+	fmt.Println("Invalid Prototype lookup: " + id)
+	return nil
+	//panic("Invalid Prototype lookup (proto not found): " + id)
 }
 
 func consolidate(prototypeSets map[string][]Prototype) map[string]*Prototype {

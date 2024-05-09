@@ -9,7 +9,7 @@
             {{end}}
         </select>
         {{if not (eq .CurrentSet "")}}
-            <a hx-get="/prototype/new" hx-include="#prototype-set,[name='currentCollection']" hx-target="#prototype-select" href="#">New [{{.CurrentSet}}] Fragment</a>
+            <a hx-get="/prototype/new" hx-include="#prototype-set,[name='currentCollection']" hx-target="#prototype-select" href="#">New [{{.CurrentSet}}] Prototype</a>
         {{end}}
     </form>
     <form>
@@ -85,6 +85,53 @@
         <div>
             <label>Ceiling 2 Css: </label>
             <input hx-get="/prototype/example" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Floor2Css'],[name='Ceiling1Css'],[name='CssColor']" type="text" name="Ceiling2Css" value="">
+        </div>
+        <div>
+            <label>Walkable: </label>
+            <input type="checkbox" name="walkable" />
+        </div>
+        <button class="btn">Save</button>
+    </form>
+</div>
+{{end}}
+
+{{define "prototype-edit"}}
+<div id="prototype-edit">
+    <form hx-include="[name='currentCollection']" hx-put="/prototype" hx-target="#prototype-edit">
+        <input type="hidden" name="prototype-set" value="{{.SetName}}" />
+        <input type="hidden" name="prototype-id" value="{{.ID}}" />
+        <div id="exampleSquare" class="grid-row">
+            <div class="grid-square {{.CssColor}}">
+                <div class="box floor1 {{.Floor1Css}}"> </div>
+                <div class="box floor2 {{.Floor2Css}}"> </div>
+                <div class="box ceiling1 {{.Ceiling1Css}}"></div>
+                <div class="box ceiling2 {{.Ceiling2Css}}"> </div>
+            </div>
+        </div>
+        <div>
+            <label>ID: {{.ID}} <br />
+                Set Name: {{.SetName}}</label>
+            <input type="text" name="CommonName" value="{{.CommonName}}">
+        </div>
+        <div>
+            <label>Css Color Name: </label>
+            <input hx-get="/prototype/example" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Floor2Css'],[name='Ceiling1Css'],[name='Ceiling2Css']" type="text" name="CssColor" value="{{.CssColor}}">
+        </div>
+        <div>
+            <label>Floor 1 Css: </label>
+            <input hx-get="/prototype/example" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='CssColor'],[name='Floor2Css'],[name='Ceiling1Css'],[name='Ceiling2Css']" type="text" name="Floor1Css" value="{{.Floor1Css}}">
+        </div>
+        <div>
+            <label>Floor 2 Css: </label>
+            <input hx-get="/prototype/example" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='CssColor'],[name='Ceiling1Css'],[name='Ceiling2Css']" type="text" name="Floor2Css" value="{{.Floor2Css}}">
+        </div>
+        <div>
+            <label>Ceiling 1 Css: </label>
+            <input hx-get="/prototype/example" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Floor2Css'],[name='CssColor'],[name='Ceiling2Css']" type="text" name="Ceiling1Css" value="{{.Ceiling1Css}}">
+        </div>
+        <div>
+            <label>Ceiling 2 Css: </label>
+            <input hx-get="/prototype/example" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Floor2Css'],[name='Ceiling1Css'],[name='CssColor']" type="text" name="Ceiling2Css" value="{{.Ceiling2Css}}">
         </div>
         <div>
             <label>Walkable: </label>

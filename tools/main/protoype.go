@@ -146,11 +146,69 @@ func (c *Context) prototypeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Context) getPrototype(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	collectionName := queryValues.Get("currentCollection")
+	id := queryValues.Get("prototype")
+	collection, ok := c.Collections[collectionName]
+	if !ok {
+		panic("Help plz")
+	}
+	proto := collection.findPrototypeById(id)
+	if proto == nil {
+		panic("Invalid proto id")
+	}
 
+	err := tmpl.ExecuteTemplate(w, "prototype-edit", proto.peekTransform(Transformation{}))
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func (c Context) putPrototype(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("PUT for /fragment")
+	fmt.Println("PUT for /prototype")
+
+	properties, _ := requestToProperties(r)
+	collectionName := properties["currentCollection"]
+	setName := properties["prototype-set"]
+	collection, ok := c.Collections[collectionName]
+	if !ok {
+		panic("no collection")
+	}
+	_, ok = collection.PrototypeSets[setName]
+	if !ok {
+		panic("no set")
+	}
+
+	id := properties["prototype-id"]
+	commonName := properties["CommonName"]
+	walkable := (properties["walkable"] == "on")
+	cssColor := properties["CssColor"]
+	floor1 := properties["Floor1Css"]
+	floor2 := properties["Floor2Css"]
+	ceiling1 := properties["Ceiling1Css"]
+	ceiling2 := properties["Ceiling2Css"]
+	fmt.Printf("%s | Floor: %s - %s Ceiling: %s - %s\n", commonName, floor1, floor2, ceiling1, ceiling2)
+	panicIfAnyEmpty("Invalid prototype", id, commonName)
+
+	proto := collection.findPrototypeById(id)
+	if proto == nil {
+		panic("no proto with that id")
+	}
+	proto.CommonName = commonName
+	proto.Walkable = walkable
+	proto.CssColor = cssColor
+	proto.Floor1Css = floor1
+	proto.Floor2Css = floor2
+	proto.Ceiling1Css = ceiling1
+	proto.Ceiling2Css = ceiling2
+
+	fmt.Println(proto)
+
+	outFile := c.collectionPath + collectionName + "/prototypes/" + setName + ".json"
+	err := writeJsonFile(outFile, collection.PrototypeSets[setName])
+	if err != nil {
+		panic(err)
+	}
 
 	io.WriteString(w, "<h3>Done.</h3>")
 }
@@ -177,20 +235,24 @@ func (c *Context) postPrototype(w http.ResponseWriter, r *http.Request) {
 	floor2 := properties["Floor2Css"]
 	ceiling1 := properties["Ceiling1Css"]
 	ceiling2 := properties["Ceiling2Css"]
+	fmt.Printf("%s | Floor: %s - %s Ceiling: %s - %s\n", commonName, floor1, floor2, ceiling1, ceiling2)
 	panicIfAnyEmpty("Invalid prototype", commonName) // The rest may be empty legitimately
 
-	fmt.Printf("%s | Floor: %s - %s Ceiling: %s - %s\n", commonName, floor1, floor2, ceiling1, ceiling2)
-
 	id := uuid.New().String()
-	collection.PrototypeSets[setName] = append(set, Prototype{ID: id, CommonName: commonName, Walkable: walkable, CssColor: cssColor, Floor1Css: floor1, Floor2Css: floor2, Ceiling1Css: ceiling1, Ceiling2Css: ceiling2})
+	collection.PrototypeSets[setName] = append(set, Prototype{ID: id, SetName: setName, CommonName: commonName, Walkable: walkable, CssColor: cssColor, Floor1Css: floor1, Floor2Css: floor2, Ceiling1Css: ceiling1, Ceiling2Css: ceiling2})
 
+	outFile := c.collectionPath + collectionName + "/prototypes/" + setName + ".json"
+	err := writeJsonFile(outFile, collection.PrototypeSets[setName])
+	if err != nil {
+		panic(err)
+	}
 	io.WriteString(w, "<h3>Done.</h3>")
 }
 
 func panicIfAnyEmpty(errorMessage string, strings ...string) {
 	for _, str := range strings {
 		if str == "" {
-			panic(errorMessage)
+			panic("panicIfAnyEmpty - caller provided error message: " + errorMessage)
 		}
 	}
 }

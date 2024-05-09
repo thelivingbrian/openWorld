@@ -156,11 +156,11 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	defaultTileColor := properties["defaultTileColor"]
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
+	panicIfAnyEmpty("POST to /area", collectionName, spaceName, name)
 
 	space := c.getSpace(collectionName, spaceName)
 
 	// This needs changing
-	// Can make name immutable or add oldname as property
 	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
 		area := AreaDescription{Name: name, Safe: safe, Tiles: nil, Transports: nil, DefaultTileColor: defaultTileColor}
@@ -170,6 +170,8 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 			io.WriteString(w, `<h2>Invalid Name</h2>`)
 			return
 		}
+		selectedArea.Safe = safe
+		selectedArea.DefaultTileColor = defaultTileColor
 	}
 
 	outFile := c.collectionPath + collectionName + "/spaces/" + spaceName + ".json"

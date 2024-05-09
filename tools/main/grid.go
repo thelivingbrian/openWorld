@@ -206,9 +206,14 @@ func (c *Context) gridAction(details GridSquareDetails, grid [][]TileData, prope
 
 func (col *Collection) getPrototypeFromRequestProperties(properties map[string]string) Prototype {
 	protoId := properties["selected-prototype-id"]
-	//return *col.Prototypes[protoId]
 
-	return *col.findPrototypeById(protoId)
+	proto := col.findPrototypeById(protoId)
+	if proto == nil {
+		fmt.Println("Requested invalid proto: " + protoId)
+		return Prototype{ID: "INVALID-" + protoId, CssColor: "blue", Floor1Css: "green red-b thick"}
+	}
+
+	return *proto
 }
 
 func gridPlaceFragment(details GridSquareDetails, modifications [][]TileData, selectedFragment Fragment) {
