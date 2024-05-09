@@ -13,7 +13,7 @@ type Collection struct {
 	Spaces        map[string]*Space
 	Fragments     map[string][]Fragment
 	PrototypeSets map[string][]Prototype
-	Prototypes    map[string]*Prototype
+	//Prototypes    map[string]*Prototype
 }
 
 func (c Context) collectionsHandler(w http.ResponseWriter, r *http.Request) {

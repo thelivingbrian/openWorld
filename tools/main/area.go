@@ -6,16 +6,29 @@ import (
 	"net/http"
 )
 
-type Area struct {
+type AreaDescription struct {
 	Name             string       `json:"name"`
 	Safe             bool         `json:"safe"`
 	Tiles            [][]TileData `json:"tiles"`
+	Blueprint        Blueprint    `json:"blueprint"`
 	Transports       []Transport  `json:"transports"`
 	DefaultTileColor string       `json:"defaultTileColor"`
 	North            string       `json:"north,omitempty"`
 	South            string       `json:"south,omitempty"`
 	East             string       `json:"east,omitempty"`
 	West             string       `json:"west,omitempty"`
+}
+
+type AreaOutput struct {
+	Name             string      `json:"name"`
+	Safe             bool        `json:"safe"`
+	Tiles            [][]int     `json:"tiles"`
+	Transports       []Transport `json:"transports"`
+	DefaultTileColor string      `json:"defaultTileColor"`
+	North            string      `json:"north,omitempty"`
+	South            string      `json:"south,omitempty"`
+	East             string      `json:"east,omitempty"`
+	West             string      `json:"west,omitempty"`
 }
 
 type GridDetails struct {
@@ -150,7 +163,7 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	// Can make name immutable or add oldname as property
 	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
-		area := Area{Name: name, Safe: safe, Tiles: nil, Transports: nil, DefaultTileColor: defaultTileColor}
+		area := AreaDescription{Name: name, Safe: safe, Tiles: nil, Transports: nil, DefaultTileColor: defaultTileColor}
 		space.Areas = append(space.Areas, area)
 	} else {
 		if new {
@@ -186,7 +199,7 @@ func (c Context) getAreaDetails(w http.ResponseWriter, r *http.Request) {
 	}
 	var page = struct {
 		Space   *Space
-		Area    *Area
+		Area    *AreaDescription
 		Checked string
 	}{Space: space, Area: area, Checked: checked}
 

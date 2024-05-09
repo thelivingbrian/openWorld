@@ -23,11 +23,16 @@
     - [-] Fragment Transform Proto
     - [-] Area transform proto? 
   - [ ] Blueprint page 
-    - [ ] Place fragment on blueprint
+    - [ ] Place fragment or proto on blueprint
     - [ ] Transform fragment 
     - [ ] Compile blueprint (blueprint layers/actions -> defaultFragment)
   - [ ] Compile Collection 
     - [ ] DefaultFragements([][]proto) -> areas + materials
+- [ ] Random
+  - [ ] Space Topologies
+    - [ ] Plane
+    - [ ] Disconnected
+  
 
 
 ### Transformation syntax:

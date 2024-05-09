@@ -135,7 +135,7 @@ func editTransportForm(i int, t Transport, sourceName string) string {
 	return output
 }
 
-func transportFormHtml(area Area) string {
+func transportFormHtml(area AreaDescription) string {
 	output := `<div id="edit_transports">
 					<h4>Transports: </h4>
 					<a hx-post="/newTransport" hx-include="[name='area-name'],[name='currentCollection'],[name='currentSpace']" hx-target="#edit_transports" href="#"> New </a><br />`
@@ -190,7 +190,7 @@ func (c Context) deleteTransport(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, output)
 }
 
-func (col *Collection) transportsAsOob(area Area, spacename string) string {
+func (col *Collection) transportsAsOob(area AreaDescription, spacename string) string {
 	output := ``
 	for _, transport := range area.Transports {
 		fmt.Println(transport)
@@ -200,7 +200,7 @@ func (col *Collection) transportsAsOob(area Area, spacename string) string {
 			Material   Material
 			ClickEvent GridSquareDetails
 		}{
-			Material: col.Prototypes[tile.PrototypeId].applyTransform(tile.Transformation),
+			Material: col.findPrototypeById(tile.PrototypeId).applyTransform(tile.Transformation),
 			ClickEvent: GridSquareDetails{
 				Y:                transport.SourceY,
 				X:                transport.SourceX,

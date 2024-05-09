@@ -11,7 +11,7 @@ import (
 type Space struct {
 	CollectionName string
 	Name           string
-	Areas          []Area
+	Areas          []AreaDescription
 }
 
 var divSpacePage = `
@@ -165,7 +165,7 @@ func (c Context) postSpaces(w http.ResponseWriter, r *http.Request) {
 }
 
 func createSpace(cName, name string, latitude, longitude int, topology string, height, width int, tileColor string) Space {
-	areas := make([][]Area, latitude)
+	areas := make([][]AreaDescription, latitude)
 	for y := 0; y < latitude; y++ {
 		for x := 0; x < longitude; x++ {
 			area := createBaseArea(height, width, tileColor)
@@ -180,7 +180,7 @@ func createSpace(cName, name string, latitude, longitude int, topology string, h
 	}
 	// Remove edges if plane topology
 
-	flatAreas := make([]Area, 0)
+	flatAreas := make([]AreaDescription, 0)
 	for i := range areas {
 		flatAreas = append(flatAreas, areas[i]...)
 	}
@@ -193,15 +193,15 @@ func mod(i, n int) int {
 	return ((i % n) + n) % n
 }
 
-func createBaseArea(height, width int, tileColor string) Area {
+func createBaseArea(height, width int, tileColor string) AreaDescription {
 	tiles := make([][]TileData, height)
 	for i := range tiles {
 		tiles[i] = make([]TileData, width)
 	}
-	return Area{Name: "", Safe: true, Tiles: tiles, Transports: make([]Transport, 0), DefaultTileColor: tileColor}
+	return AreaDescription{Name: "", Safe: true, Tiles: tiles, Transports: make([]Transport, 0), DefaultTileColor: tileColor}
 }
 
-func getAreaByName(areas []Area, name string) *Area {
+func getAreaByName(areas []AreaDescription, name string) *AreaDescription {
 	for i, area := range areas {
 		if name == area.Name {
 			return &areas[i]

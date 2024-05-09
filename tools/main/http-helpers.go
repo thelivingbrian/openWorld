@@ -53,7 +53,7 @@ func (c Context) spaceFromGET(r *http.Request) *Space {
 	return c.getSpace(collectionName, spaceName)
 }
 
-func (c Context) areaFromGET(r *http.Request) *Area {
+func (c Context) areaFromGET(r *http.Request) *AreaDescription {
 	space := c.spaceFromGET(r)
 	if space == nil {
 		return nil

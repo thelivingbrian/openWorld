@@ -35,8 +35,8 @@ func populateFromJson() Context {
 	c.cssPath = "./assets/colors.css"
 	c.collectionPath = "./data/collections/"
 
-	c.colors = parseJsonFile[Color](c.colorPath)
-	c.materials = parseJsonFile[Material](c.materialPath)
+	c.colors = parseJsonFile[[]Color](c.colorPath)
+	c.materials = parseJsonFile[[]Material](c.materialPath)
 	c.Collections = getAllCollections(c.collectionPath)
 
 	return c
@@ -50,8 +50,8 @@ func sliceToMap[T any](slice []T, f func(T) string) map[string]T {
 	return out
 }
 
-func parseJsonFile[T any](filename string) []T {
-	var out []T
+func parseJsonFile[T any](filename string) T {
+	var out T
 
 	jsonData, err := os.ReadFile(filename)
 	if err != nil {
@@ -62,7 +62,7 @@ func parseJsonFile[T any](filename string) []T {
 		panic(err)
 	}
 
-	fmt.Printf("Loaded %d entries of %T.\n", len(out), *new(T))
+	fmt.Printf("Loaded %s. Contents: %T.\n", filename, *new(T))
 
 	return out
 }
@@ -142,7 +142,7 @@ func getAllCollections(collectionPath string) map[string]*Collection {
 			collection := Collection{Name: entry.Name()}
 
 			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
-			areaMap := make(map[string][]Area)
+			areaMap := make(map[string][]AreaDescription)
 			// getListOfSubDirectorries
 			// getListOfJSONFiles
 			populateMaps(areaMap, pathToSpaces)
@@ -157,13 +157,25 @@ func getAllCollections(collectionPath string) map[string]*Collection {
 			prototypeMap := make(map[string][]Prototype)
 			populateMaps(prototypeMap, pathToPrototypes)
 			collection.PrototypeSets = addSetNamesToProtypes(prototypeMap)
-			collection.Prototypes = consolidate(collection.PrototypeSets) // consolidate prototypes
+			//collection.Prototypes = consolidate(collection.PrototypeSets) // consolidate prototypes // no
 
 			collections[entry.Name()] = &collection
 
 		}
 	}
 	return collections
+}
+
+// Probably belongs in Collection.go
+func (col *Collection) findPrototypeById(id string) *Prototype {
+	for _, set := range col.PrototypeSets {
+		for _, proto := range set {
+			if proto.ID == id {
+				return &proto
+			}
+		}
+	}
+	panic("Invalid Prototype lookup (proto not found): " + id)
 }
 
 func consolidate(prototypeSets map[string][]Prototype) map[string]*Prototype {
@@ -202,7 +214,7 @@ func addSetNamesToProtypes(protoMap map[string][]Prototype) map[string][]Prototy
 	return out
 }
 
-func areasToSpaces(areaMap map[string][]Area, collectionName string) map[string]*Space {
+func areasToSpaces(areaMap map[string][]AreaDescription, collectionName string) map[string]*Space {
 	out := make(map[string]*Space)
 	for name, areas := range areaMap {
 		out[name] = &Space{CollectionName: collectionName, Name: name, Areas: areas}
@@ -210,7 +222,7 @@ func areasToSpaces(areaMap map[string][]Area, collectionName string) map[string]
 	return out
 }
 
-func populateMaps[T any](m map[string][]T, pathToJsonDirectory string) {
+func populateMaps[T any](m map[string]T, pathToJsonDirectory string) {
 	subEntries, err := os.ReadDir(pathToJsonDirectory)
 	if err != nil {
 		fmt.Println("Invalid directory: " + pathToJsonDirectory)
@@ -254,8 +266,8 @@ func (c Context) deployLocalChanges(collectionName string) {
 	writeJsonFile(DEPLOY_materialPath, c.materials)
 }
 
-func collectionToAreas(collection *Collection) []Area {
-	var out []Area
+func collectionToAreas(collection *Collection) []AreaDescription {
+	var out []AreaDescription
 	for _, space := range collection.Spaces {
 		out = append(out, space.Areas...)
 	}

@@ -27,7 +27,7 @@ func (gridSquare GridSquareDetails) stringifyLocation() string {
 	return strings.Join(gridSquare.Location, CONNECTING_CHAR)
 }
 
-func locationStringFromArea(area *Area, spacename string) string {
+func locationStringFromArea(area *AreaDescription, spacename string) string {
 	return spacename + CONNECTING_CHAR + area.Name
 }
 
@@ -206,8 +206,9 @@ func (c *Context) gridAction(details GridSquareDetails, grid [][]TileData, prope
 
 func (col *Collection) getPrototypeFromRequestProperties(properties map[string]string) Prototype {
 	protoId := properties["selected-prototype-id"]
-	fmt.Println(protoId)
-	return *col.Prototypes[protoId]
+	//return *col.Prototypes[protoId]
+
+	return *col.findPrototypeById(protoId)
 }
 
 func gridPlaceFragment(details GridSquareDetails, modifications [][]TileData, selectedFragment Fragment) {
@@ -251,7 +252,7 @@ func (col *Collection) gridSelect(event GridSquareDetails, grid [][]TileData) st
 			Material   Material
 			ClickEvent GridSquareDetails
 		}{
-			Material: col.Prototypes[selectedCell.PrototypeId].applyTransform(selectedCell.Transformation),
+			Material: col.findPrototypeById(selectedCell.PrototypeId).applyTransform(selectedCell.Transformation),
 			ClickEvent: GridSquareDetails{
 				Y:                selectedY,
 				X:                selectedX,
@@ -274,7 +275,7 @@ func (col *Collection) gridSelect(event GridSquareDetails, grid [][]TileData) st
 		Material   Material
 		ClickEvent GridSquareDetails
 	}{
-		Material:   col.Prototypes[selectedCell.PrototypeId].applyTransform(selectedCell.Transformation),
+		Material:   col.findPrototypeById(selectedCell.PrototypeId).applyTransform(selectedCell.Transformation),
 		ClickEvent: event,
 	}
 	err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)

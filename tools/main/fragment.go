@@ -105,10 +105,11 @@ func (col *Collection) generateMaterials(tiles [][]TileData) [][]Material {
 }
 
 func (col *Collection) createMaterial(data TileData) Material {
-	proto, ok := col.Prototypes[data.PrototypeId]
+	proto := col.findPrototypeById(data.PrototypeId)
+	/*proto, ok := col.Prototypes[data.PrototypeId]
 	if !ok {
 		panic("No Matching Protype has been loaded for: " + data.PrototypeId)
-	}
+	}*/
 	return proto.applyTransform(data.Transformation)
 }
 
@@ -150,6 +151,11 @@ func transformCss(input string, transformation Transformation) string {
 		panic("Have match " + s + " But submatch behavior is undefined (submatches != 3)")
 	})
 	return result
+}
+
+func emptyTransformCss(input string) string {
+	emptyTransform := Transformation{}
+	return transformCss(input, emptyTransform)
 }
 
 func rotateCss(input string, clockwiseRotations int) string {
@@ -303,7 +309,7 @@ func (c Context) postFragment(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		panic("no collection")
 	}
-	set, ok := collection.Fragments[setName]
+	set, ok := collection.Fragments[setName] // The only reason this works is because the copy of Context has the same *Collection inside
 	if !ok {
 		panic("no set")
 	}
