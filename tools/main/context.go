@@ -143,8 +143,6 @@ func getAllCollections(collectionPath string) map[string]*Collection {
 
 			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
 			areaMap := make(map[string][]AreaDescription)
-			// getListOfSubDirectorries
-			// getListOfJSONFiles
 			populateMaps(areaMap, pathToSpaces)
 			collection.Spaces = areasToSpaces(areaMap, entry.Name())
 
@@ -157,40 +155,12 @@ func getAllCollections(collectionPath string) map[string]*Collection {
 			prototypeMap := make(map[string][]Prototype)
 			populateMaps(prototypeMap, pathToPrototypes)
 			collection.PrototypeSets = addSetNamesToProtypes(prototypeMap)
-			//collection.Prototypes = consolidate(collection.PrototypeSets) // consolidate prototypes // no
 
 			collections[entry.Name()] = &collection
 
 		}
 	}
 	return collections
-}
-
-// Probably belongs in Collection.go
-func (col *Collection) findPrototypeById(id string) *Prototype {
-	for _, set := range col.PrototypeSets {
-		for i, _ := range set {
-			if set[i].ID == id {
-				return &set[i]
-			}
-		}
-	}
-	fmt.Println("Invalid Prototype lookup: " + id)
-	return nil
-	//panic("Invalid Prototype lookup (proto not found): " + id)
-}
-
-func consolidate(prototypeSets map[string][]Prototype) map[string]*Prototype {
-	out := make(map[string]*Prototype)
-	for name, set := range prototypeSets {
-		for i := range set {
-			if out[set[i].ID] != nil {
-				panic("Invalid: duplicate ID for prototypes: " + set[i].ID + " in: " + name)
-			}
-			out[set[i].ID] = &set[i]
-		}
-	}
-	return out
 }
 
 func addSetNamesToFragments(fragmentMap map[string][]Fragment) map[string][]Fragment {

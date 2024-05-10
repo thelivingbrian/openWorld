@@ -109,10 +109,6 @@ func (col *Collection) createMaterial(data TileData) Material {
 	if proto == nil {
 		proto = &Prototype{ID: "INVALID-", CssColor: "blue", Floor1Css: "green red-b thick"}
 	}
-	/*proto, ok := col.Prototypes[data.PrototypeId]
-	if !ok {
-		panic("No Matching Protype has been loaded for: " + data.PrototypeId)
-	}*/
 	return proto.applyTransform(data.Transformation)
 }
 
@@ -181,7 +177,7 @@ func findIndex(s string, list []string) int {
 	return -1
 }
 
-func (c Context) postFragments(w http.ResponseWriter, r *http.Request) {
+func (c *Context) postFragments(w http.ResponseWriter, r *http.Request) {
 	props, ok := requestToProperties(r)
 	if !ok {
 		fmt.Println("Invalid POST to /fragments. Properties are invalid.")
@@ -220,7 +216,7 @@ func (c Context) postFragments(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, `<h2>Success</h2>`)
 }
 
-func (c Context) fragmentsNewHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Context) fragmentsNewHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		getFragmentsNew(w, r)
 	}
@@ -277,7 +273,7 @@ func (c *Context) getFragment(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c Context) putFragment(w http.ResponseWriter, r *http.Request) {
+func (c *Context) putFragment(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("PUT for /fragment")
 
 	properties, _ := requestToProperties(r)
@@ -302,7 +298,7 @@ func (c Context) putFragment(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "<h3>Done.</h3>")
 }
 
-func (c Context) postFragment(w http.ResponseWriter, r *http.Request) {
+func (c *Context) postFragment(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("POST for /fragment")
 
 	properties, _ := requestToProperties(r)
@@ -313,7 +309,7 @@ func (c Context) postFragment(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		panic("no collection")
 	}
-	set, ok := collection.Fragments[setName] // The only reason this works is because the copy of Context has the same *Collection inside
+	set, ok := collection.Fragments[setName]
 	if !ok {
 		panic("no set")
 	}
@@ -346,7 +342,7 @@ func (c Context) postFragment(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "<h3>Done.</h3>")
 }
 
-func (c Context) fragmentNewHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Context) fragmentNewHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		getFragmentNew(w, r)
 	}

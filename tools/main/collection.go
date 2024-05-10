@@ -13,10 +13,9 @@ type Collection struct {
 	Spaces        map[string]*Space
 	Fragments     map[string][]Fragment
 	PrototypeSets map[string][]Prototype
-	//Prototypes    map[string]*Prototype
 }
 
-func (c Context) collectionsHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Context) collectionsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		c.getCollections(w, r)
 	}
@@ -25,11 +24,11 @@ func (c Context) collectionsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c Context) getCollections(w http.ResponseWriter, r *http.Request) {
+func (c *Context) getCollections(w http.ResponseWriter, r *http.Request) {
 	tmpl.ExecuteTemplate(w, "collections", c.Collections)
 }
 
-func (c Context) postCollections(w http.ResponseWriter, r *http.Request) {
+func (c *Context) postCollections(w http.ResponseWriter, r *http.Request) {
 	props, ok := requestToProperties(r)
 	if !ok {
 		fmt.Println("Invalid POST to /collections. Properties are invalid.")
@@ -44,15 +43,15 @@ func (c Context) postCollections(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(name)
 	c.Collections[name] = &Collection{Name: name, Spaces: make(map[string]*Space), Fragments: make(map[string][]Fragment)}
-	c.createCollectionDirectories(name)
+	createCollectionDirectories(name, c.collectionPath)
 	spacesTmpl.Execute(w, c.Collections[name])
 }
 
-func (c Context) createCollectionDirectories(name string) {
+func createCollectionDirectories(name string, path string) {
 	dirs := []string{"prototypes", "fragments", "spaces"}
 
 	for _, dir := range dirs {
-		fullPath := filepath.Join(c.collectionPath, name, dir)
+		fullPath := filepath.Join(path, name, dir)
 		// Create the directory with os.MkdirAll which also creates all necessary parent directories
 		err := os.MkdirAll(fullPath, os.ModePerm) // os.ModePerm is 0777, allowing read, write, and execute permissions
 		if err != nil {
@@ -77,4 +76,16 @@ func (col *Collection) getProtoSets() []string {
 		setOptions = append(setOptions, key)
 	}
 	return setOptions
+}
+
+func (col *Collection) findPrototypeById(id string) *Prototype {
+	for _, set := range col.PrototypeSets {
+		for i := range set {
+			if set[i].ID == id {
+				return &set[i]
+			}
+		}
+	}
+	fmt.Println("Invalid Prototype lookup: " + id)
+	return nil
 }
