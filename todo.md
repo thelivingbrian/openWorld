@@ -8,24 +8,26 @@
 ## Design Workspace
 - [ ] Rotations
   - [-] New collection
-  - [ ] Convert materials to protos
+  - [-] Convert materials to protos
     - [-] Create default protos
-    - [ ] Unique id 
-    - [ ] Edit Proto
-    - [ ] New Prototype set
+    - [-] Unique id 
+    - [-] Edit Proto
+    - [-] New Prototype set
     - [-] define rotate(proto)
   - [-] Update fragment schema to have transformations 
     - [-] New Fragment Set
     - [-] New Fragment
     - [-] Fragment has protos
     - [-] Fragment applies transformations
-  - [ ] Modify Transformations
+  - [-] Modify Transformations
     - [-] Fragment Transform Proto
     - [-] Area transform proto? 
   - [ ] Blueprint page 
     - [ ] Place fragment or proto on blueprint
+    - [ ] Do not place empty cells
     - [ ] Transform fragment 
-    - [ ] Compile blueprint (blueprint layers/actions -> defaultFragment)
+    - [ ] remove/reorder instructions
+    - [ ] oob highlight
   - [ ] Compile Collection 
     - [ ] DefaultFragements([][]proto) -> areas + materials
 - [ ] Random
