@@ -11,10 +11,12 @@ import (
 // Consolidate Fragments, and make a combined lookup func for tile grids including protos
 
 type Blueprint struct {
+	Tiles        [][]TileData `json:"tiles"`
 	Instructions []Instruction
 }
 
 type Instruction struct {
+	ID          string
 	X           int
 	Y           int
 	GridAssetId string

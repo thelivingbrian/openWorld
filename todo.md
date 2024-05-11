@@ -12,6 +12,7 @@
     - [-] Create default protos
     - [-] Unique id 
     - [-] Edit Proto
+      - [ ] Do not transform props (4 recv funcs?)
     - [-] New Prototype set
     - [-] define rotate(proto)
   - [-] Update fragment schema to have transformations 
@@ -23,8 +24,8 @@
     - [-] Fragment Transform Proto
     - [-] Area transform proto? 
   - [ ] Blueprint page 
-    - [ ] Place fragment or proto on blueprint
-    - [ ] Do not place empty cells
+    - [-] Place fragment or proto on blueprint
+    - [-] Do not place empty cells
     - [ ] Transform fragment 
     - [ ] remove/reorder instructions
     - [ ] oob highlight

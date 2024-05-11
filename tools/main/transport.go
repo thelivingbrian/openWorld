@@ -194,14 +194,14 @@ func (col *Collection) transportsAsOob(area AreaDescription, spacename string) s
 	output := ``
 	for _, transport := range area.Transports {
 		fmt.Println(transport)
-		tile := area.Tiles[transport.SourceY][transport.SourceX]
+		tile := area.Blueprint.Tiles[transport.SourceY][transport.SourceX]
 		var buf bytes.Buffer
 		var pageData = struct {
 			Material   Material
-			ClickEvent GridSquareDetails
+			ClickEvent GridClickDetails
 		}{
 			Material: col.findPrototypeById(tile.PrototypeId).applyTransform(tile.Transformation),
-			ClickEvent: GridSquareDetails{
+			ClickEvent: GridClickDetails{
 				Y:                transport.SourceY,
 				X:                transport.SourceX,
 				GridType:         "area",

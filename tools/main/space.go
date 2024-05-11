@@ -198,7 +198,8 @@ func createBaseArea(height, width int, tileColor string) AreaDescription {
 	for i := range tiles {
 		tiles[i] = make([]TileData, width)
 	}
-	return AreaDescription{Name: "", Safe: true, Tiles: tiles, Transports: make([]Transport, 0), DefaultTileColor: tileColor}
+	blueprint := Blueprint{Tiles: tiles, Instructions: make([]Instruction, 0)}
+	return AreaDescription{Name: "", Safe: true, Blueprint: &blueprint, Transports: make([]Transport, 0), DefaultTileColor: tileColor}
 }
 
 func getAreaByName(areas []AreaDescription, name string) *AreaDescription {
@@ -215,6 +216,18 @@ func getFragmentByName(fragments []Fragment, name string) *Fragment {
 		if name == fragment.Name {
 			return &fragments[i]
 		}
+	}
+	return nil
+}
+
+func (col *Collection) getFragmentById(id string) *Fragment {
+	for _, set := range col.Fragments {
+		for i, fragment := range set {
+			if id == fragment.ID {
+				return &set[i]
+			}
+		}
+
 	}
 	return nil
 }

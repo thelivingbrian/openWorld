@@ -33,7 +33,7 @@
 {{range $i, $details := .}}
 <div id="fragment-window-{{$i}}" class="left">
     <input type="hidden" name="fragment" value="{{$details.Name}}" />
-    <input type="radio" name="selected-fragment-name" value="{{$details.Name}}" {{if eq $i 0}} checked {{end}} />
+    <input type="radio" name="selected-asset-id" value="{{$details.ID}}" {{if eq $i 0}} checked {{end}} />
     <br />
     <label>{{$details.Name}} <a href="#" hx-get="/fragment" hx-target="#edit_tool" hx-include="#fragment-set,#fragment-window-{{$i}} [name='fragment'],[name='currentCollection']">edit</a></label>
     {{template "grid" $details.GridDetails}}

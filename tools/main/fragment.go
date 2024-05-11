@@ -9,12 +9,15 @@ import (
 )
 
 type Fragment struct {
-	Name    string       `json:"name"`
-	SetName string       `json:"setName"`
-	Tiles   [][]TileData `json:"tiles"`
+	ID      string `json:"id"` // add to existing with set name
+	Name    string `json:"name"`
+	SetName string `json:"setName"`
+	//Tiles     [][]TileData `json:"tiles"`
+	Blueprint *Blueprint `json:"blueprint"`
 }
 
 type FragmentDetails struct {
+	ID          string `json:"id"`
 	Name        string
 	SetName     string
 	GridDetails GridDetails
@@ -82,10 +85,11 @@ func (c *Collection) DetailsFromFragment(fragment *Fragment, clickable bool) *Fr
 		gridtype = "fragment"
 	}
 	return &FragmentDetails{
+		ID:      fragment.ID,
 		Name:    fragment.Name,
 		SetName: fragment.SetName,
 		GridDetails: GridDetails{
-			MaterialGrid:     c.generateMaterials(fragment.Tiles),
+			MaterialGrid:     c.generateMaterials(fragment.Blueprint.Tiles),
 			DefaultTileColor: "",
 			Location:         fragment.SetName + "." + fragment.Name,
 			ScreenID:         "fragment",
@@ -289,6 +293,10 @@ func (c *Context) putFragment(w http.ResponseWriter, r *http.Request) {
 		panic("no set")
 	}
 
+	/*for i := range set {
+		set[i].Blueprint.Tiles = set[i].Tiles
+	}*/
+
 	outFile := c.collectionPath + collectionName + "/fragments/" + setName + ".json"
 	err := writeJsonFile(outFile, set)
 	if err != nil {
@@ -333,7 +341,7 @@ func (c *Context) postFragment(w http.ResponseWriter, r *http.Request) {
 		grid[i] = make([]TileData, width)
 	}
 
-	collection.Fragments[setName] = append(set, Fragment{Name: name, SetName: setName, Tiles: grid})
+	collection.Fragments[setName] = append(set, Fragment{Name: name, SetName: setName, Blueprint: &Blueprint{Tiles: grid, Instructions: make([]Instruction, 0)}})
 	outFile := c.collectionPath + collectionName + "/fragments/" + setName + ".json"
 	err = writeJsonFile(outFile, collection.Fragments[setName])
 	if err != nil {

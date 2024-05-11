@@ -1,5 +1,8 @@
 {{define "area-blueprint"}}
-<div id="area_blueprint">
-    <h3>Blueprint goes here</h3>
+<div id="area-blueprint">
+    <h3>Blueprint</h3>
+    {{range $i, $instruction := .Blueprint.Instructions}}
+    <span>Yo</span><br />
+    {{end}}
 </div>
 {{end}}

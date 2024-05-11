@@ -26,7 +26,7 @@
 {{range $i, $proto := .}}
 <div id="prototype-window-{{$i}}" class="left">
     <input type="hidden" name="prototype" value="{{$proto.ID}}" />
-    <input type="radio" name="selected-prototype-id" value="{{$proto.ID}}" {{if eq $i 0}} checked {{end}} />
+    <input type="radio" name="selected-asset-id" value="{{$proto.ID}}" {{if eq $i 0}} checked {{end}} />
     <br />
     {{template "proto-square" $proto}}
     <label>{{$proto.CommonName}}</label><br />

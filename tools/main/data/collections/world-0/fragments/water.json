@@ -1,1 +1,0 @@
-[{"name":"name","setName":"water","tiles":[[{"prototypeId":"10","transformation":{}}]]},{"name":"pond","setName":"water","tiles":[[{"prototypeId":"10","transformation":{"clockwiseRotations":3}},{"prototypeId":"10","transformation":{}}],[{"prototypeId":"10","transformation":{"clockwiseRotations":2}},{"prototypeId":"10","transformation":{"clockwiseRotations":1}}]]}]

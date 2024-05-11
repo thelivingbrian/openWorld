@@ -7,16 +7,16 @@ import (
 )
 
 type AreaDescription struct {
-	Name             string       `json:"name"`
-	Safe             bool         `json:"safe"`
-	Tiles            [][]TileData `json:"tiles"`
-	Blueprint        Blueprint    `json:"blueprint"`
-	Transports       []Transport  `json:"transports"`
-	DefaultTileColor string       `json:"defaultTileColor"`
-	North            string       `json:"north,omitempty"`
-	South            string       `json:"south,omitempty"`
-	East             string       `json:"east,omitempty"`
-	West             string       `json:"west,omitempty"`
+	Name string `json:"name"`
+	Safe bool   `json:"safe"`
+	//Tiles            [][]TileData `json:"tiles"`
+	Blueprint        *Blueprint  `json:"blueprint"`
+	Transports       []Transport `json:"transports"`
+	DefaultTileColor string      `json:"defaultTileColor"`
+	North            string      `json:"north,omitempty"`
+	South            string      `json:"south,omitempty"`
+	East             string      `json:"east,omitempty"`
+	West             string      `json:"west,omitempty"`
 }
 
 type AreaOutput struct {
@@ -97,7 +97,7 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 		setOptions = append(setOptions, key)
 	}
 
-	modifications := collection.generateMaterials(selectedArea.Tiles)
+	modifications := collection.generateMaterials(selectedArea.Blueprint.Tiles)
 
 	var pageData = PageData{
 		GridDetails: GridDetails{
@@ -160,10 +160,11 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 
 	space := c.getSpace(collectionName, spaceName)
 
-	// This needs changing
+	// todo fix
 	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
-		area := AreaDescription{Name: name, Safe: safe, Tiles: nil, Transports: nil, DefaultTileColor: defaultTileColor}
+		// shameful, this
+		area := AreaDescription{Name: name, Safe: safe, Blueprint: space.Areas[0].Blueprint, Transports: nil, DefaultTileColor: defaultTileColor}
 		space.Areas = append(space.Areas, area)
 	} else {
 		if new {
@@ -173,6 +174,10 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 		selectedArea.Safe = safe
 		selectedArea.DefaultTileColor = defaultTileColor
 	}
+
+	/*for i := range space.Areas {
+		space.Areas[i].Blueprint.Tiles = space.Areas[i].Tiles
+	}*/
 
 	outFile := c.collectionPath + collectionName + "/spaces/" + spaceName + ".json"
 	err := writeJsonFile(outFile, space.Areas)
