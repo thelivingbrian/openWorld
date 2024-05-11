@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 // Does location get or stringifyLocation get used by template?
@@ -199,7 +201,9 @@ func (col *Collection) gridClickAction(details GridClickDetails, blueprint *Blue
 	} else if details.Tool == "place-blueprint" {
 		fmt.Println("id: " + details.SelectedAssetId)
 		if details.SelectedAssetId != "" {
+			//blueprint.Instructions = nil
 			blueprint.Instructions = append(blueprint.Instructions, Instruction{
+				ID:                 uuid.New().String(),
 				X:                  details.X,
 				Y:                  details.Y,
 				GridAssetId:        details.SelectedAssetId,

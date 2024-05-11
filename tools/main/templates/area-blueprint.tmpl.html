@@ -2,7 +2,23 @@
 <div id="area-blueprint">
     <h3>Blueprint</h3>
     {{range $i, $instruction := .Blueprint.Instructions}}
-    <span>Yo</span><br />
+    <div id="instruction-{{$i}}">
+        <input type="hidden" name="instruction-id" value="{{$instruction.ID}}" />
+        <span><b>{{$i}}</b> | (Y: {{$instruction.Y}}, X: {{$instruction.X}}) Rotations: {{$instruction.ClockwiseRotations}}</span>
+        <a  hx-delete="/area/blueprint/instructions" 
+            hx-include="#instruction-{{$i}} [name='instruction-id'],[name='currentCollection'],[name='currentSpace'],#area-name" 
+            hx-target="#instruction-{{$i}}"
+            href="#">Delete</a>
+        <a  hx-put="/area/blueprint/instructions/order" 
+            hx-include="#instruction-{{$i}} [name='instruction-id'],[name='currentCollection'],[name='currentSpace'],#area-name" 
+            hx-target="#area-blueprint"
+            href="#">order++</a>
+        <a  hx-put="/area/blueprint/instructions/rotation" 
+            hx-include="#instruction-{{$i}} [name='instruction-id'],[name='currentCollection'],[name='currentSpace'],#area-name"
+            hx-target="#area-blueprint"
+            href="#">rotations++</a>
+        <br />
+    </div>
     {{end}}
 </div>
 {{end}}
