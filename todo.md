@@ -27,7 +27,7 @@
     - [-] Place fragment or proto on blueprint
     - [-] Do not place empty cells
     - [ ] Transform fragment 
-    - [ ] remove/reorder instructions
+    - [-] remove/reorder instructions
     - [ ] oob highlight
   - [ ] Compile Collection 
     - [ ] DefaultFragements([][]proto) -> areas + materials
