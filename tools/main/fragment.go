@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+
+	"github.com/google/uuid"
 )
 
 type Fragment struct {
@@ -357,7 +359,7 @@ func (c *Context) postFragment(w http.ResponseWriter, r *http.Request) {
 		grid[i] = make([]TileData, width)
 	}
 
-	collection.Fragments[setName] = append(set, Fragment{Name: name, SetName: setName, Blueprint: &Blueprint{Tiles: grid, Instructions: make([]Instruction, 0)}})
+	collection.Fragments[setName] = append(set, Fragment{ID: uuid.New().String(), Name: name, SetName: setName, Blueprint: &Blueprint{Tiles: grid, Instructions: make([]Instruction, 0)}})
 	outFile := c.collectionPath + collectionName + "/fragments/" + setName + ".json"
 	err = writeJsonFile(outFile, collection.Fragments[setName])
 	if err != nil {

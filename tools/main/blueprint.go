@@ -144,3 +144,17 @@ func (c *Context) putInstructionRotation(_ http.ResponseWriter, r *http.Request)
 		}
 	}
 }
+
+func rotateClockwise[T any](input [][]T) [][]T {
+	out := make([][]T, len(input[0]))
+	for i := range input[0] {
+		out[i] = make([]T, len(input))
+	}
+	for i := range input {
+		//out[i] = make([]T, len(input))
+		for j := range input[i] {
+			out[j][len(out[i])-i-1] = input[i][j]
+		}
+	}
+	return out
+}

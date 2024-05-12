@@ -249,6 +249,15 @@ func pasteTiles(x, y int, source, dest [][]TileData) {
 
 func (col *Collection) applyInstruction(source [][]TileData, instruction Instruction) {
 	gridToApply := col.getTileGridByAssetId(instruction.GridAssetId)
+	rotations := mod(instruction.ClockwiseRotations, 4)
+	for i := 0; i < rotations; i++ {
+		gridToApply = rotateClockwise(gridToApply)
+		for y := range gridToApply {
+			for x := range gridToApply[y] {
+				gridToApply[y][x].Transformation.ClockwiseRotations++
+			}
+		}
+	}
 	pasteTiles(instruction.X, instruction.Y, source, gridToApply)
 }
 
