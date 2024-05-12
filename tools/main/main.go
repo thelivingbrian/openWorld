@@ -25,7 +25,7 @@ func main() {
 	http.HandleFunc("/area/blueprint", c.areaBlueprintHandler)
 	http.HandleFunc("/area/blueprint/instructions", c.blueprintInstructionHandler)
 	http.HandleFunc("/area/blueprint/instructions/order", c.instructionOrderHandler)
-	http.HandleFunc("/area/blueprint/instructions/rotations", c.instructionRotationHandler)
+	http.HandleFunc("/area/blueprint/instructions/rotation", c.instructionRotationHandler)
 	http.HandleFunc("/fragments", c.fragmentsHandler)
 	http.HandleFunc("/fragments/new", c.fragmentsNewHandler)
 	http.HandleFunc("/fragment", c.fragmentHandler)

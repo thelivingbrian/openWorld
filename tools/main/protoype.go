@@ -126,7 +126,7 @@ func (c Context) prototypesNewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getPrototypesNew(w http.ResponseWriter, r *http.Request) {
+func getPrototypesNew(w http.ResponseWriter, _ *http.Request) {
 	err := tmpl.ExecuteTemplate(w, "prototypes-new", nil)
 	if err != nil {
 		fmt.Println(err)
@@ -158,7 +158,7 @@ func (c *Context) getPrototype(w http.ResponseWriter, r *http.Request) {
 		panic("Invalid proto id")
 	}
 
-	err := tmpl.ExecuteTemplate(w, "prototype-edit", proto.peekTransform(Transformation{}))
+	err := tmpl.ExecuteTemplate(w, "prototype-edit", proto)
 	if err != nil {
 		fmt.Println(err)
 	}

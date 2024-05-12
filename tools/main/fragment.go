@@ -139,6 +139,22 @@ func (proto *Prototype) peekTransform(transformation Transformation) Prototype {
 		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation)}
 }
 
+func (proto *Prototype) PeekFloor1() string {
+	return transformCss(proto.Floor1Css, Transformation{})
+}
+
+func (proto *Prototype) PeekFloor2() string {
+	return transformCss(proto.Floor2Css, Transformation{})
+}
+
+func (proto *Prototype) PeekCeiling1() string {
+	return transformCss(proto.Ceiling1Css, Transformation{})
+}
+
+func (proto *Prototype) PeekCeiling2() string {
+	return transformCss(proto.Ceiling2Css, Transformation{})
+}
+
 func transformCss(input string, transformation Transformation) string {
 	// We are looking for {key:value} : key, value are strings
 	pattern := regexp.MustCompile(`{([^:]*):([^}]*)}`)
@@ -226,7 +242,7 @@ func (c *Context) fragmentsNewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getFragmentsNew(w http.ResponseWriter, r *http.Request) {
+func getFragmentsNew(w http.ResponseWriter, _ *http.Request) {
 	err := tmpl.ExecuteTemplate(w, "fragments-new", nil)
 	if err != nil {
 		fmt.Println(err)

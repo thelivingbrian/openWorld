@@ -73,7 +73,7 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	area := getAreaByName(space.Areas, areaName)
 
-	result := collection.gridClickAction(details, area.Blueprint, properties)
+	result := collection.gridClickAction(details, area.Blueprint)
 	io.WriteString(w, result)
 	if result == "" {
 		var pageData = GridDetails{
@@ -112,7 +112,7 @@ func (c Context) gridClickFragmentHandler(w http.ResponseWriter, r *http.Request
 		panic("no Set")
 	}
 	fragment := getFragmentByName(set, fragmentName)
-	result := col.gridClickAction(details, fragment.Blueprint, properties)
+	result := col.gridClickAction(details, fragment.Blueprint)
 	io.WriteString(w, result)
 	if result == "" {
 		var pageData = GridDetails{
@@ -178,19 +178,19 @@ func createGridSquareDetails(properties map[string]string, gridType string) Grid
 }
 
 // / Tools
-func (col *Collection) gridClickAction(details GridClickDetails, blueprint *Blueprint, properties map[string]string) string {
+func (col *Collection) gridClickAction(details GridClickDetails, blueprint *Blueprint) string {
 	if details.Tool == "select" {
 		// should oob update hiddens
 		return col.gridSelect(details, blueprint.Tiles)
 	} else if details.Tool == "replace" {
-		selectedPrototype := col.getPrototypeFromRequestProperties(details.SelectedAssetId)
+		selectedPrototype := col.getPrototypeOrCreateInvalid(details.SelectedAssetId)
 		return gridReplace(details, blueprint.Tiles, selectedPrototype)
 	} else if details.Tool == "fill" {
-		selectedPrototype := col.getPrototypeFromRequestProperties(details.SelectedAssetId)
+		selectedPrototype := col.getPrototypeOrCreateInvalid(details.SelectedAssetId)
 		gridFill(details, blueprint.Tiles, selectedPrototype)
 		return ""
 	} else if details.Tool == "between" {
-		selectedPrototype := col.getPrototypeFromRequestProperties(details.SelectedAssetId)
+		selectedPrototype := col.getPrototypeOrCreateInvalid(details.SelectedAssetId)
 		return col.gridFillBetween(details, blueprint.Tiles, selectedPrototype)
 	} else if details.Tool == "place" {
 		// Pull isSelected & location (selectedLocation) into hidden field
@@ -252,7 +252,7 @@ func (col *Collection) applyInstruction(source [][]TileData, instruction Instruc
 	pasteTiles(instruction.X, instruction.Y, source, gridToApply)
 }
 
-func (col *Collection) getPrototypeFromRequestProperties(protoId string) Prototype {
+func (col *Collection) getPrototypeOrCreateInvalid(protoId string) Prototype {
 	proto := col.findPrototypeById(protoId)
 	if proto == nil {
 		fmt.Println("Requested invalid proto: " + protoId)

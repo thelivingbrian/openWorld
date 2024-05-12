@@ -12,7 +12,7 @@
     - [-] Create default protos
     - [-] Unique id 
     - [-] Edit Proto
-      - [ ] Do not transform props (4 recv funcs?)
+      - [-] Do not transform props (4 recv funcs?)
     - [-] New Prototype set
     - [-] define rotate(proto)
   - [-] Update fragment schema to have transformations 

@@ -223,7 +223,7 @@ func (c Context) areaDisplayHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c Context) getAreaDisplay(w http.ResponseWriter, r *http.Request) {
+func (c Context) getAreaDisplay(w http.ResponseWriter, _ *http.Request) {
 	err := tmpl.ExecuteTemplate(w, "area-display", nil)
 	if err != nil {
 		fmt.Println(err)

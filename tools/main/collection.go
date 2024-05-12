@@ -24,7 +24,7 @@ func (c *Context) collectionsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c *Context) getCollections(w http.ResponseWriter, r *http.Request) {
+func (c *Context) getCollections(w http.ResponseWriter, _ *http.Request) {
 	tmpl.ExecuteTemplate(w, "collections", c.Collections)
 }
 

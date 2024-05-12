@@ -64,7 +64,7 @@ func (c *Context) blueprintInstructionHandler(w http.ResponseWriter, r *http.Req
 	}
 }
 
-func (c *Context) deleteInstruction(w http.ResponseWriter, r *http.Request) {
+func (c *Context) deleteInstruction(_ http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	instructionId := properties["instruction-id"]
 
@@ -110,7 +110,7 @@ func (c *Context) instructionOrderHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (c *Context) putInstructionOrder(w http.ResponseWriter, r *http.Request) {
+func (c *Context) putInstructionOrder(_ http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	instructionId := properties["instruction-id"]
 
@@ -132,7 +132,7 @@ func (c *Context) instructionRotationHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-func (c *Context) putInstructionRotation(w http.ResponseWriter, r *http.Request) {
+func (c *Context) putInstructionRotation(_ http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	instructionId := properties["instruction-id"]
 

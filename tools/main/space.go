@@ -245,7 +245,7 @@ func (c Context) newSpaceHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (col Collection) getNewSpace(w http.ResponseWriter, r *http.Request) {
+func (col Collection) getNewSpace(w http.ResponseWriter, _ *http.Request) {
 	err := spaceTmpl.Execute(w, col)
 	if err != nil {
 		fmt.Println(err)
