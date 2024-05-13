@@ -170,7 +170,7 @@ func createGridSquareDetails(properties map[string]string, gridType string) Grid
 	}
 	tool, ok := properties["radio-tool"]
 	if !ok {
-		panic("No Tool Selected")
+		fmt.Println("No Tool Selected for grid click")
 	}
 	protoId := properties["selected-asset-id"]
 
@@ -230,7 +230,7 @@ func (col *Collection) getTileGridByAssetId(assetId string) [][]TileData {
 	return out
 }
 
-func pasteTiles(x, y int, source, dest [][]TileData) {
+func pasteTiles(y, x int, source, dest [][]TileData) {
 	for i := range dest {
 		if y+i >= len(source) {
 			break
@@ -247,18 +247,23 @@ func pasteTiles(x, y int, source, dest [][]TileData) {
 	}
 }
 
-func (col *Collection) applyInstruction(source [][]TileData, instruction Instruction) {
-	gridToApply := col.getTileGridByAssetId(instruction.GridAssetId)
-	rotations := mod(instruction.ClockwiseRotations, 4)
-	for i := 0; i < rotations; i++ {
-		gridToApply = rotateClockwise(gridToApply)
-		for y := range gridToApply {
-			for x := range gridToApply[y] {
-				gridToApply[y][x].Transformation.ClockwiseRotations++
+func clearTiles(y, x, height, width int, source [][]TileData) {
+	for i := 0; i < height; i++ {
+		if y+i >= len(source) {
+			break
+		}
+		for j := 0; j < width; j++ {
+			if x+j >= len(source[y+i]) {
+				break
 			}
+			source[y+i][x+j].PrototypeId = ""
 		}
 	}
-	pasteTiles(instruction.X, instruction.Y, source, gridToApply)
+}
+
+func (col *Collection) applyInstruction(source [][]TileData, instruction Instruction) {
+	gridToApply := rotateTimesN(col.getTileGridByAssetId(instruction.GridAssetId), instruction.ClockwiseRotations)
+	pasteTiles(instruction.Y, instruction.X, source, gridToApply)
 }
 
 func (col *Collection) getPrototypeOrCreateInvalid(protoId string) Prototype {

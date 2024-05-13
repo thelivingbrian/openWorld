@@ -117,6 +117,7 @@ func (c *Context) putInstructionOrder(_ http.ResponseWriter, r *http.Request) {
 	blueprint := c.blueprintFromProperties(properties)
 
 	for i := range blueprint.Instructions {
+		// bug
 		if blueprint.Instructions[i].ID == instructionId {
 			hold := blueprint.Instructions[i]
 			blueprint.Instructions[i] = blueprint.Instructions[i+1%len(blueprint.Instructions)]
@@ -137,23 +138,44 @@ func (c *Context) putInstructionRotation(_ http.ResponseWriter, r *http.Request)
 	instructionId := properties["instruction-id"]
 
 	blueprint := c.blueprintFromProperties(properties)
+	col := c.collectionFromProperties(properties)
 
 	for i := range blueprint.Instructions {
+		// use index instead ?
 		if blueprint.Instructions[i].ID == instructionId {
-			blueprint.Instructions[i].ClockwiseRotations += 1
+			currentRotations := blueprint.Instructions[i].ClockwiseRotations
+			grid := col.getTileGridByAssetId(blueprint.Instructions[i].GridAssetId)
+			if currentRotations%2 == 1 {
+				clearTiles(blueprint.Instructions[i].Y, blueprint.Instructions[i].X, len(grid[0]), len(grid), blueprint.Tiles)
+			} else {
+				clearTiles(blueprint.Instructions[i].Y, blueprint.Instructions[i].X, len(grid), len(grid[0]), blueprint.Tiles)
+			}
+			blueprint.Instructions[i].ClockwiseRotations = mod(currentRotations+1, 4)
 		}
 	}
 }
 
-func rotateClockwise[T any](input [][]T) [][]T {
-	out := make([][]T, len(input[0]))
-	for i := range input[0] {
-		out[i] = make([]T, len(input))
+func rotateTimesN(input [][]TileData, n int) [][]TileData {
+	rotations := mod(n, 4)
+	out := input
+	for i := 0; i < rotations; i++ {
+		out = rotateClockwise(out)
+		for y := range out {
+			for x := range out[y] {
+				out[y][x].Transformation.ClockwiseRotations++
+			}
+		}
 	}
-	for i := range input {
-		//out[i] = make([]T, len(input))
-		for j := range input[i] {
-			out[j][len(out[i])-i-1] = input[i][j]
+	return out
+}
+
+func rotateClockwise[T any](input [][]T) [][]T {
+	outheight := len(input[0])
+	out := make([][]T, outheight)
+	for i := 0; i < outheight; i++ {
+		out[i] = make([]T, len(input))
+		for j := 0; j < len(input); j++ {
+			out[i][j] = input[len(input)-j-1][i]
 		}
 	}
 	return out

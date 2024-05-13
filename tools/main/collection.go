@@ -89,3 +89,13 @@ func (col *Collection) findPrototypeById(id string) *Prototype {
 	fmt.Println("Invalid Prototype lookup: " + id)
 	return nil
 }
+
+func (c *Context) collectionFromProperties(properties map[string]string) *Collection {
+	collectionName := properties["currentCollection"]
+
+	collection, ok := c.Collections[collectionName]
+	if !ok {
+		panic("invalid collection")
+	}
+	return collection
+}

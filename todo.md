@@ -26,9 +26,14 @@
   - [ ] Blueprint page 
     - [-] Place fragment or proto on blueprint
     - [-] Do not place empty cells
-    - [ ] Transform fragment 
+    - [-] Transform fragment 
     - [-] remove/reorder instructions
+    - [ ] modify instructions 
+      - [-] blueprint rotate removes previous 
+      - [ ] rotate updates grid
     - [ ] oob highlight
+      - [ ] fresh grid
+      - [ ] Select corner 
   - [ ] Compile Collection 
     - [ ] DefaultFragements([][]proto) -> areas + materials
 - [ ] Random
