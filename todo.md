@@ -23,19 +23,21 @@
   - [-] Modify Transformations
     - [-] Fragment Transform Proto
     - [-] Area transform proto? 
-  - [ ] Blueprint page 
+  - [-] Blueprint page 
     - [-] Place fragment or proto on blueprint
     - [-] Do not place empty cells
     - [-] Transform fragment 
     - [-] remove/reorder instructions
-    - [ ] modify instructions 
+    - [-] modify instructions 
       - [-] blueprint rotate removes previous 
-      - [ ] rotate updates grid
+  - [ ] Compile Collection 
+    - [ ] DefaultFragements([][]proto) -> areas + materials
+- [ ] Blueprint enhancements
+  - [ ] Grid updates from blueprint window (Challenging because need to get/pass screenId)
+    - [ ] rotate updates grid
     - [ ] oob highlight
       - [ ] fresh grid
       - [ ] Select corner 
-  - [ ] Compile Collection 
-    - [ ] DefaultFragements([][]proto) -> areas + materials
 - [ ] Random
   - [ ] Space Topologies
     - [ ] Plane

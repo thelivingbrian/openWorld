@@ -152,6 +152,7 @@ func (c *Context) putInstructionRotation(_ http.ResponseWriter, r *http.Request)
 			}
 			blueprint.Instructions[i].ClockwiseRotations = mod(currentRotations+1, 4)
 		}
+		col.applyInstruction(blueprint.Tiles, blueprint.Instructions[i])
 	}
 }
 
