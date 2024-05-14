@@ -292,3 +292,55 @@ func examplePrototype(w http.ResponseWriter, r *http.Request) {
 	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square %s">%s</div></div>`, cssClass, layers)
 	io.WriteString(w, output)
 }
+
+// Utilities
+
+func (proto *Prototype) applyTransform(transformation Transformation) Material {
+	return Material{
+		ID:          15793,
+		CommonName:  proto.CommonName,
+		CssColor:    proto.CssColor,
+		Floor1Css:   transformCss(proto.Floor1Css, transformation),
+		Floor2Css:   transformCss(proto.Floor2Css, transformation),
+		Ceiling1Css: transformCss(proto.Ceiling1Css, transformation),
+		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation)}
+}
+func (proto *Prototype) applyTransformWithId(transformation Transformation, id int) Material {
+	return Material{
+		ID:          id,
+		CommonName:  proto.CommonName,
+		CssColor:    proto.CssColor,
+		Floor1Css:   transformCss(proto.Floor1Css, transformation),
+		Floor2Css:   transformCss(proto.Floor2Css, transformation),
+		Ceiling1Css: transformCss(proto.Ceiling1Css, transformation),
+		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation)}
+}
+
+func (proto *Prototype) peekTransform(transformation Transformation) Prototype {
+	return Prototype{
+		ID:          proto.ID,
+		SetName:     proto.SetName,
+		CommonName:  proto.CommonName,
+		CssColor:    proto.CssColor,
+		Floor1Css:   transformCss(proto.Floor1Css, transformation),
+		Floor2Css:   transformCss(proto.Floor2Css, transformation),
+		Ceiling1Css: transformCss(proto.Ceiling1Css, transformation),
+		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation)}
+}
+
+// Template funcs
+func (proto *Prototype) PeekFloor1() string {
+	return transformCss(proto.Floor1Css, Transformation{})
+}
+
+func (proto *Prototype) PeekFloor2() string {
+	return transformCss(proto.Floor2Css, Transformation{})
+}
+
+func (proto *Prototype) PeekCeiling1() string {
+	return transformCss(proto.Ceiling1Css, Transformation{})
+}
+
+func (proto *Prototype) PeekCeiling2() string {
+	return transformCss(proto.Ceiling2Css, Transformation{})
+}

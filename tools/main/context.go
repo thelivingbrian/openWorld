@@ -242,6 +242,8 @@ func collectionToAreas(collection *Collection) []AreaDescription {
 	var out []AreaDescription
 	for _, space := range collection.Spaces {
 		out = append(out, space.Areas...)
+		//Create missing materials
+		//convert to areaOutput
 	}
 	return out
 }

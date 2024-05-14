@@ -118,45 +118,6 @@ func (col *Collection) createMaterial(data TileData) Material {
 	return proto.applyTransform(data.Transformation)
 }
 
-func (proto *Prototype) applyTransform(transformation Transformation) Material {
-	return Material{
-		ID:          15793,
-		CommonName:  proto.CommonName,
-		CssColor:    proto.CssColor,
-		Floor1Css:   transformCss(proto.Floor1Css, transformation),
-		Floor2Css:   transformCss(proto.Floor2Css, transformation),
-		Ceiling1Css: transformCss(proto.Ceiling1Css, transformation),
-		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation)}
-}
-
-func (proto *Prototype) peekTransform(transformation Transformation) Prototype {
-	return Prototype{
-		ID:          proto.ID,
-		SetName:     proto.SetName,
-		CommonName:  proto.CommonName,
-		CssColor:    proto.CssColor,
-		Floor1Css:   transformCss(proto.Floor1Css, transformation),
-		Floor2Css:   transformCss(proto.Floor2Css, transformation),
-		Ceiling1Css: transformCss(proto.Ceiling1Css, transformation),
-		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation)}
-}
-
-func (proto *Prototype) PeekFloor1() string {
-	return transformCss(proto.Floor1Css, Transformation{})
-}
-
-func (proto *Prototype) PeekFloor2() string {
-	return transformCss(proto.Floor2Css, Transformation{})
-}
-
-func (proto *Prototype) PeekCeiling1() string {
-	return transformCss(proto.Ceiling1Css, Transformation{})
-}
-
-func (proto *Prototype) PeekCeiling2() string {
-	return transformCss(proto.Ceiling2Css, Transformation{})
-}
-
 func transformCss(input string, transformation Transformation) string {
 	// We are looking for {key:value} : key, value are strings
 	pattern := regexp.MustCompile(`{([^:]*):([^}]*)}`)
