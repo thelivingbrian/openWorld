@@ -83,8 +83,11 @@ func (c *Context) areaHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
 	space := c.spaceFromGET(r)
-	selectedArea := c.areaFromGET(r)
+	//selectedArea := c.areaFromGET(r)
+	name := queryValues.Get("area-name-selected")
+	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
 		io.WriteString(w, "<h2>no Area</h2>")
 		return

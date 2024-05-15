@@ -1,6 +1,6 @@
 {{define "area-blueprint"}}
 <div id="area-blueprint">
-    <h3>Blueprint</h3>
+    <h3>Blueprint ({{.Name}})</h3>
     {{range $i, $instruction := .Blueprint.Instructions}}
     <div id="instruction-{{$i}}">
         <input type="hidden" name="instruction-id" value="{{$instruction.ID}}" />

@@ -43,8 +43,8 @@ func (c *Context) getBlueprint(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		panic("invalid space name")
 	}
-	//space := c.getSpace(collectionName, spaceName)
 
+	// This is a problem for fragments
 	name := queryValues.Get("area-name")
 	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {

@@ -41,12 +41,14 @@
     - [ ] oob highlight
       - [ ] fresh grid
       - [ ] Select corner 
+    - [ ] Blueprint page for fragment is broken 
 - [ ] Random
   - [ ] Space Topologies
     - [ ] Plane
     - [ ] Disconnected
   - [ ] Test Play 
-  - [ ] Save All button 
+  - [ ] Save All/Everything button 
+  - [ ] NSEW buttons on sides of area display 
   
 
 

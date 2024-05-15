@@ -57,7 +57,8 @@ var divNewSpace = `
 
 		<label><b>Topology: </b></label><br />
 		<span><input type="radio" name="topology" value="plane" checked />Plane</span><br />
-		<span><input type="radio" name="topology" value="Torus" />Torus</span><br />
+		<span><input type="radio" name="topology" value="torus" />Torus</span><br />
+		<span><input type="radio" name="topology" value="disconnected" />Disconnected</span><br />
 		<br /> 
 
 		</label><b>Area Dimensions</b></label><br />
@@ -169,6 +170,10 @@ func createSpace(cName, name string, latitude, longitude int, topology string, h
 	for y := 0; y < latitude; y++ {
 		for x := 0; x < longitude; x++ {
 			area := createBaseArea(height, width, tileColor)
+
+			if topology == "disconnected" {
+				continue
+			}
 			// This is consistent with Tiles
 			area.Name = fmt.Sprintf("%s:%d-%d", name, y, x)
 			area.North = fmt.Sprintf("%s:%d-%d", name, mod(y-1, latitude), x)
@@ -179,6 +184,18 @@ func createSpace(cName, name string, latitude, longitude int, topology string, h
 		}
 	}
 	// Remove edges if plane topology
+	if topology == "plane" {
+		for n := range areas[0] {
+			areas[0][n].North = ""
+		}
+		for m := range areas[len(areas)-1] {
+			areas[len(areas)-1][m].South = ""
+		}
+		for j := range areas {
+			areas[j][0].West = ""
+			areas[j][len(areas[j])-1].East = ""
+		}
+	}
 
 	flatAreas := make([]AreaDescription, 0)
 	for i := range areas {
