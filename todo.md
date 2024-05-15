@@ -33,8 +33,9 @@
   - [-] Compile Collection 
     - [-] DefaultFragements([][]proto) -> areas + materials
   - [ ] Cleanup 
-    - [ ] Restore tests
-    - [ ] Default areas and protos 
+    - [-] Restore tests
+    - [ ] Default areas and protos
+      - [ ] Constant special area names in tests and game 
 - [ ] Blueprint enhancements
   - [ ] Grid updates from blueprint window (Challenging because need to get/pass screenId)
     - [ ] rotate updates grid

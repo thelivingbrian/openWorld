@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 )
 
 type AreaDescription struct {
@@ -60,6 +61,9 @@ func (c Context) areasHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		c.getAreas(w, r)
 	}
+	if r.Method == "POST" {
+		c.postAreas(w, r)
+	}
 }
 
 func (c Context) getAreas(w http.ResponseWriter, r *http.Request) {
@@ -68,6 +72,30 @@ func (c Context) getAreas(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func (c Context) postAreas(w http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	name := properties["new-area-name"]
+	safe := (properties["safe"] == "on")
+	defaultTileColor := properties["default-tile-color"]
+	collectionName := properties["currentCollection"]
+	spaceName := properties["currentSpace"]
+	panicIfAnyEmpty("POST to /area", collectionName, spaceName, name)
+
+	height, _ := strconv.Atoi(properties["area-height"])
+	width, _ := strconv.Atoi(properties["area-width"])
+
+	tiles := make([][]TileData, height)
+	for i := range tiles {
+		tiles[i] = make([]TileData, width)
+	}
+
+	blueprint := &Blueprint{Tiles: tiles, Instructions: make([]Instruction, 0)}
+
+	space := c.getSpace(collectionName, spaceName)
+	space.Areas = append(space.Areas, AreaDescription{Name: name, Safe: safe, DefaultTileColor: defaultTileColor, Blueprint: blueprint, Transports: make([]Transport, 0)})
+	io.WriteString(w, "<h3>Done.</h3>")
 }
 
 // ///////////////////////////////////////////////////////////
@@ -189,6 +217,27 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	}
 
 	io.WriteString(w, `<h2>Success</h2>`)
+}
+
+func (c Context) newAreaHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		queryValues := r.URL.Query()
+		colName := queryValues.Get("currentCollection")
+		spaceName := queryValues.Get("currentSpace")
+		fmt.Println("Collection Name: " + colName)
+		fmt.Println("Space Name Name: " + spaceName)
+		if col, ok := c.Collections[colName]; ok {
+			col.getNewArea(w, r)
+		}
+	}
+}
+
+func (col Collection) getNewArea(w http.ResponseWriter, _ *http.Request) {
+	fmt.Println("HI")
+	err := tmpl.ExecuteTemplate(w, "area-new", nil)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 // ///////////////////////////////////////////////////////////
