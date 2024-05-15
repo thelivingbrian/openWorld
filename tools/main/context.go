@@ -20,9 +20,9 @@ type Context struct {
 	collectionPath string
 }
 
-const DEPLOY_materialPath = "../../server/main/data/materials.json"
-const DEPLOY_areaPath = "../../server/main/data/areas.json"
-const DEPLOY_cssPath = "../../server/main/assets/colors.css"
+const DEPLOY_materialPath = "../../server/main/data/materials2.json"
+const DEPLOY_areaPath = "../../server/main/data/areas2.json"
+const DEPLOY_cssPath = "../../server/main/assets/colors2.css"
 
 // Startup
 
@@ -233,17 +233,68 @@ func (c Context) deploy(w http.ResponseWriter, r *http.Request) {
 
 func (c Context) deployLocalChanges(collectionName string) {
 	c.createCSSFile(DEPLOY_cssPath)
-	flatAreas := collectionToAreas(c.Collections[collectionName])
-	writeJsonFile(DEPLOY_areaPath, flatAreas)
-	writeJsonFile(DEPLOY_materialPath, c.materials)
+	collectionToAreas(c.Collections[collectionName])
 }
 
-func collectionToAreas(collection *Collection) []AreaDescription {
-	var out []AreaDescription
+func collectionToAreas(collection *Collection) {
+	mapToMaterials := make(map[Transformation]map[string]Material)
+	materials := make([]Material, 0)
+	areas := make([]AreaOutput, 0)
+
 	for _, space := range collection.Spaces {
-		out = append(out, space.Areas...)
-		//Create missing materials
-		//convert to areaOutput
+		//out = append(out, space.Areas...)
+		for _, desc := range space.Areas {
+			outputTiles := make([][]int, len(desc.Blueprint.Tiles))
+			for y := range desc.Blueprint.Tiles {
+				outputTiles[y] = make([]int, len(desc.Blueprint.Tiles[y]))
+				for x := range desc.Blueprint.Tiles[y] {
+					var id int
+					prototype := collection.findPrototypeById(desc.Blueprint.Tiles[y][x].PrototypeId)
+					if prototype == nil {
+						errMsg := fmt.Sprintf("Prototype with id: %s Not found. Space: %s | Area: %s | y:%d x:%d", desc.Blueprint.Tiles[y][x].PrototypeId, space.Name, desc.Name, y, x)
+						panic("PROTO NOT FOUND. error - " + errMsg)
+					}
+
+					protoToMat, found := mapToMaterials[desc.Blueprint.Tiles[y][x].Transformation]
+					if found {
+						_, found = protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId]
+						if !found {
+							id = len(materials)
+							newMaterial := prototype.applyTransformWithId(desc.Blueprint.Tiles[y][x].Transformation, len(materials))
+							protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId] = newMaterial
+							materials = append(materials, newMaterial)
+						} else {
+							id = protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId].ID
+						}
+					} else {
+						protoToMat = make(map[string]Material)
+						id = len(materials)
+						newMaterial := prototype.applyTransformWithId(desc.Blueprint.Tiles[y][x].Transformation, len(materials))
+						protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId] = newMaterial
+						materials = append(materials, newMaterial)
+						mapToMaterials[desc.Blueprint.Tiles[y][x].Transformation] = protoToMat
+					}
+
+					// Is added step worth it or should server areas have materials by value?
+					outputTiles[y][x] = id
+				}
+			}
+			areas = append(areas, AreaOutput{
+				Name:             desc.Name,
+				Safe:             desc.Safe,
+				Tiles:            outputTiles,
+				Transports:       desc.Transports,
+				DefaultTileColor: desc.DefaultTileColor,
+				North:            desc.North,
+				South:            desc.South,
+				East:             desc.East,
+				West:             desc.West,
+			})
+		}
 	}
-	return out
+	fmt.Printf("Writing (%d) Areas", len(areas))
+	writeJsonFile(DEPLOY_areaPath, areas)
+	fmt.Printf("Writing (%d) Materials", len(materials))
+	writeJsonFile(DEPLOY_materialPath, materials)
+
 }
