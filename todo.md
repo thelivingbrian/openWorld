@@ -30,8 +30,11 @@
     - [-] remove/reorder instructions
     - [-] modify instructions 
       - [-] blueprint rotate removes previous 
-  - [ ] Compile Collection 
-    - [ ] DefaultFragements([][]proto) -> areas + materials
+  - [-] Compile Collection 
+    - [-] DefaultFragements([][]proto) -> areas + materials
+  - [ ] Cleanup 
+    - [ ] Restore tests
+    - [ ] Default areas and protos 
 - [ ] Blueprint enhancements
   - [ ] Grid updates from blueprint window (Challenging because need to get/pass screenId)
     - [ ] rotate updates grid
