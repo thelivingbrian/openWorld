@@ -339,6 +339,7 @@ func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) str
 }
 
 func gridReplace(event GridClickDetails, modifications [][]TileData, selectedProto Prototype) string {
+	fmt.Println("Replacing with: " + selectedProto.ID)
 	modifications[event.Y][event.X].PrototypeId = selectedProto.ID
 	var buf bytes.Buffer
 	var pageData = struct {

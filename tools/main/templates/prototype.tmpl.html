@@ -135,7 +135,7 @@
         </div>
         <div>
             <label>Walkable: </label>
-            <input type="checkbox" name="walkable" />
+            <input type="checkbox" name="walkable" {{if .Walkable}}checked{{end}} />
         </div>
         <button class="btn">Save</button>
     </form>

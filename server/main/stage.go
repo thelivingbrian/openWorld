@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -30,7 +29,8 @@ func (world *World) getStageByName(name string) (stage *Stage, new bool) {
 		new = true
 		existingStage, stageExists = createStageByName(name)
 		if !stageExists {
-			log.Fatal("Unable to create stage")
+			existingStage, stageExists = createStageByName("Square:0-1")
+			//log.Fatal("Unable to create stage")
 		}
 		world.wStageMutex.Lock()
 		world.worldStages[name] = existingStage

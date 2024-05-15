@@ -6,12 +6,9 @@ import (
 )
 
 func signUpPage() string {
-	return `<h2>Bloop World is currently under development.</h2>`
-	/*
-		OLD:
 
-		// Trigger back link with backspace
-		return `
+	// Trigger back link with backspace
+	return `
 		<form hx-post="/signup" hx-trigger="click from:#link_submit, keydown[key=='Enter']" hx-target="#landing"">
 			<div>
 				<label>Email:</label>
@@ -25,7 +22,6 @@ func signUpPage() string {
 			</div>
 		</form>
 		`
-	*/
 }
 
 func signInPage() string {

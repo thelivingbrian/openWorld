@@ -299,6 +299,7 @@ func (proto *Prototype) applyTransform(transformation Transformation) Material {
 	return Material{
 		ID:          15793,
 		CommonName:  proto.CommonName,
+		Walkable:    proto.Walkable,
 		CssColor:    proto.CssColor,
 		Floor1Css:   transformCss(proto.Floor1Css, transformation),
 		Floor2Css:   transformCss(proto.Floor2Css, transformation),
@@ -309,6 +310,7 @@ func (proto *Prototype) applyTransformWithId(transformation Transformation, id i
 	return Material{
 		ID:          id,
 		CommonName:  proto.CommonName,
+		Walkable:    proto.Walkable,
 		CssColor:    proto.CssColor,
 		Floor1Css:   transformCss(proto.Floor1Css, transformation),
 		Floor2Css:   transformCss(proto.Floor2Css, transformation),
@@ -321,6 +323,7 @@ func (proto *Prototype) peekTransform(transformation Transformation) Prototype {
 		ID:          proto.ID,
 		SetName:     proto.SetName,
 		CommonName:  proto.CommonName,
+		Walkable:    proto.Walkable,
 		CssColor:    proto.CssColor,
 		Floor1Css:   transformCss(proto.Floor1Css, transformation),
 		Floor2Css:   transformCss(proto.Floor2Css, transformation),
