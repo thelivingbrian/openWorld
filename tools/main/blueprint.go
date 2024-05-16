@@ -6,10 +6,6 @@ import (
 	"net/http"
 )
 
-// On load make a ref map of grids and include bpth fragments and protos
-
-// Consolidate Fragments, and make a combined lookup func for tile grids including protos
-
 type Blueprint struct {
 	Tiles        [][]TileData `json:"tiles"`
 	Instructions []Instruction
@@ -117,7 +113,6 @@ func (c *Context) putInstructionOrder(_ http.ResponseWriter, r *http.Request) {
 	blueprint := c.blueprintFromProperties(properties)
 
 	for i := range blueprint.Instructions {
-		// bug
 		if blueprint.Instructions[i].ID == instructionId {
 			hold := blueprint.Instructions[i]
 			blueprint.Instructions[i] = blueprint.Instructions[i+1%len(blueprint.Instructions)]
@@ -141,7 +136,6 @@ func (c *Context) putInstructionRotation(_ http.ResponseWriter, r *http.Request)
 	col := c.collectionFromProperties(properties)
 
 	for i := range blueprint.Instructions {
-		// use index instead ?
 		if blueprint.Instructions[i].ID == instructionId {
 			currentRotations := blueprint.Instructions[i].ClockwiseRotations
 			grid := col.getTileGridByAssetId(blueprint.Instructions[i].GridAssetId)

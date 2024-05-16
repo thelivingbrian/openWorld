@@ -11,10 +11,9 @@ import (
 )
 
 type Fragment struct {
-	ID      string `json:"id"` // add to existing with set name
-	Name    string `json:"name"`
-	SetName string `json:"setName"`
-	//Tiles     [][]TileData `json:"tiles"`
+	ID        string     `json:"id"`
+	Name      string     `json:"name"`
+	SetName   string     `json:"setName"`
 	Blueprint *Blueprint `json:"blueprint"`
 }
 
@@ -271,10 +270,6 @@ func (c *Context) putFragment(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		panic("no set")
 	}
-
-	/*for i := range set {
-		set[i].Blueprint.Tiles = set[i].Tiles
-	}*/
 
 	outFile := c.collectionPath + collectionName + "/fragments/" + setName + ".json"
 	err := writeJsonFile(outFile, set)

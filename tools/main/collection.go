@@ -52,8 +52,7 @@ func createCollectionDirectories(name string, path string) {
 
 	for _, dir := range dirs {
 		fullPath := filepath.Join(path, name, dir)
-		// Create the directory with os.MkdirAll which also creates all necessary parent directories
-		err := os.MkdirAll(fullPath, os.ModePerm) // os.ModePerm is 0777, allowing read, write, and execute permissions
+		err := os.MkdirAll(fullPath, os.ModePerm)
 		if err != nil {
 			fmt.Println("Error creating directory:", err)
 			return

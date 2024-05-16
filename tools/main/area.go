@@ -113,7 +113,6 @@ func (c *Context) areaHandler(w http.ResponseWriter, r *http.Request) {
 func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	space := c.spaceFromGET(r)
-	//selectedArea := c.areaFromGET(r)
 	name := queryValues.Get("area-name-selected")
 	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
@@ -150,12 +149,6 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 }
-
-/*
-func (c Context) AreaToMaterialGrid(area Area) [][]Material {
-	return c.DereferencStringMatrix(area.Tiles)
-}
-*/
 
 func (c Context) DereferenceIntMatrix(matrix [][]int) [][]Material {
 	out := make([][]Material, len(matrix))
@@ -205,10 +198,6 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 		selectedArea.Safe = safe
 		selectedArea.DefaultTileColor = defaultTileColor
 	}
-
-	/*for i := range space.Areas {
-		space.Areas[i].Blueprint.Tiles = space.Areas[i].Tiles
-	}*/
 
 	outFile := c.collectionPath + collectionName + "/spaces/" + spaceName + ".json"
 	err := writeJsonFile(outFile, space.Areas)
