@@ -49,6 +49,7 @@
     - [ ] Disconnected
   - [ ] Test Play 
   - [ ] Save All/Everything button 
+    - [ ] Cannot compile without save
   - [ ] NSEW buttons on sides of area display 
   
 
