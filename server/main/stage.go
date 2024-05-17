@@ -29,7 +29,8 @@ func (world *World) getStageByName(name string) (stage *Stage, new bool) {
 		new = true
 		existingStage, stageExists = createStageByName(name)
 		if !stageExists {
-			existingStage, stageExists = createStageByName("Square:0-1")
+			fmt.Println("INVALID STAGE: Area with name " + name + " does not exist.")
+			existingStage, _ = createStageByName("Square:0-1")
 			//log.Fatal("Unable to create stage")
 		}
 		world.wStageMutex.Lock()

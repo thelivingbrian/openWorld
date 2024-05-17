@@ -4,6 +4,7 @@
 - [ ] Update player view refactor
 - [ ] Admin screen
 - [ ] Test client
+- [ ] Constant special area names in tests and game 
 
 ## Design Workspace
 - [ ] Rotations
@@ -32,10 +33,9 @@
       - [-] blueprint rotate removes previous 
   - [-] Compile Collection 
     - [-] DefaultFragements([][]proto) -> areas + materials
-  - [ ] Cleanup 
+  - [-] Cleanup 
     - [-] Restore tests
-    - [ ] Default areas and protos
-      - [ ] Constant special area names in tests and game 
+    - [-] Default areas and protos
 - [ ] Blueprint enhancements
   - [ ] Grid updates from blueprint window (Challenging because need to get/pass screenId)
     - [ ] rotate updates grid

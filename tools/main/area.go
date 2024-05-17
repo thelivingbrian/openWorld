@@ -8,9 +8,8 @@ import (
 )
 
 type AreaDescription struct {
-	Name string `json:"name"`
-	Safe bool   `json:"safe"`
-	//Tiles            [][]TileData `json:"tiles"`
+	Name             string      `json:"name"`
+	Safe             bool        `json:"safe"`
 	Blueprint        *Blueprint  `json:"blueprint"`
 	Transports       []Transport `json:"transports"`
 	DefaultTileColor string      `json:"defaultTileColor"`
