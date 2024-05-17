@@ -5,7 +5,8 @@ import (
 	"testing"
 )
 
-var itemStageNames = [4]string{"small", "large", "big3", "forest:1-1"}
+// Break this out somehow.
+var itemStageNames = [4]string{"Test-Small", "Test-Large"}
 
 func BenchmarkSpawnItems(b *testing.B) {
 	//fmt.Println("hi.")

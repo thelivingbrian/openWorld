@@ -7,21 +7,15 @@
 {{define "fragment-select"}}
 <div id="fragment-select">
     <form hx-trigger="change" hx-include="[name='currentCollection']" hx-get="/fragments" hx-target="#fragment-select">
-        <label>Set: <a hx-get="/fragments/new" hx-include="[name='currentCollection']" href="#">New</a></label>
+        <label>Set: <a hx-get="/fragments/new" hx-include="[name='currentCollection']" hx-target="#fragment-select" href="#">New</a></label>
         <select id="fragment-set" name="fragment-set">
             <option value="{{.CurrentSet}}">{{.CurrentSet}}</option>
             {{range $i, $name := .FragmentSets}}
             <option value="{{$name}}">{{$name}}</option>
             {{end}}
         </select>
-        {{if .Fragments}}
-        <label>Fragment: <a hx-get="/fragments" hx-include="#fragment-set,[name='currentCollection']" href="#">New</a></label>
-        <select id="fragment-name" name="fragment">
-            <option value="{{.CurrentFragment}}">{{.CurrentFragment}}</option>
-            {{range $i, $frag := .Fragments}}
-            <option value="{{$frag.Name}}">{{$frag.Name}}</option>
-            {{end}}
-        </select>
+        {{if not (eq .CurrentSet "")}}
+            <a hx-get="/fragment/new" hx-include="#fragment-set,[name='currentCollection']" hx-target="#fragment-select" href="#">New [{{.CurrentSet}}] Fragment</a>
         {{end}}
     </form>
     <form>
@@ -39,7 +33,7 @@
 {{range $i, $details := .}}
 <div id="fragment-window-{{$i}}" class="left">
     <input type="hidden" name="fragment" value="{{$details.Name}}" />
-    <input type="radio" name="selected-fragment-name" value="{{$details.Name}}" {{if eq $i 0}} checked {{end}} />
+    <input type="radio" name="selected-asset-id" value="{{$details.ID}}" {{if eq $i 0}} checked {{end}} />
     <br />
     <label>{{$details.Name}} <a href="#" hx-get="/fragment" hx-target="#edit_tool" hx-include="#fragment-set,#fragment-window-{{$i}} [name='fragment'],[name='currentCollection']">edit</a></label>
     {{template "grid" $details.GridDetails}}
@@ -50,7 +44,7 @@
 {{define "fragment-edit"}}
 <div id="fragement-edit">
     {{template "fragment" .FragmentDetails}}
-    {{template "grid-modify" .AvailableMaterials}}
+    {{template "grid-modify" .AvailableProtos}}
 </div>
 {{end}}
 
@@ -58,9 +52,30 @@
 <div id="fragment-window">
     <input type="hidden" name="fragment-set" value="{{.SetName}}" />
     <input type="hidden" name="fragment" value="{{.Name}}" />
-    <b>{{.Name}}; </b>
-    <a href="#" hx-post="/fragment" hx-target="#edit_tool" hx-include="#fragment-window [name='fragment-set'],#fragment-window [name='fragment'],[name='currentCollection']">Save (entire set)</a>
+    <b>{{.Name}}: </b>
+    <a href="#" hx-put="/fragment" hx-target="#edit_tool" hx-include="#fragment-window [name='fragment-set'],#fragment-window [name='fragment'],[name='currentCollection']">Save (entire set)</a>
     <br />
     {{template "grid" .GridDetails}}
+</div>
+{{end}}
+
+{{define "fragments-new"}}
+<div id="fragments-new">
+    <form hx-include="[name='currentCollection']" hx-post="/fragments" hx-target="#fragment-select">
+        <input type="text" name="fragment-set-name" value="Enter Set Name." />
+        <input type="submit" />
+    </form>
+</div>
+{{end}}
+
+{{define "fragment-new"}}
+<div id="fragment-new">
+    <form hx-include="[name='currentCollection']" hx-post="/fragment" hx-target="#fragment-select">
+        <input type="hidden" name="fragment-set" value="{{.CurrentSet}}" />
+        <input type="text" name="fragment-name" value="name" />
+        <input type="text" name="fragment-height" value="height" />
+        <input type="text" name="fragment-width" value="width" />
+        <input type="submit" />
+    </form>
 </div>
 {{end}}

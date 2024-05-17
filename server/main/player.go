@@ -53,7 +53,7 @@ func (player *Player) addToHealth(n int) bool {
 func (p *Player) assignStageAndListen() {
 	stage, new := p.world.getStageByName(p.stageName)
 	if stage == nil {
-		log.Fatal("Fatal: Stage Not Found.")
+		log.Fatal("Fatal: Stage Not Found.") //
 	}
 	if new {
 		go stage.sendUpdates()

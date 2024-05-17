@@ -20,9 +20,9 @@ type Context struct {
 	collectionPath string
 }
 
-const DEPLOY_materialPath = "../../server/main/data/materials2.json"
-const DEPLOY_areaPath = "../../server/main/data/areas2.json"
-const DEPLOY_cssPath = "../../server/main/assets/colors2.css"
+const DEPLOY_materialPath = "../../server/main/data/materials.json"
+const DEPLOY_areaPath = "../../server/main/data/areas.json"
+const DEPLOY_cssPath = "../../server/main/assets/colors.css"
 
 // Startup
 
@@ -35,8 +35,8 @@ func populateFromJson() Context {
 	c.cssPath = "./assets/colors.css"
 	c.collectionPath = "./data/collections/"
 
-	c.colors = parseJsonFile[Color](c.colorPath)
-	c.materials = parseJsonFile[Material](c.materialPath)
+	c.colors = parseJsonFile[[]Color](c.colorPath)
+	c.materials = parseJsonFile[[]Material](c.materialPath)
 	c.Collections = getAllCollections(c.collectionPath)
 
 	return c
@@ -50,8 +50,8 @@ func sliceToMap[T any](slice []T, f func(T) string) map[string]T {
 	return out
 }
 
-func parseJsonFile[T any](filename string) []T {
-	var out []T
+func parseJsonFile[T any](filename string) T {
+	var out T
 
 	jsonData, err := os.ReadFile(filename)
 	if err != nil {
@@ -62,7 +62,7 @@ func parseJsonFile[T any](filename string) []T {
 		panic(err)
 	}
 
-	fmt.Printf("Loaded %d entries of %T.\n", len(out), *new(T))
+	fmt.Printf("Loaded %s. Contents: %T.\n", filename, *new(T))
 
 	return out
 }
@@ -139,10 +139,10 @@ func getAllCollections(collectionPath string) map[string]*Collection {
 	for _, dir := range dirs {
 		entry, _ := dir.Info()
 		if entry.IsDir() {
-			collection := Collection{Name: entry.Name(), Spaces: make(map[string]*Space), Fragments: make(map[string][]Fragment)}
+			collection := Collection{Name: entry.Name()}
 
 			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
-			areaMap := make(map[string][]Area)
+			areaMap := make(map[string][]AreaDescription)
 			populateMaps(areaMap, pathToSpaces)
 			collection.Spaces = areasToSpaces(areaMap, entry.Name())
 
@@ -150,6 +150,11 @@ func getAllCollections(collectionPath string) map[string]*Collection {
 			fragmentMap := make(map[string][]Fragment)
 			populateMaps(fragmentMap, pathToFragments)
 			collection.Fragments = addSetNamesToFragments(fragmentMap)
+
+			pathToPrototypes := filepath.Join(collectionPath, entry.Name(), "prototypes")
+			prototypeMap := make(map[string][]Prototype)
+			populateMaps(prototypeMap, pathToPrototypes)
+			collection.PrototypeSets = addSetNamesToProtypes(prototypeMap)
 
 			collections[entry.Name()] = &collection
 
@@ -167,7 +172,21 @@ func addSetNamesToFragments(fragmentMap map[string][]Fragment) map[string][]Frag
 	return fragmentMap
 }
 
-func areasToSpaces(areaMap map[string][]Area, collectionName string) map[string]*Space {
+func addSetNamesToProtypes(protoMap map[string][]Prototype) map[string][]Prototype {
+	out := make(map[string][]Prototype)
+	for setName := range protoMap {
+		arr := make([]Prototype, 0)
+		for i := range protoMap[setName] {
+			proto := protoMap[setName][i]
+			proto.SetName = setName
+			arr = append(arr, proto)
+		}
+		out[setName] = arr
+	}
+	return out
+}
+
+func areasToSpaces(areaMap map[string][]AreaDescription, collectionName string) map[string]*Space {
 	out := make(map[string]*Space)
 	for name, areas := range areaMap {
 		out[name] = &Space{CollectionName: collectionName, Name: name, Areas: areas}
@@ -175,10 +194,11 @@ func areasToSpaces(areaMap map[string][]Area, collectionName string) map[string]
 	return out
 }
 
-func populateMaps[T any](m map[string][]T, pathToJsonDirectory string) {
+func populateMaps[T any](m map[string]T, pathToJsonDirectory string) {
 	subEntries, err := os.ReadDir(pathToJsonDirectory)
 	if err != nil {
-		panic("Invalid directory: " + pathToJsonDirectory)
+		fmt.Println("Invalid directory: " + pathToJsonDirectory)
+		return
 	}
 
 	for _, subEntry := range subEntries {
@@ -213,15 +233,68 @@ func (c Context) deploy(w http.ResponseWriter, r *http.Request) {
 
 func (c Context) deployLocalChanges(collectionName string) {
 	c.createCSSFile(DEPLOY_cssPath)
-	flatAreas := collectionToAreas(c.Collections[collectionName])
-	writeJsonFile(DEPLOY_areaPath, flatAreas)
-	writeJsonFile(DEPLOY_materialPath, c.materials)
+	collectionToAreas(c.Collections[collectionName])
 }
 
-func collectionToAreas(collection *Collection) []Area {
-	var out []Area
+func collectionToAreas(collection *Collection) {
+	mapToMaterials := make(map[Transformation]map[string]Material)
+	materials := make([]Material, 0)
+	areas := make([]AreaOutput, 0)
+
 	for _, space := range collection.Spaces {
-		out = append(out, space.Areas...)
+		//out = append(out, space.Areas...)
+		for _, desc := range space.Areas {
+			outputTiles := make([][]int, len(desc.Blueprint.Tiles))
+			for y := range desc.Blueprint.Tiles {
+				outputTiles[y] = make([]int, len(desc.Blueprint.Tiles[y]))
+				for x := range desc.Blueprint.Tiles[y] {
+					var id int
+					prototype := collection.findPrototypeById(desc.Blueprint.Tiles[y][x].PrototypeId)
+					if prototype == nil {
+						errMsg := fmt.Sprintf("Prototype with id: %s Not found. Space: %s | Area: %s | y:%d x:%d", desc.Blueprint.Tiles[y][x].PrototypeId, space.Name, desc.Name, y, x)
+						panic("PROTO NOT FOUND. error - " + errMsg)
+					}
+
+					protoToMat, found := mapToMaterials[desc.Blueprint.Tiles[y][x].Transformation]
+					if found {
+						_, found = protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId]
+						if !found {
+							id = len(materials)
+							newMaterial := prototype.applyTransformWithId(desc.Blueprint.Tiles[y][x].Transformation, len(materials))
+							protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId] = newMaterial
+							materials = append(materials, newMaterial)
+						} else {
+							id = protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId].ID
+						}
+					} else {
+						protoToMat = make(map[string]Material)
+						id = len(materials)
+						newMaterial := prototype.applyTransformWithId(desc.Blueprint.Tiles[y][x].Transformation, len(materials))
+						protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId] = newMaterial
+						materials = append(materials, newMaterial)
+						mapToMaterials[desc.Blueprint.Tiles[y][x].Transformation] = protoToMat
+					}
+
+					// Is added step worth it or should server areas have materials by value?
+					outputTiles[y][x] = id
+				}
+			}
+			areas = append(areas, AreaOutput{
+				Name:             desc.Name,
+				Safe:             desc.Safe,
+				Tiles:            outputTiles,
+				Transports:       desc.Transports,
+				DefaultTileColor: desc.DefaultTileColor,
+				North:            desc.North,
+				South:            desc.South,
+				East:             desc.East,
+				West:             desc.West,
+			})
+		}
 	}
-	return out
+	fmt.Printf("Writing (%d) Areas", len(areas))
+	writeJsonFile(DEPLOY_areaPath, areas)
+	fmt.Printf("Writing (%d) Materials", len(materials))
+	writeJsonFile(DEPLOY_materialPath, materials)
+
 }

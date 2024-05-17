@@ -6,26 +6,24 @@ import (
 )
 
 func signUpPage() string {
-	return `<h2>Bloop World is currently under development.</h2>`
-	/*
-		OLD:
 
-		// Trigger back link with backspace
-		return `
-		<form hx-post="/signup" hx-trigger="click from:#link_submit, keydown[key=='Enter']" hx-target="#landing"">
-			<div>
-				<label>Email:</label>
-				<input class="retro-input" type="text" name="email" value=""><br />
-				<label>Username:</label>
-				<input class="retro-input" type="text" name="username" value=""><br />
-				<label>Password:</label>
-				<input class="retro-input" type="text" name="password" value=""><br />
-				<a id="link_submit" href="#">Submit</a><br />
-				<a id="link_back" href="/">Back</a>
-			</div>
-		</form>
-		`
+	// Trigger back link with backspace
+	/*return `
+	<form hx-post="/signup" hx-trigger="click from:#link_submit, keydown[key=='Enter']" hx-target="#landing"">
+		<div>
+			<label>Email:</label>
+			<input class="retro-input" type="text" name="email" value=""><br />
+			<label>Username:</label>
+			<input class="retro-input" type="text" name="username" value=""><br />
+			<label>Password:</label>
+			<input class="retro-input" type="text" name="password" value=""><br />
+			<a id="link_submit" href="#">Submit</a><br />
+			<a id="link_back" href="/">Back</a>
+		</div>
+	</form>
+	`
 	*/
+	return "<h3>Under development</h3>"
 }
 
 func signInPage() string {

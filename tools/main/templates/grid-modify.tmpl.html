@@ -1,20 +1,16 @@
 {{define "grid-modify"}}
-    <select id="fixture_select" name="current-fixture" hx-get="/selectFixture" hx-target="#fixture-window" hx-include="[name='currentCollection']">
-        <option value="material" selected>Materials</option>
+    <select id="fixture_select" name="current-fixture" hx-get="/selectFixture" hx-target="#fixture-window" hx-include="[name='currentCollection'],[name='currentSpace'],[name='area-name']">
+        <option value="prototype" selected>Prototypes</option>
         <option value="fragment">Fragments</option>
+        <option value="transformation">Transformations</option>
+        <option value="blueprint">Blueprint</option>
     </select>
     <div id="fixture-window">
-        {{template "fixture-material" .}}
+        {{template "fixture-prototype" .}}
     </div>
 {{end}}
 
-{{define "fixture-material"}}
-    {{template "available-tools-material"}}
-    {{template "material-select" .}}
-{{end}}
-
-{{define "available-tools-material"}}
-<!-- Associate with a screen id so that selecting changes request type of click -->
+{{define "available-tools-prototype"}}
 <div id="tool_select"> 
     <input type="radio" id="rt-select" name="radio-tool" value="select" checked>
     <label for="rt-select">Select</label>
@@ -24,22 +20,10 @@
     <label for="rt-fill">Fill</label>
     <input type="radio" id="rt-right" name="radio-tool" value="between">
     <label for="rt-right">Fill between selected</label>
+    <input type="radio" id="rt-proto-place-bp" name="radio-tool" value="place-blueprint">
+    <label for="rt-select">Place on Blueprint</label>
 </div>
 {{end}}
-
-{{define "material-select"}}
-<div id="material-selector">
-    <label>Materials</label>
-    <select name="materialId" hx-get="/selectMaterial" hx-target="#selected-material-div">
-        <option value="">--</option>
-        {{range $i, $mat := .}}
-        <option value="{{$mat.ID}}">{{$mat.CommonName}}</option>
-        {{end}}
-    </select>
-</div>
-<div id="selected-material-div" class="grid-row"></div>
-{{end}}
-
 
 {{define "fixture-fragment"}}
     {{template "available-tools-fragment"}}
@@ -50,5 +34,34 @@
 <div id="tool_select"> 
     <input type="radio" id="rt-fragment-place" name="radio-tool" value="place" checked>
     <label for="rt-select">Place</label>
+    <input type="radio" id="rt-fragment-place-bp" name="radio-tool" value="place-blueprint">
+    <label for="rt-select">Place on Blueprint</label>
+</div>
+{{end}}
+
+{{define "fixture-prototype"}}
+    {{template "available-tools-prototype"}}
+    {{template "prototype-select" .}}
+{{end}}
+
+{{define "fixture-transformation"}}
+    {{template "available-tools-transformation"}}
+    {{template "transformation-edit" . }}
+{{end}} 
+
+{{define "available-tools-transformation"}}
+<div id="tool_select"> 
+    <input type="radio" id="rt-select" name="radio-tool" value="select" checked>
+    <label for="rt-select">Select</label>
+    <input type="radio" id="rt-rotate" name="radio-tool" value="rotate">
+    <label for="rt-select">Rotate</label>
+</div>
+{{end}}
+
+{{define "transformation-edit"}}
+<div id="transformation-edit">
+    <form>
+
+    </form>
 </div>
 {{end}}

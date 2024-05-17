@@ -11,7 +11,7 @@ import (
 type Space struct {
 	CollectionName string
 	Name           string
-	Areas          []Area
+	Areas          []AreaDescription
 }
 
 var divSpacePage = `
@@ -57,7 +57,8 @@ var divNewSpace = `
 
 		<label><b>Topology: </b></label><br />
 		<span><input type="radio" name="topology" value="plane" checked />Plane</span><br />
-		<span><input type="radio" name="topology" value="Torus" />Torus</span><br />
+		<span><input type="radio" name="topology" value="torus" />Torus</span><br />
+		<span><input type="radio" name="topology" value="disconnected" />Disconnected</span><br />
 		<br /> 
 
 		</label><b>Area Dimensions</b></label><br />
@@ -156,8 +157,7 @@ func (c Context) postSpaces(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Printf("%s %s %s %s %s %d %d", name, topology, areaWidth, areaHeight, tileColor, latitude, longitude)
 
-		area := createBaseArea(height, width, tileColor)
-		space := createSpace(cName, name, latitude, longitude, topology, area)
+		space := createSpace(cName, name, latitude, longitude, topology, height, width, tileColor)
 		col.Spaces[name] = &space
 		io.WriteString(w, `<h3>Success</h3>`)
 		return
@@ -165,10 +165,15 @@ func (c Context) postSpaces(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, `<h3>Invalid collection Name.</h3>`)
 }
 
-func createSpace(cName, name string, latitude, longitude int, topology string, area Area) Space {
-	areas := make([][]Area, latitude)
+func createSpace(cName, name string, latitude, longitude int, topology string, height, width int, tileColor string) Space {
+	areas := make([][]AreaDescription, latitude)
 	for y := 0; y < latitude; y++ {
 		for x := 0; x < longitude; x++ {
+			area := createBaseArea(height, width, tileColor)
+
+			if topology == "disconnected" {
+				continue
+			}
 			// This is consistent with Tiles
 			area.Name = fmt.Sprintf("%s:%d-%d", name, y, x)
 			area.North = fmt.Sprintf("%s:%d-%d", name, mod(y-1, latitude), x)
@@ -179,8 +184,20 @@ func createSpace(cName, name string, latitude, longitude int, topology string, a
 		}
 	}
 	// Remove edges if plane topology
+	if topology == "plane" {
+		for n := range areas[0] {
+			areas[0][n].North = ""
+		}
+		for m := range areas[len(areas)-1] {
+			areas[len(areas)-1][m].South = ""
+		}
+		for j := range areas {
+			areas[j][0].West = ""
+			areas[j][len(areas[j])-1].East = ""
+		}
+	}
 
-	flatAreas := make([]Area, 0)
+	flatAreas := make([]AreaDescription, 0)
 	for i := range areas {
 		flatAreas = append(flatAreas, areas[i]...)
 	}
@@ -193,15 +210,16 @@ func mod(i, n int) int {
 	return ((i % n) + n) % n
 }
 
-func createBaseArea(height, width int, tileColor string) Area {
-	tiles := make([][]int, height)
+func createBaseArea(height, width int, tileColor string) AreaDescription {
+	tiles := make([][]TileData, height)
 	for i := range tiles {
-		tiles[i] = make([]int, width)
+		tiles[i] = make([]TileData, width)
 	}
-	return Area{Name: "", Safe: true, Tiles: tiles, Transports: make([]Transport, 0), DefaultTileColor: tileColor}
+	blueprint := Blueprint{Tiles: tiles, Instructions: make([]Instruction, 0)}
+	return AreaDescription{Name: "", Safe: true, Blueprint: &blueprint, Transports: make([]Transport, 0), DefaultTileColor: tileColor}
 }
 
-func getAreaByName(areas []Area, name string) *Area {
+func getAreaByName(areas []AreaDescription, name string) *AreaDescription {
 	for i, area := range areas {
 		if name == area.Name {
 			return &areas[i]
@@ -219,6 +237,18 @@ func getFragmentByName(fragments []Fragment, name string) *Fragment {
 	return nil
 }
 
+func (col *Collection) getFragmentById(id string) *Fragment {
+	for _, set := range col.Fragments {
+		for i, fragment := range set {
+			if id == fragment.ID {
+				return &set[i]
+			}
+		}
+
+	}
+	return nil
+}
+
 //
 
 func (c Context) newSpaceHandler(w http.ResponseWriter, r *http.Request) {
@@ -232,7 +262,7 @@ func (c Context) newSpaceHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (col Collection) getNewSpace(w http.ResponseWriter, r *http.Request) {
+func (col Collection) getNewSpace(w http.ResponseWriter, _ *http.Request) {
 	err := spaceTmpl.Execute(w, col)
 	if err != nil {
 		fmt.Println(err)

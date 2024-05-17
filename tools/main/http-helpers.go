@@ -39,6 +39,12 @@ func bodyStringToProperties(body string) map[string]string {
 	return propMap
 }
 
+func (c Context) collectionFromGet(r *http.Request) *Collection {
+	queryValues := r.URL.Query()
+	collectionName := queryValues.Get("currentCollection")
+	return c.Collections[collectionName]
+}
+
 func (c Context) spaceFromGET(r *http.Request) *Space {
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")
@@ -47,7 +53,7 @@ func (c Context) spaceFromGET(r *http.Request) *Space {
 	return c.getSpace(collectionName, spaceName)
 }
 
-func (c Context) areaFromGET(r *http.Request) *Area {
+func (c Context) areaFromGET(r *http.Request) *AreaDescription {
 	space := c.spaceFromGET(r)
 	if space == nil {
 		return nil

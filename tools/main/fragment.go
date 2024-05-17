@@ -4,34 +4,40 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
+
+	"github.com/google/uuid"
 )
 
 type Fragment struct {
-	Name    string `json:"name"`
-	SetName string
-	Tiles   [][]int `json:"tiles"`
+	ID        string     `json:"id"`
+	Name      string     `json:"name"`
+	SetName   string     `json:"setName"`
+	Blueprint *Blueprint `json:"blueprint"`
 }
+
 type FragmentDetails struct {
+	ID          string `json:"id"`
 	Name        string
 	SetName     string
 	GridDetails GridDetails
 }
 
-// placeholder tile?
-
-func (c Context) fragmentsHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Context) fragmentsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		c.getFragments(w, r)
 	}
+	if r.Method == "POST" {
+		c.postFragments(w, r)
+	}
 }
 
-func (c Context) getFragments(w http.ResponseWriter, r *http.Request) {
+func (c *Context) getFragments(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")
 	setName := queryValues.Get("fragment-set")
 	fragmentName := queryValues.Get("fragment")
-	fmt.Printf("%s %s %s\n", collectionName, setName, fragmentName)
 
 	collection, ok := c.Collections[collectionName]
 	if !ok {
@@ -48,17 +54,17 @@ func (c Context) getFragments(w http.ResponseWriter, r *http.Request) {
 	if fragmentName != "" {
 		fragment := getFragmentByName(collection.Fragments[setName], fragmentName)
 		if fragment != nil {
-			fragmentDetails = append(fragmentDetails, c.DetailsFromFragment(fragment, false))
+			fragmentDetails = append(fragmentDetails, collection.DetailsFromFragment(fragment, false))
 		}
 	} else {
 		for i, fragment := range collection.Fragments[setName] {
-			details := c.DetailsFromFragment(&fragment, false)
+			details := collection.DetailsFromFragment(&fragment, false)
 			details.GridDetails.ScreenID += strconv.Itoa(i)
 			fragmentDetails = append(fragmentDetails, details)
 		}
 	}
 
-	var PageData = struct {
+	var pageData = struct {
 		FragmentSets    []string
 		CurrentSet      string
 		Fragments       []Fragment
@@ -71,20 +77,20 @@ func (c Context) getFragments(w http.ResponseWriter, r *http.Request) {
 		CurrentFragment: fragmentName,
 		FragmentDetails: fragmentDetails,
 	}
-	tmpl.ExecuteTemplate(w, "fragments", PageData)
+	tmpl.ExecuteTemplate(w, "fragments", pageData)
 }
 
-// Utilities
-func (c Context) DetailsFromFragment(fragment *Fragment, clickable bool) *FragmentDetails {
+func (c *Collection) DetailsFromFragment(fragment *Fragment, clickable bool) *FragmentDetails {
 	gridtype := "unclickable"
 	if clickable {
 		gridtype = "fragment"
 	}
 	return &FragmentDetails{
+		ID:      fragment.ID,
 		Name:    fragment.Name,
 		SetName: fragment.SetName,
 		GridDetails: GridDetails{
-			MaterialGrid:     c.DereferenceIntMatrix(fragment.Tiles),
+			MaterialGrid:     c.generateMaterials(fragment.Blueprint.Tiles),
 			DefaultTileColor: "",
 			Location:         fragment.SetName + "." + fragment.Name,
 			ScreenID:         "fragment",
@@ -92,18 +98,133 @@ func (c Context) DetailsFromFragment(fragment *Fragment, clickable bool) *Fragme
 	}
 }
 
-// Fragment
+func (col *Collection) generateMaterials(tiles [][]TileData) [][]Material {
+	out := make([][]Material, len(tiles))
+	for i := range tiles {
+		out[i] = make([]Material, len(tiles[i]))
+		for j := range tiles[i] {
+			out[i][j] = col.createMaterial(tiles[i][j])
+		}
+	}
+	return out
+}
 
-func (c Context) fragmentHandler(w http.ResponseWriter, r *http.Request) {
+func (col *Collection) createMaterial(data TileData) Material {
+	proto := col.findPrototypeById(data.PrototypeId)
+	if proto == nil {
+		proto = &Prototype{ID: "INVALID-", CssColor: "blue", Floor1Css: "green red-b thick"}
+	}
+	return proto.applyTransform(data.Transformation)
+}
+
+func transformCss(input string, transformation Transformation) string {
+	// We are looking for {key:value} : key, value are strings
+	pattern := regexp.MustCompile(`{([^:]*):([^}]*)}`)
+
+	result := pattern.ReplaceAllStringFunc(input, func(s string) string {
+		matches := pattern.FindStringSubmatch(s)
+		// matches[0] is the full match, matches[1] is the key, matches[2] is the value
+		if len(matches) == 3 { // Nil check instead?
+			if matches[1] == "rotate" {
+				return rotateCss(matches[2], transformation.ClockwiseRotations)
+			}
+			return matches[2]
+		}
+		panic("Have match " + s + " But submatch behavior is undefined (submatches != 3)")
+	})
+	return result
+}
+
+func emptyTransformCss(input string) string {
+	emptyTransform := Transformation{}
+	return transformCss(input, emptyTransform)
+}
+
+func rotateCss(input string, clockwiseRotations int) string {
+	options := []string{"tr", "br", "bl", "tl"}
+	currentIndex := findIndex(input, options)
+	if currentIndex == -1 {
+		panic("invalid rotation attempted")
+	}
+	return options[mod(currentIndex+clockwiseRotations, 4)]
+
+}
+
+func findIndex(s string, list []string) int {
+	for i := range list {
+		if list[i] == s {
+			return i
+		}
+	}
+	return -1
+}
+
+func (c *Context) postFragments(w http.ResponseWriter, r *http.Request) {
+	props, ok := requestToProperties(r)
+	if !ok {
+		fmt.Println("Invalid POST to /fragments. Properties are invalid.")
+		io.WriteString(w, `<h3> Properties are invalid. </h3>`)
+		return
+	}
+	collectionName, ok := props["currentCollection"]
+	if !ok {
+		fmt.Println("Invalid POST to /fragments. Collection not found.")
+		io.WriteString(w, `<h3> Collection not found. </h3>`)
+		return
+	}
+	setName, ok := props["fragment-set-name"]
+	if !ok {
+		fmt.Println("Invalid POST to fragments. No Set Name.")
+		io.WriteString(w, `<h3> No Set Name. </h3>`)
+		return
+	}
+	fmt.Printf("%s %s \n", collectionName, setName)
+
+	collection, ok := c.Collections[collectionName]
+	if !ok {
+		fmt.Println("Collection Name Invalid")
+		return
+	}
+
+	collection.Fragments[setName] = make([]Fragment, 0)
+
+	// New Func
+	outFile := c.collectionPath + collectionName + "/fragments/" + setName + ".json"
+	err := writeJsonFile(outFile, collection.Fragments[setName])
+	if err != nil {
+		panic(err)
+	}
+
+	io.WriteString(w, `<h2>Success</h2>`)
+}
+
+func (c *Context) fragmentsNewHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		getFragmentsNew(w, r)
+	}
+}
+
+func getFragmentsNew(w http.ResponseWriter, _ *http.Request) {
+	err := tmpl.ExecuteTemplate(w, "fragments-new", nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+// Fragment
+func (c *Context) fragmentHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		c.getFragment(w, r)
 	}
 	if r.Method == "POST" {
 		c.postFragment(w, r)
 	}
+	if r.Method == "PUT" {
+		c.putFragment(w, r)
+	}
 }
 
-func (c Context) getFragment(w http.ResponseWriter, r *http.Request) {
+func (c *Context) getFragment(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")
 	setName := queryValues.Get("fragment-set")
@@ -122,11 +243,11 @@ func (c Context) getFragment(w http.ResponseWriter, r *http.Request) {
 		panic("No fragment with name: " + fragmentName)
 	}
 	var pageData = struct {
-		AvailableMaterials []Material
-		FragmentDetails    *FragmentDetails
+		AvailableProtos PrototypeSelectPage
+		FragmentDetails *FragmentDetails
 	}{
-		AvailableMaterials: c.materials,
-		FragmentDetails:    c.DetailsFromFragment(fragment, true),
+		AvailableProtos: collection.getProtoSelect(),
+		FragmentDetails: collection.DetailsFromFragment(fragment, true),
 	}
 	err := tmpl.ExecuteTemplate(w, "fragment-edit", pageData)
 	if err != nil {
@@ -134,8 +255,8 @@ func (c Context) getFragment(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c Context) postFragment(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("POST for /fragment")
+func (c *Context) putFragment(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("PUT for /fragment")
 
 	properties, _ := requestToProperties(r)
 	collectionName := properties["currentCollection"]
@@ -157,4 +278,68 @@ func (c Context) postFragment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	io.WriteString(w, "<h3>Done.</h3>")
+}
+
+func (c *Context) postFragment(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("POST for /fragment")
+
+	properties, _ := requestToProperties(r)
+	collectionName := properties["currentCollection"]
+	setName := properties["fragment-set"]
+
+	collection, ok := c.Collections[collectionName]
+	if !ok {
+		panic("no collection")
+	}
+	set, ok := collection.Fragments[setName]
+	if !ok {
+		panic("no set")
+	}
+
+	name := properties["fragment-name"]
+	if name == "" {
+		panic("invalid fragment name.")
+	}
+
+	height, err := strconv.Atoi(properties["fragment-height"])
+	if err != nil {
+		panic(err)
+	}
+	width, err := strconv.Atoi(properties["fragment-width"])
+	if err != nil {
+		panic(err)
+	}
+
+	grid := make([][]TileData, height)
+	for i := range grid {
+		grid[i] = make([]TileData, width)
+	}
+
+	collection.Fragments[setName] = append(set, Fragment{ID: uuid.New().String(), Name: name, SetName: setName, Blueprint: &Blueprint{Tiles: grid, Instructions: make([]Instruction, 0)}})
+	outFile := c.collectionPath + collectionName + "/fragments/" + setName + ".json"
+	err = writeJsonFile(outFile, collection.Fragments[setName])
+	if err != nil {
+		panic(err)
+	}
+	io.WriteString(w, "<h3>Done.</h3>")
+}
+
+func (c *Context) fragmentNewHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		getFragmentNew(w, r)
+	}
+}
+
+func getFragmentNew(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	setName := queryValues.Get("fragment-set")
+	var pageData = struct {
+		CurrentSet string
+	}{
+		CurrentSet: setName,
+	}
+	err := tmpl.ExecuteTemplate(w, "fragment-new", pageData)
+	if err != nil {
+		fmt.Println(err)
+	}
 }

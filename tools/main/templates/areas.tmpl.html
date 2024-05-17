@@ -3,8 +3,8 @@
     <input type="hidden" name="currentCollection" value="{{.CollectionName}}" />
     <input type="hidden" name="currentSpace" value="{{.Name}}" />
     <div id="select-area">
-        <label>Area: </label>
-        <select name="area-name" hx-get="/area" hx-include="[name='currentSpace'],[name='currentCollection']" hx-target="#edit-area">
+        <label>Area: <a hx-get="/areas/new" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#select-area" href="#">New</a></label></label>
+        <select name="area-name-selected" hx-get="/area" hx-include="[name='currentSpace'],[name='currentCollection']" hx-target="#edit-area">
             <option value="">--</option>
             {{range  $i, $area := .Areas}}
                 <option value="{{$area.Name}}">{{$area.Name}}</option>
@@ -14,5 +14,23 @@
     <div id="edit-area">
     
     </div>
+</div>
+{{end}}
+
+{{define "area-new"}}
+<div id="area-new">
+    <form hx-include="[name='currentCollection'],[name='currentSpace']" hx-post="/areas" hx-target="#area-new">
+        <label>Name:</label>
+        <input type="text" name="new-area-name" value="" />
+        <label>Default Tile Color:</label>
+        <input type="text" name="default-tile-color" value="" />        
+        <label>Safe:</label>
+        <input type="checkbox" name="safe" ><br />
+        <label>Height:</label>
+        <input type="text" name="area-height" value="" />
+        <label>Width:</label>
+        <input type="text" name="area-width" value="" />
+        <input type="submit" />
+    </form>
 </div>
 {{end}}

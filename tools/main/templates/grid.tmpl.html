@@ -18,7 +18,7 @@
                     hx-trigger="click" 
                     hx-include="[name='currentCollection'],
                                 [name='radio-tool'],
-                                [name='selected-material'],
+                                [name='selected-asset-id'],
                                 [name='selected-fragment-name'],
                                 #fragment-set,
                                 [name='defaultTileColor'],
@@ -53,7 +53,8 @@
     hx-trigger="click" 
     hx-include="[name='currentCollection'],
     [name='radio-tool'],
-    [name='selected-material'],
+    [name='selected-asset-id'],
+    [name='selected-prototype-id'],
     [name='selected-fragment-name'],
     #fragment-set,
     #{{.ClickEvent.ScreenID}} [name='sid'],

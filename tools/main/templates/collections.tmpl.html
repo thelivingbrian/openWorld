@@ -11,7 +11,7 @@
 	</div> 
 	<div id="collection_new">
 		<h3>Create New Colletion</h3>
-		<form>
+		<form hx-post="/collections" hx-target="#collection_page">
 			<label>Collection Name: </label>
 			<input type="text" name="newCollectionName" /><br />
             <input type="submit" value="submit" />

@@ -4,9 +4,22 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 )
 
-type Area struct {
+type AreaDescription struct {
+	Name             string      `json:"name"`
+	Safe             bool        `json:"safe"`
+	Blueprint        *Blueprint  `json:"blueprint"`
+	Transports       []Transport `json:"transports"`
+	DefaultTileColor string      `json:"defaultTileColor"`
+	North            string      `json:"north,omitempty"`
+	South            string      `json:"south,omitempty"`
+	East             string      `json:"east,omitempty"`
+	West             string      `json:"west,omitempty"`
+}
+
+type AreaOutput struct {
 	Name             string      `json:"name"`
 	Safe             bool        `json:"safe"`
 	Tiles            [][]int     `json:"tiles"`
@@ -28,9 +41,9 @@ type GridDetails struct {
 }
 
 type PageData struct {
-	GridDetails        GridDetails
-	AvailableMaterials []Material
-	Name               string
+	GridDetails     GridDetails
+	PrototypeSelect PrototypeSelectPage
+	Name            string
 }
 
 // //////////////////////////////////////////////////////////
@@ -47,6 +60,9 @@ func (c Context) areasHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		c.getAreas(w, r)
 	}
+	if r.Method == "POST" {
+		c.postAreas(w, r)
+	}
 }
 
 func (c Context) getAreas(w http.ResponseWriter, r *http.Request) {
@@ -57,10 +73,34 @@ func (c Context) getAreas(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (c Context) postAreas(w http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	name := properties["new-area-name"]
+	safe := (properties["safe"] == "on")
+	defaultTileColor := properties["default-tile-color"]
+	collectionName := properties["currentCollection"]
+	spaceName := properties["currentSpace"]
+	panicIfAnyEmpty("POST to /area", collectionName, spaceName, name)
+
+	height, _ := strconv.Atoi(properties["area-height"])
+	width, _ := strconv.Atoi(properties["area-width"])
+
+	tiles := make([][]TileData, height)
+	for i := range tiles {
+		tiles[i] = make([]TileData, width)
+	}
+
+	blueprint := &Blueprint{Tiles: tiles, Instructions: make([]Instruction, 0)}
+
+	space := c.getSpace(collectionName, spaceName)
+	space.Areas = append(space.Areas, AreaDescription{Name: name, Safe: safe, DefaultTileColor: defaultTileColor, Blueprint: blueprint, Transports: make([]Transport, 0)})
+	io.WriteString(w, "<h3>Done.</h3>")
+}
+
 // ///////////////////////////////////////////////////////////
 // Area
 
-func (c Context) areaHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Context) areaHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		c.getArea(w, r)
 	}
@@ -69,15 +109,24 @@ func (c Context) areaHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c Context) getArea(w http.ResponseWriter, r *http.Request) {
+func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
 	space := c.spaceFromGET(r)
-	selectedArea := c.areaFromGET(r)
+	name := queryValues.Get("area-name-selected")
+	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
 		io.WriteString(w, "<h2>no Area</h2>")
 		return
 	}
 
-	modifications := c.AreaToMaterialGrid(*selectedArea)
+	collection := c.collectionFromGet(r)
+
+	var setOptions []string
+	for key := range collection.PrototypeSets {
+		setOptions = append(setOptions, key)
+	}
+
+	modifications := collection.generateMaterials(selectedArea.Blueprint.Tiles)
 
 	var pageData = PageData{
 		GridDetails: GridDetails{
@@ -87,8 +136,12 @@ func (c Context) getArea(w http.ResponseWriter, r *http.Request) {
 			GridType:         "area",
 			ScreenID:         "screen",
 		},
-		AvailableMaterials: c.materials,
-		Name:               selectedArea.Name,
+		PrototypeSelect: PrototypeSelectPage{
+			PrototypeSets: setOptions,
+			CurrentSet:    "",
+			Prototypes:    nil,
+		},
+		Name: selectedArea.Name,
 	}
 	err := tmpl.ExecuteTemplate(w, "area-edit", pageData)
 	if err != nil {
@@ -96,11 +149,18 @@ func (c Context) getArea(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c Context) AreaToMaterialGrid(area Area) [][]Material {
-	return c.DereferenceIntMatrix(area.Tiles)
+func (c Context) DereferenceIntMatrix(matrix [][]int) [][]Material {
+	out := make([][]Material, len(matrix))
+	for y := range matrix {
+		out[y] = make([]Material, len(matrix[y]))
+		for x := range matrix[y] {
+			out[y][x] = c.materials[matrix[y][x]]
+		}
+	}
+	return out
 }
 
-func (c Context) DereferenceIntMatrix(matrix [][]int) [][]Material {
+func (c Context) DereferencStringMatrix(matrix [][]int) [][]Material {
 	out := make([][]Material, len(matrix))
 	for y := range matrix {
 		out[y] = make([]Material, len(matrix[y]))
@@ -119,20 +179,23 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	defaultTileColor := properties["defaultTileColor"]
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
+	panicIfAnyEmpty("POST to /area", collectionName, spaceName, name)
 
 	space := c.getSpace(collectionName, spaceName)
 
-	// This needs changing
-	// Can make name immutable or add oldname as property
+	// todo fix
 	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
-		area := Area{Name: name, Safe: safe, Tiles: nil, Transports: nil, DefaultTileColor: defaultTileColor}
+		// shameful, this
+		area := AreaDescription{Name: name, Safe: safe, Blueprint: space.Areas[0].Blueprint, Transports: nil, DefaultTileColor: defaultTileColor}
 		space.Areas = append(space.Areas, area)
 	} else {
 		if new {
 			io.WriteString(w, `<h2>Invalid Name</h2>`)
 			return
 		}
+		selectedArea.Safe = safe
+		selectedArea.DefaultTileColor = defaultTileColor
 	}
 
 	outFile := c.collectionPath + collectionName + "/spaces/" + spaceName + ".json"
@@ -142,6 +205,27 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	}
 
 	io.WriteString(w, `<h2>Success</h2>`)
+}
+
+func (c Context) newAreaHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		queryValues := r.URL.Query()
+		colName := queryValues.Get("currentCollection")
+		spaceName := queryValues.Get("currentSpace")
+		fmt.Println("Collection Name: " + colName)
+		fmt.Println("Space Name Name: " + spaceName)
+		if col, ok := c.Collections[colName]; ok {
+			col.getNewArea(w, r)
+		}
+	}
+}
+
+func (col Collection) getNewArea(w http.ResponseWriter, _ *http.Request) {
+	fmt.Println("HI")
+	err := tmpl.ExecuteTemplate(w, "area-new", nil)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 // ///////////////////////////////////////////////////////////
@@ -162,7 +246,7 @@ func (c Context) getAreaDetails(w http.ResponseWriter, r *http.Request) {
 	}
 	var page = struct {
 		Space   *Space
-		Area    *Area
+		Area    *AreaDescription
 		Checked string
 	}{Space: space, Area: area, Checked: checked}
 
@@ -179,7 +263,7 @@ func (c Context) areaDisplayHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c Context) getAreaDisplay(w http.ResponseWriter, r *http.Request) {
+func (c Context) getAreaDisplay(w http.ResponseWriter, _ *http.Request) {
 	err := tmpl.ExecuteTemplate(w, "area-display", nil)
 	if err != nil {
 		fmt.Println(err)

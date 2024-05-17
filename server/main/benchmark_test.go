@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-var stageNames = [2]string{"small", "large"}
+var stageNames = [2]string{"Test-Small", "Test-Large"}
 var playerCounts = [2]int{1, 100}
 
 func BenchmarkMoveTwice(b *testing.B) {
