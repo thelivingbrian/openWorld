@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/websocket"
 )
@@ -156,20 +157,44 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 		updateScreenFromScratch(player)
 	}
 	if event.Name == "g" {
-		exTile := `<div class="grid-square blue" id="c0-0">				
+		/*exTile := `<div class="grid-square blue" id="c0-0">
 						<div id="p0-0" class="box zp "></div>
 						<div id="s0-0" class="box zS"></div>
 						<div id="t0-0" class="box top"></div>
 					</div>
-					<div class="grid-square blue" id="c0-1">				
+					<div class="grid-square blue" id="c0-1">
 						<div id="p0-1" class="box zp "></div>
 						<div id="s0-1" class="box zS"></div>
 						<div id="t0-1" class="box top"></div>
 					</div>
 					`
 		exTile += `<div id="t1-0" class="box top green"></div>
-				<div id="t0-0" class="box top green"></div>`
-		updateOne(exTile, player)
+				<div id="t2-0" class="box top green"></div>`
+		exTile += generateDivs("grass")*/
+		updateOne(generateDivs2("blue", 0, 2), player)
+		updateOne(generateDivs2("blue", 1, 2), player)
+		updateOne(generateDivs2("blue", 0, 3), player)
+		updateOne(generateDivs2("blue", 1, 3), player)
+		updateOne(generateDivs2("blue", 2, 3), player)
+		updateOne(generateDivs2("green", 0, 4), player)
+		updateOne(generateDivs2("green", 1, 4), player)
+		updateOne(generateDivs2("green", 2, 4), player)
+		updateOne(generateDivs2("green", 3, 4), player)
+		updateOne(generateDivs2("green", 0, 5), player)
+		updateOne(generateDivs2("green", 1, 5), player)
+		updateOne(generateDivs2("green", 2, 5), player)
+		updateOne(generateDivs2("red", 0, 2), player)
+		updateOne(generateDivs2("red", 1, 2), player)
+		updateOne(generateDivs2("red", 0, 3), player)
+		updateOne(generateDivs2("red", 1, 3), player)
+		updateOne(generateDivs2("red", 2, 3), player)
+		updateOne(generateDivs2("red", 0, 4), player)
+		updateOne(generateDivs2("red", 1, 4), player)
+		updateOne(generateDivs2("red", 2, 4), player)
+		updateOne(generateDivs2("red", 3, 4), player)
+		updateOne(generateDivs2("red", 0, 5), player)
+		updateOne(generateDivs2("red", 1, 5), player)
+		updateOne(generateDivs2("red", 2, 5), player)
 	}
 	if event.Name == "Space-On" {
 		if player.actions.spaceStack.hasPower() {
@@ -195,4 +220,32 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 			menu.attemptClick(player, *event)
 		}
 	}
+}
+
+func generateDivs(color string) string {
+	var sb strings.Builder
+
+	for i := 0; i < 16; i++ {
+		for j := 0; j < 16; j++ {
+			sb.WriteString(fmt.Sprintf(`<div id="t%d-%d" class="box top %s"></div>`+"\n", i, j, color))
+		}
+	}
+
+	return sb.String()
+}
+
+func generateDivs2(color string, check int, check2 int) string {
+	var sb strings.Builder
+
+	for i := 0; i < 16; i++ {
+		for j := 0; j < 16; j++ {
+			setColor := color
+			if (i+j)%check2 == check {
+				setColor = "ice"
+			}
+			sb.WriteString(fmt.Sprintf(`<div id="t%d-%d" class="box top %s"></div>`+"\n", i, j, setColor))
+		}
+	}
+
+	return sb.String()
 }
