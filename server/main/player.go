@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -53,7 +52,8 @@ func (player *Player) addToHealth(n int) bool {
 func (p *Player) assignStageAndListen() {
 	stage, new := p.world.getStageByName(p.stageName)
 	if stage == nil {
-		log.Fatal("Fatal: Stage Not Found.")
+		stage, _ = p.world.getStageByName("Test-Large")
+		//log.Fatal("Fatal: Stage Not Found.") //
 	}
 	if new {
 		go stage.sendUpdates()
