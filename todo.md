@@ -7,7 +7,7 @@
 - [ ] Constant special area names in tests and game 
 
 ## Design Workspace
-- [ ] Rotations
+- [-] Rotations
   - [-] New collection
   - [-] Convert materials to protos
     - [-] Create default protos
@@ -45,9 +45,11 @@
     - [ ] Blueprint page for fragment is broken 
 - [ ] Random
   - [ ] Space Topologies
-    - [ ] Plane
-    - [ ] Disconnected
+    - [-] Plane
+    - [-] Disconnected
+    - [ ] Resize
   - [ ] Test Play 
+    - [ ] Package executable in with tools? soft-deploy and run?
   - [ ] Save All/Everything button 
     - [ ] Cannot compile without save
   - [ ] NSEW buttons on sides of area display 

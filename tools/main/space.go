@@ -171,15 +171,14 @@ func createSpace(cName, name string, latitude, longitude int, topology string, h
 		for x := 0; x < longitude; x++ {
 			area := createBaseArea(height, width, tileColor)
 
-			if topology == "disconnected" {
-				continue
+			if topology != "disconnected" {
+				// This is consistent with Tiles
+				area.Name = fmt.Sprintf("%s:%d-%d", name, y, x)
+				area.North = fmt.Sprintf("%s:%d-%d", name, mod(y-1, latitude), x)
+				area.South = fmt.Sprintf("%s:%d-%d", name, mod(y+1, latitude), x)
+				area.East = fmt.Sprintf("%s:%d-%d", name, y, mod(x+1, longitude))
+				area.West = fmt.Sprintf("%s:%d-%d", name, y, mod(x-1, longitude))
 			}
-			// This is consistent with Tiles
-			area.Name = fmt.Sprintf("%s:%d-%d", name, y, x)
-			area.North = fmt.Sprintf("%s:%d-%d", name, mod(y-1, latitude), x)
-			area.South = fmt.Sprintf("%s:%d-%d", name, mod(y+1, latitude), x)
-			area.East = fmt.Sprintf("%s:%d-%d", name, y, mod(x+1, longitude))
-			area.West = fmt.Sprintf("%s:%d-%d", name, y, mod(x-1, longitude))
 			areas[y] = append(areas[y], area)
 		}
 	}
