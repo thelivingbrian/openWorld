@@ -5,6 +5,7 @@
 - [ ] Admin screen
 - [ ] Test client
 - [ ] Constant special area names in tests and game 
+- [ ] Boosta not spawning?
 
 ## Design Workspace
 - [-] Rotations
