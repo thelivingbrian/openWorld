@@ -98,7 +98,7 @@ a {
     width: 30px;
     height: 30px;
     border: 0px solid rgba(172, 152, 219,0);
-    background-color: rgb(172, 152, 219);
+    /*background-color: rgb(172, 152, 219);*/
     cursor: pointer;
     position: relative;
   }

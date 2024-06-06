@@ -54,6 +54,18 @@
   - [ ] Save All/Everything button 
     - [ ] Cannot compile without save
   - [ ] NSEW buttons on sides of area display 
+
+## Mobile Controls
+  - [ ] Cleanup current branch
+    - [ ] Add missing test and square stages
+      - [ ] Square 
+        - [ ] 4x4 with center river 
+      - [ ] Test
+  - [ ] Mobile controls
+    - [ ] Detect Touch Screen
+    - [ ] Display controls
+    - [ ] Send events on tap 
+
   
 
 
