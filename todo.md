@@ -2,6 +2,7 @@
 
 ## Engine
 - [ ] Update player view refactor
+  - [ ] Empty boost swaps 
 - [ ] Admin screen
 - [ ] Test client
 - [ ] Constant special area names in tests and game 
@@ -54,12 +55,18 @@
   - [ ] Save All/Everything button 
     - [ ] Cannot compile without save
   - [ ] NSEW buttons on sides of area display 
+- [ ] Space Edit
+  - [ ] Default tile color control
+  - [ ] view map
+    - [ ] Area -> image 
+    - [ ] Absolute (for plane/torus)
+    - [ ] Relative? (some topologies may not project simply into a map)
 
 ## Mobile Controls
   - [ ] Cleanup current branch
     - [ ] Add missing test and square stages
-      - [ ] Square 
-        - [ ] 4x4 with center river 
+      - [-] Square 
+        - [-] 4x4 with center river (Looks and plays bad should offset) 
       - [ ] Test
   - [ ] Mobile controls
     - [ ] Detect Touch Screen
