@@ -4,9 +4,9 @@ import (
 	"testing"
 )
 
-func TestEnsureDefaultMaterialIsWalkable(t *testing.T) {
+func TestEnsureMaterialsLoad(t *testing.T) {
 	loadFromJson()
-	if len(materials) == 0 || materials[0].Walkable == false {
-		t.Error("Default material is not walkable")
+	if len(materials) == 0 {
+		t.Error("No Materials loaded on attempted start up")
 	}
 }

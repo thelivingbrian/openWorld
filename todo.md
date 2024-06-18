@@ -2,12 +2,14 @@
 
 ## Engine
 - [ ] Update player view refactor
+  - [ ] Empty boost swaps 
 - [ ] Admin screen
 - [ ] Test client
 - [ ] Constant special area names in tests and game 
+- [ ] Boosta not spawning?
 
 ## Design Workspace
-- [ ] Rotations
+- [-] Rotations
   - [-] New collection
   - [-] Convert materials to protos
     - [-] Create default protos
@@ -45,12 +47,40 @@
     - [ ] Blueprint page for fragment is broken 
 - [ ] Random
   - [ ] Space Topologies
-    - [ ] Plane
-    - [ ] Disconnected
+    - [-] Plane
+    - [-] Disconnected
+    - [ ] Resize
   - [ ] Test Play 
+    - [ ] Package executable in with tools? soft-deploy and run?
   - [ ] Save All/Everything button 
     - [ ] Cannot compile without save
   - [ ] NSEW buttons on sides of area display 
+- [ ] Space Edit
+  - [ ] Default tile color control
+  - [ ] view map
+    - [ ] Area -> image 
+    - [ ] Absolute (for plane/torus)
+    - [ ] Relative? (some topologies may not project simply into a map)
+
+## Mobile Controls
+  - [-] Cleanup current branch
+    - [-] Add missing test and square stages
+      - [-] Square 
+        - [-] 4x4 with center river (Looks and plays bad should offset) 
+        - [-] 5x5 with river
+      - [-] Test
+  - [ ] Mobile controls
+    - [ ] Detect Touch Screen
+    - [ ] Display controls
+    - [ ] Send events on tap 
+
+## World map
+- [ ] Add map color to prototype
+ - [ ] generate map colors automatically via regex search for colors by layer acsending 
+- [ ] Area to map (png?)
+ - [ ] png to svg so map can be resized? 
+- [ ] Map for spaces (Torus and Plane only?)
+
   
 
 

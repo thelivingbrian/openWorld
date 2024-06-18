@@ -6,7 +6,7 @@ import (
 )
 
 // Break this out somehow.
-var itemStageNames = [4]string{"Test-Small", "Test-Large"}
+var itemStageNames = [2]string{"clinic", "test-large"}
 
 func BenchmarkSpawnItems(b *testing.B) {
 	//fmt.Println("hi.")
