@@ -12,6 +12,8 @@ type Space struct {
 	CollectionName string
 	Name           string
 	Areas          []AreaDescription
+	// Topology
+	// map?
 }
 
 var divSpacePage = `

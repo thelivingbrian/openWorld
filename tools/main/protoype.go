@@ -18,6 +18,7 @@ type Prototype struct {
 	Ceiling1Css string `json:"ceiling1css"`
 	Ceiling2Css string `json:"ceiling2css"`
 	SetName     string `json:"setName"`
+	MapColor    string `json:"mapColor"`
 }
 
 type Transformation struct {

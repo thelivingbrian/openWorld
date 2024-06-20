@@ -19,6 +19,7 @@ type AreaDescription struct {
 	West             string      `json:"west,omitempty"`
 }
 
+// Import from the other project instead? Or import from here. Transport too
 type AreaOutput struct {
 	Name             string      `json:"name"`
 	Safe             bool        `json:"safe"`

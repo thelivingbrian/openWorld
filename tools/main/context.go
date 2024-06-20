@@ -36,7 +36,7 @@ func populateFromJson() Context {
 	c.collectionPath = "./data/collections/"
 
 	c.colors = parseJsonFile[[]Color](c.colorPath)
-	c.materials = parseJsonFile[[]Material](c.materialPath)
+	c.materials = parseJsonFile[[]Material](c.materialPath) // Use empty array then remove.
 	c.Collections = getAllCollections(c.collectionPath)
 
 	return c
@@ -143,7 +143,7 @@ func getAllCollections(collectionPath string) map[string]*Collection {
 
 			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
 			areaMap := make(map[string][]AreaDescription)
-			populateMaps(areaMap, pathToSpaces)
+			populateMaps(areaMap, pathToSpaces) // Parse json of spaces instead
 			collection.Spaces = areasToSpaces(areaMap, entry.Name())
 
 			pathToFragments := filepath.Join(collectionPath, entry.Name(), "fragments")
@@ -152,6 +152,8 @@ func getAllCollections(collectionPath string) map[string]*Collection {
 			collection.Fragments = addSetNamesToFragments(fragmentMap)
 
 			pathToPrototypes := filepath.Join(collectionPath, entry.Name(), "prototypes")
+			// Parse json of type prototypeset
+
 			prototypeMap := make(map[string][]Prototype)
 			populateMaps(prototypeMap, pathToPrototypes)
 			collection.PrototypeSets = addSetNamesToProtypes(prototypeMap)
@@ -179,6 +181,10 @@ func addSetNamesToProtypes(protoMap map[string][]Prototype) map[string][]Prototy
 		for i := range protoMap[setName] {
 			proto := protoMap[setName][i]
 			proto.SetName = setName
+
+			// One time add map color for old protos
+			// colors should already be loaded see if layers have a color, take highest or ""
+
 			arr = append(arr, proto)
 		}
 		out[setName] = arr
