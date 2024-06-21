@@ -83,6 +83,7 @@
  - [-] generate map colors automatically
 - [ ] Area to map (png?)
  - [ ] png to svg so map can be resized? 
+- [ ] Serve an image
 - [ ] Space data model 
  - [ ] topology
  - [ ] map
