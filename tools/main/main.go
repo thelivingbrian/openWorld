@@ -39,7 +39,7 @@ func main() {
 	http.HandleFunc("/grid/edit", c.gridEditHandler)
 	http.HandleFunc("/grid/click/area", c.gridClickAreaHandler)
 	http.HandleFunc("/grid/click/fragment", c.gridClickFragmentHandler)
-	http.HandleFunc("/images", c.imagesHandler)
+	http.HandleFunc("/images/", c.imagesHandler)
 
 	http.HandleFunc("/materialPage", c.getMaterialPage)
 	http.HandleFunc("/getEditMaterial", c.getEditMaterial)
