@@ -50,11 +50,15 @@
     - [-] Plane
     - [-] Disconnected
     - [ ] Resize
+    - [ ] Fractal 
+      - [ ] Can implement in a "south zooms out" manner etc. (All 4 directions from center root square?)
   - [ ] Test Play 
     - [ ] Package executable in with tools? soft-deploy and run?
   - [ ] Save All/Everything button 
     - [ ] Cannot compile without save
   - [ ] NSEW buttons on sides of area display 
+  - [ ] Clean up 
+    - [ ] Remove concept of materials? 
 - [ ] Space Edit
   - [ ] Default tile color control
   - [ ] view map
@@ -75,10 +79,16 @@
     - [ ] Send events on tap 
 
 ## World map
-- [ ] Add map color to prototype
- - [ ] generate map colors automatically via regex search for colors by layer acsending 
+- [-] Add map color to prototype
+ - [-] generate map colors automatically
 - [ ] Area to map (png?)
  - [ ] png to svg so map can be resized? 
+- [ ] Space data model 
+ - [ ] topology
+ - [ ] map
+ - [ ] map for subarea 
+ - [ ] save space as json 
+  - [ ] compile space changes (if any) 
 - [ ] Map for spaces (Torus and Plane only?)
 
   

@@ -37,7 +37,7 @@ func populateFromJson() Context {
 
 	c.colors = parseJsonFile[[]Color](c.colorPath)
 	c.materials = parseJsonFile[[]Material](c.materialPath) // Use empty array then remove.
-	c.Collections = getAllCollections(c.collectionPath)
+	c.Collections = c.getAllCollections(c.collectionPath)
 
 	return c
 }
@@ -129,7 +129,7 @@ func (c Context) createCSSFile(path string) {
 }
 
 // Collections
-func getAllCollections(collectionPath string) map[string]*Collection {
+func (c Context) getAllCollections(collectionPath string) map[string]*Collection {
 	dirs, err := os.ReadDir(collectionPath)
 	if err != nil {
 		fmt.Println(err)
@@ -156,7 +156,7 @@ func getAllCollections(collectionPath string) map[string]*Collection {
 
 			prototypeMap := make(map[string][]Prototype)
 			populateMaps(prototypeMap, pathToPrototypes)
-			collection.PrototypeSets = addSetNamesToProtypes(prototypeMap)
+			collection.PrototypeSets = c.addSetNamesToProtypes(prototypeMap)
 
 			collections[entry.Name()] = &collection
 
@@ -174,7 +174,7 @@ func addSetNamesToFragments(fragmentMap map[string][]Fragment) map[string][]Frag
 	return fragmentMap
 }
 
-func addSetNamesToProtypes(protoMap map[string][]Prototype) map[string][]Prototype {
+func (c Context) addSetNamesToProtypes(protoMap map[string][]Prototype) map[string][]Prototype {
 	out := make(map[string][]Prototype)
 	for setName := range protoMap {
 		arr := make([]Prototype, 0)
@@ -184,12 +184,37 @@ func addSetNamesToProtypes(protoMap map[string][]Prototype) map[string][]Prototy
 
 			// One time add map color for old protos
 			// colors should already be loaded see if layers have a color, take highest or ""
+			proto.MapColor = c.getMapColorFromProto(proto)
 
 			arr = append(arr, proto)
 		}
 		out[setName] = arr
 	}
 	return out
+}
+
+func (c Context) getMapColorFromProto(proto Prototype) string {
+	color := proto.CssColor
+	layersToCheck := []string{proto.Floor1Css, proto.Floor2Css, proto.Ceiling1Css, proto.Ceiling2Css}
+	for _, layerString := range layersToCheck {
+		extractedColor := c.getColorFromString(layerString)
+		if extractedColor != "" {
+			color = extractedColor
+		}
+	}
+	return color
+}
+
+func (c Context) getColorFromString(s string) string {
+	words := strings.Fields(s)
+	for _, word := range words {
+		for _, color := range c.colors {
+			if word == color.CssClassName {
+				return word
+			}
+		}
+	}
+	return ""
 }
 
 func areasToSpaces(areaMap map[string][]AreaDescription, collectionName string) map[string]*Space {
