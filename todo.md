@@ -91,6 +91,7 @@
  - [ ] save space as json 
   - [ ] compile space changes (if any) 
 - [ ] Map for spaces (Torus and Plane only?)
+  - [-] Map for fixed size plane/torus
 
   
 

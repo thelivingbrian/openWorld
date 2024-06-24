@@ -1,0 +1,61 @@
+{{define "space-page"}}
+<div id="space_page">
+	<div id="collection_header">
+		<input type="hidden" name="currentCollection" value="{{.Name}}" />
+		<span>
+			<b>Collection:</b>  {{.Name}}  
+			<b>(<a hx-get="/deploy" hx-include="[name='currentCollection']" hx-target="#panel" href="#">Deploy</a>)</b>
+		</span>
+	</div>
+	<br />
+	<div id="space_select">
+		<label>Space: </label>
+        <a hx-get="/spaces/new" hx-include="[name='currentCollection']" hx-target="#space_select" href="#">New</a>
+        <a hx-get="/space/edit" hx-include="[name='currentCollection']" hx-target="#space_select" href="#">Edit</a>
+        <a hx-post="/space/map" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#space_select" href="#">Map</a>
+		<select name="currentSpace" hx-get="/areas" hx-include="[name='currentCollection']" hx-target="#area_select">
+			<option value=""></option>
+			{{range  $key, $value := .Spaces}}
+				<option value="{{$key}}">{{$key}}</option>
+			{{end}}
+		</select>
+		<div id="area_select">
+
+		</div>
+	</div>
+	<br />
+</div>
+{{end}}
+
+{{define "space-new"}}
+<div id="space_new">
+	<form hx-post="/spaces">
+		<input type="hidden" name="currentCollection" value="{{.Name}}" />
+		
+		<h3>Create New Space</h3>
+		<label><b>Space Name: </b></label>
+		<input type="text" name="newSpaceName" /><br />
+		<br />
+		<label><b>Latitude: </b></label>
+		<input type="text" name="latitude" /><br />
+		
+		<label><b>Longitude: </b></label>
+		<input type="text" name="longitude" /><br />
+
+		<label><b>Topology: </b></label><br />
+		<span><input type="radio" name="topology" value="plane" checked />Plane</span><br />
+		<span><input type="radio" name="topology" value="torus" />Torus</span><br />
+		<span><input type="radio" name="topology" value="disconnected" />Disconnected</span><br />
+		<br /> 
+
+		</label><b>Area Dimensions</b></label><br />
+		<label>Width : </label><input type="text" name="areaWidth" value="16"/>
+		<label>Height : </label><input type="text" name="areaHeight" value="16" /><br />
+		
+		<label>Default Tile Color : </label>
+		<input type="text" name="tileColor" /><br />
+
+		<input type="submit" />
+	</form>
+</div>
+{{end}}

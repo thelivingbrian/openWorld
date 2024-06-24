@@ -44,7 +44,7 @@ func (c *Context) postCollections(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(name)
 	c.Collections[name] = &Collection{Name: name, Spaces: make(map[string]*Space), Fragments: make(map[string][]Fragment)}
 	createCollectionDirectories(name, c.collectionPath)
-	spacesTmpl.Execute(w, c.Collections[name])
+	tmpl.ExecuteTemplate(w, "space-page", c.Collections[name])
 }
 
 func createCollectionDirectories(name string, path string) {
