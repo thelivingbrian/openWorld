@@ -199,7 +199,7 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 		selectedArea.DefaultTileColor = defaultTileColor
 	}
 
-	outFile := c.collectionPath + collectionName + "/spaces2/" + spaceName + ".json"
+	outFile := c.collectionPath + collectionName + "/spaces/" + spaceName + ".json"
 	err := writeJsonFile(outFile, space) // Save space instead
 	if err != nil {
 		panic(err)

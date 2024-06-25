@@ -141,7 +141,7 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 		if entry.IsDir() {
 			collection := Collection{Name: entry.Name(), Spaces: make(map[string]*Space)}
 
-			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces2")
+			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
 			// areaMap := make(map[string][]AreaDescription)
 			// populateMaps(areaMap, pathToSpaces) // Parse json of spaces instead
 			// collection.Spaces = areasToSpaces(areaMap, entry.Name())
@@ -218,6 +218,7 @@ func (c Context) getColorFromString(s string) string {
 	return ""
 }
 
+/*
 func areasToSpaces(areaMap map[string][]AreaDescription, collectionName string) map[string]*Space {
 	out := make(map[string]*Space)
 	for name, areas := range areaMap {
@@ -225,6 +226,7 @@ func areasToSpaces(areaMap map[string][]AreaDescription, collectionName string) 
 	}
 	return out
 }
+*/
 
 func populateMaps[T any](m map[string]T, pathToJsonDirectory string) {
 	subEntries, err := os.ReadDir(pathToJsonDirectory)
