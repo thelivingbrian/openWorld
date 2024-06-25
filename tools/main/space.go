@@ -14,8 +14,12 @@ import (
 type Space struct {
 	CollectionName string
 	Name           string
+	Topology       string
+	Latitude       int
+	Longitude      int
+	AreaHeight     int
+	AreaWidth      int
 	Areas          []AreaDescription
-	// Topology
 	// map?
 }
 
@@ -301,11 +305,11 @@ func (c Context) spaceMapHandler(w http.ResponseWriter, r *http.Request) {
 					for k := 0; k < latitude; k++ {
 						for j := 0; j < longitude; j++ {
 							area := getAreaByName(space.Areas, fmt.Sprintf("%s:%d-%d", spaceName, k, j))
-							areaColor := c.findColorByName(area.DefaultTileColor)
 							if area == nil {
 								fmt.Println("no area" + fmt.Sprintf("%s:%d:%d", spaceName, k, j))
 								continue
 							}
+							areaColor := c.findColorByName(area.DefaultTileColor)
 							//fmt.Println("found area")
 							for row := range area.Blueprint.Tiles {
 								for column, tile := range area.Blueprint.Tiles[row] {

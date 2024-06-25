@@ -67,7 +67,7 @@ func parseJsonFile[T any](filename string) T {
 	return out
 }
 
-func writeJsonFile[T any](path string, entries []T) error {
+func writeJsonFile[T any](path string, entries T) error {
 	data, err := json.Marshal(entries)
 	if err != nil {
 		return fmt.Errorf("error marshalling materials: %w", err)
@@ -139,12 +139,13 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 	for _, dir := range dirs {
 		entry, _ := dir.Info()
 		if entry.IsDir() {
-			collection := Collection{Name: entry.Name()}
+			collection := Collection{Name: entry.Name(), Spaces: make(map[string]*Space)}
 
-			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
-			areaMap := make(map[string][]AreaDescription)
-			populateMaps(areaMap, pathToSpaces) // Parse json of spaces instead
-			collection.Spaces = areasToSpaces(areaMap, entry.Name())
+			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces2")
+			// areaMap := make(map[string][]AreaDescription)
+			// populateMaps(areaMap, pathToSpaces) // Parse json of spaces instead
+			// collection.Spaces = areasToSpaces(areaMap, entry.Name())
+			populateMaps(collection.Spaces, pathToSpaces)
 
 			pathToFragments := filepath.Join(collectionPath, entry.Name(), "fragments")
 			fragmentMap := make(map[string][]Fragment)
