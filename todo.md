@@ -85,10 +85,10 @@
  - [ ] png to svg so map can be resized? 
 - [-] Serve an image
 - [ ] Space data model 
- - [ ] topology
+ - [-] topology
  - [ ] map
  - [ ] map for subarea 
- - [ ] save space as json 
+ - [-] save space as json 
   - [ ] compile space changes (if any) 
 - [ ] Map for spaces (Torus and Plane only?)
   - [-] Map for fixed size plane/torus

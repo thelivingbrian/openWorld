@@ -13,7 +13,7 @@ func (c Context) imagesHandler(w http.ResponseWriter, r *http.Request) {
 	fileName := filepath.Base(r.URL.Path)
 	fmt.Println(fileName)
 
-	dir := "./data/images"
+	dir := "./data/images" // use a different path
 	filePath := filepath.Join(dir, fileName)
 	http.ServeFile(w, r, filePath)
 }
