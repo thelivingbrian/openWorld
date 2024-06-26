@@ -82,12 +82,12 @@
 - [-] Add map color to prototype
  - [-] generate map colors automatically
 - [ ] Area to map (png?)
- - [ ] png to svg so map can be resized? 
+ - [-] png to svg so map can be resized? - No resize with css
 - [-] Serve an image
 - [ ] Space data model 
  - [-] topology
  - [ ] map
- - [ ] map for subarea 
+ - [ ] map for subarea (do this with highlighting below)
  - [-] save space as json 
   - [ ] compile space changes (if any) 
 - [-] Map for spaces (Torus and Plane only?)
