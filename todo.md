@@ -6,7 +6,7 @@
 - [ ] Admin screen
 - [ ] Test client
 - [ ] Constant special area names in tests and game 
-- [ ] Boosta not spawning?
+- [ ] Boosts not spawning?
 
 ## Design Workspace
 - [-] Rotations
@@ -90,8 +90,10 @@
  - [ ] map for subarea 
  - [-] save space as json 
   - [ ] compile space changes (if any) 
-- [ ] Map for spaces (Torus and Plane only?)
+- [-] Map for spaces (Torus and Plane only?)
   - [-] Map for fixed size plane/torus
+- [ ] "You are here" highlighting? 
+  - [ ] 1 map per area generated (May be easy to extend this to other topologies like cube also)
 
   
 

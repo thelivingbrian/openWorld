@@ -150,7 +150,7 @@ func createSpace(cName, name string, latitude, longitude int, topology string, h
 		flatAreas = append(flatAreas, areas[i]...)
 	}
 
-	out := Space{CollectionName: cName, Name: name, Areas: flatAreas}
+	out := Space{CollectionName: cName, Name: name, Topology: topology, Latitude: latitude, Longitude: longitude, AreaHeight: height, AreaWidth: width, Areas: flatAreas}
 	return out
 }
 
@@ -229,44 +229,54 @@ func (c Context) spaceMapHandler(w http.ResponseWriter, r *http.Request) {
 		if col, ok := c.Collections[colName]; ok {
 			if space, ok := col.Spaces[spaceName]; ok {
 				fmt.Println("Space with name exists")
-				simpleTiling := getAreaByName(space.Areas, spaceName+":0-0") != nil
+				simpleTiling := space.Topology == "torus" || space.Topology == "plane"
 				if simpleTiling {
-					fmt.Println("Has simple tiling")
-					latitude := 5
-					areaHeight := 16
-					pixelHeight := latitude * areaHeight
-					longitude := 5
-					areaWidth := 16
-					pixelWidth := longitude * areaWidth
-					img := image.NewRGBA(image.Rect(0, 0, pixelWidth, pixelHeight))
-					for k := 0; k < latitude; k++ {
-						for j := 0; j < longitude; j++ {
-							area := getAreaByName(space.Areas, fmt.Sprintf("%s:%d-%d", spaceName, k, j))
-							if area == nil {
-								fmt.Println("no area" + fmt.Sprintf("%s:%d:%d", spaceName, k, j))
-								continue
-							}
-							areaColor := c.findColorByName(area.DefaultTileColor)
-							//fmt.Println("found area")
-							for row := range area.Blueprint.Tiles {
-								for column, tile := range area.Blueprint.Tiles[row] {
-									proto := col.findPrototypeById(tile.PrototypeId)
-									protoColor := c.findColorByName(proto.MapColor)
-									if protoColor.CssClassName == "invalid" {
-										protoColor = areaColor
-									}
-									img.Set((j*areaWidth)+column, (k*areaHeight)+row, color.RGBA{R: uint8(protoColor.R), G: uint8(protoColor.G), B: uint8(protoColor.B), A: 255})
-								}
-							}
-						}
-					}
-					err := saveImageAsPNG("output.png", img)
-					if err != nil {
-						panic(err)
-					}
+					c.generatePNGFromSpace(space)
+				} else {
+					fmt.Println("Only Simply tiled topologies are supported")
 				}
 			}
 		}
+	}
+}
+
+func (c Context) generatePNGFromSpace(space *Space) {
+	fmt.Println("Generating Png From space with simple tiling")
+	latitude := space.Latitude
+	areaHeight := space.AreaHeight
+	pixelHeight := latitude * areaHeight
+	longitude := space.Longitude
+	areaWidth := space.AreaWidth
+	pixelWidth := longitude * areaWidth
+	col, ok := c.Collections[space.CollectionName]
+	if !ok {
+		panic("Invalid Collection Name on space: " + space.CollectionName)
+	}
+
+	img := image.NewRGBA(image.Rect(0, 0, pixelWidth, pixelHeight))
+	for k := 0; k < latitude; k++ {
+		for j := 0; j < longitude; j++ {
+			area := getAreaByName(space.Areas, fmt.Sprintf("%s:%d-%d", space.Name, k, j))
+			if area == nil {
+				fmt.Println("no area" + fmt.Sprintf("%s:%d:%d", space.Name, k, j))
+				continue
+			}
+			areaColor := c.findColorByName(area.DefaultTileColor)
+			for row := range area.Blueprint.Tiles {
+				for column, tile := range area.Blueprint.Tiles[row] {
+					proto := col.findPrototypeById(tile.PrototypeId)
+					protoColor := c.findColorByName(proto.MapColor)
+					if protoColor.CssClassName == "invalid" {
+						protoColor = areaColor
+					}
+					img.Set((j*areaWidth)+column, (k*areaHeight)+row, color.RGBA{R: uint8(protoColor.R), G: uint8(protoColor.G), B: uint8(protoColor.B), A: 255})
+				}
+			}
+		}
+	}
+	err := saveImageAsPNG("output.png", img)
+	if err != nil {
+		panic(err)
 	}
 }
 
