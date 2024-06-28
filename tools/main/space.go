@@ -237,7 +237,7 @@ func (c Context) spaceMapHandler(w http.ResponseWriter, r *http.Request) {
 					if err != nil {
 						panic(err)
 					}
-					c.generatePNGForEachArea(space, *img, path)
+					c.generatePNGForEachArea(space, img, path)
 				} else {
 					fmt.Println("Only Simply tiled topologies are supported")
 				}
@@ -292,7 +292,7 @@ func (c Context) generateImageFromSpace(space *Space) *image.RGBA {
 	}*/
 }
 
-func (c Context) generatePNGForEachArea(space *Space, img image.RGBA, path string) {
+func (c Context) generatePNGForEachArea(space *Space, img *image.RGBA, path string) {
 	for k := 0; k < space.Latitude; k++ {
 		for j := 0; j < space.Longitude; j++ {
 			area := getAreaByName(space.Areas, fmt.Sprintf("%s:%d-%d", space.Name, k, j))
@@ -308,27 +308,20 @@ func (c Context) generatePNGForEachArea(space *Space, img image.RGBA, path strin
 
 }
 
-func addRedSquare(img image.RGBA, y0, x0, height, width int) *image.RGBA {
-	copy := img
-	deltaY := 0
-	for deltaY < height-1 {
-		copy.Set(y0+deltaY, x0, color.RGBA{R: uint8(255), A: uint8(255)})
-		deltaY++
+func addRedSquare(img *image.RGBA, y0, x0, height, width int) *image.RGBA {
+	copy := image.NewRGBA(img.Bounds())
+	copy.Pix = append(copy.Pix[:0], img.Pix...)
+
+	for deltaY := 0; deltaY < height; deltaY++ {
+		copy.Set(x0, y0+deltaY, color.RGBA{R: 255, A: 255})
+		copy.Set(x0+width-1, y0+deltaY, color.RGBA{R: 255, A: 255})
 	}
-	deltaX := 0
-	for deltaX < width-1 {
-		copy.Set(y0+deltaY, x0+deltaX, color.RGBA{R: uint8(255), A: uint8(255)})
-		deltaX++
+	for deltaX := 0; deltaX < width; deltaX++ {
+		copy.Set(x0+deltaX, y0, color.RGBA{R: 255, A: 255})
+		copy.Set(x0+deltaX, y0+height-1, color.RGBA{R: 255, A: 255})
 	}
-	for deltaY > 0 {
-		copy.Set(y0+deltaY, x0+deltaX, color.RGBA{R: uint8(255), A: uint8(255)})
-		deltaY--
-	}
-	for deltaX > 0 {
-		copy.Set(y0+deltaY, x0+deltaX, color.RGBA{R: uint8(255), A: uint8(255)})
-		deltaX--
-	}
-	return &copy
+
+	return copy
 }
 
 func (c Context) findColorByName(s string) Color {
