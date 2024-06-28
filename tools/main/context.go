@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 type Context struct {
@@ -14,8 +16,8 @@ type Context struct {
 	materials   []Material
 	colors      []Color
 
-	colorPath      string
-	materialPath   string
+	colorPath string
+	//materialPath   string
 	cssPath        string
 	collectionPath string
 }
@@ -24,6 +26,12 @@ const DEPLOY_materialPath = "../../server/main/data/materials.json"
 const DEPLOY_areaPath = "../../server/main/data/areas.json"
 const DEPLOY_cssPath = "../../server/main/assets/colors.css"
 
+const DEPLOY_basePath = "../../server/main/data/"
+const COMPILE_basePath = "./data/out"
+const COMPILE_imagePath = COMPILE_basePath + "/images"
+const areaFilename = "areas.json"
+const materialFilename = "materials.json"
+
 // Startup
 
 func populateFromJson() Context {
@@ -31,12 +39,12 @@ func populateFromJson() Context {
 
 	// I don't like this
 	c.colorPath = "./data/colors/colors.json"
-	c.materialPath = "./data/materials/materials.json"
+	//c.materialPath = "./data/materials/materials.json"
 	c.cssPath = "./assets/colors.css"
 	c.collectionPath = "./data/collections/"
 
 	c.colors = parseJsonFile[[]Color](c.colorPath)
-	c.materials = parseJsonFile[[]Material](c.materialPath) // Use empty array then remove.
+	c.materials = []Material{} //parseJsonFile[[]Material](c.materialPath) // Use empty array then remove.
 	c.Collections = c.getAllCollections(c.collectionPath)
 
 	return c
@@ -95,9 +103,11 @@ func materialName(m Material) string {
 	return m.CommonName
 }
 
+/*
 func (c Context) writeMaterialsToLocalFile() error {
 	return writeJsonFile(c.materialPath, c.materials)
 }
+*/
 
 func (c Context) writeColorsToLocalFile() error {
 	return writeJsonFile(c.colorPath, c.colors)
@@ -126,6 +136,12 @@ func (c Context) createCSSFile(path string) {
 			panic(err)
 		}
 	}
+}
+
+// Helper
+
+func (c Context) pathToMapsForSpace(space *Space) string {
+	return c.collectionPath + space.CollectionName + "/spaces/maps/" + space.Name + "/"
 }
 
 // Collections
@@ -262,56 +278,44 @@ func (c Context) getSpace(collectionName string, spaceName string) *Space {
 func (c Context) deploy(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")
-	c.deployLocalChanges(collectionName)
-}
-
-func (c Context) deployLocalChanges(collectionName string) {
 	c.createCSSFile(DEPLOY_cssPath)
-	collectionToAreas(c.Collections[collectionName])
+	c.compileCollectionByName(collectionName)
+	err := copyDir(COMPILE_basePath, DEPLOY_basePath)
+	if err != nil {
+		panic(err)
+	}
 }
 
-func collectionToAreas(collection *Collection) {
+func (c Context) compile(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	collectionName := queryValues.Get("currentCollection")
+	c.createCSSFile(c.cssPath)
+	c.compileCollectionByName(collectionName)
+}
+
+func (c Context) compileCollectionByName(collectionName string) {
+	os.RemoveAll(COMPILE_basePath)
+	os.MkdirAll(COMPILE_imagePath, 0755)
+	if c.Collections[collectionName] == nil {
+		panic("invalid collection")
+	}
+	c.compileCollection(c.Collections[collectionName])
+}
+
+func (c Context) compileCollection(collection *Collection) {
 	mapToMaterials := make(map[Transformation]map[string]Material)
 	materials := make([]Material, 0)
 	areas := make([]AreaOutput, 0)
 
 	for _, space := range collection.Spaces {
-		//out = append(out, space.Areas...)
+		attemptCopy := c.generateAllPNGs(space)
 		for _, desc := range space.Areas {
-			outputTiles := make([][]int, len(desc.Blueprint.Tiles))
-			for y := range desc.Blueprint.Tiles {
-				outputTiles[y] = make([]int, len(desc.Blueprint.Tiles[y]))
-				for x := range desc.Blueprint.Tiles[y] {
-					var id int
-					prototype := collection.findPrototypeById(desc.Blueprint.Tiles[y][x].PrototypeId)
-					if prototype == nil {
-						errMsg := fmt.Sprintf("Prototype with id: %s Not found. Space: %s | Area: %s | y:%d x:%d", desc.Blueprint.Tiles[y][x].PrototypeId, space.Name, desc.Name, y, x)
-						panic("PROTO NOT FOUND. error - " + errMsg)
-					}
-
-					protoToMat, found := mapToMaterials[desc.Blueprint.Tiles[y][x].Transformation]
-					if found {
-						_, found = protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId]
-						if !found {
-							id = len(materials)
-							newMaterial := prototype.applyTransformWithId(desc.Blueprint.Tiles[y][x].Transformation, len(materials))
-							protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId] = newMaterial
-							materials = append(materials, newMaterial)
-						} else {
-							id = protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId].ID
-						}
-					} else {
-						protoToMat = make(map[string]Material)
-						id = len(materials)
-						newMaterial := prototype.applyTransformWithId(desc.Blueprint.Tiles[y][x].Transformation, len(materials))
-						protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId] = newMaterial
-						materials = append(materials, newMaterial)
-						mapToMaterials[desc.Blueprint.Tiles[y][x].Transformation] = protoToMat
-					}
-
-					// Is added step worth it or should server areas have materials by value?
-					outputTiles[y][x] = id
-				}
+			var outputTiles [][]int
+			outputTiles, materials = collection.compileTileDataAndAccumulateMaterials(desc, materials, mapToMaterials)
+			// transfer png and generate guid
+			mapid := ""
+			if attemptCopy {
+				mapid = c.copyMapPNG(space, &desc)
 			}
 			areas = append(areas, AreaOutput{
 				Name:             desc.Name,
@@ -323,12 +327,65 @@ func collectionToAreas(collection *Collection) {
 				South:            desc.South,
 				East:             desc.East,
 				West:             desc.West,
+				MapId:            mapid,
 			})
 		}
 	}
 	fmt.Printf("Writing (%d) Areas", len(areas))
-	writeJsonFile(DEPLOY_areaPath, areas)
+	writeJsonFile(filepath.Join(COMPILE_basePath, areaFilename), areas)
 	fmt.Printf("Writing (%d) Materials", len(materials))
-	writeJsonFile(DEPLOY_materialPath, materials)
+	writeJsonFile(filepath.Join(COMPILE_basePath, materialFilename), materials)
 
+}
+
+func (c Context) copyMapPNG(space *Space, area *AreaDescription) string {
+	src := filepath.Join(c.pathToMapsForSpace(space), areaToFilename(area))
+	id := uuid.New().String()
+	filename := fmt.Sprintf("%s.png", id)
+
+	dest := filepath.Join("./data/out/images", filename)
+	err := copyFile(src, dest)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
+func (collection *Collection) compileTileDataAndAccumulateMaterials(desc AreaDescription, materials []Material, mapToMaterials map[Transformation]map[string]Material) ([][]int, []Material) {
+	outputTiles := make([][]int, len(desc.Blueprint.Tiles))
+	for y := range desc.Blueprint.Tiles {
+		outputTiles[y] = make([]int, len(desc.Blueprint.Tiles[y]))
+		for x := range desc.Blueprint.Tiles[y] {
+			var id int
+			prototype := collection.findPrototypeById(desc.Blueprint.Tiles[y][x].PrototypeId)
+			if prototype == nil {
+				errMsg := fmt.Sprintf("Prototype with id: %s Not found. Area: %s | y:%d x:%d", desc.Blueprint.Tiles[y][x].PrototypeId, desc.Name, y, x)
+				panic("PROTO NOT FOUND. error - " + errMsg)
+			}
+
+			protoToMat, found := mapToMaterials[desc.Blueprint.Tiles[y][x].Transformation]
+			if found {
+				_, found = protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId]
+				if !found {
+					id = len(materials)
+					newMaterial := prototype.applyTransformWithId(desc.Blueprint.Tiles[y][x].Transformation, len(materials))
+					protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId] = newMaterial
+					materials = append(materials, newMaterial)
+				} else {
+					id = protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId].ID
+				}
+			} else {
+				protoToMat = make(map[string]Material)
+				id = len(materials)
+				newMaterial := prototype.applyTransformWithId(desc.Blueprint.Tiles[y][x].Transformation, len(materials))
+				protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId] = newMaterial
+				materials = append(materials, newMaterial)
+				mapToMaterials[desc.Blueprint.Tiles[y][x].Transformation] = protoToMat
+			}
+
+			// Is added step worth it or should server areas have materials by value?
+			outputTiles[y][x] = id
+		}
+	}
+	return outputTiles, materials
 }

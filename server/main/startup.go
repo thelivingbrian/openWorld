@@ -140,8 +140,8 @@ var (
 	areas     []Area
 )
 
-func populateStructUsingFileName[T any](ptr *T, fn string) {
-	jsonData, err := os.ReadFile(fmt.Sprintf("./data/%s.json", fn))
+func populateStructUsingFileName[T any](ptr *T, filename string) {
+	jsonData, err := os.ReadFile(fmt.Sprintf("./data/%s.json", filename))
 	if err != nil {
 		panic(err)
 	}

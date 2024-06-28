@@ -5,7 +5,7 @@
 		<span>
 			<b>Collection:</b>  {{.Name}}  
 			<span>(Save)</span>
-			<span>(Compile)</span>
+			<b><a hx-get="/compile" hx-include="[name='currentCollection']" hx-target="#panel" href="#">(Compile)</a></b>
 			<b><a hx-get="/deploy" hx-include="[name='currentCollection']" hx-target="#panel" href="#">(Deploy)</a></b>
 		</span>
 	</div>

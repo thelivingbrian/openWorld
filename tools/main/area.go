@@ -31,6 +31,7 @@ type AreaOutput struct {
 	South            string      `json:"south,omitempty"`
 	East             string      `json:"east,omitempty"`
 	West             string      `json:"west,omitempty"`
+	MapId            string      `json:"mapId,omitempty"`
 }
 
 type GridDetails struct {

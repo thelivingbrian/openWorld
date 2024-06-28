@@ -65,6 +65,7 @@ func main() {
 	http.HandleFunc("/deleteTransport", c.deleteTransport)
 
 	http.HandleFunc("/deploy", c.deploy)
+	http.HandleFunc("/compile", c.compile)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			http.NotFound(w, r)

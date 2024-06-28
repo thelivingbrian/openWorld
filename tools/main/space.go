@@ -8,7 +8,9 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 type Space struct {
@@ -228,23 +230,31 @@ func (c Context) spaceMapHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Space Name Name: " + spaceName)
 		if col, ok := c.Collections[colName]; ok {
 			if space, ok := col.Spaces[spaceName]; ok {
-				fmt.Println("Space with name exists")
-				simpleTiling := space.Topology == "torus" || space.Topology == "plane"
-				if simpleTiling {
-					img := c.generateImageFromSpace(space)
-					path := "./data/collections/" + colName + "/spaces/maps/" + space.Name
-					os.MkdirAll(path, 0755)
-					err := saveImageAsPNG(path+"/"+space.Name+".png", img)
-					if err != nil {
-						panic(err)
-					}
-					c.generatePNGForEachArea(space, img, path)
-				} else {
-					fmt.Println("Only Simply tiled topologies are supported")
-				}
+				c.generateAllPNGs(space)
 			}
 		}
+		io.WriteString(w, `<img src="/images/map/`+spaceName+`?currentCollection=`+colName+`" width="350" alt="map of space">`)
 	}
+}
+
+func (c Context) generateAllPNGs(space *Space) bool {
+	fmt.Println("Space with name exists")
+	simpleTiling := space.Topology == "torus" || space.Topology == "plane"
+	if simpleTiling {
+		img := c.generateImageFromSpace(space)
+		path := c.pathToMapsForSpace(space)
+		os.MkdirAll(path, 0755)
+		filename := fmt.Sprintf("%s.png", space.Name)
+		fullPath := filepath.Join(path, filename)
+		err := saveImageAsPNG(fullPath, img)
+		if err != nil {
+			panic(err)
+		}
+		c.generatePNGForEachArea(space, img)
+	} else {
+		fmt.Println("Only Simply tiled topologies are supported")
+	}
+	return simpleTiling
 }
 
 func (c Context) generateImageFromSpace(space *Space) *image.RGBA {
@@ -293,24 +303,31 @@ func (c Context) generateImageFromSpace(space *Space) *image.RGBA {
 	}*/
 }
 
-func (c Context) generatePNGForEachArea(space *Space, img *image.RGBA, path string) {
+func (c Context) generatePNGForEachArea(space *Space, img *image.RGBA) {
 	for k := 0; k < space.Latitude; k++ {
 		for j := 0; j < space.Longitude; j++ {
 			area := getAreaByName(space.Areas, fmt.Sprintf("%s:%d-%d", space.Name, k, j))
 			if area == nil {
-				fmt.Println("no area" + fmt.Sprintf("%s:%d:%d", space.Name, k, j))
+				fmt.Println("no area" + fmt.Sprintf("%s:%d-%d", space.Name, k, j))
 				continue
 			}
 			image := addRedSquare(img, k*space.AreaHeight, j*space.AreaWidth, space.AreaHeight, space.AreaWidth)
 			//id := uuid.New().String()
 			//area.MapId = id
-			filename := fmt.Sprintf("%s/%s-%d-%d.png", path, space.Name, k, j)
+			filename := filepath.Join(c.pathToMapsForSpace(space), areaToFilename(area)) //fmt.Sprintf("%s/%s-%d-%d.png", path, space.Name, k, j)
 			// Don't need this now, only on deploy?
 			// If user generates pngs without saving the space the highlighted maps are effectively unfindable
-			saveImageAsPNG(filename, image)
+			err := saveImageAsPNG(filename, image)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 
+}
+
+func areaToFilename(area *AreaDescription) string {
+	return strings.ReplaceAll(area.Name, ":", "-") + ".png"
 }
 
 func addRedSquare(img *image.RGBA, y0, x0, height, width int) *image.RGBA {
@@ -339,7 +356,7 @@ func (c Context) findColorByName(s string) Color {
 }
 
 func saveImageAsPNG(filename string, img image.Image) error {
-	fmt.Println("saving")
+	//fmt.Println("saving")
 
 	file, err := os.Create(filename)
 	if err != nil {

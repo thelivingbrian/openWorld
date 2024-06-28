@@ -391,12 +391,12 @@ func exampleMaterial(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Context) outputIngredients(w http.ResponseWriter, r *http.Request) {
-	err := c.writeMaterialsToLocalFile()
+	/*err := c.writeMaterialsToLocalFile()
 	if err != nil {
 		panic(1)
-	}
+	}*/
 
-	err = c.writeColorsToLocalFile()
+	err := c.writeColorsToLocalFile()
 	if err != nil {
 		panic(1)
 	}
