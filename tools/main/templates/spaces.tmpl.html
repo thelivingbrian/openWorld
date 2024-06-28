@@ -13,8 +13,8 @@
 	<div id="space_select">
 		<label>Space: </label>
         <a hx-get="/spaces/new" hx-include="[name='currentCollection']" hx-target="#space_select" href="#">New</a>
-        <a hx-get="/space/edit" hx-include="[name='currentCollection']" hx-target="#space_select" href="#">Edit</a>
-        <a hx-post="/space/map" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#space_select" href="#">Map</a>
+        <span>Edit</span>
+        <a hx-post="/space/map" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#space_select" href="#">Save/Map</a>
 		<select name="currentSpace" hx-get="/areas" hx-include="[name='currentCollection']" hx-target="#area_select">
 			<option value=""></option>
 			{{range  $key, $value := .Spaces}}

@@ -4,9 +4,9 @@
     <form hx-post="/area" hx-include hx-target="#save_notice">
         <input type="hidden" name="currentCollection" value="{{.Space.CollectionName}}"/>
         <input type="hidden" name="currentSpace" value="{{.Space.Name}}"/>
-        <input type="hidden" name="new" value="false"/>
+        <input type="hidden" name="originalAreaName" value="{{.Area.Name}}"/>
         <label>Name:</label>
-        <input type="text" name="areaName" value="{{.Area.Name}}">
+        <input type="text" name="areaName" value="{{.Area.Name}}" />
         <label>Default Tile Color:</label>
         <input type="text" name="defaultTileColor" value="{{.Area.DefaultTileColor}}">
         <label>Safe:</label>

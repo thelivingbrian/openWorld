@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-
-	"github.com/google/uuid"
 )
 
 type Space struct {
@@ -304,9 +302,9 @@ func (c Context) generatePNGForEachArea(space *Space, img *image.RGBA, path stri
 				continue
 			}
 			image := addRedSquare(img, k*space.AreaHeight, j*space.AreaWidth, space.AreaHeight, space.AreaWidth)
-			id := uuid.New().String()
-			area.MapId = id
-			filename := fmt.Sprintf("%s/%s.png", path, id)
+			//id := uuid.New().String()
+			//area.MapId = id
+			filename := fmt.Sprintf("%s/%s-%d-%d.png", path, space.Name, k, j)
 			// Don't need this now, only on deploy?
 			// If user generates pngs without saving the space the highlighted maps are effectively unfindable
 			saveImageAsPNG(filename, image)

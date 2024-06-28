@@ -175,9 +175,9 @@ func (c Context) DereferencStringMatrix(matrix [][]int) [][]Material {
 
 func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
-	name := properties["areaName"]
+	name := properties["originalAreaName"]
+	newName := properties["areaName"]
 	safe := (properties["safe"] == "on")
-	new := (properties["new"] == "true")
 	defaultTileColor := properties["defaultTileColor"]
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
@@ -185,28 +185,39 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 
 	space := c.getSpace(collectionName, spaceName)
 
-	// todo fix
 	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
-		// shameful, this
-		area := AreaDescription{Name: name, Safe: safe, Blueprint: space.Areas[0].Blueprint, Transports: nil, DefaultTileColor: defaultTileColor}
-		space.Areas = append(space.Areas, area)
-	} else {
-		if new {
-			io.WriteString(w, `<h2>Invalid Name</h2>`)
-			return
-		}
+		panic("Orignal area data has been lost or submitted orignal name is invalid")
+	}
+
+	if newName == name {
 		selectedArea.Safe = safe
 		selectedArea.DefaultTileColor = defaultTileColor
+	} else {
+		if getAreaByName(space.Areas, newName) != nil {
+			panic("Invalid name") // This check doesn't look at other spaces
+		}
+		newBlueprint := copyBlueprint(selectedArea.Blueprint)
+		area := AreaDescription{Name: newName, Safe: safe, Blueprint: &newBlueprint, Transports: append([]Transport{}, selectedArea.Transports...), DefaultTileColor: defaultTileColor}
+		space.Areas = append(space.Areas, area)
 	}
 
 	outFile := c.collectionPath + collectionName + "/spaces/" + spaceName + ".json"
-	err := writeJsonFile(outFile, space) // Save space instead
+	err := writeJsonFile(outFile, space)
 	if err != nil {
 		panic(err)
 	}
 
 	io.WriteString(w, `<h2>Success</h2>`)
+}
+
+func copyBlueprint(bp *Blueprint) Blueprint {
+	tiles := make([][]TileData, len(bp.Tiles))
+	for i := range tiles {
+		tiles[i] = append(tiles[i], bp.Tiles[i]...)
+	}
+	return Blueprint{Tiles: tiles, Instructions: append([]Instruction{}, bp.Instructions...)}
+
 }
 
 func (c Context) newAreaHandler(w http.ResponseWriter, r *http.Request) {
