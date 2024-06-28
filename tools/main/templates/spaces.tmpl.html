@@ -4,7 +4,9 @@
 		<input type="hidden" name="currentCollection" value="{{.Name}}" />
 		<span>
 			<b>Collection:</b>  {{.Name}}  
-			<b>(<a hx-get="/deploy" hx-include="[name='currentCollection']" hx-target="#panel" href="#">Deploy</a>)</b>
+			<span>(Save)</span>
+			<span>(Compile)</span>
+			<b><a hx-get="/deploy" hx-include="[name='currentCollection']" hx-target="#panel" href="#">(Deploy)</a></b>
 		</span>
 	</div>
 	<br />

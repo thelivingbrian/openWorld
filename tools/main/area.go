@@ -17,6 +17,7 @@ type AreaDescription struct {
 	South            string      `json:"south,omitempty"`
 	East             string      `json:"east,omitempty"`
 	West             string      `json:"west,omitempty"`
+	MapId            string      `json:"mapId"`
 }
 
 // Import from the other project instead? Or import from here. Transport too

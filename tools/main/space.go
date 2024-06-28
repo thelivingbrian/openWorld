@@ -231,7 +231,13 @@ func (c Context) spaceMapHandler(w http.ResponseWriter, r *http.Request) {
 				fmt.Println("Space with name exists")
 				simpleTiling := space.Topology == "torus" || space.Topology == "plane"
 				if simpleTiling {
-					c.generatePNGFromSpace(space)
+					img := c.generateImageFromSpace(space)
+					path := "./data/collections/" + colName + "/"
+					err := saveImageAsPNG(path+"output.png", img)
+					if err != nil {
+						panic(err)
+					}
+					c.generatePNGForEachArea(space, *img, path)
 				} else {
 					fmt.Println("Only Simply tiled topologies are supported")
 				}
@@ -240,7 +246,7 @@ func (c Context) spaceMapHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c Context) generatePNGFromSpace(space *Space) {
+func (c Context) generateImageFromSpace(space *Space) *image.RGBA {
 	fmt.Println("Generating Png From space with simple tiling")
 	latitude := space.Latitude
 	areaHeight := space.AreaHeight
@@ -262,6 +268,10 @@ func (c Context) generatePNGFromSpace(space *Space) {
 				continue
 			}
 			areaColor := c.findColorByName(area.DefaultTileColor)
+			//areaImg := *img
+			//if &areaImg == img {
+			//	fmt.Println("hit")
+			//}
 			for row := range area.Blueprint.Tiles {
 				for column, tile := range area.Blueprint.Tiles[row] {
 					proto := col.findPrototypeById(tile.PrototypeId)
@@ -274,10 +284,51 @@ func (c Context) generatePNGFromSpace(space *Space) {
 			}
 		}
 	}
-	err := saveImageAsPNG("output.png", img)
+
+	return img
+	/*err := saveImageAsPNG("output.png", img)
 	if err != nil {
 		panic(err)
+	}*/
+}
+
+func (c Context) generatePNGForEachArea(space *Space, img image.RGBA, path string) {
+	for k := 0; k < space.Latitude; k++ {
+		for j := 0; j < space.Longitude; j++ {
+			area := getAreaByName(space.Areas, fmt.Sprintf("%s:%d-%d", space.Name, k, j))
+			if area == nil {
+				fmt.Println("no area" + fmt.Sprintf("%s:%d:%d", space.Name, k, j))
+				continue
+			}
+			image := addRedSquare(img, k*space.AreaHeight, j*space.AreaWidth, space.AreaHeight, space.AreaWidth)
+			filename := fmt.Sprintf("%s/%s-%d-%d", path, space.Name, k, j)
+			saveImageAsPNG(filename+".png", image)
+		}
 	}
+
+}
+
+func addRedSquare(img image.RGBA, y0, x0, height, width int) *image.RGBA {
+	copy := img
+	deltaY := 0
+	for deltaY < height-1 {
+		copy.Set(y0+deltaY, x0, color.RGBA{R: uint8(255), A: uint8(255)})
+		deltaY++
+	}
+	deltaX := 0
+	for deltaX < width-1 {
+		copy.Set(y0+deltaY, x0+deltaX, color.RGBA{R: uint8(255), A: uint8(255)})
+		deltaX++
+	}
+	for deltaY > 0 {
+		copy.Set(y0+deltaY, x0+deltaX, color.RGBA{R: uint8(255), A: uint8(255)})
+		deltaY--
+	}
+	for deltaX > 0 {
+		copy.Set(y0+deltaY, x0+deltaX, color.RGBA{R: uint8(255), A: uint8(255)})
+		deltaX--
+	}
+	return &copy
 }
 
 func (c Context) findColorByName(s string) Color {
