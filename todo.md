@@ -87,13 +87,18 @@
 - [ ] Space data model 
  - [-] topology
  - [ ] map
- - [ ] map for subarea (do this with highlighting below)
+ - [-] map for subarea (do this with highlighting below)
  - [-] save space as json 
   - [ ] compile space changes (if any) 
 - [-] Map for spaces (Torus and Plane only?)
   - [-] Map for fixed size plane/torus
 - [-] "You are here" highlighting? 
   - [-] 1 map per area generated (May be easy to extend this to other topologies like cube also)
+- [ ] Serve maps from game
+  - [ ] Deploy 
+  - [ ] Map window opens 
+  - [ ] Serve image by uuid
+  - [ ] Scvale image inside map window 
 
   
 

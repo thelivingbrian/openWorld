@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/google/uuid"
 )
 
 type Space struct {
@@ -232,8 +234,9 @@ func (c Context) spaceMapHandler(w http.ResponseWriter, r *http.Request) {
 				simpleTiling := space.Topology == "torus" || space.Topology == "plane"
 				if simpleTiling {
 					img := c.generateImageFromSpace(space)
-					path := "./data/collections/" + colName + "/"
-					err := saveImageAsPNG(path+"output.png", img)
+					path := "./data/collections/" + colName + "/spaces/maps/" + space.Name
+					os.MkdirAll(path, 0755)
+					err := saveImageAsPNG(path+"/"+space.Name+".png", img)
 					if err != nil {
 						panic(err)
 					}
@@ -301,8 +304,12 @@ func (c Context) generatePNGForEachArea(space *Space, img *image.RGBA, path stri
 				continue
 			}
 			image := addRedSquare(img, k*space.AreaHeight, j*space.AreaWidth, space.AreaHeight, space.AreaWidth)
-			filename := fmt.Sprintf("%s/%s-%d-%d", path, space.Name, k, j)
-			saveImageAsPNG(filename+".png", image)
+			id := uuid.New().String()
+			area.MapId = id
+			filename := fmt.Sprintf("%s/%s.png", path, id)
+			// Don't need this now, only on deploy?
+			// If user generates pngs without saving the space the highlighted maps are effectively unfindable
+			saveImageAsPNG(filename, image)
 		}
 	}
 
