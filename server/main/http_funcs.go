@@ -126,7 +126,7 @@ func (world *World) join(w http.ResponseWriter, record *PlayerRecord) {
 	world.wPlayerMutex.Unlock()
 
 	fmt.Println("Printing Page Headers")
-	io.WriteString(w, printPageFor(newPlayer))
+	io.WriteString(w, printPageFor(newPlayer)) // interesting...
 }
 
 func (world *World) isLoggedInAlready(username string) bool {

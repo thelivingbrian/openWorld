@@ -22,7 +22,6 @@ type Space struct {
 	AreaHeight     int
 	AreaWidth      int
 	Areas          []AreaDescription
-	// map?
 }
 
 func (c Context) spacesHandler(w http.ResponseWriter, r *http.Request) {
@@ -278,10 +277,6 @@ func (c Context) generateImageFromSpace(space *Space) *image.RGBA {
 				continue
 			}
 			areaColor := c.findColorByName(area.DefaultTileColor)
-			//areaImg := *img
-			//if &areaImg == img {
-			//	fmt.Println("hit")
-			//}
 			for row := range area.Blueprint.Tiles {
 				for column, tile := range area.Blueprint.Tiles[row] {
 					proto := col.findPrototypeById(tile.PrototypeId)
@@ -296,10 +291,6 @@ func (c Context) generateImageFromSpace(space *Space) *image.RGBA {
 	}
 
 	return img
-	/*err := saveImageAsPNG("output.png", img)
-	if err != nil {
-		panic(err)
-	}*/
 }
 
 func (c Context) generatePNGForEachArea(space *Space, img *image.RGBA) {
@@ -311,11 +302,7 @@ func (c Context) generatePNGForEachArea(space *Space, img *image.RGBA) {
 				continue
 			}
 			image := addRedSquare(img, k*space.AreaHeight, j*space.AreaWidth, space.AreaHeight, space.AreaWidth)
-			//id := uuid.New().String()
-			//area.MapId = id
-			filename := filepath.Join(c.pathToMapsForSpace(space), areaToFilename(area)) //fmt.Sprintf("%s/%s-%d-%d.png", path, space.Name, k, j)
-			// Don't need this now, only on deploy?
-			// If user generates pngs without saving the space the highlighted maps are effectively unfindable
+			filename := filepath.Join(c.pathToMapsForSpace(space), areaToFilename(area))
 			err := saveImageAsPNG(filename, image)
 			if err != nil {
 				panic(err)
@@ -355,8 +342,6 @@ func (c Context) findColorByName(s string) Color {
 }
 
 func saveImageAsPNG(filename string, img image.Image) error {
-	//fmt.Println("saving")
-
 	file, err := os.Create(filename)
 	if err != nil {
 		return err

@@ -12,7 +12,7 @@ import (
 type Menu struct {
 	Name       string
 	CssClass   string
-	InfoHtml   template.HTML // Can use template.HTML type here to avoid escaping.
+	InfoHtml   template.HTML
 	Links      []MenuLink
 	ScriptHtml string
 }
@@ -73,9 +73,9 @@ var menuTmpl = template.Must(template.New("menu").Parse(menuTemplate))
 var pauseMenu Menu
 var mapMenu Menu
 var statsMenu Menu
-var menues map[string]Menu
 
 func init() {
+	// init here to avoiod circular reference
 	pauseMenu = Menu{
 		Name:     "pause",
 		CssClass: "",
@@ -103,8 +103,9 @@ func init() {
 			{Text: "Back", eventHandler: Pause, auth: nil},
 		},
 	}
-	menues = map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu}
 }
+
+var menues = map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu}
 
 func (m *Menu) selectedLinkAt(i int) string {
 	index := mod(i, len(m.Links)) // divide by 0
@@ -225,7 +226,6 @@ func Map(p *Player, event PlayerSocketEvent) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	//buf.WriteString(divInputDisabled())
 	p.trySend(buf.Bytes())
 }
 
@@ -235,7 +235,6 @@ func Pause(p *Player, event PlayerSocketEvent) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	//buf.WriteString(divInputDisabled())
 	p.trySend(buf.Bytes())
 }
 
@@ -245,6 +244,5 @@ func Stats(p *Player, event PlayerSocketEvent) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	//buf.WriteString(divInputDisabled())
 	p.trySend(buf.Bytes())
 }

@@ -82,24 +82,24 @@
 ## World map
 - [-] Add map color to prototype
  - [-] generate map colors automatically
-- [ ] Area to map (png?)
+- [-] Area to map (png?)
  - [-] png to svg so map can be resized? - No resize with css
 - [-] Serve an image
-- [ ] Space data model 
+- [-] Space data model 
  - [-] topology
- - [ ] map
+ - [-] map
  - [-] map for subarea (do this with highlighting below)
  - [-] save space as json 
-  - [ ] compile space changes (if any) 
+  - [-] compile space changes (if any) 
 - [-] Map for spaces (Torus and Plane only?)
   - [-] Map for fixed size plane/torus
 - [-] "You are here" highlighting? 
   - [-] 1 map per area generated (May be easy to extend this to other topologies like cube also)
-- [ ] Serve maps from game
-  - [ ] Deploy 
-  - [ ] Map window opens 
-  - [ ] Serve image by uuid
-  - [ ] Scvale image inside map window 
+- [-] Serve maps from game
+  - [-] Deploy 
+  - [-] Map window opens 
+  - [-] Serve image by uuid
+  - [-] Scvale image inside map window 
 
   
 

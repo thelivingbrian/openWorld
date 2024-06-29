@@ -40,12 +40,11 @@ func populateFromJson() Context {
 
 	// I don't like this
 	c.colorPath = "./data/colors/colors.json"
-	//c.materialPath = "./data/materials/materials.json"
 	c.cssPath = "./assets/colors.css"
 	c.collectionPath = "./data/collections/"
 
 	c.colors = parseJsonFile[[]Color](c.colorPath)
-	c.materials = []Material{} //parseJsonFile[[]Material](c.materialPath) // Use empty array then remove.
+	c.materials = []Material{} // Remove.
 	c.Collections = c.getAllCollections(c.collectionPath)
 
 	return c
@@ -104,12 +103,6 @@ func materialName(m Material) string {
 	return m.CommonName
 }
 
-/*
-func (c Context) writeMaterialsToLocalFile() error {
-	return writeJsonFile(c.materialPath, c.materials)
-}
-*/
-
 func (c Context) writeColorsToLocalFile() error {
 	return writeJsonFile(c.colorPath, c.colors)
 }
@@ -140,7 +133,6 @@ func (c Context) createCSSFile(path string) {
 }
 
 // Helper
-
 func (c Context) pathToMapsForSpace(space *Space) string {
 	return c.collectionPath + space.CollectionName + "/spaces/maps/" + space.Name + "/"
 }
@@ -159,19 +151,15 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 			collection := Collection{Name: entry.Name(), Spaces: make(map[string]*Space)}
 
 			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
-			// areaMap := make(map[string][]AreaDescription)
-			// populateMaps(areaMap, pathToSpaces) // Parse json of spaces instead
-			// collection.Spaces = areasToSpaces(areaMap, entry.Name())
 			populateMaps(collection.Spaces, pathToSpaces)
 
+			// Adjust these two like spaces above
 			pathToFragments := filepath.Join(collectionPath, entry.Name(), "fragments")
 			fragmentMap := make(map[string][]Fragment)
 			populateMaps(fragmentMap, pathToFragments)
 			collection.Fragments = addSetNamesToFragments(fragmentMap)
 
 			pathToPrototypes := filepath.Join(collectionPath, entry.Name(), "prototypes")
-			// Parse json of type prototypeset
-
 			prototypeMap := make(map[string][]Prototype)
 			populateMaps(prototypeMap, pathToPrototypes)
 			collection.PrototypeSets = c.addSetNamesToProtypes(prototypeMap)
@@ -200,9 +188,8 @@ func (c Context) addSetNamesToProtypes(protoMap map[string][]Prototype) map[stri
 			proto := protoMap[setName][i]
 			proto.SetName = setName
 
-			// One time add map color for old protos
-			// colors should already be loaded see if layers have a color, take highest or ""
-			proto.MapColor = c.getMapColorFromProto(proto)
+			// Add map color for old protos
+			// proto.MapColor = c.getMapColorFromProto(proto)
 
 			arr = append(arr, proto)
 		}
@@ -211,6 +198,8 @@ func (c Context) addSetNamesToProtypes(protoMap map[string][]Prototype) map[stri
 	return out
 }
 
+/*
+// Logic For adding map colors to existing prototypes
 func (c Context) getMapColorFromProto(proto Prototype) string {
 	color := proto.CssColor
 	layersToCheck := []string{proto.Floor1Css, proto.Floor2Css, proto.Ceiling1Css, proto.Ceiling2Css}
@@ -233,15 +222,6 @@ func (c Context) getColorFromString(s string) string {
 		}
 	}
 	return ""
-}
-
-/*
-func areasToSpaces(areaMap map[string][]AreaDescription, collectionName string) map[string]*Space {
-	out := make(map[string]*Space)
-	for name, areas := range areaMap {
-		out[name] = &Space{CollectionName: collectionName, Name: name, Areas: areas}
-	}
-	return out
 }
 */
 
@@ -315,11 +295,12 @@ func (c Context) compileCollection(collection *Collection) {
 		for _, desc := range space.Areas {
 			var outputTiles [][]int
 			outputTiles, materials = collection.compileTileDataAndAccumulateMaterials(desc, materials, mapToMaterials)
-			// transfer png and generate guid
+
 			mapid := ""
 			if attemptCopy {
 				mapid = c.copyMapPNG(space, &desc)
 			}
+
 			areas = append(areas, AreaOutput{
 				Name:             desc.Name,
 				Safe:             desc.Safe,

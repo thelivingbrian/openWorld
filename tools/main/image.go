@@ -37,7 +37,7 @@ func (col *Collection) getImage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (col *Collection) serveMap(w http.ResponseWriter, r *http.Request, spaceName, fileName string) {
-	dir := "./data/collections/" + col.Name + "/spaces/maps/" + spaceName // use a different path
+	dir := "./data/collections/" + col.Name + "/spaces/maps/" + spaceName // A function returning this string already exists but on a *Context
 	fileName += ".png"
 	filePath := filepath.Join(dir, fileName)
 	http.ServeFile(w, r, filePath)
