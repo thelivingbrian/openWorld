@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func (c *Context) imagesHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Context) imageHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		queryValues := r.URL.Query()
 		name := queryValues.Get("currentCollection")

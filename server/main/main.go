@@ -17,6 +17,7 @@ func main() {
 	// Serve assets
 	// Last Handle takes priority so dirs in /assets/ will be overwritten by handled funcs
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./assets"))))
+	http.HandleFunc("/images/", imageHandler)
 
 	// Account creation and sign in
 	http.HandleFunc("/homesignup", getSignUp)

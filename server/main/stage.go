@@ -17,6 +17,7 @@ type Stage struct {
 	south       string
 	east        string
 	west        string
+	mapId       string
 }
 
 func (world *World) getStageByName(name string) (stage *Stage, new bool) {
@@ -47,7 +48,7 @@ func createStageByName(s string) (*Stage, bool) {
 	if !success {
 		return nil, false
 	}
-	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, updatesForStage, s, area.North, area.South, area.East, area.West}
+	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, updatesForStage, s, area.North, area.South, area.East, area.West, area.MapId}
 
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))

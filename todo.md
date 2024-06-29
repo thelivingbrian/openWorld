@@ -7,6 +7,7 @@
 - [ ] Test client
 - [ ] Constant special area names in tests and game 
 - [ ] Boosts not spawning?
+- [ ] Instant kill button or key
 
 ## Design Workspace
 - [-] Rotations

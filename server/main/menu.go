@@ -12,7 +12,7 @@ import (
 type Menu struct {
 	Name       string
 	CssClass   string
-	InfoHtml   string // Can use template.HTML type here to avoid escaping.
+	InfoHtml   template.HTML // Can use template.HTML type here to avoid escaping.
 	Links      []MenuLink
 	ScriptHtml string
 }
@@ -70,19 +70,41 @@ var menuTemplate = `
 
 var menuTmpl = template.Must(template.New("menu").Parse(menuTemplate))
 
-var pauseMenu = Menu{
-	Name:     "pause",
-	CssClass: "",
-	InfoHtml: "",
-	Links: []MenuLink{
-		{Text: "Resume", eventHandler: turnMenuOff, auth: nil},
-		{Text: "You", eventHandler: nil, auth: nil},
-		{Text: "Map", eventHandler: nil, auth: nil},
-		{Text: "Quit", eventHandler: Quit, auth: nil},
-	},
-}
+var pauseMenu Menu
+var mapMenu Menu
+var statsMenu Menu
+var menues map[string]Menu
 
-var menues = map[string]Menu{"pause": pauseMenu}
+func init() {
+	pauseMenu = Menu{
+		Name:     "pause",
+		CssClass: "",
+		InfoHtml: "",
+		Links: []MenuLink{
+			{Text: "Resume", eventHandler: turnMenuOff, auth: nil},
+			{Text: "You", eventHandler: Stats, auth: nil},
+			{Text: "Map", eventHandler: Map, auth: nil},
+			{Text: "Quit", eventHandler: Quit, auth: nil},
+		},
+	}
+	mapMenu = Menu{
+		Name:     "map",
+		CssClass: "",
+		InfoHtml: "",
+		Links: []MenuLink{
+			{Text: "Back", eventHandler: Pause, auth: nil},
+		},
+	}
+	statsMenu = Menu{
+		Name:     "stats",
+		CssClass: "",
+		InfoHtml: "<h2>Coming Soon</h2>",
+		Links: []MenuLink{
+			{Text: "Back", eventHandler: Pause, auth: nil},
+		},
+	}
+	menues = map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu}
+}
 
 func (m *Menu) selectedLinkAt(i int) string {
 	index := mod(i, len(m.Links)) // divide by 0
@@ -156,7 +178,7 @@ func (menu *Menu) menuSelectUp(index string) string {
 	if err != nil {
 		return ""
 	}
-	return pauseMenu.selectedLinkAt(i-1) + pauseMenu.unselectedLinkAt(i)
+	return menu.selectedLinkAt(i-1) + menu.unselectedLinkAt(i)
 }
 
 func menuDown(p *Player, event PlayerSocketEvent) {
@@ -187,4 +209,42 @@ func Quit(p *Player, event PlayerSocketEvent) {
 	      </div>
 	  </div>`
 	p.conn.WriteMessage(websocket.TextMessage, []byte(logOutSuccess))
+}
+
+func Map(p *Player, event PlayerSocketEvent) {
+	var buf bytes.Buffer
+	copy := mapMenu
+	if p.stage.mapId != "" {
+		mapPath := "/images/" + p.stage.mapId
+		copy.InfoHtml = template.HTML(`<img src="` + mapPath + `" width="350" alt="map of space" />`)
+	} else {
+		copy.InfoHtml = `<h2>unavailable</h2>`
+
+	}
+	err := menuTmpl.Execute(&buf, copy)
+	if err != nil {
+		fmt.Println(err)
+	}
+	//buf.WriteString(divInputDisabled())
+	p.trySend(buf.Bytes())
+}
+
+func Pause(p *Player, event PlayerSocketEvent) {
+	var buf bytes.Buffer
+	err := menuTmpl.Execute(&buf, pauseMenu)
+	if err != nil {
+		fmt.Println(err)
+	}
+	//buf.WriteString(divInputDisabled())
+	p.trySend(buf.Bytes())
+}
+
+func Stats(p *Player, event PlayerSocketEvent) {
+	var buf bytes.Buffer
+	err := menuTmpl.Execute(&buf, statsMenu)
+	if err != nil {
+		fmt.Println(err)
+	}
+	//buf.WriteString(divInputDisabled())
+	p.trySend(buf.Bytes())
 }

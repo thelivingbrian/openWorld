@@ -129,10 +129,11 @@ type Area struct {
 	Tiles            [][]int     `json:"tiles"`
 	Transports       []Transport `json:"transports"`
 	DefaultTileColor string      `json:"defaultTileColor"`
-	North            string      `json:"north,omitempty"`
-	South            string      `json:"south,omitempty"`
-	East             string      `json:"east,omitempty"`
-	West             string      `json:"west,omitempty"`
+	North            string      `json:"north"`
+	South            string      `json:"south"`
+	East             string      `json:"east"`
+	West             string      `json:"west"`
+	MapId            string      `json:"mapId"`
 }
 
 var (
