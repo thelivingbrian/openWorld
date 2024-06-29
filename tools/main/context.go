@@ -26,7 +26,8 @@ const DEPLOY_materialPath = "../../server/main/data/materials.json"
 const DEPLOY_areaPath = "../../server/main/data/areas.json"
 const DEPLOY_cssPath = "../../server/main/assets/colors.css"
 
-const DEPLOY_basePath = "../../server/main/data/"
+const DEPLOY_basePath = "../../server/main/data"
+const DEPLOY_imagePath = DEPLOY_basePath + "/images"
 const COMPILE_basePath = "./data/out"
 const COMPILE_imagePath = COMPILE_basePath + "/images"
 const areaFilename = "areas.json"
@@ -280,6 +281,8 @@ func (c Context) deploy(w http.ResponseWriter, r *http.Request) {
 	collectionName := queryValues.Get("currentCollection")
 	c.createCSSFile(DEPLOY_cssPath)
 	c.compileCollectionByName(collectionName)
+	os.RemoveAll(DEPLOY_basePath)
+	os.MkdirAll(DEPLOY_imagePath, 0755)
 	err := copyDir(COMPILE_basePath, DEPLOY_basePath)
 	if err != nil {
 		panic(err)

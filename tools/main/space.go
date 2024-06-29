@@ -238,7 +238,6 @@ func (c Context) spaceMapHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Context) generateAllPNGs(space *Space) bool {
-	fmt.Println("Space with name exists")
 	simpleTiling := space.Topology == "torus" || space.Topology == "plane"
 	if simpleTiling {
 		img := c.generateImageFromSpace(space)

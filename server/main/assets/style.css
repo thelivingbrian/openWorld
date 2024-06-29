@@ -62,6 +62,9 @@ a {
     color:#120500
 }
 
+
+/* Modal */
+
 .modal_bg {
     display: block; 
     position: fixed;
@@ -86,6 +89,14 @@ a {
     top: 50%;
     transform: translateY(-50%);
 }
+
+img {
+    image-rendering: pixelated; /* or 'crisp-edges' */
+}
+
+
+/* Grid */
+
 .grid {
     display: grid;
   }
