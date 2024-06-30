@@ -73,6 +73,7 @@ var menuTmpl = template.Must(template.New("menu").Parse(menuTemplate))
 var pauseMenu Menu
 var mapMenu Menu
 var statsMenu Menu
+var menues map[string]Menu
 
 func init() {
 	// init here to avoiod circular reference
@@ -103,9 +104,8 @@ func init() {
 			{Text: "Back", eventHandler: Pause, auth: nil},
 		},
 	}
+	menues = map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu}
 }
-
-var menues = map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu}
 
 func (m *Menu) selectedLinkAt(i int) string {
 	index := mod(i, len(m.Links)) // divide by 0
