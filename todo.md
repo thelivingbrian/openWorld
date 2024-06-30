@@ -6,7 +6,8 @@
 - [ ] Admin screen
 - [ ] Test client
 - [ ] Constant special area names in tests and game 
-- [ ] Boosta not spawning?
+- [ ] Boosts not spawning?
+- [ ] Instant kill button or key
 
 ## Design Workspace
 - [-] Rotations
@@ -50,11 +51,15 @@
     - [-] Plane
     - [-] Disconnected
     - [ ] Resize
+    - [ ] Fractal 
+      - [ ] Can implement in a "south zooms out" manner etc. (All 4 directions from center root square?)
   - [ ] Test Play 
     - [ ] Package executable in with tools? soft-deploy and run?
   - [ ] Save All/Everything button 
     - [ ] Cannot compile without save
   - [ ] NSEW buttons on sides of area display 
+  - [ ] Clean up 
+    - [ ] Remove concept of materials? 
 - [ ] Space Edit
   - [ ] Default tile color control
   - [ ] view map
@@ -75,11 +80,26 @@
     - [ ] Send events on tap 
 
 ## World map
-- [ ] Add map color to prototype
- - [ ] generate map colors automatically via regex search for colors by layer acsending 
-- [ ] Area to map (png?)
- - [ ] png to svg so map can be resized? 
-- [ ] Map for spaces (Torus and Plane only?)
+- [-] Add map color to prototype
+ - [-] generate map colors automatically
+- [-] Area to map (png?)
+ - [-] png to svg so map can be resized? - No resize with css
+- [-] Serve an image
+- [-] Space data model 
+ - [-] topology
+ - [-] map
+ - [-] map for subarea (do this with highlighting below)
+ - [-] save space as json 
+  - [-] compile space changes (if any) 
+- [-] Map for spaces (Torus and Plane only?)
+  - [-] Map for fixed size plane/torus
+- [-] "You are here" highlighting? 
+  - [-] 1 map per area generated (May be easy to extend this to other topologies like cube also)
+- [-] Serve maps from game
+  - [-] Deploy 
+  - [-] Map window opens 
+  - [-] Serve image by uuid
+  - [-] Scvale image inside map window 
 
   
 

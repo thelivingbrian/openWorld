@@ -2,77 +2,27 @@ package main
 
 import (
 	"fmt"
-	"html/template"
+	"image"
+	"image/color"
+	"image/png"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 type Space struct {
 	CollectionName string
 	Name           string
+	Topology       string
+	Latitude       int
+	Longitude      int
+	AreaHeight     int
+	AreaWidth      int
 	Areas          []AreaDescription
 }
-
-var divSpacePage = `
-<div id="space_page">
-	<div id="collection_header">
-		<input type="hidden" name="currentCollection" value="{{.Name}}" />
-		<span>
-			<b>Collection:</b>  {{.Name}}  
-			<b>(<a hx-get="/deploy" hx-include="[name='currentCollection']" hx-target="#panel" href="#">Deploy</a>)</b>
-		</span>
-	</div>
-	<br />
-	<div id="space_select">
-		<label>Space: <a hx-get="/spaces/new" hx-include="[name='currentCollection']" hx-target="#space_select" href="#">New</a></label>
-		<select name="currentSpace" hx-get="/areas" hx-include="[name='currentCollection']" hx-target="#area_select">
-			<option value=""></option>
-			{{range  $key, $value := .Spaces}}
-				<option value="{{$key}}">{{$key}}</option>
-			{{end}}
-		</select>
-		<div id="area_select">
-
-		</div>
-	</div>
-	<br />
-</div>`
-var spacesTmpl = template.Must(template.New("SpacesPage").Parse(divSpacePage))
-
-var divNewSpace = `
-<div id="space_new">
-	<form hx-post="/spaces">
-		<input type="hidden" name="currentCollection" value="{{.Name}}" />
-		
-		<h3>Create New Space</h3>
-		<label><b>Space Name: </b></label>
-		<input type="text" name="newSpaceName" /><br />
-		<br />
-		<label><b>Latitude: </b></label>
-		<input type="text" name="latitude" /><br />
-		
-		<label><b>Longitude: </b></label>
-		<input type="text" name="longitude" /><br />
-
-		<label><b>Topology: </b></label><br />
-		<span><input type="radio" name="topology" value="plane" checked />Plane</span><br />
-		<span><input type="radio" name="topology" value="torus" />Torus</span><br />
-		<span><input type="radio" name="topology" value="disconnected" />Disconnected</span><br />
-		<br /> 
-
-		</label><b>Area Dimensions</b></label><br />
-		<label>Width : </label><input type="text" name="areaWidth" value="16"/>
-		<label>Height : </label><input type="text" name="areaHeight" value="16" /><br />
-		
-		<label>Default Tile Color : </label>
-		<input type="text" name="tileColor" /><br />
-
-		<input type="submit" />
-	</form>
-</div>`
-
-var spaceTmpl = template.Must(template.New("SpacePage").Parse(divNewSpace))
 
 func (c Context) spacesHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
@@ -87,7 +37,7 @@ func (c Context) getSpaces(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	name := queryValues.Get("collectionName")
 	if col, ok := c.Collections[name]; ok {
-		err := spacesTmpl.Execute(w, col)
+		err := tmpl.ExecuteTemplate(w, "space-page", col)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -201,7 +151,7 @@ func createSpace(cName, name string, latitude, longitude int, topology string, h
 		flatAreas = append(flatAreas, areas[i]...)
 	}
 
-	out := Space{CollectionName: cName, Name: name, Areas: flatAreas}
+	out := Space{CollectionName: cName, Name: name, Topology: topology, Latitude: latitude, Longitude: longitude, AreaHeight: height, AreaWidth: width, Areas: flatAreas}
 	return out
 }
 
@@ -262,8 +212,146 @@ func (c Context) newSpaceHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (col Collection) getNewSpace(w http.ResponseWriter, _ *http.Request) {
-	err := spaceTmpl.Execute(w, col)
+	err := tmpl.ExecuteTemplate(w, "space-new", col)
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+//
+
+func (c Context) spaceMapHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		properties, _ := requestToProperties(r)
+		colName := properties["currentCollection"]
+		spaceName := properties["currentSpace"]
+		fmt.Println("Collection Name: " + colName)
+		fmt.Println("Space Name Name: " + spaceName)
+		if col, ok := c.Collections[colName]; ok {
+			if space, ok := col.Spaces[spaceName]; ok {
+				c.generateAllPNGs(space)
+			}
+		}
+		io.WriteString(w, `<img src="/images/map/`+spaceName+`?currentCollection=`+colName+`" width="350" alt="map of space">`)
+	}
+}
+
+func (c Context) generateAllPNGs(space *Space) bool {
+	simpleTiling := space.Topology == "torus" || space.Topology == "plane"
+	if simpleTiling {
+		img := c.generateImageFromSpace(space)
+		path := c.pathToMapsForSpace(space)
+		os.MkdirAll(path, 0755)
+		filename := fmt.Sprintf("%s.png", space.Name)
+		fullPath := filepath.Join(path, filename)
+		err := saveImageAsPNG(fullPath, img)
+		if err != nil {
+			panic(err)
+		}
+		c.generatePNGForEachArea(space, img)
+	} else {
+		fmt.Println("Only Simply tiled topologies are supported")
+	}
+	return simpleTiling
+}
+
+func (c Context) generateImageFromSpace(space *Space) *image.RGBA {
+	fmt.Println("Generating Png From space with simple tiling")
+	latitude := space.Latitude
+	areaHeight := space.AreaHeight
+	pixelHeight := latitude * areaHeight
+	longitude := space.Longitude
+	areaWidth := space.AreaWidth
+	pixelWidth := longitude * areaWidth
+	col, ok := c.Collections[space.CollectionName]
+	if !ok {
+		panic("Invalid Collection Name on space: " + space.CollectionName)
+	}
+
+	img := image.NewRGBA(image.Rect(0, 0, pixelWidth, pixelHeight))
+	for k := 0; k < latitude; k++ {
+		for j := 0; j < longitude; j++ {
+			area := getAreaByName(space.Areas, fmt.Sprintf("%s:%d-%d", space.Name, k, j))
+			if area == nil {
+				fmt.Println("no area" + fmt.Sprintf("%s:%d:%d", space.Name, k, j))
+				continue
+			}
+			areaColor := c.findColorByName(area.DefaultTileColor)
+			for row := range area.Blueprint.Tiles {
+				for column, tile := range area.Blueprint.Tiles[row] {
+					proto := col.findPrototypeById(tile.PrototypeId)
+					protoColor := c.findColorByName(proto.MapColor)
+					if protoColor.CssClassName == "invalid" {
+						protoColor = areaColor
+					}
+					img.Set((j*areaWidth)+column, (k*areaHeight)+row, color.RGBA{R: uint8(protoColor.R), G: uint8(protoColor.G), B: uint8(protoColor.B), A: 255})
+				}
+			}
+		}
+	}
+
+	return img
+}
+
+func (c Context) generatePNGForEachArea(space *Space, img *image.RGBA) {
+	for k := 0; k < space.Latitude; k++ {
+		for j := 0; j < space.Longitude; j++ {
+			area := getAreaByName(space.Areas, fmt.Sprintf("%s:%d-%d", space.Name, k, j))
+			if area == nil {
+				fmt.Println("no area" + fmt.Sprintf("%s:%d-%d", space.Name, k, j))
+				continue
+			}
+			image := addRedSquare(img, k*space.AreaHeight, j*space.AreaWidth, space.AreaHeight, space.AreaWidth)
+			filename := filepath.Join(c.pathToMapsForSpace(space), areaToFilename(area))
+			err := saveImageAsPNG(filename, image)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+
+}
+
+func areaToFilename(area *AreaDescription) string {
+	return strings.ReplaceAll(area.Name, ":", "-") + ".png"
+}
+
+func addRedSquare(img *image.RGBA, y0, x0, height, width int) *image.RGBA {
+	copy := image.NewRGBA(img.Bounds())
+	copy.Pix = append(copy.Pix[:0], img.Pix...)
+
+	for deltaY := 0; deltaY < height; deltaY++ {
+		copy.Set(x0, y0+deltaY, color.RGBA{R: 255, A: 255})
+		copy.Set(x0+width-1, y0+deltaY, color.RGBA{R: 255, A: 255})
+	}
+	for deltaX := 0; deltaX < width; deltaX++ {
+		copy.Set(x0+deltaX, y0, color.RGBA{R: 255, A: 255})
+		copy.Set(x0+deltaX, y0+height-1, color.RGBA{R: 255, A: 255})
+	}
+
+	return copy
+}
+
+func (c Context) findColorByName(s string) Color {
+	for _, color := range c.colors {
+		if color.CssClassName == s {
+			return color
+		}
+	}
+	return Color{CssClassName: "invalid"}
+}
+
+func saveImageAsPNG(filename string, img image.Image) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	err = png.Encode(file, img)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

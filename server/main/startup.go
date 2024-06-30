@@ -129,10 +129,11 @@ type Area struct {
 	Tiles            [][]int     `json:"tiles"`
 	Transports       []Transport `json:"transports"`
 	DefaultTileColor string      `json:"defaultTileColor"`
-	North            string      `json:"north,omitempty"`
-	South            string      `json:"south,omitempty"`
-	East             string      `json:"east,omitempty"`
-	West             string      `json:"west,omitempty"`
+	North            string      `json:"north"`
+	South            string      `json:"south"`
+	East             string      `json:"east"`
+	West             string      `json:"west"`
+	MapId            string      `json:"mapId"`
 }
 
 var (
@@ -140,8 +141,8 @@ var (
 	areas     []Area
 )
 
-func populateStructUsingFileName[T any](ptr *T, fn string) {
-	jsonData, err := os.ReadFile(fmt.Sprintf("./data/%s.json", fn))
+func populateStructUsingFileName[T any](ptr *T, filename string) {
+	jsonData, err := os.ReadFile(fmt.Sprintf("./data/%s.json", filename))
 	if err != nil {
 		panic(err)
 	}

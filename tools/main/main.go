@@ -17,6 +17,7 @@ func main() {
 	http.HandleFunc("/collections", c.collectionsHandler)
 	http.HandleFunc("/spaces", c.spacesHandler)
 	http.HandleFunc("/spaces/new", c.newSpaceHandler)
+	http.HandleFunc("/space/map", c.spaceMapHandler)
 	http.HandleFunc("/areas", c.areasHandler)
 	http.HandleFunc("/areas/new", c.newAreaHandler)
 	http.HandleFunc("/area", c.areaHandler)
@@ -39,6 +40,7 @@ func main() {
 	http.HandleFunc("/grid/edit", c.gridEditHandler)
 	http.HandleFunc("/grid/click/area", c.gridClickAreaHandler)
 	http.HandleFunc("/grid/click/fragment", c.gridClickFragmentHandler)
+	http.HandleFunc("/images/", c.imageHandler)
 
 	http.HandleFunc("/materialPage", c.getMaterialPage)
 	http.HandleFunc("/getEditMaterial", c.getEditMaterial)
@@ -63,6 +65,7 @@ func main() {
 	http.HandleFunc("/deleteTransport", c.deleteTransport)
 
 	http.HandleFunc("/deploy", c.deploy)
+	http.HandleFunc("/compile", c.compile)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			http.NotFound(w, r)

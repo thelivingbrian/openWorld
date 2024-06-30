@@ -1,7 +1,9 @@
 server/main/main
 server/main/cert/*
 tools/main/main
+tools/main/data/out**
 /*.sh
 /scratch.*
 /*.txt
 main.exe
+**/spaces/maps/**
