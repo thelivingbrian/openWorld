@@ -76,8 +76,11 @@
       - [-] Test
   - [ ] Mobile controls
     - [ ] Detect Touch Screen
-    - [ ] Display controls
-    - [ ] Send events on tap 
+    - [-] Display controls
+    - [-] Send events on tap 
+    - [ ] Test on device
+    - [ ] menus
+    - [ ] shift 
 
 ## World map
 - [-] Add map color to prototype
