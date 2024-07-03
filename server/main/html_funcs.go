@@ -95,7 +95,7 @@ func printPageFor(player *Player) string {
 			<div id="modal_background">
 				
 			</div>
-			` + divInputDesktop() + `
+			` + divInputMobile() + `
 			<div id="script"></div>
 		</div>
 	</div>`
@@ -131,6 +131,27 @@ func divInputDesktop() string {
 		<input id="g" type="hidden" ws-send hx-trigger="keydown[key=='g'] from:body" hx-include="#token" name="eventname" value="g" />
 		<input id="menuOn" type="hidden" ws-send hx-trigger="keydown[key=='m'||key=='M'||key=='Escape'] from:body" hx-include="#token" name="eventname" value="menuOn" />
 		<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body" hx-include="#token" name="eventname" value="Space-On" />
+	</div>
+`
+}
+
+func divInputMobile() string {
+	return `
+	<div id="input">
+		<input id="w" type="hidden" ws-send hx-trigger="click from:#Butw" hx-include="#token" name="eventname" hx-include="#token" value="w" />
+		<input id="a" type="hidden" ws-send hx-trigger="click from:#Buta" hx-include="#token" name="eventname" hx-include="#token" value="a" />
+		<input id="s" type="hidden" ws-send hx-trigger="click from:#Buts" hx-include="#token" name="eventname" hx-include="#token" value="s" />
+		<input id="d" type="hidden" ws-send hx-trigger="click from:#Butd" hx-include="#token" name="eventname" hx-include="#token" value="d" />
+		<input id="Butw" type="button" value="w" />
+		<input id="Buta" type="button" value="a" />
+		<input id="Buts" type="button" value="s" />
+		<input id="Butd" type="button" value="d" />
+		<input id="wShift" type="hidden" ws-send hx-trigger="keydown[key=='W'] from:body" hx-include="#token" name="eventname" value="W" />
+		<input id="aShift" type="hidden" ws-send hx-trigger="keydown[key=='A'] from:body" hx-include="#token" name="eventname" value="A" />
+		<input id="sShift" type="hidden" ws-send hx-trigger="keydown[key=='S'] from:body" hx-include="#token" name="eventname" value="S" />
+		<input id="dShift" type="hidden" ws-send hx-trigger="keydown[key=='D'] from:body" hx-include="#token" name="eventname" value="D" />
+		<input id="menuOn" type="button" ws-send hx-trigger="keydown[key=='m'||key=='M'||key=='Escape'] from:body" hx-include="#token" name="eventname" value="menuOn" />
+		<input id="space-on" type="button" ws-send hx-trigger="keydown[key==' '] from:body" hx-include="#token" name="eventname" value="Space-On" />
 	</div>
 `
 }
