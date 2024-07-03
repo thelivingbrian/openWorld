@@ -142,16 +142,30 @@ func divInputMobile() string {
 		<input id="a" type="hidden" ws-send hx-trigger="click from:#Buta" hx-include="#token" name="eventname" hx-include="#token" value="a" />
 		<input id="s" type="hidden" ws-send hx-trigger="click from:#Buts" hx-include="#token" name="eventname" hx-include="#token" value="s" />
 		<input id="d" type="hidden" ws-send hx-trigger="click from:#Butd" hx-include="#token" name="eventname" hx-include="#token" value="d" />
-		<input id="Butw" type="button" value="w" />
-		<input id="Buta" type="button" value="a" />
-		<input id="Buts" type="button" value="s" />
-		<input id="Butd" type="button" value="d" />
+
 		<input id="wShift" type="hidden" ws-send hx-trigger="keydown[key=='W'] from:body" hx-include="#token" name="eventname" value="W" />
 		<input id="aShift" type="hidden" ws-send hx-trigger="keydown[key=='A'] from:body" hx-include="#token" name="eventname" value="A" />
 		<input id="sShift" type="hidden" ws-send hx-trigger="keydown[key=='S'] from:body" hx-include="#token" name="eventname" value="S" />
 		<input id="dShift" type="hidden" ws-send hx-trigger="keydown[key=='D'] from:body" hx-include="#token" name="eventname" value="D" />
-		<input id="menuOn" type="button" ws-send hx-trigger="keydown[key=='m'||key=='M'||key=='Escape'] from:body" hx-include="#token" name="eventname" value="menuOn" />
-		<input id="space-on" type="button" ws-send hx-trigger="keydown[key==' '] from:body" hx-include="#token" name="eventname" value="Space-On" />
+		<input id="menuOn" type="hidden" ws-send hx-trigger="keydown[key=='m'||key=='M'||key=='Escape'] from:body" hx-include="#token" name="eventname" value="menuOn" />
+		<input id="space-on" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body" hx-include="#token" name="eventname" value="Space-On" />
+	
+		<div class="container">
+			<div class="dpad-container">
+				<button id="Butw" class="button up">Up</button>
+				<button id="Buta" class="button left">Left</button>
+				<button class="button middle"></button>
+				<button id="Butd" class="button right">Right</button>
+				<button id="Buts" class="button down">Down</button>
+			</div>
+			<div class="center-container">
+			</div>
+			<div class="a-b-container">
+				<button class="button A">A</button>
+				<button class="button B">B</button>
+			</div>
+		</div>
+	
 	</div>
 `
 }
