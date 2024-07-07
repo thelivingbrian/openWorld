@@ -76,13 +76,19 @@
         - [-] 5x5 with river
       - [-] Test
   - [ ] Mobile controls
-    - [ ] Detect Touch Screen
+    - [?] Detect Touch Screen
     - [-] Display controls
     - [-] Send events on tap 
-    - [ ] Test on device
+    - [-] Test on device
     - [-] menus
-      - [ ] touch input vs adding controls for mobile? (Try touch first)
+      - [-] touch input vs adding controls for mobile? (Try touch first)
+      - [-] touch may be better for menu 
     - [-] shift 
+    - [ ] bottom text 
+      - [ ] center on desktop
+      - [ ] notification on mobile
+    - [ ] desktop cenetering
+      - [ ] info div
 
 ## Kill streak
  - [ ] User Streak
