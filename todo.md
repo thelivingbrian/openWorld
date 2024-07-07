@@ -8,6 +8,7 @@
 - [ ] Constant special area names in tests and game 
 - [ ] Boosts not spawning?
 - [ ] Instant kill button or key
+- [ ] Shift prevents stage changes even with no boosts 
 
 ## Design Workspace
 - [-] Rotations
@@ -79,8 +80,13 @@
     - [-] Display controls
     - [-] Send events on tap 
     - [ ] Test on device
-    - [ ] menus
-    - [ ] shift 
+    - [-] menus
+      - [ ] touch input vs adding controls for mobile? (Try touch first)
+    - [-] shift 
+
+## Kill streak
+ - [ ] User Streak
+ - [ ] DB stuff 
 
 ## World map
 - [-] Add map color to prototype
@@ -107,7 +113,7 @@
   
 
 
-### Transformation syntax:
+## Transformation syntax:
 layerXCss : "static {transformationType:value} string"
 
 

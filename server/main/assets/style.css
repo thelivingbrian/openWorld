@@ -365,6 +365,20 @@ img {
     align-items: center;
     cursor: pointer;
 }
+.half-button {
+    width: 50px;
+    height: 28px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
 .up { grid-area: up; }
 .down { grid-area: down; }
 .left { grid-area: left; }

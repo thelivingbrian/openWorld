@@ -176,6 +176,12 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 			player.activatePower()
 		}
 	}
+	if event.Name == "Shift-On" {
+		updateOne(divInputMobileShift(), player)
+	}
+	if event.Name == "Shift-Off" {
+		updateOne(divInputMobile(), player)
+	}
 	if event.Name == "menuOn" {
 		event.MenuName = "pause" // Gross but need to think about
 		turnMenuOn(player, *event)
