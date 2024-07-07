@@ -29,6 +29,8 @@ body {
     color: white;
     font-size: 28px;
     overflow: none;
+    margin: 0;
+    margin-left: 8;
 }
 
 .day {
@@ -45,22 +47,18 @@ body {
 
 #page {
     width:100%;
-}
-
-#screen {
-    width:100%;
     justify-content: center;
 }
+
 
 #main_view {
-    width: 100%;
-    justify-content: center;
+    width:100%;
 }
 
 #logo {
     width:100%;
-    display: flex;
-    justify-content: center;
+    
+    text-align: center;
 }
 
 .large-font {
@@ -118,14 +116,34 @@ img {
 .grid {
     display: grid;
   }
-  
+
+@media (orientation: landscape) {
+ #screen {
+     width: 50%
+ }
+
+ .logo-img {
+    width: 50%
+ }
+}
+
+@media (orientation: portrait) {
+ #screen {
+     width: 92%
+ }
+
+ .logo-img {
+    width: 92%
+ }
+}
+
 .grid-row {
-    display: flex;
+    display: grid;        
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
   }
   
-  .grid-square {
-    width: 30px;
-    height: 30px;
+.grid-square {
+    aspect-ratio: 1;
     border: 0px solid rgba(172, 152, 219,0);
     /*background-color: rgb(172, 152, 219);*/
     cursor: pointer;
@@ -192,8 +210,8 @@ img {
   }
 
   .box {
-    width: 30px;
-    height: 30px;
+    width: 100%;
+    height: 100%;
     position: absolute;
     top: 0px;
     left: 0px;
@@ -417,12 +435,3 @@ img {
 .A { grid-area: a; }
 .B { grid-area: b; }
 
-/*
-input[type="text"],
-input[type="number"],
-input[type="email"],
-input[type="tel"],
-input[type="password"] {
-  font-size: 16px;
-}
-  */

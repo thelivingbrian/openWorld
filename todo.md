@@ -76,7 +76,7 @@
         - [-] 5x5 with river
       - [-] Test
   - [ ] Mobile controls
-    - [?] Detect Touch Screen
+    - [ ] Detect Touch Screen
     - [-] Display controls
     - [-] Send events on tap 
     - [-] Test on device
