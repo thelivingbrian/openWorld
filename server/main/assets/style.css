@@ -43,6 +43,20 @@ body {
     background-color: #ff6a5c;
 }
 
+#page {
+    width:100%;
+}
+
+#screen {
+    width:100%;
+    justify-content: center;
+}
+
+#main_view {
+    width: 100%;
+    justify-content: center;
+}
+
 #logo {
     width:100%;
     display: flex;
@@ -345,13 +359,13 @@ img {
 
 .container {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 10px;
-    margin-top: 50px;
+    grid-template-columns: 2fr 1fr 2fr;
+    gap: 6px;
+    /*margin-top: 50px;*/
     position: fixed;
     z-index: 101;
     left: 0;
-    bottom: 0;
+    bottom: 80;
     width: 100%;
 }
 .dpad-container {
@@ -363,8 +377,6 @@ img {
     gap: 5px;
 }
 .button {
-    width: 65px;
-    height: 65px;
     background-color: #333;
     color: #fff;
     border: none;
@@ -373,10 +385,10 @@ img {
     justify-content: center;
     align-items: center;
     cursor: pointer;
+    height: 100%;
+    aspect-ratio: 1;
 }
 .half-button {
-    width: 65px;
-    height: 32px;
     background-color: #333;
     color: #fff;
     border: none;
@@ -405,6 +417,7 @@ img {
 .A { grid-area: a; }
 .B { grid-area: b; }
 
+/*
 input[type="text"],
 input[type="number"],
 input[type="email"],
@@ -412,3 +425,4 @@ input[type="tel"],
 input[type="password"] {
   font-size: 16px;
 }
+  */
