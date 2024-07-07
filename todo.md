@@ -77,6 +77,8 @@
       - [-] Test
   - [ ] Mobile controls
     - [ ] Detect Touch Screen
+      - [-] detect landscape/protrait 
+      - [ ] show buttons only on mobile
     - [-] Display controls
     - [-] Send events on tap 
     - [-] Test on device
@@ -89,6 +91,7 @@
       - [ ] notification on mobile
     - [ ] desktop cenetering
       - [ ] info div
+    - [-] Resize grid squares
 
 ## Kill streak
  - [ ] User Streak
