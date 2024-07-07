@@ -12,6 +12,10 @@
     font-size: 20px;
 }
 
+html, body {
+    overflow-x: hidden;
+  }
+
 body {
     /*
     Sunset: #ef693c;
@@ -344,6 +348,11 @@ img {
     grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
     margin-top: 50px;
+    position: fixed;
+    z-index: 101;
+    left: 0;
+    bottom: 0;
+    width: 100%;
 }
 .dpad-container {
     display: grid;
@@ -354,8 +363,8 @@ img {
     gap: 5px;
 }
 .button {
-    width: 50px;
-    height: 50px;
+    width: 65px;
+    height: 65px;
     background-color: #333;
     color: #fff;
     border: none;
@@ -366,8 +375,8 @@ img {
     cursor: pointer;
 }
 .half-button {
-    width: 50px;
-    height: 28px;
+    width: 65px;
+    height: 32px;
     background-color: #333;
     color: #fff;
     border: none;
@@ -395,3 +404,11 @@ img {
 
 .A { grid-area: a; }
 .B { grid-area: b; }
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="tel"],
+input[type="password"] {
+  font-size: 16px;
+}
