@@ -164,7 +164,7 @@ func turnMenuOn(p *Player, event PlayerSocketEvent) {
 }
 
 func turnMenuOff(p *Player, event PlayerSocketEvent) {
-	p.trySend([]byte(divModalDisabled() + divInputDesktop()))
+	p.trySend([]byte(divModalDisabled() + divInput()))
 }
 
 func menuUp(p *Player, event PlayerSocketEvent) {
@@ -217,7 +217,7 @@ func Map(p *Player, event PlayerSocketEvent) {
 	copy := mapMenu
 	if p.stage.mapId != "" {
 		mapPath := "/images/" + p.stage.mapId
-		copy.InfoHtml = template.HTML(`<img src="` + mapPath + `" width="350" alt="map of space" />`)
+		copy.InfoHtml = template.HTML(`<img src="` + mapPath + `" width="100%" alt="map of space" />`)
 	} else {
 		copy.InfoHtml = `<h2>unavailable</h2>`
 

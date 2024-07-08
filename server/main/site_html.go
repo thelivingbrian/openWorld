@@ -30,9 +30,9 @@ func signInPage() string {
 	return `
 	<form hx-post="/signin" hx-trigger="click from:#link_submit, keydown[key=='Enter']" hx-target="#landing">
 		<div>
-			<label>Email:</label>
+			<label>Email:</label><br />
 			<input class="retro-input" type="text" name="email" value=""><br />
-			<label>Password:</label>
+			<label>Password:</label><br />
 			<input class="retro-input" type="text" name="password" value=""><br />
 			<a id="link_submit" href="#">Submit</a><br />
 			<a id="link_back" href="/">Back</a>

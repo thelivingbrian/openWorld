@@ -8,6 +8,7 @@
 - [ ] Constant special area names in tests and game 
 - [ ] Boosts not spawning?
 - [ ] Instant kill button or key
+- [ ] Shift prevents stage changes even with no boosts 
 
 ## Design Workspace
 - [-] Rotations
@@ -67,17 +68,37 @@
     - [ ] Absolute (for plane/torus)
     - [ ] Relative? (some topologies may not project simply into a map)
 
-## Mobile Controls
-  - [-] Cleanup current branch
-    - [-] Add missing test and square stages
-      - [-] Square 
-        - [-] 4x4 with center river (Looks and plays bad should offset) 
-        - [-] 5x5 with river
-      - [-] Test
-  - [ ] Mobile controls
-    - [ ] Detect Touch Screen
-    - [ ] Display controls
-    - [ ] Send events on tap 
+## Mobile
+  - [-] Controls
+    - [-] Cleanup current branch
+      - [-] Add missing test and square stages
+        - [-] Square 
+          - [-] 4x4 with center river (Looks and plays bad should offset) 
+          - [-] 5x5 with river
+        - [-] Test
+    - [-] Mobile controls
+      - [-] Detect Touch Screen
+        - [-] detect landscape/protrait 
+        - [-] show buttons only on mobile
+      - [-] Display controls
+      - [-] Send events on tap 
+      - [-] Test on device
+      - [-] menus
+        - [-] touch input vs adding controls for mobile? (Try touch first)
+        - [-] touch may be better for menu 
+      - [-] shift 
+      - [-] desktop cenetering
+        - [-] info div
+      - [-] Resize grid squares
+  - [-] fix display of map
+
+## Bottom text
+ - [ ] Trigger
+ - [ ] Display as "!" Notification in mobile instead of on screen
+
+## Kill streak
+ - [ ] User Streak
+ - [ ] DB stuff 
 
 ## World map
 - [-] Add map color to prototype
@@ -104,7 +125,7 @@
   
 
 
-### Transformation syntax:
+## Transformation syntax:
 layerXCss : "static {transformationType:value} string"
 
 
