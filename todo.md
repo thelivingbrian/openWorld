@@ -68,30 +68,33 @@
     - [ ] Absolute (for plane/torus)
     - [ ] Relative? (some topologies may not project simply into a map)
 
-## Mobile Controls
-  - [-] Cleanup current branch
-    - [-] Add missing test and square stages
-      - [-] Square 
-        - [-] 4x4 with center river (Looks and plays bad should offset) 
-        - [-] 5x5 with river
-      - [-] Test
-  - [ ] Mobile controls
-    - [ ] Detect Touch Screen
-      - [-] detect landscape/protrait 
-      - [-] show buttons only on mobile
-    - [-] Display controls
-    - [-] Send events on tap 
-    - [-] Test on device
-    - [-] menus
-      - [-] touch input vs adding controls for mobile? (Try touch first)
-      - [-] touch may be better for menu 
-    - [-] shift 
-    - [ ] bottom text 
-      - [-] center on desktop
-      - [ ] notification on mobile
-    - [-] desktop cenetering
-      - [-] info div
-    - [-] Resize grid squares
+## Mobile
+  - [-] Controls
+    - [-] Cleanup current branch
+      - [-] Add missing test and square stages
+        - [-] Square 
+          - [-] 4x4 with center river (Looks and plays bad should offset) 
+          - [-] 5x5 with river
+        - [-] Test
+    - [-] Mobile controls
+      - [-] Detect Touch Screen
+        - [-] detect landscape/protrait 
+        - [-] show buttons only on mobile
+      - [-] Display controls
+      - [-] Send events on tap 
+      - [-] Test on device
+      - [-] menus
+        - [-] touch input vs adding controls for mobile? (Try touch first)
+        - [-] touch may be better for menu 
+      - [-] shift 
+      - [-] desktop cenetering
+        - [-] info div
+      - [-] Resize grid squares
+  - [ ] fix display of map
+
+## Bottom text
+ - [ ] Trigger
+ - [ ] Display as "!" Notification in mobile instead of on screen
 
 ## Kill streak
  - [ ] User Streak
