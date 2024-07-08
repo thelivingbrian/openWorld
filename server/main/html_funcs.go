@@ -95,7 +95,7 @@ func printPageFor(player *Player) string {
 			<div id="modal_background">
 				
 			</div>
-			` + divInputMobile() + `
+			` + divInput() + `
 			<div id="script"></div>
 		</div>
 	</div>`
@@ -116,7 +116,7 @@ func divModalDisabled() string {
 	`
 }
 
-func divInputMobile() string {
+func divInput() string {
 	return `
 	<div id="input">
 		<div id="input-desktop">
@@ -164,7 +164,7 @@ func divInputMobile() string {
 `
 }
 
-func divInputMobileShift() string {
+func divInputShift() string {
 	return `
 	<div id="input">
 		<div id="input-desktop">

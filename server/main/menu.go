@@ -164,7 +164,7 @@ func turnMenuOn(p *Player, event PlayerSocketEvent) {
 }
 
 func turnMenuOff(p *Player, event PlayerSocketEvent) {
-	p.trySend([]byte(divModalDisabled() + divInputMobile()))
+	p.trySend([]byte(divModalDisabled() + divInput()))
 }
 
 func menuUp(p *Player, event PlayerSocketEvent) {
