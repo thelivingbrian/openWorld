@@ -106,14 +106,12 @@ a {
     padding: 20px;
     border: 1px solid #888;
     width: 75%;
-    /*height: 300px; */
     position: relative;
     top: 20%;
-    transform: translateY(-50%);
 }
 
 img {
-    image-rendering: pixelated; /* or 'crisp-edges' */
+    image-rendering: pixelated; 
 }
 
 
@@ -386,67 +384,66 @@ img {
 
 
 @media (hover:none), (hover:on-demand) { 
-    /* custom css for "touch targets" */
-.container {
-    display: grid;
-    grid-template-columns: 2fr 1fr 2fr;
-    gap: 6px;
-    /*margin-top: 50px;*/
-    position: fixed;
-    z-index: 101;
-    left: 0;
-    bottom: 80;
-    width: 100%;
-}
-.dpad-container {
-    display: grid;
-    grid-template-areas: 
-        "x0 up x1"
-        "left middle right"
-        "x2 down x3";
-    gap: 5px;
-}
-.button {
-    background-color: #333;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    height: 100%;
-    aspect-ratio: 1;
-}
-.half-button {
-    background-color: #333;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-}
-.up { grid-area: up; }
-.down { grid-area: down; }
-.left { grid-area: left; }
-.right { grid-area: right; }
-.middle { grid-area: middle; visibility: hidden; }
-.a-b-container {
-    display: grid;
-    grid-template-areas: 
-        "x0 a"
-        "b x1";
-    gap: 10px;
-    float: right;
-}
+    /* Controls and style for non-desktop e.g mobile, touch */
+    .container {
+        display: grid;
+        grid-template-columns: 2fr 1fr 2fr;
+        gap: 6px;
+        /*margin-top: 50px;*/
+        position: fixed;
+        z-index: 101;
+        left: 0;
+        bottom: 80;
+        width: 100%;
+    }
+    .dpad-container {
+        display: grid;
+        grid-template-areas: 
+            "x0 up x1"
+            "left middle right"
+            "x2 down x3";
+        gap: 5px;
+    }
+    .button {
+        background-color: #333;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        height: 100%;
+        aspect-ratio: 1;
+    }
+    .half-button {
+        background-color: #333;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+    .up { grid-area: up; }
+    .down { grid-area: down; }
+    .left { grid-area: left; }
+    .right { grid-area: right; }
+    .middle { grid-area: middle; visibility: hidden; }
+    .a-b-container {
+        display: grid;
+        grid-template-areas: 
+            "x0 a"
+            "b x1";
+        gap: 10px;
+        float: right;
+    }
 
-.A { grid-area: a; }
-.B { grid-area: b; }
-  
+    .A { grid-area: a; }
+    .B { grid-area: b; }
 }
 
 

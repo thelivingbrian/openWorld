@@ -90,7 +90,7 @@
       - [-] desktop cenetering
         - [-] info div
       - [-] Resize grid squares
-  - [ ] fix display of map
+  - [-] fix display of map
 
 ## Bottom text
  - [ ] Trigger

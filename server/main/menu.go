@@ -217,7 +217,7 @@ func Map(p *Player, event PlayerSocketEvent) {
 	copy := mapMenu
 	if p.stage.mapId != "" {
 		mapPath := "/images/" + p.stage.mapId
-		copy.InfoHtml = template.HTML(`<img src="` + mapPath + `" width="350" alt="map of space" />`)
+		copy.InfoHtml = template.HTML(`<img src="` + mapPath + `" width="100%" alt="map of space" />`)
 	} else {
 		copy.InfoHtml = `<h2>unavailable</h2>`
 
