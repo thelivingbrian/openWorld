@@ -380,7 +380,13 @@ img {
 
 
 /* Buttons */
+.container {
+    display: none;
+}
 
+
+@media (hover:none), (hover:on-demand) { 
+    /* custom css for "touch targets" */
 .container {
     display: grid;
     grid-template-columns: 2fr 1fr 2fr;
@@ -440,4 +446,7 @@ img {
 
 .A { grid-area: a; }
 .B { grid-area: b; }
+  
+}
+
 
