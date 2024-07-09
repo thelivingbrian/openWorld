@@ -2,7 +2,7 @@
 
 ## Engine
 - [ ] Update player view refactor
-  - [ ] Empty boost swaps 
+  - [-] Empty boost swaps 
 - [ ] Admin screen
 - [ ] Test client
 - [ ] Constant special area names in tests and game 
@@ -97,8 +97,11 @@
  - [ ] Display as "!" Notification in mobile instead of on screen
 
 ## Kill streak
- - [ ] User Streak
+ - [-] User Streak
  - [ ] DB stuff 
+   - [ ] Total kills
+   - [ ] Total Deaths
+   - [ ] Highest Streak
 
 ## World map
 - [-] Add map color to prototype

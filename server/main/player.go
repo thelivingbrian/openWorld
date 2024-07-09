@@ -22,6 +22,7 @@ type Player struct {
 	health     int
 	money      int
 	experience int
+	killstreak int
 }
 
 // Health observer, All Health changes should go through here
@@ -38,6 +39,16 @@ func (player *Player) setHealth(n int) {
 func (player *Player) setMoney(n int) {
 	player.money = n
 	updateOne(divPlayerInformation(player), player)
+}
+
+// Money observer, All Money changes should go through here
+func (player *Player) setKillStreak(n int) {
+	player.killstreak = n
+	updateOne(divPlayerInformation(player), player)
+}
+
+func (player *Player) incrementKillStreak() {
+	player.setKillStreak(player.killstreak + 1)
 }
 
 func (player *Player) isDead() bool {
@@ -89,6 +100,7 @@ func (player *Player) removeFromStage() {
 // Recv type
 func respawn(player *Player) {
 	player.setHealth(150)
+	player.setKillStreak(0)
 	player.stageName = "clinic"
 	player.x = 2
 	player.y = 2
@@ -238,15 +250,15 @@ func (p *Player) move(yOffset int, xOffset int) {
 	destY := p.y + yOffset
 	destX := p.x + xOffset
 	if validCoordinate(destY, destX, p.stage.tiles) && walkable(p.stage.tiles[destY][destX]) {
-		currentTile := p.stage.tiles[p.y][p.x]
+		sourceTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
 
-		currentTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
+		sourceTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
 		destTile.addPlayerAndNotifyOthers(p)
 
-		previousTile := currentTile
+		previousTile := sourceTile
 		impactedTiles := p.updateSpaceHighlights()
-		impactedTiles = append(impactedTiles, p.updateShiftHighlights()...)
+		//impactedTiles = append(impactedTiles, p.updateShiftHighlights()...)
 		updateOneAfterMovement(p, impactedTiles, previousTile)
 	}
 }
@@ -268,7 +280,7 @@ func (player *Player) setSpaceHighlights() {
 	}
 }
 
-func (player *Player) updateSpaceHighlights() []*Tile {
+func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highlights
 	previous := player.actions.spaceHighlights
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceStack.peek().areaOfInfluence)
@@ -287,6 +299,7 @@ func (player *Player) updateSpaceHighlights() []*Tile {
 	return append(impactedTiles, mapOfTileToArray(previous)...)
 }
 
+/*
 func (player *Player) updateShiftHighlights() []*Tile { // Returns removed highlights
 	previous := player.actions.shiftHighlights
 	player.actions.shiftHighlights = map[*Tile]bool{}
@@ -306,11 +319,12 @@ func (player *Player) updateShiftHighlights() []*Tile { // Returns removed highl
 	}
 	return append(impactedTiles, mapOfTileToArray(previous)...)
 }
+*/
 
 func (player *Player) activatePower() {
 	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
 	for tile := range player.actions.spaceHighlights {
-		tile.damageAll(50, player)
+		tile.damageAll(150, player)
 
 		tileToHighlight := tile.incrementAndReturnIfFirst()
 		if tileToHighlight != nil {
@@ -340,6 +354,7 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	player.placeOnStage()
 }
 
+/*
 func (player *Player) showBoost() {
 	player.actions.shiftEngaged = true
 	player.actions.shiftHighlights = map[*Tile]bool{}
@@ -358,6 +373,7 @@ func (player *Player) hideBoost() {
 	player.actions.shiftHighlights = map[*Tile]bool{}
 	oobUpdateWithHud(player, mapOfTileToArray(previous))
 }
+*/
 
 /////////////////////////////////////////////////////////////
 // Actions
@@ -367,8 +383,8 @@ type Actions struct {
 	spaceHighlights map[*Tile]bool
 	spaceStack      *StackOfPowerUp
 	boostCounter    int
-	shiftHighlights map[*Tile]bool
-	shiftEngaged    bool
+	//shiftHighlights map[*Tile]bool
+	//shiftEngaged    bool
 }
 
 type PowerUp struct {
@@ -382,19 +398,19 @@ type StackOfPowerUp struct {
 }
 
 func (player *Player) addBoosts(n int) {
-	first := player.actions.boostCounter == 0
+	//first := player.actions.boostCounter == 0
 	player.actions.boostCounter += n
-	if first {
+	/*if first {
 		player.showBoost()
-	}
+	}*/
 	updateOne(divPlayerInformation(player), player)
 }
 
 func (player *Player) useBoost() {
 	player.actions.boostCounter--
-	if player.actions.boostCounter == 0 {
+	/*if player.actions.boostCounter == 0 {
 		player.hideBoost()
-	}
+	}*/
 	updateOne(divPlayerInformation(player), player)
 }
 
@@ -434,5 +450,5 @@ func (stack *StackOfPowerUp) push(power *PowerUp) *StackOfPowerUp {
 }
 
 func createDefaultActions() *Actions {
-	return &Actions{false, map[*Tile]bool{}, &StackOfPowerUp{}, 0, map[*Tile]bool{}, false}
+	return &Actions{false, map[*Tile]bool{}, &StackOfPowerUp{}, 0}
 }

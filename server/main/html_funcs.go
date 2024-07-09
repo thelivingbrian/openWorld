@@ -222,7 +222,7 @@ func divInputDisabled() string {
 
 func playerInformation(player *Player) string {
 	hearts := getHeartsFromHealth(player.health)
-	return fmt.Sprintf(`%s %s<br /><span class="red">Streak %d</span> | <span class="blue">^ %d</span>  | <span class="dark-green">$ %d</span>`, player.username, hearts, 0, player.actions.boostCounter, player.money)
+	return fmt.Sprintf(`%s %s<br /><span class="red">Streak %d</span> | <span class="blue">^ %d</span>  | <span class="dark-green">$ %d</span>`, player.username, hearts, player.killstreak, player.actions.boostCounter, player.money)
 }
 
 func getHeartsFromHealth(i int) string {
@@ -278,12 +278,12 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 		}
 
 		// shiftHighlights not needed, want generic highlight option
-		_, impactsHud := player.actions.shiftHighlights[tile]
+		/*_, impactsHud := player.actions.shiftHighlights[tile]
 		if impactsHud && player.actions.boostCounter > 0 {
 			highlights += oobHighlightBox(tile, shiftHighlighter(tile))
 			//continue
-		}
-		_, impactsHud = player.actions.spaceHighlights[tile]
+		}*/
+		_, impactsHud := player.actions.spaceHighlights[tile]
 		if impactsHud {
 			highlights += oobHighlightBox(tile, spaceHighlighter(tile))
 			continue

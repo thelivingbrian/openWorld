@@ -179,6 +179,8 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 		if !survived {
 			tile.money += player.money / 2 // Use Observer, return diff
 			player.money = player.money / 2
+
+			initiator.incrementKillStreak()
 			// Maybe should just pass in required fields?
 			go player.world.db.saveKillEvent(tile, initiator, player)
 		}
