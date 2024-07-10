@@ -12,7 +12,7 @@ func (stage *Stage) spawnItems() {
 
 	randn := rand.Intn(30)
 	spawnCovered := randn%3 == 0
-	spawnUncovered := randn%10 == 0
+	spawnUncovered := randn%7 == 0
 	heads := randn%2 == 0
 
 	coveredTiles, uncoveredTiles := sortWalkableTiles(stage.tiles)
@@ -33,6 +33,7 @@ func (stage *Stage) spawnItems() {
 			randomIndex2 := rand.Intn(len(shapes))
 			uncoveredTiles[randomIndex].addPowerUpAndNotifyAll(shapes[randomIndex2])
 		} else {
+			// This was mathematically impossible
 			uncoveredTiles[randomIndex].addBoostsAndNotifyAll()
 		}
 	}

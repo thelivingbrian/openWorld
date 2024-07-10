@@ -6,9 +6,9 @@
 - [ ] Admin screen
 - [ ] Test client
 - [ ] Constant special area names in tests and game 
-- [ ] Boosts not spawning?
+- [-] Boosts not spawning at same rate?
 - [ ] Instant kill button or key
-- [ ] Shift prevents stage changes even with no boosts 
+- [-] Shift prevents stage changes even with no boosts 
 
 ## Design Workspace
 - [-] Rotations
@@ -102,6 +102,9 @@
    - [ ] Total kills
    - [ ] Total Deaths
    - [ ] Highest Streak
+   - [ ] Time alive/In Danger ?
+
+## Stats / Metrics
 
 ## World map
 - [-] Add map color to prototype

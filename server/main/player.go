@@ -41,7 +41,7 @@ func (player *Player) setMoney(n int) {
 	updateOne(divPlayerInformation(player), player)
 }
 
-// Money observer, All Money changes should go through here
+// Streak observer, All Money changes should go through here
 func (player *Player) setKillStreak(n int) {
 	player.killstreak = n
 	updateOne(divPlayerInformation(player), player)
@@ -110,14 +110,73 @@ func respawn(player *Player) {
 	player.placeOnStage()
 }
 
+// .   . . . .   . .
+//
+// .   . . . .   . .
+// .   . . . .   . .
+// .   . . . .   . .
+// .   . . . .   . .
+//
+// .   . . . .   . .
+// .   . . . .   . .
+//
+// The one that is 0 is unchanged in neighbor, the other is calculated seperately
+
 func (p *Player) moveNorth() {
-	if p.y == 0 && p.stage.north != "" {
-		p.tryGoNorth()
+	if p.y == 0 {
+		p.tryGoNeighbor(-1, 0, p.stage.north)
 		return
 	}
 	p.move(-1, 0)
 }
 
+func (p *Player) moveNorthBoost() {
+	if p.actions.boostCounter > 0 {
+		p.useBoost()
+		if p.y == 0 {
+			p.tryGoNeighbor(-1, 0, p.stage.north)
+			return
+		}
+		if p.y == 1 {
+			p.tryGoNeighbor(-1, 0, p.stage.north)
+			return
+		}
+		p.move(-2, 0)
+	} else {
+		p.moveNorth()
+	}
+}
+
+func (p *Player) tryGoNeighbor(yOffset, xOffset int, areaName string) {
+	area, success := areaFromName(areaName)
+	if !success {
+		return
+	}
+
+	var destY, destX int
+	if yOffset == 0 {
+		destY = p.y
+		destX = (len(area.Tiles[destY]) + xOffset) % len(area.Tiles[destY]) // Trust me bro
+		if xOffset > 0 {
+			destX--
+		}
+	} else {
+		destX = p.x
+		destY = (len(area.Tiles) + yOffset) % len(area.Tiles)
+		if yOffset > 0 {
+			destY--
+		}
+	}
+
+	if materials[area.Tiles[destY][destX]].Walkable {
+		t := &Teleport{destStage: area.Name, destY: destY, destX: destX}
+		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
+		p.applyTeleport(t)
+		p.move(0, 0) // Hacky but resets player icon and highlights
+	}
+}
+
+/*
 func (p *Player) tryGoNorth() {
 	area, success := areaFromName(p.stage.north)
 	if !success {
@@ -134,15 +193,34 @@ func (p *Player) tryGoNorth() {
 		p.move(0, 0)
 	}
 }
+*/
 
 func (p *Player) moveSouth() {
-	if p.y == len(p.stage.tiles)-1 && p.stage.south != "" {
-		p.tryGoSouth()
+	if p.y == len(p.stage.tiles)-1 {
+		p.tryGoNeighbor(1, 0, p.stage.south)
 		return
 	}
 	p.move(1, 0)
 }
 
+func (p *Player) moveSouthBoost() {
+	if p.actions.boostCounter > 0 {
+		p.useBoost()
+		if p.y == len(p.stage.tiles)-1 {
+			p.tryGoNeighbor(2, 0, p.stage.south)
+			return
+		}
+		if p.y == len(p.stage.tiles)-2 {
+			p.tryGoNeighbor(1, 0, p.stage.south)
+			return
+		}
+		p.move(2, 0)
+	} else {
+		p.moveSouth()
+	}
+}
+
+/*
 func (p *Player) tryGoSouth() {
 	area, success := areaFromName(p.stage.south)
 	if !success {
@@ -159,15 +237,34 @@ func (p *Player) tryGoSouth() {
 		p.move(0, 0)
 	}
 }
+*/
 
 func (p *Player) moveEast() {
-	if p.x == len(p.stage.tiles[p.y])-1 && p.stage.east != "" {
-		p.tryGoEast()
+	if p.x == len(p.stage.tiles[p.y])-1 {
+		p.tryGoNeighbor(0, 1, p.stage.east)
 		return
 	}
 	p.move(0, 1)
 }
 
+func (p *Player) moveEastBoost() {
+	if p.actions.boostCounter > 0 {
+		p.useBoost()
+		if p.x == len(p.stage.tiles[p.y])-1 {
+			p.tryGoNeighbor(0, 2, p.stage.east)
+			return
+		}
+		if p.x == len(p.stage.tiles[p.y])-2 {
+			p.tryGoNeighbor(0, 1, p.stage.east)
+			return
+		}
+		p.move(0, 2)
+	} else {
+		p.moveEast()
+	}
+}
+
+/*
 func (p *Player) tryGoEast() {
 	area, success := areaFromName(p.stage.east)
 	if !success {
@@ -184,15 +281,18 @@ func (p *Player) tryGoEast() {
 		p.move(0, 0)
 	}
 }
+*/
 
 func (p *Player) moveWest() {
-	if p.x == 0 && p.stage.west != "" {
-		p.tryGoWest()
+	if p.x == 0 {
+		p.tryGoNeighbor(0, -1, p.stage.west)
 		return
 	}
 	p.move(0, -1)
 }
 
+// try go to neighbor (direction yOff xOff, neighbor name)
+/*
 func (p *Player) tryGoWest() {
 	area, success := areaFromName(p.stage.west)
 	if !success {
@@ -209,40 +309,22 @@ func (p *Player) tryGoWest() {
 		p.move(0, 0) // Hacky but resets player icon and highlights
 	}
 }
-
-func (p *Player) moveNorthBoost() {
-	if p.actions.boostCounter > 0 {
-		p.useBoost()
-		p.move(-2, 0)
-	} else {
-		p.move(-1, 0)
-	}
-}
-
-func (p *Player) moveSouthBoost() {
-	if p.actions.boostCounter > 0 {
-		p.useBoost()
-		p.move(2, 0)
-	} else {
-		p.move(1, 0)
-	}
-}
-
-func (p *Player) moveEastBoost() {
-	if p.actions.boostCounter > 0 {
-		p.useBoost()
-		p.move(0, 2)
-	} else {
-		p.move(0, 1)
-	}
-}
+*/
 
 func (p *Player) moveWestBoost() {
 	if p.actions.boostCounter > 0 {
 		p.useBoost()
+		if p.x == 0 {
+			p.tryGoNeighbor(0, -2, p.stage.west)
+			return
+		}
+		if p.x == 1 {
+			p.tryGoNeighbor(0, -1, p.stage.west)
+			return
+		}
 		p.move(0, -2)
 	} else {
-		p.move(0, -1)
+		p.moveWest()
 	}
 }
 
@@ -258,7 +340,6 @@ func (p *Player) move(yOffset int, xOffset int) {
 
 		previousTile := sourceTile
 		impactedTiles := p.updateSpaceHighlights()
-		//impactedTiles = append(impactedTiles, p.updateShiftHighlights()...)
 		updateOneAfterMovement(p, impactedTiles, previousTile)
 	}
 }
@@ -299,28 +380,6 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 	return append(impactedTiles, mapOfTileToArray(previous)...)
 }
 
-/*
-func (player *Player) updateShiftHighlights() []*Tile { // Returns removed highlights
-	previous := player.actions.shiftHighlights
-	player.actions.shiftHighlights = map[*Tile]bool{}
-	absCoordinatePairs := applyRelativeDistance(player.y, player.x, jumpCross()) // Shift shape lives in multiple places
-	var impactedTiles []*Tile
-	for _, pair := range absCoordinatePairs {
-		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
-			tile := player.stage.tiles[pair[0]][pair[1]]
-			player.actions.shiftHighlights[tile] = true
-			if _, contains := previous[tile]; contains {
-				delete(previous, tile)
-			} else {
-				impactedTiles = append(impactedTiles, tile)
-			}
-
-		}
-	}
-	return append(impactedTiles, mapOfTileToArray(previous)...)
-}
-*/
-
 func (player *Player) activatePower() {
 	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
 	for tile := range player.actions.spaceHighlights {
@@ -355,6 +414,9 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 }
 
 /*
+// Show boost when boost counter first breaks 0 with message explaining shift
+// Hide boost on next movement
+
 func (player *Player) showBoost() {
 	player.actions.shiftEngaged = true
 	player.actions.shiftHighlights = map[*Tile]bool{}
