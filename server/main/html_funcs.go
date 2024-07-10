@@ -58,12 +58,14 @@ func spaceHighlighter(tile *Tile) string {
 	}
 }
 
+/*
 func shiftHighlighter(tile *Tile) string {
 	if walkable(tile) {
 		return "red trsp20"
 	}
 	return ""
 }
+*/
 
 func randomFieryColor() string {
 	randN := rand.Intn(4)
@@ -278,11 +280,6 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 		}
 
 		// shiftHighlights not needed, want generic highlight option
-		/*_, impactsHud := player.actions.shiftHighlights[tile]
-		if impactsHud && player.actions.boostCounter > 0 {
-			highlights += oobHighlightBox(tile, shiftHighlighter(tile))
-			//continue
-		}*/
 		_, impactsHud := player.actions.spaceHighlights[tile]
 		if impactsHud {
 			highlights += oobHighlightBox(tile, spaceHighlighter(tile))

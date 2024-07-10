@@ -110,18 +110,6 @@ func respawn(player *Player) {
 	player.placeOnStage()
 }
 
-// .   . . . .   . .
-//
-// .   . . . .   . .
-// .   . . . .   . .
-// .   . . . .   . .
-// .   . . . .   . .
-//
-// .   . . . .   . .
-// .   . . . .   . .
-//
-// The one that is 0 is unchanged in neighbor, the other is calculated seperately
-
 func (p *Player) moveNorth() {
 	if p.y == 0 {
 		p.tryGoNeighbor(-1, 0, p.stage.north)
@@ -146,54 +134,6 @@ func (p *Player) moveNorthBoost() {
 		p.moveNorth()
 	}
 }
-
-func (p *Player) tryGoNeighbor(yOffset, xOffset int, areaName string) {
-	area, success := areaFromName(areaName)
-	if !success {
-		return
-	}
-
-	var destY, destX int
-	if yOffset == 0 {
-		destY = p.y
-		destX = (len(area.Tiles[destY]) + xOffset) % len(area.Tiles[destY]) // Trust me bro
-		if xOffset > 0 {
-			destX--
-		}
-	} else {
-		destX = p.x
-		destY = (len(area.Tiles) + yOffset) % len(area.Tiles)
-		if yOffset > 0 {
-			destY--
-		}
-	}
-
-	if materials[area.Tiles[destY][destX]].Walkable {
-		t := &Teleport{destStage: area.Name, destY: destY, destX: destX}
-		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
-		p.applyTeleport(t)
-		p.move(0, 0) // Hacky but resets player icon and highlights
-	}
-}
-
-/*
-func (p *Player) tryGoNorth() {
-	area, success := areaFromName(p.stage.north)
-	if !success {
-		return
-	}
-
-	destY := len(area.Tiles) - 1
-	destX := min(p.x, len(area.Tiles[destY])-1)
-
-	if materials[area.Tiles[destY][destX]].Walkable {
-		t := &Teleport{destStage: area.Name, destY: destY, destX: destX}
-		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
-		p.applyTeleport(t)
-		p.move(0, 0)
-	}
-}
-*/
 
 func (p *Player) moveSouth() {
 	if p.y == len(p.stage.tiles)-1 {
@@ -220,25 +160,6 @@ func (p *Player) moveSouthBoost() {
 	}
 }
 
-/*
-func (p *Player) tryGoSouth() {
-	area, success := areaFromName(p.stage.south)
-	if !success {
-		return
-	}
-
-	destY := 0
-	destX := min(p.x, len(area.Tiles[0])-1)
-
-	if materials[area.Tiles[destY][destX]].Walkable {
-		t := &Teleport{destStage: area.Name, destY: destY, destX: destX}
-		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
-		p.applyTeleport(t)
-		p.move(0, 0)
-	}
-}
-*/
-
 func (p *Player) moveEast() {
 	if p.x == len(p.stage.tiles[p.y])-1 {
 		p.tryGoNeighbor(0, 1, p.stage.east)
@@ -264,25 +185,6 @@ func (p *Player) moveEastBoost() {
 	}
 }
 
-/*
-func (p *Player) tryGoEast() {
-	area, success := areaFromName(p.stage.east)
-	if !success {
-		return
-	}
-
-	destY := min(p.y, len(area.Tiles)-1)
-	destX := 0
-
-	if materials[area.Tiles[destY][destX]].Walkable {
-		t := &Teleport{destStage: area.Name, destY: destY, destX: destX}
-		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
-		p.applyTeleport(t)
-		p.move(0, 0)
-	}
-}
-*/
-
 func (p *Player) moveWest() {
 	if p.x == 0 {
 		p.tryGoNeighbor(0, -1, p.stage.west)
@@ -290,26 +192,6 @@ func (p *Player) moveWest() {
 	}
 	p.move(0, -1)
 }
-
-// try go to neighbor (direction yOff xOff, neighbor name)
-/*
-func (p *Player) tryGoWest() {
-	area, success := areaFromName(p.stage.west)
-	if !success {
-		return
-	}
-
-	destY := min(p.y, len(area.Tiles)-1)
-	destX := len(area.Tiles[destY]) - 1
-
-	if materials[area.Tiles[destY][destX]].Walkable {
-		t := &Teleport{destStage: area.Name, destY: destY, destX: destX}
-		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
-		p.applyTeleport(t)
-		p.move(0, 0) // Hacky but resets player icon and highlights
-	}
-}
-*/
 
 func (p *Player) moveWestBoost() {
 	if p.actions.boostCounter > 0 {
@@ -325,6 +207,35 @@ func (p *Player) moveWestBoost() {
 		p.move(0, -2)
 	} else {
 		p.moveWest()
+	}
+}
+
+func (p *Player) tryGoNeighbor(yOffset, xOffset int, areaName string) {
+	area, success := areaFromName(areaName)
+	if !success {
+		return
+	}
+
+	var destY, destX int
+	if yOffset == 0 {
+		destY = p.y
+		destX = (len(area.Tiles[destY]) + xOffset) % len(area.Tiles[destY]) // Trust me bro
+		if xOffset > 0 {
+			destX-- // Probably not ideal way to acheive this
+		}
+	} else {
+		destX = p.x
+		destY = (len(area.Tiles) + yOffset) % len(area.Tiles)
+		if yOffset > 0 {
+			destY--
+		}
+	}
+
+	if materials[area.Tiles[destY][destX]].Walkable {
+		t := &Teleport{destStage: area.Name, destY: destY, destX: destX}
+		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
+		p.applyTeleport(t)
+		p.move(0, 0) // Hacky but resets player icon and highlights
 	}
 }
 
@@ -445,8 +356,6 @@ type Actions struct {
 	spaceHighlights map[*Tile]bool
 	spaceStack      *StackOfPowerUp
 	boostCounter    int
-	//shiftHighlights map[*Tile]bool
-	//shiftEngaged    bool
 }
 
 type PowerUp struct {
@@ -470,9 +379,6 @@ func (player *Player) addBoosts(n int) {
 
 func (player *Player) useBoost() {
 	player.actions.boostCounter--
-	/*if player.actions.boostCounter == 0 {
-		player.hideBoost()
-	}*/
 	updateOne(divPlayerInformation(player), player)
 }
 
