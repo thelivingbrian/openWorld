@@ -5,25 +5,12 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sync"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 ///////////////////////////////////////////////////
 // Game World
-
-type World struct {
-	db           *DB
-	worldPlayers map[string]*Player
-	wPlayerMutex sync.Mutex
-	worldStages  map[string]*Stage
-	wStageMutex  sync.Mutex
-}
-
-func createGameWorld(db *DB) *World {
-	return &World{db: db, worldPlayers: make(map[string]*Player), worldStages: make(map[string]*Stage)}
-}
 
 ///////////////////////////////////////////////////
 //Database

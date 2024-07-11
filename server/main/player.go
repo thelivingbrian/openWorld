@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"sync"
 
@@ -322,6 +323,14 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	player.updateRecord()
 	player.assignStageAndListen()
 	player.placeOnStage()
+}
+
+func (player *Player) updateBottomText(message string) {
+	msg := fmt.Sprintf(`
+			<div id="bottom_text">
+				&nbsp;&nbsp;> %s
+			</div>`, message)
+	updateOne(msg, player)
 }
 
 /*

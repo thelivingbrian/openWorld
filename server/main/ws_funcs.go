@@ -156,20 +156,24 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 		updateScreenFromScratch(player)
 	}
 	if event.Name == "g" {
-		exTile := `<div class="grid-square blue" id="c0-0">				
-						<div id="p0-0" class="box zp "></div>
-						<div id="s0-0" class="box zS"></div>
-						<div id="t0-0" class="box top"></div>
-					</div>
-					<div class="grid-square blue" id="c0-1">				
-						<div id="p0-1" class="box zp "></div>
-						<div id="s0-1" class="box zS"></div>
-						<div id="t0-1" class="box top"></div>
-					</div>
-					`
-		exTile += `<div id="t1-0" class="box top green"></div>
-				<div id="t0-0" class="box top green"></div>`
-		updateOne(exTile, player)
+		/*
+			Full swap takes priority in either order, otherwise both may apply
+			exTile := `<div class="grid-square blue" id="c0-0">
+							<div id="p0-0" class="box zp "></div>
+							<div id="s0-0" class="box zS"></div>
+							<div id="t0-0" class="box top"></div>
+						</div>
+						<div class="grid-square blue" id="c0-1">
+							<div id="p0-1" class="box zp "></div>
+							<div id="s0-1" class="box zS"></div>
+							<div id="t0-1" class="box top"></div>
+						</div>
+						`
+			exTile += `<div id="t1-0" class="box top green"></div>
+					<div id="t0-0" class="box top green"></div>`
+			updateOne(exTile, player)
+		*/
+		player.updateBottomText("Heyo ;) ")
 	}
 	if event.Name == "Space-On" {
 		if player.actions.spaceStack.hasPower() {
