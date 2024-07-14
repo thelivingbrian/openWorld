@@ -108,7 +108,7 @@ func (world *World) join(w http.ResponseWriter, record *PlayerRecord) {
 		return
 	}
 
-	newPlayer := &Player{
+	newPlayer := &Player{ // Return this
 		id:        token,
 		username:  record.Username,
 		stage:     nil,
@@ -123,10 +123,11 @@ func (world *World) join(w http.ResponseWriter, record *PlayerRecord) {
 	//New Method
 	world.wPlayerMutex.Lock()
 	world.worldPlayers[token] = newPlayer
+	world.leaderBoard.mostDangerous.Push(newPlayer) // Give own mutex?
 	world.wPlayerMutex.Unlock()
 
 	fmt.Println("Printing Page Headers")
-	io.WriteString(w, printPageFor(newPlayer)) // interesting...
+	io.WriteString(w, printPageFor(newPlayer)) // Do this in parent method after returning player
 }
 
 func (world *World) isLoggedInAlready(username string) bool {

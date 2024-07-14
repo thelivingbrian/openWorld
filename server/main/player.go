@@ -24,6 +24,7 @@ type Player struct {
 	money      int
 	experience int
 	killstreak int
+	streakLock sync.Mutex
 }
 
 // Health observer, All Health changes should go through here
@@ -44,12 +45,21 @@ func (player *Player) setMoney(n int) {
 
 // Streak observer, All Money changes should go through here
 func (player *Player) setKillStreak(n int) {
+	player.streakLock.Lock()
+	defer player.streakLock.Unlock()
 	player.killstreak = n
 	updateOne(divPlayerInformation(player), player)
 }
 
+func (player *Player) getKillStreakSync() int {
+	player.streakLock.Lock()
+	defer player.streakLock.Unlock()
+	return player.killstreak
+}
+
 func (player *Player) incrementKillStreak() {
-	player.setKillStreak(player.killstreak + 1)
+	//player.setKillStreak(player.killstreak + 1)
+	player.world.incrementKillStreak(player)
 }
 
 func (player *Player) isDead() bool {
@@ -101,7 +111,8 @@ func (player *Player) removeFromStage() {
 // Recv type
 func respawn(player *Player) {
 	player.setHealth(150)
-	player.setKillStreak(0)
+	player.world.zeroKillStreak(player)
+	//player.setKillStreak(0)
 	player.stageName = "clinic"
 	player.x = 2
 	player.y = 2
@@ -222,7 +233,7 @@ func (p *Player) tryGoNeighbor(yOffset, xOffset int, areaName string) {
 		destY = p.y
 		destX = (len(area.Tiles[destY]) + xOffset) % len(area.Tiles[destY]) // Trust me bro
 		if xOffset > 0 {
-			destX-- // Probably not ideal way to acheive this
+			destX-- // Probably not ideal way to acheive thish
 		}
 	} else {
 		destX = p.x

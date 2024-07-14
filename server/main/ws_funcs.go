@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/heap"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -84,6 +85,10 @@ func logOut(player *Player) {
 	player.removeFromStage()
 	player.world.wPlayerMutex.Lock()
 	delete(player.world.worldPlayers, player.id)
+	index, exists := player.world.leaderBoard.mostDangerous.index[player]
+	if exists {
+		heap.Remove(&player.world.leaderBoard.mostDangerous, index)
+	}
 	player.world.wPlayerMutex.Unlock()
 	player.conn = nil
 	fmt.Println("Logging Out " + player.username)
