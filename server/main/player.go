@@ -306,7 +306,7 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 func (player *Player) activatePower() {
 	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
 	for tile := range player.actions.spaceHighlights {
-		tile.damageAll(150, player)
+		tile.damageAll(50, player)
 
 		tileToHighlight := tile.incrementAndReturnIfFirst()
 		if tileToHighlight != nil {
