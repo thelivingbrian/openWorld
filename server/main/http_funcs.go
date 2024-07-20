@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/google/uuid"
 )
 
 /////////////////////////////////////////////
@@ -100,51 +98,6 @@ func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-}
-
-func (world *World) join(record *PlayerRecord) *Player {
-	token := uuid.New().String()
-	fmt.Println("New Player: " + record.Username)
-	fmt.Println("Token: " + token)
-
-	if world.isLoggedInAlready(record.Username) {
-		fmt.Println("User attempting to log in but is logged in already: " + record.Username)
-		//io.WriteString(w, "<h2>Invalid (User logged in already)</h2>")
-		return nil
-	}
-
-	newPlayer := &Player{ // Return this
-		id:        token,
-		username:  record.Username,
-		stage:     nil,
-		stageName: record.StageName,
-		x:         record.X,
-		y:         record.Y,
-		actions:   createDefaultActions(),
-		health:    record.Health,
-		money:     record.Money,
-	}
-
-	//New Method
-	world.wPlayerMutex.Lock()
-	world.worldPlayers[token] = newPlayer
-	world.leaderBoard.mostDangerous.Push(newPlayer) // Give own mutex?
-	world.wPlayerMutex.Unlock()
-
-	return newPlayer
-	//fmt.Println("Printing Page Headers")
-	//io.WriteString(w, printPageFor(newPlayer)) // Do this in parent method after returning player
-}
-
-func (world *World) isLoggedInAlready(username string) bool {
-	world.wPlayerMutex.Lock()
-	defer world.wPlayerMutex.Unlock()
-	for _, player := range world.worldPlayers {
-		if player.username == username {
-			return true
-		}
-	}
-	return false
 }
 
 /////////////////////////////////////////////

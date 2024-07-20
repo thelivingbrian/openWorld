@@ -4,6 +4,8 @@ import (
 	"container/heap"
 	"fmt"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 type World struct {
@@ -15,17 +17,61 @@ type World struct {
 	leaderBoard  *LeaderBoard
 }
 
-type LeaderBoard struct {
-	richest       *Player
-	wealth        int
-	mostDangerous MaxStreakHeap // Full sorted list?
-	//streak        int
-	oldest *Player
-}
-
 func createGameWorld(db *DB) *World {
 	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: make([]*Player, 0), index: make(map[*Player]int)}}
 	return &World{db: db, worldPlayers: make(map[string]*Player), worldStages: make(map[string]*Stage), leaderBoard: lb}
+}
+
+func (world *World) join(record *PlayerRecord) *Player {
+	token := uuid.New().String()
+	fmt.Println("New Player: " + record.Username)
+	fmt.Println("Token: " + token)
+
+	if world.isLoggedInAlready(record.Username) {
+		fmt.Println("User attempting to log in but is logged in already: " + record.Username)
+		return nil
+	}
+
+	newPlayer := &Player{
+		id:        token,
+		username:  record.Username,
+		stage:     nil,
+		stageName: record.StageName,
+		x:         record.X,
+		y:         record.Y,
+		actions:   createDefaultActions(),
+		health:    record.Health,
+		money:     record.Money,
+	}
+
+	//New Method
+	world.wPlayerMutex.Lock()
+	world.worldPlayers[token] = newPlayer
+	world.leaderBoard.mostDangerous.Push(newPlayer) // Give own mutex?
+	world.wPlayerMutex.Unlock()
+
+	return newPlayer
+}
+
+func (world *World) isLoggedInAlready(username string) bool {
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	for _, player := range world.worldPlayers {
+		if player.username == username {
+			return true
+		}
+	}
+	return false
+}
+
+///////////////////////////////////////////////////////////////
+// LeaderBoards
+
+type LeaderBoard struct {
+	richest *Player
+	//wealth        int
+	mostDangerous MaxStreakHeap
+	oldest        *Player
 }
 
 type MaxStreakHeap struct {

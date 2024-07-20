@@ -128,13 +128,16 @@
     - [-] Map window opens 
     - [-] Serve image by uuid
     - [-] Scvale image inside map window 
-
+- [ ] Additions
+  - [ ] Prototype edit map color (And generate automatically?)
+  - [ ] Map has wrong size on wide monitor 
   
+
 ## Testing
 - [ ] Unit testing 
   - [ ] WebSocket
     - [-] Move Player via websocket in unit test
-    - [ ] Interface DB
+    - [ ] Interface DB? or testing database....
   - [ ] Most Dangerous
 - [ ] Load testing
   - [ ] Selenium? 
