@@ -29,16 +29,23 @@ func TestMostDangerous(t *testing.T) {
 	var msg = struct {
 		Token string
 	}{
-		Token: "TestToke",
+		Token: p.id, //"TestToke",
 	}
 	bytes, err := json.Marshal(msg)
 	if err != nil {
 		t.Fatalf("could not marshal: %v", err)
 	}
+
 	err = ws.WriteMessage(websocket.TextMessage, bytes)
 	if err != nil {
 		t.Fatalf("could not send message: %v", err)
 	}
+
+	_, response, err := ws.ReadMessage()
+	if err != nil {
+		t.Fatalf("could not read message: %v", err)
+	}
+	fmt.Println("Have response: ", string(response))
 
 	if len(world.worldPlayers) != 1 {
 		t.Error("Incorrect number of players")
