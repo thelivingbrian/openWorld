@@ -107,28 +107,37 @@
 ## Stats / Metrics
 
 ## World map
-- [-] Add map color to prototype
- - [-] generate map colors automatically
-- [-] Area to map (png?)
- - [-] png to svg so map can be resized? - No resize with css
-- [-] Serve an image
-- [-] Space data model 
- - [-] topology
- - [-] map
- - [-] map for subarea (do this with highlighting below)
- - [-] save space as json 
-  - [-] compile space changes (if any) 
-- [-] Map for spaces (Torus and Plane only?)
-  - [-] Map for fixed size plane/torus
-- [-] "You are here" highlighting? 
-  - [-] 1 map per area generated (May be easy to extend this to other topologies like cube also)
-- [-] Serve maps from game
-  - [-] Deploy 
-  - [-] Map window opens 
-  - [-] Serve image by uuid
-  - [-] Scvale image inside map window 
+- [-] Basic world maps
+  - [-] Add map color to prototype
+    - [-] generate map colors automatically
+  - [-] Area to map (png?)
+    - [-] png to svg so map can be resized? - No resize with css
+  - [-] Serve an image
+  - [-] Space data model 
+    - [-] topology
+    - [-] map
+    - [-] map for subarea (do this with highlighting below)
+  - [-] save space as json 
+    - [-] compile space changes (if any) 
+  - [-] Map for spaces (Torus and Plane only?)
+    - [-] Map for fixed size plane/torus
+  - [-] "You are here" highlighting? 
+    - [-] 1 map per area generated (May be easy to extend this to other topologies like cube also)
+  - [-] Serve maps from game
+    - [-] Deploy 
+    - [-] Map window opens 
+    - [-] Serve image by uuid
+    - [-] Scvale image inside map window 
 
   
+## Testing
+- [ ] Unit testing 
+  - [ ] WebSocket
+    - [-] Move Player via websocket in unit test
+    - [ ] Interface DB
+  - [ ] Most Dangerous
+- [ ] Load testing
+  - [ ] Selenium? 
 
 
 ## Transformation syntax:
