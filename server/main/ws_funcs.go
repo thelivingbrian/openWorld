@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// ...move to different file?
 type Update struct {
 	player *Player
 	update []byte
