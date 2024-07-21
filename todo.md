@@ -9,6 +9,8 @@
 - [-] Boosts not spawning at same rate?
 - [ ] Instant kill button or key
 - [-] Shift prevents stage changes even with no boosts 
+- [-] No player detail update on respawn 
+- [ ] green dot of money is invisible after killing other player
 
 ## Design Workspace
 - [-] Rotations
@@ -137,7 +139,8 @@
 - [ ] Unit testing 
   - [ ] WebSocket
     - [-] Move Player via websocket in unit test
-    - [ ] Interface DB? or testing database....
+    - [-] Interface DB? or testing database....
+      - [-] testing db works and is arguably better?
   - [ ] Most Dangerous
 - [ ] Load testing
   - [ ] Selenium? 
