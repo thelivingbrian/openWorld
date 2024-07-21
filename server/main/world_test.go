@@ -10,12 +10,11 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func TestMostDangerous(t *testing.T) {
-	world := createGameWorld(testdb) // yolo?
+func TestSocketJoinAndMove(t *testing.T) {
+	world := createGameWorld(testdb)
 
 	p := world.join(&PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
-	fmt.Println(p.id)
-	fmt.Println("Player X coordinate: ", p.x)
+	initialCoordiate := p.x
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		world.NewSocketConnection(w, r)
@@ -26,21 +25,22 @@ func TestMostDangerous(t *testing.T) {
 	defer testingSocket.ws.Close()
 
 	testingSocket.writeOrFatal(createInitialTokenMessage(p.id))
-
 	_ = testingSocket.readOrFatal()
 
 	testingSocket.writeOrFatal(createSocketEventMessage(p.id, "d"))
-
 	_ = testingSocket.readOrFatal()
 
-	fmt.Println("Player tile X coordinate: ", p.x)
-
+	// Assert
 	if len(world.worldPlayers) != 1 {
 		t.Error("Incorrect number of players")
 	}
 
 	if world.leaderBoard.mostDangerous.Peek() != p {
-		t.Error("New Player should be most dangerous")
+		t.Error("New Player should be most dangerous") // Intesting meta, empty world sign in legit?
+	}
+
+	if initialCoordiate == p.x {
+		t.Error("Player has not moved")
 	}
 }
 
