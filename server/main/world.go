@@ -115,7 +115,7 @@ func (h *MaxStreakHeap) Peek() interface{} {
 // Update changes the value of an item in the heap and fixes the heap.
 func (h *MaxStreakHeap) Update(player *Player, streak int) {
 	index := h.index[player]
-	h.items[index].setKillStreak(streak)
+	h.items[index].setKillStreak(streak) // reverse this? setKillStreak calls Update...
 	heap.Fix(h, index)
 }
 

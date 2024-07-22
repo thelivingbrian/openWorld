@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"math/rand"
 	"strconv"
 	"testing"
 	"time"
@@ -93,7 +94,6 @@ func BenchmarkMongoInsert(b *testing.B) {
 	b.StopTimer()
 }
 
-/*
 func BenchmarkMongoUpdate(b *testing.B) {
 	testUsers := setupUsers()
 	defer cleanUp()
@@ -111,4 +111,3 @@ func BenchmarkMongoUpdate(b *testing.B) {
 	}
 	b.StopTimer()
 }
-*/

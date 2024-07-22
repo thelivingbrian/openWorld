@@ -49,23 +49,17 @@ func htmlFromTileGrid(tiles [][]*Tile, py, px int) [][]string {
 }
 
 func spaceHighlighter(tile *Tile) string {
-	if len(tile.playerMap) > 0 {
-		return "half-trsp dark-blue"
-	} else if walkable(tile) {
-		return "half-trsp salmon"
-	} else {
-		return "half-trsp salmon"
-	}
-}
-
-/*
-func shiftHighlighter(tile *Tile) string {
+	/*
+		This has bugs because it doesn't update on movement of the other player, only the highlight viewer
+		if len(tile.playerMap) > 0 {
+			return "half-trsp dark-blue"
+		}
+	*/
 	if walkable(tile) {
-		return "red trsp20"
+		return "half-trsp salmon" // vs "" to show no effect
 	}
-	return ""
+	return "half-trsp salmon"
 }
-*/
 
 func randomFieryColor() string {
 	randN := rand.Intn(4)
@@ -223,8 +217,9 @@ func divInputDisabled() string {
 }
 
 func playerInformation(player *Player) string {
+	// mutexing?
 	hearts := getHeartsFromHealth(player.health)
-	return fmt.Sprintf(`%s %s<br /><span class="red">Streak %d</span> | <span class="blue">^ %d</span>  | <span class="dark-green">$ %d</span>`, player.username, hearts, player.killstreak, player.actions.boostCounter, player.money)
+	return fmt.Sprintf(`%s %s<br /><span class="red">Streak %d</span> | <span class="blue">^ %d</span>  | <span class="dark-green">$ %d</span>`, player.username, hearts, player.getKillStreakSync(), player.actions.boostCounter, player.money)
 }
 
 func getHeartsFromHealth(i int) string {
@@ -279,7 +274,6 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 			continue
 		}
 
-		// shiftHighlights not needed, want generic highlight option
 		_, impactsHud := player.actions.spaceHighlights[tile]
 		if impactsHud {
 			highlights += oobHighlightBox(tile, spaceHighlighter(tile))

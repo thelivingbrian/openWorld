@@ -33,7 +33,6 @@ func (stage *Stage) spawnItems() {
 			randomIndex2 := rand.Intn(len(shapes))
 			uncoveredTiles[randomIndex].addPowerUpAndNotifyAll(shapes[randomIndex2])
 		} else {
-			// This was mathematically impossible
 			uncoveredTiles[randomIndex].addBoostsAndNotifyAll()
 		}
 	}
