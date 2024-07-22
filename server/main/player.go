@@ -22,6 +22,7 @@ type Player struct {
 	actions    *Actions
 	health     int
 	money      int
+	moneyLock  sync.Mutex
 	experience int
 	killstreak int
 	streakLock sync.Mutex
@@ -39,8 +40,16 @@ func (player *Player) setHealth(n int) {
 
 // Money observer, All Money changes should go through here
 func (player *Player) setMoney(n int) {
+	player.moneyLock.Lock()
+	defer player.moneyLock.Unlock()
 	player.money = n
 	updateOne(divPlayerInformation(player), player)
+}
+
+func (player *Player) getMoneySync() int {
+	player.moneyLock.Lock()
+	defer player.moneyLock.Unlock()
+	return player.money
 }
 
 // Streak observer, All Money changes should go through here

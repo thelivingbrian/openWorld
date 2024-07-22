@@ -177,8 +177,7 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 		}
 		survived := player.addToHealth(-dmg)
 		if !survived {
-			tile.money += player.money / 2 // Use Observer, return diff
-			player.money = player.money / 2
+			tile.money += halveMoneyOf(player) // Tile money needs mutex?
 
 			initiator.incrementKillStreak()
 			// Maybe should just pass in required fields?
@@ -190,6 +189,13 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 			tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
 		}
 	}
+}
+
+func halveMoneyOf(player *Player) int {
+	currentMoney := player.getMoneySync()
+	newValue := currentMoney / 2
+	player.setMoney(newValue)
+	return newValue
 }
 
 func walkable(tile *Tile) bool {
