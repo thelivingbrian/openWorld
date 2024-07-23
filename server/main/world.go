@@ -135,29 +135,3 @@ func notifyChangeInMostDangerous(currentMostDangerous *Player) {
 		}
 	}
 }
-
-/*
-func (world *World) incrementKillStreak(player *Player) {
-	newStreak := player.getKillStreakSync() + 1
-	world.leaderBoard.mostDangerous.Update(player)//, newStreak)
-
-	item := world.leaderBoard.mostDangerous.Peek().(*Player)
-	if item == player {
-		for _, p2 := range world.worldPlayers {
-			if player == p2 {
-				p2.updateBottomText("You are the most dangerous bloop!")
-			} else {
-				p2.updateBottomText(player.username + " has become the most dangerous bloop...")
-			}
-		}
-
-		fmt.Println(player.username + " is the most dangerous!")
-	} else {
-		fmt.Println(" Actually... " + item.username + " is the most dangerous")
-	}
-}
-
-func (world *World) zeroKillStreak(player *Player) {
-	world.leaderBoard.mostDangerous.Update(player, 0)
-}
-*/

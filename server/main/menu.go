@@ -210,7 +210,6 @@ func Quit(p *Player, event PlayerSocketEvent) {
 	      </div>
 	  </div>`
 	p.trySend([]byte(logOutSuccess))
-	//p.conn.WriteMessage(websocket.TextMessage, []byte(logOutSuccess)) // unsafe
 }
 
 func Map(p *Player, event PlayerSocketEvent) {
