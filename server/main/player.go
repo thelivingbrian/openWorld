@@ -58,6 +58,8 @@ func (player *Player) setKillStreak(n int) {
 	//defer player.streakLock.Unlock()
 	player.killstreak = n
 	player.streakLock.Unlock()
+
+	player.world.leaderBoard.mostDangerous.Update(player)
 	// New method
 	updateOne(divPlayerInformation(player), player)
 }
@@ -69,7 +71,27 @@ func (player *Player) getKillStreakSync() int {
 }
 
 func (player *Player) incrementKillStreak() {
-	player.world.incrementKillStreak(player)
+	//player.world.incrementKillStreak(player)
+	newStreak := player.getKillStreakSync() + 1
+	player.setKillStreak(newStreak)
+	//world.leaderBoard.mostDangerous.Update(player)//, newStreak)
+
+	/*
+		item := world.leaderBoard.mostDangerous.Peek().(*Player)
+		if item == player {
+			for _, p2 := range world.worldPlayers {
+				if player == p2 {
+					p2.updateBottomText("You are the most dangerous bloop!")
+				} else {
+					p2.updateBottomText(player.username + " has become the most dangerous bloop...")
+				}
+			}
+
+			fmt.Println(player.username + " is the most dangerous!")
+		} else {
+			fmt.Println(" Actually... " + item.username + " is the most dangerous")
+		}
+	*/
 }
 
 func (player *Player) isDead() bool {
@@ -122,8 +144,8 @@ func (player *Player) removeFromStage() {
 // Recv type
 func respawn(player *Player) {
 	player.setHealth(150)
-	player.world.zeroKillStreak(player)
-	//player.setKillStreak(0)
+	//player.world.zeroKillStreak(player)
+	player.setKillStreak(0)
 	player.stageName = "clinic"
 	player.x = 2
 	player.y = 2

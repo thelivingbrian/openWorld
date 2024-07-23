@@ -39,8 +39,9 @@ func TestSocketJoinAndMove(t *testing.T) {
 		t.Error("New Player should be most dangerous") // Intesting meta, empty world sign in legit?
 	}
 
+	//fmt.Println(p.x)
 	if initialCoordiate == p.x {
-		t.Error("Player has not moved")
+		t.Error("Player has not moved") // This can fail due to race
 	}
 }
 
@@ -77,10 +78,10 @@ func TestMostDangerous(t *testing.T) {
 
 	if world.leaderBoard.mostDangerous.Peek() == p1 {
 		fmt.Println("p1")
-		fmt.Println(world.leaderBoard.mostDangerous.Peek().(*Player).username)
+		fmt.Println(world.leaderBoard.mostDangerous.Peek().username)
 		//t.Error("Invalid")
 	} else {
-		fmt.Println(world.leaderBoard.mostDangerous.Peek().(*Player).username)
+		fmt.Println(world.leaderBoard.mostDangerous.Peek().username)
 	}
 
 }

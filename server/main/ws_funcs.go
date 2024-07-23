@@ -89,6 +89,13 @@ func logOut(player *Player) {
 	index, exists := player.world.leaderBoard.mostDangerous.index[player]
 	if exists {
 		heap.Remove(&player.world.leaderBoard.mostDangerous, index)
+		//  If index was 0 before, need to update new most dangerous
+		if index == 0 {
+			fmt.Println("New Most Dangerous!")
+			//fmt.Println(player.world.leaderBoard.mostDangerous.Peek().username)
+			// Cant call heap.Update because the mostdangerous is not changing
+			// Need to call new method "Notify change in most dangerous"
+		}
 	}
 	player.world.wPlayerMutex.Unlock()
 	player.conn = nil

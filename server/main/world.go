@@ -106,23 +106,37 @@ func (h *MaxStreakHeap) Pop() interface{} {
 	return item
 }
 
-func (h *MaxStreakHeap) Peek() interface{} {
+func (h *MaxStreakHeap) Peek() *Player {
 	if h.Len() == 0 {
 		panic("Heap Underflow")
 	}
 	return h.items[0]
 }
 
-// Update changes the value of an item in the heap and fixes the heap.
-func (h *MaxStreakHeap) Update(player *Player, streak int) {
+// Update fixes the heap after player has a change in killstreak, notiying any change in most dangerous
+func (h *MaxStreakHeap) Update(player *Player) {
+	previousMostDangerous := h.Peek()
+
 	index := h.index[player]
-	h.items[index].setKillStreak(streak) // reverse this? setKillStreak calls Update...
 	heap.Fix(h, index)
+
+	currentMostDangerous := h.Peek()
+	if currentMostDangerous != previousMostDangerous {
+		// New method update channge in most dangerous
+		for _, p := range player.world.worldPlayers {
+			if p == currentMostDangerous {
+				p.updateBottomText("You are the most dangerous bloop!")
+			} else {
+				p.updateBottomText(player.username + " has become the most dangerous bloop...")
+			}
+		}
+	}
 }
 
+/*
 func (world *World) incrementKillStreak(player *Player) {
 	newStreak := player.getKillStreakSync() + 1
-	world.leaderBoard.mostDangerous.Update(player, newStreak)
+	world.leaderBoard.mostDangerous.Update(player)//, newStreak)
 
 	item := world.leaderBoard.mostDangerous.Peek().(*Player)
 	if item == player {
@@ -143,3 +157,4 @@ func (world *World) incrementKillStreak(player *Player) {
 func (world *World) zeroKillStreak(player *Player) {
 	world.leaderBoard.mostDangerous.Update(player, 0)
 }
+*/
