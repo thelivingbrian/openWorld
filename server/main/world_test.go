@@ -51,37 +51,33 @@ func TestMostDangerous(t *testing.T) {
 	p1 := world.join(&PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
 	p1.assignStageAndListen()
 	p1.placeOnStage()
-	//p1.world = world
+
 	p2 := world.join(&PlayerRecord{Username: "test2", Y: 3, X: 3, StageName: "test-large"})
 	p2.assignStageAndListen()
 	p2.placeOnStage()
-	//p2.world = world
+
 	p3 := world.join(&PlayerRecord{Username: "test3", Y: 3, X: 3, StageName: "test-large"})
 	p3.assignStageAndListen()
 	p3.placeOnStage()
-	//p3.world = world
 
+	// Assert
 	p2.incrementKillStreak()
 	if world.leaderBoard.mostDangerous.Peek() != p2 {
-		t.Error("Invalid leader")
+		t.Error("Invalid leader should be p2")
 	}
 
 	p3.incrementKillStreak()
 	p3.incrementKillStreak()
-	if world.leaderBoard.mostDangerous.Peek() != p3 {
-		t.Error("Invalid")
-	}
-
+	p3.incrementKillStreak()
 	p1.incrementKillStreak()
-	logOut(p3)
-	logOut(p2)
+	p1.incrementKillStreak()
+	if world.leaderBoard.mostDangerous.Peek() != p3 {
+		t.Error("Invalid leader should be p3")
+	}
 
-	if world.leaderBoard.mostDangerous.Peek() == p1 {
-		fmt.Println("p1")
-		fmt.Println(world.leaderBoard.mostDangerous.Peek().username)
-		//t.Error("Invalid")
-	} else {
-		fmt.Println(world.leaderBoard.mostDangerous.Peek().username)
+	logOut(p3)
+	if world.leaderBoard.mostDangerous.Peek() != p1 {
+		t.Error("Invalid leader should be p1")
 	}
 
 }

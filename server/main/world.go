@@ -51,7 +51,7 @@ func (world *World) join(record *PlayerRecord) *Player {
 	world.leaderBoard.mostDangerous.Push(newPlayer) // Give own mutex?
 	world.wPlayerMutex.Unlock()
 
-	return newPlayer // Player.world is nil at this point at is assigned later when socket is established
+	return newPlayer
 }
 
 func (world *World) isLoggedInAlready(username string) bool {
@@ -69,10 +69,9 @@ func (world *World) isLoggedInAlready(username string) bool {
 // LeaderBoards
 
 type LeaderBoard struct {
-	richest *Player
-	//wealth        int
+	//richest *Player
 	mostDangerous MaxStreakHeap
-	oldest        *Player
+	//oldest        *Player
 }
 
 type MaxStreakHeap struct {
@@ -108,7 +107,8 @@ func (h *MaxStreakHeap) Pop() interface{} {
 
 func (h *MaxStreakHeap) Peek() *Player {
 	if h.Len() == 0 {
-		panic("Heap Underflow")
+		return nil
+		//panic("Heap Underflow")
 	}
 	return h.items[0]
 }
@@ -122,13 +122,16 @@ func (h *MaxStreakHeap) Update(player *Player) {
 
 	currentMostDangerous := h.Peek()
 	if currentMostDangerous != previousMostDangerous {
-		// New method update channge in most dangerous
-		for _, p := range player.world.worldPlayers {
-			if p == currentMostDangerous {
-				p.updateBottomText("You are the most dangerous bloop!")
-			} else {
-				p.updateBottomText(player.username + " has become the most dangerous bloop...")
-			}
+		notifyChangeInMostDangerous(currentMostDangerous)
+	}
+}
+
+func notifyChangeInMostDangerous(currentMostDangerous *Player) {
+	for _, p := range currentMostDangerous.world.worldPlayers {
+		if p == currentMostDangerous {
+			p.updateBottomText("You are the most dangerous bloop!")
+		} else {
+			p.updateBottomText(currentMostDangerous.username + " has become the most dangerous bloop...")
 		}
 	}
 }
