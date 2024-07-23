@@ -55,8 +55,10 @@ func (player *Player) getMoneySync() int {
 // Streak observer, All Money changes should go through here
 func (player *Player) setKillStreak(n int) {
 	player.streakLock.Lock()
-	defer player.streakLock.Unlock()
+	//defer player.streakLock.Unlock()
 	player.killstreak = n
+	player.streakLock.Unlock()
+	// New method
 	updateOne(divPlayerInformation(player), player)
 }
 
@@ -67,7 +69,6 @@ func (player *Player) getKillStreakSync() int {
 }
 
 func (player *Player) incrementKillStreak() {
-	//player.setKillStreak(player.killstreak + 1)
 	player.world.incrementKillStreak(player)
 }
 
@@ -81,6 +82,7 @@ func (player *Player) addToHealth(n int) bool {
 	return newHealth > 0
 }
 
+// always called with place?
 func (p *Player) assignStageAndListen() {
 	stage, new := p.world.getStageByName(p.stageName)
 	if stage == nil {

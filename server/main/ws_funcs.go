@@ -44,7 +44,7 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 
 	if playerExists {
 		existingPlayer.conn = conn
-		existingPlayer.world = world
+		//existingPlayer.world = world
 		handleNewPlayer(existingPlayer)
 	} else {
 		fmt.Println("player not found with token: " + token)

@@ -87,7 +87,7 @@ func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatal("No player found for user") // lol too extreme
 		}
-		player := world.join(record)
+		player := world.join(record) // Player.world is nil at this point at is assigned later when socket is established
 		if player != nil {
 			io.WriteString(w, printPageFor(player))
 		} else {

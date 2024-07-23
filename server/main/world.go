@@ -42,6 +42,7 @@ func (world *World) join(record *PlayerRecord) *Player {
 		actions:   createDefaultActions(),
 		health:    record.Health,
 		money:     record.Money,
+		world:     world,
 	}
 
 	//New Method
@@ -50,7 +51,7 @@ func (world *World) join(record *PlayerRecord) *Player {
 	world.leaderBoard.mostDangerous.Push(newPlayer) // Give own mutex?
 	world.wPlayerMutex.Unlock()
 
-	return newPlayer
+	return newPlayer // Player.world is nil at this point at is assigned later when socket is established
 }
 
 func (world *World) isLoggedInAlready(username string) bool {
