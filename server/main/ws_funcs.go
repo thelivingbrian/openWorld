@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/heap"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// ...move to different file?
 type Update struct {
 	player *Player
 	update []byte
@@ -42,7 +44,7 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 
 	if playerExists {
 		existingPlayer.conn = conn
-		existingPlayer.world = world
+		//existingPlayer.world = world
 		handleNewPlayer(existingPlayer)
 	} else {
 		fmt.Println("player not found with token: " + token)
@@ -84,6 +86,18 @@ func logOut(player *Player) {
 	player.removeFromStage()
 	player.world.wPlayerMutex.Lock()
 	delete(player.world.worldPlayers, player.id)
+	index, exists := player.world.leaderBoard.mostDangerous.index[player]
+	if exists {
+		heap.Remove(&player.world.leaderBoard.mostDangerous, index)
+		//  If index was 0 before, need to update new most dangerous
+		if index == 0 {
+			fmt.Println("New Most Dangerous!")
+			mostDangerous := player.world.leaderBoard.mostDangerous.Peek()
+			if mostDangerous != nil {
+				notifyChangeInMostDangerous(mostDangerous)
+			}
+		}
+	}
 	player.world.wPlayerMutex.Unlock()
 	player.conn = nil
 	fmt.Println("Logging Out " + player.username)
@@ -156,20 +170,24 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 		updateScreenFromScratch(player)
 	}
 	if event.Name == "g" {
-		exTile := `<div class="grid-square blue" id="c0-0">				
-						<div id="p0-0" class="box zp "></div>
-						<div id="s0-0" class="box zS"></div>
-						<div id="t0-0" class="box top"></div>
-					</div>
-					<div class="grid-square blue" id="c0-1">				
-						<div id="p0-1" class="box zp "></div>
-						<div id="s0-1" class="box zS"></div>
-						<div id="t0-1" class="box top"></div>
-					</div>
-					`
-		exTile += `<div id="t1-0" class="box top green"></div>
-				<div id="t0-0" class="box top green"></div>`
-		updateOne(exTile, player)
+		/*
+			Full swap takes priority in either order, otherwise both may apply
+			exTile := `<div class="grid-square blue" id="c0-0">
+							<div id="p0-0" class="box zp "></div>
+							<div id="s0-0" class="box zS"></div>
+							<div id="t0-0" class="box top"></div>
+						</div>
+						<div class="grid-square blue" id="c0-1">
+							<div id="p0-1" class="box zp "></div>
+							<div id="s0-1" class="box zS"></div>
+							<div id="t0-1" class="box top"></div>
+						</div>
+						`
+			exTile += `<div id="t1-0" class="box top green"></div>
+					<div id="t0-0" class="box top green"></div>`
+			updateOne(exTile, player)
+		*/
+		player.updateBottomText("Heyo ;) ")
 	}
 	if event.Name == "Space-On" {
 		if player.actions.spaceStack.hasPower() {

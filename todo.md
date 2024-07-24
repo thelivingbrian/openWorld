@@ -2,13 +2,15 @@
 
 ## Engine
 - [ ] Update player view refactor
-  - [ ] Empty boost swaps 
+  - [-] Empty boost swaps 
 - [ ] Admin screen
 - [ ] Test client
 - [ ] Constant special area names in tests and game 
-- [ ] Boosts not spawning?
+- [-] Boosts not spawning at same rate?
 - [ ] Instant kill button or key
-- [ ] Shift prevents stage changes even with no boosts 
+- [-] Shift prevents stage changes even with no boosts 
+- [-] No player detail update on respawn 
+- [ ] green dot of money is invisible after killing other player
 
 ## Design Workspace
 - [-] Rotations
@@ -97,32 +99,51 @@
  - [ ] Display as "!" Notification in mobile instead of on screen
 
 ## Kill streak
- - [ ] User Streak
+ - [-] User Streak
  - [ ] DB stuff 
+   - [ ] Total kills
+   - [ ] Total Deaths
+   - [ ] Highest Streak
+   - [ ] Time alive/In Danger ?
+
+## Stats / Metrics
 
 ## World map
-- [-] Add map color to prototype
- - [-] generate map colors automatically
-- [-] Area to map (png?)
- - [-] png to svg so map can be resized? - No resize with css
-- [-] Serve an image
-- [-] Space data model 
- - [-] topology
- - [-] map
- - [-] map for subarea (do this with highlighting below)
- - [-] save space as json 
-  - [-] compile space changes (if any) 
-- [-] Map for spaces (Torus and Plane only?)
-  - [-] Map for fixed size plane/torus
-- [-] "You are here" highlighting? 
-  - [-] 1 map per area generated (May be easy to extend this to other topologies like cube also)
-- [-] Serve maps from game
-  - [-] Deploy 
-  - [-] Map window opens 
-  - [-] Serve image by uuid
-  - [-] Scvale image inside map window 
-
+- [-] Basic world maps
+  - [-] Add map color to prototype
+    - [-] generate map colors automatically
+  - [-] Area to map (png?)
+    - [-] png to svg so map can be resized? - No resize with css
+  - [-] Serve an image
+  - [-] Space data model 
+    - [-] topology
+    - [-] map
+    - [-] map for subarea (do this with highlighting below)
+  - [-] save space as json 
+    - [-] compile space changes (if any) 
+  - [-] Map for spaces (Torus and Plane only?)
+    - [-] Map for fixed size plane/torus
+  - [-] "You are here" highlighting? 
+    - [-] 1 map per area generated (May be easy to extend this to other topologies like cube also)
+  - [-] Serve maps from game
+    - [-] Deploy 
+    - [-] Map window opens 
+    - [-] Serve image by uuid
+    - [-] Scvale image inside map window 
+- [ ] Additions
+  - [ ] Prototype edit map color (And generate automatically?)
+  - [ ] Map has wrong size on wide monitor 
   
+
+## Testing
+- [ ] Unit testing 
+  - [ ] WebSocket
+    - [-] Move Player via websocket in unit test
+    - [-] Interface DB? or testing database....
+      - [-] testing db works and is arguably better?
+  - [ ] Most Dangerous
+- [ ] Load testing
+  - [ ] Selenium? 
 
 
 ## Transformation syntax:

@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/google/uuid"
 )
 
 /////////////////////////////////////////////
@@ -85,59 +83,21 @@ func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 
 	worked := checkPasswordHash(password, user.Hashword)
 	if worked {
-		player, err := world.db.getPlayerRecord(user.Username)
+		record, err := world.db.getPlayerRecord(user.Username)
 		if err != nil {
-			log.Fatal("No player found for user")
+			log.Fatal("No player found for user") // lol too extreme
 		}
-		world.join(w, player)
+		player := world.join(record)
+		if player != nil {
+			io.WriteString(w, printPageFor(player))
+		} else {
+			io.WriteString(w, "<h2>Invalid (User logged in already)</h2>")
+		}
 	} else {
 		io.WriteString(w, invalidSignin())
 		return
 	}
 
-}
-
-func (world *World) join(w http.ResponseWriter, record *PlayerRecord) {
-	token := uuid.New().String()
-	fmt.Println("New Player: " + record.Username)
-	fmt.Println("Token: " + token)
-
-	if world.isLoggedInAlready(record.Username) {
-		fmt.Println("User attempting to log in but is logged in already: " + record.Username)
-		io.WriteString(w, "<h2>Invalid (User logged in already)</h2>")
-		return
-	}
-
-	newPlayer := &Player{
-		id:        token,
-		username:  record.Username,
-		stage:     nil,
-		stageName: record.StageName,
-		x:         record.X,
-		y:         record.Y,
-		actions:   createDefaultActions(),
-		health:    record.Health,
-		money:     record.Money,
-	}
-
-	//New Method
-	world.wPlayerMutex.Lock()
-	world.worldPlayers[token] = newPlayer
-	world.wPlayerMutex.Unlock()
-
-	fmt.Println("Printing Page Headers")
-	io.WriteString(w, printPageFor(newPlayer)) // interesting...
-}
-
-func (world *World) isLoggedInAlready(username string) bool {
-	world.wPlayerMutex.Lock()
-	defer world.wPlayerMutex.Unlock()
-	for _, player := range world.worldPlayers {
-		if player.username == username {
-			return true
-		}
-	}
-	return false
 }
 
 /////////////////////////////////////////////

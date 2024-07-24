@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"sync"
 
@@ -21,7 +22,10 @@ type Player struct {
 	actions    *Actions
 	health     int
 	money      int
+	moneyLock  sync.Mutex
 	experience int
+	killstreak int
+	streakLock sync.Mutex
 }
 
 // Health observer, All Health changes should go through here
@@ -36,8 +40,39 @@ func (player *Player) setHealth(n int) {
 
 // Money observer, All Money changes should go through here
 func (player *Player) setMoney(n int) {
+	player.moneyLock.Lock()
+	defer player.moneyLock.Unlock()
 	player.money = n
 	updateOne(divPlayerInformation(player), player)
+}
+
+func (player *Player) getMoneySync() int {
+	player.moneyLock.Lock()
+	defer player.moneyLock.Unlock()
+	return player.money
+}
+
+// Streak observer, All Money changes should go through here
+func (player *Player) setKillStreak(n int) {
+	player.streakLock.Lock()
+	//defer player.streakLock.Unlock()
+	player.killstreak = n
+	player.streakLock.Unlock()
+
+	player.world.leaderBoard.mostDangerous.Update(player)
+	// New method. This is blocking defer
+	updateOne(divPlayerInformation(player), player)
+}
+
+func (player *Player) getKillStreakSync() int {
+	player.streakLock.Lock()
+	defer player.streakLock.Unlock()
+	return player.killstreak
+}
+
+func (player *Player) incrementKillStreak() {
+	newStreak := player.getKillStreakSync() + 1
+	player.setKillStreak(newStreak)
 }
 
 func (player *Player) isDead() bool {
@@ -50,6 +85,7 @@ func (player *Player) addToHealth(n int) bool {
 	return newHealth > 0
 }
 
+// always called with place?
 func (p *Player) assignStageAndListen() {
 	stage, new := p.world.getStageByName(p.stageName)
 	if stage == nil {
@@ -89,6 +125,7 @@ func (player *Player) removeFromStage() {
 // Recv type
 func respawn(player *Player) {
 	player.setHealth(150)
+	player.setKillStreak(0)
 	player.stageName = "clinic"
 	player.x = 2
 	player.y = 2
@@ -99,96 +136,125 @@ func respawn(player *Player) {
 }
 
 func (p *Player) moveNorth() {
-	if p.y == 0 && p.stage.north != "" {
-		p.tryGoNorth()
+	if p.y == 0 {
+		p.tryGoNeighbor(-1, 0, p.stage.north)
 		return
 	}
 	p.move(-1, 0)
 }
 
-func (p *Player) tryGoNorth() {
-	area, success := areaFromName(p.stage.north)
-	if !success {
-		return
-	}
-
-	destY := len(area.Tiles) - 1
-	destX := min(p.x, len(area.Tiles[destY])-1)
-
-	if materials[area.Tiles[destY][destX]].Walkable {
-		t := &Teleport{destStage: area.Name, destY: destY, destX: destX}
-		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
-		p.applyTeleport(t)
-		p.move(0, 0)
+func (p *Player) moveNorthBoost() {
+	if p.actions.boostCounter > 0 {
+		p.useBoost()
+		if p.y == 0 {
+			p.tryGoNeighbor(-1, 0, p.stage.north)
+			return
+		}
+		if p.y == 1 {
+			p.tryGoNeighbor(-1, 0, p.stage.north)
+			return
+		}
+		p.move(-2, 0)
+	} else {
+		p.moveNorth()
 	}
 }
 
 func (p *Player) moveSouth() {
-	if p.y == len(p.stage.tiles)-1 && p.stage.south != "" {
-		p.tryGoSouth()
+	if p.y == len(p.stage.tiles)-1 {
+		p.tryGoNeighbor(1, 0, p.stage.south)
 		return
 	}
 	p.move(1, 0)
 }
 
-func (p *Player) tryGoSouth() {
-	area, success := areaFromName(p.stage.south)
-	if !success {
-		return
-	}
-
-	destY := 0
-	destX := min(p.x, len(area.Tiles[0])-1)
-
-	if materials[area.Tiles[destY][destX]].Walkable {
-		t := &Teleport{destStage: area.Name, destY: destY, destX: destX}
-		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
-		p.applyTeleport(t)
-		p.move(0, 0)
+func (p *Player) moveSouthBoost() {
+	if p.actions.boostCounter > 0 {
+		p.useBoost()
+		if p.y == len(p.stage.tiles)-1 {
+			p.tryGoNeighbor(2, 0, p.stage.south)
+			return
+		}
+		if p.y == len(p.stage.tiles)-2 {
+			p.tryGoNeighbor(1, 0, p.stage.south)
+			return
+		}
+		p.move(2, 0)
+	} else {
+		p.moveSouth()
 	}
 }
 
 func (p *Player) moveEast() {
-	if p.x == len(p.stage.tiles[p.y])-1 && p.stage.east != "" {
-		p.tryGoEast()
+	if p.x == len(p.stage.tiles[p.y])-1 {
+		p.tryGoNeighbor(0, 1, p.stage.east)
 		return
 	}
 	p.move(0, 1)
 }
 
-func (p *Player) tryGoEast() {
-	area, success := areaFromName(p.stage.east)
-	if !success {
-		return
-	}
-
-	destY := min(p.y, len(area.Tiles)-1)
-	destX := 0
-
-	if materials[area.Tiles[destY][destX]].Walkable {
-		t := &Teleport{destStage: area.Name, destY: destY, destX: destX}
-		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
-		p.applyTeleport(t)
-		p.move(0, 0)
+func (p *Player) moveEastBoost() {
+	if p.actions.boostCounter > 0 {
+		p.useBoost()
+		if p.x == len(p.stage.tiles[p.y])-1 {
+			p.tryGoNeighbor(0, 2, p.stage.east)
+			return
+		}
+		if p.x == len(p.stage.tiles[p.y])-2 {
+			p.tryGoNeighbor(0, 1, p.stage.east)
+			return
+		}
+		p.move(0, 2)
+	} else {
+		p.moveEast()
 	}
 }
 
 func (p *Player) moveWest() {
-	if p.x == 0 && p.stage.west != "" {
-		p.tryGoWest()
+	if p.x == 0 {
+		p.tryGoNeighbor(0, -1, p.stage.west)
 		return
 	}
 	p.move(0, -1)
 }
 
-func (p *Player) tryGoWest() {
-	area, success := areaFromName(p.stage.west)
+func (p *Player) moveWestBoost() {
+	if p.actions.boostCounter > 0 {
+		p.useBoost()
+		if p.x == 0 {
+			p.tryGoNeighbor(0, -2, p.stage.west)
+			return
+		}
+		if p.x == 1 {
+			p.tryGoNeighbor(0, -1, p.stage.west)
+			return
+		}
+		p.move(0, -2)
+	} else {
+		p.moveWest()
+	}
+}
+
+func (p *Player) tryGoNeighbor(yOffset, xOffset int, areaName string) {
+	area, success := areaFromName(areaName)
 	if !success {
 		return
 	}
 
-	destY := min(p.y, len(area.Tiles)-1)
-	destX := len(area.Tiles[destY]) - 1
+	var destY, destX int
+	if yOffset == 0 {
+		destY = p.y
+		destX = (len(area.Tiles[destY]) + xOffset) % len(area.Tiles[destY]) // Trust me bro
+		if xOffset > 0 {
+			destX-- // Probably not ideal way to acheive thish
+		}
+	} else {
+		destX = p.x
+		destY = (len(area.Tiles) + yOffset) % len(area.Tiles)
+		if yOffset > 0 {
+			destY--
+		}
+	}
 
 	if materials[area.Tiles[destY][destX]].Walkable {
 		t := &Teleport{destStage: area.Name, destY: destY, destX: destX}
@@ -198,55 +264,18 @@ func (p *Player) tryGoWest() {
 	}
 }
 
-func (p *Player) moveNorthBoost() {
-	if p.actions.boostCounter > 0 {
-		p.useBoost()
-		p.move(-2, 0)
-	} else {
-		p.move(-1, 0)
-	}
-}
-
-func (p *Player) moveSouthBoost() {
-	if p.actions.boostCounter > 0 {
-		p.useBoost()
-		p.move(2, 0)
-	} else {
-		p.move(1, 0)
-	}
-}
-
-func (p *Player) moveEastBoost() {
-	if p.actions.boostCounter > 0 {
-		p.useBoost()
-		p.move(0, 2)
-	} else {
-		p.move(0, 1)
-	}
-}
-
-func (p *Player) moveWestBoost() {
-	if p.actions.boostCounter > 0 {
-		p.useBoost()
-		p.move(0, -2)
-	} else {
-		p.move(0, -1)
-	}
-}
-
 func (p *Player) move(yOffset int, xOffset int) {
 	destY := p.y + yOffset
 	destX := p.x + xOffset
 	if validCoordinate(destY, destX, p.stage.tiles) && walkable(p.stage.tiles[destY][destX]) {
-		currentTile := p.stage.tiles[p.y][p.x]
+		sourceTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
 
-		currentTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
+		sourceTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
 		destTile.addPlayerAndNotifyOthers(p)
 
-		previousTile := currentTile
+		previousTile := sourceTile
 		impactedTiles := p.updateSpaceHighlights()
-		impactedTiles = append(impactedTiles, p.updateShiftHighlights()...)
 		updateOneAfterMovement(p, impactedTiles, previousTile)
 	}
 }
@@ -268,7 +297,7 @@ func (player *Player) setSpaceHighlights() {
 	}
 }
 
-func (player *Player) updateSpaceHighlights() []*Tile {
+func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highlights
 	previous := player.actions.spaceHighlights
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceStack.peek().areaOfInfluence)
@@ -282,26 +311,6 @@ func (player *Player) updateSpaceHighlights() []*Tile {
 			} else {
 				impactedTiles = append(impactedTiles, tile)
 			}
-		}
-	}
-	return append(impactedTiles, mapOfTileToArray(previous)...)
-}
-
-func (player *Player) updateShiftHighlights() []*Tile { // Returns removed highlights
-	previous := player.actions.shiftHighlights
-	player.actions.shiftHighlights = map[*Tile]bool{}
-	absCoordinatePairs := applyRelativeDistance(player.y, player.x, jumpCross()) // Shift shape lives in multiple places
-	var impactedTiles []*Tile
-	for _, pair := range absCoordinatePairs {
-		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
-			tile := player.stage.tiles[pair[0]][pair[1]]
-			player.actions.shiftHighlights[tile] = true
-			if _, contains := previous[tile]; contains {
-				delete(previous, tile)
-			} else {
-				impactedTiles = append(impactedTiles, tile)
-			}
-
 		}
 	}
 	return append(impactedTiles, mapOfTileToArray(previous)...)
@@ -340,6 +349,18 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	player.placeOnStage()
 }
 
+func (player *Player) updateBottomText(message string) {
+	msg := fmt.Sprintf(`
+			<div id="bottom_text">
+				&nbsp;&nbsp;> %s
+			</div>`, message)
+	updateOne(msg, player)
+}
+
+/*
+// Show boost when boost counter first breaks 0 with message explaining shift
+// Hide boost on next movement
+
 func (player *Player) showBoost() {
 	player.actions.shiftEngaged = true
 	player.actions.shiftHighlights = map[*Tile]bool{}
@@ -358,6 +379,7 @@ func (player *Player) hideBoost() {
 	player.actions.shiftHighlights = map[*Tile]bool{}
 	oobUpdateWithHud(player, mapOfTileToArray(previous))
 }
+*/
 
 /////////////////////////////////////////////////////////////
 // Actions
@@ -367,8 +389,6 @@ type Actions struct {
 	spaceHighlights map[*Tile]bool
 	spaceStack      *StackOfPowerUp
 	boostCounter    int
-	shiftHighlights map[*Tile]bool
-	shiftEngaged    bool
 }
 
 type PowerUp struct {
@@ -382,19 +402,16 @@ type StackOfPowerUp struct {
 }
 
 func (player *Player) addBoosts(n int) {
-	first := player.actions.boostCounter == 0
+	//first := player.actions.boostCounter == 0
 	player.actions.boostCounter += n
-	if first {
+	/*if first {
 		player.showBoost()
-	}
+	}*/
 	updateOne(divPlayerInformation(player), player)
 }
 
 func (player *Player) useBoost() {
 	player.actions.boostCounter--
-	if player.actions.boostCounter == 0 {
-		player.hideBoost()
-	}
 	updateOne(divPlayerInformation(player), player)
 }
 
@@ -434,5 +451,5 @@ func (stack *StackOfPowerUp) push(power *PowerUp) *StackOfPowerUp {
 }
 
 func createDefaultActions() *Actions {
-	return &Actions{false, map[*Tile]bool{}, &StackOfPowerUp{}, 0, map[*Tile]bool{}, false}
+	return &Actions{false, map[*Tile]bool{}, &StackOfPowerUp{}, 0}
 }

@@ -209,7 +209,7 @@ func Quit(p *Player, event PlayerSocketEvent) {
 	          <a class="large-font" href="#" hx-get="/homesignin" hx-target="#landing">Resume</a><br />
 	      </div>
 	  </div>`
-	p.conn.WriteMessage(websocket.TextMessage, []byte(logOutSuccess))
+	p.trySend([]byte(logOutSuccess))
 }
 
 func Map(p *Player, event PlayerSocketEvent) {
