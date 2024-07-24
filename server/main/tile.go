@@ -177,7 +177,8 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 		}
 		survived := player.addToHealth(-dmg)
 		if !survived {
-			tile.money += halveMoneyOf(player) // Tile money needs mutex?
+			//tile.money += halveMoneyOf(player) // Tile money needs mutex?
+			tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10)
 
 			initiator.incrementKillStreak()
 			// Maybe should just pass in required fields?
@@ -210,7 +211,12 @@ func (tile *Tile) addPowerUpAndNotifyAll(shape [][2]int) {
 }
 
 func (tile *Tile) addBoostsAndNotifyAll() {
-	tile.boosts += 5
+	tile.boosts += 10
+	tile.stage.updateAll(svgFromTile(tile))
+}
+
+func (tile *Tile) addMoneyAndNotifyAll(amount int) {
+	tile.money += amount
 	tile.stage.updateAll(svgFromTile(tile))
 }
 

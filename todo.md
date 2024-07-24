@@ -10,7 +10,7 @@
 - [ ] Instant kill button or key
 - [-] Shift prevents stage changes even with no boosts 
 - [-] No player detail update on respawn 
-- [ ] green dot of money is invisible after killing other player
+- [-] green dot of money is invisible after killing other player
 - [-] relative border radius
 
 ## Design Workspace
