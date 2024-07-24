@@ -10,7 +10,8 @@
 - [ ] Instant kill button or key
 - [-] Shift prevents stage changes even with no boosts 
 - [-] No player detail update on respawn 
-- [ ] green dot of money is invisible after killing other player
+- [-] green dot of money is invisible after killing other player
+- [-] relative border radius
 
 ## Design Workspace
 - [-] Rotations
@@ -63,6 +64,7 @@
   - [ ] NSEW buttons on sides of area display 
   - [ ] Clean up 
     - [ ] Remove concept of materials? 
+  - [ ] relative border radius
 - [ ] Space Edit
   - [ ] Default tile color control
   - [ ] view map
@@ -132,16 +134,17 @@
     - [-] Scvale image inside map window 
 - [ ] Additions
   - [ ] Prototype edit map color (And generate automatically?)
-  - [ ] Map has wrong size on wide monitor 
+  - [-] Map has wrong size on wide monitor 
   
 
 ## Testing
 - [ ] Unit testing 
-  - [ ] WebSocket
+  - [-] WebSocket
     - [-] Move Player via websocket in unit test
     - [-] Interface DB? or testing database....
       - [-] testing db works and is arguably better?
-  - [ ] Most Dangerous
+    - [ ] Test fails due to race condition 
+  - [-] Most Dangerous
 - [ ] Load testing
   - [ ] Selenium? 
 
