@@ -105,7 +105,7 @@ a {
     border: 1px solid #888;
     width: 75%;
     position: relative;
-    top: 20%;
+    top: 10%;
 }
 
 img {
@@ -127,6 +127,10 @@ img {
  .logo-img {
     width: 50%
  }
+
+ .modal_content {
+    width: 45%;
+}
 }
 
 @media (orientation: portrait) {
@@ -276,65 +280,64 @@ img {
 .trsp100 {
     opacity: 1;
 }
-
 .r0 {
-    border-radius: 8px
+    border-radius: 25%
 }
 
 .r0-bl {
-    border-bottom-left-radius: 8px
+    border-bottom-left-radius: 25%
 }
 
 .r0-br {
-    border-bottom-right-radius: 8px
+    border-bottom-right-radius: 25%
 }
 
 .r0-tl {
-    border-top-left-radius: 8px
+    border-top-left-radius: 25%
 }
 
 .r0-tr {
-    border-top-right-radius: 8px
+    border-top-right-radius: 25%
 }
 
 .r1 {
-    border-radius: 15px
+    border-radius: 50%
 }
 
 .r1-bl {
-    border-bottom-left-radius: 15px
+    border-bottom-left-radius: 50%
 }
 
 .r1-br {
-    border-bottom-right-radius: 15px
+    border-bottom-right-radius: 50%
 }
 
 .r1-tl {
-    border-top-left-radius: 15px
+    border-top-left-radius: 50%
 }
 
 .r1-tr {
-    border-top-right-radius: 15px
+    border-top-right-radius: 50%
 }
 
 .r2 {
-    border-radius: 25px
+    border-radius: 75%
 }
 
 .r2-bl {
-    border-bottom-left-radius: 25px
+    border-bottom-left-radius: 75%
 }
 
 .r2-br {
-    border-bottom-right-radius: 25px
+    border-bottom-right-radius: 75%
 }
 
 .r2-tl {
-    border-top-left-radius: 25px
+    border-top-left-radius: 75%
 }
 
 .r2-tr {
-    border-top-right-radius: 25px
+    border-top-right-radius: 75%
 }
 
 .thin {
