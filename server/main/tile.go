@@ -177,8 +177,7 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 		}
 		survived := player.addToHealth(-dmg)
 		if !survived {
-			//tile.money += halveMoneyOf(player) // Tile money needs mutex?
-			tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10)
+			tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10) // Tile money needs mutex?
 
 			initiator.incrementKillStreak()
 			// Maybe should just pass in required fields?
