@@ -265,7 +265,12 @@ img {
     opacity: .4;
 }
 
+/* used? */
 .half-trsp {
+    opacity: .5;
+}
+
+.trsp50 {
     opacity: .5;
 }
 
