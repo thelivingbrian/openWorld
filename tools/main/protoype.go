@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -365,4 +366,37 @@ func (proto *Prototype) PeekCeiling1() string {
 
 func (proto *Prototype) PeekCeiling2() string {
 	return transformCss(proto.Ceiling2Css, Transformation{})
+}
+
+// Logic For adding map colors to existing prototypes
+func (c Context) getMapColorFromProto(proto Prototype) string {
+	if proto.MapColor != "" {
+		return proto.MapColor
+	} else {
+		return c.inferMapColorFromProto(proto)
+	}
+}
+
+func (c Context) inferMapColorFromProto(proto Prototype) string {
+	color := proto.CssColor
+	layersToCheck := []string{proto.Floor1Css, proto.Floor2Css, proto.Ceiling1Css, proto.Ceiling2Css}
+	for _, layerString := range layersToCheck {
+		extractedColor := c.getColorFromString(layerString)
+		if extractedColor != "" {
+			color = extractedColor
+		}
+	}
+	return color
+}
+
+func (c Context) getColorFromString(s string) string {
+	words := strings.Fields(s)
+	for _, word := range words {
+		for _, color := range c.colors {
+			if word == color.CssClassName {
+				return word
+			}
+		}
+	}
+	return ""
 }
