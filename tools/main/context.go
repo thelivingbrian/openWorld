@@ -198,7 +198,6 @@ func (c Context) addSetNamesToProtypes(protoMap map[string][]Prototype) map[stri
 	return out
 }
 
-/*
 // Logic For adding map colors to existing prototypes
 func (c Context) getMapColorFromProto(proto Prototype) string {
 	color := proto.CssColor
@@ -223,7 +222,6 @@ func (c Context) getColorFromString(s string) string {
 	}
 	return ""
 }
-*/
 
 func populateMaps[T any](m map[string]T, pathToJsonDirectory string) {
 	subEntries, err := os.ReadDir(pathToJsonDirectory)

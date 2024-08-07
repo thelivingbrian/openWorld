@@ -19,6 +19,7 @@ type Prototype struct {
 	Ceiling2Css string `json:"ceiling2css"`
 	SetName     string `json:"setName"`
 	MapColor    string `json:"mapColor"`
+	//default map color bool?
 }
 
 type Transformation struct {
@@ -188,6 +189,8 @@ func (c Context) putPrototype(w http.ResponseWriter, r *http.Request) {
 	floor2 := properties["Floor2Css"]
 	ceiling1 := properties["Ceiling1Css"]
 	ceiling2 := properties["Ceiling2Css"]
+	mapColor := properties["MapColor"]
+
 	fmt.Printf("%s | Floor: %s - %s Ceiling: %s - %s\n", commonName, floor1, floor2, ceiling1, ceiling2)
 	panicIfAnyEmpty("Invalid prototype", id, commonName)
 
@@ -202,6 +205,7 @@ func (c Context) putPrototype(w http.ResponseWriter, r *http.Request) {
 	proto.Floor2Css = floor2
 	proto.Ceiling1Css = ceiling1
 	proto.Ceiling2Css = ceiling2
+	proto.MapColor = mapColor
 
 	fmt.Println(proto)
 
@@ -236,11 +240,25 @@ func (c *Context) postPrototype(w http.ResponseWriter, r *http.Request) {
 	floor2 := properties["Floor2Css"]
 	ceiling1 := properties["Ceiling1Css"]
 	ceiling2 := properties["Ceiling2Css"]
+	mapColor := properties["MapColor"]
+
 	fmt.Printf("%s | Floor: %s - %s Ceiling: %s - %s\n", commonName, floor1, floor2, ceiling1, ceiling2)
 	panicIfAnyEmpty("Invalid prototype", commonName) // The rest may be empty legitimately
 
 	id := uuid.New().String()
-	collection.PrototypeSets[setName] = append(set, Prototype{ID: id, SetName: setName, CommonName: commonName, Walkable: walkable, CssColor: cssColor, Floor1Css: floor1, Floor2Css: floor2, Ceiling1Css: ceiling1, Ceiling2Css: ceiling2})
+	collection.PrototypeSets[setName] = append(set,
+		Prototype{
+			ID:          id,
+			SetName:     setName,
+			CommonName:  commonName,
+			Walkable:    walkable,
+			CssColor:    cssColor,
+			Floor1Css:   floor1,
+			Floor2Css:   floor2,
+			Ceiling1Css: ceiling1,
+			Ceiling2Css: ceiling2,
+			MapColor:    mapColor,
+		})
 
 	outFile := c.collectionPath + collectionName + "/prototypes/" + setName + ".json"
 	err := writeJsonFile(outFile, collection.PrototypeSets[setName])
