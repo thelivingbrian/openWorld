@@ -121,7 +121,7 @@ img {
 
 @media (orientation: landscape) {
  #screen {
-     width: 50%
+     width: 45%
  }
 
  .logo-img {
@@ -129,17 +129,17 @@ img {
  }
 
  .modal_content {
-    width: 45%;
+    width: 40%;
 }
 }
 
 @media (orientation: portrait) {
  #screen {
-     width: 92%
+     width: 87%
  }
 
  .logo-img {
-    width: 92%
+    width: 87%
  }
 }
 
@@ -265,7 +265,12 @@ img {
     opacity: .4;
 }
 
+/* used? */
 .half-trsp {
+    opacity: .5;
+}
+
+.trsp50 {
     opacity: .5;
 }
 

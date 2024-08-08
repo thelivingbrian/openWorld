@@ -20,6 +20,10 @@
       padding: 15px;
 }
 
+img {
+    image-rendering: pixelated; 
+}
+
 /* Site Backgrounds */
   
 .day {
@@ -85,6 +89,7 @@
     opacity: .4;
 }
 
+/* replace with trsp50 */
 .half-trsp {
     opacity: .5;
 }
@@ -101,64 +106,119 @@
     opacity: 1;
 }
 
+
 .r0 {
-    border-radius: 8px
+    border-radius: 25%
 }
 
 .r0-bl {
-    border-bottom-left-radius: 8px
+    border-bottom-left-radius: 25%
 }
 
 .r0-br {
-    border-bottom-right-radius: 8px
+    border-bottom-right-radius: 25%
 }
 
 .r0-tl {
-    border-top-left-radius: 8px
+    border-top-left-radius: 25%
 }
 
 .r0-tr {
-    border-top-right-radius: 8px
+    border-top-right-radius: 25%
 }
 
 .r1 {
-    border-radius: 15px
+    border-radius: 50%
 }
 
 .r1-bl {
-    border-bottom-left-radius: 15px
+    border-bottom-left-radius: 50%
 }
 
 .r1-br {
-    border-bottom-right-radius: 15px
+    border-bottom-right-radius: 50%
 }
 
 .r1-tl {
-    border-top-left-radius: 15px
+    border-top-left-radius: 50%
 }
 
 .r1-tr {
-    border-top-right-radius: 15px
+    border-top-right-radius: 50%
 }
 
 .r2 {
-    border-radius: 25px
+    border-radius: 75%
 }
 
 .r2-bl {
-    border-bottom-left-radius: 25px
+    border-bottom-left-radius: 75%
 }
 
 .r2-br {
-    border-bottom-right-radius: 25px
+    border-bottom-right-radius: 75%
 }
 
 .r2-tl {
-    border-top-left-radius: 25px
+    border-top-left-radius: 75%
 }
 
 .r2-tr {
-    border-top-right-radius: 25px
+    border-top-right-radius: 75%
+}
+
+
+/* no need? */
+.r3 {
+    border-radius: 90%
+}
+
+.r3-bl {
+    border-bottom-left-radius: 90%
+}
+
+.r3-br {
+    border-bottom-right-radius: 90%
+}
+
+.r3-tl {
+    border-top-left-radius: 90%
+}
+
+.r3-tr {
+    border-top-right-radius: 90%
+}
+
+.r4-bl {
+    border-bottom-left-radius: 100%
+}
+
+.r4-br {
+    border-bottom-right-radius: 100%
+}
+
+.r4-tl {
+    border-top-left-radius: 100%
+}
+
+.r4-tr {
+    border-top-right-radius: 100%
+}
+
+.r5-bl {
+    border-bottom-left-radius: 1000%
+}
+
+.r5-br {
+    border-bottom-right-radius: 1000%
+}
+
+.r5-tl {
+    border-top-left-radius: 1000%
+}
+
+.r5-tr {
+    border-top-right-radius: 1000%
 }
 
 .thin {

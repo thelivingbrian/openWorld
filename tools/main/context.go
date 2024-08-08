@@ -198,33 +198,6 @@ func (c Context) addSetNamesToProtypes(protoMap map[string][]Prototype) map[stri
 	return out
 }
 
-/*
-// Logic For adding map colors to existing prototypes
-func (c Context) getMapColorFromProto(proto Prototype) string {
-	color := proto.CssColor
-	layersToCheck := []string{proto.Floor1Css, proto.Floor2Css, proto.Ceiling1Css, proto.Ceiling2Css}
-	for _, layerString := range layersToCheck {
-		extractedColor := c.getColorFromString(layerString)
-		if extractedColor != "" {
-			color = extractedColor
-		}
-	}
-	return color
-}
-
-func (c Context) getColorFromString(s string) string {
-	words := strings.Fields(s)
-	for _, word := range words {
-		for _, color := range c.colors {
-			if word == color.CssClassName {
-				return word
-			}
-		}
-	}
-	return ""
-}
-*/
-
 func populateMaps[T any](m map[string]T, pathToJsonDirectory string) {
 	subEntries, err := os.ReadDir(pathToJsonDirectory)
 	if err != nil {

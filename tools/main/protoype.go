@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -19,6 +20,7 @@ type Prototype struct {
 	Ceiling2Css string `json:"ceiling2css"`
 	SetName     string `json:"setName"`
 	MapColor    string `json:"mapColor"`
+	//default map color bool?
 }
 
 type Transformation struct {
@@ -188,6 +190,8 @@ func (c Context) putPrototype(w http.ResponseWriter, r *http.Request) {
 	floor2 := properties["Floor2Css"]
 	ceiling1 := properties["Ceiling1Css"]
 	ceiling2 := properties["Ceiling2Css"]
+	mapColor := properties["MapColor"]
+
 	fmt.Printf("%s | Floor: %s - %s Ceiling: %s - %s\n", commonName, floor1, floor2, ceiling1, ceiling2)
 	panicIfAnyEmpty("Invalid prototype", id, commonName)
 
@@ -202,6 +206,7 @@ func (c Context) putPrototype(w http.ResponseWriter, r *http.Request) {
 	proto.Floor2Css = floor2
 	proto.Ceiling1Css = ceiling1
 	proto.Ceiling2Css = ceiling2
+	proto.MapColor = mapColor
 
 	fmt.Println(proto)
 
@@ -236,11 +241,25 @@ func (c *Context) postPrototype(w http.ResponseWriter, r *http.Request) {
 	floor2 := properties["Floor2Css"]
 	ceiling1 := properties["Ceiling1Css"]
 	ceiling2 := properties["Ceiling2Css"]
+	mapColor := properties["MapColor"]
+
 	fmt.Printf("%s | Floor: %s - %s Ceiling: %s - %s\n", commonName, floor1, floor2, ceiling1, ceiling2)
 	panicIfAnyEmpty("Invalid prototype", commonName) // The rest may be empty legitimately
 
 	id := uuid.New().String()
-	collection.PrototypeSets[setName] = append(set, Prototype{ID: id, SetName: setName, CommonName: commonName, Walkable: walkable, CssColor: cssColor, Floor1Css: floor1, Floor2Css: floor2, Ceiling1Css: ceiling1, Ceiling2Css: ceiling2})
+	collection.PrototypeSets[setName] = append(set,
+		Prototype{
+			ID:          id,
+			SetName:     setName,
+			CommonName:  commonName,
+			Walkable:    walkable,
+			CssColor:    cssColor,
+			Floor1Css:   floor1,
+			Floor2Css:   floor2,
+			Ceiling1Css: ceiling1,
+			Ceiling2Css: ceiling2,
+			MapColor:    mapColor,
+		})
 
 	outFile := c.collectionPath + collectionName + "/prototypes/" + setName + ".json"
 	err := writeJsonFile(outFile, collection.PrototypeSets[setName])
@@ -347,4 +366,37 @@ func (proto *Prototype) PeekCeiling1() string {
 
 func (proto *Prototype) PeekCeiling2() string {
 	return transformCss(proto.Ceiling2Css, Transformation{})
+}
+
+// Logic For adding map colors to existing prototypes
+func (c Context) getMapColorFromProto(proto Prototype) string {
+	if proto.MapColor != "" {
+		return proto.MapColor
+	} else {
+		return c.inferMapColorFromProto(proto)
+	}
+}
+
+func (c Context) inferMapColorFromProto(proto Prototype) string {
+	color := proto.CssColor
+	layersToCheck := []string{proto.Floor1Css, proto.Floor2Css, proto.Ceiling1Css, proto.Ceiling2Css}
+	for _, layerString := range layersToCheck {
+		extractedColor := c.getColorFromString(layerString)
+		if extractedColor != "" {
+			color = extractedColor
+		}
+	}
+	return color
+}
+
+func (c Context) getColorFromString(s string) string {
+	words := strings.Fields(s)
+	for _, word := range words {
+		for _, color := range c.colors {
+			if word == color.CssClassName {
+				return word
+			}
+		}
+	}
+	return ""
 }

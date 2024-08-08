@@ -132,8 +132,8 @@
     - [-] Map window opens 
     - [-] Serve image by uuid
     - [-] Scvale image inside map window 
-- [ ] Additions
-  - [ ] Prototype edit map color (And generate automatically?)
+- [-] Additions
+  - [-] Prototype edit map color (And generate automatically?)
   - [-] Map has wrong size on wide monitor 
   
 

@@ -280,7 +280,8 @@ func (c Context) generateImageFromSpace(space *Space) *image.RGBA {
 			for row := range area.Blueprint.Tiles {
 				for column, tile := range area.Blueprint.Tiles[row] {
 					proto := col.findPrototypeById(tile.PrototypeId)
-					protoColor := c.findColorByName(proto.MapColor)
+					mapColor := c.getMapColorFromProto(*proto)
+					protoColor := c.findColorByName(mapColor)
 					if protoColor.CssClassName == "invalid" {
 						protoColor = areaColor
 					}

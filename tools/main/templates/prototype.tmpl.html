@@ -87,6 +87,10 @@
             <input hx-get="/prototype/example" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Floor2Css'],[name='Ceiling1Css'],[name='CssColor']" type="text" name="Ceiling2Css" value="">
         </div>
         <div>
+            <label>Map Color (optional): </label>
+            <input type="text" name="MapColor" value="">
+        </div>
+        <div>
             <label>Walkable: </label>
             <input type="checkbox" name="walkable" />
         </div>
@@ -132,6 +136,10 @@
         <div>
             <label>Ceiling 2 Css: </label>
             <input hx-get="/prototype/example" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Floor2Css'],[name='Ceiling1Css'],[name='CssColor']" type="text" name="Ceiling2Css" value="{{.Ceiling2Css}}">
+        </div>
+        <div>
+            <label>Map Color (optional): </label>
+            <input type="text" name="MapColor" value="{{.MapColor}}">
         </div>
         <div>
             <label>Walkable: </label>
