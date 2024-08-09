@@ -13,7 +13,7 @@
 	<div id="space_select">
 		<label>Space: </label>
         <a hx-get="/spaces/new" hx-include="[name='currentCollection']" hx-target="#space_select" href="#">New</a>
-        <span>Edit</span>
+        <a hx-get="/space" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#space_select" href="#">Edit</a>
         <a hx-post="/space/map" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#space_select" href="#">Save/Map</a>
 		<select name="currentSpace" hx-get="/areas" hx-include="[name='currentCollection']" hx-target="#area_select">
 			<option value=""></option>
@@ -60,4 +60,9 @@
 		<input type="submit" />
 	</form>
 </div>
+{{end}}
+
+
+{{define "space-edit"}}
+<h1>hi</h1>
 {{end}}

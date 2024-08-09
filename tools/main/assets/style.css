@@ -305,6 +305,7 @@ img {
 .navigator {
     display: flex; 
     justify-content: space-between;
+    margin: 0;
 }
 
 .left_text {

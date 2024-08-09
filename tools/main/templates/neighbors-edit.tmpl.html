@@ -68,7 +68,7 @@
             E
         {{else}}
             <input id="tiny-east-go" type="hidden" name="area-name-selected" value="{{.East}}"/>
-            <a hx-get="/area" hx-include="#east-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">
+            <a hx-get="/area" hx-include="#tiny-east-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">
                 E
             </a>
         {{end}}

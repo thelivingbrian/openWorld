@@ -200,6 +200,28 @@ func (col *Collection) getFragmentById(id string) *Fragment {
 
 //
 
+func (c Context) spaceHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		queryValues := r.URL.Query()
+		name := queryValues.Get("currentCollection")
+		fmt.Println("Collection Name: " + name)
+		space := queryValues.Get("currentSpace")
+		fmt.Println("Collection Space: " + space)
+		if col, ok := c.Collections[name]; ok {
+			col.getSpace(w, r)
+		}
+	}
+}
+
+func (col Collection) getSpace(w http.ResponseWriter, _ *http.Request) {
+	err := tmpl.ExecuteTemplate(w, "space-edit", col)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+//
+
 func (c Context) newSpaceHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		queryValues := r.URL.Query()
