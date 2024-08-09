@@ -30,3 +30,49 @@
     <a hx-post="/neighbors" hx-include="#area-name,[name='north_input'],[name='south_input'],[name='east_input'],[name='west_input'],[name='currentCollection'],[name='currentSpace']" hx-target="#edit_tool" href="#">Save</a>
 </div>
 {{end}}
+
+{{define "neighbors-tiny"}}
+
+<p class="navigator">
+    <span class="left_text">
+        {{if eq .West ""}}
+            W
+        {{else}}
+            <input id="tiny-west-go" type="hidden" name="area-name-selected" value="{{.West}}"/>
+            <a hx-get="/area" hx-include="#tiny-west-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">
+                W
+            </a>
+        {{end}}
+    </span>
+    <span class="center_text">
+        {{if eq .North ""}}
+            N
+        {{else}}
+            <input id="tiny-north-go" type="hidden" name="area-name-selected" value="{{.North}}"/>
+            <a hx-get="/area" hx-include="#tiny-north-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">
+                N
+            </a>
+        {{end}} 
+        /
+        {{if eq .South ""}}
+            S
+        {{else}}
+            <input id="tiny-south-go" type="hidden" name="area-name-selected" value="{{.South}}"/>
+            <a hx-get="/area" hx-include="#tiny-south-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">
+                S
+            </a>
+        {{end}}
+    </span>
+    <span class="right_text">
+        {{if eq .East ""}}
+            E
+        {{else}}
+            <input id="tiny-east-go" type="hidden" name="area-name-selected" value="{{.East}}"/>
+            <a hx-get="/area" hx-include="#east-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">
+                E
+            </a>
+        {{end}}
+    </span>
+</p>
+
+{{end}}

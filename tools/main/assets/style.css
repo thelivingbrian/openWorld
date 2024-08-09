@@ -261,3 +261,60 @@ img {
     fill: rgb(255, 255, 100);
     fill-opacity: .8;
 }
+
+
+/* navigation */ 
+.dpad-container {
+    display: grid;
+    grid-template-areas: 
+        "x0 up x1"
+        "left middle right"
+        "x2 down x3";
+    gap: 5px;
+}
+.button {
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    height: 100%;
+    aspect-ratio: 1;
+}
+.half-button {
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+.up { grid-area: up; }
+.down { grid-area: down; }
+.left { grid-area: left; }
+.right { grid-area: right; }
+.middle { grid-area: middle; visibility: hidden; }
+
+.navigator {
+    display: flex; 
+    justify-content: space-between;
+}
+
+.left_text {
+    text-align: left;
+}
+
+.right_text {
+    text-align: right;
+}
+
+.center_text {
+    text-align: center;
+}

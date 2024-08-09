@@ -46,6 +46,7 @@ type GridDetails struct {
 type PageData struct {
 	GridDetails     GridDetails
 	PrototypeSelect PrototypeSelectPage
+	SelectedArea    AreaDescription
 	Name            string
 }
 
@@ -139,6 +140,7 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 			GridType:         "area",
 			ScreenID:         "screen",
 		},
+		SelectedArea: *selectedArea,
 		PrototypeSelect: PrototypeSelectPage{
 			PrototypeSets: setOptions,
 			CurrentSet:    "",

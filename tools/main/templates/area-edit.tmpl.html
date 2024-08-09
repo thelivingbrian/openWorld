@@ -2,6 +2,10 @@
 <div id="edit_window" class="side">
     <input id="area-name" type="hidden" name="area-name" value="{{.Name}}"/>
     <div id="edit_material" class="left">
+        <div id="top_window">
+            {{template "neighbors-tiny" .SelectedArea}}
+        </div>
+        
         {{template "grid" .GridDetails}}
 
         <div id="bottom_window">
@@ -15,10 +19,12 @@
             <a hx-get="/grid/edit" hx-target="#edit_tool" hx-include="[name='currentCollection']" href="#">Modify</a> |
             <a hx-get="/editTransports" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Transports</a> | 
             <a hx-get="/area/display" hx-target="#edit_tool" href="#">Display</a> | 
-            <a hx-get="/area/neighbors" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Neighbors</a> |
+            <a hx-get="/area/neighbors" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Neighbors</a>
+            <!-- 
             <a hx-get="/prototypes" hx-target="#edit_tool" hx-include="[name='currentCollection']" href="#">Prototypes</a> |
-            <!-- <a hx-get="/materialPage"  hx-target="#edit_tool" href="#">Colors/Materials</a> | -->
+            <a hx-get="/materialPage"  hx-target="#edit_tool" href="#">Colors/Materials</a> | 
             <a hx-get="/fragments" hx-target="#edit_tool" hx-include="[name='currentCollection']" href="#">Fragments</a>
+            -->
         </div>
         <div id="edit_tool">
             {{template "grid-modify" .PrototypeSelect}}
