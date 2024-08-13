@@ -2,8 +2,8 @@
 <div id="space_select">
     <label>Space: </label>
     <a hx-get="/spaces/new" hx-include="[name='currentCollection']" hx-target="#space_select" href="#">New</a> |
-    <a hx-get="/space" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#space_select" href="#">Edit</a> | 
-    <a hx-post="/space/map" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#space_select" href="#">Save/Map</a>
+    <a hx-get="/space" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#area_select" href="#">Edit</a> | 
+    <a hx-post="/space/map" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#area_select" href="#">Save/Map</a>
     <select name="currentSpace" hx-get="/areas" hx-include="[name='currentCollection']" hx-target="#space_select">
         <option value="{{.Space.Name}}">{{.Space.Name}}</option>
         {{range  $key, $value := .Collection.Spaces}}
@@ -29,24 +29,6 @@
         </div>
     </div>
 </div>
-
-<!-- <div id="area-page">
-    <input type="hidden" name="currentCollection" value="{{.CollectionName}}" />
-    <input type="hidden" name="currentSpace" value="{{.Name}}" />
-    <div id="select-area">
-        <label>Area: <a hx-get="/areas/new" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#select-area" href="#">New</a></label></label>
-        <select name="area-name-selected" hx-get="/area" hx-include="[name='currentSpace'],[name='currentCollection']" hx-target="#edit-area">
-            <option value="">--</option>
-            {{range  $i, $area := .Areas}}
-                <option value="{{$area.Name}}">{{$area.Name}}</option>
-            {{end}}
-        </select>
-    </div>
-    <div id="edit-area">
-    
-    </div>
-</div>
--->
 {{end}}
 
 {{define "area-new"}}
