@@ -67,7 +67,7 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 	// new func
 	spaceName := details.Location[0]
 	areaName := details.Location[1]
-	space := c.getSpace(details.CollectionName, spaceName)
+	space := c.spaceFromNames(details.CollectionName, spaceName)
 	if space == nil {
 		panic("No Space")
 	}

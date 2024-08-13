@@ -109,7 +109,7 @@ func (c Context) postAreas(w http.ResponseWriter, r *http.Request) {
 
 	blueprint := &Blueprint{Tiles: tiles, Instructions: make([]Instruction, 0)}
 
-	space := c.getSpace(collectionName, spaceName)
+	space := c.spaceFromNames(collectionName, spaceName)
 	space.Areas = append(space.Areas, AreaDescription{Name: name, Safe: safe, DefaultTileColor: defaultTileColor, Blueprint: blueprint, Transports: make([]Transport, 0)})
 	io.WriteString(w, "<h3>Done.</h3>")
 }
@@ -199,7 +199,7 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	spaceName := properties["currentSpace"]
 	panicIfAnyEmpty("POST to /area", collectionName, spaceName, name)
 
-	space := c.getSpace(collectionName, spaceName)
+	space := c.spaceFromNames(collectionName, spaceName)
 
 	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
@@ -313,7 +313,7 @@ func (c Context) getNeighbors(w http.ResponseWriter, r *http.Request) {
 
 	collectionName := queryValues.Get("currentCollection")
 	spaceName := queryValues.Get("currentSpace")
-	space := c.getSpace(collectionName, spaceName)
+	space := c.spaceFromNames(collectionName, spaceName)
 
 	name := queryValues.Get("area-name")
 	selectedArea := getAreaByName(space.Areas, name)
@@ -338,7 +338,7 @@ func (c Context) postNeighbors(w http.ResponseWriter, r *http.Request) {
 
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
-	space := c.getSpace(collectionName, spaceName)
+	space := c.spaceFromNames(collectionName, spaceName)
 	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
 		io.WriteString(w, "<h2>no Area</h2>")

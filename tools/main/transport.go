@@ -25,7 +25,7 @@ func (c *Context) getEditTransports(w http.ResponseWriter, r *http.Request) {
 		panic("ooo spooky")
 	}
 	spaceName := queryValues.Get("currentSpace")
-	space := c.getSpace(collectionName, spaceName)
+	space := c.spaceFromNames(collectionName, spaceName)
 	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
 		io.WriteString(w, "<h2>no Area</h2>")
@@ -49,7 +49,7 @@ func (c Context) editTransport(w http.ResponseWriter, r *http.Request) {
 
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
-	space := c.getSpace(collectionName, spaceName)
+	space := c.spaceFromNames(collectionName, spaceName)
 	selectedArea := getAreaByName(space.Areas, areaName)
 	if selectedArea == nil {
 		io.WriteString(w, "<h2>no Area</h2>")
@@ -74,7 +74,7 @@ func (c Context) newTransport(w http.ResponseWriter, r *http.Request) {
 
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
-	space := c.getSpace(collectionName, spaceName)
+	space := c.spaceFromNames(collectionName, spaceName)
 	selectedArea := getAreaByName(space.Areas, areaName)
 	if selectedArea == nil {
 		io.WriteString(w, "<h2>no Area</h2>")
@@ -153,7 +153,7 @@ func (c Context) dupeTransport(w http.ResponseWriter, r *http.Request) {
 
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
-	space := c.getSpace(collectionName, spaceName)
+	space := c.spaceFromNames(collectionName, spaceName)
 	selectedArea := getAreaByName(space.Areas, areaName)
 	if selectedArea == nil {
 		io.WriteString(w, "<h2>no Area</h2>")
@@ -175,7 +175,7 @@ func (c Context) deleteTransport(w http.ResponseWriter, r *http.Request) {
 
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
-	space := c.getSpace(collectionName, spaceName)
+	space := c.spaceFromNames(collectionName, spaceName)
 	selectedArea := getAreaByName(space.Areas, areaName)
 	if selectedArea == nil {
 		io.WriteString(w, "<h2>no Area</h2>")
