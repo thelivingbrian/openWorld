@@ -67,5 +67,59 @@
 
 
 {{define "space-edit"}}
-<h1>hi</h1>
+<div id="edit_window" class="side">
+	<!-- 
+    <input id="space-name" type="hidden" name="space-name" value=""/>
+	-->
+    <div id="edit_material" class="left">
+        <div id="top_window">
+            
+        </div>
+        
+        <div class="grid">
+			<div class="grid-row">
+				<div>
+					<h2>
+						cell?
+					</h2>
+				</div>
+				<div>
+					<h2>
+						cell?
+					</h2>
+				</div>
+			</div>
+			<div class="grid-row">
+				<div>
+					<h2>
+						cell?
+					</h2>
+				</div>
+				<div>
+					<h2>
+						cell?
+					</h2>
+				</div>
+			</div>
+		</div>
+
+        <div id="bottom_window">
+        </div>
+        
+    </div>
+    <div id="edit_sidebar" class="left">
+        <div id="edit_options">
+            <a hx-get="" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Details</a> |
+            <a hx-get="" hx-target="#edit_tool" hx-include="[name='currentCollection']" href="#">Modify</a> |
+            <a hx-get="" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Transports</a> 
+            <!-- 
+            <a hx-get="/prototypes" hx-target="#edit_tool" hx-include="[name='currentCollection']" href="#">Prototypes</a> |
+            <a hx-get="/fragments" hx-target="#edit_tool" hx-include="[name='currentCollection']" href="#">Fragments</a>
+            -->
+        </div>
+        <div id="edit_tool">
+            <h1> Make Changes Here</h1>
+        </div>
+    </div>
+</div>
 {{end}}

@@ -207,6 +207,11 @@ func (c Context) spaceHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type SpaceEditPageData struct {
+	//GridDetails     GridDetails
+	SelectedSpace Space
+}
+
 func (c Context) getSpace(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	name := queryValues.Get("currentCollection")
@@ -287,16 +292,16 @@ func (c Context) generateImageFromSpace(space *Space) *image.RGBA {
 	fmt.Println("Generating Png From space with simple tiling")
 	latitude := space.Latitude
 	areaHeight := space.AreaHeight
-	pixelHeight := latitude * areaHeight
+	heightInPixels := latitude * areaHeight
 	longitude := space.Longitude
 	areaWidth := space.AreaWidth
-	pixelWidth := longitude * areaWidth
+	widthInPixels := longitude * areaWidth
 	col, ok := c.Collections[space.CollectionName]
 	if !ok {
 		panic("Invalid Collection Name on space: " + space.CollectionName)
 	}
 
-	img := image.NewRGBA(image.Rect(0, 0, pixelWidth, pixelHeight))
+	img := image.NewRGBA(image.Rect(0, 0, widthInPixels, heightInPixels))
 	for k := 0; k < latitude; k++ {
 		for j := 0; j < longitude; j++ {
 			area := getAreaByName(space.Areas, fmt.Sprintf("%s:%d-%d", space.Name, k, j))

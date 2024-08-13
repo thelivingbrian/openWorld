@@ -43,11 +43,11 @@ type GridDetails struct {
 	Oob              bool
 }
 
-type PageData struct {
+type AreaEditPageData struct {
 	GridDetails     GridDetails
 	PrototypeSelect PrototypeSelectPage
 	SelectedArea    AreaDescription
-	Name            string
+	//Name            string
 }
 
 // //////////////////////////////////////////////////////////
@@ -145,7 +145,7 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 
 	modifications := collection.generateMaterials(selectedArea.Blueprint.Tiles)
 
-	var pageData = PageData{
+	var pageData = AreaEditPageData{
 		GridDetails: GridDetails{
 			MaterialGrid:     modifications,
 			DefaultTileColor: selectedArea.DefaultTileColor,
@@ -159,7 +159,7 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 			CurrentSet:    "",
 			Prototypes:    nil,
 		},
-		Name: selectedArea.Name,
+		//Name: selectedArea.Name,
 	}
 	err := tmpl.ExecuteTemplate(w, "area-edit", pageData)
 	if err != nil {

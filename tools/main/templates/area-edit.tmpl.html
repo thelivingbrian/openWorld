@@ -1,6 +1,6 @@
 {{define "area-edit"}}
 <div id="edit_window" class="side">
-    <input id="area-name" type="hidden" name="area-name" value="{{.Name}}"/>
+    <input id="area-name" type="hidden" name="area-name" value="{{.SelectedArea.Name}}"/>
     <div id="edit_material" class="left">
         <div id="top_window">
             {{template "neighbors-tiny" .SelectedArea}}
