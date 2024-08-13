@@ -222,12 +222,14 @@ func (c Context) getSpace(w http.ResponseWriter, r *http.Request) {
 	if col, ok := c.Collections[name]; ok {
 		if space, ok := col.Spaces[space]; ok {
 			fmt.Println(space.Topology)
+			var pagedata = SpaceEditPageData{
+				SelectedSpace: *space,
+			}
+			err := tmpl.ExecuteTemplate(w, "space-edit", pagedata)
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
-	}
-
-	err := tmpl.ExecuteTemplate(w, "space-edit", c)
-	if err != nil {
-		fmt.Println(err)
 	}
 }
 

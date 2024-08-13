@@ -118,8 +118,22 @@
             -->
         </div>
         <div id="edit_tool">
-            <h1> Make Changes Here</h1>
+			{{template "save-details" .SelectedSpace}}
         </div>
     </div>
+</div>
+{{end}}
+
+{{define "save-details"}}
+<div id="save-details">
+    <div id="save_notice"></div>
+    <form hx-target="#save_notice">
+        <label>{{.Name}}</label><br />
+        <span>Topology: {{.Topology}}</span><br />
+        <span>Latitude: {{.Latitude}}</span><br />
+        <span>Longitude: {{.Longitude}}</span><br />
+        <span>AreaHeight: {{.AreaHeight}}</span><br />
+        <span>AreaWidth: {{.AreaWidth}}</span><br />
+    </form>
 </div>
 {{end}}
