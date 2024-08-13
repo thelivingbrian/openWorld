@@ -35,9 +35,10 @@ func (c Context) spacesHandler(w http.ResponseWriter, r *http.Request) {
 
 func (c Context) getSpaces(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
-	name := queryValues.Get("collectionName")
-	if col, ok := c.Collections[name]; ok {
-		err := tmpl.ExecuteTemplate(w, "space-page", col)
+	collectionName := queryValues.Get("collectionName")
+	//spaceName := queryValues.Get("spaceName")
+	if col, ok := c.Collections[collectionName]; ok {
+		err := tmpl.ExecuteTemplate(w, "space-page", col) // Include selected space/available areas somehow
 		if err != nil {
 			fmt.Println(err)
 		}

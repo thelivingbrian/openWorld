@@ -70,8 +70,21 @@ func (c Context) areasHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Context) getAreas(w http.ResponseWriter, r *http.Request) {
+	//get collection as well
+	queryValues := r.URL.Query()
+	collectionName := queryValues.Get("currentCollection")
+	col, ok := c.Collections[collectionName]
+	if !ok {
+		panic("No collection rn")
+	}
+
 	space := c.spaceFromGET(r)
-	err := tmpl.ExecuteTemplate(w, "areas", *space)
+
+	var input = struct {
+		Collection *Collection
+		Space      *Space
+	}{Collection: col, Space: space}
+	err := tmpl.ExecuteTemplate(w, "areas", input)
 	if err != nil {
 		fmt.Println(err)
 	}
