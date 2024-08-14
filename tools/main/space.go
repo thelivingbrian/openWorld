@@ -311,18 +311,36 @@ func (c Context) generateImageFromSpace(space *Space) *image.RGBA {
 				fmt.Println("no area" + fmt.Sprintf("%s:%d:%d", space.Name, k, j))
 				continue
 			}
-			areaColor := c.findColorByName(area.DefaultTileColor)
-			for row := range area.Blueprint.Tiles {
-				for column, tile := range area.Blueprint.Tiles[row] {
-					proto := col.findPrototypeById(tile.PrototypeId)
-					mapColor := c.getMapColorFromProto(*proto)
-					protoColor := c.findColorByName(mapColor)
-					if protoColor.CssClassName == "invalid" {
-						protoColor = areaColor
-					}
-					img.Set((j*areaWidth)+column, (k*areaHeight)+row, color.RGBA{R: uint8(protoColor.R), G: uint8(protoColor.G), B: uint8(protoColor.B), A: 255})
+			// This is adding the area's subcomponent to the master image,
+			//   But, it should generate the subcomponent first. And then add that img to larger one
+			//
+			tinyImg := c.generateImgFromArea(area, *col)
+			bounds := tinyImg.Bounds()
+			for row := 0; row <= bounds.Dx(); row++ {
+				for column := 0; column <= bounds.Dy(); column++ {
+					img.Set((j*areaWidth)+column, (k*areaHeight)+row, tinyImg.RGBAAt(column, row))
 				}
 			}
+		}
+	}
+
+	return img
+}
+
+func (c Context) generateImgFromArea(area *AreaDescription, col Collection) *image.RGBA {
+	img := image.NewRGBA(image.Rect(0, 0, len(area.Blueprint.Tiles[0]), len(area.Blueprint.Tiles)))
+	//img.
+
+	areaColor := c.findColorByName(area.DefaultTileColor)
+	for row := range area.Blueprint.Tiles {
+		for column, tile := range area.Blueprint.Tiles[row] {
+			proto := col.findPrototypeById(tile.PrototypeId)
+			mapColor := c.getMapColorFromProto(*proto)
+			protoColor := c.findColorByName(mapColor)
+			if protoColor.CssClassName == "invalid" {
+				protoColor = areaColor
+			}
+			img.Set(column, row, color.RGBA{R: uint8(protoColor.R), G: uint8(protoColor.G), B: uint8(protoColor.B), A: 255})
 		}
 	}
 

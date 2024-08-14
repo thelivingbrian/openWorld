@@ -76,7 +76,7 @@ var statsMenu Menu
 var menues map[string]Menu
 
 func init() {
-	// init here to avoiod circular reference
+	// init here to avoid circular reference
 	pauseMenu = Menu{
 		Name:     "pause",
 		CssClass: "",
