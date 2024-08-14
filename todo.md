@@ -65,12 +65,20 @@
   - [ ] Clean up 
     - [ ] Remove concept of materials? 
   - [ ] relative border radius
-- [ ] Space Edit
+- [ ] Space Enhancements
   - [ ] Default tile color control
   - [ ] view map
-    - [ ] Area -> image 
-    - [ ] Absolute (for plane/torus)
+    - [-] Area -> image 
+    - [-] Absolute (for plane/torus)
     - [ ] Relative? (some topologies may not project simply into a map)
+- [ ] Edit Space Page
+  - [-] Links to page
+  - [ ] details
+    - [-] details component
+    - [ ] working link on page 
+  - [-] generate png for simply tiled space 
+  - [ ] modify blueprint
+    - [ ] Select by clicking on area 
 
 ## Mobile
   - [-] Controls
