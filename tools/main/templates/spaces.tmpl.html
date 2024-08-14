@@ -80,8 +80,8 @@
 			{{range $y, $row := .AreaImageTags}}
 			<div class="grid-row">
 				{{range $x, $img := $row}}
-				<div>
-					<img src="{{$img}}" />
+				<div class="grid-square">
+					<img src="{{$img}}" height="100%" width="100%"/>
 				</div>
 				{{end}}
 			</div>

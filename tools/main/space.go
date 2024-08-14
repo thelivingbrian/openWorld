@@ -208,9 +208,9 @@ func (c Context) spaceHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type SpaceEditPageData struct {
-	//GridDetails     GridDetails
+	//GridDetails   GridDetails
 	SelectedSpace Space
-	AreaImageTags [][]string
+	AreaImageTags [][]string // Should be some combo of area and url
 }
 
 func (c Context) getSpace(w http.ResponseWriter, r *http.Request) {
