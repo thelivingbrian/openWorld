@@ -77,30 +77,15 @@
         </div>
         
         <div class="grid">
+			{{range $y, $row := .AreaImageTags}}
 			<div class="grid-row">
+				{{range $x, $img := $row}}
 				<div>
-					<h2>
-						cell?
-					</h2>
+					<img src="{{$img}}" />
 				</div>
-				<div>
-					<h2>
-						cell?
-					</h2>
-				</div>
+				{{end}}
 			</div>
-			<div class="grid-row">
-				<div>
-					<h2>
-						cell?
-					</h2>
-				</div>
-				<div>
-					<h2>
-						cell?
-					</h2>
-				</div>
-			</div>
+			{{end}}
 		</div>
 
         <div id="bottom_window">

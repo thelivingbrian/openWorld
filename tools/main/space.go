@@ -210,6 +210,7 @@ func (c Context) spaceHandler(w http.ResponseWriter, r *http.Request) {
 type SpaceEditPageData struct {
 	//GridDetails     GridDetails
 	SelectedSpace Space
+	AreaImageTags [][]string
 }
 
 func (c Context) getSpace(w http.ResponseWriter, r *http.Request) {
@@ -222,8 +223,23 @@ func (c Context) getSpace(w http.ResponseWriter, r *http.Request) {
 	if col, ok := c.Collections[name]; ok {
 		if space, ok := col.Spaces[space]; ok {
 			fmt.Println(space.Topology)
-			var pagedata = SpaceEditPageData{
+
+			var imageTags [][]string
+			if space.isSimplyTiled() {
+				imageTags = make([][]string, space.Latitude)
+				for row := range imageTags {
+					imageTags[row] = make([]string, space.Longitude)
+					for column := range imageTags[row] {
+						areaName := fmt.Sprintf("%s:%d-%d", space.Name, row, column)
+						tag := fmt.Sprintf(`/images/make/%s/%s?currentCollection=%s`, space.Name, areaName, col.Name)
+						imageTags[row][column] = tag
+					}
+				}
+			}
+
+			pagedata := SpaceEditPageData{
 				SelectedSpace: *space,
+				AreaImageTags: imageTags,
 			}
 			err := tmpl.ExecuteTemplate(w, "space-edit", pagedata)
 			if err != nil {
@@ -271,9 +287,9 @@ func (c Context) spaceMapHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c Context) generateAllPNGs(space *Space) bool {
-	simpleTiling := space.Topology == "torus" || space.Topology == "plane"
-	if simpleTiling {
+func (c Context) generateAllPNGs(space *Space) { // Should probably return err
+	//simpleTiling := space.Topology == "torus" || space.Topology == "plane"
+	if space.isSimplyTiled() {
 		img := c.generateImageFromSpace(space)
 		path := c.pathToMapsForSpace(space)
 		os.MkdirAll(path, 0755)
@@ -287,7 +303,6 @@ func (c Context) generateAllPNGs(space *Space) bool {
 	} else {
 		fmt.Println("Only Simply tiled topologies are supported")
 	}
-	return simpleTiling
 }
 
 func (c Context) generateImageFromSpace(space *Space) *image.RGBA {
@@ -408,4 +423,10 @@ func saveImageAsPNG(filename string, img image.Image) error {
 	}
 
 	return nil
+}
+
+// Utilities
+
+func (space *Space) isSimplyTiled() bool {
+	return space.Topology == "torus" || space.Topology == "plane"
 }

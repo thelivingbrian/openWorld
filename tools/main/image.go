@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"image/png"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -11,14 +12,14 @@ func (c *Context) imageHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		queryValues := r.URL.Query()
 		name := queryValues.Get("currentCollection")
-		fmt.Println("Getting image from collection: " + name)
+		//fmt.Println("Getting image from collection: " + name)
 		if col, ok := c.Collections[name]; ok {
-			col.getImage(w, r)
+			c.getImage(w, r, col)
 		}
 	}
 }
 
-func (col *Collection) getImage(w http.ResponseWriter, r *http.Request) {
+func (c *Context) getImage(w http.ResponseWriter, r *http.Request, col *Collection) {
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 4 {
 		panic("invalid image path")
@@ -31,6 +32,22 @@ func (col *Collection) getImage(w http.ResponseWriter, r *http.Request) {
 			col.serveMap(w, r, parts[3], parts[3])
 		}
 
+	} else if parts[2] == "make" {
+		space, ok := col.Spaces[parts[3]]
+		if !ok {
+			panic("Invalid space for make image request")
+		}
+		area := getAreaByName(space.Areas, parts[4])
+		if area == nil {
+			panic("invalid area for make image request")
+		}
+		img := c.generateImgFromArea(area, *col)
+		w.Header().Set("Content-Type", "image/png")
+
+		if err := png.Encode(w, img); err != nil {
+			http.Error(w, "Unable to encode image.", http.StatusInternalServerError)
+			return
+		}
 	} else {
 		panic("unsupported image request")
 	}
