@@ -83,7 +83,7 @@
     - [ ] Show area (image?) 
       - [ ] Update on rotation / deletion / addition of instruction 
     - [ ] Set X and Y 
-    - [ ] Highlight selected instruction 
+    - [ ] Highlight selected instruction
 
 ## Mobile
   - [-] Controls
