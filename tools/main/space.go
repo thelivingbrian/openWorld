@@ -207,10 +207,15 @@ func (c Context) spaceHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type AreaTile struct {
+	ImgUriPath   string
+	SelectedArea *AreaDescription
+}
+
 type SpaceEditPageData struct {
 	//GridDetails   GridDetails
 	SelectedSpace Space
-	AreaImageTags [][]string // Should be some combo of area and url
+	AreaTiles     [][]AreaTile // Should be some combo of area and url
 }
 
 func (c Context) getSpace(w http.ResponseWriter, r *http.Request) {
@@ -224,22 +229,28 @@ func (c Context) getSpace(w http.ResponseWriter, r *http.Request) {
 		if space, ok := col.Spaces[space]; ok {
 			fmt.Println(space.Topology)
 
-			var imageTags [][]string
+			var tiles [][]AreaTile
 			if space.isSimplyTiled() {
-				imageTags = make([][]string, space.Latitude)
-				for row := range imageTags {
-					imageTags[row] = make([]string, space.Longitude)
-					for column := range imageTags[row] {
+				tiles = make([][]AreaTile, space.Latitude)
+				for row := range tiles {
+					tiles[row] = make([]AreaTile, space.Longitude)
+					for column := range tiles[row] {
 						areaName := fmt.Sprintf("%s:%d-%d", space.Name, row, column)
-						tag := fmt.Sprintf(`/images/make/%s/%s?currentCollection=%s`, space.Name, areaName, col.Name)
-						imageTags[row][column] = tag
+						path := fmt.Sprintf(`/images/make/%s/%s?currentCollection=%s`, space.Name, areaName, col.Name)
+						tiles[row][column].ImgUriPath = path
+						area := getAreaByName(space.Areas, areaName)
+						if area == nil {
+							panic("OH NO")
+						}
+						tiles[row][column].SelectedArea = area
+						// Add the actual area
 					}
 				}
 			}
 
 			pagedata := SpaceEditPageData{
 				SelectedSpace: *space,
-				AreaImageTags: imageTags,
+				AreaTiles:     tiles,
 			}
 			err := tmpl.ExecuteTemplate(w, "space-edit", pagedata)
 			if err != nil {

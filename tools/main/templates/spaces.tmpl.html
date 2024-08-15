@@ -68,20 +68,30 @@
 
 {{define "space-edit"}}
 <div id="edit_window" class="side">
-	<!-- 
-    <input id="space-name" type="hidden" name="space-name" value=""/>
-	-->
+	
+    <input id="space-name" type="hidden" name="currentSpace" value="{{.SelectedSpace.Name}}"/>
+	
     <div id="edit_material" class="left">
         <div id="top_window">
             
         </div>
         
         <div class="grid">
-			{{range $y, $row := .AreaImageTags}}
+			<input name="grid-collection" type="hidden" value="{{.SelectedSpace.CollectionName}}" />
+			<input name="grid-space" type="hidden" value="{{.SelectedSpace.Name}}" />
+			{{range $y, $row := .AreaTiles}}
 			<div class="grid-row">
-				{{range $x, $img := $row}}
-				<div class="grid-square">
-					<img src="{{$img}}" height="100%" width="100%"/>
+				{{range $x, $tile := $row}}
+				<div id="spacegrid-{{$y}}-{{$x}}" 
+						class="grid-square" 
+						hx-get="/area/blueprint" 
+						hx-trigger="click" 
+						hx-include="#spacegrid-{{$y}}-{{$x}} [name='area-name'],
+									#space-name,
+									[name='currentCollection']"
+						hx-target="#edit_tool">
+					<input name="area-name" type="hidden" value="{{$tile.SelectedArea.Name}}" />
+					<img src="{{$tile.ImgUriPath}}" height="100%" width="100%"/>
 				</div>
 				{{end}}
 			</div>
