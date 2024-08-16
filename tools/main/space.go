@@ -353,9 +353,9 @@ func (c Context) generateImageFromSpace(space *Space) *image.RGBA {
 	return img
 }
 
+// move?
 func (c Context) generateImgFromArea(area *AreaDescription, col Collection) *image.RGBA {
 	img := image.NewRGBA(image.Rect(0, 0, len(area.Blueprint.Tiles[0]), len(area.Blueprint.Tiles)))
-	//img.
 
 	areaColor := c.findColorByName(area.DefaultTileColor)
 	for row := range area.Blueprint.Tiles {
