@@ -146,6 +146,7 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 	modifications := collection.generateMaterials(selectedArea.Blueprint.Tiles)
 
 	var pageData = AreaEditPageData{
+		// Can be generated only with area
 		GridDetails: GridDetails{
 			MaterialGrid:     modifications,
 			DefaultTileColor: selectedArea.DefaultTileColor,
@@ -153,7 +154,9 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 			GridType:         "area",
 			ScreenID:         "screen",
 		},
+		// Used how?
 		SelectedArea: *selectedArea,
+		// Generic Tool option?
 		PrototypeSelect: PrototypeSelectPage{
 			PrototypeSets: setOptions,
 			CurrentSet:    "",
