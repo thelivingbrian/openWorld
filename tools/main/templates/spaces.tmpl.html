@@ -67,11 +67,11 @@
 
 
 {{define "space-edit"}}
-<div id="edit_window" class="side">
+<div id="edit_window_space" class="side">
 	
     <input id="space-name" type="hidden" name="currentSpace" value="{{.SelectedSpace.Name}}"/>
 	
-    <div id="edit_material" class="left">
+    <div id="edit_space" class="left">
         <div id="top_window">
             
         </div>
@@ -84,13 +84,13 @@
 				{{range $x, $tile := $row}}
 				<div id="spacegrid-{{$y}}-{{$x}}" 
 						class="grid-square" 
-						hx-get="/area/blueprint" 
+						hx-get="/area" 
 						hx-trigger="click" 
-						hx-include="#spacegrid-{{$y}}-{{$x}} [name='area-name'],
+						hx-include="#spacegrid-{{$y}}-{{$x}} [name='area-name-selected'],
 									#space-name,
 									[name='currentCollection']"
-						hx-target="#edit_tool">
-					<input name="area-name" type="hidden" value="{{$tile.SelectedArea.Name}}" />
+						hx-target="#selected_area_details">
+					<input name="area-name-selected" type="hidden" value="{{$tile.SelectedArea.Name}}" />
 					<img src="{{$tile.ImgUriPath}}" height="100%" width="100%"/>
 				</div>
 				{{end}}
@@ -104,18 +104,22 @@
     </div>
     <div id="edit_sidebar" class="left">
         <div id="edit_options">
-            <a hx-get="" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Details</a> |
-            <a hx-get="" hx-target="#edit_tool" hx-include="[name='currentCollection']" href="#">Modify</a> |
-            <a hx-get="" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Transports</a> 
+            <a hx-get="" hx-target="#edit_tool_space" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Details</a> |
+            <a hx-get="" hx-target="#edit_tool_space" hx-include="[name='currentCollection']" href="#">Modify Areas</a> |
+            <a hx-get="" hx-target="#edit_tool_space" hx-include="[name='currentCollection']" href="#">View/Apply Matrix</a> |
+            <a hx-get="" hx-target="#edit_tool_space" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">All Transports</a> 
             <!-- 
             <a hx-get="/prototypes" hx-target="#edit_tool" hx-include="[name='currentCollection']" href="#">Prototypes</a> |
             <a hx-get="/fragments" hx-target="#edit_tool" hx-include="[name='currentCollection']" href="#">Fragments</a>
             -->
         </div>
-        <div id="edit_tool">
+        <div id="edit_tool_space">
 			{{template "save-details" .SelectedSpace}}
         </div>
     </div>
+</div>
+<br />
+<div id="selected_area_details">
 </div>
 {{end}}
 

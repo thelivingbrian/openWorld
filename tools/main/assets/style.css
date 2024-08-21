@@ -20,6 +20,10 @@
       padding: 15px;
 }
 
+.side {
+     clear: both;  
+}
+
 img {
     image-rendering: pixelated; 
 }
