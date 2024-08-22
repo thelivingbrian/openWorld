@@ -89,7 +89,7 @@
       - [ ] modular area-edit 
     - [-] Set X and Y 
     - [-] Set rotation
-    - [ ] Highlight selected instruction
+    - [-] Highlight selected instruction
 
 ## Mobile
   - [-] Controls

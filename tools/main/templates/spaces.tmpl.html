@@ -104,14 +104,10 @@
     </div>
     <div id="edit_sidebar" class="left">
         <div id="edit_options">
-            <a hx-get="" hx-target="#edit_tool_space" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Details</a> |
-            <a hx-get="" hx-target="#edit_tool_space" hx-include="[name='currentCollection']" href="#">Modify Areas</a> |
-            <a hx-get="" hx-target="#edit_tool_space" hx-include="[name='currentCollection']" href="#">View/Apply Matrix</a> |
-            <a hx-get="" hx-target="#edit_tool_space" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">All Transports</a> 
-            <!-- 
-            <a hx-get="/prototypes" hx-target="#edit_tool" hx-include="[name='currentCollection']" href="#">Prototypes</a> |
-            <a hx-get="/fragments" hx-target="#edit_tool" hx-include="[name='currentCollection']" href="#">Fragments</a>
-            -->
+            <a href="#">Details</a> |
+            <span>Modify Areas</span> |
+            <span>View/Apply Matrix</span> |
+            <span>All Transports</a> 
         </div>
         <div id="edit_tool_space">
 			{{template "save-details" .SelectedSpace}}

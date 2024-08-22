@@ -13,11 +13,10 @@ type Blueprint struct {
 }
 
 type Instruction struct {
-	ID          string
-	X           int
-	Y           int
-	GridAssetId string
-	// Transformation or something new?
+	ID                 string
+	X                  int
+	Y                  int
+	GridAssetId        string
 	ClockwiseRotations int
 }
 
@@ -106,7 +105,7 @@ func (c *Context) putInstruction(w http.ResponseWriter, r *http.Request) {
 		col.applyInstruction(blueprint.Tiles, blueprint.Instructions[i])
 	}
 
-	// Instead of just bvlueprint can display whole area edit page
+	// Instead of just blueprint can display whole area edit page
 	err = tmpl.ExecuteTemplate(w, "area-blueprint", area)
 	if err != nil {
 		fmt.Println(err)
@@ -146,12 +145,12 @@ func (c *Context) blueprintInstructionHighlightHandler(w http.ResponseWriter, r 
 func (c *Context) postInstructionHighlight(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	instructionId := properties["instruction-id"]
-	fmt.Println(instructionId)
 
 	col := c.collectionFromProperties(properties)
 	if col == nil {
 		panic("invalid collection")
 	}
+
 	area := c.areaFromProperties(properties)
 	if area == nil {
 		panic("invalid area")
@@ -161,38 +160,12 @@ func (c *Context) postInstructionHighlight(w http.ResponseWriter, r *http.Reques
 
 	for i := range blueprint.Instructions {
 		if blueprint.Instructions[i].ID == instructionId {
-			details := GridClickDetails{GridType: "area", ScreenID: "screen", X: blueprint.Instructions[i].X, Y: blueprint.Instructions[i].Y}
+			details := GridClickDetails{GridType: "area", ScreenID: "screen", X: blueprint.Instructions[i].X, Y: blueprint.Instructions[i].Y, DefaultTileColor: area.DefaultTileColor}
 			io.WriteString(w, col.gridSelect(details, blueprint.Tiles))
 		}
 	}
 
 }
-
-/*
-func (c *Context) blueprintFromProperties(properties map[string]string) *Blueprint {
-	collectionName := properties["currentCollection"]
-	spaceName := properties["currentSpace"]
-	name := properties["area-name"]
-
-	collection, ok := c.Collections[collectionName]
-	if !ok {
-		panic("invalid collection")
-	}
-	space, ok := collection.Spaces[spaceName]
-	if !ok {
-		panic("invalid space name")
-	}
-	area := getAreaByName(space.Areas, name)
-	if area == nil {
-		panic("Invalid area")
-	}
-
-	if area.Blueprint == nil {
-		panic("No Blueprint for: " + area.Name)
-	}
-	return area.Blueprint
-}
-*/
 
 func (c *Context) areaFromProperties(properties map[string]string) *AreaDescription {
 	collectionName := properties["currentCollection"]
@@ -243,36 +216,6 @@ func (c *Context) putInstructionOrder(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 }
-
-/*
-func (c *Context) instructionRotationHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "PUT" {
-		c.putInstructionRotation(w, r)
-	}
-}
-
-func (c *Context) putInstructionRotation(_ http.ResponseWriter, r *http.Request) {
-	properties, _ := requestToProperties(r)
-	instructionId := properties["instruction-id"]
-
-	blueprint := c.blueprintFromProperties(properties)
-	col := c.collectionFromProperties(properties)
-
-	for i := range blueprint.Instructions {
-		if blueprint.Instructions[i].ID == instructionId {
-			currentRotations := blueprint.Instructions[i].ClockwiseRotations
-			grid := col.getTileGridByAssetId(blueprint.Instructions[i].GridAssetId)
-			if currentRotations%2 == 1 {
-				clearTiles(blueprint.Instructions[i].Y, blueprint.Instructions[i].X, len(grid[0]), len(grid), blueprint.Tiles)
-			} else {
-				clearTiles(blueprint.Instructions[i].Y, blueprint.Instructions[i].X, len(grid), len(grid[0]), blueprint.Tiles)
-			}
-			blueprint.Instructions[i].ClockwiseRotations = mod(currentRotations+1, 4)
-		}
-		col.applyInstruction(blueprint.Tiles, blueprint.Instructions[i])
-	}
-}
-*/
 
 func rotateTimesN(input [][]TileData, n int) [][]TileData {
 	rotations := mod(n, 4)
