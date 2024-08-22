@@ -13,11 +13,9 @@ import (
 
 type Context struct {
 	Collections map[string]*Collection
-	//materials   []Material
-	colors []Color
+	colors      []Color
 
-	colorPath string
-	//materialPath   string
+	colorPath      string
 	cssPath        string
 	collectionPath string
 }
@@ -44,7 +42,6 @@ func populateFromJson() Context {
 	c.collectionPath = "./data/collections/"
 
 	c.colors = parseJsonFile[[]Color](c.colorPath)
-	//c.materials = []Material{} // Remove.
 	c.Collections = c.getAllCollections(c.collectionPath)
 
 	return c

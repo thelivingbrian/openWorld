@@ -428,22 +428,6 @@ func gridRotate(event GridClickDetails, modifications [][]TileData) {
 
 ///
 
-/*
-func (c Context) selectMaterial(w http.ResponseWriter, r *http.Request) {
-	queryValues := r.URL.Query()
-	id := queryValues.Get("materialId")
-
-	var selectedMaterial Material
-	for _, material := range c.materials {
-		if id, _ := strconv.Atoi(id); id == material.ID {
-			selectedMaterial = material
-		}
-	}
-
-	io.WriteString(w, exampleSquareFromMaterial(selectedMaterial))
-}
-*/
-
 func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	fixtureType := queryValues.Get("current-fixture")

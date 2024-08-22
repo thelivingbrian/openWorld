@@ -29,7 +29,6 @@ func main() {
 	http.HandleFunc("/area/blueprint/instruction", c.blueprintInstructionHandler)
 	http.HandleFunc("/area/blueprint/instruction/highlight", c.blueprintInstructionHighlightHandler)
 	http.HandleFunc("/area/blueprint/instructions/order", c.instructionOrderHandler)
-	//http.HandleFunc("/area/blueprint/instructions/rotation", c.instructionRotationHandler)
 	http.HandleFunc("/fragments", c.fragmentsHandler)
 	http.HandleFunc("/fragments/new", c.fragmentsNewHandler)
 	http.HandleFunc("/fragment", c.fragmentHandler)
@@ -45,11 +44,7 @@ func main() {
 	http.HandleFunc("/images/", c.imageHandler)
 
 	http.HandleFunc("/materialPage", c.getMaterialPage)
-	//http.HandleFunc("/getEditMaterial", c.getEditMaterial)
-	//http.HandleFunc("/editMaterial", c.editMaterial)
-	http.HandleFunc("/getNewMaterial", getNewMaterial)
-	//http.HandleFunc("/newMaterial", c.newMaterial)
-	http.HandleFunc("/exampleMaterial", exampleMaterial)
+	http.HandleFunc("/exampleMaterial", exampleMaterial) // Probably unused
 	http.HandleFunc("/getEditColor", c.getEditColor)
 	http.HandleFunc("/editColor", c.editColor)
 	http.HandleFunc("/getNewColor", getNewColor)
@@ -57,7 +52,6 @@ func main() {
 	http.HandleFunc("/exampleSquare", exampleSquare)
 	http.HandleFunc("/outputIngredients", c.outputIngredients)
 
-	//http.HandleFunc("/selectMaterial", c.selectMaterial)
 	http.HandleFunc("/selectFixture", c.selectFixture)
 
 	http.HandleFunc("/editTransports", c.getEditTransports)
