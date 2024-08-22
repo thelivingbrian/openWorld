@@ -50,7 +50,7 @@ func (c Context) spaceFromGET(r *http.Request) *Space {
 	collectionName := queryValues.Get("currentCollection")
 	spaceName := queryValues.Get("currentSpace")
 
-	return c.getSpace(collectionName, spaceName)
+	return c.spaceFromNames(collectionName, spaceName)
 }
 
 func (c Context) areaFromGET(r *http.Request) *AreaDescription {

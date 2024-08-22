@@ -13,11 +13,9 @@ import (
 
 type Context struct {
 	Collections map[string]*Collection
-	materials   []Material
 	colors      []Color
 
-	colorPath string
-	//materialPath   string
+	colorPath      string
 	cssPath        string
 	collectionPath string
 }
@@ -44,7 +42,6 @@ func populateFromJson() Context {
 	c.collectionPath = "./data/collections/"
 
 	c.colors = parseJsonFile[[]Color](c.colorPath)
-	c.materials = []Material{} // Remove.
 	c.Collections = c.getAllCollections(c.collectionPath)
 
 	return c
@@ -97,10 +94,6 @@ func writeJsonFile[T any](path string, entries T) error {
 
 func colorName(c Color) string {
 	return c.CssClassName
-}
-
-func materialName(m Material) string {
-	return m.CommonName
 }
 
 func (c Context) writeColorsToLocalFile() error {
@@ -219,7 +212,7 @@ func populateMaps[T any](m map[string]T, pathToJsonDirectory string) {
 	}
 }
 
-func (c Context) getSpace(collectionName string, spaceName string) *Space {
+func (c Context) spaceFromNames(collectionName string, spaceName string) *Space {
 	collection, ok := c.Collections[collectionName]
 	if !ok {
 		return nil
@@ -264,15 +257,16 @@ func (c Context) compileCollection(collection *Collection) {
 	areas := make([]AreaOutput, 0)
 
 	for _, space := range collection.Spaces {
-		attemptCopy := c.generateAllPNGs(space)
 		for _, desc := range space.Areas {
 			var outputTiles [][]int
 			outputTiles, materials = collection.compileTileDataAndAccumulateMaterials(desc, materials, mapToMaterials)
 
 			mapid := ""
-			if attemptCopy {
+			if space.isSimplyTiled() {
+				c.generateAllPNGs(space)
 				mapid = c.copyMapPNG(space, &desc)
 			}
+			// Add maps for all individual areas as well
 
 			areas = append(areas, AreaOutput{
 				Name:             desc.Name,

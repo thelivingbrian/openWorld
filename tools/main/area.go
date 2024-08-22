@@ -43,10 +43,10 @@ type GridDetails struct {
 	Oob              bool
 }
 
-type PageData struct {
+type AreaEditPageData struct {
 	GridDetails     GridDetails
 	PrototypeSelect PrototypeSelectPage
-	Name            string
+	SelectedArea    AreaDescription
 }
 
 // //////////////////////////////////////////////////////////
@@ -69,8 +69,20 @@ func (c Context) areasHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Context) getAreas(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	collectionName := queryValues.Get("currentCollection")
+	col, ok := c.Collections[collectionName]
+	if !ok {
+		panic("No collection rn")
+	}
+
 	space := c.spaceFromGET(r)
-	err := tmpl.ExecuteTemplate(w, "areas", *space)
+
+	var input = struct {
+		Collection *Collection
+		Space      *Space
+	}{Collection: col, Space: space}
+	err := tmpl.ExecuteTemplate(w, "areas", input)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -95,7 +107,7 @@ func (c Context) postAreas(w http.ResponseWriter, r *http.Request) {
 
 	blueprint := &Blueprint{Tiles: tiles, Instructions: make([]Instruction, 0)}
 
-	space := c.getSpace(collectionName, spaceName)
+	space := c.spaceFromNames(collectionName, spaceName)
 	space.Areas = append(space.Areas, AreaDescription{Name: name, Safe: safe, DefaultTileColor: defaultTileColor, Blueprint: blueprint, Transports: make([]Transport, 0)})
 	io.WriteString(w, "<h3>Done.</h3>")
 }
@@ -131,7 +143,8 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 
 	modifications := collection.generateMaterials(selectedArea.Blueprint.Tiles)
 
-	var pageData = PageData{
+	var pageData = AreaEditPageData{
+		// Can be generated only with area
 		GridDetails: GridDetails{
 			MaterialGrid:     modifications,
 			DefaultTileColor: selectedArea.DefaultTileColor,
@@ -139,39 +152,18 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 			GridType:         "area",
 			ScreenID:         "screen",
 		},
+		SelectedArea: *selectedArea,
+		// Generic Tool option?
 		PrototypeSelect: PrototypeSelectPage{
 			PrototypeSets: setOptions,
 			CurrentSet:    "",
 			Prototypes:    nil,
 		},
-		Name: selectedArea.Name,
 	}
 	err := tmpl.ExecuteTemplate(w, "area-edit", pageData)
 	if err != nil {
 		fmt.Println(err)
 	}
-}
-
-func (c Context) DereferenceIntMatrix(matrix [][]int) [][]Material {
-	out := make([][]Material, len(matrix))
-	for y := range matrix {
-		out[y] = make([]Material, len(matrix[y]))
-		for x := range matrix[y] {
-			out[y][x] = c.materials[matrix[y][x]]
-		}
-	}
-	return out
-}
-
-func (c Context) DereferencStringMatrix(matrix [][]int) [][]Material {
-	out := make([][]Material, len(matrix))
-	for y := range matrix {
-		out[y] = make([]Material, len(matrix[y]))
-		for x := range matrix[y] {
-			out[y][x] = c.materials[matrix[y][x]]
-		}
-	}
-	return out
 }
 
 func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
@@ -184,7 +176,7 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	spaceName := properties["currentSpace"]
 	panicIfAnyEmpty("POST to /area", collectionName, spaceName, name)
 
-	space := c.getSpace(collectionName, spaceName)
+	space := c.spaceFromNames(collectionName, spaceName)
 
 	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
@@ -298,7 +290,7 @@ func (c Context) getNeighbors(w http.ResponseWriter, r *http.Request) {
 
 	collectionName := queryValues.Get("currentCollection")
 	spaceName := queryValues.Get("currentSpace")
-	space := c.getSpace(collectionName, spaceName)
+	space := c.spaceFromNames(collectionName, spaceName)
 
 	name := queryValues.Get("area-name")
 	selectedArea := getAreaByName(space.Areas, name)
@@ -323,7 +315,7 @@ func (c Context) postNeighbors(w http.ResponseWriter, r *http.Request) {
 
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
-	space := c.getSpace(collectionName, spaceName)
+	space := c.spaceFromNames(collectionName, spaceName)
 	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
 		io.WriteString(w, "<h2>no Area</h2>")

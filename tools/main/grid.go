@@ -16,13 +16,13 @@ type GridClickDetails struct {
 	CollectionName   string
 	Location         []string
 	GridType         string
-	ScreenID         string
+	ScreenID         string // known if editing bp, either "screen" or "fragment"
 	Y                int
 	X                int
 	DefaultTileColor string
 	Selected         bool
 	Tool             string
-	SelectedAssetId  string
+	SelectedAssetId  string // used for identifying multiple non-interactive grids? is a click detail not square detail
 }
 
 var CONNECTING_CHAR = "."
@@ -67,7 +67,7 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 	// new func
 	spaceName := details.Location[0]
 	areaName := details.Location[1]
-	space := c.getSpace(details.CollectionName, spaceName)
+	space := c.spaceFromNames(details.CollectionName, spaceName)
 	if space == nil {
 		panic("No Space")
 	}
@@ -201,7 +201,6 @@ func (col *Collection) gridClickAction(details GridClickDetails, blueprint *Blue
 	} else if details.Tool == "place-blueprint" {
 		fmt.Println("id: " + details.SelectedAssetId)
 		if details.SelectedAssetId != "" {
-			//blueprint.Instructions = nil
 			blueprint.Instructions = append(blueprint.Instructions, Instruction{
 				ID:                 uuid.New().String(),
 				X:                  details.X,
@@ -428,20 +427,6 @@ func gridRotate(event GridClickDetails, modifications [][]TileData) {
 
 ///
 
-func (c Context) selectMaterial(w http.ResponseWriter, r *http.Request) {
-	queryValues := r.URL.Query()
-	id := queryValues.Get("materialId")
-
-	var selectedMaterial Material
-	for _, material := range c.materials {
-		if id, _ := strconv.Atoi(id); id == material.ID {
-			selectedMaterial = material
-		}
-	}
-
-	io.WriteString(w, exampleSquareFromMaterial(selectedMaterial))
-}
-
 func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	fixtureType := queryValues.Get("current-fixture")
@@ -484,10 +469,4 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 		//tmpl.ExecuteTemplate(w, "area-blueprint", nil)
 	}
 
-}
-
-func exampleSquareFromMaterial(material Material) string {
-	overlay := fmt.Sprintf(`<div class="box floor1 %s"></div><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div><div class="box ceiling2 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css, material.Ceiling2Css)
-	idHiddenInput := fmt.Sprintf(`<input name="selected-material" type="hidden" value="%d" />`, material.ID)
-	return fmt.Sprintf(`<div class="grid-square %s" name="selected-material">%s%s</div>`, material.CssColor, overlay, idHiddenInput)
 }

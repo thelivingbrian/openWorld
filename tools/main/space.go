@@ -35,8 +35,8 @@ func (c Context) spacesHandler(w http.ResponseWriter, r *http.Request) {
 
 func (c Context) getSpaces(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
-	name := queryValues.Get("collectionName")
-	if col, ok := c.Collections[name]; ok {
+	collectionName := queryValues.Get("collectionName")
+	if col, ok := c.Collections[collectionName]; ok {
 		err := tmpl.ExecuteTemplate(w, "space-page", col)
 		if err != nil {
 			fmt.Println(err)
@@ -200,6 +200,86 @@ func (col *Collection) getFragmentById(id string) *Fragment {
 
 //
 
+func (c Context) spaceHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		c.getSpace(w, r)
+	}
+	if r.Method == "PUT" {
+		c.putSpace(w, r)
+	}
+}
+
+type AreaTile struct {
+	ImgUriPath   string
+	SelectedArea *AreaDescription
+}
+
+type SpaceEditPageData struct {
+	//GridDetails   GridDetails
+	SelectedSpace Space
+	AreaTiles     [][]AreaTile // Should be some combo of area and url
+}
+
+func (c Context) getSpace(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	name := queryValues.Get("currentCollection")
+	fmt.Println("Collection Name: " + name)
+	space := queryValues.Get("currentSpace")
+	fmt.Println("Space: " + space)
+
+	if col, ok := c.Collections[name]; ok {
+		if space, ok := col.Spaces[space]; ok {
+			fmt.Println(space.Topology)
+
+			var tiles [][]AreaTile
+			if space.isSimplyTiled() {
+				tiles = make([][]AreaTile, space.Latitude)
+				for row := range tiles {
+					tiles[row] = make([]AreaTile, space.Longitude)
+					for column := range tiles[row] {
+						areaName := fmt.Sprintf("%s:%d-%d", space.Name, row, column)
+						path := fmt.Sprintf(`/images/make/%s/%s?currentCollection=%s`, space.Name, areaName, col.Name)
+						tiles[row][column].ImgUriPath = path
+						area := getAreaByName(space.Areas, areaName)
+						if area == nil {
+							panic("OH NO")
+						}
+						tiles[row][column].SelectedArea = area
+						// Add the actual area
+					}
+				}
+			}
+
+			pagedata := SpaceEditPageData{
+				SelectedSpace: *space,
+				AreaTiles:     tiles,
+			}
+			err := tmpl.ExecuteTemplate(w, "space-edit", pagedata)
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
+	}
+}
+
+func (c Context) putSpace(w http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	collectionName := properties["currentCollection"]
+	spaceName := properties["currentSpace"]
+	panicIfAnyEmpty("POST to /area", collectionName, spaceName)
+
+	space := c.spaceFromNames(collectionName, spaceName)
+	outFile := c.collectionPath + collectionName + "/spaces/" + spaceName + ".json"
+	err := writeJsonFile(outFile, space)
+	if err != nil {
+		panic(err)
+	}
+
+	io.WriteString(w, `<h2>Success</h2>`)
+}
+
+//
+
 func (c Context) newSpaceHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		queryValues := r.URL.Query()
@@ -236,9 +316,8 @@ func (c Context) spaceMapHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c Context) generateAllPNGs(space *Space) bool {
-	simpleTiling := space.Topology == "torus" || space.Topology == "plane"
-	if simpleTiling {
+func (c Context) generateAllPNGs(space *Space) { // Should probably return err
+	if space.isSimplyTiled() {
 		img := c.generateImageFromSpace(space)
 		path := c.pathToMapsForSpace(space)
 		os.MkdirAll(path, 0755)
@@ -252,23 +331,22 @@ func (c Context) generateAllPNGs(space *Space) bool {
 	} else {
 		fmt.Println("Only Simply tiled topologies are supported")
 	}
-	return simpleTiling
 }
 
 func (c Context) generateImageFromSpace(space *Space) *image.RGBA {
 	fmt.Println("Generating Png From space with simple tiling")
 	latitude := space.Latitude
 	areaHeight := space.AreaHeight
-	pixelHeight := latitude * areaHeight
+	heightInPixels := latitude * areaHeight
 	longitude := space.Longitude
 	areaWidth := space.AreaWidth
-	pixelWidth := longitude * areaWidth
+	widthInPixels := longitude * areaWidth
 	col, ok := c.Collections[space.CollectionName]
 	if !ok {
 		panic("Invalid Collection Name on space: " + space.CollectionName)
 	}
 
-	img := image.NewRGBA(image.Rect(0, 0, pixelWidth, pixelHeight))
+	img := image.NewRGBA(image.Rect(0, 0, widthInPixels, heightInPixels))
 	for k := 0; k < latitude; k++ {
 		for j := 0; j < longitude; j++ {
 			area := getAreaByName(space.Areas, fmt.Sprintf("%s:%d-%d", space.Name, k, j))
@@ -276,18 +354,33 @@ func (c Context) generateImageFromSpace(space *Space) *image.RGBA {
 				fmt.Println("no area" + fmt.Sprintf("%s:%d:%d", space.Name, k, j))
 				continue
 			}
-			areaColor := c.findColorByName(area.DefaultTileColor)
-			for row := range area.Blueprint.Tiles {
-				for column, tile := range area.Blueprint.Tiles[row] {
-					proto := col.findPrototypeById(tile.PrototypeId)
-					mapColor := c.getMapColorFromProto(*proto)
-					protoColor := c.findColorByName(mapColor)
-					if protoColor.CssClassName == "invalid" {
-						protoColor = areaColor
-					}
-					img.Set((j*areaWidth)+column, (k*areaHeight)+row, color.RGBA{R: uint8(protoColor.R), G: uint8(protoColor.G), B: uint8(protoColor.B), A: 255})
+			tinyImg := c.generateImgFromArea(area, *col)
+			bounds := tinyImg.Bounds()
+			for row := 0; row <= bounds.Dx(); row++ {
+				for column := 0; column <= bounds.Dy(); column++ {
+					img.Set((j*areaWidth)+column, (k*areaHeight)+row, tinyImg.RGBAAt(column, row))
 				}
 			}
+		}
+	}
+
+	return img
+}
+
+// move?
+func (c Context) generateImgFromArea(area *AreaDescription, col Collection) *image.RGBA {
+	img := image.NewRGBA(image.Rect(0, 0, len(area.Blueprint.Tiles[0]), len(area.Blueprint.Tiles)))
+
+	areaColor := c.findColorByName(area.DefaultTileColor)
+	for row := range area.Blueprint.Tiles {
+		for column, tile := range area.Blueprint.Tiles[row] {
+			proto := col.findPrototypeById(tile.PrototypeId)
+			mapColor := c.getMapColorFromProto(*proto)
+			protoColor := c.findColorByName(mapColor)
+			if protoColor.CssClassName == "invalid" {
+				protoColor = areaColor
+			}
+			img.Set(column, row, color.RGBA{R: uint8(protoColor.R), G: uint8(protoColor.G), B: uint8(protoColor.B), A: 255})
 		}
 	}
 
@@ -355,4 +448,10 @@ func saveImageAsPNG(filename string, img image.Image) error {
 	}
 
 	return nil
+}
+
+// Utilities
+
+func (space *Space) isSimplyTiled() bool {
+	return space.Topology == "torus" || space.Topology == "plane"
 }

@@ -4,29 +4,75 @@
         <h3>North: </h3>
         <input type="text" name="north_input" value="{{.North}}"/>
         <input id="north-go" type="hidden" name="area-name-selected" value="{{.North}}"/>
-        <a hx-get="/area" hx-include="#north-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">Go</a>
+        <a hx-get="/area" hx-include="#north-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit_window" hx-swap="outerHTML" href="#">Go</a>
     </div>
     
     <div id="edit_south">
         <h3>South: </h3>
         <input type="text" name="south_input" value="{{.South}}"/>
         <input id="south-go" type="hidden" name="area-name-selected" value="{{.South}}"/>
-        <a hx-get="/area" hx-include="#south-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">Go</a>
+        <a hx-get="/area" hx-include="#south-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit_window" hx-swap="outerHTML" href="#">Go</a>
     </div>
     
     <div id="edit_east">
         <h3>East: </h3>
         <input type="text" name="east_input" value="{{.East}}"/>
         <input id="east-go" type="hidden" name="area-name-selected" value="{{.East}}"/>
-        <a hx-get="/area" hx-include="#east-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">Go</a>
+        <a hx-get="/area" hx-include="#east-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit_window" hx-swap="outerHTML" href="#">Go</a>
     </div>
     
     <div id="edit_west">
         <h3>West: </h3>
         <input type="text" name="west_input" value="{{.West}}"/>
         <input id="west-go" type="hidden" name="area-name-selected" value="{{.West}}"/>
-        <a hx-get="/area" hx-include="#west-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit-area" href="#">Go</a>
+        <a hx-get="/area" hx-include="#west-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit_window" hx-swap="outerHTML" href="#">Go</a>
     </div>
     <a hx-post="/neighbors" hx-include="#area-name,[name='north_input'],[name='south_input'],[name='east_input'],[name='west_input'],[name='currentCollection'],[name='currentSpace']" hx-target="#edit_tool" href="#">Save</a>
 </div>
+{{end}}
+
+{{define "neighbors-tiny"}}
+
+<p class="navigator">
+    <span class="left_text">
+        {{if eq .West ""}}
+            W
+        {{else}}
+            <input id="tiny-west-go" type="hidden" name="area-name-selected" value="{{.West}}"/>
+            <a hx-get="/area" hx-include="#tiny-west-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit_window" hx-swap="outerHTML" href="#">
+                W
+            </a>
+        {{end}}
+    </span>
+    <span class="center_text">
+        {{if eq .North ""}}
+            N
+        {{else}}
+            <input id="tiny-north-go" type="hidden" name="area-name-selected" value="{{.North}}"/>
+            <a hx-get="/area" hx-include="#tiny-north-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit_window" hx-swap="outerHTML" href="#">
+                N
+            </a>
+        {{end}} 
+        /
+        {{if eq .South ""}}
+            S
+        {{else}}
+            <input id="tiny-south-go" type="hidden" name="area-name-selected" value="{{.South}}"/>
+            <a hx-get="/area" hx-include="#tiny-south-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit_window" hx-swap="outerHTML" href="#">
+                S
+            </a>
+        {{end}}
+    </span>
+    <span class="right_text">
+        {{if eq .East ""}}
+            E
+        {{else}}
+            <input id="tiny-east-go" type="hidden" name="area-name-selected" value="{{.East}}"/>
+            <a hx-get="/area" hx-include="#tiny-east-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit_window" hx-swap="outerHTML" href="#">
+                E
+            </a>
+        {{end}}
+    </span>
+</p>
+
 {{end}}

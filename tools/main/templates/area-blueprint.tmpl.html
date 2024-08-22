@@ -1,22 +1,38 @@
 {{define "area-blueprint"}}
 <div id="area-blueprint">
+    <input type="hidden" id="bp-area-name" name="area-name" value="{{.Name}}" />
     <h3>Blueprint ({{.Name}})</h3>
     {{range $i, $instruction := .Blueprint.Instructions}}
     <div id="instruction-{{$i}}">
         <input type="hidden" name="instruction-id" value="{{$instruction.ID}}" />
-        <span><b>{{$i}}</b> | (Y: {{$instruction.Y}}, X: {{$instruction.X}}) Rotations: {{$instruction.ClockwiseRotations}}</span>
-        <a  hx-delete="/area/blueprint/instructions" 
-            hx-include="#instruction-{{$i}} [name='instruction-id'],[name='currentCollection'],[name='currentSpace'],#area-name" 
-            hx-target="#instruction-{{$i}}"
-            href="#">Delete</a>
+        <span><b>{{$i}}</b> | (Y: <input type="text" name="instruction-y" value="{{$instruction.Y}}" class="inline-input" /> X: <input type="text" name="instruction-x" value="{{$instruction.X}}" class="inline-input" /> Rotations: <input type="text" name="instruction-rot" value="{{$instruction.ClockwiseRotations}}" class="inline-input"/> )</span>
+        <a  hx-post="/area/blueprint/instruction/highlight" 
+            hx-include="#instruction-{{$i}} [name='instruction-id'],
+            #instruction-{{$i}} [name='instruction-rot'],
+            [name='currentCollection'],
+            [name='currentSpace'],
+            #bp-area-name"
+            hx-target="this"
+            hx-swap="none"
+            href="#">Show</a> | 
         <a  hx-put="/area/blueprint/instructions/order" 
-            hx-include="#instruction-{{$i}} [name='instruction-id'],[name='currentCollection'],[name='currentSpace'],#area-name" 
+            hx-include="#instruction-{{$i}} [name='instruction-id'],[name='currentCollection'],[name='currentSpace'],#bp-area-name" 
             hx-target="#area-blueprint"
-            href="#">order++</a>
-        <a  hx-put="/area/blueprint/instructions/rotation" 
-            hx-include="#instruction-{{$i}} [name='instruction-id'],[name='currentCollection'],[name='currentSpace'],#area-name"
+            href="#">Order++</a> | 
+        <a  hx-delete="/area/blueprint/instruction" 
+            hx-include="#instruction-{{$i}} [name='instruction-id'],[name='currentCollection'],[name='currentSpace'],#bp-area-name" 
             hx-target="#area-blueprint"
-            href="#">rotations++</a>
+            href="#">Delete</a> | 
+        <a  hx-put="/area/blueprint/instruction" 
+            hx-include="#instruction-{{$i}} [name='instruction-id'],
+                        #instruction-{{$i}} [name='instruction-y'],
+                        #instruction-{{$i}} [name='instruction-x'],
+                        #instruction-{{$i}} [name='instruction-rot'],
+                        [name='currentCollection'],
+                        [name='currentSpace'],
+                        #bp-area-name"
+            hx-target="#area-blueprint"
+            href="#">Submit</a>
         <br />
     </div>
     {{end}}

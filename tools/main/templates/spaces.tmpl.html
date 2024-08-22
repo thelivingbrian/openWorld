@@ -12,10 +12,13 @@
 	<br />
 	<div id="space_select">
 		<label>Space: </label>
-        <a hx-get="/spaces/new" hx-include="[name='currentCollection']" hx-target="#space_select" href="#">New</a>
-        <span>Edit</span>
+        <a hx-get="/spaces/new" hx-include="[name='currentCollection']" hx-target="#space_select" href="#">New</a> |
+        <span>Edit | </span>
+		<span>Save/Map</span>
+		<!--<a hx-get="/space" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#space_select" href="#">Edit</a>
         <a hx-post="/space/map" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#space_select" href="#">Save/Map</a>
-		<select name="currentSpace" hx-get="/areas" hx-include="[name='currentCollection']" hx-target="#area_select">
+	-->
+		<select name="currentSpace" hx-get="/areas" hx-include="[name='currentCollection']" hx-target="#space_select">
 			<option value=""></option>
 			{{range  $key, $value := .Spaces}}
 				<option value="{{$key}}">{{$key}}</option>
@@ -59,5 +62,73 @@
 
 		<input type="submit" />
 	</form>
+</div>
+{{end}}
+
+
+{{define "space-edit"}}
+<div id="edit_window_space" class="side">
+	
+    <input id="space-name" type="hidden" name="currentSpace" value="{{.SelectedSpace.Name}}"/>
+	
+    <div id="edit_space" class="left">
+        <div id="top_window">
+            
+        </div>
+        
+        <div class="grid">
+			<input name="grid-collection" type="hidden" value="{{.SelectedSpace.CollectionName}}" />
+			<input name="grid-space" type="hidden" value="{{.SelectedSpace.Name}}" />
+			{{range $y, $row := .AreaTiles}}
+			<div class="grid-row">
+				{{range $x, $tile := $row}}
+				<div id="spacegrid-{{$y}}-{{$x}}" 
+						class="grid-square" 
+						hx-get="/area" 
+						hx-trigger="click" 
+						hx-include="#spacegrid-{{$y}}-{{$x}} [name='area-name-selected'],
+									#space-name,
+									[name='currentCollection']"
+						hx-target="#selected_area_details">
+					<input name="area-name-selected" type="hidden" value="{{$tile.SelectedArea.Name}}" />
+					<img src="{{$tile.ImgUriPath}}" height="100%" width="100%"/>
+				</div>
+				{{end}}
+			</div>
+			{{end}}
+		</div>
+
+        <div id="bottom_window">
+        </div>
+        
+    </div>
+    <div id="edit_sidebar" class="left">
+        <div id="edit_options">
+            <a href="#">Details</a> |
+            <span>Modify Areas</span> |
+            <span>View/Apply Matrix</span> |
+            <span>All Transports</a> 
+        </div>
+        <div id="edit_tool_space">
+			{{template "save-details" .SelectedSpace}}
+        </div>
+    </div>
+</div>
+<br />
+<div id="selected_area_details">
+</div>
+{{end}}
+
+{{define "save-details"}}
+<div id="save-details">
+    <div id="save_notice"></div>
+    <form hx-target="#save_notice">
+        <label>{{.Name}}</label><br />
+        <span>Topology: {{.Topology}}</span><br />
+        <span>Latitude: {{.Latitude}}</span><br />
+        <span>Longitude: {{.Longitude}}</span><br />
+        <span>AreaHeight: {{.AreaHeight}}</span><br />
+        <span>AreaWidth: {{.AreaWidth}}</span><br />
+    </form>
 </div>
 {{end}}
