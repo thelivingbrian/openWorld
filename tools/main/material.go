@@ -121,46 +121,6 @@ func (c *Context) editColor(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, c.materialPageHTML())
 }
 
-func getNewMaterial(w http.ResponseWriter, r *http.Request) {
-	newForm := `
-	<form hx-post="/newMaterial" hx-target="#edit-ingredient-window">
-		<div id="exampleSquare" class="grid-row">
-			<div class="grid-square"></div>
-		</div>
-		<div>
-			<label>Name: </label>
-			<input type="text" name="CommonName" value="">
-		</div>
-		<div>
-			<label>Css Color Name: </label>
-			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Floor2Css'],[name='Ceiling1Css'],[name='Ceiling2Css']" type="text" name="CssColor" value="">
-		</div>
-		<div>
-			<label>Floor 1 Css: </label>
-			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='CssColor'],[name='Floor2Css'],[name='Ceiling1Css'],[name='Ceiling2Css']" type="text" name="Floor1Css" value="">
-		</div>
-		<div>
-			<label>Floor 2 Css: </label>
-			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='CssColor'],[name='Ceiling1Css'],[name='Ceiling2Css']" type="text" name="Floor2Css" value="">
-		</div>
-		<div>
-			<label>Ceiling 1 Css: </label>
-			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Floor2Css'],[name='CssColor'],[name='Ceiling2Css']" type="text" name="Ceiling1Css" value="">
-		</div>
-		<div>
-			<label>Ceiling 2 Css: </label>
-			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Floor2Css'],[name='Ceiling1Css'],[name='CssColor']" type="text" name="Ceiling2Css" value="">
-		</div>
-		<div>
-			<label>Walkable: </label>
-			<input type="checkbox" name="walkable" />
-		</div>
-	<button class="btn">Save</button>
-	</form>
-	`
-	io.WriteString(w, newForm)
-}
-
 func getNewColor(w http.ResponseWriter, r *http.Request) {
 	newForm := `
 	<form hx-post="/newColor" hx-target="#edit-ingredient-window">
@@ -231,6 +191,7 @@ func exampleSquare(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, output)
 }
 
+/*
 func exampleMaterial(w http.ResponseWriter, r *http.Request) {
 	cssClass := r.URL.Query().Get("CssColor")
 	floor1 := r.URL.Query().Get("Floor1Css")
@@ -246,6 +207,7 @@ func exampleMaterial(w http.ResponseWriter, r *http.Request) {
 	output := fmt.Sprintf(`<div id="exampleSquare" class="grid-row"><div class="grid-square %s">%s</div></div>`, cssClass, layers)
 	io.WriteString(w, output)
 }
+*/
 
 func (c *Context) outputIngredients(w http.ResponseWriter, r *http.Request) {
 	err := c.writeColorsToLocalFile()

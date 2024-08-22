@@ -318,7 +318,6 @@ func (c Context) spaceMapHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Context) generateAllPNGs(space *Space) { // Should probably return err
-	//simpleTiling := space.Topology == "torus" || space.Topology == "plane"
 	if space.isSimplyTiled() {
 		img := c.generateImageFromSpace(space)
 		path := c.pathToMapsForSpace(space)
@@ -356,9 +355,6 @@ func (c Context) generateImageFromSpace(space *Space) *image.RGBA {
 				fmt.Println("no area" + fmt.Sprintf("%s:%d:%d", space.Name, k, j))
 				continue
 			}
-			// This is adding the area's subcomponent to the master image,
-			//   But, it should generate the subcomponent first. And then add that img to larger one
-			//
 			tinyImg := c.generateImgFromArea(area, *col)
 			bounds := tinyImg.Bounds()
 			for row := 0; row <= bounds.Dx(); row++ {

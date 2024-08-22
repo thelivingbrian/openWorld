@@ -17,8 +17,8 @@ type GridClickDetails struct {
 	Location         []string
 	GridType         string
 	ScreenID         string // known if editing bp, either "screen" or "fragment"
-	Y                int    // known
-	X                int    // known
+	Y                int
+	X                int
 	DefaultTileColor string
 	Selected         bool
 	Tool             string
@@ -201,7 +201,6 @@ func (col *Collection) gridClickAction(details GridClickDetails, blueprint *Blue
 	} else if details.Tool == "place-blueprint" {
 		fmt.Println("id: " + details.SelectedAssetId)
 		if details.SelectedAssetId != "" {
-			//blueprint.Instructions = nil
 			blueprint.Instructions = append(blueprint.Instructions, Instruction{
 				ID:                 uuid.New().String(),
 				X:                  details.X,
@@ -470,10 +469,4 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 		//tmpl.ExecuteTemplate(w, "area-blueprint", nil)
 	}
 
-}
-
-func exampleSquareFromMaterial(material Material) string {
-	overlay := fmt.Sprintf(`<div class="box floor1 %s"></div><div class="box floor2 %s"></div><div class="box ceiling1 %s"></div><div class="box ceiling2 %s"></div>`, material.Floor1Css, material.Floor2Css, material.Ceiling1Css, material.Ceiling2Css)
-	idHiddenInput := fmt.Sprintf(`<input name="selected-material" type="hidden" value="%d" />`, material.ID)
-	return fmt.Sprintf(`<div class="grid-square %s" name="selected-material">%s%s</div>`, material.CssColor, overlay, idHiddenInput)
 }

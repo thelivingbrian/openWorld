@@ -78,8 +78,8 @@
     - [ ] Cannot compile without save
     - [-] Save space 
   - [-] NSEW buttons on sides of area display 
-  - [ ] Clean up 
-    - [ ] Remove concept of materials? 
+  - [-] Clean up 
+    - [-] Remove concept of materials 
   - [-] relative border radius
 - [-] Edit Space Page
   - [-] Links to page

@@ -44,7 +44,7 @@ func main() {
 	http.HandleFunc("/images/", c.imageHandler)
 
 	http.HandleFunc("/materialPage", c.getMaterialPage)
-	http.HandleFunc("/exampleMaterial", exampleMaterial) // Probably unused
+	//http.HandleFunc("/exampleMaterial", exampleMaterial) // Probably unused
 	http.HandleFunc("/getEditColor", c.getEditColor)
 	http.HandleFunc("/editColor", c.editColor)
 	http.HandleFunc("/getNewColor", getNewColor)

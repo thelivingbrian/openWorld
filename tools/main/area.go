@@ -47,7 +47,6 @@ type AreaEditPageData struct {
 	GridDetails     GridDetails
 	PrototypeSelect PrototypeSelectPage
 	SelectedArea    AreaDescription
-	//Name            string
 }
 
 // //////////////////////////////////////////////////////////
@@ -70,7 +69,6 @@ func (c Context) areasHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Context) getAreas(w http.ResponseWriter, r *http.Request) {
-	//get collection as well
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")
 	col, ok := c.Collections[collectionName]
@@ -154,7 +152,6 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 			GridType:         "area",
 			ScreenID:         "screen",
 		},
-		// Used how?
 		SelectedArea: *selectedArea,
 		// Generic Tool option?
 		PrototypeSelect: PrototypeSelectPage{
@@ -162,37 +159,12 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 			CurrentSet:    "",
 			Prototypes:    nil,
 		},
-		//Name: selectedArea.Name,
 	}
 	err := tmpl.ExecuteTemplate(w, "area-edit", pageData)
 	if err != nil {
 		fmt.Println(err)
 	}
 }
-
-/*
-func (c Context) DereferenceIntMatrix(matrix [][]int) [][]Material {
-	out := make([][]Material, len(matrix))
-	for y := range matrix {
-		out[y] = make([]Material, len(matrix[y]))
-		for x := range matrix[y] {
-			out[y][x] = c.materials[matrix[y][x]]
-		}
-	}
-	return out
-}
-
-func (c Context) DereferencStringMatrix(matrix [][]int) [][]Material {
-	out := make([][]Material, len(matrix))
-	for y := range matrix {
-		out[y] = make([]Material, len(matrix[y]))
-		for x := range matrix[y] {
-			out[y][x] = c.materials[matrix[y][x]]
-		}
-	}
-	return out
-}
-*/
 
 func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
