@@ -50,6 +50,8 @@
       - [ ] fresh grid
       - [ ] Select corner 
     - [ ] Blueprint page for fragment is broken 
+      - [ ] Fragment can only view the modify window and blueprint is loading for the parent area
+  - [ ] Instruction human readable name 
 - [ ] Random
   - [ ] Space Topologies
     - [-] Plane
@@ -61,10 +63,11 @@
     - [ ] Package executable in with tools? soft-deploy and run?
   - [ ] Save All/Everything button 
     - [ ] Cannot compile without save
-  - [ ] NSEW buttons on sides of area display 
+    - [-] Save space 
+  - [-] NSEW buttons on sides of area display 
   - [ ] Clean up 
     - [ ] Remove concept of materials? 
-  - [ ] relative border radius
+  - [-] relative border radius
 - [ ] Space Enhancements
   - [ ] Default tile color control
   - [ ] view map
@@ -79,13 +82,13 @@
   - [-] generate png for simply tiled space 
   - [ ] modify blueprint
     - [-] Select by clicking on area 
-    - [ ] Add Fragment/Prototype button
+    - [ ] Add Fragment/Prototype button (?)
     - [ ] Area updates with instruction  
       - [ ] Update on rotation / deletion / addition of instruction 
       - [ ] reload area-edit
       - [ ] modular area-edit 
     - [-] Set X and Y 
-    - [ ] Set rotation
+    - [-] Set rotation
     - [ ] Highlight selected instruction
 
 ## Mobile
