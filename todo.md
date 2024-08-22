@@ -80,9 +80,12 @@
   - [ ] modify blueprint
     - [-] Select by clicking on area 
     - [ ] Add Fragment/Prototype button
-    - [ ] Show area (image?) 
+    - [ ] Area updates with instruction  
       - [ ] Update on rotation / deletion / addition of instruction 
-    - [ ] Set X and Y 
+      - [ ] reload area-edit
+      - [ ] modular area-edit 
+    - [-] Set X and Y 
+    - [ ] Set rotation
     - [ ] Highlight selected instruction
 
 ## Mobile

@@ -9,11 +9,11 @@
         <a  hx-put="/area/blueprint/instructions/order" 
             hx-include="#instruction-{{$i}} [name='instruction-id'],[name='currentCollection'],[name='currentSpace'],#bp-area-name" 
             hx-target="#area-blueprint"
-            href="#">order++</a>
+            href="#">Order++</a> | 
         <a  hx-delete="/area/blueprint/instruction" 
             hx-include="#instruction-{{$i}} [name='instruction-id'],[name='currentCollection'],[name='currentSpace'],#bp-area-name" 
             hx-target="#area-blueprint"
-            href="#">Delete</a>
+            href="#">Delete</a> | 
         <a  hx-put="/area/blueprint/instruction" 
             hx-include="#instruction-{{$i}} [name='instruction-id'],
                         #instruction-{{$i}} [name='instruction-y'],
@@ -23,7 +23,7 @@
                         [name='currentSpace'],
                         #bp-area-name"
             hx-target="#area-blueprint"
-            href="#">submit</a>
+            href="#">Submit</a>
         <br />
     </div>
     {{end}}
