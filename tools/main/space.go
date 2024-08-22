@@ -205,6 +205,9 @@ func (c Context) spaceHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		c.getSpace(w, r)
 	}
+	if r.Method == "PUT" {
+		c.putSpace(w, r)
+	}
 }
 
 type AreaTile struct {
@@ -258,6 +261,22 @@ func (c Context) getSpace(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+}
+
+func (c Context) putSpace(w http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	collectionName := properties["currentCollection"]
+	spaceName := properties["currentSpace"]
+	panicIfAnyEmpty("POST to /area", collectionName, spaceName)
+
+	space := c.spaceFromNames(collectionName, spaceName)
+	outFile := c.collectionPath + collectionName + "/spaces/" + spaceName + ".json"
+	err := writeJsonFile(outFile, space)
+	if err != nil {
+		panic(err)
+	}
+
+	io.WriteString(w, `<h2>Success</h2>`)
 }
 
 //

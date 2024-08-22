@@ -24,6 +24,15 @@
      clear: both;  
 }
 
+input[type="text"].inline-input {
+    display: inline-block;
+    width: 5ch;
+    padding: 2px 5px; /* Adjust padding as needed */
+    box-sizing: border-box; /* Ensures padding doesn't increase the width */
+    font-family: inherit; /* Inherit font settings from the parent */
+    font-size: inherit;
+}
+
 img {
     image-rendering: pixelated; 
 }
