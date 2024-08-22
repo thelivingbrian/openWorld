@@ -35,7 +35,7 @@ func (c *Context) getMaterialPage(w http.ResponseWriter, r *http.Request) {
 func (c *Context) materialPageHTML() string {
 	output := ""
 	output += c.divEditColorSelect()
-	output += c.divEditMaterialSelect()
+	//output += c.divEditMaterialSelect()
 	output += `<br/>
 				<div id="edit-ingredient-window">
 				
@@ -49,7 +49,7 @@ func (c *Context) materialPageHTML() string {
 func (c *Context) divEditColorSelect() string {
 	output := `
 	<div>
-		<label>Colors</label>
+		<label>Colors:</label>
 		<select name="colorId" hx-get="/getEditColor" hx-target="#edit-ingredient-window">
 			<option value="">--</option>			`
 	for i, color := range c.colors {
@@ -63,6 +63,7 @@ func (c *Context) divEditColorSelect() string {
 	return output
 }
 
+/*
 func (c *Context) divEditMaterialSelect() string {
 	fmt.Printf("Material(s) Available: %d", len(c.materials))
 	output := `
@@ -73,13 +74,14 @@ func (c *Context) divEditMaterialSelect() string {
 	for _, material := range c.materials {
 		output += fmt.Sprintf(`<option value="%d">%s</option>`, material.ID, material.CommonName)
 	}
-	output += `		
+	output += `
 		</select>
 		<button class="btn" hx-get="/getNewMaterial" hx-target="#edit-ingredient-window">New</button>
 	</div>`
 
 	return output
 }
+*/
 
 func (c *Context) getEditColor(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
@@ -140,6 +142,7 @@ func (c *Context) editColor(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, c.materialPageHTML())
 }
 
+/*
 func (c *Context) getEditMaterial(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	id, err := strconv.Atoi(queryValues.Get("materialId"))
@@ -173,7 +176,7 @@ func (c *Context) getEditMaterial(w http.ResponseWriter, r *http.Request) {
 			<label>Name: (ID: %d)</label>
 			<input type="text" name="CommonName" value="%s">
 		</div>
-		
+
 		<div>
 			<label>Css Color Name: </label>
 			<input hx-get="/exampleMaterial" hx-trigger="change" hx-target="#exampleSquare" hx-include="[name='Floor1Css'],[name='Floor2Css'],[name='Ceiling1Css'],[name='Ceiling2Css']" type="text" name="CssColor" value="%s">
@@ -205,6 +208,8 @@ func (c *Context) getEditMaterial(w http.ResponseWriter, r *http.Request) {
 
 	io.WriteString(w, output)
 }
+*/
+/*
 
 func (c *Context) editMaterial(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
@@ -235,7 +240,7 @@ func (c *Context) editMaterial(w http.ResponseWriter, r *http.Request) {
 
 	io.WriteString(w, "<h2>Done.</h2>") //materialPageHTML())
 }
-
+*/
 func getNewMaterial(w http.ResponseWriter, r *http.Request) {
 	newForm := `
 	<form hx-post="/newMaterial" hx-target="#edit-ingredient-window">
@@ -276,6 +281,8 @@ func getNewMaterial(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, newForm)
 }
 
+/*
+
 func (c *Context) newMaterial(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	materialId := len(c.materials)
@@ -301,6 +308,7 @@ func (c *Context) newMaterial(w http.ResponseWriter, r *http.Request) {
 
 	io.WriteString(w, "<h2>done.</h2>")
 }
+*/
 
 func getNewColor(w http.ResponseWriter, r *http.Request) {
 	newForm := `

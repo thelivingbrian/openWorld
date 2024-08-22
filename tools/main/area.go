@@ -170,6 +170,7 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
 func (c Context) DereferenceIntMatrix(matrix [][]int) [][]Material {
 	out := make([][]Material, len(matrix))
 	for y := range matrix {
@@ -191,6 +192,7 @@ func (c Context) DereferencStringMatrix(matrix [][]int) [][]Material {
 	}
 	return out
 }
+*/
 
 func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)

@@ -45,10 +45,10 @@ func main() {
 	http.HandleFunc("/images/", c.imageHandler)
 
 	http.HandleFunc("/materialPage", c.getMaterialPage)
-	http.HandleFunc("/getEditMaterial", c.getEditMaterial)
-	http.HandleFunc("/editMaterial", c.editMaterial)
+	//http.HandleFunc("/getEditMaterial", c.getEditMaterial)
+	//http.HandleFunc("/editMaterial", c.editMaterial)
 	http.HandleFunc("/getNewMaterial", getNewMaterial)
-	http.HandleFunc("/newMaterial", c.newMaterial)
+	//http.HandleFunc("/newMaterial", c.newMaterial)
 	http.HandleFunc("/exampleMaterial", exampleMaterial)
 	http.HandleFunc("/getEditColor", c.getEditColor)
 	http.HandleFunc("/editColor", c.editColor)
@@ -57,7 +57,7 @@ func main() {
 	http.HandleFunc("/exampleSquare", exampleSquare)
 	http.HandleFunc("/outputIngredients", c.outputIngredients)
 
-	http.HandleFunc("/selectMaterial", c.selectMaterial)
+	//http.HandleFunc("/selectMaterial", c.selectMaterial)
 	http.HandleFunc("/selectFixture", c.selectFixture)
 
 	http.HandleFunc("/editTransports", c.getEditTransports)
