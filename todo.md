@@ -44,14 +44,24 @@
     - [-] Restore tests
     - [-] Default areas and protos
 - [ ] Blueprint enhancements
-  - [ ] Grid updates from blueprint window (Challenging because need to get/pass screenId)
-    - [ ] rotate updates grid
-    - [ ] oob highlight
-      - [ ] fresh grid
-      - [ ] Select corner 
-    - [ ] Blueprint page for fragment is broken 
+  - [ ] Grid updates from blueprint window
+    - [ ] Area updates with instruction  
+      - [ ] Update on rotation / deletion / addition of instruction 
+      - [ ] reload area-edit
+      - [ ] modular area-edit 
+        - [ ] Follow current page style with reload (blueprint etc) 
+    - [-] oob highlight
+      - [-] Select corner 
+  - [ ] Blueprint page for fragment is broken 
       - [ ] Fragment can only view the modify window and blueprint is loading for the parent area
-  - [ ] Instruction human readable name 
+  - [ ] Instruction human readable name
+- [ ] Space Enhancements
+  - [ ] Default tile color control
+  - [-] view map
+    - [-] Area -> image 
+    - [-] Absolute (for plane/torus)
+  - [ ] Matrix for space 
+    - [ ] Apply prototype via matrix 
 - [ ] Random
   - [ ] Space Topologies
     - [-] Plane
@@ -59,6 +69,9 @@
     - [ ] Resize
     - [ ] Fractal 
       - [ ] Can implement in a "south zooms out" manner etc. (All 4 directions from center root square?)
+    - [ ] Cube and/or higher torus
+    - [ ] Maps for non-simple tilings?
+      - [ ] Relative to current area
   - [ ] Test Play 
     - [ ] Package executable in with tools? soft-deploy and run?
   - [ ] Save All/Everything button 
@@ -68,25 +81,14 @@
   - [ ] Clean up 
     - [ ] Remove concept of materials? 
   - [-] relative border radius
-- [ ] Space Enhancements
-  - [ ] Default tile color control
-  - [ ] view map
-    - [-] Area -> image 
-    - [-] Absolute (for plane/torus)
-    - [ ] Relative? (some topologies may not project simply into a map)
-- [ ] Edit Space Page
+- [-] Edit Space Page
   - [-] Links to page
-  - [ ] details
+  - [-] details
     - [-] details component
-    - [ ] working link on page 
+    - [-] alternate links on page 
   - [-] generate png for simply tiled space 
-  - [ ] modify blueprint
+  - [-] modify blueprint
     - [-] Select by clicking on area 
-    - [ ] Add Fragment/Prototype button (?)
-    - [ ] Area updates with instruction  
-      - [ ] Update on rotation / deletion / addition of instruction 
-      - [ ] reload area-edit
-      - [ ] modular area-edit 
     - [-] Set X and Y 
     - [-] Set rotation
     - [-] Highlight selected instruction
