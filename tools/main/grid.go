@@ -16,13 +16,13 @@ type GridClickDetails struct {
 	CollectionName   string
 	Location         []string
 	GridType         string
-	ScreenID         string
-	Y                int
-	X                int
+	ScreenID         string // known if editing bp, either "screen" or "fragment"
+	Y                int    // known
+	X                int    // known
 	DefaultTileColor string
 	Selected         bool
 	Tool             string
-	SelectedAssetId  string
+	SelectedAssetId  string // used for identifying multiple non-interactive grids? is a click detail not square detail
 }
 
 var CONNECTING_CHAR = "."

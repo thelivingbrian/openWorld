@@ -134,6 +134,40 @@ func (c *Context) deleteInstruction(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (c *Context) blueprintInstructionHighlightHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		c.postInstructionHighlight(w, r)
+	}
+	if r.Method == "DELETE" {
+		c.deleteInstruction(w, r)
+	}
+}
+
+func (c *Context) postInstructionHighlight(w http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	instructionId := properties["instruction-id"]
+	fmt.Println(instructionId)
+
+	col := c.collectionFromProperties(properties)
+	if col == nil {
+		panic("invalid collection")
+	}
+	area := c.areaFromProperties(properties)
+	if area == nil {
+		panic("invalid area")
+	}
+
+	blueprint := area.Blueprint
+
+	for i := range blueprint.Instructions {
+		if blueprint.Instructions[i].ID == instructionId {
+			details := GridClickDetails{GridType: "area", ScreenID: "screen", X: blueprint.Instructions[i].X, Y: blueprint.Instructions[i].Y}
+			io.WriteString(w, col.gridSelect(details, blueprint.Tiles))
+		}
+	}
+
+}
+
 /*
 func (c *Context) blueprintFromProperties(properties map[string]string) *Blueprint {
 	collectionName := properties["currentCollection"]
