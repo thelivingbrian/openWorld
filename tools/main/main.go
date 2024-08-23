@@ -112,7 +112,87 @@ func (s *Stack) IsEmpty() bool {
 	return len(s.elements) == 0
 }
 
-func findValueInMatrix(matrix [][]int, x, y, target int) bool {
+func BFS(matrix [][]int, x, y, target int) bool {
+	var seen = make([][]bool, len(matrix))
+	for i := range seen {
+		seen[i] = make([]bool, len(matrix[i]))
+		for j := range seen[i] {
+			seen[i][j] = false
+		}
+	}
+
+	printSeenMatrix(seen)
+
+	coordinatesToCheck := make([]Coordinate, 0)
+	coordinatesToCheck = append(coordinatesToCheck, Coordinate{x, y})
+
+	for len(coordinatesToCheck) != 0 {
+		coord := coordinatesToCheck[0]
+		coordinatesToCheck = coordinatesToCheck[1:]
+		if validCoordinate(coord.x, coord.y, seen) && matrix[coord.x][coord.y] == target {
+			fmt.Printf("The Answer is at %d : %d", coord.x, coord.y)
+			return true
+		}
+		seen[coord.x][coord.y] = true
+
+		if validCoordinate(coord.x-1, coord.y, seen) {
+			if matrix[coord.x-1][coord.y] == target {
+				fmt.Printf("The Answer is at %d : %d", coord.x-1, coord.y)
+				return true
+			} else {
+				printSeenMatrix(seen)
+				if !seen[coord.x-1][coord.y] {
+					coordinatesToCheck = append(coordinatesToCheck, Coordinate{coord.x - 1, coord.y})
+				}
+				seen[coord.x-1][coord.y] = true
+			}
+		}
+
+		if validCoordinate(coord.x+1, coord.y, seen) && !seen[coord.x+1][coord.y] {
+			if matrix[coord.x+1][coord.y] == target {
+				fmt.Printf("The Answer is at %d : %d", coord.x+1, coord.y)
+				return true
+			} else {
+				printSeenMatrix(seen)
+				if !seen[coord.x+1][coord.y] {
+					coordinatesToCheck = append(coordinatesToCheck, Coordinate{coord.x + 1, coord.y})
+				}
+				seen[coord.x+1][coord.y] = true
+			}
+		}
+
+		if validCoordinate(coord.x, coord.y-1, seen) && !seen[coord.x][coord.y-1] {
+			if matrix[coord.x][coord.y-1] == target {
+				fmt.Printf("The Answer is at %d : %d", coord.x, coord.y-1)
+				return true
+			} else {
+				printSeenMatrix(seen)
+				if !seen[coord.x][coord.y-1] {
+					coordinatesToCheck = append(coordinatesToCheck, Coordinate{coord.x, coord.y - 1})
+				}
+				seen[coord.x][coord.y-1] = true
+
+			}
+		}
+		if validCoordinate(coord.x, coord.y+1, seen) && !seen[coord.x][coord.y+1] {
+			if matrix[coord.x][coord.y+1] == target {
+				fmt.Printf("The Answer is at %d : %d", coord.x, coord.y+1)
+				return true
+			} else {
+				printSeenMatrix(seen)
+				if !seen[coord.x][coord.y+1] {
+					coordinatesToCheck = append(coordinatesToCheck, Coordinate{coord.x, coord.y + 1})
+				}
+				seen[coord.x][coord.y+1] = true
+			}
+		}
+	}
+
+	fmt.Printf("NOT FOUND")
+	return false
+}
+
+func OriginalAttempt(matrix [][]int, x, y, target int) bool {
 	var seen = make([][]bool, len(matrix))
 	for i := range seen {
 		seen[i] = make([]bool, len(matrix[i]))
@@ -125,63 +205,158 @@ func findValueInMatrix(matrix [][]int, x, y, target int) bool {
 
 	stack := Stack{}
 	stack.Push(Coordinate{x, y})
-	var found = false
-	for !found {
-		if !stack.IsEmpty() {
-			coord := stack.Pop()
-			if coord.x >= 0 && coord.y >= 0 && coord.y < len(matrix) && coord.y < len(matrix[0]) && matrix[coord.x][coord.y] == target {
-				seen[coord.x][coord.y] = true
+
+	for !stack.IsEmpty() {
+		coord := stack.Pop()
+		if validCoordinate(coord.x, coord.y, seen) && matrix[coord.x][coord.y] == target {
+			fmt.Printf("The Answer is at %d : %d", coord.x, coord.y)
+			return true
+		}
+		seen[coord.x][coord.y] = true
+
+		if validCoordinate(coord.x-1, coord.y, seen) {
+			if matrix[coord.x-1][coord.y] == target {
+				fmt.Printf("The Answer is at %d : %d", coord.x-1, coord.y)
 				return true
-			}
-
-			if validCoordinate(coord.x-1, coord.y, seen) && !seen[coord.x-1][coord.y] {
-				if matrix[coord.x-1][coord.y] == target {
-					return true
-				} else {
-					//seen[coord.x-1][coord.y] = true
-					printSeenMatrix(seen)
-					stack.Push(Coordinate{x - 1, y})
+			} else {
+				printSeenMatrix(seen)
+				if !seen[coord.x-1][coord.y] {
+					stack.Push(Coordinate{coord.x - 1, coord.y})
 				}
+				seen[coord.x-1][coord.y] = true
 			}
+		}
 
-			if validCoordinate(coord.x+1, coord.y, seen) && !seen[coord.x+1][coord.y] {
-				if matrix[coord.x+1][coord.y] == target {
-					return true
-				} else {
-					//seen[coord.x+1][coord.y] = true
-					printSeenMatrix(seen)
-					stack.Push(Coordinate{x + 1, y})
+		if validCoordinate(coord.x+1, coord.y, seen) && !seen[coord.x+1][coord.y] {
+			if matrix[coord.x+1][coord.y] == target {
+				fmt.Printf("The Answer is at %d : %d", coord.x+1, coord.y)
+				return true
+			} else {
+				printSeenMatrix(seen)
+				if !seen[coord.x+1][coord.y] {
+					stack.Push(Coordinate{coord.x + 1, coord.y})
 				}
+				seen[coord.x+1][coord.y] = true
 			}
+		}
 
-			if validCoordinate(coord.x, coord.y-1, seen) && !seen[coord.x][coord.y-1] {
-				if matrix[coord.x][coord.y-1] == target {
-					return true
-				} else {
-					//seen[coord.x][coord.y-1] = true
-					printSeenMatrix(seen)
+		if validCoordinate(coord.x, coord.y-1, seen) && !seen[coord.x][coord.y-1] {
+			if matrix[coord.x][coord.y-1] == target {
+				fmt.Printf("The Answer is at %d : %d", coord.x, coord.y-1)
+				return true
+			} else {
+				printSeenMatrix(seen)
+				if !seen[coord.x][coord.y-1] {
 					stack.Push(Coordinate{coord.x, coord.y - 1})
-
 				}
+				seen[coord.x][coord.y-1] = true
+
 			}
-			if validCoordinate(coord.x, coord.y+1, seen) && !seen[coord.x][coord.y+1] {
-				if matrix[coord.x][coord.y+1] == target {
-					return true
-				} else {
-					//seen[coord.x][coord.y+1] = true
-					printSeenMatrix(seen)
+		}
+		if validCoordinate(coord.x, coord.y+1, seen) && !seen[coord.x][coord.y+1] {
+			if matrix[coord.x][coord.y+1] == target {
+				fmt.Printf("The Answer is at %d : %d", coord.x, coord.y+1)
+				return true
+			} else {
+				printSeenMatrix(seen)
+				if !seen[coord.x][coord.y+1] {
 					stack.Push(Coordinate{coord.x, coord.y + 1})
 				}
+				seen[coord.x][coord.y+1] = true
 			}
 		}
 	}
 
+	fmt.Printf("NOT FOUND")
+	return false
+}
+
+func DFS(matrix [][]int, x, y, target int) bool {
+	var seen = make([][]bool, len(matrix))
+	for i := range seen {
+		seen[i] = make([]bool, len(matrix[i]))
+		for j := range seen[i] {
+			seen[i][j] = false
+		}
+	}
+
+	printSeenMatrix(seen)
+
+	stack := Stack{}
+	stack.Push(Coordinate{x, y})
+
+	for !stack.IsEmpty() {
+		coord := stack.Pop()
+		if validCoordinate(coord.x, coord.y, seen) {
+			if matrix[coord.x][coord.y] == target {
+				fmt.Printf("The Answer is at %d : %d", coord.x, coord.y)
+				return true
+			}
+			seen[coord.x][coord.y] = true
+			printSeenMatrix(seen)
+
+			if validCoordinate(coord.x-1, coord.y, seen) && !seen[coord.x-1][coord.y] {
+				stack.Push(Coordinate{coord.x - 1, coord.y})
+			}
+			if validCoordinate(coord.x+1, coord.y, seen) && !seen[coord.x+1][coord.y] {
+				stack.Push(Coordinate{coord.x + 1, coord.y})
+			}
+			if validCoordinate(coord.x, coord.y-1, seen) && !seen[coord.x][coord.y-1] {
+				stack.Push(Coordinate{coord.x, coord.y - 1})
+			}
+			if validCoordinate(coord.x, coord.y+1, seen) && !seen[coord.x][coord.y+1] {
+				stack.Push(Coordinate{coord.x, coord.y + 1})
+			}
+
+		}
+	}
+	fmt.Printf("NOT FOUND")
+	return false
+}
+
+func DFSRecursive(matrix [][]int, seen [][]bool, x, y, target int) bool {
+	if seen == nil {
+		seen = make([][]bool, len(matrix))
+		for i := range seen {
+			seen[i] = make([]bool, len(matrix[i]))
+			for j := range seen[i] {
+				seen[i][j] = false
+			}
+		}
+	}
+
+	printSeenMatrix(seen)
+
+	if validCoordinate(x, y, seen) {
+		if matrix[x][y] == target {
+			fmt.Printf("The Answer is at %d : %d", x, y)
+			return true
+		}
+		seen[x][y] = true
+		printSeenMatrix(seen)
+		return (validCoordinate(x-1, y, seen) && !seen[x-1][y] && DFSRecursive(matrix, seen, x-1, y, target)) ||
+			(validCoordinate(x+1, y, seen) && !seen[x+1][y] && DFSRecursive(matrix, seen, x+1, y, target)) ||
+			(validCoordinate(x, y-1, seen) && !seen[x][y-1] && DFSRecursive(matrix, seen, x, y-1, target)) ||
+			(validCoordinate(x, y+1, seen) && !seen[x][y+1] && DFSRecursive(matrix, seen, x, y+1, target))
+
+	}
+
+	fmt.Printf("NOT FOUND")
 	return false
 }
 
 func printSeenMatrix(seen [][]bool) {
 	fmt.Println("--------------------------")
-	fmt.Println(seen)
+	for _, row := range seen {
+		for _, val := range row {
+			if val {
+				fmt.Print("X ")
+			} else {
+				fmt.Print("- ")
+			}
+		}
+		fmt.Println()
+	}
 	fmt.Println("--------------------------")
 }
 
