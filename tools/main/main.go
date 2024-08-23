@@ -76,3 +76,121 @@ func main() {
 		return
 	}
 }
+
+type Coordinate struct {
+	x int
+	y int
+}
+
+type Stack struct {
+	elements []Coordinate
+}
+
+func (s *Stack) Push(element Coordinate) {
+	s.elements = append(s.elements, element)
+}
+
+func (s *Stack) Pop() Coordinate {
+	if len(s.elements) == 0 {
+		fmt.Println("Stack is empty!")
+		return Coordinate{-1, -1}
+	}
+	element := s.elements[len(s.elements)-1]
+	s.elements = s.elements[:len(s.elements)-1]
+	return element
+}
+
+func (s *Stack) Peek() Coordinate {
+	if len(s.elements) == 0 {
+		fmt.Println("Stack is empty!")
+		return Coordinate{-1, -1}
+	}
+	return s.elements[len(s.elements)-1]
+}
+
+func (s *Stack) IsEmpty() bool {
+	return len(s.elements) == 0
+}
+
+func findValueInMatrix(matrix [][]int, x, y, target int) bool {
+	var seen = make([][]bool, len(matrix))
+	for i := range seen {
+		seen[i] = make([]bool, len(matrix[i]))
+		for j := range seen[i] {
+			seen[i][j] = false
+		}
+	}
+
+	printSeenMatrix(seen)
+
+	stack := Stack{}
+	stack.Push(Coordinate{x, y})
+	var found = false
+	for !found {
+		if !stack.IsEmpty() {
+			coord := stack.Pop()
+			if coord.x >= 0 && coord.y >= 0 && coord.y < len(matrix) && coord.y < len(matrix[0]) && matrix[coord.x][coord.y] == target {
+				seen[coord.x][coord.y] = true
+				return true
+			}
+
+			if validCoordinate(coord.x-1, coord.y, seen) && !seen[coord.x-1][coord.y] {
+				if matrix[coord.x-1][coord.y] == target {
+					return true
+				} else {
+					//seen[coord.x-1][coord.y] = true
+					printSeenMatrix(seen)
+					stack.Push(Coordinate{x - 1, y})
+				}
+			}
+
+			if validCoordinate(coord.x+1, coord.y, seen) && !seen[coord.x+1][coord.y] {
+				if matrix[coord.x+1][coord.y] == target {
+					return true
+				} else {
+					//seen[coord.x+1][coord.y] = true
+					printSeenMatrix(seen)
+					stack.Push(Coordinate{x + 1, y})
+				}
+			}
+
+			if validCoordinate(coord.x, coord.y-1, seen) && !seen[coord.x][coord.y-1] {
+				if matrix[coord.x][coord.y-1] == target {
+					return true
+				} else {
+					//seen[coord.x][coord.y-1] = true
+					printSeenMatrix(seen)
+					stack.Push(Coordinate{coord.x, coord.y - 1})
+
+				}
+			}
+			if validCoordinate(coord.x, coord.y+1, seen) && !seen[coord.x][coord.y+1] {
+				if matrix[coord.x][coord.y+1] == target {
+					return true
+				} else {
+					//seen[coord.x][coord.y+1] = true
+					printSeenMatrix(seen)
+					stack.Push(Coordinate{coord.x, coord.y + 1})
+				}
+			}
+		}
+	}
+
+	return false
+}
+
+func printSeenMatrix(seen [][]bool) {
+	fmt.Println("--------------------------")
+	fmt.Println(seen)
+	fmt.Println("--------------------------")
+}
+
+func validCoordinate(x int, y int, tiles [][]bool) bool {
+	if x < 0 || x >= len(tiles) {
+		return false
+	}
+	if y < 0 || y >= len(tiles[x]) {
+		return false
+	}
+	return true
+}
