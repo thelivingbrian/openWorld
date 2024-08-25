@@ -199,7 +199,7 @@ func (col *Collection) gridClickAction(details GridClickDetails, blueprint *Blue
 	} else if details.Tool == "rotate" {
 		gridRotate(details, blueprint.Tiles)
 	} else if details.Tool == "place-blueprint" {
-		fmt.Println("id: " + details.SelectedAssetId)
+		//fmt.Println("id: " + details.SelectedAssetId)
 		if details.SelectedAssetId != "" {
 			blueprint.Instructions = append(blueprint.Instructions, Instruction{
 				ID:                 uuid.New().String(),
@@ -338,7 +338,7 @@ func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) str
 }
 
 func gridReplace(event GridClickDetails, modifications [][]TileData, selectedProto Prototype) string {
-	fmt.Println("Replacing with: " + selectedProto.ID)
+	//fmt.Println("Replacing with: " + selectedProto.ID)
 	modifications[event.Y][event.X].PrototypeId = selectedProto.ID
 	var buf bytes.Buffer
 	var pageData = struct {
