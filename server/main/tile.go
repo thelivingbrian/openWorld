@@ -13,20 +13,28 @@ type Teleport struct {
 	destX     int
 }
 
+type Interactable struct {
+	pushable bool
+	// reactive
+	// fragile
+}
+
 type Tile struct {
-	material       Material
-	playerMap      map[string]*Player
-	playerMutex    sync.Mutex
-	stage          *Stage
-	teleport       *Teleport
-	y              int
-	x              int
-	eventsInFlight atomic.Int32
-	powerUp        *PowerUp
-	powerMutex     sync.Mutex
-	money          int
-	boosts         int
-	htmlTemplate   string
+	material          Material
+	playerMap         map[string]*Player
+	playerMutex       sync.Mutex
+	interactable      *Interactable
+	interactableMutex sync.Mutex
+	stage             *Stage
+	teleport          *Teleport // Should/could be interactable?
+	y                 int
+	x                 int
+	eventsInFlight    atomic.Int32
+	powerUp           *PowerUp
+	powerMutex        sync.Mutex
+	money             int
+	boosts            int
+	htmlTemplate      string
 }
 
 func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
@@ -241,6 +249,17 @@ func validCoordinate(y int, x int, tiles [][]*Tile) bool {
 		return false
 	}
 	return true
+}
+
+func validityByAxis(y int, x int, tiles [][]*Tile) (bool, bool) {
+	validY, validX := true, true
+	if y < 0 || y >= len(tiles) {
+		validY = false
+	}
+	if x < 0 || x >= len(tiles[y]) {
+		validX = false
+	}
+	return validY, validX
 }
 
 func mapOfTileToArray(m map[*Tile]bool) []*Tile {

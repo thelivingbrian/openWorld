@@ -246,7 +246,7 @@ func (p *Player) tryGoNeighbor(yOffset, xOffset int, areaName string) {
 		destY = p.y
 		destX = (len(area.Tiles[destY]) + xOffset) % len(area.Tiles[destY]) // Trust me bro
 		if xOffset > 0 {
-			destX-- // Probably not ideal way to acheive thish
+			destX-- // Probably not ideal way to acheive this
 		}
 	} else {
 		destX = p.x
@@ -267,9 +267,28 @@ func (p *Player) tryGoNeighbor(yOffset, xOffset int, areaName string) {
 func (p *Player) move(yOffset int, xOffset int) {
 	destY := p.y + yOffset
 	destX := p.x + xOffset
+
 	if validCoordinate(destY, destX, p.stage.tiles) && walkable(p.stage.tiles[destY][destX]) {
 		sourceTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
+
+		// if dest tile has pushable
+		destTile.interactableMutex.Lock()
+		defer destTile.interactableMutex.Unlock()
+		// push (destTile, offsets)
+		//   if !walkable destTile return false
+		//   if destTile.interactable == nil return true
+		//if destTile.interactable != nil && destTile.interactable.pushable {
+
+		// next_tile = getTileAtOffsetIncludingNeighbors( destTile, offsets )
+		// if pushTile( next_tile, offsets ) {
+		//		next_tile.interactable = destTile.interactable
+		//      return true
+		// else
+		//      return false
+		//}
+		//}
+		// return false
 
 		sourceTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
 		destTile.addPlayerAndNotifyOthers(p)
@@ -277,6 +296,27 @@ func (p *Player) move(yOffset int, xOffset int) {
 		previousTile := sourceTile
 		impactedTiles := p.updateSpaceHighlights()
 		updateOneAfterMovement(p, impactedTiles, previousTile)
+	}
+}
+
+func push(tile *Tile, yOff, xOff int) bool { // Returns availability of a the tile for a player or interactible
+	return true
+}
+
+func getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
+	destY := tile.y + yOff
+	destX := tile.x + xOff
+	if validCoordinate(destY, destX, tile.stage.tiles) {
+		return tile.stage.tiles[destY][destX]
+	} else {
+		// use validity by axis to find correct neighbor and tile
+		escapesVertically, escapesHorizontally := validityByAxis(destY, destX, tile.stage.tiles)
+		if escapesVertically && escapesHorizontally {
+			// in bloop world cardinal direction travel may be non-communative
+			// therefore north-east etc neighbor is not uniquely defined
+			return nil
+		}
+		return nil
 	}
 }
 
