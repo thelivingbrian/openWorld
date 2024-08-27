@@ -303,10 +303,10 @@ func (p *Player) move(yOffset int, xOffset int) {
 }
 
 func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability of a the tile for a player or interactible
-	if tile == nil {
-		fmt.Println("nil tile")
-		return false
+	if yOff == 0 && xOff == 0 {
+		return true
 	}
+
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
 	if tile.interactable == nil {
