@@ -12,7 +12,7 @@ func BenchmarkMoveTwice(b *testing.B) {
 	loadFromJson()
 
 	for _, stageName := range stageNames {
-		testStage, _ := createStageByName(stageName)
+		testStage := createStageByName(stageName)
 		go drainChannel(testStage.updates)
 		for _, playerCount := range playerCounts {
 			b.Run(fmt.Sprintf("stage:%s players:%d Cores", stageName, playerCount), func(b *testing.B) {
@@ -34,7 +34,7 @@ func BenchmarkMoveTwice(b *testing.B) {
 func BenchmarkMoveAllTwice(b *testing.B) {
 	loadFromJson()
 	for _, stageName := range stageNames {
-		testStage, _ := createStageByName(stageName)
+		testStage := createStageByName(stageName)
 		go drainChannel(testStage.updates)
 		for _, playerCount := range playerCounts {
 			b.Run(fmt.Sprintf("stage:%s players:%d Cores", stageName, playerCount), func(b *testing.B) {

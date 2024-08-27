@@ -21,30 +21,27 @@ type Stage struct {
 }
 
 // benchmark this please
-func (world *World) getNamedStageOrDefault(name string) (*Stage, bool) {
-	new := false
-	stage := world.getStageByName(name)
-
+func (world *World) getNamedStageOrDefault(name string) *Stage {
 	fmt.Println("Trying to retrieve: " + name)
-
-	if stage == nil {
-		fmt.Println("Stage is not already loaded")
-		new = true
-		stageExists := false
-		stage, stageExists = createStageByName(name)
-		if !stageExists {
-			fmt.Println("INVALID STAGE: Area with name " + name + " does not exist.")
-			if name == "clinic" {
-				panic("Unable to load clinic")
-			}
-			stage, _ = world.getNamedStageOrDefault("clinic")
-			//log.Fatal("Unable to create stage")
-		}
-		world.wStageMutex.Lock()
-		world.worldStages[name] = stage
-		world.wStageMutex.Unlock()
+	stage := world.getStageByName(name)
+	fmt.Println("Hello")
+	if stage != nil {
+		fmt.Println("Stage name: " + stage.name)
+		return stage
 	}
-	return stage, new
+
+	fmt.Println("Stage is not already loaded")
+	stage = world.loadStageByName(name)
+	if stage == nil {
+		fmt.Println("INVALID STAGE: Area with name " + name + " does not exist.")
+		stage = world.loadStageByName("clinic")
+		if stage == nil {
+			panic("Unable to load default stage")
+		}
+		//log.Fatal("Unable to create stage")
+	}
+
+	return stage
 }
 
 func (world *World) getStageByName(name string) *Stage {
@@ -53,11 +50,22 @@ func (world *World) getStageByName(name string) *Stage {
 	return world.worldStages[name]
 }
 
-func createStageByName(s string) (*Stage, bool) {
+func (world *World) loadStageByName(name string) *Stage {
+	stage := createStageByName(name)
+	if stage != nil {
+		world.wStageMutex.Lock()
+		world.worldStages[name] = stage
+		world.wStageMutex.Unlock()
+		go stage.sendUpdates()
+	}
+	return stage
+}
+
+func createStageByName(s string) *Stage {
 	updatesForStage := make(chan Update)
 	area, success := areaFromName(s)
 	if !success {
-		return nil, false
+		return nil
 	}
 	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, updatesForStage, s, area.North, area.South, area.East, area.West, area.MapId}
 
@@ -78,7 +86,7 @@ func createStageByName(s string) (*Stage, bool) {
 
 	}
 
-	return &outputStage, true
+	return &outputStage
 }
 
 func (stage *Stage) removePlayerById(id string) {
