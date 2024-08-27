@@ -246,6 +246,9 @@ func htmlForTile(tile *Tile) string {
 
 func playerBox(tile *Tile) string {
 	playerIndicator := ""
+	if tile.interactable != nil {
+		playerIndicator = "gold"
+	}
 	if p := tile.getAPlayer(); p != nil {
 		playerIndicator = cssClassFromHealth(p)
 	}

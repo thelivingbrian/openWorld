@@ -87,14 +87,15 @@ func (player *Player) addToHealth(n int) bool {
 
 // always called with place?
 func (p *Player) assignStageAndListen() {
-	stage, new := p.world.getStageByName(p.stageName)
+	stage, new := p.world.getNamedStageOrDefault(p.stageName)
 	if stage == nil {
-		log.Fatal("Fatal: Stage Not Found.") //
+		log.Fatal("Fatal: Stage Not Found.")
 	}
 	if new {
 		go stage.sendUpdates()
 	}
 	p.stage = stage
+	stage.tiles[4][4].interactable = &Interactable{pushable: true}
 }
 
 func (p *Player) placeOnStage() {
@@ -272,9 +273,17 @@ func (p *Player) move(yOffset int, xOffset int) {
 		sourceTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
 
+		if p.world.push(destTile, yOffset, xOffset) {
+			sourceTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
+			destTile.addPlayerAndNotifyOthers(p)
+
+			previousTile := sourceTile
+			impactedTiles := p.updateSpaceHighlights()
+			updateOneAfterMovement(p, impactedTiles, previousTile)
+		}
 		// if dest tile has pushable
-		destTile.interactableMutex.Lock()
-		defer destTile.interactableMutex.Unlock()
+		//destTile.interactableMutex.Lock()
+		//defer destTile.interactableMutex.Unlock()
 		// push (destTile, offsets)
 		//   if !walkable destTile return false
 		//   if destTile.interactable == nil return true
@@ -290,20 +299,36 @@ func (p *Player) move(yOffset int, xOffset int) {
 		//}
 		// return false
 
-		sourceTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
-		destTile.addPlayerAndNotifyOthers(p)
-
-		previousTile := sourceTile
-		impactedTiles := p.updateSpaceHighlights()
-		updateOneAfterMovement(p, impactedTiles, previousTile)
 	}
 }
 
-func push(tile *Tile, yOff, xOff int) bool { // Returns availability of a the tile for a player or interactible
+func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability of a the tile for a player or interactible
+	if tile == nil {
+		fmt.Println("nil tile")
+		return false
+	}
+	tile.interactableMutex.Lock()
+	defer tile.interactableMutex.Unlock()
+	if tile.interactable == nil {
+		return walkable(tile)
+	}
+	if tile.interactable.pushable {
+		nextTile := w.getRelativeTile(tile, yOff, xOff)
+		if nextTile != nil && w.push(nextTile, yOff, xOff) {
+			nextTile.interactableMutex.Lock()
+			defer nextTile.interactableMutex.Unlock()
+			nextTile.interactable = tile.interactable
+			tile.interactable = nil
+			tile.stage.updateAll(playerBox(tile) + playerBox(nextTile))
+			return true
+		} else {
+			return false
+		}
+	}
 	return true
 }
 
-func getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
+func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
 	destY := tile.y + yOff
 	destX := tile.x + xOff
 	if validCoordinate(destY, destX, tile.stage.tiles) {
@@ -311,11 +336,57 @@ func getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
 	} else {
 		// use validity by axis to find correct neighbor and tile
 		escapesVertically, escapesHorizontally := validityByAxis(destY, destX, tile.stage.tiles)
+		fmt.Printf("escapes vert:%t hox:%t", escapesVertically, escapesHorizontally)
 		if escapesVertically && escapesHorizontally {
 			// in bloop world cardinal direction travel may be non-communative
 			// therefore north-east etc neighbor is not uniquely defined
 			return nil
 		}
+		if escapesVertically {
+			var newStage *Stage
+			if yOff > 0 {
+				newStage = w.getStageByName(tile.stage.south)
+				if newStage == nil {
+					newStage, _ = createStageByName(tile.stage.south)
+				}
+			}
+			if yOff < 0 {
+				newStage = w.getStageByName(tile.stage.north)
+				if newStage == nil {
+					newStage, _ = createStageByName(tile.stage.north)
+				}
+			}
+
+			if newStage != nil {
+				if validCoordinate(mod(destY, len(newStage.tiles)), destX, newStage.tiles) {
+					return newStage.tiles[mod(destY, len(newStage.tiles))][destX]
+				}
+			}
+			return nil
+		}
+		if escapesHorizontally {
+			var newStage *Stage
+			if xOff > 0 {
+				newStage = w.getStageByName(tile.stage.east)
+				if newStage == nil {
+					newStage, _ = createStageByName(tile.stage.east)
+				}
+			}
+			if xOff < 0 {
+				newStage = w.getStageByName(tile.stage.west)
+				if newStage == nil {
+					newStage, _ = createStageByName(tile.stage.west)
+				}
+			}
+
+			if newStage != nil {
+				if validCoordinate(destY, mod(destX, len(newStage.tiles)), newStage.tiles) {
+					return newStage.tiles[destY][mod(destX, len(newStage.tiles))]
+				}
+			}
+			return nil
+		}
+
 		return nil
 	}
 }

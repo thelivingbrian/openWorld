@@ -252,14 +252,14 @@ func validCoordinate(y int, x int, tiles [][]*Tile) bool {
 }
 
 func validityByAxis(y int, x int, tiles [][]*Tile) (bool, bool) {
-	validY, validX := true, true
+	invalidY, invalidX := false, false
 	if y < 0 || y >= len(tiles) {
-		validY = false
+		invalidY = true
 	}
-	if x < 0 || x >= len(tiles[y]) {
-		validX = false
+	if x < 0 || x >= len(tiles[0]) { // Not the best, assumes rectangular grid
+		invalidX = true
 	}
-	return validY, validX
+	return invalidY, invalidX
 }
 
 func mapOfTileToArray(m map[*Tile]bool) []*Tile {

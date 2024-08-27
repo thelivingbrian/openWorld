@@ -20,29 +20,37 @@ type Stage struct {
 	mapId       string
 }
 
-func (world *World) getStageByName(name string) (stage *Stage, new bool) {
-	new = false
-	world.wStageMutex.Lock() // New method
-	existingStage, stageExists := world.worldStages[name]
-	world.wStageMutex.Unlock()
+// benchmark this please
+func (world *World) getNamedStageOrDefault(name string) (*Stage, bool) {
+	new := false
+	stage := world.getStageByName(name)
 
-	if !stageExists {
+	fmt.Println("Trying to retrieve: " + name)
+
+	if stage == nil {
+		fmt.Println("Stage is not already loaded")
 		new = true
-		existingStage, stageExists = createStageByName(name)
+		stageExists := false
+		stage, stageExists = createStageByName(name)
 		if !stageExists {
 			fmt.Println("INVALID STAGE: Area with name " + name + " does not exist.")
 			if name == "clinic" {
 				panic("Unable to load clinic")
 			}
-			existingStage, _ = world.getStageByName("clinic")
+			stage, _ = world.getNamedStageOrDefault("clinic")
 			//log.Fatal("Unable to create stage")
 		}
 		world.wStageMutex.Lock()
-		world.worldStages[name] = existingStage
+		world.worldStages[name] = stage
 		world.wStageMutex.Unlock()
 	}
+	return stage, new
+}
 
-	return existingStage, new
+func (world *World) getStageByName(name string) *Stage {
+	world.wStageMutex.Lock()
+	defer world.wStageMutex.Unlock()
+	return world.worldStages[name]
 }
 
 func createStageByName(s string) (*Stage, bool) {
