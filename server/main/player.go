@@ -272,7 +272,7 @@ func (w *World) initialPush(tile *Tile, yOff, xOff int) bool {
 }
 
 func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability of a the tile for a player or interactible
-	if tile == nil {
+	if tile == nil || tile.teleport != nil {
 		return false
 	}
 	if tile.interactable == nil {
