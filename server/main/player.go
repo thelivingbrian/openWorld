@@ -145,6 +145,7 @@ func (p *Player) moveNorth() {
 func (p *Player) moveNorthBoost() {
 	if p.actions.boostCounter > 0 {
 		p.useBoost()
+		p.pushUnder(-1, 0)
 		if p.y == 0 {
 			p.tryGoNeighbor(-2, 0)
 			return
@@ -166,6 +167,7 @@ func (p *Player) moveSouth() {
 func (p *Player) moveSouthBoost() {
 	if p.actions.boostCounter > 0 {
 		p.useBoost()
+		p.pushUnder(1, 0)
 		if p.y == len(p.stage.tiles)-1 || p.y == len(p.stage.tiles)-2 {
 			p.tryGoNeighbor(2, 0)
 			return
@@ -187,6 +189,7 @@ func (p *Player) moveEast() {
 func (p *Player) moveEastBoost() {
 	if p.actions.boostCounter > 0 {
 		p.useBoost()
+		p.pushUnder(0, 1)
 		if p.x == len(p.stage.tiles[p.y])-1 || p.x == len(p.stage.tiles[p.y])-2 {
 			p.tryGoNeighbor(0, 2)
 			return
@@ -208,6 +211,7 @@ func (p *Player) moveWest() {
 func (p *Player) moveWestBoost() {
 	if p.actions.boostCounter > 0 {
 		p.useBoost()
+		p.pushUnder(0, -1)
 		if p.x == 0 || p.x == 1 {
 			p.tryGoNeighbor(0, -2)
 			return
@@ -250,13 +254,21 @@ func (p *Player) move(yOffset int, xOffset int) {
 	}
 }
 
+func (p *Player) pushUnder(yOffset int, xOffset int) {
+	currentTile := p.stage.tiles[p.y][p.x]
+	if currentTile != nil && currentTile.interactable != nil {
+		p.world.initialPush(p.stage.tiles[p.y][p.x], yOffset, xOffset)
+	}
+}
+
 func (w *World) initialPush(tile *Tile, yOff, xOff int) bool {
 	if tile == nil {
 		return false
 	}
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
-	return w.push(tile, yOff, xOff)
+	w.push(tile, yOff, xOff)
+	return walkable(tile)
 }
 
 func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability of a the tile for a player or interactible
@@ -273,7 +285,7 @@ func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability 
 			defer nextTile.interactableMutex.Unlock()
 			if w.push(nextTile, yOff, xOff) {
 				nextTile.interactable = tile.interactable
-				tile.interactable = nil
+				tile.interactable = nil // Take *Interactable and assign here to have option of reacting
 				nextTile.stage.updateAll(playerBox(nextTile))
 				return true
 			}
@@ -281,7 +293,7 @@ func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability 
 			return false
 		}
 	}
-	return false // This value determines if an unpushable tile can be walked on
+	return false
 }
 
 func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
