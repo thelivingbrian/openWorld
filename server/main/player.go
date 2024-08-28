@@ -90,12 +90,8 @@ func (p *Player) assignStageAndListen() {
 	stage := p.world.getNamedStageOrDefault(p.stageName)
 	fmt.Println("Have a stage")
 	if stage == nil {
-		log.Fatal("Fatal: Stage Not Found.")
+		log.Fatal("Fatal: Default Stage Not Found.")
 	}
-	/*if new {
-		fmt.Println("sending updates")
-		go stage.sendUpdates()
-	}*/
 	p.stage = stage
 	stage.tiles[4][4].interactable = &Interactable{pushable: true}
 }
@@ -216,10 +212,6 @@ func (p *Player) moveWestBoost() {
 			p.tryGoNeighbor(0, -2)
 			return
 		}
-		//if p.x == 1 {
-		//	p.tryGoNeighbor(0, -1, p.stage.west)
-		//	return
-		//}
 		p.move(0, -2)
 	} else {
 		p.moveWest()
@@ -227,45 +219,13 @@ func (p *Player) moveWestBoost() {
 }
 
 func (p *Player) tryGoNeighbor(yOffset, xOffset int) {
-	/*area, success := areaFromName(areaName)
-	if !success {
-		return
-	}
-
-	var destY, destX int
-	if yOffset == 0 {
-		destY = p.y
-		destX = (len(area.Tiles[destY]) + xOffset) % len(area.Tiles[destY]) // Trust me bro
-		if xOffset > 0 {
-			destX-- // Probably not ideal way to acheive this
-		}
-	} else {
-		destX = p.x
-		destY = (len(area.Tiles) + yOffset) % len(area.Tiles)
-		if yOffset > 0 {
-			destY--
-		}
-	}
-
-	if materials[area.Tiles[destY][destX]].Walkable {
-		t := &Teleport{destStage: area.Name, destY: destY, destX: destX}
-		previousTile := p.stage.tiles[p.y][p.x]
-
-		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
-		p.applyTeleport(t)
-		//p.move(0, 0) // Hacky but resets player icon and highlights
-		impactedTiles := p.updateSpaceHighlights()
-		updateOneAfterMovement(p, impactedTiles, previousTile)
-	}*/
-
 	newTile := p.world.getRelativeTile(p.stage.tiles[p.y][p.x], yOffset, xOffset)
-	if p.world.push(newTile, yOffset, xOffset) {
+	if p.world.initialPush(newTile, yOffset, xOffset) {
 		t := &Teleport{destStage: newTile.stage.name, destY: newTile.y, destX: newTile.x}
 		previousTile := p.stage.tiles[p.y][p.x]
 
 		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
 		p.applyTeleport(t)
-		//p.move(0, 0) // Hacky but resets player icon and highlights
 		impactedTiles := p.updateSpaceHighlights()
 		updateOneAfterMovement(p, impactedTiles, previousTile)
 	}
@@ -279,7 +239,7 @@ func (p *Player) move(yOffset int, xOffset int) {
 		sourceTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
 
-		if p.world.push(destTile, yOffset, xOffset) {
+		if p.world.initialPush(destTile, yOffset, xOffset) {
 			sourceTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
 			destTile.addPlayerAndNotifyOthers(p)
 
@@ -290,26 +250,33 @@ func (p *Player) move(yOffset int, xOffset int) {
 	}
 }
 
-func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability of a the tile for a player or interactible
+func (w *World) initialPush(tile *Tile, yOff, xOff int) bool {
 	if tile == nil {
 		return false
 	}
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
+	return w.push(tile, yOff, xOff)
+}
+
+func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability of a the tile for a player or interactible
+	if tile == nil {
+		return false
+	}
 	if tile.interactable == nil {
 		return walkable(tile)
 	}
 	if tile.interactable.pushable {
 		nextTile := w.getRelativeTile(tile, yOff, xOff)
-		if nextTile != nil && w.push(nextTile, yOff, xOff) {
+		if nextTile != nil {
 			nextTile.interactableMutex.Lock()
 			defer nextTile.interactableMutex.Unlock()
-			nextTile.interactable = tile.interactable
-			tile.interactable = nil
-			//if nextTile.stage == tile.stage {
-			nextTile.stage.updateAll(playerBox(nextTile))
-			//}
-			return true
+			if w.push(nextTile, yOff, xOff) {
+				nextTile.interactable = tile.interactable
+				tile.interactable = nil
+				nextTile.stage.updateAll(playerBox(nextTile))
+				return true
+			}
 		} else {
 			return false
 		}
@@ -328,6 +295,7 @@ func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
 		if escapesVertically && escapesHorizontally {
 			// in bloop world cardinal direction travel may be non-communative
 			// therefore north-east etc neighbor is not uniquely defined
+			// order can probably be uniquely determined when tile.y != tile.x
 			return nil
 		}
 		if escapesVertically {
@@ -359,7 +327,6 @@ func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
 				if newStage == nil {
 					fmt.Println("New stage was nil")
 					newStage = w.loadStageByName(tile.stage.east)
-					//fmt.Println(newStage.name)
 				}
 			}
 			if xOff < 0 {
