@@ -85,7 +85,7 @@ func (player *Player) addToHealth(n int) bool {
 	return newHealth > 0
 }
 
-// always called with place?
+// always called with placeOnStage?
 func (p *Player) assignStageAndListen() {
 	stage := p.world.getNamedStageOrDefault(p.stageName)
 	fmt.Println("Have a stage")
@@ -281,7 +281,7 @@ func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability 
 			return false
 		}
 	}
-	return true
+	return false // This value determines if an unpushable tile can be walked on
 }
 
 func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
