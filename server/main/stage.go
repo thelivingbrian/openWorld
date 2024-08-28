@@ -22,15 +22,11 @@ type Stage struct {
 
 // benchmark this please
 func (world *World) getNamedStageOrDefault(name string) *Stage {
-	fmt.Println("Trying to retrieve: " + name)
 	stage := world.getStageByName(name)
-	fmt.Println("Hello")
 	if stage != nil {
-		fmt.Println("Stage name: " + stage.name)
 		return stage
 	}
 
-	fmt.Println("Stage is not already loaded")
 	stage = world.loadStageByName(name)
 	if stage == nil {
 		fmt.Println("INVALID STAGE: Area with name " + name + " does not exist.")
@@ -38,7 +34,6 @@ func (world *World) getNamedStageOrDefault(name string) *Stage {
 		if stage == nil {
 			panic("Unable to load default stage")
 		}
-		//log.Fatal("Unable to create stage")
 	}
 
 	return stage
