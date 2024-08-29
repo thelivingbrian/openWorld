@@ -64,11 +64,19 @@ func createStageByName(s string) *Stage {
 	}
 	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, updatesForStage, s, area.North, area.South, area.East, area.West, area.MapId}
 
+	fmt.Println(area.Name)
+
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
 		for x := range outputStage.tiles[y] {
 			outputStage.tiles[y][x] = newTile(materials[area.Tiles[y][x]], y, x, area.DefaultTileColor)
 			outputStage.tiles[y][x].stage = &outputStage
+			if area.Interactables != nil && y < len(area.Interactables) && x < len(area.Interactables[y]) {
+				description := area.Interactables[y][x]
+				if description != nil {
+					outputStage.tiles[y][x].interactable = &Interactable{pushable: description.Pushable}
+				}
+			}
 		}
 	}
 	for _, transport := range area.Transports {

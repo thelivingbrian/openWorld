@@ -282,6 +282,7 @@ func (c Context) compileCollection(collection *Collection) {
 				Name:             desc.Name,
 				Safe:             desc.Safe,
 				Tiles:            outputTiles,
+				Interactables:    collection.generateInteractables(desc.Blueprint.Tiles),
 				Transports:       desc.Transports,
 				DefaultTileColor: desc.DefaultTileColor,
 				North:            desc.North,

@@ -22,16 +22,17 @@ type AreaDescription struct {
 
 // Import from the other project instead? Or import from here. Transport too
 type AreaOutput struct {
-	Name             string      `json:"name"`
-	Safe             bool        `json:"safe"`
-	Tiles            [][]int     `json:"tiles"`
-	Transports       []Transport `json:"transports"`
-	DefaultTileColor string      `json:"defaultTileColor"`
-	North            string      `json:"north,omitempty"`
-	South            string      `json:"south,omitempty"`
-	East             string      `json:"east,omitempty"`
-	West             string      `json:"west,omitempty"`
-	MapId            string      `json:"mapId,omitempty"`
+	Name             string                       `json:"name"`
+	Safe             bool                         `json:"safe"`
+	Tiles            [][]int                      `json:"tiles"`
+	Interactables    [][]*InteractableDescription `json:"interactables"`
+	Transports       []Transport                  `json:"transports"`
+	DefaultTileColor string                       `json:"defaultTileColor"`
+	North            string                       `json:"north,omitempty"`
+	South            string                       `json:"south,omitempty"`
+	East             string                       `json:"east,omitempty"`
+	West             string                       `json:"west,omitempty"`
+	MapId            string                       `json:"mapId,omitempty"`
 }
 
 type GridDetails struct {
