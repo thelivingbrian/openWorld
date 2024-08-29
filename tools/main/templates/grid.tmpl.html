@@ -30,6 +30,11 @@
                                 ">
                 <div class="box floor1 {{$mat.Floor1Css}}"></div>
                 <div class="box floor2 {{$mat.Floor2Css}}"></div>
+                {{with index $.InteractableGrid $y $x}}
+                {{if .}}
+                <div class="box zp {{.CssClass}}"></div>
+                {{end}}
+                {{end}}
                 <div class="box ceiling1 {{$mat.Ceiling1Css}}"></div>
                 <div class="box ceiling2 {{$mat.Ceiling2Css}}"></div>
                 <div class="box top"></div>

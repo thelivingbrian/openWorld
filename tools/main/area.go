@@ -36,6 +36,7 @@ type AreaOutput struct {
 
 type GridDetails struct {
 	MaterialGrid     [][]Material
+	InteractableGrid [][]*InteractableDescription
 	DefaultTileColor string
 	Location         string
 	ScreenID         string
@@ -147,6 +148,7 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 		// Can be generated only with area
 		GridDetails: GridDetails{
 			MaterialGrid:     modifications,
+			InteractableGrid: collection.generateInteractables(selectedArea.Blueprint.Tiles),
 			DefaultTileColor: selectedArea.DefaultTileColor,
 			Location:         locationStringFromArea(selectedArea, space.Name),
 			GridType:         "area",

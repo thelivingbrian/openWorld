@@ -78,6 +78,7 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 	if result == "" {
 		var pageData = GridDetails{
 			MaterialGrid:     collection.generateMaterials(area.Blueprint.Tiles),
+			InteractableGrid: collection.generateInteractables(area.Blueprint.Tiles),
 			DefaultTileColor: details.DefaultTileColor,
 			Location:         details.stringifyLocation(),
 			ScreenID:         details.ScreenID,
@@ -117,6 +118,7 @@ func (c Context) gridClickFragmentHandler(w http.ResponseWriter, r *http.Request
 	if result == "" {
 		var pageData = GridDetails{
 			MaterialGrid:     col.generateMaterials(fragment.Blueprint.Tiles),
+			InteractableGrid: col.generateInteractables(fragment.Blueprint.Tiles),
 			DefaultTileColor: details.DefaultTileColor,
 			Location:         details.stringifyLocation(),
 			ScreenID:         details.ScreenID,
@@ -215,8 +217,9 @@ func (col *Collection) gridClickAction(details GridClickDetails, blueprint *Blue
 
 	} else if details.Tool == "interactable-replace" {
 		interactable := col.findInteractableById(details.SelectedAssetId)
-		//fmt.Println(interactable.CssClass)
 		return col.interactableReplace(details, blueprint.Tiles, interactable)
+	} else if details.Tool == "interactable-delete" {
+		return col.interactableReplace(details, blueprint.Tiles, nil)
 	}
 	return ""
 }
@@ -368,7 +371,10 @@ func (col *Collection) gridReplace(event GridClickDetails, modifications [][]Til
 
 func (col *Collection) interactableReplace(event GridClickDetails, modifications [][]TileData, selectedInteractable *InteractableDescription) string {
 	//fmt.Println("Replacing with: " + selectedProto.ID)
-	modifications[event.Y][event.X].InteractableId = selectedInteractable.ID
+	modifications[event.Y][event.X].InteractableId = ""
+	if selectedInteractable != nil {
+		modifications[event.Y][event.X].InteractableId = selectedInteractable.ID
+	}
 	selectedProto := col.getPrototypeOrCreateInvalid(modifications[event.Y][event.X].PrototypeId)
 	var buf bytes.Buffer
 	var pageData = struct {
@@ -378,7 +384,7 @@ func (col *Collection) interactableReplace(event GridClickDetails, modifications
 	}{
 		Material:     selectedProto.applyTransform(modifications[event.Y][event.X].Transformation),
 		ClickEvent:   event,
-		Interactable: col.findInteractableById(selectedInteractable.ID),
+		Interactable: col.findInteractableById(modifications[event.Y][event.X].InteractableId),
 	}
 	err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)
 	if err != nil {
