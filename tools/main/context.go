@@ -141,21 +141,31 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 	for _, dir := range dirs {
 		entry, _ := dir.Info()
 		if entry.IsDir() {
-			collection := Collection{Name: entry.Name(), Spaces: make(map[string]*Space)}
+			collection := Collection{
+				Name:             entry.Name(),
+				Spaces:           make(map[string]*Space),
+				Fragments:        make(map[string][]Fragment),
+				PrototypeSets:    make(map[string][]Prototype),
+				InteractableSets: make(map[string][]InteractableDescription),
+			}
 
 			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
 			populateMaps(collection.Spaces, pathToSpaces)
 
 			// Adjust these two like spaces above
 			pathToFragments := filepath.Join(collectionPath, entry.Name(), "fragments")
-			fragmentMap := make(map[string][]Fragment)
-			populateMaps(fragmentMap, pathToFragments)
-			collection.Fragments = addSetNamesToFragments(fragmentMap)
+			//fragmentMap := make(map[string][]Fragment)
+			//populateMaps(fragmentMap, pathToFragments)
+			//collection.Fragments = addSetNamesToFragments(fragmentMap)
+			populateMaps(collection.Fragments, pathToFragments)
 
 			pathToPrototypes := filepath.Join(collectionPath, entry.Name(), "prototypes")
-			prototypeMap := make(map[string][]Prototype)
-			populateMaps(prototypeMap, pathToPrototypes)
-			collection.PrototypeSets = c.addSetNamesToProtypes(prototypeMap)
+			//prototypeMap := make(map[string][]Prototype)
+			populateMaps(collection.PrototypeSets, pathToPrototypes)
+			//collection.PrototypeSets = c.addSetNamesToProtypes(prototypeMap)
+
+			pathToInteractables := filepath.Join(collectionPath, entry.Name(), "interactables")
+			populateMaps(collection.InteractableSets, pathToInteractables)
 
 			collections[entry.Name()] = &collection
 

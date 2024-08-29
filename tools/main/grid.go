@@ -212,6 +212,10 @@ func (col *Collection) gridClickAction(details GridClickDetails, blueprint *Blue
 		for _, instruction := range blueprint.Instructions {
 			col.applyInstruction(blueprint.Tiles, instruction)
 		}
+
+	} else if details.Tool == "interactable-replace" {
+		interactable := col.findInteractableById(details.SelectedAssetId)
+		fmt.Println(interactable.CssClass)
 	}
 	return ""
 }
@@ -445,15 +449,15 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var pageData = struct {
-			FragmentSets    []string
-			CurrentSet      string
-			Fragments       []Fragment
-			CurrentFragment string
-			FragmentDetails []*FragmentDetails
+			FragmentSets []string
+			CurrentSet   string
+			//Fragments    []Fragment
+			//CurrentFragment string // useless?
+			//FragmentDetails []*FragmentDetails
 		}{
-			FragmentSets:    setOptions,
-			CurrentSet:      "",
-			CurrentFragment: "",
+			FragmentSets: setOptions,
+			CurrentSet:   "",
+			//CurrentFragment: "",
 		}
 		tmpl.ExecuteTemplate(w, "fixture-fragment", pageData)
 	}
@@ -465,8 +469,36 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 		tmpl.ExecuteTemplate(w, "fixture-transformation", nil)
 	}
 	if fixtureType == "blueprint" {
-		c.getBlueprint(w, r)
+		c.getBlueprint(w, r) // only gets blueprint for area
 		//tmpl.ExecuteTemplate(w, "area-blueprint", nil)
+	}
+	if fixtureType == "interactable" {
+		collectionName := queryValues.Get("currentCollection")
+		collection, ok := c.Collections[collectionName]
+		if !ok {
+			fmt.Println("Collection Name Invalid")
+			return
+		}
+		var setOptions []string
+		for key := range collection.InteractableSets {
+			setOptions = append(setOptions, key)
+		}
+
+		//interactables := collection.InteractableSets[setName]
+
+		var pageData = struct {
+			SetNames      []string
+			CurrentSet    string
+			Interactables []InteractableDescription
+		}{
+			SetNames:      setOptions,
+			CurrentSet:    "",
+			Interactables: nil,
+		}
+		err := tmpl.ExecuteTemplate(w, "fixture-interactables", pageData)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 }

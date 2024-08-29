@@ -1,0 +1,81 @@
+{{define "interactable-select"}}
+<div id="interactable-select">
+    <form hx-trigger="change" hx-include="[name='currentCollection']" hx-get="/interactables" hx-target="#interactable-select">
+        <label>Interactable Set: <a hx-get="/interactables/new" hx-include="[name='currentCollection']" href="#">New</a></label>
+        <select id="interactable-set" name="interactable-set">
+            <option value="{{.CurrentSet}}">{{.CurrentSet}}</option>
+            {{range $i, $name := .SetNames}}
+            <option value="{{$name}}">{{$name}}</option>
+            {{end}}
+        </select>
+        {{if not (eq .CurrentSet "")}}
+            <a hx-get="/interactable/new" hx-include="#interactable-set,[name='currentCollection']" hx-target="#interactable-select" href="#">New [{{.CurrentSet}}] Interactable</a>
+        {{end}}
+    </form>
+    <form>
+        <div id="interactable-container">
+            {{if .Interactables}}
+                {{template "interactable-list" .Interactables}}
+            {{end}}
+        </div>
+    </form>
+</div>
+{{end}}
+
+{{define "interactable-list"}}
+{{range $i, $interactable := .}}
+<div id="interactable-window-{{$i}}" class="left">
+    <input type="hidden" name="interactable" value="{{$interactable.ID}}" />
+    <input type="radio" name="selected-asset-id" value="{{$interactable.ID}}" {{if eq $i 0}} checked {{end}} />
+    <br />
+    {{template "interactable-square" $interactable}}
+    <label>{{$interactable.Name}}</label><br />
+    <a href="#" hx-get="/prototype" hx-target="#edit_tool" hx-include="#prototype-set,#prototype-window-{{$i}} [name='prototype'],[name='currentCollection']">edit</a>
+</div>
+{{end}}
+{{end}}
+
+{{define "interactable-square"}}
+<div id="exampleSquare" class="grid-row">
+    <div class="grid-square {{.CssClass}}">
+    </div>
+</div>
+{{end}}
+
+{{define "interactables-new"}}
+<div id="interactables-new">
+    <form hx-include="[name='currentCollection']" hx-post="/interactables" hx-target="#interactables-new">
+        <input type="text" name="interactable-set-name" value="Enter Set Name." />
+        <input type="submit" />
+    </form>
+</div>
+{{end}}
+
+
+{{define "interactable-new"}}
+<div id="interactable-new">
+    <form hx-include="[name='currentCollection']" hx-post="/interactable" hx-target="#interactable-new">
+        <input type="hidden" name="interactable-set" value="{{.SetName}}" />
+        <div id="exampleSquare" class="grid-row">
+            <div class="grid-square"></div>
+        </div>
+        <div>
+            <label>Name: </label>
+            <input type="text" name="Name" value="">
+        </div>
+        <div>
+            <label>Css Class: </label>
+            <input hx-get="/interactable/example" hx-trigger="change" hx-target="#exampleSquare" type="text" name="CssClass" value="">
+        </div>
+        <div>
+            <label>Pushable:</label>
+            <input type="checkbox" name="pushable">
+        </div>
+        <div>
+            <label>Destroyable:</label>
+            <input type="checkbox" name="destroyable">
+        </div>
+        <button class="btn">Save</button>
+    </form>
+</div>
+{{end}}

@@ -42,6 +42,11 @@ func main() {
 	http.HandleFunc("/grid/click/area", c.gridClickAreaHandler)
 	http.HandleFunc("/grid/click/fragment", c.gridClickFragmentHandler)
 	http.HandleFunc("/images/", c.imageHandler)
+	http.HandleFunc("/interactables", c.interactablesHandler)
+	http.HandleFunc("/interactables/new", c.interactablesNewHandler)
+	http.HandleFunc("/interactable", c.interactableHandler)
+	http.HandleFunc("/interactable/new", c.interactableNewHandler)
+	http.HandleFunc("/interactable/example", exampleInteractable)
 
 	http.HandleFunc("/materialPage", c.getMaterialPage)
 	//http.HandleFunc("/exampleMaterial", exampleMaterial) // Probably unused
