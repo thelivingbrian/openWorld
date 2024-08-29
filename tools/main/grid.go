@@ -184,7 +184,7 @@ func (col *Collection) gridClickAction(details GridClickDetails, blueprint *Blue
 		return col.gridSelect(details, blueprint.Tiles)
 	} else if details.Tool == "replace" {
 		selectedPrototype := col.getPrototypeOrCreateInvalid(details.SelectedAssetId)
-		return gridReplace(details, blueprint.Tiles, selectedPrototype)
+		return col.gridReplace(details, blueprint.Tiles, selectedPrototype)
 	} else if details.Tool == "fill" {
 		selectedPrototype := col.getPrototypeOrCreateInvalid(details.SelectedAssetId)
 		gridFill(details, blueprint.Tiles, selectedPrototype)
@@ -215,7 +215,8 @@ func (col *Collection) gridClickAction(details GridClickDetails, blueprint *Blue
 
 	} else if details.Tool == "interactable-replace" {
 		interactable := col.findInteractableById(details.SelectedAssetId)
-		fmt.Println(interactable.CssClass)
+		//fmt.Println(interactable.CssClass)
+		return col.interactableReplace(details, blueprint.Tiles, interactable)
 	}
 	return ""
 }
@@ -305,8 +306,9 @@ func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) str
 	if haveSelection {
 		selectedCell := grid[selectedY][selectedX]
 		var pageData = struct {
-			Material   Material
-			ClickEvent GridClickDetails
+			Material     Material
+			ClickEvent   GridClickDetails
+			Interactable *InteractableDescription
 		}{
 			Material: col.findPrototypeById(selectedCell.PrototypeId).applyTransform(selectedCell.Transformation),
 			ClickEvent: GridClickDetails{
@@ -316,6 +318,7 @@ func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) str
 				DefaultTileColor: event.DefaultTileColor,
 				Location:         event.Location,
 				ScreenID:         event.ScreenID},
+			Interactable: col.findInteractableById(selectedCell.InteractableId),
 		}
 		err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)
 		if err != nil {
@@ -328,11 +331,13 @@ func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) str
 	selectedCell := grid[selectedY][selectedX]
 	event.Selected = true
 	var pageData = struct {
-		Material   Material
-		ClickEvent GridClickDetails
+		Material     Material
+		ClickEvent   GridClickDetails
+		Interactable *InteractableDescription
 	}{
-		Material:   col.findPrototypeById(selectedCell.PrototypeId).applyTransform(selectedCell.Transformation),
-		ClickEvent: event,
+		Material:     col.findPrototypeById(selectedCell.PrototypeId).applyTransform(selectedCell.Transformation),
+		ClickEvent:   event,
+		Interactable: col.findInteractableById(selectedCell.InteractableId),
 	}
 	err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)
 	if err != nil {
@@ -341,16 +346,39 @@ func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) str
 	return buf.String()
 }
 
-func gridReplace(event GridClickDetails, modifications [][]TileData, selectedProto Prototype) string {
+func (col *Collection) gridReplace(event GridClickDetails, modifications [][]TileData, selectedProto Prototype) string {
 	//fmt.Println("Replacing with: " + selectedProto.ID)
 	modifications[event.Y][event.X].PrototypeId = selectedProto.ID
 	var buf bytes.Buffer
 	var pageData = struct {
-		Material   Material
-		ClickEvent GridClickDetails
+		Material     Material
+		ClickEvent   GridClickDetails
+		Interactable *InteractableDescription
 	}{
-		Material:   selectedProto.applyTransform(modifications[event.Y][event.X].Transformation),
-		ClickEvent: event,
+		Material:     selectedProto.applyTransform(modifications[event.Y][event.X].Transformation),
+		ClickEvent:   event,
+		Interactable: col.findInteractableById(modifications[event.Y][event.X].InteractableId),
+	}
+	err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return buf.String()
+}
+
+func (col *Collection) interactableReplace(event GridClickDetails, modifications [][]TileData, selectedInteractable *InteractableDescription) string {
+	//fmt.Println("Replacing with: " + selectedProto.ID)
+	modifications[event.Y][event.X].InteractableId = selectedInteractable.ID
+	selectedProto := col.getPrototypeOrCreateInvalid(modifications[event.Y][event.X].PrototypeId)
+	var buf bytes.Buffer
+	var pageData = struct {
+		Material     Material
+		ClickEvent   GridClickDetails
+		Interactable *InteractableDescription
+	}{
+		Material:     selectedProto.applyTransform(modifications[event.Y][event.X].Transformation),
+		ClickEvent:   event,
+		Interactable: col.findInteractableById(selectedInteractable.ID),
 	}
 	err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)
 	if err != nil {
@@ -417,7 +445,7 @@ func (col *Collection) gridFillBetween(event GridClickDetails, modifications [][
 			newEvent := event
 			newEvent.Y = i
 			newEvent.X = j
-			output += gridReplace(newEvent, modifications, selectedPrototype)
+			output += col.gridReplace(newEvent, modifications, selectedPrototype)
 		}
 	}
 	output += col.gridSelect(event, modifications)
