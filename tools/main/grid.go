@@ -246,10 +246,16 @@ func pasteTiles(y, x int, source, dest [][]TileData) {
 			if x+j >= len(source[y+i]) {
 				break
 			}
-			if dest[i][j].PrototypeId == "" {
-				continue
+			if dest[i][j].PrototypeId != "" {
+				source[y+i][x+j].PrototypeId = dest[i][j].PrototypeId
+				source[y+i][x+j].Transformation = dest[i][j].Transformation
+				//continue
 			}
-			source[y+i][x+j] = dest[i][j]
+			if dest[i][j].InteractableId != "" {
+				source[y+i][x+j].InteractableId = dest[i][j].InteractableId
+				//continue
+			}
+			//source[y+i][x+j] = dest[i][j]
 		}
 	}
 }
