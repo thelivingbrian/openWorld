@@ -270,7 +270,7 @@ func (w *World) initialPush(tile *Tile, yOff, xOff int) bool {
 	return walkable(tile)
 }
 
-func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability of a the tile for a player or interactible
+func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability of the tile for an interactible
 	if tile == nil || tile.teleport != nil {
 		return false
 	}
@@ -280,7 +280,10 @@ func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability 
 	if tile.interactable.pushable {
 		nextTile := w.getRelativeTile(tile, yOff, xOff)
 		if nextTile != nil {
-			nextTile.interactableMutex.Lock()
+			ownLock := nextTile.interactableMutex.TryLock()
+			if !ownLock {
+				return false // Tile is already locked by another operation
+			}
 			defer nextTile.interactableMutex.Unlock()
 			if w.push(nextTile, yOff, xOff) {
 				nextTile.interactable = tile.interactable

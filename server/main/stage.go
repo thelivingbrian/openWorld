@@ -64,7 +64,7 @@ func createStageByName(s string) *Stage {
 	}
 	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, updatesForStage, s, area.North, area.South, area.East, area.West, area.MapId}
 
-	fmt.Println(area.Name)
+	fmt.Println("Creating stage: " + area.Name)
 
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
