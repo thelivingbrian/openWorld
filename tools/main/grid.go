@@ -201,7 +201,6 @@ func (col *Collection) gridClickAction(details GridClickDetails, blueprint *Blue
 	} else if details.Tool == "rotate" {
 		gridRotate(details, blueprint.Tiles)
 	} else if details.Tool == "place-blueprint" {
-		//fmt.Println("id: " + details.SelectedAssetId)
 		if details.SelectedAssetId != "" {
 			blueprint.Instructions = append(blueprint.Instructions, Instruction{
 				ID:                 uuid.New().String(),
@@ -249,13 +248,10 @@ func pasteTiles(y, x int, source, dest [][]TileData) {
 			if dest[i][j].PrototypeId != "" {
 				source[y+i][x+j].PrototypeId = dest[i][j].PrototypeId
 				source[y+i][x+j].Transformation = dest[i][j].Transformation
-				//continue
 			}
 			if dest[i][j].InteractableId != "" {
 				source[y+i][x+j].InteractableId = dest[i][j].InteractableId
-				//continue
 			}
-			//source[y+i][x+j] = dest[i][j]
 		}
 	}
 }
@@ -310,7 +306,6 @@ func (col *Collection) getFragmentFromAssetId(fragmentID string) Fragment {
 }
 
 func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) string {
-	//output := ""
 	var buf bytes.Buffer
 	if haveSelection {
 		selectedCell := grid[selectedY][selectedX]
@@ -376,7 +371,6 @@ func (col *Collection) gridReplace(event GridClickDetails, modifications [][]Til
 }
 
 func (col *Collection) interactableReplace(event GridClickDetails, modifications [][]TileData, selectedInteractable *InteractableDescription) string {
-	//fmt.Println("Replacing with: " + selectedProto.ID)
 	modifications[event.Y][event.X].InteractableId = ""
 	if selectedInteractable != nil {
 		modifications[event.Y][event.X].InteractableId = selectedInteractable.ID
@@ -491,13 +485,9 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 		var pageData = struct {
 			FragmentSets []string
 			CurrentSet   string
-			//Fragments    []Fragment
-			//CurrentFragment string // useless?
-			//FragmentDetails []*FragmentDetails
 		}{
 			FragmentSets: setOptions,
 			CurrentSet:   "",
-			//CurrentFragment: "",
 		}
 		tmpl.ExecuteTemplate(w, "fixture-fragment", pageData)
 	}
@@ -510,7 +500,6 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 	}
 	if fixtureType == "blueprint" {
 		c.getBlueprint(w, r) // only gets blueprint for area
-		//tmpl.ExecuteTemplate(w, "area-blueprint", nil)
 	}
 	if fixtureType == "interactable" {
 		collectionName := queryValues.Get("currentCollection")
@@ -523,8 +512,6 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 		for key := range collection.InteractableSets {
 			setOptions = append(setOptions, key)
 		}
-
-		//interactables := collection.InteractableSets[setName]
 
 		var pageData = struct {
 			SetNames      []string

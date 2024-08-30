@@ -93,7 +93,6 @@ func (p *Player) assignStageAndListen() {
 		log.Fatal("Fatal: Default Stage Not Found.")
 	}
 	p.stage = stage
-	//stage.tiles[4][4].interactable = &Interactable{pushable: true}
 }
 
 func (p *Player) placeOnStage() {

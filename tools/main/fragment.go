@@ -65,16 +65,14 @@ func (c *Context) getFragments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var pageData = struct {
-		FragmentSets []string
-		CurrentSet   string
-		Fragments    []Fragment
-		//CurrentFragment string
+		FragmentSets    []string
+		CurrentSet      string
+		Fragments       []Fragment
 		FragmentDetails []*FragmentDetails
 	}{
-		FragmentSets: setOptions,
-		CurrentSet:   setName,
-		Fragments:    collection.Fragments[setName],
-		//CurrentFragment: fragmentName,
+		FragmentSets:    setOptions,
+		CurrentSet:      setName,
+		Fragments:       collection.Fragments[setName],
 		FragmentDetails: fragmentDetails,
 	}
 	tmpl.ExecuteTemplate(w, "fragments", pageData)

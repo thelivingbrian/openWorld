@@ -152,17 +152,11 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
 			populateMaps(collection.Spaces, pathToSpaces)
 
-			// Adjust these two like spaces above
 			pathToFragments := filepath.Join(collectionPath, entry.Name(), "fragments")
-			//fragmentMap := make(map[string][]Fragment)
-			//populateMaps(fragmentMap, pathToFragments)
-			//collection.Fragments = addSetNamesToFragments(fragmentMap)
 			populateMaps(collection.Fragments, pathToFragments)
 
 			pathToPrototypes := filepath.Join(collectionPath, entry.Name(), "prototypes")
-			//prototypeMap := make(map[string][]Prototype)
 			populateMaps(collection.PrototypeSets, pathToPrototypes)
-			//collection.PrototypeSets = c.addSetNamesToProtypes(prototypeMap)
 
 			pathToInteractables := filepath.Join(collectionPath, entry.Name(), "interactables")
 			populateMaps(collection.InteractableSets, pathToInteractables)
@@ -174,6 +168,7 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 	return collections
 }
 
+/*
 func addSetNamesToFragments(fragmentMap map[string][]Fragment) map[string][]Fragment {
 	for setName := range fragmentMap {
 		for i := range fragmentMap[setName] {
@@ -200,6 +195,7 @@ func (c Context) addSetNamesToProtypes(protoMap map[string][]Prototype) map[stri
 	}
 	return out
 }
+*/
 
 func populateMaps[T any](m map[string]T, pathToJsonDirectory string) {
 	subEntries, err := os.ReadDir(pathToJsonDirectory)

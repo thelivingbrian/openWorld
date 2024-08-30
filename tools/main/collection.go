@@ -98,7 +98,6 @@ func (col *Collection) findInteractableById(id string) *InteractableDescription 
 			}
 		}
 	}
-	//fmt.Println("Invalid Interactable lookup: " + id)
 	return nil
 }
 
