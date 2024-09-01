@@ -287,8 +287,9 @@ func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability 
 			defer nextTile.interactableMutex.Unlock()
 			if w.push(nextTile, yOff, xOff) {
 				nextTile.interactable = tile.interactable
+				nextTile.stage.updateAll(interactableBox(nextTile))
 				tile.interactable = nil // Take *Interactable and assign here to have option of reacting
-				nextTile.stage.updateAll(playerBox(nextTile))
+				tile.stage.updateAll(interactableBox(tile))
 				return true
 			}
 		} else {

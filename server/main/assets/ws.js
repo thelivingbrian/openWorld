@@ -123,7 +123,7 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 		});
 
 		socketWrapper.addEventListener('message', function (event) {
-			console.log("hello from ws")
+			//console.log("hello from ws")
             
             if (maybeCloseWebSocketSource(socketElt)) {
 				return;

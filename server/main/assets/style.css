@@ -229,8 +229,12 @@ img {
     z-index: 20;
   }
   
-.zS {
+.zI {
     z-index: 21;
+}
+  
+.zS {
+    z-index: 22;
 }
   
 .top {

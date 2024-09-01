@@ -74,7 +74,7 @@ func createStageByName(s string) *Stage {
 			if area.Interactables != nil && y < len(area.Interactables) && x < len(area.Interactables[y]) {
 				description := area.Interactables[y][x]
 				if description != nil {
-					outputStage.tiles[y][x].interactable = &Interactable{pushable: description.Pushable}
+					outputStage.tiles[y][x].interactable = &Interactable{pushable: description.Pushable, cssClass: description.CssClass}
 				}
 			}
 		}

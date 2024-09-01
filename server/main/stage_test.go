@@ -173,17 +173,17 @@ func TestEnsureNoInteractableDuplication(t *testing.T) {
 	testStage.tiles[3][8].interactable = nil
 	testStage.tiles[4][8].interactable = nil
 	testStage.tiles[14][2].interactable = nil
-	testStage.tiles[3][7].interactable = &Interactable{true}
-	testStage.tiles[4][7].interactable = &Interactable{true}
-	testStage.tiles[5][7].interactable = &Interactable{true}
-	testStage.tiles[6][7].interactable = &Interactable{true}
-	testStage.tiles[7][7].interactable = &Interactable{true}
-	testStage.tiles[8][7].interactable = &Interactable{true}
-	testStage.tiles[9][7].interactable = &Interactable{true}
-	testStage.tiles[10][7].interactable = &Interactable{true}
-	testStage.tiles[11][7].interactable = &Interactable{true}
-	testStage.tiles[12][7].interactable = &Interactable{true}
-	testStage.tiles[13][7].interactable = &Interactable{true}
+	testStage.tiles[3][7].interactable = &Interactable{pushable: true}
+	testStage.tiles[4][7].interactable = &Interactable{pushable: true}
+	testStage.tiles[5][7].interactable = &Interactable{pushable: true}
+	testStage.tiles[6][7].interactable = &Interactable{pushable: true}
+	testStage.tiles[7][7].interactable = &Interactable{pushable: true}
+	testStage.tiles[8][7].interactable = &Interactable{pushable: true}
+	testStage.tiles[9][7].interactable = &Interactable{pushable: true}
+	testStage.tiles[10][7].interactable = &Interactable{pushable: true}
+	testStage.tiles[11][7].interactable = &Interactable{pushable: true}
+	testStage.tiles[12][7].interactable = &Interactable{pushable: true}
+	testStage.tiles[13][7].interactable = &Interactable{pushable: true}
 
 	// Place players around the 2x2 square of pushable tiles (3,7) (3,8) (4,7) (4,8)
 	players := []*Player{

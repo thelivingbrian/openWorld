@@ -15,6 +15,7 @@ type Teleport struct {
 
 type Interactable struct {
 	pushable bool
+	cssClass string
 	// reactive
 	// fragile
 }
@@ -57,10 +58,11 @@ func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 }
 
 func makeTileTemplate(mat Material, y, x int) string {
-	placeHold := "%s"
 	tileCoord := fmt.Sprintf("%d-%d", y, x)
-	cId := "c" + tileCoord
-	tId := "t" + tileCoord
+	cId := "c" + tileCoord // This is used to identify the entire square
+	hId := "h" + tileCoord // This is used to identify the top highlight box
+	//iId := "i" + tileCoord // this is ussed to identify the interactive box
+	placeHold := "%s" // later becomes player interactable and svg
 
 	floor1css := ""
 	if mat.Floor1Css != "" {
@@ -89,9 +91,10 @@ func makeTileTemplate(mat Material, y, x int) string {
 					%s
 					%s
 					%s
+					%s
 					<div id="%s" class="box top"></div>
 				</div>`
-	return fmt.Sprintf(template, mat.CssColor, cId, floor1css, floor2css, placeHold, placeHold, ceil1css, ceil2css, tId)
+	return fmt.Sprintf(template, mat.CssColor, cId, floor1css, floor2css, placeHold, placeHold, placeHold, ceil1css, ceil2css, hId)
 }
 
 // newTile w/ teleport?
