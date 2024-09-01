@@ -267,6 +267,7 @@ func (w *World) initialPush(tile *Tile, yOff, xOff int) bool {
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
 	w.push(tile, yOff, xOff)
+	tile.stage.updateAll(interactableBox(tile))
 	return walkable(tile)
 }
 
@@ -289,7 +290,7 @@ func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability 
 				nextTile.interactable = tile.interactable
 				nextTile.stage.updateAll(interactableBox(nextTile))
 				tile.interactable = nil // Take *Interactable and assign here to have option of reacting
-				tile.stage.updateAll(interactableBox(tile))
+				//tile.stage.updateAll(interactableBox(tile))
 				return true
 			}
 		} else {

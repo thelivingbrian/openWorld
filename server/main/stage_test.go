@@ -145,7 +145,7 @@ func TestSurroundedPushableSquareMultipleThreads(t *testing.T) {
 	for y := range testStage.tiles {
 		for x := range testStage.tiles[y] {
 			if testStage.tiles[y][x].interactable != nil {
-				fmt.Printf("found: y:%d x:%d\n", y, x)
+				//fmt.Printf("found: y:%d x:%d\n", y, x)
 				totalInteractables++
 			}
 		}
