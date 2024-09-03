@@ -241,24 +241,39 @@ func getHeartsFromHealth(i int) string {
 
 func htmlForTile(tile *Tile) string {
 	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), svgtag)
+	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag)
+}
+
+func interactableBox(tile *Tile) string {
+	indicator := ""
+	if tile.interactable != nil {
+		indicator = tile.interactable.cssClass
+	}
+	return fmt.Sprintf(`<div id="i%d-%d" class="box zi %s" id=""></div>`, tile.y, tile.x, indicator)
 }
 
 func playerBox(tile *Tile) string {
 	playerIndicator := ""
+	//if tile.interactable != nil {
+	//	playerIndicator = "gold"
+	//}
 	if p := tile.getAPlayer(); p != nil {
 		playerIndicator = cssClassFromHealth(p)
 	}
-	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s" id=""></div>`, tile.y, tile.x, playerIndicator)
+	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, tile.y, tile.x, playerIndicator)
 }
 
 func htmlForPlayerTile(tile *Tile) string {
 	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.htmlTemplate, fusiaBox(tile.y, tile.x), svgtag)
+	return fmt.Sprintf(tile.htmlTemplate, fusiaBox(tile.y, tile.x), emptyInteractableBox(tile.y, tile.x), svgtag)
 }
 
 func fusiaBox(y, x int) string {
-	return fmt.Sprintf(`<div id="p%d-%d" class="box zp fusia r0" id=""></div>`, y, x)
+	return fmt.Sprintf(`<div id="p%d-%d" class="box zp fusia r0"></div>`, y, x)
+}
+
+func emptyInteractableBox(y, x int) string {
+	return fmt.Sprintf(`<div id="i%d-%d" class="box zi"></div>`, y, x)
 }
 
 // Create slice of proper size? Currently has many null entries
@@ -287,7 +302,7 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 }
 
 func oobHighlightBox(tile *Tile, cssClass string) string {
-	template := `<div id="t%d-%d" class="box top %s"></div>`
+	template := `<div id="h%d-%d" class="box top %s"></div>`
 	return fmt.Sprintf(template, tile.y, tile.x, cssClass)
 }
 

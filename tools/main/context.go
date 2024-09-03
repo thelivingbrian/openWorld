@@ -141,21 +141,25 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 	for _, dir := range dirs {
 		entry, _ := dir.Info()
 		if entry.IsDir() {
-			collection := Collection{Name: entry.Name(), Spaces: make(map[string]*Space)}
+			collection := Collection{
+				Name:             entry.Name(),
+				Spaces:           make(map[string]*Space),
+				Fragments:        make(map[string][]Fragment),
+				PrototypeSets:    make(map[string][]Prototype),
+				InteractableSets: make(map[string][]InteractableDescription),
+			}
 
 			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
 			populateMaps(collection.Spaces, pathToSpaces)
 
-			// Adjust these two like spaces above
 			pathToFragments := filepath.Join(collectionPath, entry.Name(), "fragments")
-			fragmentMap := make(map[string][]Fragment)
-			populateMaps(fragmentMap, pathToFragments)
-			collection.Fragments = addSetNamesToFragments(fragmentMap)
+			populateMaps(collection.Fragments, pathToFragments)
 
 			pathToPrototypes := filepath.Join(collectionPath, entry.Name(), "prototypes")
-			prototypeMap := make(map[string][]Prototype)
-			populateMaps(prototypeMap, pathToPrototypes)
-			collection.PrototypeSets = c.addSetNamesToProtypes(prototypeMap)
+			populateMaps(collection.PrototypeSets, pathToPrototypes)
+
+			pathToInteractables := filepath.Join(collectionPath, entry.Name(), "interactables")
+			populateMaps(collection.InteractableSets, pathToInteractables)
 
 			collections[entry.Name()] = &collection
 
@@ -164,6 +168,7 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 	return collections
 }
 
+/*
 func addSetNamesToFragments(fragmentMap map[string][]Fragment) map[string][]Fragment {
 	for setName := range fragmentMap {
 		for i := range fragmentMap[setName] {
@@ -190,6 +195,7 @@ func (c Context) addSetNamesToProtypes(protoMap map[string][]Prototype) map[stri
 	}
 	return out
 }
+*/
 
 func populateMaps[T any](m map[string]T, pathToJsonDirectory string) {
 	subEntries, err := os.ReadDir(pathToJsonDirectory)
@@ -272,6 +278,7 @@ func (c Context) compileCollection(collection *Collection) {
 				Name:             desc.Name,
 				Safe:             desc.Safe,
 				Tiles:            outputTiles,
+				Interactables:    collection.generateInteractables(desc.Blueprint.Tiles),
 				Transports:       desc.Transports,
 				DefaultTileColor: desc.DefaultTileColor,
 				North:            desc.North,

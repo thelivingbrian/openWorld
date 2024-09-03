@@ -782,12 +782,12 @@ return (function () {
         function oobSwap(oobValue, oobElement, settleInfo) {
             const id = getRawAttribute(oobElement, "id")
 
-            const regex = /^[pt]\d+-\d+$/;
-             //return regex.test(str);
+            // Override htmx in this instance to prevent DOM rewrites
+            const regex = /^[phi]\d+-\d+$/;
             if (regex.test(id)) {
                 var target = getDocument().getElementById(getRawAttribute(oobElement, "id"))
                 target.classList = oobElement.classList
-                console.log(target)
+                //console.log(target)
                 return "true"
             }
 

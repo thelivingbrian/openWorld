@@ -197,10 +197,12 @@ func (col *Collection) transportsAsOob(area AreaDescription, spacename string) s
 		tile := area.Blueprint.Tiles[transport.SourceY][transport.SourceX]
 		var buf bytes.Buffer
 		var pageData = struct {
-			Material   Material
-			ClickEvent GridClickDetails
+			Material     Material
+			ClickEvent   GridClickDetails
+			Interactable *InteractableDescription
 		}{
-			Material: col.findPrototypeById(tile.PrototypeId).applyTransform(tile.Transformation),
+			Material:     col.findPrototypeById(tile.PrototypeId).applyTransform(tile.Transformation),
+			Interactable: col.findInteractableById(tile.InteractableId),
 			ClickEvent: GridClickDetails{
 				Y:                transport.SourceY,
 				X:                transport.SourceX,

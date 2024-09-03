@@ -20,44 +20,63 @@ type Stage struct {
 	mapId       string
 }
 
-func (world *World) getStageByName(name string) (stage *Stage, new bool) {
-	new = false
-	world.wStageMutex.Lock() // New method
-	existingStage, stageExists := world.worldStages[name]
-	world.wStageMutex.Unlock()
-
-	if !stageExists {
-		new = true
-		existingStage, stageExists = createStageByName(name)
-		if !stageExists {
-			fmt.Println("INVALID STAGE: Area with name " + name + " does not exist.")
-			if name == "clinic" {
-				panic("Unable to load clinic")
-			}
-			existingStage, _ = world.getStageByName("clinic")
-			//log.Fatal("Unable to create stage")
-		}
-		world.wStageMutex.Lock()
-		world.worldStages[name] = existingStage
-		world.wStageMutex.Unlock()
+// benchmark this please
+func (world *World) getNamedStageOrDefault(name string) *Stage {
+	stage := world.getStageByName(name)
+	if stage != nil {
+		return stage
 	}
 
-	return existingStage, new
+	stage = world.loadStageByName(name)
+	if stage == nil {
+		fmt.Println("INVALID STAGE: Area with name " + name + " does not exist.")
+		stage = world.loadStageByName("clinic")
+		if stage == nil {
+			panic("Unable to load default stage")
+		}
+	}
+
+	return stage
 }
 
-func createStageByName(s string) (*Stage, bool) {
+func (world *World) getStageByName(name string) *Stage {
+	world.wStageMutex.Lock()
+	defer world.wStageMutex.Unlock()
+	return world.worldStages[name]
+}
+
+func (world *World) loadStageByName(name string) *Stage {
+	stage := createStageByName(name)
+	if stage != nil {
+		world.wStageMutex.Lock()
+		world.worldStages[name] = stage
+		world.wStageMutex.Unlock()
+		go stage.sendUpdates()
+	}
+	return stage
+}
+
+func createStageByName(s string) *Stage {
 	updatesForStage := make(chan Update)
 	area, success := areaFromName(s)
 	if !success {
-		return nil, false
+		return nil
 	}
 	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, updatesForStage, s, area.North, area.South, area.East, area.West, area.MapId}
+
+	fmt.Println("Creating stage: " + area.Name)
 
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
 		for x := range outputStage.tiles[y] {
 			outputStage.tiles[y][x] = newTile(materials[area.Tiles[y][x]], y, x, area.DefaultTileColor)
 			outputStage.tiles[y][x].stage = &outputStage
+			if area.Interactables != nil && y < len(area.Interactables) && x < len(area.Interactables[y]) {
+				description := area.Interactables[y][x]
+				if description != nil {
+					outputStage.tiles[y][x].interactable = &Interactable{pushable: description.Pushable, cssClass: description.CssClass}
+				}
+			}
 		}
 	}
 	for _, transport := range area.Transports {
@@ -70,7 +89,7 @@ func createStageByName(s string) (*Stage, bool) {
 
 	}
 
-	return &outputStage, true
+	return &outputStage
 }
 
 func (stage *Stage) removePlayerById(id string) {
@@ -133,7 +152,10 @@ func (stage *Stage) updateAllWithHudExcept(ignore *Player, tiles []*Tile) {
 
 func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
 	playerIcon := fmt.Sprintf(`<div class="box zp fusia r0" id="p%d-%d" hx-swap-oob="true"></div>`, player.y, player.x)
-	previousBox := playerBox(previous)
+	previousBox := ""
+	if previous.stage == player.stage {
+		previousBox = playerBox(previous)
+	}
 
 	player.stage.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles) + previousBox + playerIcon)}
 }

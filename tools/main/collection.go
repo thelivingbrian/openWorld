@@ -9,10 +9,11 @@ import (
 )
 
 type Collection struct {
-	Name          string
-	Spaces        map[string]*Space
-	Fragments     map[string][]Fragment
-	PrototypeSets map[string][]Prototype
+	Name             string
+	Spaces           map[string]*Space
+	Fragments        map[string][]Fragment
+	PrototypeSets    map[string][]Prototype
+	InteractableSets map[string][]InteractableDescription
 }
 
 func (c *Context) collectionsHandler(w http.ResponseWriter, r *http.Request) {
@@ -48,7 +49,7 @@ func (c *Context) postCollections(w http.ResponseWriter, r *http.Request) {
 }
 
 func createCollectionDirectories(name string, path string) {
-	dirs := []string{"prototypes", "fragments", "spaces"}
+	dirs := []string{"prototypes", "fragments", "spaces", "interactables"}
 
 	for _, dir := range dirs {
 		fullPath := filepath.Join(path, name, dir)
@@ -86,6 +87,17 @@ func (col *Collection) findPrototypeById(id string) *Prototype {
 		}
 	}
 	fmt.Println("Invalid Prototype lookup: " + id)
+	return nil
+}
+
+func (col *Collection) findInteractableById(id string) *InteractableDescription {
+	for _, set := range col.InteractableSets {
+		for i := range set {
+			if set[i].ID == id {
+				return &set[i]
+			}
+		}
+	}
 	return nil
 }
 

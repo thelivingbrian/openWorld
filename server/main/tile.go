@@ -13,20 +13,29 @@ type Teleport struct {
 	destX     int
 }
 
+type Interactable struct {
+	pushable bool
+	cssClass string
+	// reactive
+	// fragile
+}
+
 type Tile struct {
-	material       Material
-	playerMap      map[string]*Player
-	playerMutex    sync.Mutex
-	stage          *Stage
-	teleport       *Teleport
-	y              int
-	x              int
-	eventsInFlight atomic.Int32
-	powerUp        *PowerUp
-	powerMutex     sync.Mutex
-	money          int
-	boosts         int
-	htmlTemplate   string
+	material          Material
+	playerMap         map[string]*Player
+	playerMutex       sync.Mutex
+	interactable      *Interactable
+	interactableMutex sync.Mutex
+	stage             *Stage
+	teleport          *Teleport // Should/could be interactable?
+	y                 int
+	x                 int
+	eventsInFlight    atomic.Int32
+	powerUp           *PowerUp
+	powerMutex        sync.Mutex
+	money             int
+	boosts            int
+	htmlTemplate      string
 }
 
 func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
@@ -49,10 +58,11 @@ func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 }
 
 func makeTileTemplate(mat Material, y, x int) string {
-	placeHold := "%s"
 	tileCoord := fmt.Sprintf("%d-%d", y, x)
-	cId := "c" + tileCoord
-	tId := "t" + tileCoord
+	cId := "c" + tileCoord // This is used to identify the entire square
+	hId := "h" + tileCoord // This is used to identify the top highlight box
+	//iId := "i" + tileCoord // this is ussed to identify the interactive box
+	placeHold := "%s" // later becomes player interactable and svg
 
 	floor1css := ""
 	if mat.Floor1Css != "" {
@@ -81,9 +91,10 @@ func makeTileTemplate(mat Material, y, x int) string {
 					%s
 					%s
 					%s
+					%s
 					<div id="%s" class="box top"></div>
 				</div>`
-	return fmt.Sprintf(template, mat.CssColor, cId, floor1css, floor2css, placeHold, placeHold, ceil1css, ceil2css, tId)
+	return fmt.Sprintf(template, mat.CssColor, cId, floor1css, floor2css, placeHold, placeHold, placeHold, ceil1css, ceil2css, hId)
 }
 
 // newTile w/ teleport?
@@ -241,6 +252,17 @@ func validCoordinate(y int, x int, tiles [][]*Tile) bool {
 		return false
 	}
 	return true
+}
+
+func validityByAxis(y int, x int, tiles [][]*Tile) (bool, bool) {
+	invalidY, invalidX := false, false
+	if y < 0 || y >= len(tiles) {
+		invalidY = true
+	}
+	if x < 0 || x >= len(tiles[0]) { // Not the best, assumes rectangular grid
+		invalidX = true
+	}
+	return invalidY, invalidX
 }
 
 func mapOfTileToArray(m map[*Tile]bool) []*Tile {

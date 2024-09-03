@@ -108,16 +108,26 @@ type Transport struct {
 }
 
 type Area struct {
-	Name             string      `json:"name"`
-	Safe             bool        `json:"safe"`
-	Tiles            [][]int     `json:"tiles"`
-	Transports       []Transport `json:"transports"`
-	DefaultTileColor string      `json:"defaultTileColor"`
-	North            string      `json:"north"`
-	South            string      `json:"south"`
-	East             string      `json:"east"`
-	West             string      `json:"west"`
-	MapId            string      `json:"mapId"`
+	Name             string                       `json:"name"`
+	Safe             bool                         `json:"safe"`
+	Tiles            [][]int                      `json:"tiles"`
+	Transports       []Transport                  `json:"transports"`
+	Interactables    [][]*InteractableDescription `json:"interactables"`
+	DefaultTileColor string                       `json:"defaultTileColor"`
+	North            string                       `json:"north"`
+	South            string                       `json:"south"`
+	East             string                       `json:"east"`
+	West             string                       `json:"west"`
+	MapId            string                       `json:"mapId"`
+}
+
+type InteractableDescription struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	SetName     string `json:"setName"`
+	CssClass    string `json:"cssClass"`
+	Pushable    bool   `json:"pushable"`
+	Destroyable bool   `json:"transformation,omitempty"`
 }
 
 var (
@@ -138,8 +148,8 @@ func populateStructUsingFileName[T any](ptr *T, filename string) {
 
 // This should return values instead of populating globals
 func loadFromJson() {
-	populateStructUsingFileName[[]Material](&materials, "materials")
-	populateStructUsingFileName[[]Area](&areas, "areas")
+	populateStructUsingFileName(&materials, "materials")
+	populateStructUsingFileName(&areas, "areas")
 
 	fmt.Printf("Loaded %d materials.", len(materials))
 	fmt.Printf("Loaded %d areas.", len(areas))

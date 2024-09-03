@@ -19,7 +19,7 @@ func BenchmarkSpawnItems(b *testing.B) {
 		b.Run(fmt.Sprintf("stage:%s Cores", stageName), func(b *testing.B) {
 			b.StopTimer()
 
-			testStage, _ := createStageByName(stageName)
+			testStage := createStageByName(stageName)
 			go drainChannel(testStage.updates)
 			placeNPlayersOnStage(200, testStage) // This number has an impact
 

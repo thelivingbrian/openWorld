@@ -22,20 +22,22 @@ type AreaDescription struct {
 
 // Import from the other project instead? Or import from here. Transport too
 type AreaOutput struct {
-	Name             string      `json:"name"`
-	Safe             bool        `json:"safe"`
-	Tiles            [][]int     `json:"tiles"`
-	Transports       []Transport `json:"transports"`
-	DefaultTileColor string      `json:"defaultTileColor"`
-	North            string      `json:"north,omitempty"`
-	South            string      `json:"south,omitempty"`
-	East             string      `json:"east,omitempty"`
-	West             string      `json:"west,omitempty"`
-	MapId            string      `json:"mapId,omitempty"`
+	Name             string                       `json:"name"`
+	Safe             bool                         `json:"safe"`
+	Tiles            [][]int                      `json:"tiles"`
+	Interactables    [][]*InteractableDescription `json:"interactables"`
+	Transports       []Transport                  `json:"transports"`
+	DefaultTileColor string                       `json:"defaultTileColor"`
+	North            string                       `json:"north,omitempty"`
+	South            string                       `json:"south,omitempty"`
+	East             string                       `json:"east,omitempty"`
+	West             string                       `json:"west,omitempty"`
+	MapId            string                       `json:"mapId,omitempty"`
 }
 
 type GridDetails struct {
 	MaterialGrid     [][]Material
+	InteractableGrid [][]*InteractableDescription
 	DefaultTileColor string
 	Location         string
 	ScreenID         string
@@ -147,6 +149,7 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 		// Can be generated only with area
 		GridDetails: GridDetails{
 			MaterialGrid:     modifications,
+			InteractableGrid: collection.generateInteractables(selectedArea.Blueprint.Tiles),
 			DefaultTileColor: selectedArea.DefaultTileColor,
 			Location:         locationStringFromArea(selectedArea, space.Name),
 			GridType:         "area",

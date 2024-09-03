@@ -78,6 +78,7 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 	if result == "" {
 		var pageData = GridDetails{
 			MaterialGrid:     collection.generateMaterials(area.Blueprint.Tiles),
+			InteractableGrid: collection.generateInteractables(area.Blueprint.Tiles),
 			DefaultTileColor: details.DefaultTileColor,
 			Location:         details.stringifyLocation(),
 			ScreenID:         details.ScreenID,
@@ -117,6 +118,7 @@ func (c Context) gridClickFragmentHandler(w http.ResponseWriter, r *http.Request
 	if result == "" {
 		var pageData = GridDetails{
 			MaterialGrid:     col.generateMaterials(fragment.Blueprint.Tiles),
+			InteractableGrid: col.generateInteractables(fragment.Blueprint.Tiles),
 			DefaultTileColor: details.DefaultTileColor,
 			Location:         details.stringifyLocation(),
 			ScreenID:         details.ScreenID,
@@ -184,7 +186,7 @@ func (col *Collection) gridClickAction(details GridClickDetails, blueprint *Blue
 		return col.gridSelect(details, blueprint.Tiles)
 	} else if details.Tool == "replace" {
 		selectedPrototype := col.getPrototypeOrCreateInvalid(details.SelectedAssetId)
-		return gridReplace(details, blueprint.Tiles, selectedPrototype)
+		return col.gridReplace(details, blueprint.Tiles, selectedPrototype)
 	} else if details.Tool == "fill" {
 		selectedPrototype := col.getPrototypeOrCreateInvalid(details.SelectedAssetId)
 		gridFill(details, blueprint.Tiles, selectedPrototype)
@@ -199,7 +201,6 @@ func (col *Collection) gridClickAction(details GridClickDetails, blueprint *Blue
 	} else if details.Tool == "rotate" {
 		gridRotate(details, blueprint.Tiles)
 	} else if details.Tool == "place-blueprint" {
-		fmt.Println("id: " + details.SelectedAssetId)
 		if details.SelectedAssetId != "" {
 			blueprint.Instructions = append(blueprint.Instructions, Instruction{
 				ID:                 uuid.New().String(),
@@ -212,6 +213,12 @@ func (col *Collection) gridClickAction(details GridClickDetails, blueprint *Blue
 		for _, instruction := range blueprint.Instructions {
 			col.applyInstruction(blueprint.Tiles, instruction)
 		}
+
+	} else if details.Tool == "interactable-replace" {
+		interactable := col.findInteractableById(details.SelectedAssetId)
+		return col.interactableReplace(details, blueprint.Tiles, interactable)
+	} else if details.Tool == "interactable-delete" {
+		return col.interactableReplace(details, blueprint.Tiles, nil)
 	}
 	return ""
 }
@@ -238,10 +245,13 @@ func pasteTiles(y, x int, source, dest [][]TileData) {
 			if x+j >= len(source[y+i]) {
 				break
 			}
-			if dest[i][j].PrototypeId == "" {
-				continue
+			if dest[i][j].PrototypeId != "" {
+				source[y+i][x+j].PrototypeId = dest[i][j].PrototypeId
+				source[y+i][x+j].Transformation = dest[i][j].Transformation
 			}
-			source[y+i][x+j] = dest[i][j]
+			if dest[i][j].InteractableId != "" {
+				source[y+i][x+j].InteractableId = dest[i][j].InteractableId
+			}
 		}
 	}
 }
@@ -296,13 +306,13 @@ func (col *Collection) getFragmentFromAssetId(fragmentID string) Fragment {
 }
 
 func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) string {
-	//output := ""
 	var buf bytes.Buffer
 	if haveSelection {
 		selectedCell := grid[selectedY][selectedX]
 		var pageData = struct {
-			Material   Material
-			ClickEvent GridClickDetails
+			Material     Material
+			ClickEvent   GridClickDetails
+			Interactable *InteractableDescription
 		}{
 			Material: col.findPrototypeById(selectedCell.PrototypeId).applyTransform(selectedCell.Transformation),
 			ClickEvent: GridClickDetails{
@@ -312,6 +322,7 @@ func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) str
 				DefaultTileColor: event.DefaultTileColor,
 				Location:         event.Location,
 				ScreenID:         event.ScreenID},
+			Interactable: col.findInteractableById(selectedCell.InteractableId),
 		}
 		err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)
 		if err != nil {
@@ -324,11 +335,13 @@ func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) str
 	selectedCell := grid[selectedY][selectedX]
 	event.Selected = true
 	var pageData = struct {
-		Material   Material
-		ClickEvent GridClickDetails
+		Material     Material
+		ClickEvent   GridClickDetails
+		Interactable *InteractableDescription
 	}{
-		Material:   col.findPrototypeById(selectedCell.PrototypeId).applyTransform(selectedCell.Transformation),
-		ClickEvent: event,
+		Material:     col.findPrototypeById(selectedCell.PrototypeId).applyTransform(selectedCell.Transformation),
+		ClickEvent:   event,
+		Interactable: col.findInteractableById(selectedCell.InteractableId),
 	}
 	err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)
 	if err != nil {
@@ -337,16 +350,41 @@ func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) str
 	return buf.String()
 }
 
-func gridReplace(event GridClickDetails, modifications [][]TileData, selectedProto Prototype) string {
-	fmt.Println("Replacing with: " + selectedProto.ID)
+func (col *Collection) gridReplace(event GridClickDetails, modifications [][]TileData, selectedProto Prototype) string {
+	//fmt.Println("Replacing with: " + selectedProto.ID)
 	modifications[event.Y][event.X].PrototypeId = selectedProto.ID
 	var buf bytes.Buffer
 	var pageData = struct {
-		Material   Material
-		ClickEvent GridClickDetails
+		Material     Material
+		ClickEvent   GridClickDetails
+		Interactable *InteractableDescription
 	}{
-		Material:   selectedProto.applyTransform(modifications[event.Y][event.X].Transformation),
-		ClickEvent: event,
+		Material:     selectedProto.applyTransform(modifications[event.Y][event.X].Transformation),
+		ClickEvent:   event,
+		Interactable: col.findInteractableById(modifications[event.Y][event.X].InteractableId),
+	}
+	err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return buf.String()
+}
+
+func (col *Collection) interactableReplace(event GridClickDetails, modifications [][]TileData, selectedInteractable *InteractableDescription) string {
+	modifications[event.Y][event.X].InteractableId = ""
+	if selectedInteractable != nil {
+		modifications[event.Y][event.X].InteractableId = selectedInteractable.ID
+	}
+	selectedProto := col.getPrototypeOrCreateInvalid(modifications[event.Y][event.X].PrototypeId)
+	var buf bytes.Buffer
+	var pageData = struct {
+		Material     Material
+		ClickEvent   GridClickDetails
+		Interactable *InteractableDescription
+	}{
+		Material:     selectedProto.applyTransform(modifications[event.Y][event.X].Transformation),
+		ClickEvent:   event,
+		Interactable: col.findInteractableById(modifications[event.Y][event.X].InteractableId),
 	}
 	err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)
 	if err != nil {
@@ -413,7 +451,7 @@ func (col *Collection) gridFillBetween(event GridClickDetails, modifications [][
 			newEvent := event
 			newEvent.Y = i
 			newEvent.X = j
-			output += gridReplace(newEvent, modifications, selectedPrototype)
+			output += col.gridReplace(newEvent, modifications, selectedPrototype)
 		}
 	}
 	output += col.gridSelect(event, modifications)
@@ -445,15 +483,11 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var pageData = struct {
-			FragmentSets    []string
-			CurrentSet      string
-			Fragments       []Fragment
-			CurrentFragment string
-			FragmentDetails []*FragmentDetails
+			FragmentSets []string
+			CurrentSet   string
 		}{
-			FragmentSets:    setOptions,
-			CurrentSet:      "",
-			CurrentFragment: "",
+			FragmentSets: setOptions,
+			CurrentSet:   "",
 		}
 		tmpl.ExecuteTemplate(w, "fixture-fragment", pageData)
 	}
@@ -465,8 +499,33 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 		tmpl.ExecuteTemplate(w, "fixture-transformation", nil)
 	}
 	if fixtureType == "blueprint" {
-		c.getBlueprint(w, r)
-		//tmpl.ExecuteTemplate(w, "area-blueprint", nil)
+		c.getBlueprint(w, r) // only gets blueprint for area
+	}
+	if fixtureType == "interactable" {
+		collectionName := queryValues.Get("currentCollection")
+		collection, ok := c.Collections[collectionName]
+		if !ok {
+			fmt.Println("Collection Name Invalid")
+			return
+		}
+		var setOptions []string
+		for key := range collection.InteractableSets {
+			setOptions = append(setOptions, key)
+		}
+
+		var pageData = struct {
+			SetNames      []string
+			CurrentSet    string
+			Interactables []InteractableDescription
+		}{
+			SetNames:      setOptions,
+			CurrentSet:    "",
+			Interactables: nil,
+		}
+		err := tmpl.ExecuteTemplate(w, "fixture-interactables", pageData)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 }

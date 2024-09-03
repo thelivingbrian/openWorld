@@ -68,13 +68,11 @@ func (c *Context) getFragments(w http.ResponseWriter, r *http.Request) {
 		FragmentSets    []string
 		CurrentSet      string
 		Fragments       []Fragment
-		CurrentFragment string
 		FragmentDetails []*FragmentDetails
 	}{
 		FragmentSets:    setOptions,
 		CurrentSet:      setName,
 		Fragments:       collection.Fragments[setName],
-		CurrentFragment: fragmentName,
 		FragmentDetails: fragmentDetails,
 	}
 	tmpl.ExecuteTemplate(w, "fragments", pageData)
@@ -91,6 +89,7 @@ func (c *Collection) DetailsFromFragment(fragment *Fragment, clickable bool) *Fr
 		SetName: fragment.SetName,
 		GridDetails: GridDetails{
 			MaterialGrid:     c.generateMaterials(fragment.Blueprint.Tiles),
+			InteractableGrid: c.generateInteractables(fragment.Blueprint.Tiles),
 			DefaultTileColor: "",
 			Location:         fragment.SetName + "." + fragment.Name,
 			ScreenID:         "fragment",
@@ -104,6 +103,17 @@ func (col *Collection) generateMaterials(tiles [][]TileData) [][]Material {
 		out[i] = make([]Material, len(tiles[i]))
 		for j := range tiles[i] {
 			out[i][j] = col.createMaterial(tiles[i][j])
+		}
+	}
+	return out
+}
+
+func (col *Collection) generateInteractables(tiles [][]TileData) [][]*InteractableDescription {
+	out := make([][]*InteractableDescription, len(tiles))
+	for i := range tiles {
+		out[i] = make([]*InteractableDescription, len(tiles[i]))
+		for j := range tiles[i] {
+			out[i][j] = col.findInteractableById(tiles[i][j].InteractableId)
 		}
 	}
 	return out

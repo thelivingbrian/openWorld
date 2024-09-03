@@ -38,9 +38,9 @@
 
 .red-b { border-color: rgb(255, 32, 60); }
 
-.dark-red { background-color: rgb(155, 16, 30); }
+.dark-red { background-color: rgb(139, 0, 0); }
 
-.dark-red-b { border-color: rgb(155, 16, 30); }
+.dark-red-b { border-color: rgb(139, 0, 0); }
 
 .blue { background-color: rgb(72, 52, 238); }
 
@@ -89,4 +89,64 @@
 .light-gray { background-color: rgb(210, 210, 210); }
 
 .light-gray-b { border-color: rgb(210, 210, 210); }
+
+.cinnamon { background-color: rgb(210, 125, 45); }
+
+.cinnamon-b { border-color: rgb(210, 125, 45); }
+
+.nude { background-color: rgb(242, 210, 189); }
+
+.nude-b { border-color: rgb(242, 210, 189); }
+
+.chocolate { background-color: rgb(123, 63, 0); }
+
+.chocolate-b { border-color: rgb(123, 63, 0); }
+
+.tan { background-color: rgb(210, 180, 140); }
+
+.tan-b { border-color: rgb(210, 180, 140); }
+
+.copper { background-color: rgb(184, 115, 51); }
+
+.copper-b { border-color: rgb(184, 115, 51); }
+
+.dark-gray { background-color: rgb(60, 60, 60); }
+
+.dark-gray-b { border-color: rgb(60, 60, 60); }
+
+.purple { background-color: rgb(128, 0, 128); }
+
+.purple-b { border-color: rgb(128, 0, 128); }
+
+.teal { background-color: rgb(0, 128, 128); }
+
+.teal-b { border-color: rgb(0, 128, 128); }
+
+.turquoise { background-color: rgb(64, 224, 208); }
+
+.turquoise-b { border-color: rgb(64, 224, 208); }
+
+.lavender { background-color: rgb(218, 203, 250); }
+
+.lavender-b { border-color: rgb(218, 203, 250); }
+
+.olive { background-color: rgb(128, 128, 0); }
+
+.olive-b { border-color: rgb(128, 128, 0); }
+
+.gold { background-color: rgb(255, 215, 0); }
+
+.gold-b { border-color: rgb(255, 215, 0); }
+
+.navy { background-color: rgb(0, 0, 128); }
+
+.navy-b { border-color: rgb(0, 0, 128); }
+
+.peach { background-color: rgb(255, 218, 185); }
+
+.peach-b { border-color: rgb(255, 218, 185); }
+
+.burgundy { background-color: rgb(128, 0, 32); }
+
+.burgundy-b { border-color: rgb(128, 0, 32); }
 

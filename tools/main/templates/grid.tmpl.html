@@ -30,6 +30,11 @@
                                 ">
                 <div class="box floor1 {{$mat.Floor1Css}}"></div>
                 <div class="box floor2 {{$mat.Floor2Css}}"></div>
+                {{with index $.InteractableGrid $y $x}}
+                {{if .}}
+                <div class="box zp {{.CssClass}}"></div>
+                {{end}}
+                {{end}}
                 <div class="box ceiling1 {{$mat.Ceiling1Css}}"></div>
                 <div class="box ceiling2 {{$mat.Ceiling2Css}}"></div>
                 <div class="box top"></div>
@@ -65,6 +70,9 @@
     hx-swap-oob="true">
     <div class="box floor1 {{.Material.Floor1Css}}"></div>
     <div class="box floor2 {{.Material.Floor2Css}}"></div>
+    {{- if .Interactable }}
+    <div class="box zp {{.Interactable.CssClass}}"></div>
+    {{end}}
     <div class="box ceiling1 {{.Material.Ceiling1Css}}"></div>
     <div class="box ceiling2 {{.Material.Ceiling2Css}}"></div>
     <div class="box top {{if .ClickEvent.Selected}} red-b med {{end}}"></div>

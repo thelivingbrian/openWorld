@@ -4,6 +4,7 @@
         <option value="fragment">Fragments</option>
         <option value="transformation">Transformations</option>
         <option value="blueprint">Blueprint</option>
+        <option value="interactable">Interactable</option>
     </select>
     <div id="fixture-window">
         {{template "fixture-prototype" .}}
@@ -63,5 +64,23 @@
     <form>
 
     </form>
+</div>
+{{end}}
+
+
+
+{{define "fixture-interactables"}}
+    {{template "available-tools-interactable"}}
+    {{template "interactable-select" .}}
+{{end}}
+
+{{define "available-tools-interactable"}}
+<div id="tool_select"> 
+    <input type="radio" id="rt-select" name="radio-tool" value="interactable-select" checked>
+    <label for="rt-interactable-select">Select</label>
+    <input type="radio" id="rt-interactable-replace" name="radio-tool" value="interactable-replace">
+    <label for="rt-interactable-replace">Replace</label>
+    <input type="radio" id="rt-interactable-delete" name="radio-tool" value="interactable-delete">
+    <label for="rt-interactable-delete">Delete</label>
 </div>
 {{end}}

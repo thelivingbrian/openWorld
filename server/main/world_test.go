@@ -14,7 +14,7 @@ func TestSocketJoinAndMove(t *testing.T) {
 	world := createGameWorld(testdb)
 
 	p := world.join(&PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
-	initialCoordiate := p.x
+	initialCoordiate := 2
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		world.NewSocketConnection(w, r)
@@ -25,6 +25,9 @@ func TestSocketJoinAndMove(t *testing.T) {
 	defer testingSocket.ws.Close()
 
 	testingSocket.writeOrFatal(createInitialTokenMessage(p.id))
+	_ = testingSocket.readOrFatal()
+
+	testingSocket.writeOrFatal(createSocketEventMessage(p.id, "d"))
 	_ = testingSocket.readOrFatal()
 
 	testingSocket.writeOrFatal(createSocketEventMessage(p.id, "d"))
