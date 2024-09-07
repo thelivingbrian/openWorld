@@ -33,7 +33,7 @@ jobs:
         go-version: '1.22'
 
     - name: Build
-      run: ls && cd ./server/main && ls && go build -v 
+      run: ls && cd ./server/main && ls && go build
         
     - name: Test
       run: cd ./server/main && go test -bench=.
