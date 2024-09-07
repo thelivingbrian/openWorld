@@ -14,11 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     
     services:
-      mongo:
-        image: mongo:latest
-        env:
-          MONGO_INITDB_ROOT_USERNAME: username
-          MONGO_INITDB_ROOT_PASSWORD: password
+      mongodb:
+        image: mongo:4.4.6
         ports:
           - 27017:27017
         options: >-
@@ -37,12 +34,6 @@ jobs:
 
     - name: Build
       run: ls && cd ./server/main && ls && go build -v 
-
-    - name: Wait for MongoDB to be healthy
-      run: |
-        until docker exec $(docker ps --filter "name=mongo" --format "{{.ID}}") mongo --eval 'db.runCommand({ ping: 1 })'; do
-          sleep 1;
-        done
         
     - name: Test
       run: cd ./server/main && go test
