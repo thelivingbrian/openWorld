@@ -24,5 +24,10 @@ jobs:
     - name: Build
       run: ls && cd ./server/main && ls && go build -v 
 
+    - name: Wait for MongoDB to be healthy
+      run: until docker exec $(docker ps --filter "name=mongo" --format "{{.ID}}") mongo --eval 'db.runCommand({ ping: 1 })'; do sleep 1; done
+
     - name: Test
-      run: ls && echo "test"
+      run: cd ./server/main && go test
+      env:
+        BLOOP_ENV: "dev"
