@@ -10,9 +10,17 @@ on:
     branches: [ "main" ]
 
 jobs:
-
-  build:
+  build-and-Test:
     runs-on: ubuntu-latest
+    
+    services:
+      mongo:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+        options: |
+          --health-cmd "mongo --eval 'db.runCommand({ ping: 1 })'" --health-interval=10s --health-timeout=5s --health-retries=5
+
     steps:
     - uses: actions/checkout@v4
 
@@ -25,8 +33,11 @@ jobs:
       run: ls && cd ./server/main && ls && go build -v 
 
     - name: Wait for MongoDB to be healthy
-      run: until docker exec $(docker ps --filter "name=mongo" --format "{{.ID}}") mongo --eval 'db.runCommand({ ping: 1 })'; do sleep 1; done
-
+      run: |
+        until docker exec $(docker ps --filter "name=mongo" --format "{{.ID}}") mongo --eval 'db.runCommand({ ping: 1 })'; do
+          sleep 1;
+        done
+        
     - name: Test
       run: cd ./server/main && go test
       env:
