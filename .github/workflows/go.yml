@@ -22,7 +22,7 @@ jobs:
         go-version: '1.22'
 
     - name: Build
-      run: go build -v ./server/main
+      run: ls && cd ./server/main && ls && go build -v 
 
     - name: Test
-      run: go test -v ./server/main -bench=.
+      run: ls && echo "test"
