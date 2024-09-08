@@ -241,7 +241,18 @@ func getHeartsFromHealth(i int) string {
 
 func htmlForTile(tile *Tile) string {
 	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag)
+
+	return fmt.Sprintf(tile.htmlTemplate, pBox(tile), emptyInteractableBox(tile.y, tile.x), svgtag)
+}
+
+func pBox(tile *Tile) string {
+	//tile.interactableMutex.Lock()
+	//defer tile.interactableMutex.Unlock()
+	if tile.interactable == nil {
+		return playerBox(tile)
+	} else {
+		return interactableBox(tile)
+	}
 }
 
 func interactableBox(tile *Tile) string {
@@ -249,7 +260,7 @@ func interactableBox(tile *Tile) string {
 	if tile.interactable != nil {
 		indicator = tile.interactable.cssClass
 	}
-	return fmt.Sprintf(`<div id="i%d-%d" class="box zi %s" id=""></div>`, tile.y, tile.x, indicator)
+	return fmt.Sprintf(`<div id="p%d-%d" class="box zi %s"></div>`, tile.y, tile.x, indicator)
 }
 
 func playerBox(tile *Tile) string {
@@ -265,13 +276,14 @@ func playerBox(tile *Tile) string {
 
 func htmlForPlayerTile(tile *Tile) string {
 	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.htmlTemplate, fusiaBox(tile.y, tile.x), emptyInteractableBox(tile.y, tile.x), svgtag)
+	return fmt.Sprintf(tile.htmlTemplate, pBox(tile), fusiaBox(tile.y, tile.x), svgtag)
 }
 
 func fusiaBox(y, x int) string {
-	return fmt.Sprintf(`<div id="p%d-%d" class="box zp fusia r0"></div>`, y, x)
+	return fmt.Sprintf(`<div id="i%d-%d" class="box zu fusia r0"></div>`, y, x)
 }
 
+// empty user box, interactable is using p box
 func emptyInteractableBox(y, x int) string {
 	return fmt.Sprintf(`<div id="i%d-%d" class="box zi"></div>`, y, x)
 }
