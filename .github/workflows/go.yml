@@ -1,0 +1,40 @@
+# This workflow will build and test bloop-world
+
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-Test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mongodb:
+        image: mongo:4.4.6
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd mongo
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22'
+
+    - name: Build
+      run: cd ./server/main && go build
+        
+    - name: Test
+      run: cd ./server/main && go test -bench=.
+      env:
+        BLOOP_ENV: "dev"
