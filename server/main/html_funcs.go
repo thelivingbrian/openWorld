@@ -251,6 +251,7 @@ func pBox(tile *Tile) string {
 	if tile.interactable == nil {
 		return playerBox(tile)
 	} else {
+		//fmt.Println("interactable:")
 		return interactableBox(tile)
 	}
 }

@@ -101,7 +101,7 @@ func makeTileTemplate(mat Material, y, x int) string {
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	tile.addPlayer(player)
-	tile.stage.updateAllExcept(playerBox(tile), player) // What about impact to other layers? Should highlights vary for player?
+	tile.stage.updateAllExcept(pBox(tile), player) // What about impact to other layers? Should highlights vary for player?
 }
 
 func (tile *Tile) addPlayer(player *Player) {
@@ -144,7 +144,7 @@ func (tile *Tile) addPlayer(player *Player) {
 
 func (tile *Tile) removePlayerAndNotifyOthers(player *Player) {
 	tile.removePlayer(player.id)
-	tile.stage.updateAllExcept(playerBox(tile), player)
+	tile.stage.updateAllExcept(pBox(tile), player)
 }
 
 func (tile *Tile) removePlayer(playerId string) {
