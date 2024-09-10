@@ -151,18 +151,14 @@ func (stage *Stage) updateAllWithHudExcept(ignore *Player, tiles []*Tile) {
 }
 
 func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
-	playerIcon := fmt.Sprintf(`<div class="box zu fusia r0" id="i%d-%d"></div>`, player.y, player.x)
-	previousBox := ""
+	playerIcon := fmt.Sprintf(`<div class="box zu fusia r0" id="u%d-%d"></div>`, player.y, player.x)
+	previousBoxes := ""
 	if previous.stage == player.stage {
-		previousBox += fmt.Sprintf(`<div class="box zu" id="i%d-%d"></div>`, previous.y, previous.x)
-		// new channel for user?
-
-		previousBox += pBox(previous)
-
-		//previousBox = playerBox(previous)
+		previousBoxes += fmt.Sprintf(`<div class="box zu" id="u%d-%d"></div>`, previous.y, previous.x)
+		previousBoxes += playerBox(previous) // This box may be including the user as well so it needs an update
 	}
 
-	player.stage.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles) + previousBox + playerIcon)}
+	player.stage.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles) + previousBoxes + playerIcon)}
 }
 
 func oobUpdateWithHud(player *Player, tiles []*Tile) {

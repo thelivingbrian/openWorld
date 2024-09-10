@@ -60,9 +60,8 @@ func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 func makeTileTemplate(mat Material, y, x int) string {
 	tileCoord := fmt.Sprintf("%d-%d", y, x)
 	cId := "c" + tileCoord // This is used to identify the entire square
-	hId := "h" + tileCoord // This is used to identify the top highlight box
-	//iId := "i" + tileCoord // this is ussed to identify the interactive box
-	placeHold := "%s" // later becomes player interactable and svg
+	hId := "t" + tileCoord // This is used to identify the top highlight box
+	placeHold := "%s"      // later becomes user, player, interactable, and svg boxes
 
 	floor1css := ""
 	if mat.Floor1Css != "" {
@@ -92,16 +91,17 @@ func makeTileTemplate(mat Material, y, x int) string {
 					%s
 					%s
 					%s
+					%s
 					<div id="%s" class="box top"></div>
 				</div>`
-	return fmt.Sprintf(template, mat.CssColor, cId, floor1css, floor2css, placeHold, placeHold, placeHold, ceil1css, ceil2css, hId)
+	return fmt.Sprintf(template, mat.CssColor, cId, floor1css, floor2css, placeHold, placeHold, placeHold, placeHold, ceil1css, ceil2css, hId)
 }
 
 // newTile w/ teleport?
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	tile.addPlayer(player)
-	tile.stage.updateAllExcept(pBox(tile), player) // What about impact to other layers? Should highlights vary for player?
+	tile.stage.updateAllExcept(playerBox(tile), player)
 }
 
 func (tile *Tile) addPlayer(player *Player) {
@@ -144,7 +144,7 @@ func (tile *Tile) addPlayer(player *Player) {
 
 func (tile *Tile) removePlayerAndNotifyOthers(player *Player) {
 	tile.removePlayer(player.id)
-	tile.stage.updateAllExcept(pBox(tile), player)
+	tile.stage.updateAllExcept(playerBox(tile), player)
 }
 
 func (tile *Tile) removePlayer(playerId string) {

@@ -241,10 +241,11 @@ func getHeartsFromHealth(i int) string {
 
 func htmlForTile(tile *Tile) string {
 	svgtag := svgFromTile(tile)
-
-	return fmt.Sprintf(tile.htmlTemplate, pBox(tile), emptyInteractableBox(tile.y, tile.x), svgtag)
+	// grab tile y and x only once here or in parent method?
+	return fmt.Sprintf(tile.htmlTemplate, emptyUserBox(tile.y, tile.x), playerBox(tile), interactableBox(tile), svgtag)
 }
 
+/*
 func pBox(tile *Tile) string {
 	//tile.interactableMutex.Lock()
 	//defer tile.interactableMutex.Unlock()
@@ -254,6 +255,23 @@ func pBox(tile *Tile) string {
 		//fmt.Println("interactable:")
 		return interactableBox(tile)
 	}
+}*/
+
+func htmlForPlayerTile(tile *Tile) string {
+	svgtag := svgFromTile(tile)
+	return fmt.Sprintf(tile.htmlTemplate, fusiaBox(tile.y, tile.x), playerBox(tile), interactableBox(tile), svgtag)
+}
+
+func fusiaBox(y, x int) string {
+	return fmt.Sprintf(`<div id="u%d-%d" class="box zu fusia r0"></div>`, y, x)
+}
+
+func playerBox(tile *Tile) string {
+	playerIndicator := ""
+	if p := tile.getAPlayer(); p != nil {
+		playerIndicator = cssClassFromHealth(p)
+	}
+	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, tile.y, tile.x, playerIndicator)
 }
 
 func interactableBox(tile *Tile) string {
@@ -261,32 +279,12 @@ func interactableBox(tile *Tile) string {
 	if tile.interactable != nil {
 		indicator = tile.interactable.cssClass
 	}
-	return fmt.Sprintf(`<div id="p%d-%d" class="box zi %s"></div>`, tile.y, tile.x, indicator)
-}
-
-func playerBox(tile *Tile) string {
-	playerIndicator := ""
-	//if tile.interactable != nil {
-	//	playerIndicator = "gold"
-	//}
-	if p := tile.getAPlayer(); p != nil {
-		playerIndicator = cssClassFromHealth(p)
-	}
-	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, tile.y, tile.x, playerIndicator)
-}
-
-func htmlForPlayerTile(tile *Tile) string {
-	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.htmlTemplate, pBox(tile), fusiaBox(tile.y, tile.x), svgtag)
-}
-
-func fusiaBox(y, x int) string {
-	return fmt.Sprintf(`<div id="i%d-%d" class="box zu fusia r0"></div>`, y, x)
+	return fmt.Sprintf(`<div id="i%d-%d" class="box zi %s"></div>`, tile.y, tile.x, indicator)
 }
 
 // empty user box, interactable is using p box
-func emptyInteractableBox(y, x int) string {
-	return fmt.Sprintf(`<div id="i%d-%d" class="box zi"></div>`, y, x)
+func emptyUserBox(y, x int) string {
+	return fmt.Sprintf(`<div id="u%d-%d" class="box zu"></div>`, y, x)
 }
 
 // Create slice of proper size? Currently has many null entries
@@ -315,7 +313,7 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 }
 
 func oobHighlightBox(tile *Tile, cssClass string) string {
-	template := `<div id="h%d-%d" class="box top %s"></div>`
+	template := `<div id="t%d-%d" class="box top %s"></div>`
 	return fmt.Sprintf(template, tile.y, tile.x, cssClass)
 }
 
