@@ -83,7 +83,7 @@ func makeTileTemplate(mat Material, y, x int) string {
 		ceil2css = fmt.Sprintf(`<div class="box ceiling2 %s"></div>`, mat.Ceiling2Css)
 	}
 
-	template := `<div class="grid-square %s" id="%s" hx-swap-oob="true">				
+	template := `<div id="%s" class="grid-square %s">				
 					%s
 					%s
 					%s
@@ -94,7 +94,7 @@ func makeTileTemplate(mat Material, y, x int) string {
 					%s
 					<div id="%s" class="box top"></div>
 				</div>`
-	return fmt.Sprintf(template, mat.CssColor, cId, floor1css, floor2css, placeHold, placeHold, placeHold, placeHold, ceil1css, ceil2css, hId)
+	return fmt.Sprintf(template, cId, mat.CssColor, floor1css, floor2css, placeHold, placeHold, placeHold, placeHold, ceil1css, ceil2css, hId)
 }
 
 // newTile w/ teleport?
