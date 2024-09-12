@@ -144,6 +144,7 @@ func (tile *Tile) addPlayer(player *Player) {
 
 func (tile *Tile) removePlayerAndNotifyOthers(player *Player) {
 	tile.removePlayer(player.id)
+	// have take a tile not player?
 	tile.stage.updateAllExcept(playerBox(tile), player)
 }
 
@@ -184,7 +185,7 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	first := true
 	for _, player := range tile.playerMap {
 		if player == initiator {
-			continue // Race condition nonsense
+			continue // Race condition nonsense, can this still happen?
 		}
 		survived := player.addToHealth(-dmg)
 		if !survived {
