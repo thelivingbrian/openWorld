@@ -290,7 +290,6 @@ func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability 
 				nextTile.interactable = tile.interactable
 				nextTile.stage.updateAll(interactableBox(nextTile))
 				tile.interactable = nil // Take *Interactable and assign here to have option of reacting
-				//tile.stage.updateAll(interactableBox(tile))
 				return true
 			}
 		} else {
@@ -307,7 +306,6 @@ func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
 		return tile.stage.tiles[destY][destX]
 	} else {
 		escapesVertically, escapesHorizontally := validityByAxis(destY, destX, tile.stage.tiles)
-		fmt.Printf("escapes vert:%t hoz:%t\n", escapesVertically, escapesHorizontally)
 		if escapesVertically && escapesHorizontally {
 			// in bloop world cardinal direction travel may be non-communative
 			// therefore north-east etc neighbor is not uniquely defined
