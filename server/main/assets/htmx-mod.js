@@ -782,12 +782,11 @@ return (function () {
         function oobSwap(oobValue, oobElement, settleInfo) {
             const id = getRawAttribute(oobElement, "id")
 
-            // Override htmx in this instance to prevent DOM rewrites
-            const regex = /^[phi]\d+-\d+$/;
+            // Override htmx in this instance to prevent DOM rewrites for boxes
+            const regex = /^[puit]\d+-\d+$/;
             if (regex.test(id)) {
                 var target = getDocument().getElementById(getRawAttribute(oobElement, "id"))
                 target.classList = oobElement.classList
-                //console.log(target)
                 return "true"
             }
 
