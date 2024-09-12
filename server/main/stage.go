@@ -151,10 +151,10 @@ func (stage *Stage) updateAllWithHudExcept(ignore *Player, tiles []*Tile) {
 }
 
 func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
-	playerIcon := fmt.Sprintf(`<div class="box zu fusia r0" id="u%d-%d"></div>`, player.y, player.x)
+	playerIcon := fmt.Sprintf(`<div id="u%d-%d" class="box zu fusia r0"></div>`, player.y, player.x)
 	previousBoxes := ""
 	if previous.stage == player.stage {
-		previousBoxes += fmt.Sprintf(`<div class="box zu" id="u%d-%d"></div>`, previous.y, previous.x)
+		previousBoxes += fmt.Sprintf(`<div id="u%d-%d" class="box zu"></div>`, previous.y, previous.x)
 		previousBoxes += playerBox(previous) // This box may be including the user as well so it needs an update
 	}
 

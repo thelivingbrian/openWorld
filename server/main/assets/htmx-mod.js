@@ -783,7 +783,7 @@ return (function () {
             const id = getRawAttribute(oobElement, "id")
 
             // Override htmx in this instance to prevent DOM rewrites for boxes
-            const regex = /^[upist]\d+-\d+$/;
+            const regex = /^[puit]\d+-\d+$/;
             if (regex.test(id)) {
                 var target = getDocument().getElementById(getRawAttribute(oobElement, "id"))
                 target.classList = oobElement.classList

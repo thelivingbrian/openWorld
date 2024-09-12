@@ -242,7 +242,7 @@ func getHeartsFromHealth(i int) string {
 func htmlForTile(tile *Tile) string {
 	svgtag := svgFromTile(tile)
 	// grab tile y and x only once here or in parent method?
-	return fmt.Sprintf(tile.htmlTemplate, emptyUserBox(tile.y, tile.x), playerBox(tile), interactableBox(tile), svgtag)
+	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), emptyUserBox(tile.y, tile.x), interactableBox(tile), svgtag)
 }
 
 /*
@@ -259,7 +259,7 @@ func pBox(tile *Tile) string {
 
 func htmlForPlayerTile(tile *Tile) string {
 	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.htmlTemplate, fusiaBox(tile.y, tile.x), playerBox(tile), interactableBox(tile), svgtag)
+	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), fusiaBox(tile.y, tile.x), interactableBox(tile), svgtag)
 }
 
 func fusiaBox(y, x int) string {
