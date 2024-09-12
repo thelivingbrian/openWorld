@@ -245,18 +245,6 @@ func htmlForTile(tile *Tile) string {
 	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), emptyUserBox(tile.y, tile.x), interactableBox(tile), svgtag)
 }
 
-/*
-func pBox(tile *Tile) string {
-	//tile.interactableMutex.Lock()
-	//defer tile.interactableMutex.Unlock()
-	if tile.interactable == nil {
-		return playerBox(tile)
-	} else {
-		//fmt.Println("interactable:")
-		return interactableBox(tile)
-	}
-}*/
-
 func htmlForPlayerTile(tile *Tile) string {
 	svgtag := svgFromTile(tile)
 	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), fusiaBox(tile.y, tile.x), interactableBox(tile), svgtag)
@@ -282,7 +270,6 @@ func interactableBox(tile *Tile) string {
 	return fmt.Sprintf(`<div id="i%d-%d" class="box zi %s"></div>`, tile.y, tile.x, indicator)
 }
 
-// empty user box, interactable is using p box
 func emptyUserBox(y, x int) string {
 	return fmt.Sprintf(`<div id="u%d-%d" class="box zu"></div>`, y, x)
 }
