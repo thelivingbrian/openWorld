@@ -139,18 +139,13 @@ func (stage *Stage) updateAllWithHud(tiles []*Tile) {
 	}
 }
 
-/*
-func (stage *Stage) updateAllWithHudExcept(ignore *Player, tiles []*Tile) {
-	stage.playerMutex.Lock()
-	defer stage.playerMutex.Unlock()
-	for _, player := range stage.playerMap {
-		if player == ignore {
-			continue
-		}
-		oobUpdateWithHud(player, tiles)
-	}
+func oobUpdateWithHud(player *Player, tiles []*Tile) {
+	// If "shared highlights" e.g. explosive damage had own channel this would be unneeded.
+	// At present it solves the problem of when a global highlight resets each individual player
+	// may view the reset value differently.
+	// Weather channel?
+	player.stage.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles))}
 }
-*/
 
 func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
 	playerIcon := fmt.Sprintf(`<div id="u%d-%d" class="box zu fusia r0"></div>`, player.y, player.x)
@@ -161,11 +156,6 @@ func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
 	}
 
 	player.stage.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles) + previousBoxes + playerIcon)}
-}
-
-func oobUpdateWithHud(player *Player, tiles []*Tile) {
-	// Is this getting blocked? where does this return to
-	player.stage.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles))}
 }
 
 func (stage *Stage) updateAll(update string) {

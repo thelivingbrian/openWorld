@@ -107,6 +107,7 @@ func (p *Player) placeOnStage() {
 }
 
 func (player *Player) handleDeath() {
+	player.tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10) // Tile money needs mutex?
 	player.removeFromStage()
 	respawn(player)
 }
@@ -381,7 +382,6 @@ func (player *Player) setSpaceHighlights() {
 
 func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highlights
 	previous := player.actions.spaceHighlights
-	//fmt.Println(len(previous))
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceStack.peek().areaOfInfluence)
 	var impactedTiles []*Tile
@@ -477,7 +477,7 @@ type Actions struct {
 
 type PowerUp struct {
 	areaOfInfluence [][2]int
-	damageAtRadius  [4]int
+	//damageAtRadius  [4]int // unused
 }
 
 type StackOfPowerUp struct {

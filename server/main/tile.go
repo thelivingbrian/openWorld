@@ -190,18 +190,9 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 		survived := player.addToHealth(-dmg)
 		survivors = survivors || survived
 		if !survived {
-			tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10) // Tile money needs mutex?
-
 			initiator.incrementKillStreak()
-			// Maybe should just pass in required fields?
-			go player.world.db.saveKillEvent(tile, initiator, player)
+			go player.world.db.saveKillEvent(tile, initiator, player) // Maybe should just pass in required fields?
 		}
-		//if first {
-		//	first = !survived // Gross but this ensures that surviving players aren't hidden by death // Probably no longer needed
-
-		// Does multiple updates could be improved
-		//	tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
-		//}
 	}
 	if survivors {
 		tile.stage.updateAll(playerBox(tile))
@@ -222,7 +213,7 @@ func walkable(tile *Tile) bool {
 /// These two need to get looked at
 
 func (tile *Tile) addPowerUpAndNotifyAll(shape [][2]int) {
-	tile.powerUp = &PowerUp{shape, [4]int{100, 100, 100, 100}}
+	tile.powerUp = &PowerUp{shape} //, [4]int{100, 100, 100, 100}}
 	tile.stage.updateAll(svgFromTile(tile))
 }
 
@@ -272,7 +263,7 @@ func validityByAxis(y int, x int, tiles [][]*Tile) (bool, bool) {
 }
 
 func mapOfTileToArray(m map[*Tile]bool) []*Tile {
-	out := make([]*Tile, 0) //len(m))
+	out := make([]*Tile, 0)
 	for tile := range m {
 		out = append(out, tile)
 	}
