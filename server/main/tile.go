@@ -182,12 +182,13 @@ func (tile *Tile) tryToNotifyAfter(delay int) {
 }
 
 func (tile *Tile) damageAll(dmg int, initiator *Player) {
-	first := true
+	survivors := false
 	for _, player := range tile.playerMap {
 		if player == initiator {
 			continue // Race condition nonsense, can this still happen?
 		}
 		survived := player.addToHealth(-dmg)
+		survivors = survivors || survived
 		if !survived {
 			tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10) // Tile money needs mutex?
 
@@ -195,11 +196,15 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 			// Maybe should just pass in required fields?
 			go player.world.db.saveKillEvent(tile, initiator, player)
 		}
-		if first {
-			first = !survived // Gross but this ensures that surviving players aren't hidden by death // Probably no longer needed
-			// Does multiple updates could be improved
-			tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
-		}
+		//if first {
+		//	first = !survived // Gross but this ensures that surviving players aren't hidden by death // Probably no longer needed
+
+		// Does multiple updates could be improved
+		//	tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
+		//}
+	}
+	if survivors {
+		tile.stage.updateAll(playerBox(tile))
 	}
 }
 
@@ -267,7 +272,7 @@ func validityByAxis(y int, x int, tiles [][]*Tile) (bool, bool) {
 }
 
 func mapOfTileToArray(m map[*Tile]bool) []*Tile {
-	out := make([]*Tile, len(m))
+	out := make([]*Tile, 0) //len(m))
 	for tile := range m {
 		out = append(out, tile)
 	}

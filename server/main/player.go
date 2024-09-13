@@ -381,6 +381,7 @@ func (player *Player) setSpaceHighlights() {
 
 func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highlights
 	previous := player.actions.spaceHighlights
+	//fmt.Println(len(previous))
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceStack.peek().areaOfInfluence)
 	var impactedTiles []*Tile
@@ -400,6 +401,7 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 
 func (player *Player) activatePower() {
 	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
+	// pop power and use shape + player coords instead?
 	for tile := range player.actions.spaceHighlights {
 		tile.damageAll(50, player)
 

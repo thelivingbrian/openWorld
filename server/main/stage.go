@@ -139,6 +139,7 @@ func (stage *Stage) updateAllWithHud(tiles []*Tile) {
 	}
 }
 
+/*
 func (stage *Stage) updateAllWithHudExcept(ignore *Player, tiles []*Tile) {
 	stage.playerMutex.Lock()
 	defer stage.playerMutex.Unlock()
@@ -149,6 +150,7 @@ func (stage *Stage) updateAllWithHudExcept(ignore *Player, tiles []*Tile) {
 		oobUpdateWithHud(player, tiles)
 	}
 }
+*/
 
 func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
 	playerIcon := fmt.Sprintf(`<div id="u%d-%d" class="box zu fusia r0"></div>`, player.y, player.x)
