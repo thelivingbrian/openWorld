@@ -30,7 +30,7 @@
     <br />
     {{template "interactable-square" $interactable}}
     <label>{{$interactable.Name}}</label><br />
-    <a href="#" hx-get="/prototype" hx-target="#edit_tool" hx-include="#prototype-set,#prototype-window-{{$i}} [name='prototype'],[name='currentCollection']">edit</a>
+    <a href="#" hx-get="/interactable" hx-target="#edit_tool" hx-include="#interactable-window-{{$i}} [name='interactable'],[name='currentCollection']">edit</a>
 </div>
 {{end}}
 {{end}}
@@ -74,6 +74,37 @@
         <div>
             <label>Destroyable:</label>
             <input type="checkbox" name="destroyable">
+        </div>
+        <button class="btn">Save</button>
+    </form>
+</div>
+{{end}}
+
+{{define "interactable-edit"}}
+<div id="interactable-edit">
+    <form hx-include="[name='currentCollection']" hx-put="/interactable" hx-target="#interactable-edit">
+        <input type="hidden" name="interactable-set" value="{{.SetName}}" />
+        <input type="hidden" name="interactable-id" value="{{.ID}}" />
+        <div id="exampleSquare" class="grid-row">
+            <div class="grid-square {{.CssClass}}">
+            </div>
+        </div>
+        <div>
+            <label>ID: {{.ID}} <br />
+                Set Name: {{.SetName}}</label>
+            <input type="text" name="Name" value="{{.Name}}">
+        </div>
+        <div>
+            <label>Css Class: </label>
+            <input hx-get="/interactable/example" hx-trigger="change" hx-target="#exampleSquare" type="text" name="CssClass" value="{{.CssClass}}" />
+        </div>
+        <div>
+            <label>Pushable:</label>
+            <input type="checkbox" name="pushable" {{if .Pushable}}checked{{end}} />
+        </div>
+        <div>
+            <label>Destroyable:</label>
+            <input type="checkbox" name="destroyable" {{if .Destroyable}}checked{{end}} />
         </div>
         <button class="btn">Save</button>
     </form>

@@ -36,6 +36,7 @@ type Tile struct {
 	money             int
 	boosts            int
 	htmlTemplate      string
+	// messageText
 }
 
 func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
@@ -210,10 +211,10 @@ func walkable(tile *Tile) bool {
 	return tile.material.Walkable
 }
 
-/// These two need to get looked at
+/// These need to get looked at (? mutex?)
 
 func (tile *Tile) addPowerUpAndNotifyAll(shape [][2]int) {
-	tile.powerUp = &PowerUp{shape} //, [4]int{100, 100, 100, 100}}
+	tile.powerUp = &PowerUp{shape}
 	tile.stage.updateAll(svgFromTile(tile))
 }
 

@@ -14,7 +14,7 @@ type InteractableDescription struct {
 	SetName     string `json:"setName"`
 	CssClass    string `json:"cssClass"`
 	Pushable    bool   `json:"pushable"`
-	Destroyable bool   `json:"transformation,omitempty"`
+	Destroyable bool   `json:"destroyable"`
 }
 
 func (c Context) interactablesHandler(w http.ResponseWriter, r *http.Request) {
