@@ -322,15 +322,7 @@ func examplePrototype(w http.ResponseWriter, r *http.Request) {
 // Utilities
 
 func (proto *Prototype) applyTransform(transformation Transformation) Material {
-	return Material{
-		ID:          15793,
-		CommonName:  proto.CommonName,
-		Walkable:    proto.Walkable,
-		CssColor:    proto.CssColor,
-		Floor1Css:   transformCss(proto.Floor1Css, transformation),
-		Floor2Css:   transformCss(proto.Floor2Css, transformation),
-		Ceiling1Css: transformCss(proto.Ceiling1Css, transformation),
-		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation)}
+	return proto.applyTransformWithId(transformation, 15793)
 }
 func (proto *Prototype) applyTransformWithId(transformation Transformation, id int) Material {
 	return Material{
@@ -341,7 +333,9 @@ func (proto *Prototype) applyTransformWithId(transformation Transformation, id i
 		Floor1Css:   transformCss(proto.Floor1Css, transformation),
 		Floor2Css:   transformCss(proto.Floor2Css, transformation),
 		Ceiling1Css: transformCss(proto.Ceiling1Css, transformation),
-		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation)}
+		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation),
+		DisplayText: proto.DisplayText,
+	}
 }
 
 func (proto *Prototype) peekTransform(transformation Transformation) Prototype {
@@ -354,7 +348,8 @@ func (proto *Prototype) peekTransform(transformation Transformation) Prototype {
 		Floor1Css:   transformCss(proto.Floor1Css, transformation),
 		Floor2Css:   transformCss(proto.Floor2Css, transformation),
 		Ceiling1Css: transformCss(proto.Ceiling1Css, transformation),
-		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation)}
+		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation),
+	}
 }
 
 // Template funcs

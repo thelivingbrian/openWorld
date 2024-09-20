@@ -36,7 +36,7 @@ type Tile struct {
 	money             int
 	boosts            int
 	htmlTemplate      string
-	// messageText
+	bottomText        string
 }
 
 func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
@@ -55,7 +55,9 @@ func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 		powerUp:        nil,
 		powerMutex:     sync.Mutex{},
 		money:          0,
-		htmlTemplate:   makeTileTemplate(mat, y, x)}
+		htmlTemplate:   makeTileTemplate(mat, y, x),
+		bottomText:     mat.DisplayText, // Pre-process needed *String to have option of null?
+	}
 }
 
 func makeTileTemplate(mat Material, y, x int) string {
@@ -107,6 +109,9 @@ func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 
 func (tile *Tile) addPlayer(player *Player) {
 	itemChange := false
+	if tile.bottomText != "" {
+		player.updateBottomText(tile.bottomText)
+	}
 	if tile.powerUp != nil {
 		// This should be mutexed I think
 		powerUp := tile.powerUp
