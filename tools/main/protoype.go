@@ -20,6 +20,7 @@ type Prototype struct {
 	Ceiling2Css string `json:"ceiling2css"`
 	SetName     string `json:"setName"`
 	MapColor    string `json:"mapColor"`
+	DisplayText string `json:"displayText"`
 	//default map color bool?
 }
 
@@ -192,6 +193,7 @@ func (c Context) putPrototype(w http.ResponseWriter, r *http.Request) {
 	ceiling1 := properties["Ceiling1Css"]
 	ceiling2 := properties["Ceiling2Css"]
 	mapColor := properties["MapColor"]
+	displayText := properties["DisplayText"]
 
 	fmt.Printf("%s | Floor: %s - %s Ceiling: %s - %s\n", commonName, floor1, floor2, ceiling1, ceiling2)
 	panicIfAnyEmpty("Invalid prototype", id, commonName)
@@ -208,6 +210,7 @@ func (c Context) putPrototype(w http.ResponseWriter, r *http.Request) {
 	proto.Ceiling1Css = ceiling1
 	proto.Ceiling2Css = ceiling2
 	proto.MapColor = mapColor
+	proto.DisplayText = displayText
 
 	fmt.Println(proto)
 
@@ -243,6 +246,7 @@ func (c *Context) postPrototype(w http.ResponseWriter, r *http.Request) {
 	ceiling1 := properties["Ceiling1Css"]
 	ceiling2 := properties["Ceiling2Css"]
 	mapColor := properties["MapColor"]
+	displayText := properties["DisplayText"]
 
 	fmt.Printf("%s | Floor: %s - %s Ceiling: %s - %s\n", commonName, floor1, floor2, ceiling1, ceiling2)
 	panicIfAnyEmpty("Invalid prototype", commonName) // The rest may be empty legitimately
@@ -260,6 +264,7 @@ func (c *Context) postPrototype(w http.ResponseWriter, r *http.Request) {
 			Ceiling1Css: ceiling1,
 			Ceiling2Css: ceiling2,
 			MapColor:    mapColor,
+			DisplayText: displayText,
 		})
 
 	outFile := c.collectionPath + collectionName + "/prototypes/" + setName + ".json"
