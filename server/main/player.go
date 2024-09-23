@@ -269,7 +269,7 @@ func (w *World) initialPush(tile *Tile, yOff, xOff int) bool {
 	defer tile.interactableMutex.Unlock()
 	w.push(tile, yOff, xOff)
 	tile.stage.updateAll(interactableBox(tile))
-	//return walkable(tile)
+
 	if tile.interactable == nil {
 		return walkable(tile)
 	} else {

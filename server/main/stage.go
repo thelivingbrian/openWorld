@@ -47,7 +47,11 @@ func (world *World) getStageByName(name string) *Stage {
 }
 
 func (world *World) loadStageByName(name string) *Stage {
-	stage := createStageByName(name)
+	area, success := areaFromName(name)
+	if !success {
+		return nil
+	}
+	stage := createStageFromArea(area)
 	if stage != nil {
 		world.wStageMutex.Lock()
 		world.worldStages[name] = stage
@@ -57,13 +61,11 @@ func (world *World) loadStageByName(name string) *Stage {
 	return stage
 }
 
-func createStageByName(s string) *Stage {
+// by area
+func createStageFromArea(area Area) *Stage {
 	updatesForStage := make(chan Update)
-	area, success := areaFromName(s)
-	if !success {
-		return nil
-	}
-	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, updatesForStage, s, area.North, area.South, area.East, area.West, area.MapId}
+
+	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, updatesForStage, area.Name, area.North, area.South, area.East, area.West, area.MapId}
 
 	//fmt.Println("Creating stage: " + area.Name)
 

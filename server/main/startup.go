@@ -152,8 +152,8 @@ func loadFromJson() {
 	populateStructUsingFileName(&materials, "materials")
 	populateStructUsingFileName(&areas, "areas")
 
-	fmt.Printf("Loaded %d materials.", len(materials))
-	fmt.Printf("Loaded %d areas.", len(areas))
+	//fmt.Printf("Loaded %d materials.", len(materials))
+	//fmt.Printf("Loaded %d areas.", len(areas))
 }
 
 func areaFromName(s string) (area Area, success bool) {

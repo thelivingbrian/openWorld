@@ -15,8 +15,10 @@ func BenchmarkMoveTwice(b *testing.B) {
 	loadFromJson()
 
 	for _, stageName := range stageNames {
+
 		testStage := createStageByName(stageName)
 		go drainChannel(testStage.updates)
+
 		for _, playerCount := range playerCounts {
 			b.Run(fmt.Sprintf("stage:%s players:%d Cores", stageName, playerCount), func(b *testing.B) {
 				b.StopTimer() // Stop the timer while setting up the benchmark
@@ -37,8 +39,10 @@ func BenchmarkMoveTwice(b *testing.B) {
 func BenchmarkMoveAllTwice(b *testing.B) {
 	loadFromJson()
 	for _, stageName := range stageNames {
+
 		testStage := createStageByName(stageName)
 		go drainChannel(testStage.updates)
+
 		for _, playerCount := range playerCounts {
 			b.Run(fmt.Sprintf("stage:%s players:%d Cores", stageName, playerCount), func(b *testing.B) {
 				b.StopTimer()
@@ -68,21 +72,20 @@ func BenchmarkMoveAllTwice(b *testing.B) {
 func BenchmarkCreateStage(b *testing.B) {
 	loadFromJson()
 	for _, stageName := range stageNames {
-		//channelsToClose := make([]chan Update, 0)
+		area, success := areaFromName(stageName)
+		if !success {
+			panic("invalid area.")
+		}
 		b.Run(fmt.Sprintf("stage:%s Cores", stageName), func(b *testing.B) {
 			b.ResetTimer()
 
 			for i := 0; i < b.N; i++ {
-				testStage := createStageByName(stageName)
+				testStage := createStageFromArea(area)
 				go drainChannel(testStage.updates)
-				//channelsToClose = append(channelsToClose, testStage.updates)
 			}
 
 			b.StopTimer()
 
-			//for i := range channelsToClose {
-			//	close(channelsToClose[i])
-			//}
 		})
 	}
 }
@@ -91,20 +94,15 @@ func BenchmarkLoadStage(b *testing.B) {
 	loadFromJson()
 	world := createGameWorld(testdb())
 	for _, stageName := range stageNames {
-		//channelsToClose := make([]chan Update, 0)
+
 		b.Run(fmt.Sprintf("stage:%s Cores", stageName), func(b *testing.B) {
 			b.ResetTimer()
 
 			for i := 0; i < b.N; i++ {
 				world.loadStageByName(stageName)
-				//go drainChannel(testStage.updates)
-				//channelsToClose = append(channelsToClose, testStage.updates)
 			}
 
 			b.StopTimer()
-			//for i := range channelsToClose {
-			//	close(channelsToClose[i])
-			//}
 		})
 	}
 }
@@ -114,7 +112,6 @@ func BenchmarkGetStage(b *testing.B) {
 	world := createGameWorld(testdb())
 	for _, stageName := range stageNames {
 
-		//channelsToClose := make([]chan Update, 0)
 		s := world.loadStageByName(stageName)
 
 		b.Run(fmt.Sprintf("stage:%s Cores", stageName), func(b *testing.B) {
@@ -122,8 +119,6 @@ func BenchmarkGetStage(b *testing.B) {
 
 			for i := 0; i < b.N; i++ {
 				world.getStageByName(stageName)
-				//go drainChannel(testStage.updates)
-				//channelsToClose = append(channelsToClose, testStage.updates)
 			}
 
 			b.StopTimer()
@@ -157,6 +152,14 @@ func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 		players[i].placeOnStage()
 	}
 	return players
+}
+
+func createStageByName(name string) *Stage {
+	area, success := areaFromName(name)
+	if !success {
+		panic("invalid area.")
+	}
+	return createStageFromArea(area)
 }
 
 // Add a func to go routine a player moving in backgroud
