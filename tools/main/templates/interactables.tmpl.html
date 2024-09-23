@@ -73,7 +73,7 @@
         </div>
         <div>
             <label>Destroyable:</label>
-            <input type="checkbox" name="destroyable">
+            <input type="checkbox" name="fragile">
         </div>
         <button class="btn">Save</button>
     </form>
@@ -104,7 +104,7 @@
         </div>
         <div>
             <label>Destroyable:</label>
-            <input type="checkbox" name="destroyable" {{if .Destroyable}}checked{{end}} />
+            <input type="checkbox" name="fragile" {{if .Fragile}}checked{{end}} />
         </div>
         <button class="btn">Save</button>
     </form>

@@ -55,9 +55,9 @@ func spaceHighlighter(tile *Tile) string {
 			return "half-trsp dark-blue"
 		}
 	*/
-	if walkable(tile) {
-		return "half-trsp salmon" // vs "" to show no effect
-	}
+	//if walkable(tile) {
+	//	return "half-trsp salmon" // vs "" to show no effect
+	//}
 	return "half-trsp salmon"
 }
 

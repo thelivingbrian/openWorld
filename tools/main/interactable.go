@@ -9,12 +9,12 @@ import (
 )
 
 type InteractableDescription struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	SetName     string `json:"setName"`
-	CssClass    string `json:"cssClass"`
-	Pushable    bool   `json:"pushable"`
-	Destroyable bool   `json:"destroyable"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	SetName  string `json:"setName"`
+	CssClass string `json:"cssClass"`
+	Pushable bool   `json:"pushable"`
+	Fragile  bool   `json:"fragile"`
 }
 
 func (c Context) interactablesHandler(w http.ResponseWriter, r *http.Request) {
@@ -181,9 +181,9 @@ func (c Context) putInteractable(w http.ResponseWriter, r *http.Request) {
 	name := properties["Name"]
 	cssClass := properties["CssClass"]
 	pushable := (properties["pushable"] == "on")
-	destroyable := (properties["destroyable"] == "on")
+	fragile := (properties["fragile"] == "on")
 
-	fmt.Printf("%s | Pushable: %t - Destroyable: %t - %s\n", name, pushable, destroyable, cssClass)
+	fmt.Printf("%s | Pushable: %t - Fragile: %t - %s\n", name, pushable, fragile, cssClass)
 	panicIfAnyEmpty("Invalid interactable", id, name)
 
 	interactable := collection.findInteractableById(id)
@@ -193,7 +193,7 @@ func (c Context) putInteractable(w http.ResponseWriter, r *http.Request) {
 	interactable.Name = name
 	interactable.CssClass = cssClass
 	interactable.Pushable = pushable
-	interactable.Destroyable = destroyable
+	interactable.Fragile = fragile
 
 	fmt.Println(interactable)
 
@@ -224,20 +224,20 @@ func (c *Context) postInteractable(w http.ResponseWriter, r *http.Request) {
 	name := properties["Name"]
 	cssClass := properties["CssClass"]
 	pushable := (properties["pushable"] == "on")
-	destroyable := (properties["destroyable"] == "on")
+	fragile := (properties["fragile"] == "on")
 
-	fmt.Printf("%s | Pushable: %t - Destroyable: %t - %s\n", name, pushable, destroyable, cssClass)
+	fmt.Printf("%s | Pushable: %t - Fragile: %t - %s\n", name, pushable, fragile, cssClass)
 	panicIfAnyEmpty("Invalid interactable", name)
 
 	id := uuid.New().String()
 	collection.InteractableSets[setName] = append(set,
 		InteractableDescription{
-			ID:          id,
-			SetName:     setName,
-			Name:        name,
-			CssClass:    cssClass,
-			Pushable:    pushable,
-			Destroyable: destroyable,
+			ID:       id,
+			SetName:  setName,
+			Name:     name,
+			CssClass: cssClass,
+			Pushable: pushable,
+			Fragile:  fragile,
 		})
 
 	outFile := c.collectionPath + collectionName + "/interactables/" + setName + ".json"

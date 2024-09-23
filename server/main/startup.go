@@ -123,12 +123,12 @@ type Area struct {
 }
 
 type InteractableDescription struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	SetName     string `json:"setName"`
-	CssClass    string `json:"cssClass"`
-	Pushable    bool   `json:"pushable"`
-	Destroyable bool   `json:"transformation,omitempty"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	SetName  string `json:"setName"`
+	CssClass string `json:"cssClass"`
+	Pushable bool   `json:"pushable"`
+	Fragile  bool   `json:"fragile"`
 }
 
 var (

@@ -269,7 +269,12 @@ func (w *World) initialPush(tile *Tile, yOff, xOff int) bool {
 	defer tile.interactableMutex.Unlock()
 	w.push(tile, yOff, xOff)
 	tile.stage.updateAll(interactableBox(tile))
-	return walkable(tile)
+	//return walkable(tile)
+	if tile.interactable == nil {
+		return walkable(tile)
+	} else {
+		return tile.interactable.pushable
+	}
 }
 
 func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability of the tile for an interactible
@@ -404,6 +409,7 @@ func (player *Player) activatePower() {
 	// pop power and use shape + player coords instead?
 	for tile := range player.actions.spaceHighlights {
 		tile.damageAll(50, player)
+		tile.destroy(player)
 
 		tileToHighlight := tile.incrementAndReturnIfFirst()
 		if tileToHighlight != nil {

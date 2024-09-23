@@ -17,7 +17,7 @@ type Interactable struct {
 	pushable bool
 	cssClass string
 	// reactive
-	// fragile
+	fragile bool
 }
 
 type Tile struct {
@@ -202,6 +202,15 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	}
 	if survivors {
 		tile.stage.updateAll(playerBox(tile))
+	}
+}
+
+func (tile *Tile) destroy(_ *Player) {
+	tile.interactableMutex.Lock()
+	defer tile.interactableMutex.Unlock()
+	if tile.interactable != nil && tile.interactable.fragile {
+		tile.interactable = nil
+		tile.stage.updateAll(interactableBox(tile))
 	}
 }
 
