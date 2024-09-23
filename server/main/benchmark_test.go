@@ -8,6 +8,9 @@ import (
 var stageNames = [2]string{"clinic", "test-large"}
 var playerCounts = [2]int{1, 100}
 
+// /////////////////////////////////////////
+// Movement
+
 func BenchmarkMoveTwice(b *testing.B) {
 	loadFromJson()
 
@@ -59,6 +62,79 @@ func BenchmarkMoveAllTwice(b *testing.B) {
 
 // Teleport test
 
+// /////////////////////////////////////////
+// Loading times
+
+func BenchmarkCreateStage(b *testing.B) {
+	loadFromJson()
+	for _, stageName := range stageNames {
+		//channelsToClose := make([]chan Update, 0)
+		b.Run(fmt.Sprintf("stage:%s Cores", stageName), func(b *testing.B) {
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				testStage := createStageByName(stageName)
+				go drainChannel(testStage.updates)
+				//channelsToClose = append(channelsToClose, testStage.updates)
+			}
+
+			b.StopTimer()
+
+			//for i := range channelsToClose {
+			//	close(channelsToClose[i])
+			//}
+		})
+	}
+}
+
+func BenchmarkLoadStage(b *testing.B) {
+	loadFromJson()
+	world := createGameWorld(testdb())
+	for _, stageName := range stageNames {
+		//channelsToClose := make([]chan Update, 0)
+		b.Run(fmt.Sprintf("stage:%s Cores", stageName), func(b *testing.B) {
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				world.loadStageByName(stageName)
+				//go drainChannel(testStage.updates)
+				//channelsToClose = append(channelsToClose, testStage.updates)
+			}
+
+			b.StopTimer()
+			//for i := range channelsToClose {
+			//	close(channelsToClose[i])
+			//}
+		})
+	}
+}
+
+func BenchmarkGetStage(b *testing.B) {
+	loadFromJson()
+	world := createGameWorld(testdb())
+	for _, stageName := range stageNames {
+
+		//channelsToClose := make([]chan Update, 0)
+		s := world.loadStageByName(stageName)
+
+		b.Run(fmt.Sprintf("stage:%s Cores", stageName), func(b *testing.B) {
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				world.getStageByName(stageName)
+				//go drainChannel(testStage.updates)
+				//channelsToClose = append(channelsToClose, testStage.updates)
+			}
+
+			b.StopTimer()
+
+		})
+
+		close(s.updates)
+	}
+}
+
+// /////////////////////////////////////////
 // Helpers
 func drainChannel[T any](c chan T) {
 	for {
@@ -84,5 +160,7 @@ func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 }
 
 // Add a func to go routine a player moving in backgroud
+
+// General background channel spam test
 
 // Put players on other stages to add additional go routunes/channels

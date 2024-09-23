@@ -13,13 +13,21 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var testdb *DB = func() *DB {
-	testClient := mongoClient(getConfiguration()) // Make test config
-	return &DB{
-		users:         testClient.Database("bloop-TESTdb").Collection("testusers"),
-		playerRecords: testClient.Database("bloop-TESTdb").Collection("testplayers"),
+// Does this have a performance impace in prod?
+
+var testClient *mongo.Client
+var testDB *DB
+
+func testdb() *DB {
+	if testClient == nil {
+		testClient = mongoClient(getConfiguration()) // Make test config
+		testDB = &DB{
+			users:         testClient.Database("bloop-TESTdb").Collection("testusers"),
+			playerRecords: testClient.Database("bloop-TESTdb").Collection("testplayers"),
+		}
 	}
-}()
+	return testDB
+}
 
 const NUMBER_OF_TEST_ACOUNTS = 1000
 
@@ -30,7 +38,7 @@ func setupUsers() []User {
 		},
 		Options: options.Index().SetUnique(true),
 	}
-	_, err := testdb.users.Indexes().CreateOne(context.Background(), emailIndex)
+	_, err := testdb().users.Indexes().CreateOne(context.Background(), emailIndex)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,7 +49,7 @@ func setupUsers() []User {
 		},
 		Options: options.Index().SetUnique(true),
 	}
-	_, err = testdb.users.Indexes().CreateOne(context.Background(), usernameIndex)
+	_, err = testdb().users.Indexes().CreateOne(context.Background(), usernameIndex)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,7 +63,7 @@ func setupUsers() []User {
 			Hashword: "hashedpassword",
 			Created:  time.Now(),
 		}
-		testdb.newAccount(testUsers[i])
+		testdb().newAccount(testUsers[i])
 	}
 
 	return testUsers
@@ -66,8 +74,8 @@ func cleanUp() {
 	//filter := bson.D{{}}
 	//res, err := collection.DeleteMany(context.Background(), filter)
 
-	testdb.users.Drop(context.Background())
-	testdb.playerRecords.Drop(context.Background())
+	testdb().users.Drop(context.Background())
+	testdb().playerRecords.Drop(context.Background())
 }
 
 func BenchmarkMongoInsert(b *testing.B) {
@@ -88,7 +96,7 @@ func BenchmarkMongoInsert(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for x := 0; x < numberToInsert; x++ {
-			testdb.insertUser(testUsers[x])
+			testdb().insertUser(testUsers[x])
 		}
 	}
 	b.StopTimer()
@@ -106,7 +114,7 @@ func BenchmarkMongoUpdate(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		randomNumber := rand.Intn(1000)
-		testdb.updatePlayerRecord(testUsers[randomNumber].Username, testUpdate)
+		testdb().updatePlayerRecord(testUsers[randomNumber].Username, testUpdate)
 
 	}
 	b.StopTimer()
