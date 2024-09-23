@@ -11,13 +11,13 @@ type Stage struct {
 	tiles       [][]*Tile          // [][]**Tile would be weird and open up FP over mutation (also lookup is less fragile)
 	playerMap   map[string]*Player // Player Map to Bson map to save whole stage in one command
 	playerMutex sync.Mutex
-	updates     chan Update
-	name        string
-	north       string
-	south       string
-	east        string
-	west        string
-	mapId       string
+	//updates     chan Update
+	name  string
+	north string
+	south string
+	east  string
+	west  string
+	mapId string
 }
 
 // benchmark this please
@@ -56,16 +56,16 @@ func (world *World) loadStageByName(name string) *Stage {
 		world.wStageMutex.Lock()
 		world.worldStages[name] = stage
 		world.wStageMutex.Unlock()
-		go stage.sendUpdates()
+		//go stage.sendUpdates()
 	}
 	return stage
 }
 
 // by area
 func createStageFromArea(area Area) *Stage {
-	updatesForStage := make(chan Update)
+	//updatesForStage := make(chan Update)
 
-	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, updatesForStage, area.Name, area.North, area.South, area.East, area.West, area.MapId}
+	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, area.Name, area.North, area.South, area.East, area.West, area.MapId}
 
 	//fmt.Println("Creating stage: " + area.Name)
 
@@ -110,9 +110,9 @@ func (stage *Stage) addPlayer(player *Player) {
 ////////////////////////////////////////////////////////////
 //   Updates
 
-func (stage *Stage) sendUpdates() {
+func (player *Player) sendUpdates() {
 	for {
-		update, ok := <-stage.updates
+		update, ok := <-player.updates
 		if !ok {
 			fmt.Println("Stage update channel closed")
 			return
@@ -147,7 +147,7 @@ func oobUpdateWithHud(player *Player, tiles []*Tile) {
 	// At present it solves the problem of when a global highlight resets each individual player
 	// may view the reset value differently.
 	// Weather channel?
-	player.stage.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles))}
+	player.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles))}
 }
 
 func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
@@ -158,7 +158,7 @@ func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
 		previousBoxes += playerBox(previous) // This box may be including the user as well so it needs an update
 	}
 
-	player.stage.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles) + previousBoxes + playerIcon)}
+	player.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles) + previousBoxes + playerIcon)}
 }
 
 func (stage *Stage) updateAll(update string) {
@@ -181,9 +181,9 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 }
 
 func updateOne(update string, player *Player) {
-	player.stage.updates <- Update{player, []byte(update)}
+	player.updates <- Update{player, []byte(update)}
 }
 
 func updateScreenFromScratch(player *Player) {
-	player.stage.updates <- Update{player, htmlFromPlayer(player)}
+	player.updates <- Update{player, htmlFromPlayer(player)}
 }

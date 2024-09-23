@@ -32,10 +32,13 @@ func (world *World) join(record *PlayerRecord) *Player {
 		return nil
 	}
 
+	updatesForPlayer := make(chan Update)
+
 	newPlayer := &Player{
 		id:        token,
 		username:  record.Username,
 		stage:     nil,
+		updates:   updatesForPlayer,
 		stageName: record.StageName,
 		x:         record.X,
 		y:         record.Y,

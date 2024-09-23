@@ -52,6 +52,7 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 }
 
 func handleNewPlayer(existingPlayer *Player) {
+	go existingPlayer.sendUpdates()
 	existingPlayer.assignStageAndListen()
 	existingPlayer.placeOnStage()
 	fmt.Println("New Connection")

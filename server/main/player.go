@@ -14,6 +14,7 @@ type Player struct {
 	world      *World
 	stage      *Stage
 	tile       *Tile
+	updates    chan Update
 	stageName  string
 	conn       *websocket.Conn
 	connLock   sync.Mutex
@@ -88,11 +89,12 @@ func (player *Player) addToHealth(n int) bool {
 // always called with placeOnStage?
 func (p *Player) assignStageAndListen() {
 	stage := p.world.getNamedStageOrDefault(p.stageName)
-	fmt.Println("Have a stage")
+	//fmt.Println("Have a stage")
 	if stage == nil {
 		log.Fatal("Fatal: Default Stage Not Found.")
 	}
 	p.stage = stage
+	//go p.sendUpdates()
 }
 
 func (p *Player) placeOnStage() {
@@ -345,7 +347,6 @@ func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
 			if xOff > 0 {
 				newStage = w.getStageByName(tile.stage.east)
 				if newStage == nil {
-					fmt.Println("New stage was nil")
 					newStage = w.loadStageByName(tile.stage.east)
 				}
 			}
