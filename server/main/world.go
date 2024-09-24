@@ -46,6 +46,7 @@ func (world *World) join(record *PlayerRecord) *Player {
 		health:    record.Health,
 		money:     record.Money,
 		world:     world,
+		menues:    map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu},
 	}
 
 	//New Method

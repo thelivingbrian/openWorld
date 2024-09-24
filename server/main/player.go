@@ -27,6 +27,7 @@ type Player struct {
 	experience int
 	killstreak int
 	streakLock sync.Mutex
+	menues     map[string]Menu
 }
 
 // Health observer, All Health changes should go through here

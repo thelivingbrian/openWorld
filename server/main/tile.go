@@ -149,9 +149,8 @@ func (tile *Tile) addPlayer(player *Player) {
 		//player.applyTeleport(tile.teleport)
 
 		if tile.teleport.confirmation {
-			teleMenu := continueTeleporting(tile.teleport, player.username)
-			menues["teleport-"+player.username] = teleMenu
-			sendMenu(player, teleMenu)
+			player.menues["teleport"] = continueTeleporting(tile.teleport)
+			turnMenuOn(player, "teleport")
 		} else {
 			player.applyTeleport(tile.teleport)
 		}
