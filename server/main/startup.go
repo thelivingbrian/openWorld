@@ -120,6 +120,8 @@ type Area struct {
 	East             string                       `json:"east"`
 	West             string                       `json:"west"`
 	MapId            string                       `json:"mapId"`
+	LoadStrategy     string                       `json:"loadStrategy,omitempty"`
+	SpawnStrategy    string                       `json:"spawnStrategy,omitempty"`
 }
 
 type InteractableDescription struct {

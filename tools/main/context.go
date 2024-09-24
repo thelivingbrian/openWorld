@@ -286,6 +286,8 @@ func (c Context) compileCollection(collection *Collection) {
 				East:             desc.East,
 				West:             desc.West,
 				MapId:            mapid,
+				LoadStrategy:     desc.LoadStrategy,
+				SpawnStrategy:    desc.SpawnStrategy,
 			})
 		}
 	}

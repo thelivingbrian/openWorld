@@ -56,9 +56,9 @@ func (db *DB) newAccount(user User) error {
 	player := PlayerRecord{
 		Username:  user.Username,
 		Health:    100,
-		StageName: "big",
-		X:         2,
-		Y:         2,
+		StageName: "tutorial:0-0",
+		X:         4,
+		Y:         4,
 		Money:     80,
 	}
 	err := db.insertUser(user)

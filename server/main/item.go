@@ -4,7 +4,22 @@ import (
 	"math/rand"
 )
 
-func (stage *Stage) spawnItems() {
+var spawnActions = map[string]func(*Stage){
+	"":               basicSpawn,
+	"none":           nil,
+	"tutorial-boost": tutorialBoost,
+	"tutorial-power": tutorialPower,
+}
+
+func tutorialBoost(stage *Stage) {
+	stage.tiles[8][8].addBoostsAndNotifyAll()
+}
+
+func tutorialPower(stage *Stage) {
+	stage.tiles[12][12].addPowerUpAndNotifyAll(grid5x5)
+}
+
+func basicSpawn(stage *Stage) {
 	// Very basic spawn algorithm
 	// Will spawn on convered tiles with higher freq. than uncovered
 	// Will spawn boost and powers with equal probability
@@ -35,6 +50,13 @@ func (stage *Stage) spawnItems() {
 		} else {
 			uncoveredTiles[randomIndex].addBoostsAndNotifyAll()
 		}
+	}
+
+}
+
+func (stage *Stage) spawnItems() {
+	if stage.spawn != nil {
+		stage.spawn(stage)
 	}
 }
 

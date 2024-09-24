@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"sync"
-
-	"github.com/gorilla/websocket"
 )
 
 type Stage struct {
@@ -18,6 +16,7 @@ type Stage struct {
 	east  string
 	west  string
 	mapId string
+	spawn func(*Stage)
 }
 
 // benchmark this please
@@ -52,6 +51,9 @@ func (world *World) loadStageByName(name string) *Stage {
 		return nil
 	}
 	stage := createStageFromArea(area)
+	if area.LoadStrategy == "Individual" {
+		return stage
+	}
 	if stage != nil {
 		world.wStageMutex.Lock()
 		world.worldStages[name] = stage
@@ -64,8 +66,8 @@ func (world *World) loadStageByName(name string) *Stage {
 // by area
 func createStageFromArea(area Area) *Stage {
 	//updatesForStage := make(chan Update)
-
-	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, area.Name, area.North, area.South, area.East, area.West, area.MapId}
+	spawnAction := spawnActions[area.SpawnStrategy]
+	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, area.Name, area.North, area.South, area.East, area.West, area.MapId, spawnAction}
 
 	//fmt.Println("Creating stage: " + area.Name)
 
@@ -105,31 +107,6 @@ func (stage *Stage) addPlayer(player *Player) {
 	stage.playerMutex.Lock()
 	stage.playerMap[player.id] = player
 	stage.playerMutex.Unlock()
-}
-
-////////////////////////////////////////////////////////////
-//   Updates
-
-func (player *Player) sendUpdates() {
-	for {
-		update, ok := <-player.updates
-		if !ok {
-			fmt.Println("Stage update channel closed")
-			return
-		}
-
-		sendUpdate(update)
-	}
-}
-
-func sendUpdate(update Update) {
-	update.player.connLock.Lock()
-	defer update.player.connLock.Unlock()
-	if update.player.conn != nil {
-		update.player.conn.WriteMessage(websocket.TextMessage, update.update)
-	} else {
-		fmt.Println("WARN: Attempted to serve update to expired connection.")
-	}
 }
 
 // Enqueue updates

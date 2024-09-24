@@ -18,6 +18,8 @@ type AreaDescription struct {
 	East             string      `json:"east,omitempty"`
 	West             string      `json:"west,omitempty"`
 	MapId            string      `json:"mapId"`
+	LoadStrategy     string      `json:"loadStrategy,omitempty"`
+	SpawnStrategy    string      `json:"spawnStrategy,omitempty"`
 }
 
 // Import from the other project instead? Or import from here. Transport too
@@ -33,6 +35,8 @@ type AreaOutput struct {
 	East             string                       `json:"east,omitempty"`
 	West             string                       `json:"west,omitempty"`
 	MapId            string                       `json:"mapId,omitempty"`
+	LoadStrategy     string                       `json:"loadStrategy,omitempty"`
+	SpawnStrategy    string                       `json:"spawnStrategy,omitempty"`
 }
 
 type GridDetails struct {
@@ -175,6 +179,8 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	newName := properties["areaName"]
 	safe := (properties["safe"] == "on")
 	defaultTileColor := properties["defaultTileColor"]
+	loadStrategy := properties["loadStrategy"]
+	spawnStrategy := properties["spawnStrategy"]
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
 	panicIfAnyEmpty("POST to /area", collectionName, spaceName, name)
@@ -189,6 +195,8 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	if newName == name {
 		selectedArea.Safe = safe
 		selectedArea.DefaultTileColor = defaultTileColor
+		selectedArea.LoadStrategy = loadStrategy
+		selectedArea.SpawnStrategy = spawnStrategy
 	} else {
 		if getAreaByName(space.Areas, newName) != nil {
 			panic("Invalid name") // This check doesn't look at other spaces

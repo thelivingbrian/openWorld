@@ -440,6 +440,31 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	player.placeOnStage()
 }
 
+////////////////////////////////////////////////////////////
+//   Updates
+
+func (player *Player) sendUpdates() {
+	for {
+		update, ok := <-player.updates
+		if !ok {
+			fmt.Println("Stage update channel closed")
+			return
+		}
+
+		sendUpdate(update)
+	}
+}
+
+func sendUpdate(update Update) {
+	update.player.connLock.Lock()
+	defer update.player.connLock.Unlock()
+	if update.player.conn != nil {
+		update.player.conn.WriteMessage(websocket.TextMessage, update.update)
+	} else {
+		fmt.Println("WARN: Attempted to serve update to expired connection.")
+	}
+}
+
 func (player *Player) updateBottomText(message string) {
 	msg := fmt.Sprintf(`
 			<div id="bottom_text">

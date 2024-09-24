@@ -10,7 +10,11 @@
         <label>Default Tile Color:</label>
         <input type="text" name="defaultTileColor" value="{{.Area.DefaultTileColor}}">
         <label>Safe:</label>
-        <input type="checkbox" name="safe" {{.Checked}}>
+        <input type="checkbox" name="safe" {{.Checked}}><br />
+        <label>Load Strategy:</label>
+        <input type="text" name="loadStrategy" value="{{.Area.LoadStrategy}}">
+        <label>Spawn Strategy:</label>
+        <input type="text" name="spawnStrategy" value="{{.Area.SpawnStrategy}}">
         <button>Save</button><br />
     </form>
 </div>
