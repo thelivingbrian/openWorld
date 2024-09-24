@@ -48,7 +48,7 @@ func htmlFromTileGrid(tiles [][]*Tile, py, px int) [][]string {
 	return output
 }
 
-func spaceHighlighter(tile *Tile) string {
+func spaceHighlighter(_ *Tile) string {
 	/*
 		This has bugs because it doesn't update on movement of the other player, only the highlight viewer
 		if len(tile.playerMap) > 0 {

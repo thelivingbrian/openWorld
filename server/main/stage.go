@@ -9,14 +9,13 @@ type Stage struct {
 	tiles       [][]*Tile          // [][]**Tile would be weird and open up FP over mutation (also lookup is less fragile)
 	playerMap   map[string]*Player // Player Map to Bson map to save whole stage in one command
 	playerMutex sync.Mutex
-	//updates     chan Update
-	name  string
-	north string
-	south string
-	east  string
-	west  string
-	mapId string
-	spawn func(*Stage)
+	name        string
+	north       string
+	south       string
+	east        string
+	west        string
+	mapId       string
+	spawn       func(*Stage)
 }
 
 // benchmark this please
@@ -58,19 +57,14 @@ func (world *World) loadStageByName(name string) *Stage {
 		world.wStageMutex.Lock()
 		world.worldStages[name] = stage
 		world.wStageMutex.Unlock()
-		//go stage.sendUpdates()
 	}
 	return stage
 }
 
 // by area
 func createStageFromArea(area Area) *Stage {
-	//updatesForStage := make(chan Update)
 	spawnAction := spawnActions[area.SpawnStrategy]
 	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, area.Name, area.North, area.South, area.East, area.West, area.MapId, spawnAction}
-
-	//fmt.Println("Creating stage: " + area.Name)
-
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
 		for x := range outputStage.tiles[y] {

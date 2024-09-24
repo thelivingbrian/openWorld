@@ -17,7 +17,6 @@ func BenchmarkMoveTwice(b *testing.B) {
 	for _, stageName := range stageNames {
 
 		testStage := createStageByName(stageName)
-		//go drainChannel(testStage.updates)
 
 		for _, playerCount := range playerCounts {
 			b.Run(fmt.Sprintf("stage:%s players:%d Cores", stageName, playerCount), func(b *testing.B) {
@@ -41,7 +40,6 @@ func BenchmarkMoveAllTwice(b *testing.B) {
 	for _, stageName := range stageNames {
 
 		testStage := createStageByName(stageName)
-		//go drainChannel(testStage.updates)
 
 		for _, playerCount := range playerCounts {
 			b.Run(fmt.Sprintf("stage:%s players:%d Cores", stageName, playerCount), func(b *testing.B) {
@@ -81,7 +79,6 @@ func BenchmarkCreateStage(b *testing.B) {
 
 			for i := 0; i < b.N; i++ {
 				createStageFromArea(area)
-				//go drainChannel(testStage.updates)
 			}
 
 			b.StopTimer()
@@ -124,8 +121,6 @@ func BenchmarkGetStage(b *testing.B) {
 			b.StopTimer()
 
 		})
-
-		//close(s.updates)
 	}
 }
 
@@ -157,6 +152,7 @@ func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 	return players
 }
 
+// Seems strange this is only a test helper?
 func createStageByName(name string) *Stage {
 	area, success := areaFromName(name)
 	if !success {
