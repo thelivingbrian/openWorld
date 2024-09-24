@@ -35,8 +35,12 @@ func continueTeleporting(teleport *Teleport) Menu {
 
 func teleportEventHandler(teleport *Teleport) func(*Player, PlayerSocketEvent) {
 	return func(player *Player, _ PlayerSocketEvent) {
-		player.removeFromStage()
+		//player.removeFromStage()
+		previousTile := player.tile
 		player.applyTeleport(teleport)
+
+		impactedTiles := player.updateSpaceHighlights()
+		updateOneAfterMovement(player, impactedTiles, previousTile)
 		turnMenuOff(player)
 	}
 }

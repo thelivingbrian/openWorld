@@ -232,3 +232,90 @@ func TestEnsureNoInteractableDuplication(t *testing.T) {
 		t.Errorf("Expected 11 interactables on the stage, found %d", totalInteractables)
 	}
 }
+
+// Random pointer pointer linked list deletion
+
+type Node struct {
+	value string
+	next  *Node
+}
+
+type NodeList struct {
+	head *Node
+}
+
+func (list *NodeList) Add(s string) {
+	if list.head == nil {
+		list.head = &Node{s, nil}
+		return
+	}
+
+	item := &list.head
+	for *item != nil {
+		item = &(*item).next
+	}
+	*item = &Node{s, nil}
+}
+
+func (list *NodeList) Show() {
+
+	fmt.Println("---start---")
+
+	item := list.head
+	for item != nil {
+		fmt.Println(item.value)
+		item = item.next
+	}
+	fmt.Println("---done---")
+}
+
+func deleteNodeByValue(value string, headPtr **Node) {
+	for *headPtr != nil {
+		if (**headPtr).value == value {
+			*headPtr = (**headPtr).next
+			return
+		}
+		headPtr = &(**headPtr).next
+	}
+}
+
+func (nl *NodeList) deleteNode(value string) {
+	if nl.head.value == value {
+		nl.head = nl.head.next
+		return
+	}
+
+	node := nl.head
+	for node.next != nil {
+		if node.next.value == value {
+			node.next = node.next.next
+			return
+		}
+		node = node.next
+	}
+}
+
+type Number struct {
+	value int
+}
+
+func TestNodeList(t *testing.T) {
+	nl := NodeList{}
+	nl.Add("pie")
+	nl.Add("pizza")
+	nl.Add("taco")
+	nl.Add("dog")
+	nl.Show()
+
+	deleteNodeByValue("fake", &nl.head)
+	nl.Show()
+
+	deleteNodeByValue("pie", &nl.head)
+	nl.Show()
+
+	nl.deleteNode("taco")
+	nl.Show()
+
+	nl.deleteNode("dog")
+	nl.Show()
+}
