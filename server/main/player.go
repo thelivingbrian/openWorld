@@ -474,6 +474,10 @@ func (player *Player) updateBottomText(message string) {
 	updateOne(msg, player)
 }
 
+func (p *Player) trySend(msg []byte) {
+	p.updates <- Update{p, msg}
+}
+
 /*
 // Show boost when boost counter first breaks 0 with message explaining shift
 // Hide boost on next movement

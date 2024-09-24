@@ -205,16 +205,10 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 		updateOne(divInput(), player)
 	}
 	if event.Name == "menuOn" {
-		//event.MenuName = "pause" // Gross but need to think about
-		//turnMenuOn(player, *event)
-		menu, ok := player.menues["pause"]
-		if !ok {
-
-		}
-		sendMenu(player, menu)
+		openPauseMenu(player)
 	}
 	if event.Name == "menuOff" {
-		turnMenuOffHandler(player, *event)
+		turnMenuOff(player)
 	}
 	if event.Name == "menuDown" {
 		menuDown(player, *event)
