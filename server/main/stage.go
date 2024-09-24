@@ -85,7 +85,7 @@ func createStageFromArea(area Area) *Stage {
 		}
 	}
 	for _, transport := range area.Transports {
-		outputStage.tiles[transport.SourceY][transport.SourceX].teleport = &Teleport{transport.DestStage, transport.DestY, transport.DestX}
+		outputStage.tiles[transport.SourceY][transport.SourceX].teleport = &Teleport{transport.DestStage, transport.DestY, transport.DestX, area.Name, transport.Confirmation}
 
 		// Change this
 		mat := outputStage.tiles[transport.SourceY][transport.SourceX].material

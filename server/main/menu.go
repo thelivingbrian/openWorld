@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"strconv"
-
-	"github.com/gorilla/websocket"
 )
 
 type Menu struct {
@@ -21,6 +19,32 @@ type MenuLink struct {
 	Text         string
 	eventHandler func(*Player, PlayerSocketEvent) // eh i dunno
 	auth         func(*Player) bool
+}
+
+func continueTeleporting(teleport *Teleport, username string) Menu {
+	return Menu{
+		Name:     "teleport-" + username,
+		CssClass: "",
+		InfoHtml: "<h2>Continue?</h2>",
+		Links: []MenuLink{
+			{Text: "Yes", eventHandler: teleportEventHandler(teleport), auth: sourceStageAuthorizer(teleport.sourceStage)},
+			{Text: "No", eventHandler: turnMenuOffHandler, auth: nil},
+		},
+	}
+}
+
+func teleportEventHandler(teleport *Teleport) func(*Player, PlayerSocketEvent) {
+	return func(player *Player, _ PlayerSocketEvent) {
+		player.removeFromStage()
+		player.applyTeleport(teleport)
+		turnMenuOff(player)
+	}
+}
+
+func sourceStageAuthorizer(source string) func(*Player) bool {
+	return func(p *Player) bool {
+		return p.stageName == source
+	}
 }
 
 //menu left goes back.
@@ -82,7 +106,7 @@ func init() {
 		CssClass: "",
 		InfoHtml: "",
 		Links: []MenuLink{
-			{Text: "Resume", eventHandler: turnMenuOff, auth: nil},
+			{Text: "Resume", eventHandler: turnMenuOffHandler, auth: nil},
 			{Text: "You", eventHandler: Stats, auth: nil},
 			{Text: "Map", eventHandler: Map, auth: nil},
 			{Text: "Quit", eventHandler: Quit, auth: nil},
@@ -143,9 +167,10 @@ func (m *Menu) attemptClick(p *Player, e PlayerSocketEvent) {
 // Menu event handlers
 
 func (p *Player) trySend(msg []byte) {
-	if p.conn != nil {
-		p.conn.WriteMessage(websocket.TextMessage, msg)
-	}
+	p.updates <- Update{p, msg}
+	//if p.conn != nil {
+	//	p.conn.WriteMessage(websocket.TextMessage, msg)
+	//}
 }
 
 // Not sure this should be a handler/take an event?
@@ -153,17 +178,26 @@ func (p *Player) trySend(msg []byte) {
 func turnMenuOn(p *Player, event PlayerSocketEvent) {
 	menu, ok := menues[event.MenuName]
 	if ok {
-		var buf bytes.Buffer
-		err := menuTmpl.Execute(&buf, menu)
-		if err != nil {
-			fmt.Println(err)
-		}
-		buf.WriteString(divInputDisabled())
-		p.trySend(buf.Bytes())
+		sendMenu(p, menu)
 	}
 }
 
-func turnMenuOff(p *Player, event PlayerSocketEvent) {
+func sendMenu(p *Player, menu Menu) {
+	var buf bytes.Buffer
+	err := menuTmpl.Execute(&buf, menu)
+	if err != nil {
+		fmt.Println(err)
+	}
+	buf.WriteString(divInputDisabled())
+	p.trySend(buf.Bytes())
+
+}
+
+func turnMenuOffHandler(p *Player, _ PlayerSocketEvent) {
+	turnMenuOff(p)
+}
+
+func turnMenuOff(p *Player) {
 	p.trySend([]byte(divModalDisabled() + divInput()))
 }
 

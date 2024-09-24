@@ -101,6 +101,9 @@ func logOut(player *Player) {
 	}
 	player.world.wPlayerMutex.Unlock()
 	player.conn = nil
+
+	close(player.updates)
+
 	fmt.Println("Logging Out " + player.username)
 }
 
@@ -206,7 +209,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 		turnMenuOn(player, *event)
 	}
 	if event.Name == "menuOff" {
-		turnMenuOff(player, *event)
+		turnMenuOffHandler(player, *event)
 	}
 	if event.Name == "menuDown" {
 		menuDown(player, *event)

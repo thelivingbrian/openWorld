@@ -8,9 +8,11 @@ import (
 )
 
 type Teleport struct {
-	destStage string
-	destY     int
-	destX     int
+	destStage    string
+	destY        int
+	destX        int
+	sourceStage  string
+	confirmation bool
 }
 
 type Interactable struct {
@@ -143,8 +145,16 @@ func (tile *Tile) addPlayer(player *Player) {
 		player.tile = tile
 	} else {
 		// Add on new stage // Not always a new stage?
-		player.removeFromStage()
-		player.applyTeleport(tile.teleport)
+		//player.removeFromStage()
+		//player.applyTeleport(tile.teleport)
+
+		if tile.teleport.confirmation {
+			teleMenu := continueTeleporting(tile.teleport, player.username)
+			menues["teleport-"+player.username] = teleMenu
+			sendMenu(player, teleMenu)
+		} else {
+			player.applyTeleport(tile.teleport)
+		}
 	}
 }
 
