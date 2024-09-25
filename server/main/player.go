@@ -147,7 +147,7 @@ func (p *Player) moveNorthBoost() {
 	if p.actions.boostCounter > 0 {
 		p.useBoost()
 		p.pushUnder(-1, 0)
-		if p.y == 0 {
+		if p.y <= 1 {
 			p.tryGoNeighbor(-2, 0)
 			return
 		}
