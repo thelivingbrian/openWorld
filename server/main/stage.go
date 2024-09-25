@@ -61,7 +61,6 @@ func (world *World) loadStageByName(name string) *Stage {
 	return stage
 }
 
-// by area
 func createStageFromArea(area Area) *Stage {
 	spawnAction := spawnActions[area.SpawnStrategy]
 	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, area.Name, area.North, area.South, area.East, area.West, area.MapId, spawnAction}

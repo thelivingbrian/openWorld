@@ -144,10 +144,6 @@ func (tile *Tile) addPlayer(player *Player) {
 		player.x = tile.x
 		player.tile = tile
 	} else {
-		// Add on new stage // Not always a new stage?
-		//player.removeFromStage()
-		//player.applyTeleport(tile.teleport)
-
 		if tile.teleport.confirmation {
 			player.menues["teleport"] = continueTeleporting(tile.teleport)
 			turnMenuOn(player, "teleport")
@@ -159,7 +155,6 @@ func (tile *Tile) addPlayer(player *Player) {
 
 func (tile *Tile) removePlayerAndNotifyOthers(player *Player) {
 	tile.removePlayer(player.id)
-	// have take a tile not player?
 	tile.stage.updateAllExcept(playerBox(tile), player)
 }
 
@@ -234,8 +229,7 @@ func walkable(tile *Tile) bool {
 	return tile.material.Walkable
 }
 
-/// These need to get looked at (? mutex?)
-
+// / These need to get looked at (? mutex?)
 func (tile *Tile) addPowerUpAndNotifyAll(shape [][2]int) {
 	tile.powerUp = &PowerUp{shape}
 	tile.stage.updateAll(svgFromTile(tile))
