@@ -100,6 +100,9 @@ func logOut(player *Player) {
 		}
 	}
 	player.world.wPlayerMutex.Unlock()
+
+	player.connLock.Lock()
+	defer player.connLock.Unlock()
 	player.conn = nil
 
 	close(player.updates)
