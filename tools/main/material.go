@@ -16,6 +16,7 @@ type Material struct {
 	Floor2Css   string `json:"layer2css"`
 	Ceiling1Css string `json:"ceiling1css"`
 	Ceiling2Css string `json:"ceiling2css"`
+	DisplayText string `json:"displayText"`
 }
 
 type Color struct {

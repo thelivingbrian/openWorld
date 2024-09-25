@@ -11,7 +11,7 @@ import (
 )
 
 func TestSocketJoinAndMove(t *testing.T) {
-	world := createGameWorld(testdb)
+	world := createGameWorld(testdb())
 
 	p := world.join(&PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
 	initialCoordiate := 2
@@ -49,17 +49,20 @@ func TestSocketJoinAndMove(t *testing.T) {
 }
 
 func TestMostDangerous(t *testing.T) {
-	world := createGameWorld(testdb)
+	world := createGameWorld(testdb())
 
 	p1 := world.join(&PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
+	go p1.sendUpdates()
 	p1.assignStageAndListen()
 	p1.placeOnStage()
 
 	p2 := world.join(&PlayerRecord{Username: "test2", Y: 3, X: 3, StageName: "test-large"})
+	go p2.sendUpdates()
 	p2.assignStageAndListen()
 	p2.placeOnStage()
 
 	p3 := world.join(&PlayerRecord{Username: "test3", Y: 3, X: 3, StageName: "test-large"})
+	go p3.sendUpdates()
 	p3.assignStageAndListen()
 	p3.placeOnStage()
 

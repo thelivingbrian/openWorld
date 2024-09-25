@@ -8,16 +8,18 @@ import (
 )
 
 type Teleport struct {
-	destStage string
-	destY     int
-	destX     int
+	destStage    string
+	destY        int
+	destX        int
+	sourceStage  string
+	confirmation bool
 }
 
 type Interactable struct {
 	pushable bool
 	cssClass string
 	// reactive
-	// fragile
+	fragile bool
 }
 
 type Tile struct {
@@ -36,6 +38,7 @@ type Tile struct {
 	money             int
 	boosts            int
 	htmlTemplate      string
+	bottomText        string
 }
 
 func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
@@ -54,7 +57,9 @@ func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 		powerUp:        nil,
 		powerMutex:     sync.Mutex{},
 		money:          0,
-		htmlTemplate:   makeTileTemplate(mat, y, x)}
+		htmlTemplate:   makeTileTemplate(mat, y, x),
+		bottomText:     mat.DisplayText, // Pre-process needed *String to have option of null?
+	}
 }
 
 func makeTileTemplate(mat Material, y, x int) string {
@@ -106,6 +111,9 @@ func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 
 func (tile *Tile) addPlayer(player *Player) {
 	itemChange := false
+	if tile.bottomText != "" {
+		player.updateBottomText(tile.bottomText)
+	}
 	if tile.powerUp != nil {
 		// This should be mutexed I think
 		powerUp := tile.powerUp
@@ -136,9 +144,12 @@ func (tile *Tile) addPlayer(player *Player) {
 		player.x = tile.x
 		player.tile = tile
 	} else {
-		// Add on new stage // Not always a new stage?
-		player.removeFromStage()
-		player.applyTeleport(tile.teleport)
+		if tile.teleport.confirmation {
+			player.menues["teleport"] = continueTeleporting(tile.teleport)
+			turnMenuOn(player, "teleport")
+		} else {
+			player.applyTeleport(tile.teleport)
+		}
 	}
 }
 
@@ -181,24 +192,29 @@ func (tile *Tile) tryToNotifyAfter(delay int) {
 }
 
 func (tile *Tile) damageAll(dmg int, initiator *Player) {
-	first := true
+	survivors := false
 	for _, player := range tile.playerMap {
 		if player == initiator {
-			continue // Race condition nonsense
+			continue // Race condition nonsense, can this still happen?
 		}
 		survived := player.addToHealth(-dmg)
+		survivors = survivors || survived
 		if !survived {
-			tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10) // Tile money needs mutex?
-
 			initiator.incrementKillStreak()
-			// Maybe should just pass in required fields?
-			go player.world.db.saveKillEvent(tile, initiator, player)
+			go player.world.db.saveKillEvent(tile, initiator, player) // Maybe should just pass in required fields?
 		}
-		if first {
-			first = !survived // Gross but this ensures that surviving players aren't hidden by death // Probably no longer needed
-			// Does multiple updates could be improved
-			tile.stage.updateAllWithHudExcept(player, []*Tile{tile})
-		}
+	}
+	if survivors {
+		tile.stage.updateAll(playerBox(tile))
+	}
+}
+
+func (tile *Tile) destroy(_ *Player) {
+	tile.interactableMutex.Lock()
+	defer tile.interactableMutex.Unlock()
+	if tile.interactable != nil && tile.interactable.fragile {
+		tile.interactable = nil
+		tile.stage.updateAll(interactableBox(tile))
 	}
 }
 
@@ -213,10 +229,9 @@ func walkable(tile *Tile) bool {
 	return tile.material.Walkable
 }
 
-/// These two need to get looked at
-
+// / These need to get looked at (? mutex?)
 func (tile *Tile) addPowerUpAndNotifyAll(shape [][2]int) {
-	tile.powerUp = &PowerUp{shape, [4]int{100, 100, 100, 100}}
+	tile.powerUp = &PowerUp{shape}
 	tile.stage.updateAll(svgFromTile(tile))
 }
 
@@ -266,7 +281,7 @@ func validityByAxis(y int, x int, tiles [][]*Tile) (bool, bool) {
 }
 
 func mapOfTileToArray(m map[*Tile]bool) []*Tile {
-	out := make([]*Tile, len(m))
+	out := make([]*Tile, 0)
 	for tile := range m {
 		out = append(out, tile)
 	}

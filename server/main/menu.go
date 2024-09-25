@@ -19,7 +19,7 @@ type Menu struct {
 
 type MenuLink struct {
 	Text         string
-	eventHandler func(*Player, PlayerSocketEvent) // eh i dunno
+	eventHandler func(*Player) // should handler and auth be consolidated?
 	auth         func(*Player) bool
 }
 
@@ -70,43 +70,100 @@ var menuTemplate = `
 
 var menuTmpl = template.Must(template.New("menu").Parse(menuTemplate))
 
-var pauseMenu Menu
-var mapMenu Menu
-var statsMenu Menu
-var menues map[string]Menu
-
-func init() {
-	// init here to avoid circular reference
-	pauseMenu = Menu{
-		Name:     "pause",
-		CssClass: "",
-		InfoHtml: "",
-		Links: []MenuLink{
-			{Text: "Resume", eventHandler: turnMenuOff, auth: nil},
-			{Text: "You", eventHandler: Stats, auth: nil},
-			{Text: "Map", eventHandler: Map, auth: nil},
-			{Text: "Quit", eventHandler: Quit, auth: nil},
-		},
-	}
-	mapMenu = Menu{
-		Name:     "map",
-		CssClass: "",
-		InfoHtml: "",
-		Links: []MenuLink{
-			{Text: "Back", eventHandler: Pause, auth: nil},
-		},
-	}
-	statsMenu = Menu{
-		Name:     "stats",
-		CssClass: "",
-		InfoHtml: "<h2>Coming Soon</h2>",
-		Links: []MenuLink{
-			{Text: "Back", eventHandler: Pause, auth: nil},
-		},
-	}
-	menues = map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu}
+var pauseMenu = Menu{
+	Name:     "pause",
+	CssClass: "",
+	InfoHtml: "",
+	Links: []MenuLink{
+		{Text: "Resume", eventHandler: turnMenuOff, auth: nil},
+		{Text: "You", eventHandler: openStatsMenu, auth: nil},
+		{Text: "Map", eventHandler: openMapMenu, auth: nil},
+		{Text: "Quit", eventHandler: Quit, auth: nil},
+	},
+}
+var mapMenu = Menu{
+	Name:     "map",
+	CssClass: "",
+	InfoHtml: "",
+	Links: []MenuLink{
+		{Text: "Back", eventHandler: openPauseMenu, auth: nil},
+	},
+}
+var statsMenu = Menu{
+	Name:     "stats",
+	CssClass: "",
+	InfoHtml: "<h2>Coming Soon</h2>",
+	Links: []MenuLink{
+		{Text: "Back", eventHandler: openPauseMenu, auth: nil},
+	},
 }
 
+func turnMenuOn(p *Player, menuName string) {
+	menu, ok := p.menues[menuName]
+	if ok {
+		sendMenu(p, menu)
+	}
+}
+
+func sendMenu(p *Player, menu Menu) {
+	var buf bytes.Buffer
+	err := menuTmpl.Execute(&buf, menu)
+	if err != nil {
+		fmt.Println(err)
+	}
+	buf.WriteString(divInputDisabled())
+	p.trySend(buf.Bytes())
+
+}
+
+// Menu events
+
+func (m *Menu) attemptClick(p *Player, e PlayerSocketEvent) {
+	i, err := strconv.Atoi(e.Arg0)
+	if err != nil {
+		fmt.Println(err)
+	}
+	if i < 0 || i > len(m.Links) {
+		fmt.Println("Invalid index")
+	}
+	auth := m.Links[i].auth
+	handler := m.Links[i].eventHandler
+	if handler != nil && (auth == nil || auth(p)) {
+		handler(p)
+	}
+}
+
+func menuUp(p *Player, event PlayerSocketEvent) {
+	menu, ok := p.menues[event.MenuName]
+	if ok {
+		p.trySend([]byte(menu.menuSelectUp(event.Arg0)))
+	}
+}
+
+func (menu *Menu) menuSelectUp(index string) string {
+	i, err := strconv.Atoi(index)
+	if err != nil {
+		return ""
+	}
+	return menu.selectedLinkAt(i-1) + menu.unselectedLinkAt(i)
+}
+
+func menuDown(p *Player, event PlayerSocketEvent) {
+	menu, ok := p.menues[event.MenuName]
+	if ok {
+		p.trySend([]byte(menu.menuSelectDown(event.Arg0)))
+	}
+}
+
+func (menu *Menu) menuSelectDown(index string) string {
+	i, err := strconv.Atoi(index)
+	if err != nil {
+		return ""
+	}
+	return menu.selectedLinkAt(i+1) + menu.unselectedLinkAt(i)
+}
+
+// view updates
 func (m *Menu) selectedLinkAt(i int) string {
 	index := mod(i, len(m.Links)) // divide by 0
 	out := `
@@ -125,79 +182,13 @@ func mod(i, n int) int {
 	return ((i % n) + n) % n
 }
 
-func (m *Menu) attemptClick(p *Player, e PlayerSocketEvent) {
-	i, err := strconv.Atoi(e.Arg0)
-	if err != nil {
-		fmt.Println(err)
-	}
-	if i < 0 || i > len(m.Links) {
-		fmt.Println("Invalid index")
-	}
-	auth := m.Links[i].auth
-	handler := m.Links[i].eventHandler
-	if handler != nil && (auth == nil || auth(p)) {
-		handler(p, e)
-	}
-}
-
 // Menu event handlers
 
-func (p *Player) trySend(msg []byte) {
-	if p.conn != nil {
-		p.conn.WriteMessage(websocket.TextMessage, msg)
-	}
-}
-
-// Not sure this should be a handler/take an event?
-// take name and/or default "" to "pause"?
-func turnMenuOn(p *Player, event PlayerSocketEvent) {
-	menu, ok := menues[event.MenuName]
-	if ok {
-		var buf bytes.Buffer
-		err := menuTmpl.Execute(&buf, menu)
-		if err != nil {
-			fmt.Println(err)
-		}
-		buf.WriteString(divInputDisabled())
-		p.trySend(buf.Bytes())
-	}
-}
-
-func turnMenuOff(p *Player, event PlayerSocketEvent) {
+func turnMenuOff(p *Player) {
 	p.trySend([]byte(divModalDisabled() + divInput()))
 }
 
-func menuUp(p *Player, event PlayerSocketEvent) {
-	menu, ok := menues[event.MenuName]
-	if ok {
-		p.trySend([]byte(menu.menuSelectUp(event.Arg0)))
-	}
-}
-
-func (menu *Menu) menuSelectUp(index string) string {
-	i, err := strconv.Atoi(index)
-	if err != nil {
-		return ""
-	}
-	return menu.selectedLinkAt(i-1) + menu.unselectedLinkAt(i)
-}
-
-func menuDown(p *Player, event PlayerSocketEvent) {
-	menu, ok := menues[event.MenuName]
-	if ok {
-		p.trySend([]byte(menu.menuSelectDown(event.Arg0)))
-	}
-}
-
-func (menu *Menu) menuSelectDown(index string) string {
-	i, err := strconv.Atoi(index)
-	if err != nil {
-		return ""
-	}
-	return menu.selectedLinkAt(i+1) + menu.unselectedLinkAt(i)
-}
-
-func Quit(p *Player, event PlayerSocketEvent) {
+func Quit(p *Player) {
 	defer logOut(p)
 	logOutSuccess := `
 	  <div id="page">
@@ -209,10 +200,16 @@ func Quit(p *Player, event PlayerSocketEvent) {
 	          <a class="large-font" href="#" hx-get="/homesignin" hx-target="#landing">Resume</a><br />
 	      </div>
 	  </div>`
-	p.trySend([]byte(logOutSuccess))
+
+	//p.trySend([]byte(logOutSuccess)) // This races with logout
+	p.connLock.Lock()
+	if p.conn != nil {
+		p.conn.WriteMessage(websocket.TextMessage, []byte(logOutSuccess))
+	}
+	p.connLock.Unlock()
 }
 
-func Map(p *Player, event PlayerSocketEvent) {
+func openMapMenu(p *Player) {
 	var buf bytes.Buffer
 	copy := mapMenu
 	if p.stage.mapId != "" {
@@ -229,20 +226,41 @@ func Map(p *Player, event PlayerSocketEvent) {
 	p.trySend(buf.Bytes())
 }
 
-func Pause(p *Player, event PlayerSocketEvent) {
-	var buf bytes.Buffer
-	err := menuTmpl.Execute(&buf, pauseMenu)
-	if err != nil {
-		fmt.Println(err)
-	}
-	p.trySend(buf.Bytes())
+func openPauseMenu(p *Player) {
+	turnMenuOn(p, "pause")
 }
 
-func Stats(p *Player, event PlayerSocketEvent) {
-	var buf bytes.Buffer
-	err := menuTmpl.Execute(&buf, statsMenu)
-	if err != nil {
-		fmt.Println(err)
+func openStatsMenu(p *Player) {
+	turnMenuOn(p, "stats")
+}
+
+// Player specific menues
+
+func continueTeleporting(teleport *Teleport) Menu {
+	return Menu{
+		Name:     "teleport",
+		CssClass: "",
+		InfoHtml: "<h2>Continue?</h2>",
+		Links: []MenuLink{
+			{Text: "Yes", eventHandler: teleportEventHandler(teleport), auth: sourceStageAuthorizer(teleport.sourceStage)},
+			{Text: "No", eventHandler: turnMenuOff, auth: nil},
+		},
 	}
-	p.trySend(buf.Bytes())
+}
+
+func teleportEventHandler(teleport *Teleport) func(*Player) {
+	return func(player *Player) {
+		previousTile := player.tile
+		player.applyTeleport(teleport)
+
+		impactedTiles := player.updateSpaceHighlights()
+		updateOneAfterMovement(player, impactedTiles, previousTile)
+		turnMenuOff(player) // try other order
+	}
+}
+
+func sourceStageAuthorizer(source string) func(*Player) bool {
+	return func(p *Player) bool {
+		return p.stageName == source
+	}
 }

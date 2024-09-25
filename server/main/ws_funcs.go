@@ -52,6 +52,7 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 }
 
 func handleNewPlayer(existingPlayer *Player) {
+	go existingPlayer.sendUpdates()
 	existingPlayer.assignStageAndListen()
 	existingPlayer.placeOnStage()
 	fmt.Println("New Connection")
@@ -99,7 +100,13 @@ func logOut(player *Player) {
 		}
 	}
 	player.world.wPlayerMutex.Unlock()
+
+	player.connLock.Lock()
+	defer player.connLock.Unlock()
 	player.conn = nil
+
+	close(player.updates)
+
 	fmt.Println("Logging Out " + player.username)
 }
 
@@ -201,11 +208,10 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 		updateOne(divInput(), player)
 	}
 	if event.Name == "menuOn" {
-		event.MenuName = "pause" // Gross but need to think about
-		turnMenuOn(player, *event)
+		openPauseMenu(player)
 	}
 	if event.Name == "menuOff" {
-		turnMenuOff(player, *event)
+		turnMenuOff(player)
 	}
 	if event.Name == "menuDown" {
 		menuDown(player, *event)
@@ -214,7 +220,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 		menuUp(player, *event)
 	}
 	if event.Name == "menuClick" {
-		menu, ok := menues[event.MenuName]
+		menu, ok := player.menues[event.MenuName]
 		if ok {
 			menu.attemptClick(player, *event)
 		}

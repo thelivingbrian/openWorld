@@ -32,10 +32,13 @@ func (world *World) join(record *PlayerRecord) *Player {
 		return nil
 	}
 
+	updatesForPlayer := make(chan Update)
+
 	newPlayer := &Player{
 		id:        token,
 		username:  record.Username,
 		stage:     nil,
+		updates:   updatesForPlayer,
 		stageName: record.StageName,
 		x:         record.X,
 		y:         record.Y,
@@ -43,6 +46,7 @@ func (world *World) join(record *PlayerRecord) *Player {
 		health:    record.Health,
 		money:     record.Money,
 		world:     world,
+		menues:    map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu},
 	}
 
 	//New Method

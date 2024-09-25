@@ -96,15 +96,17 @@ type Material struct {
 	Floor2Css   string `json:"layer2css"`
 	Ceiling1Css string `json:"ceiling1css"`
 	Ceiling2Css string `json:"ceiling2css"`
+	DisplayText string `json:"displayText"`
 }
 
 // add color
 type Transport struct {
-	SourceY   int    `json:"sourceY"`
-	SourceX   int    `json:"sourceX"`
-	DestY     int    `json:"destY"`
-	DestX     int    `json:"destX"`
-	DestStage string `json:"destStage"`
+	SourceY      int    `json:"sourceY"`
+	SourceX      int    `json:"sourceX"`
+	DestY        int    `json:"destY"`
+	DestX        int    `json:"destX"`
+	DestStage    string `json:"destStage"`
+	Confirmation bool   `json:"confirmation"`
 }
 
 type Area struct {
@@ -119,15 +121,17 @@ type Area struct {
 	East             string                       `json:"east"`
 	West             string                       `json:"west"`
 	MapId            string                       `json:"mapId"`
+	LoadStrategy     string                       `json:"loadStrategy,omitempty"`
+	SpawnStrategy    string                       `json:"spawnStrategy,omitempty"`
 }
 
 type InteractableDescription struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	SetName     string `json:"setName"`
-	CssClass    string `json:"cssClass"`
-	Pushable    bool   `json:"pushable"`
-	Destroyable bool   `json:"transformation,omitempty"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	SetName  string `json:"setName"`
+	CssClass string `json:"cssClass"`
+	Pushable bool   `json:"pushable"`
+	Fragile  bool   `json:"fragile"`
 }
 
 var (
@@ -151,8 +155,8 @@ func loadFromJson() {
 	populateStructUsingFileName(&materials, "materials")
 	populateStructUsingFileName(&areas, "areas")
 
-	fmt.Printf("Loaded %d materials.", len(materials))
-	fmt.Printf("Loaded %d areas.", len(areas))
+	//fmt.Printf("Loaded %d materials.", len(materials))
+	//fmt.Printf("Loaded %d areas.", len(areas))
 }
 
 func areaFromName(s string) (area Area, success bool) {

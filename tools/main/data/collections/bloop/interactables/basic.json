@@ -1,1 +1,1 @@
-[{"id":"79178a88-99cf-4472-8789-ba914a08c5f2","name":"basic-push","setName":"basic","cssClass":"gold","pushable":true}]
+[{"id":"79178a88-99cf-4472-8789-ba914a08c5f2","name":"basic-push","setName":"basic","cssClass":"gold","pushable":true,"fragile":false},{"id":"5ca4451e-2f93-4af2-b4f3-2942247d0b26","name":"basic-fragile","setName":"basic","cssClass":"chocolate","pushable":false,"fragile":true}]

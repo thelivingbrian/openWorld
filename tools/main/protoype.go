@@ -20,6 +20,8 @@ type Prototype struct {
 	Ceiling2Css string `json:"ceiling2css"`
 	SetName     string `json:"setName"`
 	MapColor    string `json:"mapColor"`
+	EditorColor string `json:"editorColor"`
+	DisplayText string `json:"displayText"`
 	//default map color bool?
 }
 
@@ -192,6 +194,8 @@ func (c Context) putPrototype(w http.ResponseWriter, r *http.Request) {
 	ceiling1 := properties["Ceiling1Css"]
 	ceiling2 := properties["Ceiling2Css"]
 	mapColor := properties["MapColor"]
+	editorColor := properties["EditorColor"]
+	displayText := properties["DisplayText"]
 
 	fmt.Printf("%s | Floor: %s - %s Ceiling: %s - %s\n", commonName, floor1, floor2, ceiling1, ceiling2)
 	panicIfAnyEmpty("Invalid prototype", id, commonName)
@@ -208,6 +212,8 @@ func (c Context) putPrototype(w http.ResponseWriter, r *http.Request) {
 	proto.Ceiling1Css = ceiling1
 	proto.Ceiling2Css = ceiling2
 	proto.MapColor = mapColor
+	proto.EditorColor = editorColor
+	proto.DisplayText = displayText
 
 	fmt.Println(proto)
 
@@ -243,6 +249,8 @@ func (c *Context) postPrototype(w http.ResponseWriter, r *http.Request) {
 	ceiling1 := properties["Ceiling1Css"]
 	ceiling2 := properties["Ceiling2Css"]
 	mapColor := properties["MapColor"]
+	editorColor := properties["EditorColor"]
+	displayText := properties["DisplayText"]
 
 	fmt.Printf("%s | Floor: %s - %s Ceiling: %s - %s\n", commonName, floor1, floor2, ceiling1, ceiling2)
 	panicIfAnyEmpty("Invalid prototype", commonName) // The rest may be empty legitimately
@@ -260,6 +268,8 @@ func (c *Context) postPrototype(w http.ResponseWriter, r *http.Request) {
 			Ceiling1Css: ceiling1,
 			Ceiling2Css: ceiling2,
 			MapColor:    mapColor,
+			EditorColor: editorColor,
+			DisplayText: displayText,
 		})
 
 	outFile := c.collectionPath + collectionName + "/prototypes/" + setName + ".json"
@@ -317,15 +327,21 @@ func examplePrototype(w http.ResponseWriter, r *http.Request) {
 // Utilities
 
 func (proto *Prototype) applyTransform(transformation Transformation) Material {
+	baseColor := proto.EditorColor
+	if baseColor == "" {
+		baseColor = proto.CssColor
+	}
 	return Material{
 		ID:          15793,
 		CommonName:  proto.CommonName,
 		Walkable:    proto.Walkable,
-		CssColor:    proto.CssColor,
+		CssColor:    baseColor,
 		Floor1Css:   transformCss(proto.Floor1Css, transformation),
 		Floor2Css:   transformCss(proto.Floor2Css, transformation),
 		Ceiling1Css: transformCss(proto.Ceiling1Css, transformation),
-		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation)}
+		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation),
+		DisplayText: proto.DisplayText,
+	}
 }
 func (proto *Prototype) applyTransformWithId(transformation Transformation, id int) Material {
 	return Material{
@@ -336,20 +352,27 @@ func (proto *Prototype) applyTransformWithId(transformation Transformation, id i
 		Floor1Css:   transformCss(proto.Floor1Css, transformation),
 		Floor2Css:   transformCss(proto.Floor2Css, transformation),
 		Ceiling1Css: transformCss(proto.Ceiling1Css, transformation),
-		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation)}
+		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation),
+		DisplayText: proto.DisplayText,
+	}
 }
 
 func (proto *Prototype) peekTransform(transformation Transformation) Prototype {
+	baseColor := proto.EditorColor
+	if baseColor == "" {
+		baseColor = proto.CssColor
+	}
 	return Prototype{
 		ID:          proto.ID,
 		SetName:     proto.SetName,
 		CommonName:  proto.CommonName,
 		Walkable:    proto.Walkable,
-		CssColor:    proto.CssColor,
+		CssColor:    baseColor,
 		Floor1Css:   transformCss(proto.Floor1Css, transformation),
 		Floor2Css:   transformCss(proto.Floor2Css, transformation),
 		Ceiling1Css: transformCss(proto.Ceiling1Css, transformation),
-		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation)}
+		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation),
+	}
 }
 
 // Template funcs

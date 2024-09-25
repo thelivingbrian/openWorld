@@ -1,0 +1,42 @@
+package main
+
+import "testing"
+
+func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
+	loadFromJson()
+	world := createGameWorld(testdb())
+	testStage := createStageByName("hallway")
+	updatesForPlayer := make(chan Update)
+	go drainChannel(updatesForPlayer)
+
+	player := &Player{
+		id:        "tp",
+		stage:     testStage,
+		stageName: testStage.name,
+		x:         4,
+		y:         1,
+		actions:   createDefaultActions(),
+		health:    100,
+		updates:   updatesForPlayer,
+		world:     world,
+	}
+	player.placeOnStage()
+
+	// Act
+	player.addBoosts(5)
+	player.moveNorthBoost()
+
+	// Assert
+	if player.stageName != "hallway2" {
+		t.Error("player stageName should be hallway2 but is: " + player.stageName)
+	}
+
+	if player.stage.name != "hallway2" {
+		t.Error("player.stage.name should be hallway2")
+	}
+
+	if player.y != 7 || player.x != 4 {
+		t.Error("Player should be ay y:7 x:4")
+
+	}
+}

@@ -20,6 +20,7 @@ func getImage(w http.ResponseWriter, r *http.Request) {
 	serveImage(w, r, parts[2])
 }
 
+// DDOS risk?
 func serveImage(w http.ResponseWriter, r *http.Request, fileName string) {
 	dir := "./data/images/"
 	fileName += ".png"

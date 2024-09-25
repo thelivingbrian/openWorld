@@ -9,11 +9,12 @@ import (
 )
 
 type Transport struct {
-	SourceY   int    `json:"sourceY"`
-	SourceX   int    `json:"sourceX"`
-	DestY     int    `json:"destY"`
-	DestX     int    `json:"destX"`
-	DestStage string `json:"destStage"`
+	SourceY      int    `json:"sourceY"`
+	SourceX      int    `json:"sourceX"`
+	DestY        int    `json:"destY"`
+	DestX        int    `json:"destX"`
+	DestStage    string `json:"destStage"`
+	Confirmation bool   `json:"confirmation"`
 }
 
 func (c *Context) getEditTransports(w http.ResponseWriter, r *http.Request) {
@@ -47,6 +48,8 @@ func (c Context) editTransport(w http.ResponseWriter, r *http.Request) {
 	sourceX, _ := strconv.Atoi(properties["transport-source-x"])
 	areaName := properties["transport-area-name"]
 
+	confirmation := (properties["confirmation"] == "on")
+
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
 	space := c.spaceFromNames(collectionName, spaceName)
@@ -62,6 +65,7 @@ func (c Context) editTransport(w http.ResponseWriter, r *http.Request) {
 	currentTransport.SourceY = sourceY
 	currentTransport.SourceX = sourceX
 	currentTransport.DestStage = destStage
+	currentTransport.Confirmation = confirmation
 
 	output := transportFormHtml(*selectedArea)
 	io.WriteString(w, output)
@@ -89,6 +93,10 @@ func (c Context) newTransport(w http.ResponseWriter, r *http.Request) {
 }
 
 func editTransportForm(i int, t Transport, sourceName string) string {
+	confirmationString := ""
+	if t.Confirmation {
+		confirmationString = "checked"
+	}
 	output := fmt.Sprintf(`
 	<form hx-post="/editTransport" hx-target="#edit_transports" hx-swap="outerHTML" hx-include="[name='currentCollection'],[name='currentSpace']">
 		<input type="hidden" name="transport-id" value="%d" />
@@ -126,12 +134,18 @@ func editTransportForm(i int, t Transport, sourceName string) string {
 					<input type="text" name="transport-css-class" value="%s" />
 				</td>
 			<tr />
+			<tr>
+				<td align="right">Confirmation:</td>
+				<td align="left">
+					<input type="checkbox" name="confirmation" %s />
+				</td>
+			<tr />
 		</table>
 
 		<button class="btn">Submit</button>
 		<button class="btn" hx-post="/dupeTransport" hx-include="[name='area-name'],[name='currentCollection'],[name='currentSpace']">Duplicate</button>
 		<button class="btn" hx-post="/deleteTransport" hx-include="[name='area-name'],[name='currentCollection'],[name='currentSpace']">Delete</button>
-	</form>`, i, sourceName, t.DestStage, t.DestY, t.DestX, t.SourceY, t.SourceX, "pink")
+	</form>`, i, sourceName, t.DestStage, t.DestY, t.DestX, t.SourceY, t.SourceX, "pink", confirmationString)
 	return output
 }
 

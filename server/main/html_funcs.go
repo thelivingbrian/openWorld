@@ -48,16 +48,16 @@ func htmlFromTileGrid(tiles [][]*Tile, py, px int) [][]string {
 	return output
 }
 
-func spaceHighlighter(tile *Tile) string {
+func spaceHighlighter(_ *Tile) string {
 	/*
 		This has bugs because it doesn't update on movement of the other player, only the highlight viewer
 		if len(tile.playerMap) > 0 {
 			return "half-trsp dark-blue"
 		}
 	*/
-	if walkable(tile) {
-		return "half-trsp salmon" // vs "" to show no effect
-	}
+	//if walkable(tile) {
+	//	return "half-trsp salmon" // vs "" to show no effect
+	//}
 	return "half-trsp salmon"
 }
 
@@ -281,6 +281,7 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 	// Still risk here of concurrent read/write?
 	for _, tile := range tiles {
 		if tile == nil {
+			fmt.Println(".") // seems to match number of actual highlights to add
 			continue
 		}
 		if tile.stage != player.stage {

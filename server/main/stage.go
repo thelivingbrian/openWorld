@@ -3,21 +3,19 @@ package main
 import (
 	"fmt"
 	"sync"
-
-	"github.com/gorilla/websocket"
 )
 
 type Stage struct {
 	tiles       [][]*Tile          // [][]**Tile would be weird and open up FP over mutation (also lookup is less fragile)
 	playerMap   map[string]*Player // Player Map to Bson map to save whole stage in one command
 	playerMutex sync.Mutex
-	updates     chan Update
 	name        string
 	north       string
 	south       string
 	east        string
 	west        string
 	mapId       string
+	spawn       func(*Stage)
 }
 
 // benchmark this please
@@ -39,6 +37,7 @@ func (world *World) getNamedStageOrDefault(name string) *Stage {
 	return stage
 }
 
+// compare these two
 func (world *World) getStageByName(name string) *Stage {
 	world.wStageMutex.Lock()
 	defer world.wStageMutex.Unlock()
@@ -46,26 +45,25 @@ func (world *World) getStageByName(name string) *Stage {
 }
 
 func (world *World) loadStageByName(name string) *Stage {
-	stage := createStageByName(name)
+	area, success := areaFromName(name)
+	if !success {
+		return nil
+	}
+	stage := createStageFromArea(area)
+	if area.LoadStrategy == "Individual" {
+		return stage
+	}
 	if stage != nil {
 		world.wStageMutex.Lock()
 		world.worldStages[name] = stage
 		world.wStageMutex.Unlock()
-		go stage.sendUpdates()
 	}
 	return stage
 }
 
-func createStageByName(s string) *Stage {
-	updatesForStage := make(chan Update)
-	area, success := areaFromName(s)
-	if !success {
-		return nil
-	}
-	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, updatesForStage, s, area.North, area.South, area.East, area.West, area.MapId}
-
-	fmt.Println("Creating stage: " + area.Name)
-
+func createStageFromArea(area Area) *Stage {
+	spawnAction := spawnActions[area.SpawnStrategy]
+	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, area.Name, area.North, area.South, area.East, area.West, area.MapId, spawnAction}
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
 		for x := range outputStage.tiles[y] {
@@ -74,13 +72,13 @@ func createStageByName(s string) *Stage {
 			if area.Interactables != nil && y < len(area.Interactables) && x < len(area.Interactables[y]) {
 				description := area.Interactables[y][x]
 				if description != nil {
-					outputStage.tiles[y][x].interactable = &Interactable{pushable: description.Pushable, cssClass: description.CssClass}
+					outputStage.tiles[y][x].interactable = &Interactable{cssClass: description.CssClass, pushable: description.Pushable, fragile: description.Fragile}
 				}
 			}
 		}
 	}
 	for _, transport := range area.Transports {
-		outputStage.tiles[transport.SourceY][transport.SourceX].teleport = &Teleport{transport.DestStage, transport.DestY, transport.DestX}
+		outputStage.tiles[transport.SourceY][transport.SourceX].teleport = &Teleport{transport.DestStage, transport.DestY, transport.DestX, area.Name, transport.Confirmation}
 
 		// Change this
 		mat := outputStage.tiles[transport.SourceY][transport.SourceX].material
@@ -104,31 +102,6 @@ func (stage *Stage) addPlayer(player *Player) {
 	stage.playerMutex.Unlock()
 }
 
-////////////////////////////////////////////////////////////
-//   Updates
-
-func (stage *Stage) sendUpdates() {
-	for {
-		update, ok := <-stage.updates
-		if !ok {
-			fmt.Println("Stage update channel closed")
-			return
-		}
-
-		sendUpdate(update)
-	}
-}
-
-func sendUpdate(update Update) {
-	update.player.connLock.Lock()
-	defer update.player.connLock.Unlock()
-	if update.player.conn != nil {
-		update.player.conn.WriteMessage(websocket.TextMessage, update.update)
-	} else {
-		fmt.Println("WARN: Attempted to serve update to expired connection.")
-	}
-}
-
 // Enqueue updates
 
 func (stage *Stage) updateAllWithHud(tiles []*Tile) {
@@ -139,15 +112,12 @@ func (stage *Stage) updateAllWithHud(tiles []*Tile) {
 	}
 }
 
-func (stage *Stage) updateAllWithHudExcept(ignore *Player, tiles []*Tile) {
-	stage.playerMutex.Lock()
-	defer stage.playerMutex.Unlock()
-	for _, player := range stage.playerMap {
-		if player == ignore {
-			continue
-		}
-		oobUpdateWithHud(player, tiles)
-	}
+func oobUpdateWithHud(player *Player, tiles []*Tile) {
+	// If "shared highlights" e.g. explosive damage had own channel this would be unneeded.
+	// At present it solves the problem of when a global highlight resets each individual player
+	// may view the reset value differently.
+	// Weather channel?
+	player.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles))}
 }
 
 func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
@@ -158,12 +128,7 @@ func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
 		previousBoxes += playerBox(previous) // This box may be including the user as well so it needs an update
 	}
 
-	player.stage.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles) + previousBoxes + playerIcon)}
-}
-
-func oobUpdateWithHud(player *Player, tiles []*Tile) {
-	// Is this getting blocked? where does this return to
-	player.stage.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles))}
+	player.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles) + previousBoxes + playerIcon)}
 }
 
 func (stage *Stage) updateAll(update string) {
@@ -186,9 +151,9 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 }
 
 func updateOne(update string, player *Player) {
-	player.stage.updates <- Update{player, []byte(update)}
+	player.updates <- Update{player, []byte(update)}
 }
 
 func updateScreenFromScratch(player *Player) {
-	player.stage.updates <- Update{player, htmlFromPlayer(player)}
+	player.updates <- Update{player, htmlFromPlayer(player)}
 }

@@ -14,6 +14,7 @@ type Player struct {
 	world      *World
 	stage      *Stage
 	tile       *Tile
+	updates    chan Update
 	stageName  string
 	conn       *websocket.Conn
 	connLock   sync.Mutex
@@ -26,6 +27,7 @@ type Player struct {
 	experience int
 	killstreak int
 	streakLock sync.Mutex
+	menues     map[string]Menu
 }
 
 // Health observer, All Health changes should go through here
@@ -88,7 +90,6 @@ func (player *Player) addToHealth(n int) bool {
 // always called with placeOnStage?
 func (p *Player) assignStageAndListen() {
 	stage := p.world.getNamedStageOrDefault(p.stageName)
-	fmt.Println("Have a stage")
 	if stage == nil {
 		log.Fatal("Fatal: Default Stage Not Found.")
 	}
@@ -107,6 +108,7 @@ func (p *Player) placeOnStage() {
 }
 
 func (player *Player) handleDeath() {
+	player.tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10) // Tile money needs mutex?
 	player.removeFromStage()
 	respawn(player)
 }
@@ -145,7 +147,7 @@ func (p *Player) moveNorthBoost() {
 	if p.actions.boostCounter > 0 {
 		p.useBoost()
 		p.pushUnder(-1, 0)
-		if p.y == 0 {
+		if p.y <= 1 {
 			p.tryGoNeighbor(-2, 0)
 			return
 		}
@@ -268,7 +270,12 @@ func (w *World) initialPush(tile *Tile, yOff, xOff int) bool {
 	defer tile.interactableMutex.Unlock()
 	w.push(tile, yOff, xOff)
 	tile.stage.updateAll(interactableBox(tile))
-	return walkable(tile)
+
+	if tile.interactable == nil {
+		return walkable(tile)
+	} else {
+		return tile.interactable.pushable
+	}
 }
 
 func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability of the tile for an interactible
@@ -339,7 +346,6 @@ func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
 			if xOff > 0 {
 				newStage = w.getStageByName(tile.stage.east)
 				if newStage == nil {
-					fmt.Println("New stage was nil")
 					newStage = w.loadStageByName(tile.stage.east)
 				}
 			}
@@ -400,8 +406,10 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 
 func (player *Player) activatePower() {
 	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
+	// pop power and use shape + player coords instead?
 	for tile := range player.actions.spaceHighlights {
 		tile.damageAll(50, player)
+		tile.destroy(player)
 
 		tileToHighlight := tile.incrementAndReturnIfFirst()
 		if tileToHighlight != nil {
@@ -421,7 +429,7 @@ func (player *Player) activatePower() {
 
 func (player *Player) applyTeleport(teleport *Teleport) {
 	if player.stageName != teleport.destStage {
-		player.removeFromStage()
+		player.removeFromStage() // This was always happening before but in multiple places
 	}
 	player.stageName = teleport.destStage
 	player.y = teleport.destY
@@ -431,12 +439,41 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	player.placeOnStage()
 }
 
+////////////////////////////////////////////////////////////
+//   Updates
+
+func (player *Player) sendUpdates() {
+	for {
+		update, ok := <-player.updates
+		if !ok {
+			fmt.Println("Stage update channel closed")
+			return
+		}
+
+		sendUpdate(update)
+	}
+}
+
+func sendUpdate(update Update) {
+	update.player.connLock.Lock()
+	defer update.player.connLock.Unlock()
+	if update.player.conn != nil {
+		update.player.conn.WriteMessage(websocket.TextMessage, update.update)
+	} else {
+		fmt.Println("WARN: Attempted to serve update to expired connection.")
+	}
+}
+
 func (player *Player) updateBottomText(message string) {
 	msg := fmt.Sprintf(`
 			<div id="bottom_text">
 				&nbsp;&nbsp;> %s
 			</div>`, message)
 	updateOne(msg, player)
+}
+
+func (p *Player) trySend(msg []byte) {
+	p.updates <- Update{p, msg}
 }
 
 /*
@@ -475,7 +512,7 @@ type Actions struct {
 
 type PowerUp struct {
 	areaOfInfluence [][2]int
-	damageAtRadius  [4]int
+	//damageAtRadius  [4]int // unused
 }
 
 type StackOfPowerUp struct {
