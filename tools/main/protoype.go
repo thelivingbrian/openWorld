@@ -28,6 +28,7 @@ type Prototype struct {
 type Transformation struct {
 	ClockwiseRotations int    `json:"clockwiseRotations,omitempty"`
 	ColorPalette       string `json:"colorPalette,omitempty"`
+	// BlendNeighbors bool
 }
 
 type TileData struct {
