@@ -251,9 +251,9 @@ func inclusionProbability(d, r, fuzz float64) float64 {
 }
 
 func TestCircleGeneration(t *testing.T) {
-	n := 64             // Size of the grid
+	n := 90             // Size of the grid
 	r := float64(n) / 3 // Radius of the circle
-	fuzz := 1.9         // Fuzz factor; adjust this to vary sharpness
+	fuzz := 4.7         // Fuzz factor; adjust this to vary sharpness
 
 	// Center of the circle
 	cx, cy := float64(n)/2, float64(n)/2
