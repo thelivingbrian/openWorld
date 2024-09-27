@@ -2,11 +2,8 @@ package main
 
 import (
 	"fmt"
-	"math"
-	"math/rand"
 	"sync"
 	"testing"
-	"time"
 )
 
 func TestEnsureInteractableWillPush(t *testing.T) {
@@ -233,63 +230,5 @@ func TestEnsureNoInteractableDuplication(t *testing.T) {
 	// Assert
 	if totalInteractables != 11 {
 		t.Errorf("Expected 11 interactables on the stage, found %d", totalInteractables)
-	}
-}
-
-// Inclusion function using the logistic function
-func inclusionProbability(d, r, fuzz float64) float64 {
-	return 1 / (1 + math.Exp((d-r)/fuzz))
-	/*
-		if d < r-fuzz {
-			return 1.0
-		} else if d > r+fuzz {
-			return 0.0
-		} else {
-			return 1 - (d-(r-fuzz))/(2*fuzz)
-		}
-	*/
-}
-
-func TestCircleGeneration(t *testing.T) {
-	n := 90             // Size of the grid
-	r := float64(n) / 3 // Radius of the circle
-	fuzz := 4.7         // Fuzz factor; adjust this to vary sharpness
-
-	// Center of the circle
-	cx, cy := float64(n)/2, float64(n)/2
-
-	// Initialize the bit array
-	grid := make([][]int, n)
-	for i := range grid {
-		grid[i] = make([]int, n)
-	}
-
-	rand.Seed(time.Now().UnixNano())
-
-	// Fill the grid
-	for i := 0; i < n; i++ {
-		for j := 0; j < n; j++ {
-			dx := float64(i) - cx
-			dy := float64(j) - cy
-			d := math.Hypot(dx, dy)
-			p := inclusionProbability(d, r, fuzz)
-			if rand.Float64() < p {
-				grid[i][j] = 1
-			} else {
-				grid[i][j] = 0
-			}
-		}
-	}
-
-	// For demonstration, print the grid to the console
-	for i := 0; i < n; i++ {
-		for j := 0; j < n; j++ {
-			if grid[i][j] == 1 {
-				fmt.Print("██")
-			} else {
-				fmt.Print("  ")
-			}
-		}
-		fmt.Println()
 	}
 }
