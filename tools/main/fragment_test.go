@@ -5,6 +5,8 @@ import (
 	"math"
 	"math/rand"
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 // Inclusion function using the logistic function
@@ -30,8 +32,91 @@ type Corner struct {
 	a, b, c, d *Cell
 }
 
-func TestCircleGeneration(t *testing.T) {
-	n := 32             // Size of the grid
+func TestGenerateAllPrototypes(t *testing.T) {
+	var color1, color2 string
+	color1, color2 = "grass", "sand"
+
+	color1OnTop := cornerVariations(color1, color2)
+	color2OnTop := cornerVariations(color2, color1)
+
+	cells := Generate()
+
+	tiles := make([][]TileData, 16)
+	for i := range tiles {
+		tiles[i] = make([]TileData, 16)
+		for j := range tiles[i] {
+			id := "BLAH"
+			cell := &cells[i][j]
+			if cell.status == 1 {
+				id = color2OnTop[roundednessToInt(cell.topLeft, cell.topRight, cell.bottomLeft, cell.bottomRight)].ID
+			} else {
+				id = color1OnTop[roundednessToInt(cell.topLeft, cell.topRight, cell.bottomLeft, cell.bottomRight)].ID
+			}
+			tiles[i][j] = TileData{PrototypeId: id}
+		}
+	}
+
+	bp := Blueprint{Tiles: tiles}
+	fragment := Fragment{ID: uuid.NewString(), Name: "test-frag", SetName: "proc-frags", Blueprint: &bp}
+
+	fragments := make([]Fragment, 0)
+	fragments = append(fragments, fragment)
+
+	outFile := "./data/proc/proc-frags.json"
+	err := writeJsonFile(outFile, fragments)
+	if err != nil {
+		panic(err)
+	}
+
+	outFile2 := "./data/proc/proc-floors.json"
+	protos := append(color1OnTop, color2OnTop...)
+	err = writeJsonFile(outFile2, protos)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func roundednessToInt(tl, tr, bl, br bool) int {
+	return (boolToInt(tl) << 3) | (boolToInt(tr) << 2) | (boolToInt(bl) << 1) | boolToInt(br)
+}
+
+func boolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
+
+func cornerVariations(top, bottom string) []Prototype {
+	protos := make([]Prototype, 16)
+	protos[0] = Prototype{ID: uuid.New().String(), Floor1Css: top, MapColor: top, SetName: "proc-floors"}
+	for i := 1; i < 16; i++ {
+		tl, tr, bl, br := "", "", "", ""
+		if i&8 != 0 {
+			tl = "r0-{rotate:tl}"
+		}
+		if i&4 != 0 {
+			tr = "r0-{rotate:tr}"
+		}
+		if i&2 != 0 {
+			bl = "r0-{rotate:bl}"
+		}
+		if i&1 != 0 {
+			br = "r0-{rotate:br}"
+		}
+		protos[i] = Prototype{
+			ID:        uuid.New().String(),
+			Floor1Css: bottom,
+			Floor2Css: top + tl + tr + bl + br,
+			MapColor:  top,
+			SetName:   "proc-floors",
+		}
+	}
+	return protos
+}
+
+func Generate() [][]Cell {
+	n := 16             // Size of the grid
 	r := float64(n) / 3 // Radius of the circle
 	fuzz := 1.7         // Fuzz factor; adjust this to vary sharpness
 
@@ -118,9 +203,11 @@ func TestCircleGeneration(t *testing.T) {
 		}
 	}
 
-	for i := 0; i < n; i++ {
-		PrintCells(cells[i])
-	}
+	//for i := 0; i < n; i++ {
+	//	PrintCells(cells[i])
+	//}
+
+	return cells
 }
 
 func PrintCells(cells []Cell) {

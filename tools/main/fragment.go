@@ -17,8 +17,9 @@ type Fragment struct {
 	Blueprint *Blueprint `json:"blueprint"`
 }
 
+// For templates
 type FragmentDetails struct {
-	ID          string `json:"id"`
+	ID          string `json:"id"` // json not needed?
 	Name        string
 	SetName     string
 	GridDetails GridDetails
