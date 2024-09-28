@@ -62,13 +62,13 @@ func TestGenerateAllPrototypes(t *testing.T) {
 	fragments := make([]Fragment, 0)
 	fragments = append(fragments, fragment)
 
-	outFile := "./data/proc/proc-frags.json"
+	outFile := "./data/collections/bloop/fragments/proc-frags.json"
 	err := writeJsonFile(outFile, fragments)
 	if err != nil {
 		panic(err)
 	}
 
-	outFile2 := "./data/proc/proc-floors.json"
+	outFile2 := "./data/collections/bloop/prototypes/proc-floors.json"
 	protos := append(color1OnTop, color2OnTop...)
 	err = writeJsonFile(outFile2, protos)
 	if err != nil {
@@ -93,16 +93,16 @@ func cornerVariations(top, bottom string) []Prototype {
 	for i := 1; i < 16; i++ {
 		tl, tr, bl, br := "", "", "", ""
 		if i&8 != 0 {
-			tl = "r0-{rotate:tl}"
+			tl = " r0-{rotate:tl}"
 		}
 		if i&4 != 0 {
-			tr = "r0-{rotate:tr}"
+			tr = " r0-{rotate:tr}"
 		}
 		if i&2 != 0 {
-			bl = "r0-{rotate:bl}"
+			bl = " r0-{rotate:bl}"
 		}
 		if i&1 != 0 {
-			br = "r0-{rotate:br}"
+			br = " r0-{rotate:br}"
 		}
 		protos[i] = Prototype{
 			ID:        uuid.New().String(),
