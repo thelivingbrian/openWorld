@@ -105,8 +105,8 @@
     <div id="edit_sidebar" class="left">
         <div id="edit_options">
             <a href="#">Details</a> |
+			<a href="#">Structures</a> |
             <span>Modify Areas</span> |
-            <span>View/Apply Matrix</span> |
             <span>All Transports</a> 
         </div>
         <div id="edit_tool_space">
@@ -123,12 +123,29 @@
 <div id="save-details">
     <div id="save_notice"></div>
     <form hx-target="#save_notice">
-        <label>{{.Name}}</label><br />
-        <span>Topology: {{.Topology}}</span><br />
-        <span>Latitude: {{.Latitude}}</span><br />
-        <span>Longitude: {{.Longitude}}</span><br />
-        <span>AreaHeight: {{.AreaHeight}}</span><br />
-        <span>AreaWidth: {{.AreaWidth}}</span><br />
+        <h2 class="no-top-margin">{{.Name}}</h2>
+        <table>
+            <tr>
+                <td><strong>Topology:</strong></td>
+                <td>{{.Topology}}</td>
+            </tr>
+            <tr>
+                <td><strong>Latitude:</strong></td>
+                <td>{{.Latitude}}</td>
+            </tr>
+            <tr>
+                <td><strong>Longitude:</strong></td>
+                <td>{{.Longitude}}</td>
+            </tr>
+            <tr>
+                <td><strong>Area Height:</strong></td>
+                <td>{{.AreaHeight}}</td>
+            </tr>
+            <tr>
+                <td><strong>Area Width:</strong></td>
+                <td>{{.AreaWidth}}</td>
+            </tr>
+        </table>
     </form>
 </div>
 {{end}}

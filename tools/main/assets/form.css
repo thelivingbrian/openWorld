@@ -57,6 +57,10 @@ a:hover, a:focus {
     display: inline-block;
     font-weight: bold;
   }
+
+  .no-top-margin {
+    margin-top: 0;
+}
   
   /* Responsive adjustments */
   @media (max-width: 600px) {

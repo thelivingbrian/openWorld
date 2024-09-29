@@ -49,7 +49,7 @@ func (c *Context) postCollections(w http.ResponseWriter, r *http.Request) {
 }
 
 func createCollectionDirectories(name string, path string) {
-	dirs := []string{"prototypes", "fragments", "spaces", "interactables"}
+	dirs := []string{"prototypes", "fragments", "spaces", "interactables", "proc/prototypes", "proc/fragments", "proc/structures"}
 
 	for _, dir := range dirs {
 		fullPath := filepath.Join(path, name, dir)
@@ -86,6 +86,7 @@ func (col *Collection) findPrototypeById(id string) *Prototype {
 			}
 		}
 	}
+	// Modify to add source
 	fmt.Println("Invalid Prototype lookup: " + id)
 	return nil
 }
