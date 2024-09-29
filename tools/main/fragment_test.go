@@ -1,6 +1,9 @@
 package main
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
@@ -39,6 +42,18 @@ func TestGenerateAllPrototypes(t *testing.T) {
 			panic(err)
 		}
 	*/
+}
+
+func hashStructMD5(p Prototype) (string, error) {
+	p.ID = "" // This prevents recursive match prevention
+	jsonData, err := json.Marshal(p)
+	if err != nil {
+		return "", err
+	}
+
+	// Generate MD5 hash and convert to hex
+	hash := md5.Sum(jsonData)
+	return hex.EncodeToString(hash[:]), nil
 }
 
 func makeFragmentFromCells(cells [][]Cell) Fragment {
@@ -98,6 +113,7 @@ func makePrototypeVariations(top, bottom string) []Prototype {
 			Floor1Css: bottom,
 			Floor2Css: top + tl + tr + bl + br,
 			MapColor:  top,
+			Walkable:  true,
 			SetName:   "proc-floors",
 		}
 	}
