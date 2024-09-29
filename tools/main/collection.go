@@ -9,11 +9,13 @@ import (
 )
 
 type Collection struct {
-	Name             string
-	Spaces           map[string]*Space
-	Fragments        map[string][]Fragment
-	PrototypeSets    map[string][]Prototype
-	InteractableSets map[string][]InteractableDescription
+	Name                 string
+	Spaces               map[string]*Space
+	Fragments            map[string][]Fragment
+	PrototypeSets        map[string][]Prototype
+	ProceeduralFragments map[string][]Fragment
+	ProceeduralProtos    map[string][]Prototype
+	InteractableSets     map[string][]InteractableDescription
 }
 
 func (c *Context) collectionsHandler(w http.ResponseWriter, r *http.Request) {
@@ -86,7 +88,13 @@ func (col *Collection) findPrototypeById(id string) *Prototype {
 			}
 		}
 	}
-	// Modify to add source
+	for _, set := range col.ProceeduralProtos {
+		for i := range set {
+			if set[i].ID == id {
+				return &set[i]
+			}
+		}
+	}
 	fmt.Println("Invalid Prototype lookup: " + id)
 	return nil
 }

@@ -24,27 +24,44 @@ type Corner struct {
 func TestGenerateAllPrototypes(t *testing.T) {
 
 	cells := GenerateCircle(16, 1.7)
+	fragment, prototypes := makeAssetsFromCells(cells)
 
 	fragments := make([]Fragment, 0)
-	fragments = append(fragments, makeFragmentFromCells(cells))
+	fragments = append(fragments, fragment)
 
-	/*
-		outFile := "./data/collections/bloop/fragments/proc-frags.json"
-		err := writeJsonFile(outFile, fragments)
-		if err != nil {
-			panic(err)
-		}
+	outFile := "./data/collections/bloop/fragments/ground-patterns.json"
+	err := writeJsonFile(outFile, fragments)
+	if err != nil {
+		panic(err)
+	}
 
-		outFile2 := "./data/collections/bloop/prototypes/proc-floors.json"
-		protos := append(color1OnTop, color2OnTop...)
-		err = writeJsonFile(outFile2, protos)
-		if err != nil {
-			panic(err)
-		}
-	*/
+	outFile2 := "./data/collections/bloop/proc/prototypes/floors.json"
+	err = writeJsonFile(outFile2, prototypes)
+	if err != nil {
+		panic(err)
+	}
+
 }
 
-func hashStructMD5(p Prototype) (string, error) {
+func insertDiff(protoSource, protoQuery []Prototype) []Prototype {
+	for i := range protoQuery {
+		if !hasMatchingId(protoSource, protoQuery[i].ID) {
+			protoSource = append(protoSource, protoQuery[i])
+		}
+	}
+	return protoSource
+}
+
+func hasMatchingId(list []Prototype, id string) bool {
+	for i := range list {
+		if list[i].ID == id {
+			return true
+		}
+	}
+	return false
+}
+
+func md5ForPrototype(p Prototype) (string, error) {
 	p.ID = "" // This prevents recursive match prevention
 	jsonData, err := json.Marshal(p)
 	if err != nil {
@@ -56,7 +73,7 @@ func hashStructMD5(p Prototype) (string, error) {
 	return hex.EncodeToString(hash[:]), nil
 }
 
-func makeFragmentFromCells(cells [][]Cell) Fragment {
+func makeAssetsFromCells(cells [][]Cell) (Fragment, []Prototype) {
 	color1, color2 := "grass", "sand"
 
 	color1OnTop := makePrototypeVariations(color1, color2)
@@ -77,7 +94,9 @@ func makeFragmentFromCells(cells [][]Cell) Fragment {
 		}
 	}
 	bp := Blueprint{Tiles: tiles}
-	return Fragment{ID: uuid.NewString(), Name: "test-frag", SetName: "proc-frags", Blueprint: &bp}
+	fragment := Fragment{ID: uuid.NewString(), Name: "test-frag", SetName: "ground-patterns", Blueprint: &bp}
+	prototypes := insertDiff(color1OnTop, color2OnTop)
+	return fragment, prototypes
 }
 
 func roundednessToInt(tl, tr, bl, br bool) int {
@@ -93,7 +112,8 @@ func boolToInt(b bool) int {
 
 func makePrototypeVariations(top, bottom string) []Prototype {
 	protos := make([]Prototype, 16)
-	protos[0] = Prototype{ID: uuid.New().String(), Floor1Css: top, MapColor: top, SetName: "proc-floors"}
+	protos[0] = Prototype{ID: "", Floor1Css: top, MapColor: top, SetName: "floors"}
+	protos[0].assignMd5()
 	for i := 1; i < 16; i++ {
 		tl, tr, bl, br := "", "", "", ""
 		if i&8 != 0 {
@@ -109,15 +129,24 @@ func makePrototypeVariations(top, bottom string) []Prototype {
 			br = " r0-{rotate:br}"
 		}
 		protos[i] = Prototype{
-			ID:        uuid.New().String(),
+			ID:        "",
 			Floor1Css: bottom,
 			Floor2Css: top + tl + tr + bl + br,
 			MapColor:  top,
 			Walkable:  true,
 			SetName:   "proc-floors",
 		}
+		protos[i].assignMd5()
 	}
 	return protos
+}
+
+func (p *Prototype) assignMd5() {
+	id, err := md5ForPrototype(*p)
+	if err != nil {
+		panic(err)
+	}
+	p.ID = id
 }
 
 func GenerateCircle(gridSize int, fuzz float64) [][]Cell {
