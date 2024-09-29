@@ -142,13 +142,12 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 		entry, _ := dir.Info()
 		if entry.IsDir() {
 			collection := Collection{
-				Name:                 entry.Name(),
-				Spaces:               make(map[string]*Space),
-				Fragments:            make(map[string][]Fragment),
-				PrototypeSets:        make(map[string][]Prototype),
-				ProceeduralFragments: make(map[string][]Fragment),
-				ProceeduralProtos:    make(map[string][]Prototype),
-				InteractableSets:     make(map[string][]InteractableDescription),
+				Name:              entry.Name(),
+				Spaces:            make(map[string]*Space),
+				Fragments:         make(map[string][]Fragment),
+				PrototypeSets:     make(map[string][]Prototype),
+				ProceeduralProtos: make(map[string][]Prototype),
+				InteractableSets:  make(map[string][]InteractableDescription),
 			}
 
 			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")

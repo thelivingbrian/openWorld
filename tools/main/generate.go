@@ -6,25 +6,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"math/rand"
-	"testing"
+	"math/rand/v2"
 
 	"github.com/google/uuid"
 )
 
-type Cell struct {
-	status                                     int
-	bottomRight, bottomLeft, topRight, topLeft bool
-}
-
-type Corner struct {
-	a, b, c, d *Cell
-}
-
-func TestGenerateAllPrototypes(t *testing.T) {
-
-	cells := GenerateCircle(16, 1.7)
-	fragment, prototypes := makeAssetsFromCells(cells)
+func generateAndSaveGroundPattern() {
+	cells := GenerateCircle(16)
+	fragment, prototypes := makeAssetsFromCells(cells, "grass", "sand")
 
 	fragments := make([]Fragment, 0)
 	fragments = append(fragments, fragment)
@@ -41,6 +30,29 @@ func TestGenerateAllPrototypes(t *testing.T) {
 		panic(err)
 	}
 
+}
+
+///////////////////////////////////////////////////////
+// Proceedural Prototype Management
+
+func (p *Prototype) assignMd5() {
+	id, err := md5ForPrototype(*p)
+	if err != nil {
+		panic(err)
+	}
+	p.ID = id
+}
+
+func md5ForPrototype(p Prototype) (string, error) {
+	p.ID = "" // This prevents recursive match prevention
+	jsonData, err := json.Marshal(p)
+	if err != nil {
+		return "", err
+	}
+
+	// Generate MD5 hash and convert to hex
+	hash := md5.Sum(jsonData)
+	return hex.EncodeToString(hash[:]), nil
 }
 
 func insertDiff(protoSource, protoQuery []Prototype) []Prototype {
@@ -61,21 +73,174 @@ func hasMatchingId(list []Prototype, id string) bool {
 	return false
 }
 
-func md5ForPrototype(p Prototype) (string, error) {
-	p.ID = "" // This prevents recursive match prevention
-	jsonData, err := json.Marshal(p)
-	if err != nil {
-		return "", err
-	}
+///////////////////////////////////////////////////////
+// Ground Pattern Generation
 
-	// Generate MD5 hash and convert to hex
-	hash := md5.Sum(jsonData)
-	return hex.EncodeToString(hash[:]), nil
+type Cell struct {
+	status                                     int
+	bottomRight, bottomLeft, topRight, topLeft bool
 }
 
-func makeAssetsFromCells(cells [][]Cell) (Fragment, []Prototype) {
-	color1, color2 := "grass", "sand"
+type Corner struct {
+	a, b, c, d *Cell
+}
 
+func GenerateCircle(gridSize int) [][]Cell {
+	cells := smoothCorners(gridWithCircle(16, "", 1.7))
+	return cells
+}
+
+func gridWithCircle(gridSize int, strategy string, fuzz float64) [][]Cell {
+	cells := make([][]Cell, gridSize)
+	for i := range cells {
+		cells[i] = make([]Cell, gridSize)
+	}
+	radius := float64(gridSize) / 3
+	probability := logisticProbability
+	if strategy == "linear" {
+		probability = linearProbability
+	}
+	cx, cy := float64(gridSize)/2, float64(gridSize)/2
+	for i := 0; i < gridSize; i++ {
+		for j := 0; j < len(cells[i]); j++ {
+			dx := float64(i) - cx
+			dy := float64(j) - cy
+			d := math.Hypot(dx, dy)
+			p := probability(d, radius, fuzz)
+			if rand.Float64() < p {
+				cells[i][j].status = 1
+			} else {
+				cells[i][j].status = 0
+			}
+		}
+	}
+	printCells(cells)
+	return cells
+}
+
+func smoothCorners(cells [][]Cell) [][]Cell {
+	gridSize := len(cells)
+	// Create the Corner array
+	corners := make([][]*Corner, gridSize-1)
+	for i := 0; i < gridSize-1; i++ {
+		corners[i] = make([]*Corner, gridSize-1)
+		for j := 0; j < gridSize-1; j++ {
+			corners[i][j] = &Corner{
+				a: &cells[i][j],
+				b: &cells[i][j+1],
+				c: &cells[i+1][j],
+				d: &cells[i+1][j+1]}
+		}
+	}
+
+	// gl future me
+	// Find the roundness of each cell's corners
+	for i := 0; i < gridSize-1; i++ {
+		for j := 0; j < gridSize-1; j++ {
+			corner := corners[i][j]
+			count := corner.a.status + corner.b.status + corner.c.status + corner.d.status
+			if count == 4 || count == 0 {
+				corner.a.bottomRight = false
+				corner.b.bottomLeft = false
+				corner.c.topRight = false
+				corner.d.topLeft = false
+			} else if count == 3 {
+				corner.a.bottomRight = !(corner.a.status == 1)
+				corner.b.bottomLeft = !(corner.b.status == 1)
+				corner.c.topRight = !(corner.c.status == 1)
+				corner.d.topLeft = !(corner.d.status == 1)
+			} else if count == 1 {
+				corner.a.bottomRight = (corner.a.status == 1)
+				corner.b.bottomLeft = (corner.b.status == 1)
+				corner.c.topRight = (corner.c.status == 1)
+				corner.d.topLeft = (corner.d.status == 1)
+			} else if count == 2 {
+				if corner.a.status == corner.b.status || corner.a.status == corner.c.status {
+					corner.a.bottomRight = false
+					corner.b.bottomLeft = false
+					corner.c.topRight = false
+					corner.d.topLeft = false
+				} else { // corner.a.status is equal to corner.d status
+					if rand.Float64() < .5 {
+						corner.a.bottomRight = true
+						corner.b.bottomLeft = false
+						corner.c.topRight = false
+						corner.d.topLeft = true
+					} else {
+						corner.a.bottomRight = false
+						corner.b.bottomLeft = true
+						corner.c.topRight = true
+						corner.d.topLeft = false
+					}
+				}
+			}
+		}
+	}
+
+	printCellCorners(cells)
+	return cells
+}
+
+// //////////////////////////////////////////////////
+//  Inclusion probability functions
+
+// Inclusion function using the logistic function
+var logisticProbability = func(d, r, fuzz float64) float64 {
+	// If fuzz is positive, probability follows sigmoid graph from 1 to 0
+	// as (d - r) e.g. signed distance goes from very negative to very far away
+	return 1 / (1 + math.Exp((d-r)/fuzz))
+}
+
+// Inclusion function with linear dropoff
+var linearProbability = func(d, r, fuzz float64) float64 {
+	if d < r-fuzz {
+		return 1.0
+	} else if d > r+fuzz {
+		return 0.0
+	} else {
+		return 1 - (d-(r-fuzz))/(2*fuzz)
+	}
+}
+
+func printCellCorners(cells [][]Cell) {
+	for i := range cells {
+		top, bottom := "", ""
+		for _, cell := range cells[i] {
+			tl := boolToChar(cell.topLeft, "██", "  ")
+			tr := boolToChar(cell.topRight, "██", "  ")
+			bl := boolToChar(cell.bottomLeft, "██", "  ")
+			br := boolToChar(cell.bottomRight, "██", "  ")
+
+			top += tl + tr
+			bottom += bl + br
+		}
+		fmt.Println(top)
+		fmt.Println(bottom)
+	}
+}
+
+func boolToChar(condition bool, trueChar, falseChar string) string {
+	if condition {
+		return trueChar
+	}
+	return falseChar
+}
+
+func printCells(grid [][]Cell) {
+	n := len(grid)
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
+			if grid[i][j].status == 1 {
+				fmt.Print("██")
+			} else {
+				fmt.Print("  ")
+			}
+		}
+		fmt.Println()
+	}
+}
+
+func makeAssetsFromCells(cells [][]Cell, color1, color2 string) (Fragment, []Prototype) {
 	color1OnTop := makePrototypeVariations(color1, color2)
 	color2OnTop := makePrototypeVariations(color2, color1)
 
@@ -139,161 +304,4 @@ func makePrototypeVariations(top, bottom string) []Prototype {
 		protos[i].assignMd5()
 	}
 	return protos
-}
-
-func (p *Prototype) assignMd5() {
-	id, err := md5ForPrototype(*p)
-	if err != nil {
-		panic(err)
-	}
-	p.ID = id
-}
-
-func GenerateCircle(gridSize int, fuzz float64) [][]Cell {
-	radius := float64(gridSize) / 3
-
-	// Center of the circle
-	cx, cy := float64(gridSize)/2, float64(gridSize)/2
-
-	// Initialize the cell array
-	cells := make([][]Cell, gridSize)
-	for i := range cells {
-		cells[i] = make([]Cell, gridSize)
-	}
-
-	// Fill the grid
-	for i := 0; i < gridSize; i++ {
-		for j := 0; j < gridSize; j++ {
-			dx := float64(i) - cx
-			dy := float64(j) - cy
-			d := math.Hypot(dx, dy)
-			p := logisticProbability(d, radius, fuzz)
-			if rand.Float64() < p {
-				cells[i][j].status = 1
-			} else {
-				cells[i][j].status = 0
-			}
-		}
-	}
-
-	printCells(cells)
-
-	// Create the Corner array
-	corners := make([][]*Corner, gridSize-1)
-	for i := 0; i < gridSize-1; i++ {
-		corners[i] = make([]*Corner, gridSize-1)
-		for j := 0; j < gridSize-1; j++ {
-			corners[i][j] = &Corner{
-				a: &cells[i][j],
-				b: &cells[i][j+1],
-				c: &cells[i+1][j],
-				d: &cells[i+1][j+1]}
-		}
-	}
-
-	// gl future me
-	// Find the roundness of each cell's corners
-	for i := 0; i < gridSize-1; i++ {
-		for j := 0; j < gridSize-1; j++ {
-			corner := corners[i][j]
-			count := corner.a.status + corner.b.status + corner.c.status + corner.d.status
-			if count == 4 || count == 0 {
-				corner.a.bottomRight = false
-				corner.b.bottomLeft = false
-				corner.c.topRight = false
-				corner.d.topLeft = false
-			} else if count == 3 {
-				corner.a.bottomRight = !(corner.a.status == 1)
-				corner.b.bottomLeft = !(corner.b.status == 1)
-				corner.c.topRight = !(corner.c.status == 1)
-				corner.d.topLeft = !(corner.d.status == 1)
-			} else if count == 1 {
-				corner.a.bottomRight = (corner.a.status == 1)
-				corner.b.bottomLeft = (corner.b.status == 1)
-				corner.c.topRight = (corner.c.status == 1)
-				corner.d.topLeft = (corner.d.status == 1)
-			} else if count == 2 {
-				if corner.a.status == corner.b.status || corner.a.status == corner.c.status {
-					corner.a.bottomRight = false
-					corner.b.bottomLeft = false
-					corner.c.topRight = false
-					corner.d.topLeft = false
-				} else { // corner.a.status is equal to corner.d status
-					if rand.Float64() < .5 {
-						corner.a.bottomRight = true
-						corner.b.bottomLeft = false
-						corner.c.topRight = false
-						corner.d.topLeft = true
-					} else {
-						corner.a.bottomRight = false
-						corner.b.bottomLeft = true
-						corner.c.topRight = true
-						corner.d.topLeft = false
-					}
-				}
-			}
-		}
-	}
-
-	printCellCorners(cells)
-
-	return cells
-}
-
-// Inclusion function using the logistic function
-var logisticProbability = func(d, r, fuzz float64) float64 {
-	// If fuzz is positive, probability follows sigmoid graph from 1 to 0
-	// as (d - r) e.g. signed distance goes from very negative to very far away
-	return 1 / (1 + math.Exp((d-r)/fuzz))
-}
-
-// Inclusion function with linear dropoff
-var linearProbability = func(d, r, fuzz float64) float64 {
-	if d < r-fuzz {
-		return 1.0
-	} else if d > r+fuzz {
-		return 0.0
-	} else {
-		return 1 - (d-(r-fuzz))/(2*fuzz)
-	}
-}
-
-func printCellCorners(cells [][]Cell) {
-	for i := range cells {
-		top, bottom := "", ""
-		for _, cell := range cells[i] {
-			tl := boolToChar(cell.topLeft, "██", "  ")
-			tr := boolToChar(cell.topRight, "██", "  ")
-			bl := boolToChar(cell.bottomLeft, "██", "  ")
-			br := boolToChar(cell.bottomRight, "██", "  ")
-
-			top += tl + tr
-			bottom += bl + br
-		}
-		fmt.Println(top)
-		fmt.Println(bottom)
-
-	}
-
-}
-
-func boolToChar(condition bool, trueChar, falseChar string) string {
-	if condition {
-		return trueChar
-	}
-	return falseChar
-}
-
-func printCells(grid [][]Cell) {
-	n := len(grid)
-	for i := 0; i < n; i++ {
-		for j := 0; j < n; j++ {
-			if grid[i][j].status == 1 {
-				fmt.Print("██")
-			} else {
-				fmt.Print("  ")
-			}
-		}
-		fmt.Println()
-	}
 }

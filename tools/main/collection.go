@@ -9,13 +9,12 @@ import (
 )
 
 type Collection struct {
-	Name                 string
-	Spaces               map[string]*Space
-	Fragments            map[string][]Fragment
-	PrototypeSets        map[string][]Prototype
-	ProceeduralFragments map[string][]Fragment
-	ProceeduralProtos    map[string][]Prototype
-	InteractableSets     map[string][]InteractableDescription
+	Name              string
+	Spaces            map[string]*Space
+	Fragments         map[string][]Fragment
+	PrototypeSets     map[string][]Prototype
+	ProceeduralProtos map[string][]Prototype
+	InteractableSets  map[string][]InteractableDescription
 }
 
 func (c *Context) collectionsHandler(w http.ResponseWriter, r *http.Request) {
@@ -51,7 +50,7 @@ func (c *Context) postCollections(w http.ResponseWriter, r *http.Request) {
 }
 
 func createCollectionDirectories(name string, path string) {
-	dirs := []string{"prototypes", "fragments", "spaces", "interactables", "proc/prototypes", "proc/fragments", "proc/structures"}
+	dirs := []string{"prototypes", "fragments", "spaces", "interactables", "proc/prototypes", "structures"}
 
 	for _, dir := range dirs {
 		fullPath := filepath.Join(path, name, dir)
