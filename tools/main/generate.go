@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"math/rand/v2"
+	"math/rand"
 
 	"github.com/google/uuid"
 )
@@ -86,11 +86,16 @@ type Corner struct {
 }
 
 func GenerateCircle(gridSize int) [][]Cell {
-	cells := smoothCorners(gridWithCircle(16, "", 1.7))
+	cells := smoothCorners(gridWithCircle(16, "", 1.7, 0))
 	return cells
 }
 
-func gridWithCircle(gridSize int, strategy string, fuzz float64) [][]Cell {
+func gridWithCircle(gridSize int, strategy string, fuzz float64, seed int64) [][]Cell {
+	if seed == 0 {
+		seed = rand.Int63()
+	}
+	r := rand.New(rand.NewSource(seed))
+
 	cells := make([][]Cell, gridSize)
 	for i := range cells {
 		cells[i] = make([]Cell, gridSize)
@@ -107,7 +112,7 @@ func gridWithCircle(gridSize int, strategy string, fuzz float64) [][]Cell {
 			dy := float64(j) - cy
 			d := math.Hypot(dx, dy)
 			p := probability(d, radius, fuzz)
-			if rand.Float64() < p {
+			if r.Float64() < p {
 				cells[i][j].status = 1
 			} else {
 				cells[i][j].status = 0
