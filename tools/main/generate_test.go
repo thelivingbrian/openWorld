@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -207,5 +208,28 @@ func TestSmoothCorners_3(t *testing.T) {
 
 	if !reflect.DeepEqual(smoothCornerResult, expectedAfter) {
 		t.Errorf("AFTER RESULT:\n expected:\n\n %v \n\nHave:\n\n %v", expectedAfter, smoothCornerResult)
+	}
+}
+
+func TestSmoothCorners_Cross(t *testing.T) {
+
+	before := [][]Cell{
+		{
+			{0, false, false, false, false},
+			{1, false, false, false, false},
+		},
+		{
+			{1, false, false, false, false},
+			{0, false, false, false, false},
+		},
+	}
+
+	after := smoothCorners(before)
+
+	// Has two cases, must be one or the other. If neither throw.
+	if !(after[0][0].bottomRight && after[1][1].topLeft) && !(after[0][1].bottomLeft && after[1][0].topRight) {
+		fmt.Println(after[0][0].bottomRight && after[1][1].topLeft)
+		fmt.Println(after[0][1].bottomLeft && after[1][0].topRight)
+		t.Errorf("Incorrect smoothing of criss-cross pattern")
 	}
 }
