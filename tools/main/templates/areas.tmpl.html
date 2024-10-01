@@ -18,7 +18,7 @@
             <div id="select-area">
                 <label>Area: <a hx-get="/areas/new" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#select-area" href="#">New</a></label></label>
                 <select name="area-name-selected" hx-get="/area" hx-include="[name='currentSpace'],[name='currentCollection']" hx-target="#edit-area">
-                    <option value="">--</option>
+                    <option value="">---</option>
                     {{range  $i, $area := .Space.Areas}}
                         <option value="{{$area.Name}}">{{$area.Name}}</option>
                     {{end}}

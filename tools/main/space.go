@@ -323,13 +323,44 @@ func (c Context) spaceStructuresHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (c Context) getSpaceStructures(w http.ResponseWriter, r *http.Request) {
-	space := c.spaceFromGET(r)
+	//queryValues := r.URL.Query()
+	//collectionName := queryValues.Get("currentCollection")
+	//spaceName := queryValues.Get("currentSpace")
+	//structureType := queryValues.Get("structureType")
 
-	// Have default tile color change trigger redisplay screen
-	err := tmpl.ExecuteTemplate(w, "<h2>hello, world</h2>", space)
+	err := tmpl.ExecuteTemplate(w, "structure-select", nil)
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func (c Context) spaceStructureHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		c.getSpaceStructure(w, r)
+	}
+}
+
+func (c Context) getSpaceStructure(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	collectionName := queryValues.Get("currentCollection")
+	//spaceName := queryValues.Get("currentSpace")
+	structureType := queryValues.Get("structureType")
+
+	if structureType == "ground" {
+		col, ok := c.Collections[collectionName]
+		if !ok {
+			io.WriteString(w, "<h2>Invalid collection.</h2>")
+		}
+
+		err := tmpl.ExecuteTemplate(w, "structure-ground", col)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+	} else {
+		io.WriteString(w, "<h2>Sorry invalid structure selected.</h2>")
+	}
+
 }
 
 //

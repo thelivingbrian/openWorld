@@ -19,7 +19,7 @@
         <a hx-post="/space/map" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#space_select" href="#">Save/Map</a>
 	-->
 		<select name="currentSpace" hx-get="/areas" hx-include="[name='currentCollection']" hx-target="#space_select">
-			<option value=""></option>
+			<option value="">---</option>
 			{{range  $key, $value := .Spaces}}
 				<option value="{{$key}}">{{$key}}</option>
 			{{end}}
@@ -105,7 +105,7 @@
     <div id="edit_sidebar" class="left">
         <div id="edit_options">
             <a hx-get="/space/details" hx-target="#edit_tool_space" hx-include="[name='currentCollection'],[name='currentSpace']" href="#">Details</a> |
-			<a hx-get="/space/structures" hx-target="#edit_tool_space"  hx-include="[name='currentCollection'],[name='currentSpace']" href="#">Structures</a> |
+			<a hx-get="/space/structures" hx-target="#edit_tool_space" href="#">Structures</a> |
             <span>Modify Areas</span> |
             <span>All Transports</a> 
         </div>
@@ -147,5 +147,54 @@
             </tr>
         </table>
     </form>
+</div>
+{{end}}
+
+
+{{define "structure-select"}}
+<div id="structure-select">
+	<h3>Select Structure type: </h3>
+	<select name="structureType" hx-get="/space/structure" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#structure-select">
+		<option value="">---</option>
+		<option value="ground">Ground</option>
+	</select>
+
+	<div id="structure-window">
+		<!-- unused currently -->
+	</div>
+</div>
+{{end}}
+
+
+{{define "structure-ground"}}
+<div id="structure-ground">
+	<h3>Generate New Ground: </h3>
+	<div id="new-ground">
+		<form>
+			<h3>New Ground Generation</h3>
+			<label><b>Structure/Fragment Name: </b></label>
+			<input type="text" name="longitude" />
+			<br />
+			<label><b>Grid Size: </b></label>
+			<input type="text" name="longitude" />
+			<br />
+			<label><b>Color 1: </b></label>
+			<input type="text" name="newSpaceName" />
+			<label><b>Color 2: </b></label>
+			<input type="text" name="latitude" />
+			<br />
+			<input type="submit" value="Generate" />
+		</form>
+	</div>
+	<h3>View existing : </h3>
+	<div id="new-ground">
+		<select name="groundId" hx-get="/space/structure/ground" hx-target="#ground-view">
+			<option value="">---</option>
+			<option value="md5">Name-Of-Generation</option>
+		</select>
+		<div id="ground-view">
+		
+		</div>
+	</div>
 </div>
 {{end}}
