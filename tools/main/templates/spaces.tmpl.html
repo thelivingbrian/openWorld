@@ -104,13 +104,13 @@
     </div>
     <div id="edit_sidebar" class="left">
         <div id="edit_options">
-            <a href="#">Details</a> |
-			<a href="#">Structures</a> |
+            <a hx-get="/space/details" hx-target="#edit_tool_space" hx-include="[name='currentCollection'],[name='currentSpace']" href="#">Details</a> |
+			<a hx-get="/space/structures" hx-target="#edit_tool_space"  hx-include="[name='currentCollection'],[name='currentSpace']" href="#">Structures</a> |
             <span>Modify Areas</span> |
             <span>All Transports</a> 
         </div>
         <div id="edit_tool_space">
-			{{template "save-details" .SelectedSpace}}
+			{{template "space-details" .SelectedSpace}}
         </div>
     </div>
 </div>
@@ -119,8 +119,8 @@
 </div>
 {{end}}
 
-{{define "save-details"}}
-<div id="save-details">
+{{define "space-details"}}
+<div id="space-details">
     <div id="save_notice"></div>
     <form hx-target="#save_notice">
         <h2 class="no-top-margin">{{.Name}}</h2>

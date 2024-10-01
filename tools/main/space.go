@@ -300,6 +300,40 @@ func (col Collection) getNewSpace(w http.ResponseWriter, _ *http.Request) {
 
 //
 
+func (c Context) spaceDetailsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		c.getSpaceDetails(w, r)
+	}
+}
+
+func (c Context) getSpaceDetails(w http.ResponseWriter, r *http.Request) {
+	space := c.spaceFromGET(r)
+
+	// Have default tile color change trigger redisplay screen
+	err := tmpl.ExecuteTemplate(w, "space-details", space)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func (c Context) spaceStructuresHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		c.getSpaceStructures(w, r)
+	}
+}
+
+func (c Context) getSpaceStructures(w http.ResponseWriter, r *http.Request) {
+	space := c.spaceFromGET(r)
+
+	// Have default tile color change trigger redisplay screen
+	err := tmpl.ExecuteTemplate(w, "<h2>hello, world</h2>", space)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+//
+
 func (c Context) spaceMapHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		properties, _ := requestToProperties(r)

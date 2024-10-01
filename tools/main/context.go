@@ -47,14 +47,6 @@ func populateFromJson() Context {
 	return c
 }
 
-func sliceToMap[T any](slice []T, f func(T) string) map[string]T {
-	out := make(map[string]T)
-	for _, entry := range slice {
-		out[f(entry)] = entry
-	}
-	return out
-}
-
 func parseJsonFile[T any](filename string) T {
 	var out T
 

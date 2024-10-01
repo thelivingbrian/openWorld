@@ -1,3 +1,10 @@
+
+body {
+    background-color: #252535;
+    /*background-color: #120500;*/
+    color: rgba(169, 169, 169, 0.973)
+}
+
 .grid {
     display: grid;
 }
@@ -9,8 +16,9 @@
 .grid-square {
     width: 30px;
     height: 30px;
-    background-color: rgb(172, 152, 219);
-    border: 1px solid rgba(48, 152, 240, 1);
+    /*background-color: rgb(172, 152, 219);
+    border: 1px solid rgba(48, 152, 240, 1);*/
+    border: 1px solid rgba(169, 169, 169, 1);
     cursor: pointer;
     position: relative;
 }
