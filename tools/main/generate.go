@@ -119,7 +119,7 @@ func gridWithCircle(gridSize int, strategy string, fuzz float64, seed int64) [][
 			}
 		}
 	}
-	printCells(cells)
+	//printCells(cells)
 	return cells
 }
 
@@ -182,7 +182,7 @@ func smoothCorners(cells [][]Cell) [][]Cell {
 		}
 	}
 
-	printCellCorners(cells)
+	//printCellCorners(cells)
 	return cells
 }
 
