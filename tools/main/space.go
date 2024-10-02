@@ -351,7 +351,7 @@ func (c Context) getSpaceStructure(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			io.WriteString(w, "<h2>Invalid collection.</h2>")
 		}
-
+		generateAndSaveGroundPattern()
 		err := tmpl.ExecuteTemplate(w, "structure-ground", col)
 		if err != nil {
 			fmt.Println(err)

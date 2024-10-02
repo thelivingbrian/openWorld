@@ -1,7 +1,7 @@
 package main
 
-type structure struct {
-	id                            string
-	fragmentHeight, fragmentWidth int
-	fradgments                    [][]string
+type Structure struct {
+	Id                            string
+	FragmentHeight, FragmentWidth int
+	FragmentIds                   [][]string
 }

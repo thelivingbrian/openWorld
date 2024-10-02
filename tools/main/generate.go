@@ -7,25 +7,26 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-
-	"github.com/google/uuid"
 )
 
 func generateAndSaveGroundPattern() {
 	cells := GenerateCircle(16)
-	fragment, prototypes := makeAssetsFromCells(cells, "grass", "sand")
+	prototypes, fragments, structure := makeAssetsFromCells(cells, "ground-test", "grass", "sand")
 
-	fragments := make([]Fragment, 0)
-	fragments = append(fragments, fragment)
-
-	outFile := "./data/collections/bloop/fragments/ground-patterns.json"
-	err := writeJsonFile(outFile, fragments)
+	outFileProto := "./data/collections/bloop/proc/prototypes/floors.json"
+	err := writeJsonFile(outFileProto, prototypes)
 	if err != nil {
 		panic(err)
 	}
 
-	outFile2 := "./data/collections/bloop/proc/prototypes/floors.json"
-	err = writeJsonFile(outFile2, prototypes)
+	outFileFragment := "./data/collections/bloop/fragments/ground-patterns.json"
+	err = writeJsonFile(outFileFragment, fragments)
+	if err != nil {
+		panic(err)
+	}
+
+	outFileStruct := "./data/collections/bloop/proc/structures/ground.json"
+	err = writeJsonFile(outFileStruct, structure)
 	if err != nil {
 		panic(err)
 	}
@@ -86,7 +87,7 @@ type Corner struct {
 }
 
 func GenerateCircle(gridSize int) [][]Cell {
-	cells := smoothCorners(gridWithCircle(16, "", 1.7, 0))
+	cells := smoothCorners(gridWithCircle(32, "", 1.7, 0))
 	return cells
 }
 
@@ -245,11 +246,12 @@ func printCells(grid [][]Cell) {
 	}
 }
 
-func makeAssetsFromCells(cells [][]Cell, color1, color2 string) (Fragment, []Prototype) {
+func makeAssetsFromCells(cells [][]Cell, name, color1, color2 string) ([]Prototype, []Fragment, Structure) {
 	color1OnTop := makePrototypeVariations(color1, color2)
 	color2OnTop := makePrototypeVariations(color2, color1)
 
 	tiles := make([][]TileData, len(cells))
+	//
 	for i := range tiles {
 		tiles[i] = make([]TileData, len(cells[i]))
 		for j := range tiles[i] {
@@ -263,10 +265,29 @@ func makeAssetsFromCells(cells [][]Cell, color1, color2 string) (Fragment, []Pro
 			tiles[i][j] = TileData{PrototypeId: id}
 		}
 	}
-	bp := Blueprint{Tiles: tiles}
-	fragment := Fragment{ID: uuid.NewString(), Name: "test-frag", SetName: "ground-patterns", Blueprint: &bp}
+
+	size := len(cells) / 16                 // assumes a square
+	blueprints := make([][]Blueprint, size) // only supports 16x16 extra will be ignored
+	fragments := make([]Fragment, size*size)
+	structure := Structure{Id: name, FragmentHeight: 16, FragmentWidth: 16, FragmentIds: make([][]string, size)}
+	for a := 0; a < size; a++ {
+		blueprints[a] = make([]Blueprint, size)
+		structure.FragmentIds[a] = make([]string, size)
+		for b := 0; b < size; b++ {
+			blueprints[a][b] = Blueprint{Tiles: make([][]TileData, 16)}
+			name := fmt.Sprintf("name-%d-%d", a, b)
+			hash := md5.Sum([]byte(name))
+			id := hex.EncodeToString(hash[:])
+			for i := 0; i < 16; i++ {
+				blueprints[a][b].Tiles[i] = tiles[(a*16)+i][b*16 : (b+1)*16]
+			}
+			fragments[(a*size)+b] = Fragment{ID: id, Name: name, SetName: "ground-patterns", Blueprint: &blueprints[a][b]}
+			structure.FragmentIds[a][b] = id
+		}
+	}
+
 	prototypes := insertDiff(color1OnTop, color2OnTop)
-	return fragment, prototypes
+	return prototypes, fragments, structure
 }
 
 func roundednessToInt(tl, tr, bl, br bool) int {

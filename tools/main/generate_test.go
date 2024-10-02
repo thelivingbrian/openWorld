@@ -6,10 +6,6 @@ import (
 	"testing"
 )
 
-func TestGenerateAllPrototypes(t *testing.T) {
-
-}
-
 func TestSmoothCorners_1(t *testing.T) {
 	gridSize := 4
 	strategy := ""
@@ -156,10 +152,10 @@ func TestSmoothCorners_3(t *testing.T) {
 	fuzz := 1.0
 	var seed int64 = 4
 
-	//  precomputed for seed 42
-	//  ...
+	//  precomputed for seed 4
+	//  .X.
 	//  .XX
-	//  XXX
+	//  .X.
 	//
 	expectedBefore := [][]Cell{
 		{
