@@ -170,19 +170,25 @@
 <div id="structure-ground">
 	<h3>Generate New Ground: </h3>
 	<div id="new-ground">
-		<form>
+		<form hx-post="/structure" hx-include="[name='currentCollection']" hx-target="#new-ground">
 			<h3>New Ground Generation</h3>
 			<label><b>Structure/Fragment Name: </b></label>
-			<input type="text" name="longitude" />
+			<input type="text" name="ground-name" />
 			<br />
-			<label><b>Grid Size: </b></label>
-			<input type="text" name="longitude" />
+			<label><b>Span (in areas): </b></label>
+			<input type="text" name="span" />
 			<br />
 			<label><b>Color 1: </b></label>
-			<input type="text" name="newSpaceName" />
+			<input type="text" name="color1" />
 			<label><b>Color 2: </b></label>
-			<input type="text" name="latitude" />
+			<input type="text" name="color2" />
 			<br />
+			<label><b>Fuzz: </b></label>
+			<input type="text" name="fuzz" />
+			<label><b>Strategy: </b></label>
+			<input type="text" name="strategy" />
+			<br />
+			<input type="hidden" name="structure-type" value="ground" />
 			<input type="submit" value="Generate" />
 		</form>
 	</div>

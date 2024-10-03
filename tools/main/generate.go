@@ -9,24 +9,30 @@ import (
 	"math/rand"
 )
 
-func generateAndSaveGroundPattern() {
-	cells := GenerateCircle(16)
-	prototypes, fragments, structure := makeAssetsFromCells(cells, "ground-test", "grass", "sand")
+func (col *Collection) generateAndSaveGroundPattern(name, color1, color2 string, span int, strategy string, fuzz float64) {
+	cells := GenerateCircle(span, strategy, fuzz)
+	prototypes, fragments, structure := makeAssetsFromCells(cells, name, color1, color2)
 
 	outFileProto := "./data/collections/bloop/proc/prototypes/floors.json"
-	err := writeJsonFile(outFileProto, prototypes)
+	col.PrototypeSets["floors"] = insertDiff(prototypes, col.PrototypeSets["floors"])
+	err := writeJsonFile(outFileProto, col.PrototypeSets["floors"])
 	if err != nil {
 		panic(err)
 	}
 
 	outFileFragment := "./data/collections/bloop/fragments/ground-patterns.json"
-	err = writeJsonFile(outFileFragment, fragments)
+	fragmentset := col.Fragments["ground-patterns"]
+	col.Fragments["ground-patterns"] = append(fragmentset, fragments...)
+
+	err = writeJsonFile(outFileFragment, col.Fragments["ground-patterns"])
 	if err != nil {
 		panic(err)
 	}
 
 	outFileStruct := "./data/collections/bloop/proc/structures/ground.json"
-	err = writeJsonFile(outFileStruct, structure)
+	col.StructureSets["ground"] = append(col.StructureSets["ground"], structure)
+
+	err = writeJsonFile(outFileStruct, col.StructureSets["ground"])
 	if err != nil {
 		panic(err)
 	}
@@ -86,8 +92,8 @@ type Corner struct {
 	a, b, c, d *Cell
 }
 
-func GenerateCircle(gridSize int) [][]Cell {
-	cells := smoothCorners(gridWithCircle(32, "", 1.7, 0))
+func GenerateCircle(span int, strategy string, fuzz float64) [][]Cell {
+	cells := smoothCorners(gridWithCircle(span*16, strategy, fuzz, 0))
 	return cells
 }
 
@@ -275,7 +281,7 @@ func makeAssetsFromCells(cells [][]Cell, name, color1, color2 string) ([]Prototy
 		structure.FragmentIds[a] = make([]string, size)
 		for b := 0; b < size; b++ {
 			blueprints[a][b] = Blueprint{Tiles: make([][]TileData, 16)}
-			name := fmt.Sprintf("name-%d-%d", a, b)
+			name := fmt.Sprintf("%s-%d-%d", name, a, b)
 			hash := md5.Sum([]byte(name))
 			id := hex.EncodeToString(hash[:])
 			for i := 0; i < 16; i++ {

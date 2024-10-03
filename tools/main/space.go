@@ -384,7 +384,7 @@ func (c Context) postSpaceStructure(w http.ResponseWriter, r *http.Request) {
 	}
 	id := properties["groundId"] // change name
 	structureType := properties["structure-type"]
-	panicIfAnyEmpty("PUT to /space", collectionName, spaceName)
+	panicIfAnyEmpty("PUT to /space/structure", collectionName, spaceName)
 
 	space := c.spaceFromNames(collectionName, spaceName)
 	fmt.Printf("place %s on %s : %s - %s", id, space.Name, lat, long)
