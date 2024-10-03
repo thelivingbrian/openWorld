@@ -15,6 +15,7 @@ type Collection struct {
 	PrototypeSets     map[string][]Prototype
 	ProceeduralProtos map[string][]Prototype
 	InteractableSets  map[string][]InteractableDescription
+	StructureSets     map[string][]Structure
 }
 
 func (c *Context) collectionsHandler(w http.ResponseWriter, r *http.Request) {

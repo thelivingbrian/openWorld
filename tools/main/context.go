@@ -140,6 +140,7 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 				PrototypeSets:     make(map[string][]Prototype),
 				ProceeduralProtos: make(map[string][]Prototype),
 				InteractableSets:  make(map[string][]InteractableDescription),
+				StructureSets:     make(map[string][]Structure),
 			}
 
 			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
@@ -151,14 +152,14 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 			pathToPrototypes := filepath.Join(collectionPath, entry.Name(), "prototypes")
 			populateMaps(collection.PrototypeSets, pathToPrototypes)
 
-			pathToProcFragments := filepath.Join(collectionPath, entry.Name(), "proc/fragments")
-			populateMaps(collection.Fragments, pathToProcFragments)
-
 			pathToProcPrototypes := filepath.Join(collectionPath, entry.Name(), "proc/prototypes")
 			populateMaps(collection.PrototypeSets, pathToProcPrototypes)
 
 			pathToInteractables := filepath.Join(collectionPath, entry.Name(), "interactables")
 			populateMaps(collection.InteractableSets, pathToInteractables)
+
+			pathToStructures := filepath.Join(collectionPath, entry.Name(), "proc/structures")
+			populateMaps(collection.StructureSets, pathToStructures)
 
 			collections[entry.Name()] = &collection
 

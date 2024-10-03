@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 type Space struct {
@@ -266,7 +268,7 @@ func (c Context) putSpace(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
-	panicIfAnyEmpty("POST to /area", collectionName, spaceName)
+	panicIfAnyEmpty("PUT to /space", collectionName, spaceName)
 
 	space := c.spaceFromNames(collectionName, spaceName)
 	outFile := c.collectionPath + collectionName + "/spaces/" + spaceName + ".json"
@@ -338,6 +340,9 @@ func (c Context) spaceStructureHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		c.getSpaceStructure(w, r)
 	}
+	if r.Method == "POST" {
+		c.postSpaceStructure(w, r)
+	}
 }
 
 func (c Context) getSpaceStructure(w http.ResponseWriter, r *http.Request) {
@@ -351,8 +356,9 @@ func (c Context) getSpaceStructure(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			io.WriteString(w, "<h2>Invalid collection.</h2>")
 		}
-		generateAndSaveGroundPattern()
-		err := tmpl.ExecuteTemplate(w, "structure-ground", col)
+		//generateAndSaveGroundPattern()
+		grounds := col.StructureSets["ground"]
+		err := tmpl.ExecuteTemplate(w, "structure-ground", grounds)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -360,7 +366,70 @@ func (c Context) getSpaceStructure(w http.ResponseWriter, r *http.Request) {
 	} else {
 		io.WriteString(w, "<h2>Sorry invalid structure selected.</h2>")
 	}
+}
 
+func (c Context) postSpaceStructure(w http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	collectionName := properties["currentCollection"]
+	spaceName := properties["currentSpace"]
+	lat := properties["lat"]
+	latI, err := strconv.Atoi(lat)
+	if err != nil {
+		panic("Invalid latitude")
+	}
+	long := properties["long"]
+	longI, err := strconv.Atoi(long)
+	if err != nil {
+		panic("Invalid longitude")
+	}
+	id := properties["groundId"] // change name
+	structureType := properties["structure-type"]
+	panicIfAnyEmpty("PUT to /space", collectionName, spaceName)
+
+	space := c.spaceFromNames(collectionName, spaceName)
+	fmt.Printf("place %s on %s : %s - %s", id, space.Name, lat, long)
+
+	// get each blueprint
+	col, ok := c.Collections[collectionName]
+	if !ok {
+		panic("No collection")
+	}
+	structures, ok := col.StructureSets[structureType]
+	if !ok {
+		panic("No structures for: " + structureType)
+	}
+	var structure Structure
+	found := false
+	for index := range structures {
+		if structures[index].ID == id {
+			found = true
+			structure = structures[index]
+		}
+	}
+	if !found {
+		panic("No Structure")
+	}
+	for i := 0; i < len(structure.FragmentIds); i++ {
+		for j := 0; j < len(structure.FragmentIds[i]); j++ {
+			if structure.FragmentIds[i][j] != "" {
+				areaname := fmt.Sprintf("%s:%d-%d", space.Name, latI+i, longI+j)
+				area := getAreaByName(space.Areas, areaname)
+				if area == nil {
+					continue
+				}
+				area.Blueprint.Instructions = append(area.Blueprint.Instructions, Instruction{
+					ID:                 uuid.New().String(),
+					X:                  0,
+					Y:                  0,
+					GridAssetId:        structure.FragmentIds[i][j],
+					ClockwiseRotations: 0,
+				})
+				for _, instruction := range area.Blueprint.Instructions {
+					col.applyInstruction(area.Blueprint.Tiles, instruction)
+				}
+			}
+		}
+	}
 }
 
 //

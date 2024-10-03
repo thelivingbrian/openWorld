@@ -1,7 +1,7 @@
 package main
 
 type Structure struct {
-	Id                            string
+	ID                            string
 	FragmentHeight, FragmentWidth int
 	FragmentIds                   [][]string
 }

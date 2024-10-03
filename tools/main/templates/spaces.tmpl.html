@@ -186,15 +186,26 @@
 			<input type="submit" value="Generate" />
 		</form>
 	</div>
-	<h3>View existing : </h3>
+	<h3>Place Existing : </h3>
+	<div id="place-result">
+
+	</div>
 	<div id="new-ground">
-		<select name="groundId" hx-get="/space/structure/ground" hx-target="#ground-view">
-			<option value="">---</option>
-			<option value="md5">Name-Of-Generation</option>
-		</select>
-		<div id="ground-view">
-		
-		</div>
+		<form hx-post="/space/structure" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#place-result">
+			<h3>Place</h3>
+			<select name="groundId" >
+				<option value="">---</option>
+				{{range  $i, $structure := .}}
+					<option value="{{$structure.ID}}">{{$structure.ID}}</option>
+				{{end}}
+			</select>
+			At Lat: <input type="text" name="lat" value="" class="inline-input" />
+			Long: <input type="text" name="long" value="" class="inline-input" />
+			<br />
+			<input type="hidden" name="structure-type" value="ground" />
+			<input type="submit" name="form-action" value="Place" />
+			<!--<input type="submit" name="form-action" value="Remove" />-->
+		</form>
 	</div>
 </div>
 {{end}}

@@ -269,7 +269,7 @@ func makeAssetsFromCells(cells [][]Cell, name, color1, color2 string) ([]Prototy
 	size := len(cells) / 16                 // assumes a square
 	blueprints := make([][]Blueprint, size) // only supports 16x16 extra will be ignored
 	fragments := make([]Fragment, size*size)
-	structure := Structure{Id: name, FragmentHeight: 16, FragmentWidth: 16, FragmentIds: make([][]string, size)}
+	structure := Structure{ID: name, FragmentHeight: 16, FragmentWidth: 16, FragmentIds: make([][]string, size)}
 	for a := 0; a < size; a++ {
 		blueprints[a] = make([]Blueprint, size)
 		structure.FragmentIds[a] = make([]string, size)
