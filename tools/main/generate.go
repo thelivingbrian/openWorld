@@ -13,24 +13,27 @@ func (col *Collection) generateAndSaveGroundPattern(name, color1, color2 string,
 	cells := GenerateCircle(span, strategy, fuzz)
 	prototypes, fragments, structure := makeAssetsFromCells(cells, name, color1, color2)
 
+	col.PrototypeSets["floors"] = merge(col.PrototypeSets["floors"], prototypes, IdsMatchProto)
 	outFileProto := "./data/collections/bloop/proc/prototypes/floors.json"
-	col.PrototypeSets["floors"] = insertDiff(prototypes, col.PrototypeSets["floors"])
+	//col.PrototypeSets["floors"] = insertDiff(prototypes, col.PrototypeSets["floors"])
 	err := writeJsonFile(outFileProto, col.PrototypeSets["floors"])
 	if err != nil {
 		panic(err)
 	}
 
+	col.Fragments["ground-patterns"] = merge(col.Fragments["ground-patterns"], fragments, IdsMatchFragment)
 	outFileFragment := "./data/collections/bloop/fragments/ground-patterns.json"
-	fragmentset := col.Fragments["ground-patterns"]
-	col.Fragments["ground-patterns"] = append(fragmentset, fragments...)
+	//fragmentset := col.Fragments["ground-patterns"]
+	//col.Fragments["ground-patterns"] = append(fragmentset, fragments...)
 
 	err = writeJsonFile(outFileFragment, col.Fragments["ground-patterns"])
 	if err != nil {
 		panic(err)
 	}
 
+	col.StructureSets["ground"] = merge(col.StructureSets["ground"], append(make([]Structure, 0), structure), IdsMatchStructure)
 	outFileStruct := "./data/collections/bloop/proc/structures/ground.json"
-	col.StructureSets["ground"] = append(col.StructureSets["ground"], structure)
+	//col.StructureSets["ground"] = append(col.StructureSets["ground"], structure)
 
 	err = writeJsonFile(outFileStruct, col.StructureSets["ground"])
 	if err != nil {
@@ -60,6 +63,37 @@ func md5ForPrototype(p Prototype) (string, error) {
 	// Generate MD5 hash and convert to hex
 	hash := md5.Sum(jsonData)
 	return hex.EncodeToString(hash[:]), nil
+}
+
+func merge[T any](tSource, tQuery []T, equal func(T, T) bool) []T {
+	out := append(make([]T, 0), tSource...)
+	for i := range tQuery {
+		if !contains(tSource, tQuery[i], equal) {
+			out = append(out, tQuery[i])
+		}
+	}
+	return out
+}
+
+func contains[T any](tList []T, tItem T, equal func(T, T) bool) bool {
+	for i := range tList {
+		if equal(tList[i], tItem) {
+			return true
+		}
+	}
+	return false
+}
+
+func IdsMatchProto(p1, p2 Prototype) bool {
+	return p1.ID == p2.ID
+}
+
+func IdsMatchFragment(f1, f2 Fragment) bool {
+	return f1.ID == f2.ID
+}
+
+func IdsMatchStructure(s1, s2 Structure) bool {
+	return s1.ID == s2.ID
 }
 
 func insertDiff(protoSource, protoQuery []Prototype) []Prototype {
@@ -292,7 +326,7 @@ func makeAssetsFromCells(cells [][]Cell, name, color1, color2 string) ([]Prototy
 		}
 	}
 
-	prototypes := insertDiff(color1OnTop, color2OnTop)
+	prototypes := merge(color1OnTop, color2OnTop, IdsMatchProto)
 	return prototypes, fragments, structure
 }
 

@@ -51,7 +51,7 @@ func (c *Context) postCollections(w http.ResponseWriter, r *http.Request) {
 }
 
 func createCollectionDirectories(name string, path string) {
-	dirs := []string{"prototypes", "fragments", "spaces", "interactables", "proc/prototypes", "structures"}
+	dirs := []string{"prototypes", "fragments", "spaces", "interactables", "proc/prototypes", "proc/structures"}
 
 	for _, dir := range dirs {
 		fullPath := filepath.Join(path, name, dir)
