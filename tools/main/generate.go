@@ -343,7 +343,7 @@ func boolToInt(b bool) int {
 
 func makePrototypeVariations(top, bottom string) []Prototype {
 	protos := make([]Prototype, 16)
-	protos[0] = Prototype{ID: "", Floor1Css: top, MapColor: top, SetName: "floors"}
+	protos[0] = Prototype{ID: "", Floor1Css: top, MapColor: top, SetName: "floors", Walkable: true}
 	protos[0].assignMd5()
 	for i := 1; i < 16; i++ {
 		tl, tr, bl, br := "", "", "", ""
