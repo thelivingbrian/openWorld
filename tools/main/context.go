@@ -263,13 +263,13 @@ func (c Context) compileCollection(collection *Collection) {
 	areas := make([]AreaOutput, 0)
 
 	for _, space := range collection.Spaces {
+		c.generateAllPNGs(space)
 		for _, desc := range space.Areas {
 			var outputTiles [][]int
 			outputTiles, materials = collection.compileTileDataAndAccumulateMaterials(desc, materials, mapToMaterials)
 
 			mapid := ""
 			if space.isSimplyTiled() {
-				c.generateAllPNGs(space)
 				mapid = c.copyMapPNG(space, &desc)
 			}
 			// Add maps for all individual areas as well
