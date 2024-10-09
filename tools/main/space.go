@@ -387,6 +387,9 @@ func (c Context) postSpaceStructure(w http.ResponseWriter, r *http.Request) {
 	panicIfAnyEmpty("PUT to /space/structure", collectionName, spaceName)
 
 	space := c.spaceFromNames(collectionName, spaceName)
+	if space == nil {
+		panic("invalid space")
+	}
 	fmt.Printf("place %s on %s : %s - %s", id, space.Name, lat, long)
 
 	// get each blueprint

@@ -7,9 +7,18 @@ import (
 )
 
 type Structure struct {
-	ID                            string
-	FragmentHeight, FragmentWidth int
-	FragmentIds                   [][]string
+	ID           string        `json:"id"`
+	FragmentIds  [][]string    `json:"fragmentIds"`
+	GroundConfig *GroundConfig `json:"groundConfig,omitempty"`
+}
+
+type GroundConfig struct {
+	Name     string  `json:"name"`
+	Span     int     `json:"span"`
+	Color1   string  `json:"color1"`
+	Color2   string  `json:"color2"`
+	Fuzz     float64 `json:"fuzz"`
+	Strategy string  `json:"strategy"`
 }
 
 func (c Context) structureHandler(w http.ResponseWriter, r *http.Request) {
@@ -20,34 +29,35 @@ func (c Context) structureHandler(w http.ResponseWriter, r *http.Request) {
 
 func (c Context) postStructure(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
-	collectionName := properties["currentCollection"]
-	groundName := properties["ground-name"]
-	span := properties["span"]
-	spanI, err := strconv.Atoi(span)
-	if err != nil {
-		panic("Invalid grid size")
-	}
-	color1 := properties["color1"]
-	color2 := properties["color2"]
-	fuzz := properties["fuzz"]
-	fuzzF, err := strconv.ParseFloat(fuzz, 64)
-	if err != nil {
-		panic("Invalid fuzz value")
-	}
-	strategy := properties["strategy"]
 	structureType := properties["structure-type"]
 
-	// Panic if any required field is missing
-	panicIfAnyEmpty("POST to /structure", collectionName, groundName, span, color1, color2, fuzz, strategy)
+	panicIfAnyEmpty("POST to /structure", structureType)
 
-	// Process the data as necessary for ground generation
-	// Add your logic for ground generation here, e.g., saving the structure
 	if structureType == "ground" {
-		fmt.Fprintf(w, "New ground generation initiated with the following details: Name: %s, Grid Size: %d, Colors: %s and %s, Fuzz: %f, Strategy: %s", groundName, spanI, color1, color2, fuzzF, strategy)
-		col := c.Collections[collectionName]
-		col.generateAndSaveGroundPattern(groundName, color1, color2, spanI, strategy, fuzzF)
-	} else {
+		collectionName := properties["currentCollection"]
+		structureName := properties["structure-name"]
+		span := properties["span"]
+		spanI, err := strconv.Atoi(span)
+		if err != nil {
+			panic("Invalid grid size")
+		}
+		color1 := properties["color1"]
+		color2 := properties["color2"]
+		fuzz := properties["fuzz"]
+		fuzzF, err := strconv.ParseFloat(fuzz, 64)
+		if err != nil {
+			panic("Invalid fuzz value")
+		}
+		strategy := properties["strategy"]
 
-		fmt.Fprintf(w, "Invalid structure type (%s) with following details: Name: %s, Grid Size: %d, Colors: %s and %s, Fuzz: %f, Strategy: %s", structureType, groundName, spanI, color1, color2, fuzzF, strategy)
+		col, ok := c.Collections[collectionName]
+		if !ok {
+			panic("Invalid collection.")
+		}
+		fmt.Fprintf(w, "New ground generation initiated with the following details: Name: %s, Grid Size: %d, Colors: %s and %s, Fuzz: %f, Strategy: %s", structureName, spanI, color1, color2, fuzzF, strategy)
+		config := GroundConfig{Name: structureName, Span: spanI, Color1: color1, Color2: color2, Fuzz: fuzzF, Strategy: strategy}
+		col.generateAndSaveGroundPattern(config) // Two methods?
+	} else {
+		fmt.Fprintf(w, "Invalid structure type (%s) ", structureType)
 	}
 }

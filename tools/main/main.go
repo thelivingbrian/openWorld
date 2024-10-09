@@ -22,7 +22,7 @@ func main() {
 	http.HandleFunc("/space/details", c.spaceDetailsHandler)
 	http.HandleFunc("/space/structures", c.spaceStructuresHandler)
 	http.HandleFunc("/space/structure", c.spaceStructureHandler) // needs DELETE
-	http.HandleFunc("/structure", c.structureHandler)            // needs PUT
+	http.HandleFunc("/structure", c.structureHandler)            // needs PUT and DELETE
 	http.HandleFunc("/areas", c.areasHandler)
 	http.HandleFunc("/areas/new", c.newAreaHandler)
 	http.HandleFunc("/area", c.areaHandler)

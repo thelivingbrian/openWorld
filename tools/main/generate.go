@@ -9,23 +9,23 @@ import (
 	"math/rand"
 )
 
-func (col *Collection) generateAndSaveGroundPattern(name, color1, color2 string, span int, strategy string, fuzz float64) {
-	cells := GenerateCircle(span, strategy, fuzz)
-	prototypes, fragments, structure := makeAssetsFromCells(cells, name, color1, color2)
+func (col *Collection) generateAndSaveGroundPattern(config GroundConfig) {
+	cells := GenerateCircle(config.Span, config.Strategy, config.Fuzz)
+	prototypes, fragments, structure := makeAssetsForGround(cells, config)
+
+	//outFile := c.collectionPath + collectionName + "/spaces/" + spaceName + ".json"
+	// Why does context have collection path? shouldn't saving itself be a functionality of a colleciton?
+	// Context vs Collection ?
 
 	col.PrototypeSets["floors"] = merge(col.PrototypeSets["floors"], prototypes, IdsMatchProto)
 	outFileProto := "./data/collections/bloop/proc/prototypes/floors.json"
-	//col.PrototypeSets["floors"] = insertDiff(prototypes, col.PrototypeSets["floors"])
 	err := writeJsonFile(outFileProto, col.PrototypeSets["floors"])
 	if err != nil {
 		panic(err)
 	}
 
-	col.Fragments["ground-patterns"] = merge(col.Fragments["ground-patterns"], fragments, IdsMatchFragment)
+	col.Fragments["ground-patterns"] = merge(fragments, col.Fragments["ground-patterns"], IdsMatchFragment)
 	outFileFragment := "./data/collections/bloop/fragments/ground-patterns.json"
-	//fragmentset := col.Fragments["ground-patterns"]
-	//col.Fragments["ground-patterns"] = append(fragmentset, fragments...)
-
 	err = writeJsonFile(outFileFragment, col.Fragments["ground-patterns"])
 	if err != nil {
 		panic(err)
@@ -33,13 +33,10 @@ func (col *Collection) generateAndSaveGroundPattern(name, color1, color2 string,
 
 	col.StructureSets["ground"] = merge(col.StructureSets["ground"], append(make([]Structure, 0), structure), IdsMatchStructure)
 	outFileStruct := "./data/collections/bloop/proc/structures/ground.json"
-	//col.StructureSets["ground"] = append(col.StructureSets["ground"], structure)
-
 	err = writeJsonFile(outFileStruct, col.StructureSets["ground"])
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 ///////////////////////////////////////////////////////
@@ -141,7 +138,7 @@ func gridWithCircle(gridSize int, strategy string, fuzz float64, seed int64) [][
 	for i := range cells {
 		cells[i] = make([]Cell, gridSize)
 	}
-	radius := float64(gridSize) / 3
+	radius := float64(gridSize) * .4
 	probability := logisticProbability
 	if strategy == "linear" {
 		probability = linearProbability
@@ -227,26 +224,8 @@ func smoothCorners(cells [][]Cell) [][]Cell {
 	return cells
 }
 
-// //////////////////////////////////////////////////
-//  Inclusion probability functions
-
-// Inclusion function using the logistic function
-var logisticProbability = func(d, r, fuzz float64) float64 {
-	// If fuzz is positive, probability follows sigmoid graph from 1 to 0
-	// as (d - r) e.g. signed distance goes from very negative to very far away
-	return 1 / (1 + math.Exp((d-r)/fuzz))
-}
-
-// Inclusion function with linear dropoff
-var linearProbability = func(d, r, fuzz float64) float64 {
-	if d < r-fuzz {
-		return 1.0
-	} else if d > r+fuzz {
-		return 0.0
-	} else {
-		return 1 - (d-(r-fuzz))/(2*fuzz)
-	}
-}
+/*
+// Debugging Print Logs
 
 func printCellCorners(cells [][]Cell) {
 	for i := range cells {
@@ -285,13 +264,34 @@ func printCells(grid [][]Cell) {
 		fmt.Println()
 	}
 }
+*/
 
-func makeAssetsFromCells(cells [][]Cell, name, color1, color2 string) ([]Prototype, []Fragment, Structure) {
-	color1OnTop := makePrototypeVariations(color1, color2)
-	color2OnTop := makePrototypeVariations(color2, color1)
+// //////////////////////////////////////////////////
+//  Inclusion probability functions
+
+// Inclusion function using the logistic function
+var logisticProbability = func(d, r, fuzz float64) float64 {
+	// If fuzz is positive, probability follows sigmoid graph from 1 to 0
+	// as (d - r) e.g. signed distance goes from very negative to very far away
+	return 1 / (1 + math.Exp((d-r)/fuzz))
+}
+
+// Inclusion function with linear dropoff
+var linearProbability = func(d, r, fuzz float64) float64 {
+	if d < r-fuzz {
+		return 1.0
+	} else if d > r+fuzz {
+		return 0.0
+	} else {
+		return 1 - (d-(r-fuzz))/(2*fuzz)
+	}
+}
+
+func makeAssetsForGround(cells [][]Cell, config GroundConfig) ([]Prototype, []Fragment, Structure) {
+	color1OnTop := makePrototypeVariations(config.Color1, config.Color2)
+	color2OnTop := makePrototypeVariations(config.Color2, config.Color1)
 
 	tiles := make([][]TileData, len(cells))
-	//
 	for i := range tiles {
 		tiles[i] = make([]TileData, len(cells[i]))
 		for j := range tiles[i] {
@@ -309,13 +309,13 @@ func makeAssetsFromCells(cells [][]Cell, name, color1, color2 string) ([]Prototy
 	size := len(cells) / 16                 // assumes a square
 	blueprints := make([][]Blueprint, size) // only supports 16x16 extra will be ignored
 	fragments := make([]Fragment, size*size)
-	structure := Structure{ID: name, FragmentHeight: 16, FragmentWidth: 16, FragmentIds: make([][]string, size)}
+	structure := Structure{ID: config.Name, FragmentIds: make([][]string, size), GroundConfig: &config}
 	for a := 0; a < size; a++ {
 		blueprints[a] = make([]Blueprint, size)
 		structure.FragmentIds[a] = make([]string, size)
 		for b := 0; b < size; b++ {
 			blueprints[a][b] = Blueprint{Tiles: make([][]TileData, 16)}
-			name := fmt.Sprintf("%s-%d-%d", name, a, b)
+			name := fmt.Sprintf("%s-%d-%d", config.Name, a, b)
 			hash := md5.Sum([]byte(name))
 			id := hex.EncodeToString(hash[:])
 			for i := 0; i < 16; i++ {
