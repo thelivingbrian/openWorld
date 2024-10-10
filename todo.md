@@ -92,13 +92,13 @@
     - [-] Set X and Y 
     - [-] Set rotation
     - [-] Highlight selected instruction
-- [ ] generate structure
+- [-] generate structure
   - [-] Generate new 
   - [-] Place at coord 
-  - [ ] Remove structure 
-    - [ ] at coord 
-    - [ ] from space ?
-  - [ ] Regenerate 
+  - [-] Remove structure 
+    - [-] at coord 
+  - [-] Regenerate 
+  - [-] Delete
 - [ ] version control
   - [ ] game generates pngs on build  
   - [ ] get rid of proc folder? 

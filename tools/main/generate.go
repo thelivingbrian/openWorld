@@ -93,24 +93,6 @@ func IdsMatchStructure(s1, s2 Structure) bool {
 	return s1.ID == s2.ID
 }
 
-func insertDiff(protoSource, protoQuery []Prototype) []Prototype {
-	for i := range protoQuery {
-		if !hasMatchingId(protoSource, protoQuery[i].ID) {
-			protoSource = append(protoSource, protoQuery[i])
-		}
-	}
-	return protoSource
-}
-
-func hasMatchingId(list []Prototype, id string) bool {
-	for i := range list {
-		if list[i].ID == id {
-			return true
-		}
-	}
-	return false
-}
-
 ///////////////////////////////////////////////////////
 // Ground Pattern Generation
 

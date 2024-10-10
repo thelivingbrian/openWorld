@@ -324,12 +324,7 @@ func (c Context) spaceStructuresHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func (c Context) getSpaceStructures(w http.ResponseWriter, r *http.Request) {
-	//queryValues := r.URL.Query()
-	//collectionName := queryValues.Get("currentCollection")
-	//spaceName := queryValues.Get("currentSpace")
-	//structureType := queryValues.Get("structureType")
-
+func (c Context) getSpaceStructures(w http.ResponseWriter, _ *http.Request) {
 	err := tmpl.ExecuteTemplate(w, "structure-select", nil)
 	if err != nil {
 		fmt.Println(err)
@@ -371,7 +366,7 @@ func (c Context) getSpaceStructure(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c Context) postSpaceStructure(w http.ResponseWriter, r *http.Request) {
+func (c Context) postSpaceStructure(_ http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]

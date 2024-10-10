@@ -20,14 +20,18 @@ type Context struct {
 	collectionPath string
 }
 
-const DEPLOY_materialPath = "../../server/main/data/materials.json"
+// Deploy should only need base path because it is just a copy of compile
+const DEPLOY_materialPath string = "../../server/main/data/materials.json"
 const DEPLOY_areaPath = "../../server/main/data/areas.json"
 const DEPLOY_cssPath = "../../server/main/assets/colors.css"
 
 const DEPLOY_basePath = "../../server/main/data"
 const DEPLOY_imagePath = DEPLOY_basePath + "/images"
+
+// Break everything out for compile (using funcs)
 const COMPILE_basePath = "./data/out"
 const COMPILE_imagePath = COMPILE_basePath + "/images"
+
 const areaFilename = "areas.json"
 const materialFilename = "materials.json"
 
@@ -37,6 +41,7 @@ func populateFromJson() Context {
 	var c Context
 
 	// I don't like this
+	// No purpose at all? Bring up as constants
 	c.colorPath = "./data/colors/colors.json"
 	c.cssPath = "./assets/colors.css"
 	c.collectionPath = "./data/collections/"
