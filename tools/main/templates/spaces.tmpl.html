@@ -197,7 +197,7 @@
 
 	</div>
 	<div id="new-ground">
-		<form hx-post="/space/structure" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#place-result">
+		<form>
 			<h3>Place</h3>
 			<select name="groundId" >
 				<option value="">---</option>
@@ -209,8 +209,9 @@
 			Long: <input type="text" name="long" value="" class="inline-input" />
 			<br />
 			<input type="hidden" name="structure-type" value="ground" />
-			<input type="submit" name="form-action" value="Place" />
-			<!--<input type="submit" name="form-action" value="Remove" />-->
+			<input type="submit" hx-post="/space/structure" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#place-result" value="Place" />
+			<input type="submit" hx-delete="/space/structure" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#place-result" value="Remove" /><br />
+			<input type="submit" hx-delete="/structure" hx-include="[name='currentCollection']" hx-target="#place-result" value="Delete" />
 		</form>
 	</div>
 </div>
