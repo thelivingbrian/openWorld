@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 )
@@ -24,6 +25,12 @@ type GroundConfig struct {
 func (c Context) structureHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		c.postStructure(w, r)
+	}
+	if r.Method == "DELETE" {
+		c.deleteStructure(w, r)
+	}
+	if r.Method == "PUT" {
+		c.putStructure(w, r)
 	}
 }
 
@@ -60,4 +67,81 @@ func (c Context) postStructure(w http.ResponseWriter, r *http.Request) {
 	} else {
 		fmt.Fprintf(w, "Invalid structure type (%s) ", structureType)
 	}
+}
+
+func (c Context) deleteStructure(w http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	collectionName := properties["currentCollection"]
+	structureId := properties["structureId"]
+	structureType := properties["structure-type"]
+
+	col, ok := c.Collections[collectionName]
+	if !ok {
+		io.WriteString(w, "<div><h2>Invalid collection.</h2></div>")
+		return
+	}
+	grounds, ok := col.StructureSets[structureType]
+	if !ok {
+		io.WriteString(w, "<div><h2>No structure type.</h2></div>")
+		return
+	}
+
+	fmt.Println("Deleting: " + structureId)
+
+	col.StructureSets[structureType] = removeStructuresById(grounds, structureId)
+
+	outFileStruct := "./data/collections/bloop/proc/structures/ground.json"
+	err := writeJsonFile(outFileStruct, col.StructureSets["ground"])
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (c Context) putStructure(w http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	collectionName := properties["currentCollection"]
+	structureId := properties["structureId"]
+	structureType := properties["structure-type"]
+
+	col, ok := c.Collections[collectionName]
+	if !ok {
+		io.WriteString(w, "<div><h2>Invalid collection.</h2></div>")
+		return
+	}
+	structures, ok := col.StructureSets[structureType]
+	if !ok {
+		io.WriteString(w, "<div><h2>No structure type.</h2></div>")
+		return
+	}
+
+	structure, found := getStructureById(structures, structureId)
+	if !found {
+		io.WriteString(w, "<div><h2 class=\"dangerous\">no structure with that id</h2></div>")
+		return
+	}
+	if structureType == "ground" {
+		if structure.GroundConfig == nil {
+			panic("unable to regenerate without config")
+		}
+		col.generateAndSaveGroundPattern(*structure.GroundConfig)
+	}
+}
+
+func removeStructuresById(structures []Structure, id string) []Structure {
+	out := make([]Structure, 0)
+	for i := range structures {
+		if structures[i].ID != id {
+			out = append(out, structures[i])
+		}
+	}
+	return out
+}
+
+func getStructureById(structures []Structure, id string) (Structure, bool) {
+	for i := range structures {
+		if structures[i].ID == id {
+			return structures[i], true
+		}
+	}
+	return Structure{}, false
 }

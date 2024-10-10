@@ -199,7 +199,7 @@
 	<div id="new-ground">
 		<form>
 			<h3>Place</h3>
-			<select name="groundId" >
+			<select name="structureId" >
 				<option value="">---</option>
 				{{range  $i, $structure := .}}
 					<option value="{{$structure.ID}}">{{$structure.ID}}</option>
@@ -210,8 +210,9 @@
 			<br />
 			<input type="hidden" name="structure-type" value="ground" />
 			<input type="submit" hx-post="/space/structure" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#place-result" value="Place" />
-			<input type="submit" hx-delete="/space/structure" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#place-result" value="Remove" /><br />
-			<input type="submit" hx-delete="/structure" hx-include="[name='currentCollection']" hx-target="#place-result" value="Delete" />
+			<input type="submit" hx-delete="/space/structure" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#place-result" value="Remove" /><br /><br />
+			<input type="submit" hx-put="/structure" hx-include="[name='currentCollection']" hx-target="#place-result" value="Regenerate" />
+			<input type="submit" class="dangerous" hx-delete="/structure" hx-include="[name='currentCollection']" hx-target="#place-result" value="Delete" />
 		</form>
 	</div>
 </div>

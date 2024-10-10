@@ -61,6 +61,11 @@ a:hover {
   .no-top-margin {
     margin-top: 0;
 }
+
+.dangerous {
+  background-color: #ff007b !important;
+
+}
   
   /* Responsive adjustments */
   @media (max-width: 600px) {

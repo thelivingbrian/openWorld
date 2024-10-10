@@ -343,6 +343,9 @@ func (c Context) spaceStructureHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		c.postSpaceStructure(w, r)
 	}
+	if r.Method == "DELETE" {
+		c.deleteSpaceStructure(w, r)
+	}
 }
 
 func (c Context) getSpaceStructure(w http.ResponseWriter, r *http.Request) {
@@ -382,7 +385,7 @@ func (c Context) postSpaceStructure(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic("Invalid longitude")
 	}
-	id := properties["groundId"] // change name
+	id := properties["structureId"]
 	structureType := properties["structure-type"]
 	panicIfAnyEmpty("PUT to /space/structure", collectionName, spaceName)
 
@@ -401,14 +404,15 @@ func (c Context) postSpaceStructure(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		panic("No structures for: " + structureType)
 	}
-	var structure Structure
+	structure, found := getStructureById(structures, id)
+	/*var structure Structure
 	found := false
 	for index := range structures {
 		if structures[index].ID == id {
 			found = true
 			structure = structures[index]
 		}
-	}
+	}*/
 	if !found {
 		panic("No Structure")
 	}
@@ -427,6 +431,72 @@ func (c Context) postSpaceStructure(w http.ResponseWriter, r *http.Request) {
 					GridAssetId:        structure.FragmentIds[i][j],
 					ClockwiseRotations: 0,
 				})
+				for _, instruction := range area.Blueprint.Instructions {
+					col.applyInstruction(area.Blueprint.Tiles, instruction)
+				}
+			}
+		}
+	}
+}
+
+func (c Context) deleteSpaceStructure(_ http.ResponseWriter, r *http.Request) {
+	fmt.Println("Attempting to delete.")
+	properties, _ := requestToProperties(r)
+	collectionName := properties["currentCollection"]
+	spaceName := properties["currentSpace"]
+	lat := properties["lat"]
+	latI, err := strconv.Atoi(lat)
+	if err != nil {
+		panic("Invalid latitude")
+	}
+	long := properties["long"]
+	longI, err := strconv.Atoi(long)
+	if err != nil {
+		panic("Invalid longitude")
+	}
+	id := properties["structureId"]
+	structureType := properties["structure-type"]
+
+	col, ok := c.Collections[collectionName]
+	if !ok {
+		panic("No collection")
+	}
+	space := c.spaceFromNames(collectionName, spaceName)
+	if space == nil {
+		panic("invalid space")
+	}
+	structures, ok := col.StructureSets[structureType]
+	if !ok {
+		panic("No structures for: " + structureType)
+	}
+	structure, found := getStructureById(structures, id)
+	if !found {
+		panic("No Structure")
+	}
+	for i := 0; i < len(structure.FragmentIds); i++ {
+		for j := 0; j < len(structure.FragmentIds[i]); j++ {
+			if structure.FragmentIds[i][j] != "" {
+				areaname := fmt.Sprintf("%s:%d-%d", space.Name, latI+i, longI+j)
+				area := getAreaByName(space.Areas, areaname)
+				if area == nil {
+					continue
+				}
+				new := make([]Instruction, 0)
+				for index := range area.Blueprint.Instructions {
+					if area.Blueprint.Instructions[index].GridAssetId == structure.FragmentIds[i][j] {
+						// Remove
+						currentRotations := area.Blueprint.Instructions[index].ClockwiseRotations
+						grid := col.getTileGridByAssetId(area.Blueprint.Instructions[index].GridAssetId)
+						if currentRotations%2 == 1 {
+							clearTiles(area.Blueprint.Instructions[index].Y, area.Blueprint.Instructions[index].X, len(grid[0]), len(grid), area.Blueprint.Tiles)
+						} else {
+							clearTiles(area.Blueprint.Instructions[index].Y, area.Blueprint.Instructions[index].X, len(grid), len(grid[0]), area.Blueprint.Tiles)
+						}
+					} else {
+						new = append(new, area.Blueprint.Instructions[index])
+					}
+				}
+				area.Blueprint.Instructions = new
 				for _, instruction := range area.Blueprint.Instructions {
 					col.applyInstruction(area.Blueprint.Tiles, instruction)
 				}
