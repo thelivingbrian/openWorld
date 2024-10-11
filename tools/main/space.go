@@ -264,6 +264,7 @@ func (c Context) getSpace(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Saves changes to space made in the editor
 func (c Context) putSpace(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	collectionName := properties["currentCollection"]

@@ -119,6 +119,7 @@ func (c Context) postPrototypes(w http.ResponseWriter, r *http.Request) {
 
 	// New Func
 	outFile := c.collectionPath + collectionName + "/prototypes/" + setName + ".json"
+	// ............. uh
 	err := writeJsonFile(outFile, collection.Fragments[setName])
 	if err != nil {
 		panic(err)

@@ -15,18 +15,15 @@ type Context struct {
 	Collections map[string]*Collection
 	colors      []Color
 
-	colorPath      string
-	cssPath        string
+	//colorPath      string
+	//cssPath        string
 	collectionPath string
 }
 
-// Deploy should only need base path because it is just a copy of compile
-// const DEPLOY_materialPath string = "../../server/main/data/materials.json"
-// const DEPLOY_areaPath = "../../server/main/data/areas.json"
-const DEPLOY_cssPath = "../../server/main/assets/colors.css"
-
+// Deploy should only need base path because it is just a copy of compile ?
 const DEPLOY_basePath = "../../server/main/data"
 const DEPLOY_imagePath = DEPLOY_basePath + "/images"
+const DEPLOY_cssPath = "../../server/main/assets/colors.css"
 
 // Break everything out for compile (using funcs)
 const COMPILE_basePath = "./data/out"
@@ -35,6 +32,10 @@ const COMPILE_imagePath = COMPILE_basePath + "/images"
 const areaFilename = "areas.json"
 const materialFilename = "materials.json"
 
+const COLOR_PATH string = "./data/colors/colors.json"
+const CSS_PATH string = "./assets/colors.css"
+const COLLECTION_PATH string = "./data/collections/"
+
 // Startup
 
 func populateFromJson() Context {
@@ -42,11 +43,11 @@ func populateFromJson() Context {
 
 	// I don't like this
 	// No purpose at all? Bring up as constants
-	c.colorPath = "./data/colors/colors.json"
-	c.cssPath = "./assets/colors.css"
+	//c.colorPath = "./data/colors/colors.json"
+	//c.cssPath = "./assets/colors.css"
 	c.collectionPath = "./data/collections/"
 
-	c.colors = parseJsonFile[[]Color](c.colorPath)
+	c.colors = parseJsonFile[[]Color](COLOR_PATH)
 	c.Collections = c.getAllCollections(c.collectionPath)
 
 	return c
@@ -94,12 +95,12 @@ func colorName(c Color) string {
 }
 
 func (c Context) writeColorsToLocalFile() error {
-	return writeJsonFile(c.colorPath, c.colors)
+	return writeJsonFile(COLOR_PATH, c.colors)
 }
 
 // Combine with below
 func (c Context) createLocalCSSFile() {
-	c.createCSSFile(c.cssPath)
+	c.createCSSFile(CSS_PATH)
 }
 
 func (c Context) createCSSFile(path string) {
@@ -249,7 +250,7 @@ func (c Context) deploy(w http.ResponseWriter, r *http.Request) {
 func (c Context) compile(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")
-	c.createCSSFile(c.cssPath)
+	c.createCSSFile(CSS_PATH)
 	c.compileCollectionByName(collectionName)
 }
 
