@@ -18,7 +18,7 @@ func (col *Collection) generateAndSaveGroundPattern(config GroundConfig) {
 	// Context vs Collection ?
 
 	col.PrototypeSets["floors"] = merge(col.PrototypeSets["floors"], prototypes, IdsMatchProto)
-	outFileProto := "./data/collections/bloop/proc/prototypes/floors.json"
+	outFileProto := "./data/collections/bloop/prototypes/floors.json"
 	err := writeJsonFile(outFileProto, col.PrototypeSets["floors"])
 	if err != nil {
 		panic(err)
@@ -32,7 +32,7 @@ func (col *Collection) generateAndSaveGroundPattern(config GroundConfig) {
 	}
 
 	col.StructureSets["ground"] = merge(col.StructureSets["ground"], append(make([]Structure, 0), structure), IdsMatchStructure)
-	outFileStruct := "./data/collections/bloop/proc/structures/ground.json"
+	outFileStruct := "./data/collections/bloop/structures/ground.json"
 	err = writeJsonFile(outFileStruct, col.StructureSets["ground"])
 	if err != nil {
 		panic(err)

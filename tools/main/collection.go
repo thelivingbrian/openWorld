@@ -9,13 +9,12 @@ import (
 )
 
 type Collection struct {
-	Name              string
-	Spaces            map[string]*Space
-	Fragments         map[string][]Fragment
-	PrototypeSets     map[string][]Prototype
-	ProceeduralProtos map[string][]Prototype
-	InteractableSets  map[string][]InteractableDescription
-	StructureSets     map[string][]Structure
+	Name             string
+	Spaces           map[string]*Space
+	Fragments        map[string][]Fragment
+	PrototypeSets    map[string][]Prototype
+	InteractableSets map[string][]InteractableDescription
+	StructureSets    map[string][]Structure
 }
 
 func (c *Context) collectionsHandler(w http.ResponseWriter, r *http.Request) {
@@ -51,7 +50,7 @@ func (c *Context) postCollections(w http.ResponseWriter, r *http.Request) {
 }
 
 func createCollectionDirectories(name string, path string) {
-	dirs := []string{"prototypes", "fragments", "spaces", "interactables", "proc/prototypes", "proc/structures"}
+	dirs := []string{"prototypes", "fragments", "spaces", "interactables", "structures"}
 
 	for _, dir := range dirs {
 		fullPath := filepath.Join(path, name, dir)
@@ -82,13 +81,6 @@ func (col *Collection) getProtoSets() []string {
 
 func (col *Collection) findPrototypeById(id string) *Prototype {
 	for _, set := range col.PrototypeSets {
-		for i := range set {
-			if set[i].ID == id {
-				return &set[i]
-			}
-		}
-	}
-	for _, set := range col.ProceeduralProtos {
 		for i := range set {
 			if set[i].ID == id {
 				return &set[i]

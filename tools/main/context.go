@@ -140,13 +140,12 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 		entry, _ := dir.Info()
 		if entry.IsDir() {
 			collection := Collection{
-				Name:              entry.Name(),
-				Spaces:            make(map[string]*Space),
-				Fragments:         make(map[string][]Fragment),
-				PrototypeSets:     make(map[string][]Prototype),
-				ProceeduralProtos: make(map[string][]Prototype),
-				InteractableSets:  make(map[string][]InteractableDescription),
-				StructureSets:     make(map[string][]Structure),
+				Name:             entry.Name(),
+				Spaces:           make(map[string]*Space),
+				Fragments:        make(map[string][]Fragment),
+				PrototypeSets:    make(map[string][]Prototype),
+				InteractableSets: make(map[string][]InteractableDescription),
+				StructureSets:    make(map[string][]Structure),
 			}
 
 			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
@@ -158,13 +157,13 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 			pathToPrototypes := filepath.Join(collectionPath, entry.Name(), "prototypes")
 			populateMaps(collection.PrototypeSets, pathToPrototypes)
 
-			pathToProcPrototypes := filepath.Join(collectionPath, entry.Name(), "proc/prototypes")
-			populateMaps(collection.PrototypeSets, pathToProcPrototypes)
+			/*pathToProcPrototypes := filepath.Join(collectionPath, entry.Name(), "proc/prototypes")
+			populateMaps(collection.PrototypeSets, pathToProcPrototypes)*/
 
 			pathToInteractables := filepath.Join(collectionPath, entry.Name(), "interactables")
 			populateMaps(collection.InteractableSets, pathToInteractables)
 
-			pathToStructures := filepath.Join(collectionPath, entry.Name(), "proc/structures")
+			pathToStructures := filepath.Join(collectionPath, entry.Name(), "structures")
 			populateMaps(collection.StructureSets, pathToStructures)
 
 			collections[entry.Name()] = &collection
