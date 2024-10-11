@@ -443,10 +443,11 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 //   Updates
 
 func (player *Player) sendUpdates() {
+	username := player.username
 	for {
 		update, ok := <-player.updates
 		if !ok {
-			fmt.Println("Stage update channel closed")
+			fmt.Println("Player: " + username + " - update channel closed")
 			return
 		}
 

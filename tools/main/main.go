@@ -10,8 +10,8 @@ var tmpl = template.Must(template.ParseGlob("templates/*.tmpl.html"))
 
 func main() {
 	fmt.Println("Initializing...")
-	c := populateFromJson()
-	ExecuteCLICommands()
+	c := populateFromJson() // shouldn't this be a pointer?
+	ExecuteCLICommands(&c)
 
 	fmt.Println("Attempting to start server...")
 	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./assets"))))
@@ -71,7 +71,7 @@ func main() {
 	http.HandleFunc("/dupeTransport", c.dupeTransport)
 	http.HandleFunc("/deleteTransport", c.deleteTransport)
 
-	http.HandleFunc("/deploy", c.deploy)
+	http.HandleFunc("/deploy", c.deployHandler)
 	http.HandleFunc("/compile", c.compile)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {

@@ -14,23 +14,24 @@ var rootCmd = &cobra.Command{
 	SilenceUsage: true,
 }
 
-var deployCmd = &cobra.Command{
-	Use:   "deploy [collectionName]",
-	Short: "Deploy a specific collection",
-	Long:  `Deploy the given collection name to the server.`,
-	Args:  cobra.ExactArgs(1), // Ensure exactly 1 argument is passed
-	Run: func(cmd *cobra.Command, args []string) {
+func runWithContext(c *Context) func(cmd *cobra.Command, args []string) {
+	return func(cmd *cobra.Command, args []string) {
 		collectionName := args[0]
 		fmt.Printf("Deploying collection: %s\n", collectionName)
+		c.deploy(collectionName)
 		os.Exit(0)
-	},
+	}
 }
 
-func init() {
+func ExecuteCLICommands(c *Context) {
+	var deployCmd = &cobra.Command{
+		Use:   "deploy [collectionName]",
+		Short: "Deploy a specific collection",
+		Long:  `Deploy the given collection name to the server.`,
+		Args:  cobra.ExactArgs(1), // Ensure exactly 1 argument is passed
+		Run:   runWithContext(c),
+	}
 	rootCmd.AddCommand(deployCmd)
-}
-
-func ExecuteCLICommands() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

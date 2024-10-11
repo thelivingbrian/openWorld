@@ -234,9 +234,13 @@ func (c Context) spaceFromNames(collectionName string, spaceName string) *Space 
 
 // DEPLOYMENT
 
-func (c Context) deploy(w http.ResponseWriter, r *http.Request) {
+func (c Context) deployHandler(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")
+	c.deploy(collectionName)
+}
+
+func (c Context) deploy(collectionName string) {
 	c.createCSSFile(DEPLOY_cssPath)
 	c.compileCollectionByName(collectionName)
 	os.RemoveAll(DEPLOY_basePath)
