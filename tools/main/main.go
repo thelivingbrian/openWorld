@@ -9,9 +9,11 @@ import (
 var tmpl = template.Must(template.ParseGlob("templates/*.tmpl.html"))
 
 func main() {
-	fmt.Println("Attempting to start server...")
+	fmt.Println("Initializing...")
 	c := populateFromJson()
+	ExecuteCLICommands()
 
+	fmt.Println("Attempting to start server...")
 	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./assets"))))
 
 	http.HandleFunc("/collections", c.collectionsHandler)
@@ -21,8 +23,8 @@ func main() {
 	http.HandleFunc("/space/map", c.spaceMapHandler)
 	http.HandleFunc("/space/details", c.spaceDetailsHandler)
 	http.HandleFunc("/space/structures", c.spaceStructuresHandler)
-	http.HandleFunc("/space/structure", c.spaceStructureHandler) // needs DELETE
-	http.HandleFunc("/structure", c.structureHandler)            // needs PUT and DELETE
+	http.HandleFunc("/space/structure", c.spaceStructureHandler)
+	http.HandleFunc("/structure", c.structureHandler)
 	http.HandleFunc("/areas", c.areasHandler)
 	http.HandleFunc("/areas/new", c.newAreaHandler)
 	http.HandleFunc("/area", c.areaHandler)
