@@ -21,8 +21,8 @@ type Context struct {
 }
 
 // Deploy should only need base path because it is just a copy of compile
-const DEPLOY_materialPath string = "../../server/main/data/materials.json"
-const DEPLOY_areaPath = "../../server/main/data/areas.json"
+// const DEPLOY_materialPath string = "../../server/main/data/materials.json"
+// const DEPLOY_areaPath = "../../server/main/data/areas.json"
 const DEPLOY_cssPath = "../../server/main/assets/colors.css"
 
 const DEPLOY_basePath = "../../server/main/data"

@@ -100,7 +100,8 @@
   - [-] Regenerate 
   - [-] Delete
 - [ ] version control
-  - [ ] game generates pngs on build  
+  - [ ] workspace deploys via build command
+    - [ ] add cli  
   - [ ] get rid of proc folder? 
 
 
