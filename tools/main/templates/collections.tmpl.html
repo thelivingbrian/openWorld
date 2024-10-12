@@ -3,7 +3,7 @@
 	<div id="collection_select">
 		<h3>Select Existing Collection: </h3>
 		<select name="collectionName" hx-get="/spaces" hx-target="#collection_page">
-		<option value=""></option>
+		<option value="">---</option>
 		{{range  $key, $value := .}}
 			<option value="{{$key}}">{{$key}}</option>
 		{{end}}

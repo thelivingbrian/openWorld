@@ -1,9 +1,9 @@
 a, a:visited, a:hover, a:active {
-    color: #007BdF;
+    color: #5a9bd8;
 }
 
-a:hover, a:focus {
-    color: #0056b4;
+a:hover {
+    color: #8aabc8;
 }
   
   body {
@@ -15,7 +15,7 @@ a:hover, a:focus {
     max-width: 500px; /* Adjust based on preference */
     margin: 20px auto;
     padding: 20px;
-    background-color: #f3f3f3;
+    background-color: #353545;
     border-radius: 8px;
     overflow: auto;
   }
@@ -57,6 +57,15 @@ a:hover, a:focus {
     display: inline-block;
     font-weight: bold;
   }
+
+  .no-top-margin {
+    margin-top: 0;
+}
+
+.dangerous {
+  background-color: #ff007b !important;
+
+}
   
   /* Responsive adjustments */
   @media (max-width: 600px) {

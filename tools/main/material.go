@@ -155,7 +155,7 @@ func (c *Context) newColor(w http.ResponseWriter, r *http.Request) {
 
 	color := Color{CssClassName: cssClassName, R: R, G: G, B: B, A: A}
 
-	colorMap := sliceToMap(c.colors, colorName)
+	colorMap := sliceToMap(c.colors, colorName) // no
 	_, ok := colorMap[cssClassName]
 	if !ok {
 		c.colors = append(c.colors, color)
@@ -164,6 +164,14 @@ func (c *Context) newColor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	io.WriteString(w, "<h2>done.</h2>")
+}
+
+func sliceToMap[T any](slice []T, f func(T) string) map[string]T {
+	out := make(map[string]T)
+	for _, entry := range slice {
+		out[f(entry)] = entry
+	}
+	return out
 }
 
 func exampleSquare(w http.ResponseWriter, r *http.Request) {

@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 type Space struct {
@@ -262,18 +264,18 @@ func (c Context) getSpace(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Saves changes to space made in the editor
 func (c Context) putSpace(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
-	panicIfAnyEmpty("POST to /area", collectionName, spaceName)
+	panicIfAnyEmpty("PUT to /space", collectionName, spaceName)
 
-	space := c.spaceFromNames(collectionName, spaceName)
-	outFile := c.collectionPath + collectionName + "/spaces/" + spaceName + ".json"
-	err := writeJsonFile(outFile, space)
-	if err != nil {
-		panic(err)
+	collection, ok := c.Collections[collectionName]
+	if !ok {
+		panic("no collection")
 	}
+	collection.saveSpace(spaceName)
 
 	io.WriteString(w, `<h2>Success</h2>`)
 }
@@ -295,6 +297,195 @@ func (col Collection) getNewSpace(w http.ResponseWriter, _ *http.Request) {
 	err := tmpl.ExecuteTemplate(w, "space-new", col)
 	if err != nil {
 		fmt.Println(err)
+	}
+}
+
+//
+
+func (c Context) spaceDetailsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		c.getSpaceDetails(w, r)
+	}
+}
+
+func (c Context) getSpaceDetails(w http.ResponseWriter, r *http.Request) {
+	space := c.spaceFromGET(r)
+
+	// Have default tile color change trigger redisplay screen
+	err := tmpl.ExecuteTemplate(w, "space-details", space)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func (c Context) spaceStructuresHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		c.getSpaceStructures(w, r)
+	}
+}
+
+func (c Context) getSpaceStructures(w http.ResponseWriter, _ *http.Request) {
+	err := tmpl.ExecuteTemplate(w, "structure-select", nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func (c Context) spaceStructureHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		c.getSpaceStructure(w, r)
+	}
+	if r.Method == "POST" {
+		c.postSpaceStructure(w, r)
+	}
+	if r.Method == "DELETE" {
+		c.deleteSpaceStructure(w, r)
+	}
+}
+
+func (c Context) getSpaceStructure(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	collectionName := queryValues.Get("currentCollection")
+	structureType := queryValues.Get("structureType")
+
+	if structureType == "ground" {
+		col, ok := c.Collections[collectionName]
+		if !ok {
+			io.WriteString(w, "<h2>Invalid collection.</h2>")
+		}
+		grounds := col.StructureSets["ground"]
+		err := tmpl.ExecuteTemplate(w, "structure-ground", grounds)
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else {
+		io.WriteString(w, "<h2>Sorry invalid structure selected.</h2>")
+	}
+}
+
+func (c Context) postSpaceStructure(_ http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	collectionName := properties["currentCollection"]
+	spaceName := properties["currentSpace"]
+	lat := properties["lat"]
+	latI, err := strconv.Atoi(lat)
+	if err != nil {
+		panic("Invalid latitude")
+	}
+	long := properties["long"]
+	longI, err := strconv.Atoi(long)
+	if err != nil {
+		panic("Invalid longitude")
+	}
+	id := properties["structureId"]
+	structureType := properties["structure-type"]
+	panicIfAnyEmpty("PUT to /space/structure", collectionName, spaceName)
+
+	space := c.spaceFromNames(collectionName, spaceName)
+	if space == nil {
+		panic("invalid space")
+	}
+	fmt.Printf("place %s on %s : %s - %s", id, space.Name, lat, long)
+
+	// get each blueprint
+	col, ok := c.Collections[collectionName]
+	if !ok {
+		panic("No collection")
+	}
+	structures, ok := col.StructureSets[structureType]
+	if !ok {
+		panic("No structures for: " + structureType)
+	}
+	structure, found := getStructureById(structures, id)
+	if !found {
+		panic("No Structure")
+	}
+	for i := 0; i < len(structure.FragmentIds); i++ {
+		for j := 0; j < len(structure.FragmentIds[i]); j++ {
+			if structure.FragmentIds[i][j] != "" {
+				areaname := fmt.Sprintf("%s:%d-%d", space.Name, latI+i, longI+j)
+				area := getAreaByName(space.Areas, areaname)
+				if area == nil {
+					continue
+				}
+				area.Blueprint.Instructions = append(area.Blueprint.Instructions, Instruction{
+					ID:                 uuid.New().String(),
+					X:                  0,
+					Y:                  0,
+					GridAssetId:        structure.FragmentIds[i][j],
+					ClockwiseRotations: 0,
+				})
+				for _, instruction := range area.Blueprint.Instructions {
+					col.applyInstruction(area.Blueprint.Tiles, instruction)
+				}
+			}
+		}
+	}
+}
+
+func (c Context) deleteSpaceStructure(_ http.ResponseWriter, r *http.Request) {
+	fmt.Println("Attempting to delete.")
+	properties, _ := requestToProperties(r)
+	collectionName := properties["currentCollection"]
+	spaceName := properties["currentSpace"]
+	lat := properties["lat"]
+	latI, err := strconv.Atoi(lat)
+	if err != nil {
+		panic("Invalid latitude")
+	}
+	long := properties["long"]
+	longI, err := strconv.Atoi(long)
+	if err != nil {
+		panic("Invalid longitude")
+	}
+	id := properties["structureId"]
+	structureType := properties["structure-type"]
+
+	col, ok := c.Collections[collectionName]
+	if !ok {
+		panic("No collection")
+	}
+	space := c.spaceFromNames(collectionName, spaceName)
+	if space == nil {
+		panic("invalid space")
+	}
+	structures, ok := col.StructureSets[structureType]
+	if !ok {
+		panic("No structures for: " + structureType)
+	}
+	structure, found := getStructureById(structures, id)
+	if !found {
+		panic("No Structure")
+	}
+	for i := 0; i < len(structure.FragmentIds); i++ {
+		for j := 0; j < len(structure.FragmentIds[i]); j++ {
+			if structure.FragmentIds[i][j] != "" {
+				areaname := fmt.Sprintf("%s:%d-%d", space.Name, latI+i, longI+j)
+				area := getAreaByName(space.Areas, areaname)
+				if area == nil {
+					continue
+				}
+				new := make([]Instruction, 0)
+				for index := range area.Blueprint.Instructions {
+					if area.Blueprint.Instructions[index].GridAssetId == structure.FragmentIds[i][j] {
+						// Remove old tiles
+						currentRotations := area.Blueprint.Instructions[index].ClockwiseRotations
+						grid := col.getTileGridByAssetId(area.Blueprint.Instructions[index].GridAssetId)
+						if currentRotations%2 == 1 {
+							clearTiles(area.Blueprint.Instructions[index].Y, area.Blueprint.Instructions[index].X, len(grid[0]), len(grid), area.Blueprint.Tiles)
+						} else {
+							clearTiles(area.Blueprint.Instructions[index].Y, area.Blueprint.Instructions[index].X, len(grid), len(grid[0]), area.Blueprint.Tiles)
+						}
+					} else {
+						new = append(new, area.Blueprint.Instructions[index])
+					}
+				}
+				area.Blueprint.Instructions = new
+				for _, instruction := range area.Blueprint.Instructions {
+					col.applyInstruction(area.Blueprint.Tiles, instruction)
+				}
+			}
+		}
 	}
 }
 
@@ -375,6 +566,10 @@ func (c Context) generateImgFromArea(area *AreaDescription, col Collection) *ima
 	for row := range area.Blueprint.Tiles {
 		for column, tile := range area.Blueprint.Tiles[row] {
 			proto := col.findPrototypeById(tile.PrototypeId)
+			if proto == nil {
+				fmt.Println("WARN: PROTOTYPE MISSING: " + tile.PrototypeId)
+				proto = &Prototype{MapColor: "red"}
+			}
 			mapColor := c.getMapColorFromProto(*proto)
 			protoColor := c.findColorByName(mapColor)
 			if protoColor.CssClassName == "invalid" {

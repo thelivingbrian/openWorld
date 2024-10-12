@@ -92,6 +92,19 @@
     - [-] Set X and Y 
     - [-] Set rotation
     - [-] Highlight selected instruction
+- [-] generate structure
+  - [-] Generate new 
+  - [-] Place at coord 
+  - [-] Remove structure 
+    - [-] at coord 
+  - [-] Regenerate 
+  - [-] Delete
+- [-] version control
+  - [-] workspace deploys via build command
+    - [-] clean up collection logic
+    - [-] add cli  
+  - [-] get rid of proc folder?
+
 
 ## Mobile
   - [-] Controls

@@ -19,7 +19,7 @@
         <a hx-post="/space/map" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#space_select" href="#">Save/Map</a>
 	-->
 		<select name="currentSpace" hx-get="/areas" hx-include="[name='currentCollection']" hx-target="#space_select">
-			<option value=""></option>
+			<option value="">---</option>
 			{{range  $key, $value := .Spaces}}
 				<option value="{{$key}}">{{$key}}</option>
 			{{end}}
@@ -104,13 +104,13 @@
     </div>
     <div id="edit_sidebar" class="left">
         <div id="edit_options">
-            <a href="#">Details</a> |
+            <a hx-get="/space/details" hx-target="#edit_tool_space" hx-include="[name='currentCollection'],[name='currentSpace']" href="#">Details</a> |
+			<a hx-get="/space/structures" hx-target="#edit_tool_space" href="#">Structures</a> |
             <span>Modify Areas</span> |
-            <span>View/Apply Matrix</span> |
             <span>All Transports</a> 
         </div>
         <div id="edit_tool_space">
-			{{template "save-details" .SelectedSpace}}
+			{{template "space-details" .SelectedSpace}}
         </div>
     </div>
 </div>
@@ -119,16 +119,101 @@
 </div>
 {{end}}
 
-{{define "save-details"}}
-<div id="save-details">
+{{define "space-details"}}
+<div id="space-details">
     <div id="save_notice"></div>
     <form hx-target="#save_notice">
-        <label>{{.Name}}</label><br />
-        <span>Topology: {{.Topology}}</span><br />
-        <span>Latitude: {{.Latitude}}</span><br />
-        <span>Longitude: {{.Longitude}}</span><br />
-        <span>AreaHeight: {{.AreaHeight}}</span><br />
-        <span>AreaWidth: {{.AreaWidth}}</span><br />
+        <h2 class="no-top-margin">{{.Name}}</h2>
+        <table>
+            <tr>
+                <td><strong>Topology:</strong></td>
+                <td>{{.Topology}}</td>
+            </tr>
+            <tr>
+                <td><strong>Latitude:</strong></td>
+                <td>{{.Latitude}}</td>
+            </tr>
+            <tr>
+                <td><strong>Longitude:</strong></td>
+                <td>{{.Longitude}}</td>
+            </tr>
+            <tr>
+                <td><strong>Area Height:</strong></td>
+                <td>{{.AreaHeight}}</td>
+            </tr>
+            <tr>
+                <td><strong>Area Width:</strong></td>
+                <td>{{.AreaWidth}}</td>
+            </tr>
+        </table>
     </form>
+</div>
+{{end}}
+
+
+{{define "structure-select"}}
+<div id="structure-select">
+	<h3>Select Structure type: </h3>
+	<select name="structureType" hx-get="/space/structure" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#structure-select">
+		<option value="">---</option>
+		<option value="ground">Ground</option>
+	</select>
+
+	<div id="structure-window">
+		<!-- unused currently -->
+	</div>
+</div>
+{{end}}
+
+
+{{define "structure-ground"}}
+<div id="structure-ground">
+	<h3>Generate New Ground: </h3>
+	<div id="new-ground">
+		<form hx-post="/structure" hx-include="[name='currentCollection']" hx-target="#new-ground">
+			<h3>New Ground Generation</h3>
+			<label><b>Structure (also sub-fragment) Name: </b></label>
+			<input type="text" name="structure-name" />
+			<br />
+			<label><b>Span (in areas): </b></label>
+			<input type="text" name="span" />
+			<br />
+			<label><b>Color 1: </b></label>
+			<input type="text" name="color1" />
+			<label><b>Color 2: </b></label>
+			<input type="text" name="color2" />
+			<br />
+			<label><b>Fuzz: </b></label>
+			<input type="text" name="fuzz" />
+			<label><b>Strategy: </b></label>
+			<input type="text" name="strategy" />
+			<br />
+			<input type="hidden" name="structure-type" value="ground" />
+			<input type="submit" value="Generate" />
+		</form>
+	</div>
+	<h3>Place Existing : </h3>
+	<div id="place-result">
+
+	</div>
+	<div id="new-ground">
+		<form>
+			<h3>Place</h3>
+			<select name="structureId" >
+				<option value="">---</option>
+				{{range  $i, $structure := .}}
+					<option value="{{$structure.ID}}">{{$structure.ID}}</option>
+				{{end}}
+			</select>
+			At Lat: <input type="text" name="lat" value="" class="inline-input" />
+			Long: <input type="text" name="long" value="" class="inline-input" />
+			<br />
+			<input type="hidden" name="structure-type" value="ground" />
+			<input type="submit" hx-post="/space/structure" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#place-result" value="Place" />
+			<input type="submit" hx-delete="/space/structure" hx-include="[name='currentCollection'],[name='currentSpace']" hx-target="#place-result" value="Remove" /><br /><br />
+			<input type="submit" hx-put="/structure" hx-include="[name='currentCollection']" hx-target="#place-result" value="Regenerate" />
+			<input type="submit" class="dangerous" hx-delete="/structure" hx-include="[name='currentCollection']" hx-target="#place-result" value="Delete" />
+		</form>
+	</div>
 </div>
 {{end}}

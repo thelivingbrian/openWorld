@@ -17,8 +17,9 @@ type Fragment struct {
 	Blueprint *Blueprint `json:"blueprint"`
 }
 
+// For templates
 type FragmentDetails struct {
-	ID          string `json:"id"`
+	ID          string `json:"id"` // json not needed?
 	Name        string
 	SetName     string
 	GridDetails GridDetails
@@ -197,13 +198,7 @@ func (c *Context) postFragments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	collection.Fragments[setName] = make([]Fragment, 0)
-
-	// New Func
-	outFile := c.collectionPath + collectionName + "/fragments/" + setName + ".json"
-	err := writeJsonFile(outFile, collection.Fragments[setName])
-	if err != nil {
-		panic(err)
-	}
+	collection.saveFragmentSet(setName)
 
 	io.WriteString(w, `<h2>Success</h2>`)
 }
@@ -276,16 +271,7 @@ func (c *Context) putFragment(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		panic("no collection")
 	}
-	set, ok := collection.Fragments[setName]
-	if !ok {
-		panic("no set")
-	}
-
-	outFile := c.collectionPath + collectionName + "/fragments/" + setName + ".json"
-	err := writeJsonFile(outFile, set)
-	if err != nil {
-		panic(err)
-	}
+	collection.saveFragmentSet(setName)
 
 	io.WriteString(w, "<h3>Done.</h3>")
 }
@@ -326,11 +312,8 @@ func (c *Context) postFragment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	collection.Fragments[setName] = append(set, Fragment{ID: uuid.New().String(), Name: name, SetName: setName, Blueprint: &Blueprint{Tiles: grid, Instructions: make([]Instruction, 0)}})
-	outFile := c.collectionPath + collectionName + "/fragments/" + setName + ".json"
-	err = writeJsonFile(outFile, collection.Fragments[setName])
-	if err != nil {
-		panic(err)
-	}
+	collection.saveFragmentSet(setName)
+
 	io.WriteString(w, "<h3>Done.</h3>")
 }
 

@@ -9,9 +9,11 @@ import (
 var tmpl = template.Must(template.ParseGlob("templates/*.tmpl.html"))
 
 func main() {
-	fmt.Println("Attempting to start server...")
-	c := populateFromJson()
+	fmt.Println("Initializing...")
+	c := populateFromJson() // shouldn't this be a pointer?
+	ExecuteCLICommands(&c)
 
+	fmt.Println("Attempting to start server...")
 	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./assets"))))
 
 	http.HandleFunc("/collections", c.collectionsHandler)
@@ -19,6 +21,10 @@ func main() {
 	http.HandleFunc("/spaces/new", c.newSpaceHandler)
 	http.HandleFunc("/space", c.spaceHandler)
 	http.HandleFunc("/space/map", c.spaceMapHandler)
+	http.HandleFunc("/space/details", c.spaceDetailsHandler)
+	http.HandleFunc("/space/structures", c.spaceStructuresHandler)
+	http.HandleFunc("/space/structure", c.spaceStructureHandler)
+	http.HandleFunc("/structure", c.structureHandler)
 	http.HandleFunc("/areas", c.areasHandler)
 	http.HandleFunc("/areas/new", c.newAreaHandler)
 	http.HandleFunc("/area", c.areaHandler)
@@ -49,7 +55,6 @@ func main() {
 	http.HandleFunc("/interactable/example", exampleInteractable)
 
 	http.HandleFunc("/materialPage", c.getMaterialPage)
-	//http.HandleFunc("/exampleMaterial", exampleMaterial) // Probably unused
 	http.HandleFunc("/getEditColor", c.getEditColor)
 	http.HandleFunc("/editColor", c.editColor)
 	http.HandleFunc("/getNewColor", getNewColor)
@@ -65,7 +70,7 @@ func main() {
 	http.HandleFunc("/dupeTransport", c.dupeTransport)
 	http.HandleFunc("/deleteTransport", c.deleteTransport)
 
-	http.HandleFunc("/deploy", c.deploy)
+	http.HandleFunc("/deploy", c.deployHandler)
 	http.HandleFunc("/compile", c.compile)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {

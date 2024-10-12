@@ -87,13 +87,7 @@ func (c Context) postInteractables(w http.ResponseWriter, r *http.Request) {
 	}
 
 	collection.InteractableSets[setName] = make([]InteractableDescription, 0)
-
-	// New Func
-	outFile := c.collectionPath + collectionName + "/interactables/" + setName + ".json"
-	err := writeJsonFile(outFile, collection.InteractableSets[setName])
-	if err != nil {
-		panic(err)
-	}
+	collection.saveInteractableSet(setName)
 
 	io.WriteString(w, `<h2>Success</h2>`)
 }
@@ -196,12 +190,7 @@ func (c Context) putInteractable(w http.ResponseWriter, r *http.Request) {
 	interactable.Fragile = fragile
 
 	fmt.Println(interactable)
-
-	outFile := c.collectionPath + collectionName + "/interactables/" + setName + ".json"
-	err := writeJsonFile(outFile, collection.InteractableSets[setName])
-	if err != nil {
-		panic(err)
-	}
+	collection.saveInteractableSet(setName)
 
 	io.WriteString(w, "<h3>Done.</h3>")
 }
@@ -240,11 +229,8 @@ func (c *Context) postInteractable(w http.ResponseWriter, r *http.Request) {
 			Fragile:  fragile,
 		})
 
-	outFile := c.collectionPath + collectionName + "/interactables/" + setName + ".json"
-	err := writeJsonFile(outFile, collection.InteractableSets[setName])
-	if err != nil {
-		panic(err)
-	}
+	collection.saveInteractableSet(setName)
+
 	io.WriteString(w, "<h3>Done.</h3>")
 }
 

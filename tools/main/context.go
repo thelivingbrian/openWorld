@@ -11,48 +11,36 @@ import (
 	"github.com/google/uuid"
 )
 
+// How to expand to non-local collection source?
 type Context struct {
 	Collections map[string]*Collection
 	colors      []Color
-
-	colorPath      string
-	cssPath        string
-	collectionPath string
 }
 
-const DEPLOY_materialPath = "../../server/main/data/materials.json"
-const DEPLOY_areaPath = "../../server/main/data/areas.json"
-const DEPLOY_cssPath = "../../server/main/assets/colors.css"
+// Break everything out for compile (using funcs)
+// Deploy should only need base path because it is just a copy of compile ?
+const COMPILE_basePath = "./data/out"
+const COMPILE_imagePath = COMPILE_basePath + "/images"
 
 const DEPLOY_basePath = "../../server/main/data"
 const DEPLOY_imagePath = DEPLOY_basePath + "/images"
-const COMPILE_basePath = "./data/out"
-const COMPILE_imagePath = COMPILE_basePath + "/images"
-const areaFilename = "areas.json"
-const materialFilename = "materials.json"
+const DEPLOY_cssPath = "../../server/main/assets/colors.css"
+
+const AREA_FILENAME = "areas.json"
+const MATERIAL_FILENAME = "materials.json"
+
+const COLOR_PATH string = "./data/colors/colors.json"
+const CSS_PATH string = "./assets/colors.css"
+const COLLECTION_PATH string = "./data/collections/"
 
 // Startup
-
 func populateFromJson() Context {
 	var c Context
 
-	// I don't like this
-	c.colorPath = "./data/colors/colors.json"
-	c.cssPath = "./assets/colors.css"
-	c.collectionPath = "./data/collections/"
-
-	c.colors = parseJsonFile[[]Color](c.colorPath)
-	c.Collections = c.getAllCollections(c.collectionPath)
+	c.colors = parseJsonFile[[]Color](COLOR_PATH)
+	c.Collections = c.getAllCollections(COLLECTION_PATH)
 
 	return c
-}
-
-func sliceToMap[T any](slice []T, f func(T) string) map[string]T {
-	out := make(map[string]T)
-	for _, entry := range slice {
-		out[f(entry)] = entry
-	}
-	return out
 }
 
 func parseJsonFile[T any](filename string) T {
@@ -97,12 +85,12 @@ func colorName(c Color) string {
 }
 
 func (c Context) writeColorsToLocalFile() error {
-	return writeJsonFile(c.colorPath, c.colors)
+	return writeJsonFile(COLOR_PATH, c.colors)
 }
 
 // Combine with below
 func (c Context) createLocalCSSFile() {
-	c.createCSSFile(c.cssPath)
+	c.createCSSFile(CSS_PATH)
 }
 
 func (c Context) createCSSFile(path string) {
@@ -127,7 +115,7 @@ func (c Context) createCSSFile(path string) {
 
 // Helper
 func (c Context) pathToMapsForSpace(space *Space) string {
-	return c.collectionPath + space.CollectionName + "/spaces/maps/" + space.Name + "/"
+	return COLLECTION_PATH + space.CollectionName + "/spaces/maps/" + space.Name + "/"
 }
 
 // Collections
@@ -147,6 +135,7 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 				Fragments:        make(map[string][]Fragment),
 				PrototypeSets:    make(map[string][]Prototype),
 				InteractableSets: make(map[string][]InteractableDescription),
+				StructureSets:    make(map[string][]Structure),
 			}
 
 			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
@@ -160,6 +149,9 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 
 			pathToInteractables := filepath.Join(collectionPath, entry.Name(), "interactables")
 			populateMaps(collection.InteractableSets, pathToInteractables)
+
+			pathToStructures := filepath.Join(collectionPath, entry.Name(), "structures")
+			populateMaps(collection.StructureSets, pathToStructures)
 
 			collections[entry.Name()] = &collection
 
@@ -228,9 +220,13 @@ func (c Context) spaceFromNames(collectionName string, spaceName string) *Space 
 
 // DEPLOYMENT
 
-func (c Context) deploy(w http.ResponseWriter, r *http.Request) {
+func (c Context) deployHandler(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")
+	c.deploy(collectionName)
+}
+
+func (c Context) deploy(collectionName string) {
 	c.createCSSFile(DEPLOY_cssPath)
 	c.compileCollectionByName(collectionName)
 	os.RemoveAll(DEPLOY_basePath)
@@ -244,7 +240,7 @@ func (c Context) deploy(w http.ResponseWriter, r *http.Request) {
 func (c Context) compile(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")
-	c.createCSSFile(c.cssPath)
+	c.createCSSFile(CSS_PATH)
 	c.compileCollectionByName(collectionName)
 }
 
@@ -263,13 +259,13 @@ func (c Context) compileCollection(collection *Collection) {
 	areas := make([]AreaOutput, 0)
 
 	for _, space := range collection.Spaces {
+		c.generateAllPNGs(space)
 		for _, desc := range space.Areas {
 			var outputTiles [][]int
 			outputTiles, materials = collection.compileTileDataAndAccumulateMaterials(desc, materials, mapToMaterials)
 
 			mapid := ""
 			if space.isSimplyTiled() {
-				c.generateAllPNGs(space)
 				mapid = c.copyMapPNG(space, &desc)
 			}
 			// Add maps for all individual areas as well
@@ -292,9 +288,9 @@ func (c Context) compileCollection(collection *Collection) {
 		}
 	}
 	fmt.Printf("Writing (%d) Areas", len(areas))
-	writeJsonFile(filepath.Join(COMPILE_basePath, areaFilename), areas)
+	writeJsonFile(filepath.Join(COMPILE_basePath, AREA_FILENAME), areas)
 	fmt.Printf("Writing (%d) Materials", len(materials))
-	writeJsonFile(filepath.Join(COMPILE_basePath, materialFilename), materials)
+	writeJsonFile(filepath.Join(COMPILE_basePath, MATERIAL_FILENAME), materials)
 
 }
 
