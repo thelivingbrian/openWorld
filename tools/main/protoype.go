@@ -386,7 +386,6 @@ func (proto *Prototype) PeekCeiling2() string {
 	return transformCss(proto.Ceiling2Css, Transformation{})
 }
 
-// Logic For adding map colors to existing prototypes
 func (c Context) getMapColorFromProto(proto Prototype) string {
 	if proto.MapColor != "" {
 		return proto.MapColor

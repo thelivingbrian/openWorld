@@ -586,6 +586,10 @@ func (c Context) generateImgFromArea(area *AreaDescription, col Collection) *ima
 	for row := range area.Blueprint.Tiles {
 		for column, tile := range area.Blueprint.Tiles[row] {
 			proto := col.findPrototypeById(tile.PrototypeId)
+			if proto == nil {
+				fmt.Println("WARN: PROTOTYPE MISSING: " + tile.PrototypeId)
+				proto = &Prototype{MapColor: "red"}
+			}
 			mapColor := c.getMapColorFromProto(*proto)
 			protoColor := c.findColorByName(mapColor)
 			if protoColor.CssClassName == "invalid" {
