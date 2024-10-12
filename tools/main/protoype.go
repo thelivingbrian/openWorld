@@ -116,15 +116,17 @@ func (c Context) postPrototypes(w http.ResponseWriter, r *http.Request) {
 	}
 
 	collection.PrototypeSets[setName] = make([]Prototype, 0)
+	collection.savePrototypeSet(setName)
 
 	// New Func
-	outFile := c.collectionPath + collectionName + "/prototypes/" + setName + ".json"
-	// ............. uh
-	err := writeJsonFile(outFile, collection.Fragments[setName])
-	if err != nil {
-		panic(err)
-	}
-
+	/*
+		outFile := c.collectionPath + collectionName + "/prototypes/" + setName + ".json"
+		// ............. uh
+		err := writeJsonFile(outFile, collection.Fragments[setName])
+		if err != nil {
+			panic(err)
+		}
+	*/
 	io.WriteString(w, `<h2>Success</h2>`)
 }
 
@@ -218,12 +220,7 @@ func (c Context) putPrototype(w http.ResponseWriter, r *http.Request) {
 	proto.DisplayText = displayText
 
 	fmt.Println(proto)
-
-	outFile := c.collectionPath + collectionName + "/prototypes/" + setName + ".json"
-	err := writeJsonFile(outFile, collection.PrototypeSets[setName])
-	if err != nil {
-		panic(err)
-	}
+	collection.savePrototypeSet(setName)
 
 	io.WriteString(w, "<h3>Done.</h3>")
 }
@@ -274,12 +271,7 @@ func (c *Context) postPrototype(w http.ResponseWriter, r *http.Request) {
 			DisplayText: displayText,
 		})
 
-	outFile := c.collectionPath + collectionName + "/prototypes/" + setName + ".json"
-	err := writeJsonFile(outFile, collection.PrototypeSets[setName])
-	if err != nil {
-		panic(err)
-	}
-	io.WriteString(w, "<h3>Done.</h3>")
+	collection.savePrototypeSet(setName)
 }
 
 func panicIfAnyEmpty(errorMessage string, strings ...string) {

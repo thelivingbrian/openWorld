@@ -11,13 +11,14 @@ import (
 	"github.com/google/uuid"
 )
 
+// SHould be an interface and expose collection opperations as funcs DBcontext vs LocalContext ?
 type Context struct {
 	Collections map[string]*Collection
 	colors      []Color
 
 	//colorPath      string
 	//cssPath        string
-	collectionPath string
+	//collectionPath string
 }
 
 // Deploy should only need base path because it is just a copy of compile ?
@@ -45,10 +46,10 @@ func populateFromJson() Context {
 	// No purpose at all? Bring up as constants
 	//c.colorPath = "./data/colors/colors.json"
 	//c.cssPath = "./assets/colors.css"
-	c.collectionPath = "./data/collections/"
+	//c.collectionPath = "./data/collections/"
 
 	c.colors = parseJsonFile[[]Color](COLOR_PATH)
-	c.Collections = c.getAllCollections(c.collectionPath)
+	c.Collections = c.getAllCollections(COLLECTION_PATH)
 
 	return c
 }
@@ -125,7 +126,7 @@ func (c Context) createCSSFile(path string) {
 
 // Helper
 func (c Context) pathToMapsForSpace(space *Space) string {
-	return c.collectionPath + space.CollectionName + "/spaces/maps/" + space.Name + "/"
+	return COLLECTION_PATH + space.CollectionName + "/spaces/maps/" + space.Name + "/"
 }
 
 // Collections

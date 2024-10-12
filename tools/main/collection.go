@@ -45,15 +45,16 @@ func (c *Context) postCollections(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(name)
 	c.Collections[name] = &Collection{Name: name, Spaces: make(map[string]*Space), Fragments: make(map[string][]Fragment)}
-	createCollectionDirectories(name, c.collectionPath)
+	createCollectionDirectories(name)
 	tmpl.ExecuteTemplate(w, "space-page", c.Collections[name])
 }
 
-func createCollectionDirectories(name string, path string) {
+func createCollectionDirectories(name string) {
+	// These strings get used elsewhere, constants/map for lookup?
 	dirs := []string{"prototypes", "fragments", "spaces", "interactables", "structures"}
 
 	for _, dir := range dirs {
-		fullPath := filepath.Join(path, name, dir)
+		fullPath := filepath.Join(COLLECTION_PATH, name, dir)
 		err := os.MkdirAll(fullPath, os.ModePerm)
 		if err != nil {
 			fmt.Println("Error creating directory:", err)
@@ -110,4 +111,61 @@ func (c *Context) collectionFromProperties(properties map[string]string) *Collec
 		panic("invalid collection")
 	}
 	return collection
+}
+
+// Saving
+// "prototypes", "fragments", "spaces", "interactables", "structures"
+func (col *Collection) savePrototypeSet(setName string) {
+	if col == nil {
+		fmt.Println("Nil Collection")
+	}
+	set, ok := col.PrototypeSets[setName]
+	if !ok {
+		fmt.Println("Empty Prototype Set.")
+	}
+	save("prototypes", setName, set, col)
+}
+
+func (col *Collection) saveFragmentSet(setName string) {
+	if col == nil {
+		fmt.Println("Nil Collection")
+	}
+	set, ok := col.Fragments[setName]
+	if !ok {
+		fmt.Println("Empty Fragment Set.")
+	}
+	save("fragments", setName, set, col)
+}
+
+func (col *Collection) saveInteractableSet(setName string) {
+	if col == nil {
+		fmt.Println("Nil Collection")
+	}
+	set, ok := col.InteractableSets[setName]
+	if !ok {
+		fmt.Println("Empty Fragment Set.")
+	}
+	save("interactables", setName, set, col)
+}
+
+func (col *Collection) saveSpace(name string) {
+	if col == nil {
+		fmt.Println("Nil Collection")
+	}
+	space, ok := col.Spaces[name]
+	if !ok {
+		fmt.Println("Empty Space.")
+	}
+	save("spaces", name, space, col)
+}
+
+func save[T any](directoryName, fileName string, data T, col *Collection) {
+	if col == nil {
+		panic("Invalid collection")
+	}
+	outFile := COLLECTION_PATH + col.Name + "/" + directoryName + "/" + fileName + ".json"
+	err := writeJsonFile(outFile, data)
+	if err != nil {
+		panic(err)
+	}
 }
