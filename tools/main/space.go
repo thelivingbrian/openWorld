@@ -277,15 +277,6 @@ func (c Context) putSpace(w http.ResponseWriter, r *http.Request) {
 	}
 	collection.saveSpace(spaceName)
 
-	/*
-		space := c.spaceFromNames(collectionName, spaceName)
-		outFile := c.collectionPath + collectionName + "/spaces/" + spaceName + ".json"
-		err := writeJsonFile(outFile, space)
-		if err != nil {
-			panic(err)
-		}
-	*/
-
 	io.WriteString(w, `<h2>Success</h2>`)
 }
 
@@ -355,7 +346,6 @@ func (c Context) spaceStructureHandler(w http.ResponseWriter, r *http.Request) {
 func (c Context) getSpaceStructure(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")
-	//spaceName := queryValues.Get("currentSpace")
 	structureType := queryValues.Get("structureType")
 
 	if structureType == "ground" {
@@ -363,13 +353,11 @@ func (c Context) getSpaceStructure(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			io.WriteString(w, "<h2>Invalid collection.</h2>")
 		}
-		//generateAndSaveGroundPattern()
 		grounds := col.StructureSets["ground"]
 		err := tmpl.ExecuteTemplate(w, "structure-ground", grounds)
 		if err != nil {
 			fmt.Println(err)
 		}
-
 	} else {
 		io.WriteString(w, "<h2>Sorry invalid structure selected.</h2>")
 	}
@@ -409,14 +397,6 @@ func (c Context) postSpaceStructure(_ http.ResponseWriter, r *http.Request) {
 		panic("No structures for: " + structureType)
 	}
 	structure, found := getStructureById(structures, id)
-	/*var structure Structure
-	found := false
-	for index := range structures {
-		if structures[index].ID == id {
-			found = true
-			structure = structures[index]
-		}
-	}*/
 	if !found {
 		panic("No Structure")
 	}
@@ -488,7 +468,7 @@ func (c Context) deleteSpaceStructure(_ http.ResponseWriter, r *http.Request) {
 				new := make([]Instruction, 0)
 				for index := range area.Blueprint.Instructions {
 					if area.Blueprint.Instructions[index].GridAssetId == structure.FragmentIds[i][j] {
-						// Remove
+						// Remove old tiles
 						currentRotations := area.Blueprint.Instructions[index].ClockwiseRotations
 						grid := col.getTileGridByAssetId(area.Blueprint.Instructions[index].GridAssetId)
 						if currentRotations%2 == 1 {
