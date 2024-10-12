@@ -55,7 +55,6 @@ func main() {
 	http.HandleFunc("/interactable/example", exampleInteractable)
 
 	http.HandleFunc("/materialPage", c.getMaterialPage)
-	//http.HandleFunc("/exampleMaterial", exampleMaterial) // Probably unused
 	http.HandleFunc("/getEditColor", c.getEditColor)
 	http.HandleFunc("/editColor", c.editColor)
 	http.HandleFunc("/getNewColor", getNewColor)

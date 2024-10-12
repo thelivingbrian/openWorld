@@ -212,13 +212,6 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	}
 	collection.Spaces[spaceName] = space // Maybe uneeded because space is a pointer?
 	collection.saveSpace(spaceName)
-	/*
-		outFile := c.collectionPath + collectionName + "/spaces/" + spaceName + ".json"
-		err := writeJsonFile(outFile, space)
-		if err != nil {
-			panic(err)
-		}
-	*/
 
 	io.WriteString(w, `<h2>Success</h2>`)
 }

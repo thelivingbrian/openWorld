@@ -28,7 +28,7 @@ func ExecuteCLICommands(c *Context) {
 		Use:   "deploy [collectionName]",
 		Short: "Deploy a specific collection",
 		Long:  `Deploy the given collection name to the server.`,
-		Args:  cobra.ExactArgs(1), // Ensure exactly 1 argument is passed
+		Args:  cobra.ExactArgs(1),
 		Run:   runWithContext(c),
 	}
 	rootCmd.AddCommand(deployCmd)

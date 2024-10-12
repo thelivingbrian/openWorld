@@ -225,7 +225,7 @@ func (c Context) putPrototype(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "<h3>Done.</h3>")
 }
 
-func (c *Context) postPrototype(w http.ResponseWriter, r *http.Request) {
+func (c *Context) postPrototype(_ http.ResponseWriter, r *http.Request) {
 	fmt.Println("POST for /prototype")
 
 	properties, _ := requestToProperties(r)

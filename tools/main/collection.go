@@ -114,14 +114,16 @@ func (c *Context) collectionFromProperties(properties map[string]string) *Collec
 }
 
 // Saving
-// "prototypes", "fragments", "spaces", "interactables", "structures"
+// "prototypes", "fragments", "spaces", "interactables", "structures" from above
 func (col *Collection) savePrototypeSet(setName string) {
 	if col == nil {
 		fmt.Println("Nil Collection")
+		return
 	}
 	set, ok := col.PrototypeSets[setName]
 	if !ok {
 		fmt.Println("Empty Prototype Set.")
+		return
 	}
 	save("prototypes", setName, set, col)
 }
@@ -129,10 +131,12 @@ func (col *Collection) savePrototypeSet(setName string) {
 func (col *Collection) saveFragmentSet(setName string) {
 	if col == nil {
 		fmt.Println("Nil Collection")
+		return
 	}
 	set, ok := col.Fragments[setName]
 	if !ok {
 		fmt.Println("Empty Fragment Set.")
+		return
 	}
 	save("fragments", setName, set, col)
 }
@@ -140,10 +144,12 @@ func (col *Collection) saveFragmentSet(setName string) {
 func (col *Collection) saveInteractableSet(setName string) {
 	if col == nil {
 		fmt.Println("Nil Collection")
+		return
 	}
 	set, ok := col.InteractableSets[setName]
 	if !ok {
-		fmt.Println("Empty Fragment Set.")
+		fmt.Println("Empty Interactable Set.")
+		return
 	}
 	save("interactables", setName, set, col)
 }
@@ -151,10 +157,12 @@ func (col *Collection) saveInteractableSet(setName string) {
 func (col *Collection) saveSpace(name string) {
 	if col == nil {
 		fmt.Println("Nil Collection")
+		return
 	}
 	space, ok := col.Spaces[name]
 	if !ok {
 		fmt.Println("Empty Space.")
+		return
 	}
 	save("spaces", name, space, col)
 }

@@ -198,16 +198,7 @@ func (c *Context) postFragments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	collection.Fragments[setName] = make([]Fragment, 0)
-
 	collection.saveFragmentSet(setName)
-	// New Func
-	/*
-		outFile := c.collectionPath + collectionName + "/fragments/" + setName + ".json"
-		err := writeJsonFile(outFile, collection.Fragments[setName])
-		if err != nil {
-			panic(err)
-		}
-	*/
 
 	io.WriteString(w, `<h2>Success</h2>`)
 }
@@ -281,17 +272,7 @@ func (c *Context) putFragment(w http.ResponseWriter, r *http.Request) {
 		panic("no collection")
 	}
 	collection.saveFragmentSet(setName)
-	/*set, ok := collection.Fragments[setName]
-	if !ok {
-		panic("no set")
-	}
 
-	outFile := c.collectionPath + collectionName + "/fragments/" + setName + ".json"
-	err := writeJsonFile(outFile, set)
-	if err != nil {
-		panic(err)
-	}
-	*/
 	io.WriteString(w, "<h3>Done.</h3>")
 }
 
@@ -330,14 +311,9 @@ func (c *Context) postFragment(w http.ResponseWriter, r *http.Request) {
 		grid[i] = make([]TileData, width)
 	}
 
-	// Hmm
 	collection.Fragments[setName] = append(set, Fragment{ID: uuid.New().String(), Name: name, SetName: setName, Blueprint: &Blueprint{Tiles: grid, Instructions: make([]Instruction, 0)}})
 	collection.saveFragmentSet(setName)
-	/*outFile := c.collectionPath + collectionName + "/fragments/" + setName + ".json"
-	err = writeJsonFile(outFile, collection.Fragments[setName])
-	if err != nil {
-		panic(err)
-	}*/
+
 	io.WriteString(w, "<h3>Done.</h3>")
 }
 

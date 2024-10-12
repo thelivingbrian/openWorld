@@ -99,9 +99,9 @@
     - [-] at coord 
   - [-] Regenerate 
   - [-] Delete
-- [ ] version control
-  - [ ] workspace deploys via build command
-    - [ ] clean up collection logic
+- [-] version control
+  - [-] workspace deploys via build command
+    - [-] clean up collection logic
     - [-] add cli  
   - [-] get rid of proc folder?
 

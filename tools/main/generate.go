@@ -13,10 +13,6 @@ func (col *Collection) generateAndSaveGroundPattern(config GroundConfig) {
 	cells := GenerateCircle(config.Span, config.Strategy, config.Fuzz)
 	prototypes, fragments, structure := makeAssetsForGround(cells, config)
 
-	//outFile := c.collectionPath + collectionName + "/spaces/" + spaceName + ".json"
-	// Why does context have collection path? shouldn't saving itself be a functionality of a colleciton?
-	// Context vs Collection ?
-
 	col.PrototypeSets["floors"] = merge(col.PrototypeSets["floors"], prototypes, IdsMatchProto)
 	outFileProto := "./data/collections/bloop/prototypes/floors.json"
 	err := writeJsonFile(outFileProto, col.PrototypeSets["floors"])
