@@ -3,6 +3,11 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
+
+	"github.com/markbates/goth"
+	"github.com/markbates/goth/gothic"
+	"github.com/markbates/goth/providers/google"
 )
 
 func main() {
@@ -25,6 +30,15 @@ func main() {
 	http.HandleFunc("/homesignin", getSignIn)
 	http.HandleFunc("/signin", world.postSignin)
 
+	// Oauth
+	clientId := os.Getenv("GOOGLE_CLIENT_ID")
+	clientSecret := os.Getenv("GOOGLE_CLIENT_SECRET")
+	fmt.Println(clientId)
+	goth.UseProviders(
+		google.New(clientId, clientSecret, "http://localhost:9090/callback/google"))
+	http.HandleFunc("/auth/google", auth)
+	http.HandleFunc("/callback/google", callback)
+
 	fmt.Println("Preparing for interactions...")
 	http.HandleFunc("/clear", clearScreen)
 
@@ -42,4 +56,17 @@ func main() {
 		fmt.Println("Failed to start server", err)
 		return
 	}
+}
+
+func auth(w http.ResponseWriter, r *http.Request) {
+	gothic.BeginAuthHandler(w, r)
+}
+
+func callback(w http.ResponseWriter, r *http.Request) {
+	user, err := gothic.CompleteUserAuth(w, r)
+	if err != nil {
+		fmt.Fprintln(w, err)
+		return
+	}
+	fmt.Println(user.Email)
 }
