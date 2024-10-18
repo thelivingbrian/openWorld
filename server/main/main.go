@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"text/template"
 
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
@@ -36,7 +37,7 @@ func main() {
 	fmt.Println(clientId)
 	goth.UseProviders(
 		google.New(clientId, clientSecret, "http://localhost:9090/callback/google"))
-	http.HandleFunc("/auth/google", auth)
+	http.HandleFunc("/auth", auth)
 	http.HandleFunc("/callback/google", callback)
 
 	fmt.Println("Preparing for interactions...")
@@ -66,7 +67,25 @@ func callback(w http.ResponseWriter, r *http.Request) {
 	user, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
 		fmt.Fprintln(w, err)
+		fmt.Println("HELLO THIS MEANS ERROR")
 		return
 	}
+	fmt.Println("NO ERROR")
 	fmt.Println(user.Email)
+	t, _ := template.New("foo").Parse(userTemplate)
+	t.Execute(w, user)
 }
+
+var userTemplate = `
+<p><a href="/logout/{{.Provider}}">logout</a></p>
+<p>Name: {{.Name}} [{{.LastName}}, {{.FirstName}}]</p>
+<p>Email: {{.Email}}</p>
+<p>NickName: {{.NickName}}</p>
+<p>Location: {{.Location}}</p>
+<p>AvatarURL: {{.AvatarURL}} <img src="{{.AvatarURL}}"></p>
+<p>Description: {{.Description}}</p>
+<p>UserID: {{.UserID}}</p>
+<p>AccessToken: {{.AccessToken}}</p>
+<p>ExpiresAt: {{.ExpiresAt}}</p>
+<p>RefreshToken: {{.RefreshToken}}</p>
+`
