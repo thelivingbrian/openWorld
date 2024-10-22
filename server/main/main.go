@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -14,6 +15,10 @@ import (
 
 // os.Getenv("SESSION_KEY")
 var store = sessions.NewCookieStore([]byte("very-secret-hash-key-abc1234567890"))
+
+func init() {
+	gothic.Store = store
+}
 
 /*
 func init() {
@@ -76,6 +81,16 @@ func auth(w http.ResponseWriter, r *http.Request) {
 }
 
 func callback(w http.ResponseWriter, r *http.Request) {
+	if userJSON, err := gothic.GetFromSession("user", r); err == nil {
+		var user goth.User
+		if err := json.Unmarshal([]byte(userJSON), &user); err == nil {
+			fmt.Println("User from session:", user.Email)
+			t, _ := template.New("foo").Parse(userTemplate)
+			t.Execute(w, user)
+			return
+		}
+	}
+
 	user, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
 		fmt.Fprintln(w, err)
@@ -84,6 +99,10 @@ func callback(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("NO ERROR")
 	fmt.Println(user.Email)
+
+	userData, _ := json.Marshal(user)
+	gothic.StoreInSession("user", string(userData), r, w)
+
 	t, _ := template.New("foo").Parse(userTemplate)
 	t.Execute(w, user)
 }
