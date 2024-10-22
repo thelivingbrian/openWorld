@@ -6,10 +6,21 @@ import (
 	"os"
 	"text/template"
 
+	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
 )
+
+// os.Getenv("SESSION_KEY")
+var store = sessions.NewCookieStore([]byte("very-secret-hash-key-abc1234567890"))
+
+/*
+func init() {
+	fmt.Println("Test yo")
+	//os.Setenv("SESSION_SECRET", "very-secret-hash-key-abc1234567890")
+}
+*/
 
 func main() {
 	fmt.Println("Initializing...")
@@ -34,11 +45,12 @@ func main() {
 	// Oauth
 	clientId := os.Getenv("GOOGLE_CLIENT_ID")
 	clientSecret := os.Getenv("GOOGLE_CLIENT_SECRET")
-	fmt.Println(clientId)
+	sessionSecret := os.Getenv("SESSION_SECRET")
+	fmt.Println(sessionSecret)
 	goth.UseProviders(
-		google.New(clientId, clientSecret, "http://localhost:9090/callback/google"))
+		google.New(clientId, clientSecret, "http://localhost:9090/callback?provider=google"))
 	http.HandleFunc("/auth", auth)
-	http.HandleFunc("/callback/google", callback)
+	http.HandleFunc("/callback", callback)
 
 	fmt.Println("Preparing for interactions...")
 	http.HandleFunc("/clear", clearScreen)
