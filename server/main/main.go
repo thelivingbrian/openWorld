@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -17,7 +16,10 @@ import (
 var store = sessions.NewCookieStore([]byte("very-secret-hash-key-abc1234567890"))
 
 func init() {
-	gothic.Store = store
+	//gothic.Store = store
+	store.Options = &sessions.Options{
+		MaxAge: 5,
+	}
 }
 
 /*
@@ -56,6 +58,7 @@ func main() {
 		google.New(clientId, clientSecret, "http://localhost:9090/callback?provider=google"))
 	http.HandleFunc("/auth", auth)
 	http.HandleFunc("/callback", callback)
+	http.HandleFunc("/profile", profile)
 
 	fmt.Println("Preparing for interactions...")
 	http.HandleFunc("/clear", clearScreen)
@@ -77,34 +80,63 @@ func main() {
 }
 
 func auth(w http.ResponseWriter, r *http.Request) {
+	/*
+		 // Force Google to show account selection
+		 // Weirdly stopped being needed
+		 //
+		q := r.URL.Query()
+		q.Add("prompt", "select_account")
+		r.URL.RawQuery = q.Encode()
+	*/
 	gothic.BeginAuthHandler(w, r)
 }
 
 func callback(w http.ResponseWriter, r *http.Request) {
-	if userJSON, err := gothic.GetFromSession("user", r); err == nil {
-		var user goth.User
-		if err := json.Unmarshal([]byte(userJSON), &user); err == nil {
-			fmt.Println("User from session:", user.Email)
-			t, _ := template.New("foo").Parse(userTemplate)
-			t.Execute(w, user)
-			return
-		}
-	}
-
 	user, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
-		fmt.Fprintln(w, err)
-		fmt.Println("HELLO THIS MEANS ERROR")
+		// This should fail for random additional requests,
+		// other routes will be able to grab a pre-existing session
+		// so behavior is expected but what triggers the failure
+		//fmt.Fprintln(w, err)
+		fmt.Println("ERROR: " + err.Error())
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	fmt.Println("NO ERROR")
+	//fmt.Println("NO ERROR")
 	fmt.Println(user.Email)
 
-	userData, _ := json.Marshal(user)
-	gothic.StoreInSession("user", string(userData), r, w)
+	//storing stuff to the general session
+	session, err := store.Get(r, "user-session")
+	if err != nil {
+		fmt.Println("Error getting new session?")
+	}
+	session.Values["user"] = user
+	err = session.Save(r, w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/profile", http.StatusFound)
+}
+
+func profile(w http.ResponseWriter, r *http.Request) {
+
+	session, err := store.Get(r, "user-session")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	user, ok := session.Values["user"].(goth.User)
+	if !ok {
+		fmt.Println("No user in session")
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
 
 	t, _ := template.New("foo").Parse(userTemplate)
 	t.Execute(w, user)
+
 }
 
 var userTemplate = `
