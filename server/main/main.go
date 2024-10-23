@@ -12,22 +12,14 @@ import (
 	"github.com/markbates/goth/providers/google"
 )
 
-// os.Getenv("SESSION_KEY")
 var store = sessions.NewCookieStore([]byte("very-secret-hash-key-abc1234567890"))
 
 func init() {
-	//gothic.Store = store
+	gothic.Store = store
 	store.Options = &sessions.Options{
-		MaxAge: 5,
+		MaxAge: 60,
 	}
 }
-
-/*
-func init() {
-	fmt.Println("Test yo")
-	//os.Setenv("SESSION_SECRET", "very-secret-hash-key-abc1234567890")
-}
-*/
 
 func main() {
 	fmt.Println("Initializing...")
@@ -83,7 +75,6 @@ func auth(w http.ResponseWriter, r *http.Request) {
 	/*
 		 // Force Google to show account selection
 		 // Weirdly stopped being needed
-		 //
 		q := r.URL.Query()
 		q.Add("prompt", "select_account")
 		r.URL.RawQuery = q.Encode()
@@ -96,21 +87,20 @@ func callback(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// This should fail for random additional requests,
 		// other routes will be able to grab a pre-existing session
-		// so behavior is expected but what triggers the failure
-		//fmt.Fprintln(w, err)
-		fmt.Println("ERROR: " + err.Error())
+		// so behavior is expected but what triggers the failure?
+		fmt.Println("Callback error: " + err.Error())
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	//fmt.Println("NO ERROR")
-	fmt.Println(user.Email)
 
-	//storing stuff to the general session
+	fmt.Println("New Sign in from: " + user.Email)
+
+	// store user to the session
 	session, err := store.Get(r, "user-session")
 	if err != nil {
 		fmt.Println("Error getting new session?")
 	}
-	session.Values["user"] = user
+	session.Values["user"] = user // Map to smaller struct
 	err = session.Save(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -121,13 +111,12 @@ func callback(w http.ResponseWriter, r *http.Request) {
 }
 
 func profile(w http.ResponseWriter, r *http.Request) {
-
 	session, err := store.Get(r, "user-session")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	user, ok := session.Values["user"].(goth.User)
+	user, ok := session.Values["user"].(goth.User) // Map to smaller struct
 	if !ok {
 		fmt.Println("No user in session")
 		http.Redirect(w, r, "/", http.StatusFound)
