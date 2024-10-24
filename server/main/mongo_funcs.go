@@ -133,6 +133,7 @@ func (db *DB) insertAuthorizedUser(user AuthorizedUser) error {
 	return err
 }
 
+// needs to return error?
 func (db *DB) getPlayerRecord(username string) (*PlayerRecord, error) {
 	collection := db.playerRecords
 	var result PlayerRecord

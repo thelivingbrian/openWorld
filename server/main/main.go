@@ -18,7 +18,7 @@ var store = sessions.NewCookieStore([]byte("very-secret-hash-key-abc1234567890")
 func init() {
 	gothic.Store = store
 	store.Options = &sessions.Options{
-		MaxAge: 60,
+		MaxAge: 120,
 	}
 }
 
@@ -32,15 +32,18 @@ func main() {
 	fmt.Println("Establishing Routes...")
 
 	// Serve assets
-	// Last Handle takes priority so dirs in /assets/ will be overwritten by handled funcs
-	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./assets"))))
+	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
 	http.HandleFunc("/images/", imageHandler)
 
+	// home
+	http.HandleFunc("/{$}", world.homeHandler)
+
 	// Account creation and sign in
-	http.HandleFunc("/homesignup", getSignUp)
-	http.HandleFunc("/signup", world.db.postSignUp)
+	//http.HandleFunc("/homesignup", getSignUp)
+	//http.HandleFunc("/signup", world.db.postSignUp)
 	http.HandleFunc("/homesignin", getSignIn)
 	http.HandleFunc("/signin", world.postSignin)
+	http.HandleFunc("/resume", world.postResume)
 
 	// Oauth
 	clientId := os.Getenv("GOOGLE_CLIENT_ID")
@@ -124,7 +127,7 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/profile", http.StatusFound) // Do I want redirects?
+	http.Redirect(w, r, "/", http.StatusFound) // Do I want redirects?
 }
 
 func profile(w http.ResponseWriter, r *http.Request) {
@@ -142,6 +145,92 @@ func profile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	io.WriteString(w, `<div id="page">`+id+`</div>`)
+
+}
+
+// template
+var homepage = `
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/assets/htmx-mod.js"></script>
+<script src="/assets/ws.js"></script>
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/colors.css">
+<body>
+    <div id="page">
+        <div id="logo">
+            <img class="logo-img" src="/assets/blooplogo2.webp" width="80%" alt="Welcome to bloopworld"><br />
+        </div>
+        <div id="landing">
+            <a class="large-font" href="/auth?provider=google"> Sign in with Google </a>
+        </div>
+    </div>
+</body>
+`
+
+var homepageSignedin = `
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/assets/htmx-mod.js"></script>
+<script src="/assets/ws.js"></script>
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/colors.css">
+<body>
+    <div id="page">
+        <div id="logo">
+            <img class="logo-img" src="/assets/blooplogo2.webp" width="80%" alt="Welcome to bloopworld"><br />
+        </div>
+        <div id="landing">
+			<a class="large-font" href="#" hx-post="/resume" hx-target="#landing">Resume</a><br />
+        </div>
+    </div>
+</body>
+`
+
+func (world *World) homeHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("hello from home")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	session, err := store.Get(r, "user-session")
+	if err != nil {
+		io.WriteString(w, homepage)
+		return
+	}
+
+	_, ok := session.Values["identifier"].(string)
+	if !ok {
+		io.WriteString(w, homepage)
+		return
+	}
+
+	io.WriteString(w, homepageSignedin)
+
+	/*
+		fmt.Println("have session")
+		userRecord, err := world.db.getAuthorizedUserById(id)
+		if userRecord == nil {
+			// deeply confusing
+		}
+
+		fmt.Println("have user")
+
+		if userRecord.Username == "" {
+			fmt.Println("no name")
+			io.WriteString(w, "choose your color")
+		} else {
+
+			record, err := world.db.getPlayerRecord(userRecord.Username)
+			if err != nil {
+				log.Fatal("No player found for user") // lol too extreme
+			}
+			player := world.join(record)
+			if player != nil {
+				io.WriteString(w, printPageFor(player))
+			} else {
+				io.WriteString(w, "<h2>Invalid (User logged in already)</h2>")
+			}
+
+			io.WriteString(w, homepageSignedin)
+
+		}
+	*/
 
 }
 

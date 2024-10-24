@@ -57,6 +57,7 @@ func (db *DB) postSignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func getSignIn(w http.ResponseWriter, r *http.Request) {
+	//w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	io.WriteString(w, signInPage())
 }
 
@@ -96,6 +97,45 @@ func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 	} else {
 		io.WriteString(w, invalidSignin())
 		return
+	}
+}
+
+func (world *World) postResume(w http.ResponseWriter, r *http.Request) {
+	session, err := store.Get(r, "user-session")
+	if err != nil {
+		io.WriteString(w, homepage)
+		return
+	}
+
+	id, ok := session.Values["identifier"].(string)
+	if !ok {
+		io.WriteString(w, homepage)
+		return
+	}
+	userRecord, err := world.db.getAuthorizedUserById(id)
+	if userRecord == nil {
+		// deeply confusing
+	}
+
+	fmt.Println("have user")
+
+	if userRecord.Username == "" {
+		fmt.Println("no name")
+		io.WriteString(w, `<div id="page" hx-swap-oob="true">Choose your color</div>`)
+	} else {
+		record, err := world.db.getPlayerRecord(userRecord.Username)
+		if err != nil {
+			log.Fatal("No player found for user") // lol too extreme
+		}
+		player := world.join(record)
+		if player != nil {
+			io.WriteString(w, printPageFor(player))
+		} else {
+			io.WriteString(w, "<h2>Invalid (User logged in already)</h2>")
+		}
+
+		io.WriteString(w, homepageSignedin)
+
 	}
 
 }
