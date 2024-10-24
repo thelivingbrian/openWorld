@@ -21,6 +21,13 @@ type User struct {
 	Created  time.Time `bson:"created,omitempty"`
 }
 
+type AuthorizedUser struct {
+	Identifier string    `bson:"identifier"`
+	Username   string    `bson:"username"`
+	Created    time.Time `bson:"created,omitempty"`
+	LastLogin  time.Time `bson:"lastLogin,omitempty"`
+}
+
 type PlayerRecord struct {
 	Username    string    `bson:"username"`
 	LastLogin   time.Time `bson:"lastLogin,omitempty"`
@@ -101,6 +108,29 @@ func (db *DB) getUserByEmail(email string) (*User, error) {
 		}
 	}
 	return &result, nil
+}
+
+/////////////////////////////////////////////////////////////
+//  Authorized
+
+func (db *DB) getAuthorizedUserById(identifier string) (*AuthorizedUser, error) {
+	var result AuthorizedUser
+	collection := db.users
+	err := collection.FindOne(context.TODO(), bson.M{"identifier": identifier}).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			fmt.Println("No document was found with the given identifier")
+			return nil, err
+		} else {
+			log.Fatal(err)
+		}
+	}
+	return &result, nil
+}
+
+func (db *DB) insertAuthorizedUser(user AuthorizedUser) error {
+	_, err := db.users.InsertOne(context.TODO(), user)
+	return err
 }
 
 func (db *DB) getPlayerRecord(username string) (*PlayerRecord, error) {

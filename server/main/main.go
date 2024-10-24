@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"os"
-	"text/template"
+	"time"
 
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
@@ -49,7 +50,7 @@ func main() {
 	goth.UseProviders(
 		google.New(clientId, clientSecret, "http://localhost:9090/callback?provider=google"))
 	http.HandleFunc("/auth", auth)
-	http.HandleFunc("/callback", callback)
+	http.HandleFunc("/callback", db.callback)
 	http.HandleFunc("/profile", profile)
 
 	fmt.Println("Preparing for interactions...")
@@ -82,7 +83,7 @@ func auth(w http.ResponseWriter, r *http.Request) {
 	gothic.BeginAuthHandler(w, r)
 }
 
-func callback(w http.ResponseWriter, r *http.Request) {
+func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 	user, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
 		// This should fail for random additional requests,
@@ -94,20 +95,36 @@ func callback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println("New Sign in from: " + user.Email)
+	if user.UserID == "" || user.Provider == "" {
+		fmt.Printf("Invalid id: %s or provider %s ", user.UserID, user.Provider)
+	}
+	identifier := user.Provider + ":" + user.UserID
 
-	// store user to the session
+	userRecord, err := db.getAuthorizedUserById(identifier)
+	if userRecord == nil {
+		fmt.Println("Creating new user with identifier: " + identifier)
+		newUser := AuthorizedUser{Identifier: identifier, Username: "", Created: time.Now(), LastLogin: time.Now()}
+		err := db.insertAuthorizedUser(newUser)
+		if err != nil {
+			fmt.Println("New User creation in mongo failed")
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+	}
+
+	// store id to the session
 	session, err := store.Get(r, "user-session")
 	if err != nil {
 		fmt.Println("Error getting new session?")
 	}
-	session.Values["user"] = user // Map to smaller struct
+	session.Values["identifier"] = identifier
 	err = session.Save(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, "/profile", http.StatusFound)
+	http.Redirect(w, r, "/profile", http.StatusFound) // Do I want redirects?
 }
 
 func profile(w http.ResponseWriter, r *http.Request) {
@@ -116,15 +133,15 @@ func profile(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	user, ok := session.Values["user"].(goth.User) // Map to smaller struct
+	//user, ok := session.Values["user"].(goth.User) // Map to smaller struct
+	id, ok := session.Values["identifier"].(string)
 	if !ok {
 		fmt.Println("No user in session")
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 
-	t, _ := template.New("foo").Parse(tinyTemplate)
-	t.Execute(w, user)
+	io.WriteString(w, `<div id="page">`+id+`</div>`)
 
 }
 
