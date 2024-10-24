@@ -43,13 +43,13 @@ func main() {
 	//http.HandleFunc("/signup", world.db.postSignUp)
 	http.HandleFunc("/homesignin", getSignIn)
 	http.HandleFunc("/signin", world.postSignin)
-	http.HandleFunc("/resume", world.postResume)
+	http.HandleFunc("/resume", world.postResume) // rename
 
 	// Oauth
 	clientId := os.Getenv("GOOGLE_CLIENT_ID")
 	clientSecret := os.Getenv("GOOGLE_CLIENT_SECRET")
-	sessionSecret := os.Getenv("SESSION_SECRET")
-	fmt.Println(sessionSecret)
+	//sessionSecret := os.Getenv("SESSION_SECRET")
+	//fmt.Println(sessionSecret)
 	goth.UseProviders(
 		google.New(clientId, clientSecret, "http://localhost:9090/callback?provider=google"))
 	http.HandleFunc("/auth", auth)
@@ -179,7 +179,7 @@ var homepageSignedin = `
             <img class="logo-img" src="/assets/blooplogo2.webp" width="80%" alt="Welcome to bloopworld"><br />
         </div>
         <div id="landing">
-			<a class="large-font" href="#" hx-post="/resume" hx-target="#landing">Resume</a><br />
+			<a class="large-font" href="#" hx-post="/resume" hx-target="#landing">Play</a><br />
         </div>
     </div>
 </body>
@@ -201,37 +201,6 @@ func (world *World) homeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	io.WriteString(w, homepageSignedin)
-
-	/*
-		fmt.Println("have session")
-		userRecord, err := world.db.getAuthorizedUserById(id)
-		if userRecord == nil {
-			// deeply confusing
-		}
-
-		fmt.Println("have user")
-
-		if userRecord.Username == "" {
-			fmt.Println("no name")
-			io.WriteString(w, "choose your color")
-		} else {
-
-			record, err := world.db.getPlayerRecord(userRecord.Username)
-			if err != nil {
-				log.Fatal("No player found for user") // lol too extreme
-			}
-			player := world.join(record)
-			if player != nil {
-				io.WriteString(w, printPageFor(player))
-			} else {
-				io.WriteString(w, "<h2>Invalid (User logged in already)</h2>")
-			}
-
-			io.WriteString(w, homepageSignedin)
-
-		}
-	*/
-
 }
 
 var tinyTemplate = `

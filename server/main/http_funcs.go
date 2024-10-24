@@ -104,12 +104,14 @@ func (world *World) postResume(w http.ResponseWriter, r *http.Request) {
 	session, err := store.Get(r, "user-session")
 	if err != nil {
 		io.WriteString(w, homepage)
+		//http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 
 	id, ok := session.Values["identifier"].(string)
 	if !ok {
 		io.WriteString(w, homepage)
+		//http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 	userRecord, err := world.db.getAuthorizedUserById(id)
