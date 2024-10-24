@@ -123,10 +123,14 @@ func profile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t, _ := template.New("foo").Parse(userTemplate)
+	t, _ := template.New("foo").Parse(tinyTemplate)
 	t.Execute(w, user)
 
 }
+
+var tinyTemplate = `
+<p>{{.Provider}}:{{.UserID}}</p>
+`
 
 var userTemplate = `
 <p><a href="/logout/{{.Provider}}">logout</a></p>
