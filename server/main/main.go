@@ -13,12 +13,13 @@ import (
 	"github.com/markbates/goth/providers/google"
 )
 
-var store = sessions.NewCookieStore([]byte("very-secret-hash-key-abc1234567890"))
+// []byte("01234567890123456789012345678944")
+var store = sessions.NewCookieStore([]byte("hash-key"), []byte("01234567890123456789012345678944"))
 
 func init() {
 	gothic.Store = store
 	store.Options = &sessions.Options{
-		MaxAge: 120,
+		MaxAge: 300,
 	}
 }
 
@@ -43,7 +44,7 @@ func main() {
 	//http.HandleFunc("/signup", world.db.postSignUp)
 	http.HandleFunc("/homesignin", getSignIn)
 	http.HandleFunc("/signin", world.postSignin)
-	http.HandleFunc("/resume", world.postResume) // rename
+	http.HandleFunc("/play", world.postResume)
 
 	// Oauth
 	clientId := os.Getenv("GOOGLE_CLIENT_ID")
@@ -120,7 +121,7 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Error getting new session?")
 	}
-	session.Values["identifier"] = identifier
+	session.Values["identifier"] = identifier // Additional layer of symmetric encryption here?
 	err = session.Save(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -179,7 +180,7 @@ var homepageSignedin = `
             <img class="logo-img" src="/assets/blooplogo2.webp" width="80%" alt="Welcome to bloopworld"><br />
         </div>
         <div id="landing">
-			<a class="large-font" href="#" hx-post="/resume" hx-target="#landing">Play</a><br />
+			<a class="large-font" href="#" hx-post="/play" hx-target="#landing">Play</a><br />
         </div>
     </div>
 </body>
@@ -190,12 +191,15 @@ func (world *World) homeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	session, err := store.Get(r, "user-session")
 	if err != nil {
+		fmt.Println("No session")
+		fmt.Println(err)
 		io.WriteString(w, homepage)
 		return
 	}
 
 	_, ok := session.Values["identifier"].(string)
 	if !ok {
+		fmt.Println("No Identifier")
 		io.WriteString(w, homepage)
 		return
 	}
