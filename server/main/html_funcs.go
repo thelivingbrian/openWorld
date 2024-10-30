@@ -97,6 +97,52 @@ func printPageFor(player *Player) string {
 	</div>`
 }
 
+func chooseYourColor() string {
+	return `
+	<div id="page" hx-swap-oob="true">
+	
+		<div id="main_view">
+			
+			<div id="info" hx-swap-oob="true">
+				 <form>
+					<b>New Player</b>
+					
+					<div class="form-group color-selection">
+						<label id="color-window-0">
+							<input type="radio" name="player-color" value="fusia" checked />
+							<div id="exampleSquare-0">
+								<div class="grid-square-example fusia"></div>
+							</div>
+						</label>
+
+						<label id="color-window-1">
+							<input type="radio" name="player-color" value="sky-blue" />
+							<div id="exampleSquare-1">
+								<div class="grid-square-example sky-blue"></div>
+							</div>
+						</label>	
+					
+					</div>
+
+					<div class="form-group">
+						<label class="left-float">Username:</label>
+						<input type="text" name="player-name" />
+					</div>
+
+					<div class="form-group" style="justify-content: center;">
+						<input type="submit" value="Go">
+					</div>
+				</form>
+			</div>
+			<div id="bottom_text">
+				Test bottom text 
+			</div>
+		</div>
+	
+	</div>
+	`
+}
+
 func divPlayerInformation(player *Player) string {
 	return `
 	<div id="info" hx-swap-oob="true">
