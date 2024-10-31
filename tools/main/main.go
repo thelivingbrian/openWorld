@@ -13,6 +13,38 @@ func main() {
 	c := populateFromJson() // shouldn't this be a pointer?
 	ExecuteCLICommands(&c)
 
+	/*
+		// Fuse two spaces
+		col, ok := c.Collections["bloop"]
+		if !ok {
+			panic("no bloop collection")
+		}
+		blue := col.Spaces["team-blue"]
+		fusia := col.Spaces["team-fusia"]
+		var areaNameMaker = func(base string) func(y, x int) string {
+			return func(y, x int) string {
+				return fmt.Sprintf("%s:%d-%d", base, y, x)
+			}
+		}
+		coordToBlue := areaNameMaker("team-blue")
+		coordToFusia := areaNameMaker("team-fusia")
+		for i := 0; i < 8; i++ {
+			// 1st side N/S
+			blue.getAreaByName(coordToBlue(0, i)).North = coordToFusia(7, i)
+			fusia.getAreaByName(coordToFusia(7, i)).South = coordToBlue(0, i)
+
+			blue.getAreaByName(coordToBlue(7, i)).South = coordToFusia(0, i)
+			fusia.getAreaByName(coordToFusia(0, i)).North = coordToBlue(7, i)
+
+			//2nd side E/W
+			blue.getAreaByName(coordToBlue(i, 0)).West = coordToFusia(i, 7)
+			fusia.getAreaByName(coordToFusia(i, 7)).East = coordToBlue(i, 0)
+
+			blue.getAreaByName(coordToBlue(i, 7)).East = coordToFusia(i, 0)
+			fusia.getAreaByName(coordToFusia(i, 0)).West = coordToBlue(i, 7)
+		}
+	*/
+
 	fmt.Println("Attempting to start server...")
 	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./assets"))))
 
