@@ -80,7 +80,6 @@ func main() {
 func auth(w http.ResponseWriter, r *http.Request) {
 	/*
 		 // Force Google to show account selection
-		 // Weirdly stopped being needed
 		q := r.URL.Query()
 		q.Add("prompt", "select_account")
 		r.URL.RawQuery = q.Encode()
@@ -93,7 +92,6 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// This should fail for random additional requests,
 		// other routes will be able to grab a pre-existing session
-		// so behavior is expected but what triggers the failure?
 		fmt.Println("Callback error: " + err.Error())
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
@@ -131,26 +129,6 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/", http.StatusFound) // Do I want redirects?
 }
-
-/*
-func profile(w http.ResponseWriter, r *http.Request) {
-	session, err := store.Get(r, "user-session")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	//user, ok := session.Values["user"].(goth.User) // Map to smaller struct
-	id, ok := session.Values["identifier"].(string)
-	if !ok {
-		fmt.Println("No user in session")
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
-
-	io.WriteString(w, `<div id="page">`+id+`</div>`)
-
-}
-*/
 
 // template
 var homepage = `
