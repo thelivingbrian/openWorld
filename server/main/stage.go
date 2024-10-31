@@ -83,6 +83,8 @@ func createStageFromArea(area Area) *Stage {
 		// Change this
 		mat := outputStage.tiles[transport.SourceY][transport.SourceX].material
 		mat.CssColor = "pink"
+		mat.Floor1Css = ""
+		mat.Floor2Css = ""
 		outputStage.tiles[transport.SourceY][transport.SourceX].htmlTemplate = makeTileTemplate(mat, transport.SourceY, transport.SourceX)
 
 	}
