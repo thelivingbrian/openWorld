@@ -23,7 +23,7 @@ var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(scre
 func htmlFromPlayer(player *Player) []byte {
 	var buf bytes.Buffer
 
-	tileHtml := htmlFromTileGrid(player.stage.tiles, player.y, player.x)
+	tileHtml := htmlFromTileGrid(player.stage.tiles, player.y, player.x, player.color)
 
 	err := parsedScreenTemplate.Execute(&buf, tileHtml)
 	if err != nil {
@@ -33,13 +33,13 @@ func htmlFromPlayer(player *Player) []byte {
 	return buf.Bytes()
 }
 
-func htmlFromTileGrid(tiles [][]*Tile, py, px int) [][]string {
+func htmlFromTileGrid(tiles [][]*Tile, py, px int, color string) [][]string {
 	output := make([][]string, len(tiles))
 	for y := range output {
 		output[y] = make([]string, len(tiles[y]))
 		for x := range output[y] {
 			if x == px && y == py {
-				output[y][x] = htmlForPlayerTile(tiles[y][x])
+				output[y][x] = htmlForPlayerTile(tiles[y][x], color)
 				continue
 			}
 			output[y][x] = htmlForTile(tiles[y][x])
@@ -104,7 +104,7 @@ func chooseYourColor() string {
 		<div id="main_view">
 			
 			<div id="info" hx-swap-oob="true">
-				 <form>
+				 <form hx-post="/new" hx-target="#bottom_text">
 					<b>New Player</b>
 					
 					<div class="form-group color-selection">
@@ -135,12 +135,20 @@ func chooseYourColor() string {
 				</form>
 			</div>
 			<div id="bottom_text">
-				Test bottom text 
 			</div>
 		</div>
 	
 	</div>
 	`
+}
+
+func divBottomInvalid(s string) string {
+	return `
+	<div id="bottom_text" hx-swap-oob="true">
+		<p style='color:red'>	
+			` + s + `  
+		</p>
+	</div>`
 }
 
 func divPlayerInformation(player *Player) string {
@@ -291,13 +299,13 @@ func htmlForTile(tile *Tile) string {
 	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), emptyUserBox(tile.y, tile.x), interactableBox(tile), svgtag)
 }
 
-func htmlForPlayerTile(tile *Tile) string {
+func htmlForPlayerTile(tile *Tile, color string) string {
 	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), fusiaBox(tile.y, tile.x), interactableBox(tile), svgtag)
+	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), userBox(tile.y, tile.x, color), interactableBox(tile), svgtag)
 }
 
-func fusiaBox(y, x int) string {
-	return fmt.Sprintf(`<div id="u%d-%d" class="box zu fusia r0"></div>`, y, x)
+func userBox(y, x int, color string) string {
+	return fmt.Sprintf(`<div id="u%d-%d" class="box zu %s r0"></div>`, y, x, color)
 }
 
 func playerBox(tile *Tile) string {

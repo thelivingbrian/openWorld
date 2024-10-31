@@ -121,7 +121,7 @@ func oobUpdateWithHud(player *Player, tiles []*Tile) {
 }
 
 func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
-	playerIcon := fmt.Sprintf(`<div id="u%d-%d" class="box zu fusia r0"></div>`, player.y, player.x)
+	playerIcon := fmt.Sprintf(`<div id="u%d-%d" class="box zu %s r0"></div>`, player.y, player.x, player.color)
 	previousBoxes := ""
 	if previous.stage == player.stage {
 		previousBoxes += fmt.Sprintf(`<div id="u%d-%d" class="box zu"></div>`, previous.y, previous.x)

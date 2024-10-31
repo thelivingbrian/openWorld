@@ -37,6 +37,7 @@ func (world *World) join(record *PlayerRecord) *Player {
 	newPlayer := &Player{
 		id:        token,
 		username:  record.Username,
+		color:     record.Color,
 		stage:     nil,
 		updates:   updatesForPlayer,
 		stageName: record.StageName,

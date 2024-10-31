@@ -44,7 +44,8 @@ func main() {
 	//http.HandleFunc("/signup", world.db.postSignUp)
 	http.HandleFunc("/homesignin", getSignIn)
 	http.HandleFunc("/signin", world.postSignin)
-	http.HandleFunc("/play", world.postResume)
+	http.HandleFunc("/play", world.postPlay)
+	http.HandleFunc("/new", world.postNew)
 
 	// Oauth
 	clientId := os.Getenv("GOOGLE_CLIENT_ID")
@@ -55,7 +56,7 @@ func main() {
 		google.New(clientId, clientSecret, "http://localhost:9090/callback?provider=google"))
 	http.HandleFunc("/auth", auth)
 	http.HandleFunc("/callback", db.callback)
-	http.HandleFunc("/profile", profile)
+	//http.HandleFunc("/profile", profile)
 
 	fmt.Println("Preparing for interactions...")
 	http.HandleFunc("/clear", clearScreen)
@@ -104,7 +105,7 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 	}
 	identifier := user.Provider + ":" + user.UserID
 
-	userRecord, err := db.getAuthorizedUserById(identifier)
+	userRecord := db.getAuthorizedUserById(identifier)
 	if userRecord == nil {
 		fmt.Println("Creating new user with identifier: " + identifier)
 		newUser := AuthorizedUser{Identifier: identifier, Username: "", Created: time.Now(), LastLogin: time.Now()}
@@ -131,6 +132,7 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusFound) // Do I want redirects?
 }
 
+/*
 func profile(w http.ResponseWriter, r *http.Request) {
 	session, err := store.Get(r, "user-session")
 	if err != nil {
@@ -148,6 +150,7 @@ func profile(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, `<div id="page">`+id+`</div>`)
 
 }
+*/
 
 // template
 var homepage = `

@@ -207,6 +207,14 @@ img {
     background-color: rgba(48, 152, 240, 1);
   }
 
+  .dim-fusia {
+    background-color: rgb(101, 20, 69); /* 60% darker */
+  }
+
+  .dim-sky-blue {
+    background-color: rgb(19, 61, 96); /* 60% darker */
+  }
+
   .pink {
     background-color: rgb(253, 182, 215);
   }
@@ -533,6 +541,10 @@ input[type="radio"] {
     width: 40px;
     height: 40px;
     border-radius: 25%
+}
+
+p {
+    margin: 0;
 }
 
 /*

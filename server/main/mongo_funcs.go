@@ -30,6 +30,7 @@ type AuthorizedUser struct {
 
 type PlayerRecord struct {
 	Username    string    `bson:"username"`
+	Color       string    `bson:"color"`
 	LastLogin   time.Time `bson:"lastLogin,omitempty"`
 	LastLogout  time.Time `bson:"lastLogout,omitempty"`
 	LastRespawn time.Time `bson:"lastRespawn,omitempty"`
@@ -113,24 +114,48 @@ func (db *DB) getUserByEmail(email string) (*User, error) {
 /////////////////////////////////////////////////////////////
 //  Authorized
 
-func (db *DB) getAuthorizedUserById(identifier string) (*AuthorizedUser, error) {
+func (db *DB) getAuthorizedUserById(identifier string) *AuthorizedUser {
 	var result AuthorizedUser
 	collection := db.users
 	err := collection.FindOne(context.TODO(), bson.M{"identifier": identifier}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			fmt.Println("No document was found with the given identifier")
-			return nil, err
+			return nil
 		} else {
 			log.Fatal(err)
 		}
 	}
-	return &result, nil
+	return &result
 }
 
 func (db *DB) insertAuthorizedUser(user AuthorizedUser) error {
 	_, err := db.users.InsertOne(context.TODO(), user)
 	return err
+}
+
+func (db *DB) updateUserName(identifier, username string) bool {
+	filter := bson.M{"identifier": identifier, "username": ""}
+	update := bson.M{"$set": bson.M{"username": username}}
+
+	result, err := db.users.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		fmt.Println("Error updating document:", err)
+		return false
+	}
+
+	if result.MatchedCount == 0 {
+		fmt.Println("No document matched the identifier with an empty username.")
+		return false
+	}
+
+	if result.ModifiedCount == 0 {
+		fmt.Println("Document was matched, but username was not empty.")
+		return false
+	}
+
+	fmt.Println("Document updated successfully.")
+	return true
 }
 
 // needs to return error?
@@ -147,6 +172,11 @@ func (db *DB) getPlayerRecord(username string) (*PlayerRecord, error) {
 		}
 	}
 	return &result, nil
+}
+
+func (db *DB) usernameExists(username string) bool {
+	record, _ := db.getPlayerRecord(username)
+	return record != nil
 }
 
 // This is only being used by a test
@@ -174,7 +204,7 @@ func (db *DB) updatePlayerRecord(username string, updates map[string]any) (*Play
 }
 
 func (db *DB) saveKillEvent(tile *Tile, initiator *Player, defeated *Player) error {
-	playerCollection := db.playerRecords
+	//playerCollection := db.playerRecords
 	eventCollection := db.events
 
 	id := uuid.New().String()
@@ -193,39 +223,42 @@ func (db *DB) saveKillEvent(tile *Tile, initiator *Player, defeated *Player) err
 		log.Fatal("Event Insert Failed")
 	}
 
-	// Update the initiator player's kills array
-	_, err = playerCollection.UpdateOne(
-		context.TODO(),
-		bson.M{"username": initiator.username},
-		bson.M{
-			"$push": bson.M{"kills": id},
-			"$set": bson.M{
-				"x":         tile.x,
-				"y":         tile.y,
-				"health":    initiator.health,
-				"stagename": initiator.stageName,
-				"money":     initiator.money,
+	initiator.updateRecord()
+	/*
+		// Update the initiator player's kills array
+		_, err = playerCollection.UpdateOne(
+			context.TODO(),
+			bson.M{"username": initiator.username},
+			bson.M{
+				"$push": bson.M{"kills": id},
+				"$set": bson.M{
+					"x":         tile.x,
+					"y":         tile.y,
+					"health":    initiator.health,
+					"stagename": initiator.stageName,
+					"money":     initiator.money,
+				},
+				"$inc": bson.M{
+					"experience": 100,
+				},
 			},
-			"$inc": bson.M{
-				"experience": 100,
-			},
-		},
-	)
-	if err != nil {
-		log.Fatal("Update Initiator Kills Failed")
-		return err
-	}
+		)
+		if err != nil {
+			log.Fatal("Update Initiator Kills Failed")
+			return err
+		}
 
-	// Update the defeated player's deaths array
-	_, err = playerCollection.UpdateOne(
-		context.TODO(),
-		bson.M{"username": defeated.username},
-		bson.M{"$push": bson.M{"deaths": id}},
-	)
-	if err != nil {
-		log.Fatal("Update Defeated Deaths Failed")
-		return err
-	}
+		// Update the defeated player's deaths array
+		_, err = playerCollection.UpdateOne(
+			context.TODO(),
+			bson.M{"username": defeated.username},
+			bson.M{"$push": bson.M{"deaths": id}},
+		)
+		if err != nil {
+			log.Fatal("Update Defeated Deaths Failed")
+			return err
+		}
+	*/
 
 	return nil
 }
@@ -241,7 +274,8 @@ func (db *DB) updateRecordForPlayer(p *Player) error {
 				"health":     p.health,
 				"stagename":  p.stageName,
 				"money":      p.money,
-				"experience": p.experience,
+				"killCount":  p.killCount,
+				"deathCount": p.deathCount,
 			},
 		},
 	)

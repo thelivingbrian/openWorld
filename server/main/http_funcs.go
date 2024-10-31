@@ -94,8 +94,10 @@ func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 		player := world.join(record)
 		if player != nil {
 			io.WriteString(w, printPageFor(player))
+			return
 		} else {
 			io.WriteString(w, "<h2>Invalid (User logged in already)</h2>")
+			return
 		}
 	} else {
 		io.WriteString(w, invalidSignin())
@@ -103,23 +105,17 @@ func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (world *World) postResume(w http.ResponseWriter, r *http.Request) {
-	session, err := store.Get(r, "user-session")
-	if err != nil {
-		fmt.Println("Error with session: ")
-		fmt.Println(err)
-		io.WriteString(w, homepage)
-		return
-	}
-
-	id, ok := session.Values["identifier"].(string)
+func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
+	id, ok := getUserIdFromSession(r)
 	if !ok {
 		io.WriteString(w, homepage)
 		return
 	}
-	userRecord, err := world.db.getAuthorizedUserById(id)
+	userRecord := world.db.getAuthorizedUserById(id)
 	if userRecord == nil {
 		// deeply confusing
+		// Could imply hacked cookie?
+		return
 	}
 
 	fmt.Println("have user")
@@ -135,14 +131,104 @@ func (world *World) postResume(w http.ResponseWriter, r *http.Request) {
 		player := world.join(record)
 		if player != nil {
 			io.WriteString(w, printPageFor(player))
+			return
 		} else {
 			io.WriteString(w, "<h2>Invalid (User logged in already)</h2>")
+			return
 		}
+	}
+}
 
-		io.WriteString(w, homepageSignedin)
-
+func (world *World) postNew(w http.ResponseWriter, r *http.Request) {
+	id, ok := getUserIdFromSession(r)
+	if !ok {
+		io.WriteString(w, homepage)
+		return
+	}
+	userRecord := world.db.getAuthorizedUserById(id)
+	if userRecord == nil {
+		// deeply confusing
+		// Could imply hacked cookie?
+		return
 	}
 
+	fmt.Println("have user")
+
+	props, ok := requestToProperties(r)
+	if !ok {
+		fmt.Println("Invalid properties")
+		io.WriteString(w, homepage)
+		return
+	}
+
+	color := props["player-color"]
+	username := props["player-name"]
+
+	fmt.Println(color)
+	fmt.Println(username)
+
+	if !world.db.usernameExists(username) {
+		if !validPlayerColor(color) {
+			io.WriteString(w, divBottomInvalid("Invalid Player Color"))
+			return
+
+		}
+		record := PlayerRecord{
+			Username:  username,
+			Color:     color,
+			Health:    100,
+			StageName: "tutorial:0-0",
+			X:         4,
+			Y:         4,
+			Money:     80,
+		}
+
+		err := world.db.InsertPlayerRecord(record)
+		if err != nil {
+			io.WriteString(w, divBottomInvalid("Error saving new player"))
+			return
+		}
+		ok := world.db.updateUserName(id, username)
+		if !ok {
+			io.WriteString(w, divBottomInvalid("Error, username not updated"))
+			return
+		}
+
+		player := world.join(&record)
+		if player != nil {
+			io.WriteString(w, printPageFor(player))
+		} else {
+			io.WriteString(w, "<h2>Invalid (User logged in already)</h2>") // Should be impossible?
+		}
+	} else {
+		io.WriteString(w, divBottomInvalid("Username unavailable. Try again."))
+		return
+	}
+}
+
+func validPlayerColor(color string) bool {
+	validColors := []string{"fusia", "sky-blue"}
+	for i := range validColors {
+		if validColors[i] == color {
+			return true
+		}
+	}
+	return false
+}
+
+func getUserIdFromSession(r *http.Request) (string, bool) {
+	session, err := store.Get(r, "user-session")
+	if err != nil {
+		fmt.Println("Error with session: ")
+		fmt.Println(err)
+		return "", false
+	}
+
+	id, ok := session.Values["identifier"].(string)
+	if !ok {
+		return "", false
+	}
+	return id, true
 }
 
 /////////////////////////////////////////////
