@@ -19,7 +19,7 @@ var store = sessions.NewCookieStore([]byte("hash-key"), []byte("0123456789012345
 func init() {
 	gothic.Store = store
 	store.Options = &sessions.Options{
-		MaxAge: 300,
+		MaxAge: 60 * 60 * 24,
 	}
 }
 
