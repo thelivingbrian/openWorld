@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/sessions"
+	"github.com/joho/godotenv"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
@@ -25,6 +26,11 @@ func init() {
 
 func main() {
 	fmt.Println("Initializing...")
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
+
 	config := getConfiguration()
 	db := createDbConnection(config)
 	world := createGameWorld(db)
@@ -65,7 +71,7 @@ func main() {
 	http.HandleFunc("/screen", world.NewSocketConnection)
 
 	fmt.Println("Starting server, listening on port " + config.port)
-	var err error
+	//var err error
 	if config.usesTLS {
 		err = http.ListenAndServeTLS(config.port, config.tlsCertPath, config.tlsKeyPath, nil)
 	} else {

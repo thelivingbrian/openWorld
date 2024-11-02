@@ -40,7 +40,7 @@ type Configuration struct {
 }
 
 func getConfiguration() *Configuration {
-	environmentName := os.Getenv("BLOOP_ENV")
+	environmentName := os.Getenv("BLOOP_ENV") // unneeded?
 
 	if environmentName == "prod" {
 		log.Fatal("No Prod Environment")
