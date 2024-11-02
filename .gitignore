@@ -8,3 +8,4 @@ tools/main/data/out**
 /*.txt
 main.exe
 **/spaces/maps/**
+.env
