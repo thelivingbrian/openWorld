@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/gorilla/sessions"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -82,6 +83,11 @@ func (config *Configuration) getMongoCredentialString() string {
 
 func (config *Configuration) getMongoURI() string {
 	return "mongodb://" + config.getMongoCredentialString() + config.mongoHost + config.mongoPort
+}
+
+func (config *Configuration) getCookieStore() *sessions.CookieStore {
+	// Validate new and old keys here
+	return nil
 }
 
 ////////////////////////////////////////////////////

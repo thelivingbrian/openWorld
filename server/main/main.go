@@ -14,10 +14,17 @@ import (
 	"github.com/markbates/goth/providers/google"
 )
 
-// []byte("01234567890123456789012345678944")
-var store = sessions.NewCookieStore([]byte("hash-key"), []byte("01234567890123456789012345678944"))
+var store *sessions.CookieStore // = sessions.NewCookieStore([]byte("hash-key"), []byte("01234567890123456789012345678944"))
+var config *Configuration
 
 func init() {
+	fmt.Println("Initializing...")
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
+	config = getConfiguration()
+	store = sessions.NewCookieStore([]byte("hash-key")) // Should be a func on (*Config) for validation
 	gothic.Store = store
 	store.Options = &sessions.Options{
 		MaxAge: 60 * 60 * 24,
@@ -25,13 +32,9 @@ func init() {
 }
 
 func main() {
-	fmt.Println("Initializing...")
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
-	}
+	fmt.Println("Starting game world...")
 
-	config := getConfiguration()
+	//config := getConfiguration()
 	db := createDbConnection(config)
 	world := createGameWorld(db)
 	loadFromJson()
@@ -43,7 +46,7 @@ func main() {
 	http.HandleFunc("/images/", imageHandler)
 
 	// home
-	http.HandleFunc("/{$}", world.homeHandler)
+	http.HandleFunc("/{$}", homeHandler)
 
 	// Account creation and sign in
 	//http.HandleFunc("/homesignup", getSignUp)
@@ -56,13 +59,11 @@ func main() {
 	// Oauth
 	clientId := os.Getenv("GOOGLE_CLIENT_ID")
 	clientSecret := os.Getenv("GOOGLE_CLIENT_SECRET")
-	//sessionSecret := os.Getenv("SESSION_SECRET")
-	//fmt.Println(sessionSecret)
 	goth.UseProviders(
 		google.New(clientId, clientSecret, "http://localhost:9090/callback?provider=google"))
+
 	http.HandleFunc("/auth", auth)
 	http.HandleFunc("/callback", db.callback)
-	//http.HandleFunc("/profile", profile)
 
 	fmt.Println("Preparing for interactions...")
 	http.HandleFunc("/clear", clearScreen)
@@ -71,7 +72,7 @@ func main() {
 	http.HandleFunc("/screen", world.NewSocketConnection)
 
 	fmt.Println("Starting server, listening on port " + config.port)
-	//var err error
+	var err error
 	if config.usesTLS {
 		err = http.ListenAndServeTLS(config.port, config.tlsCertPath, config.tlsKeyPath, nil)
 	} else {
@@ -81,6 +82,27 @@ func main() {
 		fmt.Println("Failed to start server", err)
 		return
 	}
+}
+
+func homeHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("hello from home")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	session, err := store.Get(r, "user-session")
+	if err != nil {
+		fmt.Println("No session")
+		fmt.Println(err)
+		io.WriteString(w, homepage)
+		return
+	}
+
+	_, ok := session.Values["identifier"].(string)
+	if !ok {
+		fmt.Println("No Identifier")
+		io.WriteString(w, homepage)
+		return
+	}
+
+	io.WriteString(w, homepageSignedin)
 }
 
 func auth(w http.ResponseWriter, r *http.Request) {
@@ -171,43 +193,4 @@ var homepageSignedin = `
         </div>
     </div>
 </body>
-`
-
-func (world *World) homeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("hello from home")
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	session, err := store.Get(r, "user-session")
-	if err != nil {
-		fmt.Println("No session")
-		fmt.Println(err)
-		io.WriteString(w, homepage)
-		return
-	}
-
-	_, ok := session.Values["identifier"].(string)
-	if !ok {
-		fmt.Println("No Identifier")
-		io.WriteString(w, homepage)
-		return
-	}
-
-	io.WriteString(w, homepageSignedin)
-}
-
-var tinyTemplate = `
-<p>{{.Provider}}:{{.UserID}}</p>
-`
-
-var userTemplate = `
-<p><a href="/logout/{{.Provider}}">logout</a></p>
-<p>Name: {{.Name}} [{{.LastName}}, {{.FirstName}}]</p>
-<p>Email: {{.Email}}</p>
-<p>NickName: {{.NickName}}</p>
-<p>Location: {{.Location}}</p>
-<p>AvatarURL: {{.AvatarURL}} <img src="{{.AvatarURL}}"></p>
-<p>Description: {{.Description}}</p>
-<p>UserID: {{.UserID}}</p>
-<p>AccessToken: {{.AccessToken}}</p>
-<p>ExpiresAt: {{.ExpiresAt}}</p>
-<p>RefreshToken: {{.RefreshToken}}</p>
 `
