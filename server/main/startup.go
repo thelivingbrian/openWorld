@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -42,6 +43,20 @@ type Configuration struct {
 
 func getConfiguration() *Configuration {
 	environmentName := os.Getenv("BLOOP_ENV") // unneeded?
+	hashKeyBase64 := os.Getenv("COOKIE_HASH_KEY")
+	hashKey, err := base64.StdEncoding.DecodeString(hashKeyBase64)
+	if err != nil {
+		log.Fatalf("Error decoding Base64 key: %v", err)
+	}
+	fmt.Println("Length of hashKey: ")
+	fmt.Println(len(hashKey))
+	blockKeyBase64 := os.Getenv("COOKIE_BLOCK_KEY")
+	blockKey, err := base64.StdEncoding.DecodeString(blockKeyBase64)
+	if err != nil {
+		log.Fatalf("Error decoding Base64 key: %v", err)
+	}
+	fmt.Println("Length of blockKey: ")
+	fmt.Println(len(blockKey))
 
 	if environmentName == "prod" {
 		log.Fatal("No Prod Environment")
@@ -87,6 +102,7 @@ func (config *Configuration) getMongoURI() string {
 
 func (config *Configuration) getCookieStore() *sessions.CookieStore {
 	// Validate new and old keys here
+	// Needed without key rotation? Yes - ensure block key is sufficient?
 	return nil
 }
 

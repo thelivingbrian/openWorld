@@ -17,6 +17,11 @@ import (
 var store *sessions.CookieStore // = sessions.NewCookieStore([]byte("hash-key"), []byte("01234567890123456789012345678944"))
 var config *Configuration
 
+type state struct {
+	DB
+	store *sessions.CookieStore
+}
+
 func init() {
 	fmt.Println("Initializing...")
 	err := godotenv.Load()

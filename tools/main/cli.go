@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"os"
 
@@ -14,12 +16,27 @@ var rootCmd = &cobra.Command{
 	SilenceUsage: true,
 }
 
-func runWithContext(c *Context) func(cmd *cobra.Command, args []string) {
+func deployCollection(c *Context) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		collectionName := args[0]
 		fmt.Printf("Deploying collection: %s\n", collectionName)
 		c.deploy(collectionName)
 		os.Exit(0)
+	}
+}
+
+func generateKeys() func(cmd *cobra.Command, args []string) {
+	return func(cmd *cobra.Command, args []string) {
+		fmt.Println(len(args))
+		keys := make([]byte, 64) // Create a slice to hold 32 bytes
+		_, err := rand.Read(keys)
+		if err != nil {
+			return
+		}
+		hashKey := base64.StdEncoding.EncodeToString(keys[0:32])
+		blockKey := base64.StdEncoding.EncodeToString(keys[32:64])
+		fmt.Println("COOKIE_HASH_KEY=" + string(hashKey))
+		fmt.Println("COOKIE_BLOCK_KEY=" + string(blockKey))
 	}
 }
 
@@ -29,9 +46,17 @@ func ExecuteCLICommands(c *Context) {
 		Short: "Deploy a specific collection",
 		Long:  `Deploy the given collection name to the server.`,
 		Args:  cobra.ExactArgs(1),
-		Run:   runWithContext(c),
+		Run:   deployCollection(c),
 	}
 	rootCmd.AddCommand(deployCmd)
+	var keysCmd = &cobra.Command{
+		Use:   "keys [quantity]",
+		Short: "Generate a quantity of keys (default 1)",
+		Long:  `Generate a quantity of keys (default 1)`,
+		Args:  cobra.MaximumNArgs(1),
+		Run:   generateKeys(),
+	}
+	rootCmd.AddCommand(keysCmd)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
