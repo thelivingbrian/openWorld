@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
-	"io"
+	"html/template"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
@@ -14,11 +13,7 @@ import (
 )
 
 var store *sessions.CookieStore
-
-type state struct {
-	DB
-	store *sessions.CookieStore
-}
+var tmpl = template.Must(template.ParseGlob("templates/*.tmpl.html"))
 
 func main() {
 	fmt.Println("Initializing...")
@@ -79,80 +74,25 @@ func main() {
 }
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("hello from home")
+	fmt.Println("Home page accessed.")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
 	session, err := store.Get(r, "user-session")
 	if err != nil {
-		fmt.Println("No session")
-		fmt.Println(err)
-		io.WriteString(w, homepage)
+		tmpl.ExecuteTemplate(w, "homepage", false)
 		return
 	}
-
 	_, ok := session.Values["identifier"].(string)
 	if !ok {
 		fmt.Println("No Identifier")
-		io.WriteString(w, homepage)
+		tmpl.ExecuteTemplate(w, "homepage", false)
 		return
 	}
 
-	io.WriteString(w, homepageSignedin)
+	tmpl.ExecuteTemplate(w, "homepage", true)
 }
 
-func auth(w http.ResponseWriter, r *http.Request) {
-	/*
-		 // Force Google to show account selection
-		q := r.URL.Query()
-		q.Add("prompt", "select_account")
-		r.URL.RawQuery = q.Encode()
-	*/
-	gothic.BeginAuthHandler(w, r)
-}
-
-func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
-	user, err := gothic.CompleteUserAuth(w, r)
-	if err != nil {
-		// This should fail for random additional requests,
-		// other routes will be able to grab a pre-existing session
-		fmt.Println("Callback error: " + err.Error())
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
-
-	fmt.Println("New Sign in from: " + user.Email)
-	if user.UserID == "" || user.Provider == "" {
-		fmt.Printf("Invalid id: %s or provider %s ", user.UserID, user.Provider)
-	}
-	identifier := user.Provider + ":" + user.UserID
-
-	userRecord := db.getAuthorizedUserById(identifier)
-	if userRecord == nil {
-		fmt.Println("Creating new user with identifier: " + identifier)
-		newUser := AuthorizedUser{Identifier: identifier, Username: "", Created: time.Now(), LastLogin: time.Now()}
-		err := db.insertAuthorizedUser(newUser)
-		if err != nil {
-			fmt.Println("New User creation in mongo failed")
-			http.Redirect(w, r, "/", http.StatusFound)
-			return
-		}
-	}
-
-	// store id to the session
-	session, err := store.Get(r, "user-session")
-	if err != nil {
-		fmt.Println("Error getting new session?")
-	}
-	session.Values["identifier"] = identifier // Additional layer of symmetric encryption here?
-	err = session.Save(r, w)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	http.Redirect(w, r, "/", http.StatusFound) // Do I want redirects?
-}
-
-// template
+/*
 var homepage = `
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="/assets/htmx-mod.js"></script>
@@ -188,3 +128,4 @@ var homepageSignedin = `
     </div>
 </body>
 `
+*/

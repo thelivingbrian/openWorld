@@ -202,6 +202,7 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 		if !survived {
 			initiator.incrementKillCount()
 			initiator.incrementKillStreak()
+			initiator.updateRecord()
 			go player.world.db.saveKillEvent(tile, initiator, player) // Maybe should just pass in required fields?
 		}
 	}
