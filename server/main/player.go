@@ -144,7 +144,7 @@ func (player *Player) handleDeath() {
 	player.tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10) // Tile money needs mutex?
 	player.removeFromStage()
 	player.incrementDeathCount()
-	player.updateRecord()
+	//player.updateRecord() This will happen in respawn. Doing here seems risky.
 	respawn(player)
 }
 
