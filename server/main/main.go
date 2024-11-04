@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gorilla/sessions"
@@ -14,32 +13,30 @@ import (
 	"github.com/markbates/goth/providers/google"
 )
 
-var store *sessions.CookieStore // = sessions.NewCookieStore([]byte("hash-key"), []byte("01234567890123456789012345678944"))
-var config *Configuration
+var store *sessions.CookieStore
 
 type state struct {
 	DB
 	store *sessions.CookieStore
 }
 
-func init() {
+func main() {
 	fmt.Println("Initializing...")
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Println("Error loading .env file")
 	}
-	config = getConfiguration()
-	store = sessions.NewCookieStore([]byte("hash-key")) // Should be a func on (*Config) for validation
-	gothic.Store = store
+
+	fmt.Println("Configuring session storage...")
+	config := getConfiguration()
+	store = config.createCookieStore()
 	store.Options = &sessions.Options{
 		MaxAge: 60 * 60 * 24,
 	}
-}
+	gothic.Store = store
+	goth.UseProviders(google.New(config.googleClientId, config.googleClientSecret, config.googleCallbackUrl))
 
-func main() {
 	fmt.Println("Starting game world...")
-
-	//config := getConfiguration()
 	db := createDbConnection(config)
 	world := createGameWorld(db)
 	loadFromJson()
@@ -54,19 +51,12 @@ func main() {
 	http.HandleFunc("/{$}", homeHandler)
 
 	// Account creation and sign in
-	//http.HandleFunc("/homesignup", getSignUp)
-	//http.HandleFunc("/signup", world.db.postSignUp)
 	http.HandleFunc("/homesignin", getSignIn)
 	http.HandleFunc("/signin", world.postSignin)
 	http.HandleFunc("/play", world.postPlay)
 	http.HandleFunc("/new", world.postNew)
 
 	// Oauth
-	clientId := os.Getenv("GOOGLE_CLIENT_ID")
-	clientSecret := os.Getenv("GOOGLE_CLIENT_SECRET")
-	goth.UseProviders(
-		google.New(clientId, clientSecret, "http://localhost:9090/callback?provider=google"))
-
 	http.HandleFunc("/auth", auth)
 	http.HandleFunc("/callback", db.callback)
 
@@ -77,7 +67,6 @@ func main() {
 	http.HandleFunc("/screen", world.NewSocketConnection)
 
 	fmt.Println("Starting server, listening on port " + config.port)
-	var err error
 	if config.usesTLS {
 		err = http.ListenAndServeTLS(config.port, config.tlsCertPath, config.tlsKeyPath, nil)
 	} else {
