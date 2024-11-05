@@ -21,9 +21,9 @@ func main() {
 	if err != nil {
 		fmt.Println("Error loading .env file")
 	}
+	config := getConfiguration()
 
 	fmt.Println("Configuring session storage...")
-	config := getConfiguration()
 	store = config.createCookieStore()
 	store.Options = &sessions.Options{
 		MaxAge: 60 * 60 * 24,
