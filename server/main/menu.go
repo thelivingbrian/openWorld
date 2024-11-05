@@ -193,11 +193,11 @@ func Quit(p *Player) {
 	logOutSuccess := `
 	  <div id="page">
 	      <div id="logo">
-	          <img src="blooplogo2.webp" width="400" height="400" alt="Welcome to bloopworld"><br />
+	          <img src="/assets/blooplogo2.webp" width="400" height="400" alt="Welcome to bloopworld"><br />
 	      </div>
 	      <div id="landing">   
 		  	  <span>Log out success!</span><br />
-	          <a class="large-font" href="#" hx-get="/homesignin" hx-target="#landing">Resume</a><br />
+	          <a class="large-font" href="#" hx-post="/play" hx-target="#page">Resume</a><br />
 	      </div>
 	  </div>`
 

@@ -20,7 +20,15 @@ var testDB *DB
 
 func testdb() *DB {
 	if testClient == nil {
-		testClient = mongoClient(getConfiguration()) // Make test config
+		configuration := Configuration{
+			envName:   "UNITTEST",
+			usesTLS:   false,
+			mongoHost: "localhost",
+			mongoPort: ":27017",
+			mongoUser: "",
+			mongoPass: "",
+		}
+		testClient = mongoClient(&configuration) // Make test config
 		testDB = &DB{
 			users:         testClient.Database("bloop-TESTdb").Collection("testusers"),
 			playerRecords: testClient.Database("bloop-TESTdb").Collection("testplayers"),

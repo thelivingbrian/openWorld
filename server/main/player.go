@@ -9,22 +9,29 @@ import (
 )
 
 type Player struct {
-	id         string
-	username   string
-	world      *World
-	stage      *Stage
-	tile       *Tile
-	updates    chan Update
-	stageName  string
-	conn       *websocket.Conn
-	connLock   sync.Mutex
-	x          int
-	y          int
-	actions    *Actions
-	health     int
-	money      int
-	moneyLock  sync.Mutex
-	experience int
+	id        string
+	username  string
+	color     string
+	world     *World
+	stage     *Stage
+	tile      *Tile
+	updates   chan Update
+	stageName string
+	conn      *websocket.Conn
+	connLock  sync.Mutex
+	x         int
+	y         int
+	actions   *Actions
+	health    int
+	money     int
+	moneyLock sync.Mutex
+
+	killCount      int
+	killCountLock  sync.Mutex
+	deathCount     int
+	deathCountLock sync.Mutex
+	//experience int //?
+
 	killstreak int
 	streakLock sync.Mutex
 	menues     map[string]Menu
@@ -77,6 +84,32 @@ func (player *Player) incrementKillStreak() {
 	player.setKillStreak(newStreak)
 }
 
+func (player *Player) getKillCountSync() int {
+	player.killCountLock.Lock()
+	defer player.killCountLock.Unlock()
+	return player.killCount
+}
+
+// killCount Observer - no direct set
+func (player *Player) incrementKillCount() {
+	player.killCountLock.Lock()
+	defer player.killCountLock.Unlock()
+	player.killCount++
+}
+
+func (player *Player) getDeathCountSync() int {
+	player.deathCountLock.Lock()
+	defer player.deathCountLock.Unlock()
+	return player.deathCount
+}
+
+// deathCount Observer - no direct set
+func (player *Player) incrementDeathCount() {
+	player.deathCountLock.Lock()
+	defer player.deathCountLock.Unlock()
+	player.deathCount++
+}
+
 func (player *Player) isDead() bool {
 	return player.health <= 0
 }
@@ -110,6 +143,8 @@ func (p *Player) placeOnStage() {
 func (player *Player) handleDeath() {
 	player.tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10) // Tile money needs mutex?
 	player.removeFromStage()
+	player.incrementDeathCount()
+	//player.updateRecord() This will happen in respawn. Doing here seems risky.
 	respawn(player)
 }
 

@@ -200,7 +200,9 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 		survived := player.addToHealth(-dmg)
 		survivors = survivors || survived
 		if !survived {
+			initiator.incrementKillCount()
 			initiator.incrementKillStreak()
+			initiator.updateRecord()
 			go player.world.db.saveKillEvent(tile, initiator, player) // Maybe should just pass in required fields?
 		}
 	}
@@ -248,13 +250,11 @@ func (tile *Tile) addMoneyAndNotifyAll(amount int) {
 ///
 
 func cssClassFromHealth(player *Player) string {
-	// >120 indicator
-	// Middle range choosen color? or only in safe
 	if player.health > 50 {
-		return "red r0"
+		return player.color + " r0"
 	}
 	if player.health >= 0 {
-		return "dark-red r0"
+		return "dim-" + player.color + " r0"
 	}
 	return "blue" // shouldn't happen but want to be visible
 }

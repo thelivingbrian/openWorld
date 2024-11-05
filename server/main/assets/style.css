@@ -30,7 +30,8 @@ body {
     font-size: 28px;
     overflow: none;
     margin: 0;
-    margin-left: 8;
+    /*margin-left: 8;*/
+    margin-top: 6;
 }
 
 .day {
@@ -80,6 +81,14 @@ a {
 .selected {
     background-color: #00ffff;
     color:#120500
+}
+
+/* color select */
+
+
+.left-float {
+    float: left;
+    padding: 15px;
 }
 
 
@@ -192,6 +201,18 @@ img {
 
   .fusia {
     background-color: rgb(253, 52, 172);
+  }
+
+  .sky-blue {
+    background-color: rgba(48, 152, 240, 1);
+  }
+
+  .dim-fusia {
+    background-color: rgb(101, 20, 69); /* 60% darker */
+  }
+
+  .dim-sky-blue {
+    background-color: rgb(19, 61, 96); /* 60% darker */
   }
 
   .pink {
@@ -458,4 +479,93 @@ img {
     .B { grid-area: b; }
 }
 
+
+
+/* New Player */
+
+form {
+    background-color: #2b2b2b;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+    width: 100%;
+}
+
+b {
+    font-size: 1.5em;
+    display: block;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.left-float {
+    flex: 1;
+    margin-right: 10px;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    background-color: #333;
+    color: #fff;
+}
+
+input[type="submit"] {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    background-color: #7a8add;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+input[type="submit"]:hover {
+    background-color: #8a9add;
+}
+
+input[type="radio"] {
+    margin-right: 5px;
+}
+
+
+.grid-square-example {
+    width: 40px;
+    height: 40px;
+    border-radius: 25%
+}
+
+p {
+    margin: 0;
+}
+
+/*
+.grid-row {
+    display: flex;
+    justify-content: center;
+}
+    */
+
+
+#color-window-0,
+#color-window-1 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 15px;
+}
+
+.color-selection {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
 

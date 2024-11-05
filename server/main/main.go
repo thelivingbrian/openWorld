@@ -2,12 +2,36 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
+
+	"github.com/gorilla/sessions"
+	"github.com/joho/godotenv"
+	"github.com/markbates/goth"
+	"github.com/markbates/goth/gothic"
+	"github.com/markbates/goth/providers/google"
 )
+
+var store *sessions.CookieStore
+var tmpl = template.Must(template.ParseGlob("templates/*.tmpl.html"))
 
 func main() {
 	fmt.Println("Initializing...")
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
 	config := getConfiguration()
+
+	fmt.Println("Configuring session storage...")
+	store = config.createCookieStore()
+	store.Options = &sessions.Options{
+		MaxAge: 60 * 60 * 24,
+	}
+	gothic.Store = store
+	goth.UseProviders(google.New(config.googleClientId, config.googleClientSecret, config.googleCallbackUrl))
+
+	fmt.Println("Starting game world...")
 	db := createDbConnection(config)
 	world := createGameWorld(db)
 	loadFromJson()
@@ -15,15 +39,21 @@ func main() {
 	fmt.Println("Establishing Routes...")
 
 	// Serve assets
-	// Last Handle takes priority so dirs in /assets/ will be overwritten by handled funcs
-	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./assets"))))
+	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
 	http.HandleFunc("/images/", imageHandler)
 
+	// home
+	http.HandleFunc("/{$}", homeHandler)
+
 	// Account creation and sign in
-	http.HandleFunc("/homesignup", getSignUp)
-	http.HandleFunc("/signup", world.db.postSignUp)
 	http.HandleFunc("/homesignin", getSignIn)
 	http.HandleFunc("/signin", world.postSignin)
+	http.HandleFunc("/play", world.postPlay)
+	http.HandleFunc("/new", world.postNew)
+
+	// Oauth
+	http.HandleFunc("/auth", auth)
+	http.HandleFunc("/callback", db.callback)
 
 	fmt.Println("Preparing for interactions...")
 	http.HandleFunc("/clear", clearScreen)
@@ -32,7 +62,6 @@ func main() {
 	http.HandleFunc("/screen", world.NewSocketConnection)
 
 	fmt.Println("Starting server, listening on port " + config.port)
-	var err error
 	if config.usesTLS {
 		err = http.ListenAndServeTLS(config.port, config.tlsCertPath, config.tlsKeyPath, nil)
 	} else {
@@ -42,4 +71,23 @@ func main() {
 		fmt.Println("Failed to start server", err)
 		return
 	}
+}
+
+func homeHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Home page accessed.")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	session, err := store.Get(r, "user-session")
+	if err != nil {
+		tmpl.ExecuteTemplate(w, "homepage", false)
+		return
+	}
+	_, ok := session.Values["identifier"].(string)
+	if !ok {
+		fmt.Println("No Identifier")
+		tmpl.ExecuteTemplate(w, "homepage", false)
+		return
+	}
+
+	tmpl.ExecuteTemplate(w, "homepage", true)
 }

@@ -131,14 +131,14 @@
   - [-] fix display of map
 
 ## Bottom text
- - [ ] Trigger
+ - [-] Trigger
  - [ ] Display as "!" Notification in mobile instead of on screen
 
 ## Kill streak
  - [-] User Streak
  - [ ] DB stuff 
-   - [ ] Total kills
-   - [ ] Total Deaths
+   - [-] Total kills
+   - [-] Total Deaths
    - [ ] Highest Streak
    - [ ] Time alive/In Danger ?
 
@@ -179,6 +179,7 @@
       - [-] testing db works and is arguably better?
     - [ ] Test fails due to race condition 
   - [-] Most Dangerous
+  - [ ] Precomputed seed disagrees with current result (on linux)
 - [ ] Load testing
   - [ ] Selenium? 
 

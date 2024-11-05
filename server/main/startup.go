@@ -1,12 +1,16 @@
 package main
 
 import (
+	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/gorilla/sessions"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 ///////////////////////////////////////////////////
@@ -21,56 +25,75 @@ type DB struct {
 func createDbConnection(config *Configuration) *DB {
 	mongodb := mongoClient(config).Database("bloopdb")
 	return &DB{mongodb.Collection("users"), mongodb.Collection("players"), mongodb.Collection("events")}
+}
 
+func mongoClient(config *Configuration) *mongo.Client {
+	clientOptions := options.Client().ApplyURI(config.getMongoURI())
+
+	client, err := mongo.Connect(context.TODO(), clientOptions)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = client.Ping(context.TODO(), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return client
 }
 
 ////////////////////////////////////////////////////
 // Configuration
 
 type Configuration struct {
-	envName     string
-	port        string
-	usesTLS     bool
-	tlsCertPath string
-	tlsKeyPath  string
-	mongoHost   string
-	mongoPort   string
-	mongoUser   string
-	mongoPass   string
+	envName            string
+	port               string
+	usesTLS            bool
+	tlsCertPath        string
+	tlsKeyPath         string
+	mongoHost          string
+	mongoPort          string
+	mongoUser          string
+	mongoPass          string
+	hashKey            []byte
+	blockKey           []byte
+	googleClientId     string
+	googleClientSecret string
+	googleCallbackUrl  string
 }
 
 func getConfiguration() *Configuration {
 	environmentName := os.Getenv("BLOOP_ENV")
+	hashKey, blockKey := retrieveKeys()
+
+	config := Configuration{
+		envName:            environmentName,
+		port:               os.Getenv("BLOOP_PORT"),
+		usesTLS:            true,
+		tlsCertPath:        os.Getenv("BLOOP_TLS_CERT_PATH"),
+		tlsKeyPath:         os.Getenv("BLOOP_TLS_KEY_PATH"),
+		mongoHost:          "localhost",
+		mongoPort:          ":27017",
+		mongoUser:          "",
+		mongoPass:          "",
+		hashKey:            hashKey,
+		blockKey:           blockKey,
+		googleClientId:     os.Getenv("GOOGLE_CLIENT_ID"),
+		googleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+		googleCallbackUrl:  os.Getenv("GOOGLE_CALLBACK_URL"),
+	}
 
 	if environmentName == "prod" {
 		log.Fatal("No Prod Environment")
 	} else if environmentName == "test" {
-		return &Configuration{
-			envName:     environmentName,
-			port:        ":443",
-			usesTLS:     true,
-			tlsCertPath: os.Getenv("BLOOP_TLS_CERT_PATH"),
-			tlsKeyPath:  os.Getenv("BLOOP_TLS_KEY_PATH"),
-			mongoHost:   "localhost",
-			mongoPort:   ":27017",
-			mongoUser:   "",
-			mongoPass:   "",
-		}
+		// Nothing to do
 	} else if environmentName == "dev" {
-		return &Configuration{
-			envName:     environmentName,
-			port:        ":9090",
-			usesTLS:     false,
-			tlsCertPath: "./certificate/localhost.pem",
-			tlsKeyPath:  "./certificate/localhost-key.pem",
-			mongoHost:   "localhost",
-			mongoPort:   ":27017",
-			mongoUser:   "",
-			mongoPass:   "",
-		}
+		config.usesTLS = false
+	} else {
+		log.Fatal("No Configuration, exiting")
 	}
-	log.Fatal("No Configuration, exiting")
-	return nil
+
+	return &config
 }
 
 func (config *Configuration) getMongoCredentialString() string {
@@ -82,6 +105,31 @@ func (config *Configuration) getMongoCredentialString() string {
 
 func (config *Configuration) getMongoURI() string {
 	return "mongodb://" + config.getMongoCredentialString() + config.mongoHost + config.mongoPort
+}
+
+func (config *Configuration) createCookieStore() *sessions.CookieStore {
+	if len(config.hashKey) != 32 || len(config.blockKey) != 32 {
+		panic("Invalid key lengths")
+	}
+	return sessions.NewCookieStore(config.hashKey, config.blockKey)
+}
+
+func retrieveKeys() (hashKey, blockKey []byte) {
+	hashKeyBase64 := os.Getenv("COOKIE_HASH_KEY")
+	hashKey, err := base64.StdEncoding.DecodeString(hashKeyBase64)
+	if err != nil {
+		log.Fatalf("Error decoding Base64 key: %v", err)
+	}
+
+	blockKeyBase64 := os.Getenv("COOKIE_BLOCK_KEY")
+	blockKey, err = base64.StdEncoding.DecodeString(blockKeyBase64)
+	if err != nil {
+		log.Fatalf("Error decoding Base64 key: %v", err)
+	}
+	if len(hashKey) != 32 || len(blockKey) != 32 {
+		panic(fmt.Sprintf("Invalid key length for hashkey[%d] or blockKey[%d] expecting 32 bytes.", len(hashKey), len(blockKey)))
+	}
+	return hashKey, blockKey
 }
 
 ////////////////////////////////////////////////////
