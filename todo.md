@@ -12,6 +12,7 @@
 - [-] No player detail update on respawn 
 - [-] green dot of money is invisible after killing other player
 - [-] relative border radius
+- [ ] Score goal
 
 ## Design Workspace
 - [-] Rotations
