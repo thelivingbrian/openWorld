@@ -295,3 +295,5 @@ func sliceOfTileToColoredOoB(tiles []*Tile, cssClass string) string {
 	}
 	return html
 }
+
+// Pushing and reactions

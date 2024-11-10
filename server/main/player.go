@@ -260,7 +260,7 @@ func (p *Player) moveWestBoost() {
 
 func (p *Player) tryGoNeighbor(yOffset, xOffset int) {
 	newTile := p.world.getRelativeTile(p.stage.tiles[p.y][p.x], yOffset, xOffset)
-	if p.world.initialPush(newTile, yOffset, xOffset) {
+	if p.initialPush(newTile, yOffset, xOffset) {
 		t := &Teleport{destStage: newTile.stage.name, destY: newTile.y, destX: newTile.x}
 		previousTile := p.stage.tiles[p.y][p.x]
 
@@ -279,7 +279,7 @@ func (p *Player) move(yOffset int, xOffset int) {
 		sourceTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
 
-		if p.world.initialPush(destTile, yOffset, xOffset) {
+		if p.initialPush(destTile, yOffset, xOffset) {
 			sourceTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
 			destTile.addPlayerAndNotifyOthers(p)
 
@@ -293,17 +293,17 @@ func (p *Player) move(yOffset int, xOffset int) {
 func (p *Player) pushUnder(yOffset int, xOffset int) {
 	currentTile := p.stage.tiles[p.y][p.x]
 	if currentTile != nil && currentTile.interactable != nil {
-		p.world.initialPush(p.stage.tiles[p.y][p.x], yOffset, xOffset)
+		p.initialPush(p.stage.tiles[p.y][p.x], yOffset, xOffset)
 	}
 }
 
-func (w *World) initialPush(tile *Tile, yOff, xOff int) bool {
+func (p *Player) initialPush(tile *Tile, yOff, xOff int) bool {
 	if tile == nil {
 		return false
 	}
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
-	w.push(tile, yOff, xOff)
+	p.push(tile, yOff, xOff)
 	tile.stage.updateAll(interactableBox(tile))
 
 	if tile.interactable == nil {
@@ -313,7 +313,7 @@ func (w *World) initialPush(tile *Tile, yOff, xOff int) bool {
 	}
 }
 
-func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability of the tile for an interactible
+func (p *Player) push(tile *Tile, yOff, xOff int) bool { // Returns availability of the tile for an interactible
 	if tile == nil || tile.teleport != nil {
 		return false
 	}
@@ -321,14 +321,14 @@ func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability 
 		return walkable(tile)
 	}
 	if tile.interactable.pushable {
-		nextTile := w.getRelativeTile(tile, yOff, xOff)
+		nextTile := p.world.getRelativeTile(tile, yOff, xOff)
 		if nextTile != nil {
 			ownLock := nextTile.interactableMutex.TryLock()
 			if !ownLock {
 				return false // Tile is already locked by another operation
 			}
 			defer nextTile.interactableMutex.Unlock()
-			if w.push(nextTile, yOff, xOff) {
+			if p.push(nextTile, yOff, xOff) {
 				nextTile.interactable = tile.interactable
 				nextTile.stage.updateAll(interactableBox(nextTile))
 				tile.interactable = nil // Take *Interactable and assign here to have option of reacting
@@ -339,68 +339,6 @@ func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability 
 		}
 	}
 	return false
-}
-
-func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
-	destY := tile.y + yOff
-	destX := tile.x + xOff
-	if validCoordinate(destY, destX, tile.stage.tiles) {
-		return tile.stage.tiles[destY][destX]
-	} else {
-		escapesVertically, escapesHorizontally := validityByAxis(destY, destX, tile.stage.tiles)
-		if escapesVertically && escapesHorizontally {
-			// in bloop world cardinal direction travel may be non-communative
-			// therefore north-east etc neighbor is not uniquely defined
-			// order can probably be uniquely determined when tile.y != tile.x
-			return nil
-		}
-		if escapesVertically {
-			var newStage *Stage
-			if yOff > 0 {
-				newStage = w.getStageByName(tile.stage.south)
-				if newStage == nil {
-					newStage = w.loadStageByName(tile.stage.south)
-				}
-			}
-			if yOff < 0 {
-				newStage = w.getStageByName(tile.stage.north)
-				if newStage == nil {
-					newStage = w.loadStageByName(tile.stage.north)
-				}
-			}
-
-			if newStage != nil {
-				if validCoordinate(mod(destY, len(newStage.tiles)), destX, newStage.tiles) {
-					return newStage.tiles[mod(destY, len(newStage.tiles))][destX]
-				}
-			}
-			return nil
-		}
-		if escapesHorizontally {
-			var newStage *Stage
-			if xOff > 0 {
-				newStage = w.getStageByName(tile.stage.east)
-				if newStage == nil {
-					newStage = w.loadStageByName(tile.stage.east)
-				}
-			}
-			if xOff < 0 {
-				newStage = w.getStageByName(tile.stage.west)
-				if newStage == nil {
-					newStage = w.loadStageByName(tile.stage.west)
-				}
-			}
-
-			if newStage != nil {
-				if validCoordinate(destY, mod(destX, len(newStage.tiles)), newStage.tiles) {
-					return newStage.tiles[destY][mod(destX, len(newStage.tiles))]
-				}
-			}
-			return nil
-		}
-
-		return nil
-	}
 }
 
 func (player *Player) nextPower() {

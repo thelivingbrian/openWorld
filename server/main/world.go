@@ -71,6 +71,71 @@ func (world *World) isLoggedInAlready(username string) bool {
 }
 
 ///////////////////////////////////////////////////////////////
+// References / Lookup
+
+func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
+	destY := tile.y + yOff
+	destX := tile.x + xOff
+	if validCoordinate(destY, destX, tile.stage.tiles) {
+		return tile.stage.tiles[destY][destX]
+	} else {
+		escapesVertically, escapesHorizontally := validityByAxis(destY, destX, tile.stage.tiles)
+		if escapesVertically && escapesHorizontally {
+			// in bloop world cardinal direction travel may be non-communative
+			// therefore north-east etc neighbor is not uniquely defined
+			// order can probably be uniquely determined when tile.y != tile.x
+			return nil
+		}
+		if escapesVertically {
+			var newStage *Stage
+			if yOff > 0 {
+				newStage = w.getStageByName(tile.stage.south)
+				if newStage == nil {
+					newStage = w.loadStageByName(tile.stage.south)
+				}
+			}
+			if yOff < 0 {
+				newStage = w.getStageByName(tile.stage.north)
+				if newStage == nil {
+					newStage = w.loadStageByName(tile.stage.north)
+				}
+			}
+
+			if newStage != nil {
+				if validCoordinate(mod(destY, len(newStage.tiles)), destX, newStage.tiles) {
+					return newStage.tiles[mod(destY, len(newStage.tiles))][destX]
+				}
+			}
+			return nil
+		}
+		if escapesHorizontally {
+			var newStage *Stage
+			if xOff > 0 {
+				newStage = w.getStageByName(tile.stage.east)
+				if newStage == nil {
+					newStage = w.loadStageByName(tile.stage.east)
+				}
+			}
+			if xOff < 0 {
+				newStage = w.getStageByName(tile.stage.west)
+				if newStage == nil {
+					newStage = w.loadStageByName(tile.stage.west)
+				}
+			}
+
+			if newStage != nil {
+				if validCoordinate(destY, mod(destX, len(newStage.tiles)), newStage.tiles) {
+					return newStage.tiles[destY][mod(destX, len(newStage.tiles))]
+				}
+			}
+			return nil
+		}
+
+		return nil
+	}
+}
+
+///////////////////////////////////////////////////////////////
 // LeaderBoards
 
 type LeaderBoard struct {
