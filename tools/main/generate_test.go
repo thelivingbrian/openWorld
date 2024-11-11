@@ -10,13 +10,13 @@ func TestSmoothCorners_1(t *testing.T) {
 	gridSize := 4
 	strategy := ""
 	fuzz := 0.1
-	var seed int64 = 314 // Seed producing different value than expected on linux?
+	var seed int64 = 314
 
 	//  precomputed for seed 314
 	//  ....
-	//  ..XX
 	//  .XXX
-	//  ..X.
+	//  .XXX
+	//  .XXX
 	expectedBefore := [][]Cell{
 		{
 			{0, false, false, false, false},
