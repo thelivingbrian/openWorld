@@ -4,11 +4,57 @@ import (
 	"math/rand"
 )
 
+type SpawnAction struct {
+	Should func(*Stage) bool
+	Action func(*Stage)
+}
+
+func (s SpawnAction) activate(stage *Stage) {
+	if s.Should(stage) {
+		s.Action(stage)
+	}
+}
+
+func Always(stage *Stage) bool {
+	return true
+}
+
+var actionMap = map[string]SpawnAction{
+	"none": SpawnAction{Should: Always, Action: doNothing},
+	"":     SpawnAction{Should: Always, Action: basicSpawn},
+}
+
 var spawnActions = map[string]func(*Stage){
 	"":               basicSpawn,
 	"none":           nil,
-	"tutorial-boost": tutorialBoost,
+	"tutorial-boost": wrap(tutorialBoost),
 	"tutorial-power": tutorialPower,
+}
+
+var spawnActionParameters = map[string]func(...interface{}) func(*Stage){
+	"none": pass(doNothing),
+}
+
+func doNothing(*Stage) {
+
+}
+
+func pass(effect func(*Stage)) func(...interface{}) func(*Stage) {
+	return func(...interface{}) func(*Stage) {
+		return effect
+	}
+}
+
+func wrap(args ...interface{}) func(*Stage) {
+	if len(args) == 0 {
+		return doNothing
+	}
+	f, ok := args[0].(func(*Stage))
+	if ok {
+		return f
+	} else {
+		return doNothing
+	}
 }
 
 func tutorialBoost(stage *Stage) {
