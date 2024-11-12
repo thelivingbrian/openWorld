@@ -1,7 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"math"
 	"math/rand"
+	"strconv"
+	"strings"
 )
 
 type SpawnAction struct {
@@ -10,32 +14,76 @@ type SpawnAction struct {
 }
 
 func (s *SpawnAction) activateFor(stage *Stage) {
-	if s.Should(stage) {
+	if s.Should == nil || s.Should(stage) {
+		if s.Action == nil {
+			return
+		}
 		s.Action(stage)
 	}
 }
 
 var actionMap = map[string]*SpawnAction{
-	"none":           &SpawnAction{Should: Always, Action: doNothing},
-	"":               &SpawnAction{Should: Always, Action: basicSpawn},
+	"none":           &SpawnAction{}, // Same as Should: Always, Action: doNothing
+	"":               &SpawnAction{Should: CheckDistanceFromEdge(8, 8), Action: basicSpawn},
 	"tutorial-boost": &SpawnAction{Should: Always, Action: tutorialBoost},
 	"tutorial-power": &SpawnAction{Should: Always, Action: tutorialPower},
 }
-
-/*
-var spawnActions = map[string]func(*Stage){
-	"":               basicSpawn,
-	"none":           nil,
-	"tutorial-boost": tutorialBoost,
-	"tutorial-power": tutorialPower,
-}
-*/
 
 /////////////////////////////////////////////
 // Gates
 
 func Always(stage *Stage) bool {
 	return true
+}
+
+func CheckDistanceFromEdge(gridHeight, gridWidth int) func(*Stage) bool {
+	return func(stage *Stage) bool {
+		maxDistance := min((gridHeight-1)/2, (gridWidth-1)/2)
+		currentDistance := distanceFromEdgeOfSpace(stage, gridHeight, gridWidth)
+		probability := .05 * (1 / math.Pow(4.0, float64(maxDistance-currentDistance)))
+		r := rand.Float64()
+		if r < probability {
+			fmt.Println("HIT!!")
+		}
+		return r < probability
+	}
+
+}
+
+func distanceFromEdgeOfSpace(stage *Stage, gridHeight, gridWidth int) int {
+	if stage == nil {
+		return -1
+	}
+	arr := strings.Split(stage.name, ":")
+	if len(arr) != 2 {
+		return -1
+	}
+	coords := strings.Split(arr[1], "-")
+	if len(coords) != 2 {
+		return -1
+	}
+	y, err := strconv.Atoi(coords[0])
+	if err != nil {
+		return -1
+	}
+	x, err := strconv.Atoi(coords[1])
+	if err != nil {
+		return -1
+	}
+	return min(y, x, gridHeight-1-y, gridWidth-1-x)
+}
+
+func min(vals ...int) int {
+	if len(vals) == 0 {
+		panic("min requires at least one argument")
+	}
+	minVal := vals[0]
+	for _, v := range vals[1:] {
+		if v < minVal {
+			minVal = v
+		}
+	}
+	return minVal
 }
 
 /////////////////////////////////////////////

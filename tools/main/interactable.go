@@ -17,6 +17,11 @@ type InteractableDescription struct {
 	Fragile  bool   `json:"fragile"`
 }
 
+type Reaction struct {
+	ReactWith []string `json:"reactWith"`
+	Result    string   `json:"result"` // string?
+}
+
 func (c Context) interactablesHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		c.getInteractables(w, r)
