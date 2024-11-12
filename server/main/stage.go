@@ -15,7 +15,8 @@ type Stage struct {
 	east        string
 	west        string
 	mapId       string
-	spawn       func(*Stage)
+	//spawn       func(*Stage)
+	spawn *SpawnAction
 }
 
 // benchmark this please
@@ -62,7 +63,7 @@ func (world *World) loadStageByName(name string) *Stage {
 }
 
 func createStageFromArea(area Area) *Stage {
-	spawnAction := spawnActions[area.SpawnStrategy]
+	spawnAction := actionMap[area.SpawnStrategy]
 	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, area.Name, area.North, area.South, area.East, area.West, area.MapId, spawnAction}
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
@@ -158,4 +159,12 @@ func updateOne(update string, player *Player) {
 
 func updateScreenFromScratch(player *Player) {
 	player.updates <- Update{player, htmlFromPlayer(player)}
+}
+
+// Items
+
+func (stage *Stage) spawnItems() {
+	if stage.spawn != nil {
+		stage.spawn.activateFor(stage)
+	}
 }

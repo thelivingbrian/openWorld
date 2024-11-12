@@ -9,52 +9,40 @@ type SpawnAction struct {
 	Action func(*Stage)
 }
 
-func (s SpawnAction) activate(stage *Stage) {
+func (s *SpawnAction) activateFor(stage *Stage) {
 	if s.Should(stage) {
 		s.Action(stage)
 	}
 }
 
+var actionMap = map[string]*SpawnAction{
+	"none":           &SpawnAction{Should: Always, Action: doNothing},
+	"":               &SpawnAction{Should: Always, Action: basicSpawn},
+	"tutorial-boost": &SpawnAction{Should: Always, Action: tutorialBoost},
+	"tutorial-power": &SpawnAction{Should: Always, Action: tutorialPower},
+}
+
+/*
+var spawnActions = map[string]func(*Stage){
+	"":               basicSpawn,
+	"none":           nil,
+	"tutorial-boost": tutorialBoost,
+	"tutorial-power": tutorialPower,
+}
+*/
+
+/////////////////////////////////////////////
+// Gates
+
 func Always(stage *Stage) bool {
 	return true
 }
 
-var actionMap = map[string]SpawnAction{
-	"none": SpawnAction{Should: Always, Action: doNothing},
-	"":     SpawnAction{Should: Always, Action: basicSpawn},
-}
-
-var spawnActions = map[string]func(*Stage){
-	"":               basicSpawn,
-	"none":           nil,
-	"tutorial-boost": wrap(tutorialBoost),
-	"tutorial-power": tutorialPower,
-}
-
-var spawnActionParameters = map[string]func(...interface{}) func(*Stage){
-	"none": pass(doNothing),
-}
+/////////////////////////////////////////////
+//  Actions
 
 func doNothing(*Stage) {
 
-}
-
-func pass(effect func(*Stage)) func(...interface{}) func(*Stage) {
-	return func(...interface{}) func(*Stage) {
-		return effect
-	}
-}
-
-func wrap(args ...interface{}) func(*Stage) {
-	if len(args) == 0 {
-		return doNothing
-	}
-	f, ok := args[0].(func(*Stage))
-	if ok {
-		return f
-	} else {
-		return doNothing
-	}
 }
 
 func tutorialBoost(stage *Stage) {
@@ -98,12 +86,6 @@ func basicSpawn(stage *Stage) {
 		}
 	}
 
-}
-
-func (stage *Stage) spawnItems() {
-	if stage.spawn != nil {
-		stage.spawn(stage)
-	}
 }
 
 func sortWalkableTiles(tiles [][]*Tile) ([]*Tile, []*Tile) {
