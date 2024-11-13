@@ -8,8 +8,9 @@ import (
 	"strings"
 )
 
+// Both func of player?
 type SpawnAction struct {
-	Should func(*Stage) bool
+	Should func(*Stage) bool // "and" method
 	Action func(*Stage)
 }
 

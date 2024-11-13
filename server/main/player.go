@@ -136,7 +136,7 @@ func (p *Player) placeOnStage() {
 	p.stage.tiles[p.y][p.x].addPlayerAndNotifyOthers(p)
 	updateScreenFromScratch(p)
 
-	// Could be enhanced
+	// func spawnFor(Player)
 	p.stage.spawnItems()
 }
 

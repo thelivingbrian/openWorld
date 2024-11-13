@@ -163,6 +163,7 @@ func updateScreenFromScratch(player *Player) {
 
 // Items
 
+// Should it be player?
 func (stage *Stage) spawnItems() {
 	if stage.spawn != nil {
 		stage.spawn.activateFor(stage)
