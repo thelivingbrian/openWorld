@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"math"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -24,8 +22,8 @@ func (s *SpawnAction) activateFor(stage *Stage) {
 }
 
 var actionMap = map[string]*SpawnAction{
-	"none":           &SpawnAction{}, // Same as Should: Always, Action: doNothing
-	"":               &SpawnAction{Should: CheckDistanceFromEdge(8, 8), Action: basicSpawn},
+	"none":           &SpawnAction{},                                                        // Same as Should: Always, Action: doNothing
+	"":               &SpawnAction{Should: CheckDistanceFromEdge(8, 8), Action: basicSpawn}, // CheckDistanceFromEdge(8, 8)
 	"tutorial-boost": &SpawnAction{Should: Always, Action: tutorialBoost},
 	"tutorial-power": &SpawnAction{Should: Always, Action: tutorialPower},
 }
@@ -41,11 +39,12 @@ func CheckDistanceFromEdge(gridHeight, gridWidth int) func(*Stage) bool {
 	return func(stage *Stage) bool {
 		maxDistance := min((gridHeight-1)/2, (gridWidth-1)/2)
 		currentDistance := distanceFromEdgeOfSpace(stage, gridHeight, gridWidth)
-		probability := .05 * (1 / math.Pow(4.0, float64(maxDistance-currentDistance)))
+
+		// Faster than equivalent:  1.0 / math.Pow(4.0, float64(maxDistance+currentDistance))
+		denominator := 1 << (2 * (maxDistance - currentDistance))
+		probability := 1.0 / float64(denominator)
+
 		r := rand.Float64()
-		if r < probability {
-			fmt.Println("HIT!!")
-		}
 		return r < probability
 	}
 
@@ -134,7 +133,7 @@ func basicSpawn(stage *Stage) {
 			uncoveredTiles[randomIndex].addBoostsAndNotifyAll()
 		}
 	}
-
+	//fmt.Println(randn)
 }
 
 func sortWalkableTiles(tiles [][]*Tile) ([]*Tile, []*Tile) {
