@@ -228,7 +228,19 @@ func halveMoneyOf(player *Player) int {
 }
 
 func walkable(tile *Tile) bool {
-	return tile.material.Walkable
+	//return tile.material.Walkable
+	if tile == nil {
+		return false
+	}
+	tile.interactableMutex.Lock()
+	defer tile.interactableMutex.Unlock()
+
+	if tile.interactable == nil {
+		return tile.material.Walkable
+	} else {
+		// stops obstruction
+		return tile.interactable.pushable
+	}
 }
 
 // / These need to get looked at (? mutex?)

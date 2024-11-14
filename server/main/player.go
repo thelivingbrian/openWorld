@@ -261,7 +261,8 @@ func (p *Player) moveWestBoost() {
 
 func (p *Player) tryGoNeighbor(yOffset, xOffset int) {
 	newTile := p.world.getRelativeTile(p.stage.tiles[p.y][p.x], yOffset, xOffset)
-	if p.initialPush(newTile, yOffset, xOffset) {
+	p.push(newTile, nil, yOffset, xOffset)
+	if walkable(newTile) {
 		t := &Teleport{destStage: newTile.stage.name, destY: newTile.y, destX: newTile.x}
 		previousTile := p.stage.tiles[p.y][p.x]
 
@@ -276,11 +277,12 @@ func (p *Player) move(yOffset int, xOffset int) {
 	destY := p.y + yOffset
 	destX := p.x + xOffset
 
-	if validCoordinate(destY, destX, p.stage.tiles) && walkable(p.stage.tiles[destY][destX]) {
+	if validCoordinate(destY, destX, p.stage.tiles) {
 		sourceTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
 
-		if p.initialPush(destTile, yOffset, xOffset) {
+		p.push(destTile, nil, yOffset, xOffset)
+		if walkable(destTile) {
 			sourceTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
 			destTile.addPlayerAndNotifyOthers(p)
 
@@ -294,18 +296,20 @@ func (p *Player) move(yOffset int, xOffset int) {
 func (p *Player) pushUnder(yOffset int, xOffset int) {
 	currentTile := p.stage.tiles[p.y][p.x]
 	if currentTile != nil && currentTile.interactable != nil {
-		p.initialPush(p.stage.tiles[p.y][p.x], yOffset, xOffset)
+		p.push(p.stage.tiles[p.y][p.x], nil, yOffset, xOffset)
+		//p.initialPush(p.stage.tiles[p.y][p.x], yOffset, xOffset)
 	}
 }
 
+/*
 func (p *Player) initialPush(tile *Tile, yOff, xOff int) bool {
 	if tile == nil {
 		return false
 	}
-	tile.interactableMutex.Lock()
-	defer tile.interactableMutex.Unlock()
+	//tile.interactableMutex.Lock()
+	//defer tile.interactableMutex.Unlock()
 	p.push(tile, nil, yOff, xOff)
-	tile.stage.updateAll(interactableBox(tile))
+	//tile.stage.updateAll(interactableBox(tile))
 
 	if tile.interactable == nil {
 		return walkable(tile)
@@ -314,36 +318,38 @@ func (p *Player) initialPush(tile *Tile, yOff, xOff int) bool {
 		return tile.interactable.pushable
 	}
 }
+*/
 
 func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bool { // Returns if given interacable successfully pushed
 	if tile == nil || tile.teleport != nil {
 		return false
 	}
+
+	ownLock := tile.interactableMutex.TryLock()
+	if !ownLock {
+		return false // Tile is already locked by another operation
+	}
+	defer tile.interactableMutex.Unlock()
+
 	if tile.interactable == nil {
-		if walkable(tile) {
+		if tile.material.Walkable { // Prevents lock contention from using Walkable()
 			tile.interactable = interactable
 			tile.stage.updateAll(interactableBox(tile))
 			return true
 		}
 		return false
 	}
-	//if tile.interactable.
+
+	// Reactive logic here
 
 	if tile.interactable.pushable {
 		nextTile := p.world.getRelativeTile(tile, yOff, xOff)
 		if nextTile != nil {
-			ownLock := nextTile.interactableMutex.TryLock()
-			if !ownLock {
-				return false // Tile is already locked by another operation
-			}
-			defer nextTile.interactableMutex.Unlock()
 			if p.push(nextTile, tile.interactable, yOff, xOff) {
 				tile.interactable = interactable
 				tile.stage.updateAll(interactableBox(tile))
 				return true
 			}
-		} else {
-			return false
 		}
 	}
 	return false
