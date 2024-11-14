@@ -21,11 +21,11 @@ func (s *SpawnAction) activateFor(stage *Stage) {
 	}
 }
 
-var actionMap = map[string]*SpawnAction{
-	"none":           &SpawnAction{},                                                        // Same as Should: Always, Action: doNothing
-	"":               &SpawnAction{Should: CheckDistanceFromEdge(8, 8), Action: basicSpawn}, // CheckDistanceFromEdge(8, 8)
-	"tutorial-boost": &SpawnAction{Should: Always, Action: tutorialBoost},
-	"tutorial-power": &SpawnAction{Should: Always, Action: tutorialPower},
+var actionMap = map[string][]SpawnAction{
+	"none":           []SpawnAction{SpawnAction{}},                                                                                         // Same as Should: Always, Action: doNothing
+	"":               []SpawnAction{SpawnAction{Should: CheckDistanceFromEdge(8, 8), Action: basicSpawn}, SpawnAction{Action: basicSpawn}}, // CheckDistanceFromEdge(8, 8)
+	"tutorial-boost": []SpawnAction{SpawnAction{Should: Always, Action: tutorialBoost}},
+	"tutorial-power": []SpawnAction{SpawnAction{Should: Always, Action: tutorialPower}},
 }
 
 /////////////////////////////////////////////
@@ -40,14 +40,13 @@ func CheckDistanceFromEdge(gridHeight, gridWidth int) func(*Stage) bool {
 		maxDistance := min((gridHeight-1)/2, (gridWidth-1)/2)
 		currentDistance := distanceFromEdgeOfSpace(stage, gridHeight, gridWidth)
 
-		// Faster than equivalent:  1.0 / math.Pow(4.0, float64(maxDistance+currentDistance))
+		// Faster than equivalent:  1.0 / math.Pow(4.0, float64(maxDistance-currentDistance))
 		denominator := 1 << (2 * (maxDistance - currentDistance))
 		probability := 1.0 / float64(denominator)
 
 		r := rand.Float64()
 		return r < probability
 	}
-
 }
 
 func distanceFromEdgeOfSpace(stage *Stage, gridHeight, gridWidth int) int {

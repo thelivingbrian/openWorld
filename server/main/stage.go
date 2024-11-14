@@ -16,7 +16,7 @@ type Stage struct {
 	west        string
 	mapId       string
 	//spawn       func(*Stage)
-	spawn *SpawnAction
+	spawn []SpawnAction
 }
 
 // benchmark this please
@@ -165,7 +165,10 @@ func updateScreenFromScratch(player *Player) {
 
 // Should it be player?
 func (stage *Stage) spawnItems() {
-	if stage.spawn != nil {
-		stage.spawn.activateFor(stage)
+	for i := range stage.spawn {
+		stage.spawn[i].activateFor(stage)
 	}
+	//if stage.spawn != nil {
+	//	stage.spawn.activateFor(stage)
+	//}
 }

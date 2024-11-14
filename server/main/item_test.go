@@ -23,7 +23,20 @@ func BenchmarkSpawnItems(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				//testStage.spawn.Should = nil // Or Always etc
 				testStage.spawnItems()
+				//basicSpawn(testStage)
+
+				//calc1()
 			}
 		})
 	}
+}
+
+func calc1() float64 {
+	return 1.0 / (4.0 * 4.0 * 4.0 * 4.0 * 4.0 * 4.0 * 4.0 * 4.0)
+}
+
+func calc2() float64 {
+	denominator := 1 << (2 * 8)
+	return 1.0 / float64(denominator)
+
 }
