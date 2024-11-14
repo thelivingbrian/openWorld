@@ -304,23 +304,31 @@ func (p *Player) initialPush(tile *Tile, yOff, xOff int) bool {
 	}
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
-	p.push(tile, yOff, xOff)
+	p.push(tile, nil, yOff, xOff)
 	tile.stage.updateAll(interactableBox(tile))
 
 	if tile.interactable == nil {
 		return walkable(tile)
 	} else {
+		// stops obstruction
 		return tile.interactable.pushable
 	}
 }
 
-func (p *Player) push(tile *Tile, yOff, xOff int) bool { // Returns availability of the tile for an interactible
+func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bool { // Returns if given interacable successfully pushed
 	if tile == nil || tile.teleport != nil {
 		return false
 	}
 	if tile.interactable == nil {
-		return walkable(tile)
+		if walkable(tile) {
+			tile.interactable = interactable
+			tile.stage.updateAll(interactableBox(tile))
+			return true
+		}
+		return false
 	}
+	//if tile.interactable.
+
 	if tile.interactable.pushable {
 		nextTile := p.world.getRelativeTile(tile, yOff, xOff)
 		if nextTile != nil {
@@ -329,10 +337,9 @@ func (p *Player) push(tile *Tile, yOff, xOff int) bool { // Returns availability
 				return false // Tile is already locked by another operation
 			}
 			defer nextTile.interactableMutex.Unlock()
-			if p.push(nextTile, yOff, xOff) {
-				nextTile.interactable = tile.interactable
-				nextTile.stage.updateAll(interactableBox(nextTile))
-				tile.interactable = nil // Take *Interactable and assign here to have option of reacting
+			if p.push(nextTile, tile.interactable, yOff, xOff) {
+				tile.interactable = interactable
+				tile.stage.updateAll(interactableBox(tile))
 				return true
 			}
 		} else {
