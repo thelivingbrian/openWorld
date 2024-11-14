@@ -126,6 +126,7 @@ func (p *Player) assignStageAndListen() {
 	if stage == nil {
 		log.Fatal("Fatal: Default Stage Not Found.")
 	}
+	// read/write concern?
 	p.stage = stage
 }
 
