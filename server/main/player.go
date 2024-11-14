@@ -277,7 +277,7 @@ func (p *Player) move(yOffset int, xOffset int) {
 	destY := p.y + yOffset
 	destX := p.x + xOffset
 
-	if validCoordinate(destY, destX, p.stage.tiles) {
+	if validCoordinate(destY, destX, p.stage.tiles) { // && p.stage.tiles[destY][destX].material.Walkable {
 		sourceTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
 
@@ -299,6 +299,25 @@ func (p *Player) pushUnder(yOffset int, xOffset int) {
 		p.push(p.stage.tiles[p.y][p.x], nil, yOffset, xOffset)
 	}
 }
+
+/*
+func (p *Player) initialPush(tile *Tile, yOff, xOff int) bool {
+	if tile == nil {
+		return false
+	}
+	//tile.interactableMutex.Lock()
+	//defer tile.interactableMutex.Unlock()
+	p.push(tile, nil, yOff, xOff)
+	//tile.stage.updateAll(interactableBox(tile))
+
+	if tile.interactable == nil {
+		return walkable(tile)
+	} else {
+		// stops obstruction
+		return tile.interactable.pushable
+	}
+}
+*/
 
 func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bool { // Returns if given interacable successfully pushed
 	if tile == nil || tile.teleport != nil {
