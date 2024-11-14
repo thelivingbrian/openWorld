@@ -228,7 +228,6 @@ func halveMoneyOf(player *Player) int {
 }
 
 func walkable(tile *Tile) bool {
-	//return tile.material.Walkable
 	if tile == nil {
 		return false
 	}
@@ -238,7 +237,7 @@ func walkable(tile *Tile) bool {
 	if tile.interactable == nil {
 		return tile.material.Walkable
 	} else {
-		// stops obstruction
+		// stops obstruction by pushables
 		return tile.interactable.pushable
 	}
 }
