@@ -300,25 +300,6 @@ func (p *Player) pushUnder(yOffset int, xOffset int) {
 	}
 }
 
-/*
-func (p *Player) initialPush(tile *Tile, yOff, xOff int) bool {
-	if tile == nil {
-		return false
-	}
-	//tile.interactableMutex.Lock()
-	//defer tile.interactableMutex.Unlock()
-	p.push(tile, nil, yOff, xOff)
-	//tile.stage.updateAll(interactableBox(tile))
-
-	if tile.interactable == nil {
-		return walkable(tile)
-	} else {
-		// stops obstruction
-		return tile.interactable.pushable
-	}
-}
-*/
-
 func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bool { // Returns if given interacable successfully pushed
 	if tile == nil || tile.teleport != nil {
 		return false
