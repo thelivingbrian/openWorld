@@ -61,7 +61,7 @@ func (player *Player) getMoneySync() int {
 	return player.money
 }
 
-// Streak observer, All Money changes should go through here
+// Streak observer, All streak changes should go through here
 func (player *Player) setKillStreak(n int) {
 	player.streakLock.Lock()
 	//defer player.streakLock.Unlock()
