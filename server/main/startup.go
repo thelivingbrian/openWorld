@@ -180,6 +180,7 @@ type InteractableDescription struct {
 	CssClass string `json:"cssClass"`
 	Pushable bool   `json:"pushable"`
 	Fragile  bool   `json:"fragile"`
+	// reactions string or []string
 }
 
 var (

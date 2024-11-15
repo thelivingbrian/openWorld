@@ -63,7 +63,7 @@ func (world *World) loadStageByName(name string) *Stage {
 }
 
 func createStageFromArea(area Area) *Stage {
-	spawnAction := actionMap[area.SpawnStrategy]
+	spawnAction := spawnActions[area.SpawnStrategy]
 	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, area.Name, area.North, area.South, area.East, area.West, area.MapId, spawnAction}
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))

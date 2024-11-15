@@ -21,7 +21,7 @@ func (s *SpawnAction) activateFor(stage *Stage) {
 	}
 }
 
-var actionMap = map[string][]SpawnAction{
+var spawnActions = map[string][]SpawnAction{
 	"none":           []SpawnAction{SpawnAction{}},                                                                                         // Same as Should: Always, Action: doNothing
 	"":               []SpawnAction{SpawnAction{Should: CheckDistanceFromEdge(8, 8), Action: basicSpawn}, SpawnAction{Action: basicSpawn}}, // CheckDistanceFromEdge(8, 8)
 	"tutorial-boost": []SpawnAction{SpawnAction{Should: Always, Action: tutorialBoost}},

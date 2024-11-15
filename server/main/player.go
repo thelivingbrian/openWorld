@@ -300,6 +300,17 @@ func (p *Player) pushUnder(yOffset int, xOffset int) {
 	}
 }
 
+// //
+
+type InteractableReaction struct {
+	ReactsWith func(*Interactable) bool
+	Reaction   func(initiatior *Player, location *Tile)
+}
+
+var interactableReaction = map[string]InteractableReaction{}
+
+// //
+
 func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bool { // Returns if given interacable successfully pushed
 	if tile == nil || tile.teleport != nil {
 		return false
@@ -321,6 +332,13 @@ func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bo
 	}
 
 	// Reactive logic here
+	// if tile.interactable.reaction != nil
+	//		&& tile.interactable.reaction.ReactsWith != nil
+	//		&& tile.interactable.reaction.ReactsWith(interactable) {
+	//	 Reaction(p, tile)
+	//   tile.stage.updateAll(interactableBox(tile)) // full tile?
+	//   return true
+	//}
 
 	if tile.interactable.pushable {
 		nextTile := p.world.getRelativeTile(tile, yOff, xOff)
