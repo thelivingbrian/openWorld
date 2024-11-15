@@ -307,7 +307,9 @@ type InteractableReaction struct {
 	Reaction   func(initiatior *Player, location *Tile)
 }
 
-var interactableReaction = map[string]InteractableReaction{}
+var interactableReaction = map[string]InteractableReaction{
+	// "pink-goal", "blue-goal", "black-hole", etc.
+}
 
 // //
 
