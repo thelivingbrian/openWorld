@@ -73,7 +73,8 @@ func createStageFromArea(area Area) *Stage {
 			if area.Interactables != nil && y < len(area.Interactables) && x < len(area.Interactables[y]) {
 				description := area.Interactables[y][x]
 				if description != nil {
-					outputStage.tiles[y][x].interactable = &Interactable{cssClass: description.CssClass, pushable: description.Pushable, fragile: description.Fragile}
+					reaction := interactableReactions[description.Reactions]
+					outputStage.tiles[y][x].interactable = &Interactable{cssClass: description.CssClass, pushable: description.Pushable, fragile: description.Fragile, reactions: reaction}
 				}
 			}
 		}
@@ -168,7 +169,4 @@ func (stage *Stage) spawnItems() {
 	for i := range stage.spawn {
 		stage.spawn[i].activateFor(stage)
 	}
-	//if stage.spawn != nil {
-	//	stage.spawn.activateFor(stage)
-	//}
 }

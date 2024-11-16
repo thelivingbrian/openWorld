@@ -16,10 +16,10 @@ type Teleport struct {
 }
 
 type Interactable struct {
-	pushable bool
-	cssClass string
-	// reactive
-	fragile bool
+	pushable  bool
+	cssClass  string
+	fragile   bool
+	reactions []InteractableReaction
 }
 
 type Tile struct {

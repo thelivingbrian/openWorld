@@ -64,6 +64,7 @@
   - [ ] Matrix for space 
     - [ ] Apply prototype via matrix 
 - [ ] Random
+  - [ ] Interactable "select" tool  does not work on main grid
   - [ ] Space Topologies
     - [-] Plane
     - [-] Disconnected

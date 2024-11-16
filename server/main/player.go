@@ -307,8 +307,30 @@ type InteractableReaction struct {
 	Reaction   func(initiatior *Player, location *Tile)
 }
 
-var interactableReaction = map[string]InteractableReaction{
+var interactableReactions = map[string][]InteractableReaction{
 	// "pink-goal", "blue-goal", "black-hole", etc.
+	"black-hole": []InteractableReaction{InteractableReaction{ReactsWith: Everything, Reaction: eat}},
+}
+
+func eat(*Player, *Tile) {
+
+}
+
+func (source *Interactable) React(incoming *Interactable, initiatior *Player, location *Tile) bool {
+	if source.reactions == nil {
+		return false
+	}
+	for i := range source.reactions {
+		if source.reactions[i].ReactsWith == nil || source.reactions[i].ReactsWith(incoming) {
+			source.reactions[i].Reaction(initiatior, location)
+			return true
+		}
+	}
+	return false
+}
+
+func Everything(*Interactable) bool {
+	return true
 }
 
 // //
@@ -333,6 +355,10 @@ func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bo
 		return false
 	}
 
+	if tile.interactable.React(interactable, p, tile) {
+		tile.stage.updateAll(interactableBox(tile)) // full tile?
+		return true
+	}
 	// Reactive logic here
 	// if tile.interactable.reaction != nil
 	//		&& tile.interactable.reaction.ReactsWith != nil

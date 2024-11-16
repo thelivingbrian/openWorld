@@ -9,17 +9,13 @@ import (
 )
 
 type InteractableDescription struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	SetName  string `json:"setName"`
-	CssClass string `json:"cssClass"`
-	Pushable bool   `json:"pushable"`
-	Fragile  bool   `json:"fragile"`
-}
-
-type Reaction struct {
-	ReactWith []string `json:"reactWith"`
-	Result    string   `json:"result"` // string?
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	SetName   string `json:"setName"`
+	CssClass  string `json:"cssClass"`
+	Pushable  bool   `json:"pushable"`
+	Fragile   bool   `json:"fragile"`
+	Reactions string `json:"reactions"`
 }
 
 func (c Context) interactablesHandler(w http.ResponseWriter, r *http.Request) {
@@ -181,8 +177,9 @@ func (c Context) putInteractable(w http.ResponseWriter, r *http.Request) {
 	cssClass := properties["CssClass"]
 	pushable := (properties["pushable"] == "on")
 	fragile := (properties["fragile"] == "on")
+	reactions := properties["reactions"]
 
-	fmt.Printf("%s | Pushable: %t - Fragile: %t - %s\n", name, pushable, fragile, cssClass)
+	fmt.Printf("%s | Pushable: %t - Fragile: %t - CSS: %s - Reactions %s\n", name, pushable, fragile, cssClass, reactions)
 	panicIfAnyEmpty("Invalid interactable", id, name)
 
 	interactable := collection.findInteractableById(id)
@@ -193,8 +190,9 @@ func (c Context) putInteractable(w http.ResponseWriter, r *http.Request) {
 	interactable.CssClass = cssClass
 	interactable.Pushable = pushable
 	interactable.Fragile = fragile
+	interactable.Reactions = reactions
 
-	fmt.Println(interactable)
+	//fmt.Println(interactable)
 	collection.saveInteractableSet(setName)
 
 	io.WriteString(w, "<h3>Done.</h3>")
@@ -219,6 +217,7 @@ func (c *Context) postInteractable(w http.ResponseWriter, r *http.Request) {
 	cssClass := properties["CssClass"]
 	pushable := (properties["pushable"] == "on")
 	fragile := (properties["fragile"] == "on")
+	reactions := properties["reactions"]
 
 	fmt.Printf("%s | Pushable: %t - Fragile: %t - %s\n", name, pushable, fragile, cssClass)
 	panicIfAnyEmpty("Invalid interactable", name)
@@ -226,12 +225,13 @@ func (c *Context) postInteractable(w http.ResponseWriter, r *http.Request) {
 	id := uuid.New().String()
 	collection.InteractableSets[setName] = append(set,
 		InteractableDescription{
-			ID:       id,
-			SetName:  setName,
-			Name:     name,
-			CssClass: cssClass,
-			Pushable: pushable,
-			Fragile:  fragile,
+			ID:        id,
+			SetName:   setName,
+			Name:      name,
+			CssClass:  cssClass,
+			Pushable:  pushable,
+			Fragile:   fragile,
+			Reactions: reactions,
 		})
 
 	collection.saveInteractableSet(setName)
