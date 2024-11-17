@@ -7,21 +7,6 @@ import (
 	"time"
 )
 
-type Teleport struct {
-	destStage    string
-	destY        int
-	destX        int
-	sourceStage  string
-	confirmation bool
-}
-
-type Interactable struct {
-	pushable  bool
-	cssClass  string
-	fragile   bool
-	reactions []InteractableReaction
-}
-
 type Tile struct {
 	material          Material
 	playerMap         map[string]*Player
@@ -39,6 +24,14 @@ type Tile struct {
 	boosts            int
 	htmlTemplate      string
 	bottomText        string
+}
+
+type Teleport struct {
+	destStage    string
+	destY        int
+	destX        int
+	sourceStage  string
+	confirmation bool
 }
 
 func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
@@ -307,4 +300,45 @@ func sliceOfTileToColoredOoB(tiles []*Tile, cssClass string) string {
 	return html
 }
 
-// Pushing and reactions
+////////////////////////////////////////////
+// Interactables and reactions
+
+type Interactable struct {
+	pushable  bool
+	cssClass  string
+	fragile   bool
+	reactions []InteractableReaction
+}
+
+type InteractableReaction struct {
+	ReactsWith func(*Interactable) bool
+	Reaction   func(incoming *Interactable, initiatior *Player, location *Tile)
+}
+
+var interactableReactions = map[string][]InteractableReaction{
+	// "pink-goal", "blue-goal", "black-hole", etc.
+	"black-hole": []InteractableReaction{InteractableReaction{ReactsWith: Everything, Reaction: eat}},
+}
+
+func (source *Interactable) React(incoming *Interactable, initiatior *Player, location *Tile) bool {
+	if source.reactions == nil {
+		return false
+	}
+	for i := range source.reactions {
+		if source.reactions[i].ReactsWith == nil || source.reactions[i].ReactsWith(incoming) {
+			source.reactions[i].Reaction(incoming, initiatior, location)
+			return true
+		}
+	}
+	return false
+}
+
+// Gates
+func Everything(*Interactable) bool {
+	return true
+}
+
+// Actions
+func eat(*Interactable, *Player, *Tile) {
+	// incoming interactable is discarded
+}

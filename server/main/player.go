@@ -300,41 +300,6 @@ func (p *Player) pushUnder(yOffset int, xOffset int) {
 	}
 }
 
-// //
-
-type InteractableReaction struct {
-	ReactsWith func(*Interactable) bool
-	Reaction   func(initiatior *Player, location *Tile)
-}
-
-var interactableReactions = map[string][]InteractableReaction{
-	// "pink-goal", "blue-goal", "black-hole", etc.
-	"black-hole": []InteractableReaction{InteractableReaction{ReactsWith: Everything, Reaction: eat}},
-}
-
-func eat(*Player, *Tile) {
-
-}
-
-func (source *Interactable) React(incoming *Interactable, initiatior *Player, location *Tile) bool {
-	if source.reactions == nil {
-		return false
-	}
-	for i := range source.reactions {
-		if source.reactions[i].ReactsWith == nil || source.reactions[i].ReactsWith(incoming) {
-			source.reactions[i].Reaction(initiatior, location)
-			return true
-		}
-	}
-	return false
-}
-
-func Everything(*Interactable) bool {
-	return true
-}
-
-// //
-
 func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bool { // Returns if given interacable successfully pushed
 	if tile == nil || tile.teleport != nil {
 		return false
