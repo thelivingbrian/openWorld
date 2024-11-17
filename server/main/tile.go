@@ -325,7 +325,7 @@ func (source *Interactable) React(incoming *Interactable, initiatior *Player, lo
 		return false
 	}
 	for i := range source.reactions {
-		if source.reactions[i].ReactsWith == nil || source.reactions[i].ReactsWith(incoming) {
+		if source.reactions[i].ReactsWith != nil && source.reactions[i].ReactsWith(incoming) {
 			source.reactions[i].Reaction(incoming, initiatior, location)
 			return true
 		}

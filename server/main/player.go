@@ -324,14 +324,6 @@ func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bo
 		tile.stage.updateAll(interactableBox(tile)) // full tile?
 		return true
 	}
-	// Reactive logic here
-	// if tile.interactable.reaction != nil
-	//		&& tile.interactable.reaction.ReactsWith != nil
-	//		&& tile.interactable.reaction.ReactsWith(interactable) {
-	//	 Reaction(p, tile)
-	//   tile.stage.updateAll(interactableBox(tile)) // full tile?
-	//   return true
-	//}
 
 	if tile.interactable.pushable {
 		nextTile := p.world.getRelativeTile(tile, yOff, xOff)
