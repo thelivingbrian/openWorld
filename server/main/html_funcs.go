@@ -362,15 +362,15 @@ func oobHighlightBox(tile *Tile, cssClass string) string {
 func svgFromTile(tile *Tile) string {
 	svgtag := `<div id="%s" class="box zS">`
 	if tile.powerUp != nil || tile.money != 0 || tile.boosts != 0 {
-		svgtag += `<svg width="30" height="30">`
+		svgtag += `<svg class="full" viewBox="0 0 25 25">`
 		if tile.powerUp != nil {
-			svgtag += `<circle class="svgRed" cx="10" cy="10" r="10" />`
+			svgtag += `<circle class="svgRed" cx="8" cy="8" r="8" />`
 		}
 		if tile.money != 0 {
-			svgtag += `<circle class="svgGreen" cx="10" cy="20" r="10" />`
+			svgtag += `<circle class="svgGreen" cx="8" cy="16" r="8" />`
 		}
 		if tile.boosts != 0 {
-			svgtag += `<circle class="svgBlue" cx="20" cy="20" r="10" />`
+			svgtag += `<circle class="svgBlue" cx="16" cy="16" r="8" />`
 		}
 		svgtag += `</svg>`
 	}

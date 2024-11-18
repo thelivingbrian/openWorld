@@ -30,6 +30,7 @@ type Player struct {
 	killCountLock  sync.Mutex
 	deathCount     int
 	deathCountLock sync.Mutex
+	// goals scored
 	//experience int //?
 
 	killstreak int

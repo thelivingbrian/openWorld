@@ -144,6 +144,9 @@ type LeaderBoard struct {
 	//oldest        *Player
 }
 
+// Team Scoreboards
+//
+
 type MaxStreakHeap struct {
 	items []*Player
 	index map[*Player]int // Keep track of item indices
