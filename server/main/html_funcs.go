@@ -23,7 +23,7 @@ var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(scre
 func htmlFromPlayer(player *Player) []byte {
 	var buf bytes.Buffer
 
-	tileHtml := htmlFromTileGrid(player.stage.tiles, player.y, player.x, player.color)
+	tileHtml := htmlFromTileGrid(player.stage.tiles, player.y, player.x, player.icon)
 
 	err := parsedScreenTemplate.Execute(&buf, tileHtml)
 	if err != nil {
@@ -109,14 +109,14 @@ func chooseYourColor() string {
 					
 					<div class="form-group color-selection">
 						<label id="color-window-0">
-							<input type="radio" name="player-color" value="fusia" checked />
+							<input type="radio" name="player-team" value="fuchsia" checked />
 							<div id="exampleSquare-0">
 								<div class="grid-square-example fusia"></div>
 							</div>
 						</label>
 
 						<label id="color-window-1">
-							<input type="radio" name="player-color" value="sky-blue" />
+							<input type="radio" name="player-team" value="sky-blue" />
 							<div id="exampleSquare-1">
 								<div class="grid-square-example sky-blue"></div>
 							</div>
@@ -299,19 +299,19 @@ func htmlForTile(tile *Tile) string {
 	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), emptyUserBox(tile.y, tile.x), interactableBox(tile), svgtag)
 }
 
-func htmlForPlayerTile(tile *Tile, color string) string {
+func htmlForPlayerTile(tile *Tile, icon string) string {
 	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), userBox(tile.y, tile.x, color), interactableBox(tile), svgtag)
+	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), userBox(tile.y, tile.x, icon), interactableBox(tile), svgtag)
 }
 
-func userBox(y, x int, color string) string {
-	return fmt.Sprintf(`<div id="u%d-%d" class="box zu %s r0"></div>`, y, x, color)
+func userBox(y, x int, icon string) string {
+	return fmt.Sprintf(`<div id="u%d-%d" class="box zu %s"></div>`, y, x, icon)
 }
 
 func playerBox(tile *Tile) string {
 	playerIndicator := ""
 	if p := tile.getAPlayer(); p != nil {
-		playerIndicator = cssClassFromHealth(p)
+		playerIndicator = p.icon
 	}
 	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, tile.y, tile.x, playerIndicator)
 }

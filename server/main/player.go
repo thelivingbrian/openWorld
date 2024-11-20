@@ -9,22 +9,27 @@ import (
 )
 
 type Player struct {
-	id        string
-	username  string
-	color     string
-	world     *World
-	stage     *Stage
-	tile      *Tile
-	updates   chan Update
-	stageName string
-	conn      *websocket.Conn
-	connLock  sync.Mutex
-	x         int
-	y         int
-	actions   *Actions
-	health    int
-	money     int
-	moneyLock sync.Mutex
+	id       string
+	username string
+	//color      string // Team?
+	team       string
+	trim       string
+	icon       string
+	viewLock   sync.Mutex
+	world      *World
+	stage      *Stage
+	tile       *Tile
+	updates    chan Update
+	stageName  string
+	conn       *websocket.Conn
+	connLock   sync.Mutex
+	x          int
+	y          int
+	actions    *Actions
+	health     int
+	healthLock sync.Mutex
+	money      int
+	moneyLock  sync.Mutex
 
 	killCount      int
 	killCountLock  sync.Mutex
@@ -40,12 +45,36 @@ type Player struct {
 
 // Health observer, All Health changes should go through here
 func (player *Player) setHealth(n int) {
+	player.healthLock.Lock()
 	player.health = n
-	if player.isDead() {
+	player.healthLock.Unlock()
+	if n <= 0 {
 		player.handleDeath()
 		return
 	}
-	updateOne(divPlayerInformation(player), player)
+	player.setIcon()
+	updateOne(divPlayerInformation(player)+userBox(player.y, player.x, player.icon), player)
+}
+
+// Icon Observer, note that health can not be locked
+func (player *Player) setIcon() {
+	player.viewLock.Lock()
+	defer player.viewLock.Unlock()
+	player.healthLock.Lock()
+	defer player.healthLock.Unlock()
+	if player.health <= 50 {
+		player.icon = "dim-" + player.team + " " + player.trim + " r0"
+		return
+	} else {
+		player.icon = player.team + " " + player.trim + " r0"
+		return
+	}
+}
+
+func (player *Player) getIconSync() string {
+	player.viewLock.Lock()
+	defer player.viewLock.Unlock()
+	return player.icon
 }
 
 // Money observer, All Money changes should go through here
@@ -111,12 +140,18 @@ func (player *Player) incrementDeathCount() {
 	player.deathCount++
 }
 
+/*
 func (player *Player) isDead() bool {
+	player.healthLock.Lock()
+	defer player.healthLock.Unlock()
 	return player.health <= 0
 }
+*/
 
 func (player *Player) addToHealth(n int) bool {
+	player.healthLock.Lock()
 	newHealth := player.health + n
+	player.healthLock.Unlock()
 	player.setHealth(newHealth)
 	return newHealth > 0
 }

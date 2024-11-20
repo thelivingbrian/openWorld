@@ -204,20 +204,20 @@ img {
     background-color: rgb(72, 52, 238);
   }
 
-  .fusia {
+  .fuchsia {
     background-color: rgb(253, 52, 172);
   }
 
   .sky-blue {
-    background-color: rgba(48, 152, 240, 1);
+    background-color: rgba(48, 152, 240);
   }
 
-  .dim-fusia {
-    background-color: rgb(101, 20, 69); /* 60% darker */
+  .dim-fuchsia {
+    background-color: rgb(89, 18, 60); /* 60% darker */
   }
 
   .dim-sky-blue {
-    background-color: rgb(19, 61, 96); /* 60% darker */
+    background-color: rgb(17, 53, 84); /* 60% darker */
   }
 
   .pink {

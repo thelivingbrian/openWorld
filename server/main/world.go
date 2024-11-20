@@ -35,9 +35,11 @@ func (world *World) join(record *PlayerRecord) *Player {
 	updatesForPlayer := make(chan Update)
 
 	newPlayer := &Player{
-		id:        token,
-		username:  record.Username,
-		color:     record.Color,
+		id:       token,
+		username: record.Username,
+		//color:     record.Color,
+		team:      record.Team,
+		trim:      record.Trim,
 		stage:     nil,
 		updates:   updatesForPlayer,
 		stageName: record.StageName,
@@ -49,6 +51,8 @@ func (world *World) join(record *PlayerRecord) *Player {
 		world:     world,
 		menues:    map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu},
 	}
+
+	newPlayer.setIcon()
 
 	//New Method
 	world.wPlayerMutex.Lock()

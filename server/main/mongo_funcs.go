@@ -31,6 +31,8 @@ type AuthorizedUser struct {
 type PlayerRecord struct {
 	Username    string    `bson:"username"`
 	Color       string    `bson:"color"`
+	Team        string    `bson:"team"`
+	Trim        string    `bson:"trim"`
 	LastLogin   time.Time `bson:"lastLogin,omitempty"`
 	LastLogout  time.Time `bson:"lastLogout,omitempty"`
 	LastRespawn time.Time `bson:"lastRespawn,omitempty"`

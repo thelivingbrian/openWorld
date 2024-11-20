@@ -71,21 +71,21 @@ func (world *World) postNew(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	color := props["player-color"]
+	team := props["player-team"]
 	username := props["player-name"]
 
-	fmt.Println(color)
+	fmt.Println(team)
 	fmt.Println(username)
 
 	if !world.db.usernameExists(username) {
-		if !validPlayerColor(color) {
+		if !validTeam(team) {
 			io.WriteString(w, divBottomInvalid("Invalid Player Color"))
 			return
 
 		}
 		record := PlayerRecord{
 			Username:  username,
-			Color:     color,
+			Color:     team,
 			Health:    100,
 			StageName: "tutorial:0-0",
 			X:         4,
@@ -116,10 +116,10 @@ func (world *World) postNew(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func validPlayerColor(color string) bool {
-	validColors := []string{"fusia", "sky-blue"}
-	for i := range validColors {
-		if validColors[i] == color {
+func validTeam(team string) bool {
+	validTeams := []string{"fuchsia", "sky-blue"}
+	for i := range validTeams {
+		if validTeams[i] == team {
 			return true
 		}
 	}

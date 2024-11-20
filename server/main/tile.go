@@ -253,6 +253,8 @@ func (tile *Tile) addMoneyAndNotifyAll(amount int) {
 
 ///
 
+// unsafe check of health
+/*
 func cssClassFromHealth(player *Player) string {
 	if player.health > 50 {
 		return player.color + " r0"
@@ -262,6 +264,7 @@ func cssClassFromHealth(player *Player) string {
 	}
 	return "blue" // shouldn't happen but want to be visible
 }
+*/
 
 func validCoordinate(y int, x int, tiles [][]*Tile) bool {
 	if y < 0 || y >= len(tiles) {
