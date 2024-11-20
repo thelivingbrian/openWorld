@@ -30,7 +30,6 @@ type AuthorizedUser struct {
 
 type PlayerRecord struct {
 	Username    string    `bson:"username"`
-	Color       string    `bson:"color"`
 	Team        string    `bson:"team"`
 	Trim        string    `bson:"trim"`
 	LastLogin   time.Time `bson:"lastLogin,omitempty"`
@@ -237,6 +236,7 @@ func (db *DB) updateRecordForPlayer(p *Player) error {
 				"money":      p.money,
 				"killCount":  p.killCount,
 				"deathCount": p.deathCount,
+				"trim":       p.trim,
 			},
 		},
 	)

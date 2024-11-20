@@ -35,9 +35,8 @@ func (world *World) join(record *PlayerRecord) *Player {
 	updatesForPlayer := make(chan Update)
 
 	newPlayer := &Player{
-		id:       token,
-		username: record.Username,
-		//color:     record.Color,
+		id:        token,
+		username:  record.Username,
 		team:      record.Team,
 		trim:      record.Trim,
 		stage:     nil,

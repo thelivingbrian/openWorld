@@ -85,7 +85,8 @@ func (world *World) postNew(w http.ResponseWriter, r *http.Request) {
 		}
 		record := PlayerRecord{
 			Username:  username,
-			Color:     team,
+			Team:      team,
+			Trim:      "",
 			Health:    100,
 			StageName: "tutorial:0-0",
 			X:         4,
