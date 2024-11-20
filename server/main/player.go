@@ -18,13 +18,14 @@ type Player struct {
 	world     *World
 	stage     *Stage
 	tile      *Tile
+	tileLock  sync.Mutex
 	updates   chan Update
 	stageName string
 	conn      *websocket.Conn
 	connLock  sync.Mutex
-	x         int
-	y         int
-	// Coordinate lock
+	// x, y are highly mutated and are unsafe to read/difficult to lock. Use tile instead
+	x          int
+	y          int
 	actions    *Actions
 	health     int
 	healthLock sync.Mutex
@@ -53,7 +54,9 @@ func (player *Player) setHealth(n int) {
 		return
 	}
 	player.setIcon()
-	// coordinate lock here before user box or tile lock
+	// tile lock
+	player.tileLock.Lock()
+	defer player.tileLock.Unlock()
 	updateOne(divPlayerInformation(player)+playerBoxSpecifc(player.tile.y, player.tile.x, player.getIconSync()), player)
 }
 

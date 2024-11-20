@@ -136,6 +136,8 @@ func (tile *Tile) addPlayer(player *Player) {
 		player.y = tile.y
 		player.x = tile.x
 		// Tile mutex
+		player.tileLock.Lock()
+		defer player.tileLock.Unlock()
 		player.tile = tile
 	} else {
 		if tile.teleport.confirmation {
