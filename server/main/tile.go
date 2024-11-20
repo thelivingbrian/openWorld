@@ -187,8 +187,8 @@ func (tile *Tile) tryToNotifyAfter(delay int) {
 func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	survivors := false
 	for _, player := range tile.playerMap {
-		if player == initiator {
-			continue // Race condition nonsense, can this still happen?
+		if player.team == initiator.team {
+			continue // Mutex needed?
 		}
 		survived := player.addToHealth(-dmg)
 		survivors = survivors || survived
