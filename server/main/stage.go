@@ -125,11 +125,11 @@ func oobUpdateWithHud(player *Player, tiles []*Tile) {
 }
 
 func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
-	playerIcon := userBox(player.y, player.x, player.icon) //fmt.Sprintf(`<div id="u%d-%d" class="box zu %s gold-b thick r0"></div>`, player.y, player.x, player.color)
+	playerIcon := playerBoxSpecifc(player.y, player.x, player.icon) //fmt.Sprintf(`<div id="u%d-%d" class="box zu %s gold-b thick r0"></div>`, player.y, player.x, player.color)
 	previousBoxes := ""
 	if previous.stage == player.stage {
-		previousBoxes += userBox(previous.y, previous.x, "") //fmt.Sprintf(`<div id="u%d-%d" class="box zu"></div>`, previous.y, previous.x)
-		previousBoxes += playerBox(previous)                 // This box may be including the user as well so it needs an update
+		//previousBoxes += userBox(previous.y, previous.x, "") //fmt.Sprintf(`<div id="u%d-%d" class="box zu"></div>`, previous.y, previous.x)
+		previousBoxes += playerBox(previous) // This box may be including the user as well so it needs an update
 	}
 
 	player.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles) + previousBoxes + playerIcon)}

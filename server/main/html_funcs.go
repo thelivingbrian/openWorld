@@ -301,11 +301,15 @@ func htmlForTile(tile *Tile) string {
 
 func htmlForPlayerTile(tile *Tile, icon string) string {
 	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), userBox(tile.y, tile.x, icon), interactableBox(tile), svgtag)
+	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), emptyUserBox(tile.y, tile.x), interactableBox(tile), svgtag)
 }
 
 func userBox(y, x int, icon string) string {
 	return fmt.Sprintf(`<div id="u%d-%d" class="box zu %s"></div>`, y, x, icon)
+}
+
+func playerBoxSpecifc(y, x int, icon string) string {
+	return fmt.Sprintf(`<div id="p%d-%d" class="box zu %s"></div>`, y, x, icon)
 }
 
 func playerBox(tile *Tile) string {

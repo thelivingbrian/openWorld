@@ -9,22 +9,22 @@ import (
 )
 
 type Player struct {
-	id       string
-	username string
-	//color      string // Team?
-	team       string
-	trim       string
-	icon       string
-	viewLock   sync.Mutex
-	world      *World
-	stage      *Stage
-	tile       *Tile
-	updates    chan Update
-	stageName  string
-	conn       *websocket.Conn
-	connLock   sync.Mutex
-	x          int
-	y          int
+	id        string
+	username  string
+	team      string
+	trim      string
+	icon      string
+	viewLock  sync.Mutex
+	world     *World
+	stage     *Stage
+	tile      *Tile
+	updates   chan Update
+	stageName string
+	conn      *websocket.Conn
+	connLock  sync.Mutex
+	x         int
+	y         int
+	// Coordinate lock
 	actions    *Actions
 	health     int
 	healthLock sync.Mutex
@@ -53,7 +53,8 @@ func (player *Player) setHealth(n int) {
 		return
 	}
 	player.setIcon()
-	updateOne(divPlayerInformation(player)+userBox(player.y, player.x, player.icon), player)
+	// coordinate lock here before user box or tile lock
+	updateOne(divPlayerInformation(player)+playerBoxSpecifc(player.tile.y, player.tile.x, player.getIconSync()), player)
 }
 
 // Icon Observer, note that health can not be locked

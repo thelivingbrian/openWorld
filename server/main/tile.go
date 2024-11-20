@@ -135,6 +135,7 @@ func (tile *Tile) addPlayer(player *Player) {
 		tile.playerMutex.Unlock()
 		player.y = tile.y
 		player.x = tile.x
+		// Tile mutex
 		player.tile = tile
 	} else {
 		if tile.teleport.confirmation {
@@ -320,7 +321,7 @@ type InteractableReaction struct {
 
 var interactableReactions = map[string][]InteractableReaction{
 	// "pink-goal", "blue-goal", "black-hole", etc.
-	"black-hole": []InteractableReaction{InteractableReaction{ReactsWith: Everything, Reaction: eat}},
+	"black-hole": []InteractableReaction{InteractableReaction{ReactsWith: everything, Reaction: eat}},
 }
 
 func (source *Interactable) React(incoming *Interactable, initiatior *Player, location *Tile) bool {
@@ -337,11 +338,29 @@ func (source *Interactable) React(incoming *Interactable, initiatior *Player, lo
 }
 
 // Gates
-func Everything(*Interactable) bool {
+func everything(*Interactable) bool {
 	return true
+}
+
+func matchesCssClass(cssClass string) func(*Interactable) bool {
+	return func(i *Interactable) bool {
+		return i.cssClass == cssClass
+	}
 }
 
 // Actions
 func eat(*Interactable, *Player, *Tile) {
 	// incoming interactable is discarded
+}
+
+func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) {
+	return func(*Interactable, *Player, *Tile) {
+
+	}
+}
+
+func spawnMoney(sets, amount int) func(*Interactable, *Player, *Tile) {
+	return func(*Interactable, *Player, *Tile) {
+
+	}
 }

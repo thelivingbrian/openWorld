@@ -23,19 +23,19 @@ func (s *SpawnAction) activateFor(stage *Stage) {
 
 var spawnActions = map[string][]SpawnAction{
 	"none":           []SpawnAction{SpawnAction{}},                                                                                         // Same as Should: Always, Action: doNothing
-	"":               []SpawnAction{SpawnAction{Should: CheckDistanceFromEdge(8, 8), Action: basicSpawn}, SpawnAction{Action: basicSpawn}}, // CheckDistanceFromEdge(8, 8)
-	"tutorial-boost": []SpawnAction{SpawnAction{Should: Always, Action: tutorialBoost}},
-	"tutorial-power": []SpawnAction{SpawnAction{Should: Always, Action: tutorialPower}},
+	"":               []SpawnAction{SpawnAction{Should: checkDistanceFromEdge(8, 8), Action: basicSpawn}, SpawnAction{Action: basicSpawn}}, // CheckDistanceFromEdge(8, 8)
+	"tutorial-boost": []SpawnAction{SpawnAction{Should: always, Action: tutorialBoost}},
+	"tutorial-power": []SpawnAction{SpawnAction{Should: always, Action: tutorialPower}},
 }
 
 /////////////////////////////////////////////
 // Gates
 
-func Always(stage *Stage) bool {
+func always(stage *Stage) bool {
 	return true
 }
 
-func CheckDistanceFromEdge(gridHeight, gridWidth int) func(*Stage) bool {
+func checkDistanceFromEdge(gridHeight, gridWidth int) func(*Stage) bool {
 	return func(stage *Stage) bool {
 		maxDistance := min((gridHeight-1)/2, (gridWidth-1)/2)
 		currentDistance := distanceFromEdgeOfSpace(stage, gridHeight, gridWidth)
