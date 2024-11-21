@@ -310,6 +310,7 @@ func sliceOfTileToColoredOoB(tiles []*Tile, cssClass string) string {
 // Interactables and reactions
 
 type Interactable struct {
+	name      string
 	pushable  bool
 	cssClass  string
 	fragile   bool
@@ -350,14 +351,23 @@ func matchesCssClass(cssClass string) func(*Interactable) bool {
 	}
 }
 
+func matchesName(name string) func(*Interactable) bool {
+	return func(i *Interactable) bool {
+		return i.name == name
+	}
+}
+
 // Actions
 func eat(*Interactable, *Player, *Tile) {
 	// incoming interactable is discarded
 }
 
 func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) {
-	return func(*Interactable, *Player, *Tile) {
-
+	return func(i *Interactable, p *Player, t *Tile) {
+		// p.viewLock.Lock()
+		// defer p.viewLock.Unlock()
+		// p.world.ScoreGoalFor(p.team) // or (p) ?
+		// p.incrementGoals
 	}
 }
 
