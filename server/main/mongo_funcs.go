@@ -232,7 +232,7 @@ func (db *DB) updateRecordForPlayer(p *Player) error {
 				"x":          p.x,
 				"y":          p.y,
 				"health":     p.health,
-				"stagename":  p.stageName,
+				"stagename":  p.stageName, // feels risky
 				"money":      p.money,
 				"killCount":  p.killCount,
 				"deathCount": p.deathCount,

@@ -8,12 +8,12 @@ import (
 
 // Both func of player?
 type SpawnAction struct {
-	Should func(*Stage) bool // "and" method
+	Should func(*Player, *Stage) bool // "and" method
 	Action func(*Stage)
 }
 
-func (s *SpawnAction) activateFor(stage *Stage) {
-	if s.Should == nil || s.Should(stage) {
+func (s *SpawnAction) activateFor(player *Player, stage *Stage) {
+	if s.Should == nil || s.Should(player, stage) {
 		if s.Action == nil {
 			return
 		}
@@ -31,12 +31,18 @@ var spawnActions = map[string][]SpawnAction{
 /////////////////////////////////////////////
 // Gates
 
-func always(stage *Stage) bool {
+func always(*Player, *Stage) bool {
 	return true
 }
 
-func checkDistanceFromEdge(gridHeight, gridWidth int) func(*Stage) bool {
-	return func(stage *Stage) bool {
+func both(f1, f2 func(*Player, *Stage) bool) func(*Player, *Stage) bool {
+	return func(p *Player, s *Stage) bool {
+		return f1(p, s) && f2(p, s)
+	}
+}
+
+func checkDistanceFromEdge(gridHeight, gridWidth int) func(*Player, *Stage) bool {
+	return func(_ *Player, stage *Stage) bool {
 		maxDistance := min((gridHeight-1)/2, (gridWidth-1)/2)
 		currentDistance := distanceFromEdgeOfSpace(stage, gridHeight, gridWidth)
 
@@ -46,6 +52,14 @@ func checkDistanceFromEdge(gridHeight, gridWidth int) func(*Stage) bool {
 
 		r := rand.Float64()
 		return r < probability
+	}
+}
+
+func checkTeamName(teamname string) func(*Player, *Stage) bool {
+	return func(p *Player, _ *Stage) bool {
+		p.viewLock.Lock()
+		defer p.viewLock.Unlock()
+		return p.team == teamname
 	}
 }
 

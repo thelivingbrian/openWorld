@@ -165,8 +165,10 @@ func updateScreenFromScratch(player *Player) {
 // Items
 
 // Should it be player?
-func (stage *Stage) spawnItems() {
+/*
+func (stage *Stage) spawnItemsFor(p *Player) {
 	for i := range stage.spawn {
 		stage.spawn[i].activateFor(stage)
 	}
 }
+*/

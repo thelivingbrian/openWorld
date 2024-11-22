@@ -17,6 +17,7 @@ type Player struct {
 	viewLock  sync.Mutex
 	world     *World
 	stage     *Stage
+	stageLock sync.Mutex
 	tile      *Tile
 	tileLock  sync.Mutex
 	updates   chan Update
@@ -79,6 +80,18 @@ func (player *Player) getIconSync() string {
 	player.viewLock.Lock()
 	defer player.viewLock.Unlock()
 	return player.icon
+}
+
+func (player *Player) setStageName(name string) {
+	player.stageLock.Lock()
+	defer player.moneyLock.Unlock()
+	player.stageName = name
+}
+
+func (player *Player) getStageNameSync() string {
+	player.stageLock.Lock()
+	defer player.stageLock.Unlock()
+	return player.stageName
 }
 
 // Money observer, All Money changes should go through here
@@ -162,11 +175,13 @@ func (player *Player) addToHealth(n int) bool {
 
 // always called with placeOnStage?
 func (p *Player) assignStageAndListen() {
-	stage := p.world.getNamedStageOrDefault(p.stageName)
+	stage := p.world.getNamedStageOrDefault(p.getStageNameSync())
 	if stage == nil {
 		log.Fatal("Fatal: Default Stage Not Found.")
 	}
 	// read/write concern?
+	p.stageLock.Lock()
+	defer p.stageLock.Unlock()
 	p.stage = stage
 }
 
@@ -178,7 +193,18 @@ func (p *Player) placeOnStage() {
 	updateScreenFromScratch(p)
 
 	// func spawnFor(Player)
-	p.stage.spawnItems()
+	//p.stage.spawnItems()
+	p.stageLock.Lock()
+	stageToSpawn := p.stage
+	p.stageLock.Unlock()
+	spawnItemsFor(p, stageToSpawn)
+}
+
+func spawnItemsFor(p *Player, stage *Stage) {
+	// Should be nil safe but test needed
+	for i := range stage.spawn {
+		stage.spawn[i].activateFor(p, stage)
+	}
 }
 
 func (player *Player) handleDeath() {
@@ -202,7 +228,8 @@ func (player *Player) removeFromStage() {
 func respawn(player *Player) {
 	player.setHealth(150)
 	player.setKillStreak(0)
-	player.stageName = "clinic"
+	player.setStageName("clinic")
+	//player.stageName = "clinic"
 	player.x = 2
 	player.y = 2
 	player.actions = createDefaultActions()
