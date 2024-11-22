@@ -189,6 +189,7 @@ func (tile *Tile) tryToNotifyAfter(delay int) {
 
 func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	survivors := false
+	// player map needs mutex ?
 	for _, player := range tile.playerMap {
 		if player.team == initiator.team {
 			continue // Mutex needed?

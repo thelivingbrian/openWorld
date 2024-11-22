@@ -57,6 +57,7 @@ func checkDistanceFromEdge(gridHeight, gridWidth int) func(*Player, *Stage) bool
 
 func checkTeamName(teamname string) func(*Player, *Stage) bool {
 	return func(p *Player, _ *Stage) bool {
+		// getTeamName Method
 		p.viewLock.Lock()
 		defer p.viewLock.Unlock()
 		return p.team == teamname
