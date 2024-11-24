@@ -34,10 +34,16 @@ func (world *World) join(record *PlayerRecord) *Player {
 
 	updatesForPlayer := make(chan Update)
 
+	// probably take this out later...
+	team := "fuchsia"
+	if record.Team != "" {
+		team = record.Team
+	}
+
 	newPlayer := &Player{
 		id:        token,
 		username:  record.Username,
-		team:      record.Team,
+		team:      team,
 		trim:      record.Trim,
 		stage:     nil,
 		updates:   updatesForPlayer,
@@ -145,12 +151,47 @@ type LeaderBoard struct {
 	//richest *Player
 	mostDangerous MaxStreakHeap
 	//oldest        *Player
+	scoreboard Scoreboard
 }
 
 // Team Scoreboards
+type TeamScore struct {
+	mu    sync.Mutex
+	score int
+}
+
+type Scoreboard struct {
+	data sync.Map
+}
+
+// Increment updates the score for a team atomically
+func (s *Scoreboard) Increment(team string) {
+	// Load or initialize the TeamScore for the team
+	val, _ := s.data.LoadOrStore(team, &TeamScore{})
+	teamScore := val.(*TeamScore)
+
+	teamScore.mu.Lock()
+	teamScore.score += 1
+	teamScore.mu.Unlock()
+}
+
+func (s *Scoreboard) GetScore(team string) int {
+	val, ok := s.data.Load(team)
+	if !ok {
+		return 0 // Team does not exist
+	}
+
+	teamScore := val.(*TeamScore)
+
+	// Safely retrieve the score
+	teamScore.mu.Lock()
+	defer teamScore.mu.Unlock()
+	return teamScore.score
+}
 
 //
 
+// Needs lock?
 type MaxStreakHeap struct {
 	items []*Player
 	index map[*Player]int // Keep track of item indices

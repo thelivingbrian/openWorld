@@ -365,10 +365,13 @@ func eat(*Interactable, *Player, *Tile) {
 
 func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) {
 	return func(i *Interactable, p *Player, t *Tile) {
-		// p.viewLock.Lock()
-		// defer p.viewLock.Unlock()
 		// p.world.ScoreGoalFor(p.team) // or (p) ?
 		// p.incrementGoals
+		team := p.getTeamNameSync()
+		p.world.leaderBoard.scoreboard.Increment(team)
+		p.incrementGoalsScored()
+		p.updateRecord()
+		fmt.Println(p.world.leaderBoard.scoreboard.GetScore(team))
 	}
 }
 

@@ -33,11 +33,12 @@ type Player struct {
 	money      int
 	moneyLock  sync.Mutex
 
-	killCount      int
-	killCountLock  sync.Mutex
-	deathCount     int
-	deathCountLock sync.Mutex
-	// goals scored
+	killCount       int
+	killCountLock   sync.Mutex
+	deathCount      int
+	deathCountLock  sync.Mutex
+	goalsScored     int
+	goalsScoredLock sync.Mutex
 	//experience int //?
 
 	killstreak int
@@ -80,6 +81,12 @@ func (player *Player) getIconSync() string {
 	player.viewLock.Lock()
 	defer player.viewLock.Unlock()
 	return player.icon
+}
+
+func (player *Player) getTeamNameSync() string {
+	player.viewLock.Lock()
+	defer player.viewLock.Unlock()
+	return player.team
 }
 
 func (player *Player) setStageName(name string) {
@@ -155,6 +162,13 @@ func (player *Player) incrementDeathCount() {
 	player.deathCountLock.Lock()
 	defer player.deathCountLock.Unlock()
 	player.deathCount++
+}
+
+// goals observer no direct set
+func (player *Player) incrementGoalsScored() {
+	player.goalsScoredLock.Lock()
+	defer player.goalsScoredLock.Unlock()
+	player.goalsScored++
 }
 
 /*
