@@ -91,7 +91,7 @@ func (player *Player) getTeamNameSync() string {
 
 func (player *Player) setStageName(name string) {
 	player.stageLock.Lock()
-	defer player.moneyLock.Unlock()
+	defer player.stageLock.Unlock()
 	player.stageName = name
 }
 
@@ -206,8 +206,7 @@ func (p *Player) placeOnStage() {
 	p.stage.tiles[p.y][p.x].addPlayerAndNotifyOthers(p)
 	updateScreenFromScratch(p)
 
-	// func spawnFor(Player)
-	//p.stage.spawnItems()
+	// getStageSync
 	p.stageLock.Lock()
 	stageToSpawn := p.stage
 	p.stageLock.Unlock()

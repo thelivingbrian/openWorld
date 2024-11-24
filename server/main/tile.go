@@ -15,7 +15,7 @@ type Tile struct {
 	interactable      *Interactable
 	interactableMutex sync.Mutex
 	stage             *Stage
-	teleport          *Teleport // Should/could be interactable?
+	teleport          *Teleport // Should/could be interactable? - questionable
 	y                 int
 	x                 int
 	eventsInFlight    atomic.Int32
@@ -377,8 +377,6 @@ func eat(*Interactable, *Player, *Tile) {
 
 func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) {
 	return func(i *Interactable, p *Player, t *Tile) {
-		// p.world.ScoreGoalFor(p.team) // or (p) ?
-		// p.incrementGoals
 		p.world.leaderBoard.scoreboard.Increment(team)
 		if team != p.getTeamNameSync() {
 			// You have knocked ball into opposing goal and should not get an increase
