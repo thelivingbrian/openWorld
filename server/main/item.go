@@ -165,3 +165,15 @@ func sortWalkableTiles(tiles [][]*Tile) ([]*Tile, []*Tile) {
 	}
 	return outCovered, outUncovered
 }
+
+func walkableTiles(tiles [][]*Tile) []*Tile {
+	var out []*Tile
+	for y := range tiles {
+		for x := range tiles[y] {
+			if tiles[y][x].material.Walkable {
+				out = append(out, tiles[y][x])
+			}
+		}
+	}
+	return out
+}

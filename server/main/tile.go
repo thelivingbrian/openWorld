@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -326,6 +327,14 @@ type InteractableReaction struct {
 var interactableReactions = map[string][]InteractableReaction{
 	// "pink-goal", "blue-goal", "black-hole", etc.
 	"black-hole": []InteractableReaction{InteractableReaction{ReactsWith: everything, Reaction: eat}},
+	"fuchsia-goal": []InteractableReaction{
+		InteractableReaction{ReactsWith: matchesName("fuchsia-ball"), Reaction: scoreGoalForTeam("sky-blue")},
+		InteractableReaction{ReactsWith: matchesName("sky-blue-ball"), Reaction: spawnMoney([]int{10, 20, 50})},
+	},
+	"sky-blue-goal": []InteractableReaction{
+		InteractableReaction{ReactsWith: matchesName("sky-blue-ball"), Reaction: scoreGoalForTeam("fuchsia")},
+		InteractableReaction{ReactsWith: matchesName("fuchsia-ball"), Reaction: spawnMoney([]int{10, 20, 50})},
+	},
 }
 
 func (source *Interactable) React(incoming *Interactable, initiatior *Player, location *Tile) bool {
@@ -354,6 +363,9 @@ func matchesCssClass(cssClass string) func(*Interactable) bool {
 
 func matchesName(name string) func(*Interactable) bool {
 	return func(i *Interactable) bool {
+		if i == nil {
+			return false
+		}
 		return i.name == name
 	}
 }
@@ -367,16 +379,26 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) {
 	return func(i *Interactable, p *Player, t *Tile) {
 		// p.world.ScoreGoalFor(p.team) // or (p) ?
 		// p.incrementGoals
-		team := p.getTeamNameSync()
 		p.world.leaderBoard.scoreboard.Increment(team)
-		p.incrementGoalsScored()
-		p.updateRecord()
+		if team != p.getTeamNameSync() {
+			// You have knocked ball into opposing goal and should not get an increase
+			p.incrementGoalsScored()
+			p.updateRecord()
+		}
 		fmt.Println(p.world.leaderBoard.scoreboard.GetScore(team))
 	}
 }
 
-func spawnMoney(sets, amount int) func(*Interactable, *Player, *Tile) {
-	return func(*Interactable, *Player, *Tile) {
-
+func spawnMoney(amounts []int) func(*Interactable, *Player, *Tile) {
+	return func(i *Interactable, p *Player, t *Tile) {
+		tiles := walkableTiles(t.stage.tiles)
+		count := len(tiles)
+		if count == 0 {
+			return
+		}
+		for i := range amounts {
+			randn := rand.Intn(count)
+			tiles[randn].addMoneyAndNotifyAll(amounts[i])
+		}
 	}
 }
