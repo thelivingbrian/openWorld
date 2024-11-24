@@ -171,6 +171,12 @@ func (player *Player) incrementGoalsScored() {
 	player.goalsScored++
 }
 
+func (player *Player) getGoalsScored() int {
+	player.goalsScoredLock.Lock()
+	defer player.goalsScoredLock.Unlock()
+	return player.goalsScored
+}
+
 /*
 func (player *Player) isDead() bool {
 	player.healthLock.Lock()

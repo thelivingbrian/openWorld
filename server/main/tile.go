@@ -378,8 +378,8 @@ func eat(*Interactable, *Player, *Tile) {
 func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) {
 	return func(i *Interactable, p *Player, t *Tile) {
 		p.world.leaderBoard.scoreboard.Increment(team)
-		if team != p.getTeamNameSync() {
-			// You have knocked ball into opposing goal and should not get an increase
+		if team == p.getTeamNameSync() {
+			// Otherwise you have scored a goal for a different team
 			p.incrementGoalsScored()
 			p.updateRecord()
 		}
