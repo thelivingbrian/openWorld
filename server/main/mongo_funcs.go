@@ -229,14 +229,15 @@ func (db *DB) updateRecordForPlayer(p *Player) error {
 		bson.M{"username": p.username},
 		bson.M{
 			"$set": bson.M{
-				"x":          p.x,
-				"y":          p.y,
-				"health":     p.health,
-				"stagename":  p.stageName, // feels risky
-				"money":      p.money,
-				"killCount":  p.killCount,
-				"deathCount": p.deathCount,
-				"trim":       p.trim,
+				"x":           p.x, // All of this feels dangerous tbh
+				"y":           p.y,
+				"health":      p.health,
+				"stagename":   p.stageName, // feels risky
+				"money":       p.money,
+				"killCount":   p.killCount,
+				"deathCount":  p.deathCount,
+				"goalsScored": p.goalsScored,
+				"trim":        p.trim,
 			},
 		},
 	)
