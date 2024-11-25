@@ -369,8 +369,9 @@ func (p *Player) move(yOffset int, xOffset int) {
 
 		p.push(destTile, nil, yOffset, xOffset)
 		if walkable(destTile) {
+			// benchmark this vs atomic map swap
 			sourceTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
-			destTile.addPlayerAndNotifyOthers(p)
+			destTile.addPlayerAndNotifyOthers(p)      // Not atomic. Also potentially adding a dead players to tile (?)
 
 			previousTile := sourceTile
 			impactedTiles := p.updateSpaceHighlights()
@@ -472,7 +473,7 @@ func (player *Player) activatePower() {
 			tilesToHighlight = append(tilesToHighlight, tileToHighlight)
 		}
 
-		go tile.tryToNotifyAfter(100) // Flat for player if more powers?
+		go tile.tryToNotifyAfter(2000) // Flat for player if more powers?
 	}
 	highlightHtml := sliceOfTileToColoredOoB(tilesToHighlight, randomFieryColor())
 	player.stage.updateAll(highlightHtml)
