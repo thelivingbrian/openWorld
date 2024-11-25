@@ -212,8 +212,7 @@ func (h *MaxStreakHeap) Less(i, j int) bool {
 func (h *MaxStreakHeap) Swap(i, j int) {
 	h.Lock()
 	h.items[i], h.items[j] = h.items[j], h.items[i]
-	h.index[h.items[i]] = i
-	h.index[h.items[j]] = j
+	h.index[h.items[i]], h.index[h.items[j]] = i, j
 	h.Unlock()
 }
 
@@ -238,13 +237,12 @@ func (h *MaxStreakHeap) Pop() interface{} {
 }
 
 func (h *MaxStreakHeap) Peek() *Player {
-	if h.Len() == 0 {
+	h.Lock()
+	defer h.Unlock()
+	if len(h.items) == 0 {
 		return nil
 		//panic("Heap Underflow")
 	}
-	h.Lock() // classically unsafe because len could have become 0 in the interim
-	// probably better to lock at top and not use the len method but len(items) builtin
-	defer h.Unlock()
 	return h.items[0]
 }
 
