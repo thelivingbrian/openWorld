@@ -35,7 +35,7 @@ func (world *World) join(record *PlayerRecord) *Player {
 	updatesForPlayer := make(chan Update)
 
 	// probably take this out later...
-	team := "fuchsia"
+	team := "sky-blue"
 	if record.Team != "" {
 		team = record.Team
 	}
@@ -156,7 +156,7 @@ type LeaderBoard struct {
 
 // Team Scoreboards
 type TeamScore struct {
-	mu    sync.Mutex
+	sync.Mutex
 	score int
 }
 
@@ -170,9 +170,9 @@ func (s *Scoreboard) Increment(team string) {
 	val, _ := s.data.LoadOrStore(team, &TeamScore{})
 	teamScore := val.(*TeamScore)
 
-	teamScore.mu.Lock()
+	teamScore.Lock()
 	teamScore.score += 1
-	teamScore.mu.Unlock()
+	teamScore.Unlock()
 }
 
 func (s *Scoreboard) GetScore(team string) int {
@@ -184,8 +184,8 @@ func (s *Scoreboard) GetScore(team string) int {
 	teamScore := val.(*TeamScore)
 
 	// Safely retrieve the score
-	teamScore.mu.Lock()
-	defer teamScore.mu.Unlock()
+	teamScore.Lock()
+	defer teamScore.Unlock()
 	return teamScore.score
 }
 
@@ -195,26 +195,40 @@ func (s *Scoreboard) GetScore(team string) int {
 type MaxStreakHeap struct {
 	items []*Player
 	index map[*Player]int // Keep track of item indices
+	sync.Mutex
 }
 
-func (h MaxStreakHeap) Len() int { return len(h.items) }
-func (h MaxStreakHeap) Less(i, j int) bool {
+func (h *MaxStreakHeap) Len() int {
+	h.Lock()
+	defer h.Unlock()
+	return len(h.items)
+}
+
+func (h *MaxStreakHeap) Less(i, j int) bool {
+	h.Lock()
+	defer h.Unlock()
 	return h.items[i].getKillStreakSync() > h.items[j].getKillStreakSync()
 }
-func (h MaxStreakHeap) Swap(i, j int) {
+func (h *MaxStreakHeap) Swap(i, j int) {
+	h.Lock()
 	h.items[i], h.items[j] = h.items[j], h.items[i]
 	h.index[h.items[i]] = i
 	h.index[h.items[j]] = j
+	h.Unlock()
 }
 
 func (h *MaxStreakHeap) Push(x interface{}) {
+	h.Lock()
 	n := len(h.items)
 	item := x.(*Player)
 	h.items = append(h.items, item)
-	h.index[h.items[n]] = n
+	h.index[h.items[n]] = n // would need fix if not at bottom?
+	h.Unlock()
 }
 
 func (h *MaxStreakHeap) Pop() interface{} {
+	h.Lock()
+	defer h.Unlock()
 	old := h.items
 	n := len(old)
 	item := old[n-1]
@@ -228,6 +242,9 @@ func (h *MaxStreakHeap) Peek() *Player {
 		return nil
 		//panic("Heap Underflow")
 	}
+	h.Lock() // classically unsafe because len could have become 0 in the interim
+	// probably better to lock at top and not use the len method but len(items) builtin
+	defer h.Unlock()
 	return h.items[0]
 }
 
@@ -239,6 +256,7 @@ func (h *MaxStreakHeap) Update(player *Player) {
 	heap.Fix(h, index)
 
 	currentMostDangerous := h.Peek()
+	// can't  && currentMostDangerous.getKillCountSync() >= 5 because it won't always be a change
 	if currentMostDangerous != previousMostDangerous {
 		notifyChangeInMostDangerous(currentMostDangerous)
 	}
