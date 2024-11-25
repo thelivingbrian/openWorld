@@ -209,6 +209,7 @@ func (h *MaxStreakHeap) Less(i, j int) bool {
 	defer h.Unlock()
 	return h.items[i].getKillStreakSync() > h.items[j].getKillStreakSync()
 }
+
 func (h *MaxStreakHeap) Swap(i, j int) {
 	h.Lock()
 	h.items[i], h.items[j] = h.items[j], h.items[i]
