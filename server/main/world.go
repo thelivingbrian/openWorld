@@ -166,7 +166,6 @@ type Scoreboard struct {
 
 // Increment updates the score for a team atomically
 func (s *Scoreboard) Increment(team string) {
-	// Load or initialize the TeamScore for the team
 	val, _ := s.data.LoadOrStore(team, &TeamScore{})
 	teamScore := val.(*TeamScore)
 
@@ -183,7 +182,6 @@ func (s *Scoreboard) GetScore(team string) int {
 
 	teamScore := val.(*TeamScore)
 
-	// Safely retrieve the score
 	teamScore.Lock()
 	defer teamScore.Unlock()
 	return teamScore.score
@@ -191,7 +189,6 @@ func (s *Scoreboard) GetScore(team string) int {
 
 //
 
-// Needs lock?
 type MaxStreakHeap struct {
 	items []*Player
 	index map[*Player]int // Keep track of item indices
