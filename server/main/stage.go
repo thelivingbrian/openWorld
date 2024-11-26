@@ -118,6 +118,7 @@ func (stage *Stage) updateAllWithHud(tiles []*Tile) {
 }
 */
 
+/*
 func oobUpdateWithHud(player *Player, tiles []*Tile) {
 	// If "shared highlights" e.g. explosive damage had own channel this would be unneeded.
 	// At present it solves the problem of when a global highlight resets each individual player
@@ -125,6 +126,7 @@ func oobUpdateWithHud(player *Player, tiles []*Tile) {
 	// Weather channel?
 	player.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles))}
 }
+*/
 
 func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
 	playerIcon := playerBoxSpecifc(player.y, player.x, player.icon) //fmt.Sprintf(`<div id="u%d-%d" class="box zu %s gold-b thick r0"></div>`, player.y, player.x, player.color)

@@ -590,11 +590,8 @@ type StackOfPowerUp struct {
 }
 
 func (player *Player) addBoosts(n int) {
-	//first := player.actions.boostCounter == 0
+	// not thread-safe
 	player.actions.boostCounter += n
-	/*if first {
-		player.showBoost()
-	}*/
 	updateOne(divPlayerInformation(player), player)
 }
 
@@ -623,6 +620,7 @@ func (stack *StackOfPowerUp) pop() *PowerUp {
 
 // Watch this lead to item dupe bugs
 func (stack *StackOfPowerUp) peek() PowerUp {
+	// TOCTOU
 	if stack.hasPower() {
 		stack.powerMutex.Lock()
 		defer stack.powerMutex.Unlock()
