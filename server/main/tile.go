@@ -174,6 +174,7 @@ func (tile *Tile) getAPlayer() *Player {
 	return nil
 }
 
+/*
 func (tile *Tile) incrementAndReturnIfFirst() *Tile {
 	if tile.eventsInFlight.Load() == 0 {
 		tile.eventsInFlight.Add(1)
@@ -183,12 +184,12 @@ func (tile *Tile) incrementAndReturnIfFirst() *Tile {
 		return nil
 	}
 }
+*/
 
 func (tile *Tile) tryToNotifyAfter(delay int) {
 	time.Sleep(time.Millisecond * time.Duration(delay))
 	tile.eventsInFlight.Add(-1)
 	if tile.eventsInFlight.Load() == 0 {
-		// crazy
 		tile.stage.updateAll(weatherBox(tile, "blue trsp20"))
 	}
 }
@@ -197,8 +198,8 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	survivors := false
 	// player map needs mutex ?
 	for _, player := range tile.playerMap {
-		if player.team == initiator.team {
-			continue // Mutex needed?
+		if player.getTeamNameSync() == initiator.getTeamNameSync() {
+			continue
 		}
 		survived := player.addToHealth(-dmg)
 		survivors = survivors || survived
@@ -214,7 +215,8 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	}
 }
 
-func (tile *Tile) destroy(_ *Player) {
+func destroyInteractable(tile *Tile, _ *Player) {
+	// *Player is a placeholder for initiator/destroyer in future
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
 	if tile.interactable != nil && tile.interactable.fragile {
@@ -262,19 +264,6 @@ func (tile *Tile) addMoneyAndNotifyAll(amount int) {
 }
 
 ///
-
-// unsafe check of health
-/*
-func cssClassFromHealth(player *Player) string {
-	if player.health > 50 {
-		return player.color + " r0"
-	}
-	if player.health >= 0 {
-		return "dim-" + player.color + " r0"
-	}
-	return "blue" // shouldn't happen but want to be visible
-}
-*/
 
 func validCoordinate(y int, x int, tiles [][]*Tile) bool {
 	if y < 0 || y >= len(tiles) {
@@ -338,7 +327,6 @@ type InteractableReaction struct {
 }
 
 var interactableReactions = map[string][]InteractableReaction{
-	// "pink-goal", "blue-goal", "black-hole", etc.
 	"black-hole": []InteractableReaction{InteractableReaction{ReactsWith: everything, Reaction: eat}},
 	"fuchsia-goal": []InteractableReaction{
 		InteractableReaction{ReactsWith: matchesName("fuchsia-ball"), Reaction: scoreGoalForTeam("sky-blue")},

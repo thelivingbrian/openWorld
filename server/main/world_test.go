@@ -38,8 +38,8 @@ func TestSocketJoinAndMove(t *testing.T) {
 		t.Error("Incorrect number of players")
 	}
 
-	if world.leaderBoard.mostDangerous.Peek() != p {
-		t.Error("New Player should be most dangerous") // Intesting meta, empty world sign in legit?
+	if world.leaderBoard.mostDangerous.Peek() == p {
+		t.Error("New Player should not be most dangerous") // Minimum killstreak player prevents newly joining from being most dangerous
 	}
 
 	//fmt.Println(p.x)

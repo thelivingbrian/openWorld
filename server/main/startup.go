@@ -181,7 +181,6 @@ type InteractableDescription struct {
 	Pushable  bool   `json:"pushable"`
 	Fragile   bool   `json:"fragile"`
 	Reactions string `json:"reactions"`
-	// reactions string or []string
 }
 
 var (

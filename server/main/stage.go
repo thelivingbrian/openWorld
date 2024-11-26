@@ -15,8 +15,7 @@ type Stage struct {
 	east        string
 	west        string
 	mapId       string
-	//spawn       func(*Stage)
-	spawn []SpawnAction
+	spawn       []SpawnAction
 }
 
 // benchmark this please
@@ -108,32 +107,11 @@ func (stage *Stage) addPlayer(player *Player) {
 
 // Enqueue updates
 
-/*
-func (stage *Stage) updateAllWithHud(tiles []*Tile) {
-	stage.playerMutex.Lock()
-	defer stage.playerMutex.Unlock()
-	for _, player := range stage.playerMap {
-		oobUpdateWithHud(player, tiles)
-	}
-}
-*/
-
-/*
-func oobUpdateWithHud(player *Player, tiles []*Tile) {
-	// If "shared highlights" e.g. explosive damage had own channel this would be unneeded.
-	// At present it solves the problem of when a global highlight resets each individual player
-	// may view the reset value differently.
-	// Weather channel?
-	player.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles))}
-}
-*/
-
 func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
-	playerIcon := playerBoxSpecifc(player.y, player.x, player.icon) //fmt.Sprintf(`<div id="u%d-%d" class="box zu %s gold-b thick r0"></div>`, player.y, player.x, player.color)
+	playerIcon := playerBoxSpecifc(player.y, player.x, player.icon)
 	previousBoxes := ""
 	if previous.stage == player.stage {
-		//previousBoxes += userBox(previous.y, previous.x, "") //fmt.Sprintf(`<div id="u%d-%d" class="box zu"></div>`, previous.y, previous.x)
-		previousBoxes += playerBox(previous) // This box may be including the user as well so it needs an update
+		previousBoxes += playerBox(previous)
 	}
 
 	player.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles) + previousBoxes + playerIcon)}
@@ -158,6 +136,7 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 	}
 }
 
+// not related to stage?
 func updateOne(update string, player *Player) {
 	player.updates <- Update{player, []byte(update)}
 }
@@ -165,14 +144,3 @@ func updateOne(update string, player *Player) {
 func updateScreenFromScratch(player *Player) {
 	player.updates <- Update{player, htmlFromPlayer(player)}
 }
-
-// Items
-
-// Should it be player?
-/*
-func (stage *Stage) spawnItemsFor(p *Player) {
-	for i := range stage.spawn {
-		stage.spawn[i].activateFor(stage)
-	}
-}
-*/

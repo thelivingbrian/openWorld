@@ -21,11 +21,6 @@ func BenchmarkSpawnItems(b *testing.B) {
 			b.StartTimer()
 
 			for i := 0; i < b.N; i++ {
-				//basicSpawn(testStage)
-
-				//testStage.spawn.Should = nil // Or Always etc
-				//testStage.spawnItems()
-
 				spawnItemsFor(nil, testStage)
 			}
 		})

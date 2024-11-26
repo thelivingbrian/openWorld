@@ -18,8 +18,8 @@ type World struct {
 }
 
 func createGameWorld(db *DB) *World {
-	initialPlayer := Player{id: "HS-only", killstreak: 5}
-	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: []*Player{&initialPlayer}, index: make(map[*Player]int)}}
+	minimumKillstreak := Player{id: "HS-only", killstreak: 0} // Do somewhere else?
+	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: []*Player{&minimumKillstreak}, index: make(map[*Player]int)}}
 	return &World{db: db, worldPlayers: make(map[string]*Player), worldStages: make(map[string]*Stage), leaderBoard: lb}
 }
 
@@ -36,15 +36,17 @@ func (world *World) join(record *PlayerRecord) *Player {
 	updatesForPlayer := make(chan Update)
 
 	// probably take this out later...
-	team := "sky-blue"
-	if record.Team != "" {
-		team = record.Team
-	}
+	/*
+		team := "sky-blue"
+		if record.Team != "" {
+			team = record.Team
+		}
+	*/
 
 	newPlayer := &Player{
 		id:        token,
 		username:  record.Username,
-		team:      team,
+		team:      record.Team,
 		trim:      record.Trim,
 		stage:     nil,
 		updates:   updatesForPlayer,
@@ -220,7 +222,7 @@ func (h *MaxStreakHeap) Push(x interface{}) {
 	n := len(h.items)
 	item := x.(*Player)
 	h.items = append(h.items, item)
-	h.index[h.items[n]] = n // would need fix if not at bottom?
+	h.index[h.items[n]] = n // would need fix if not at bottom. (e.g. richest)
 	h.Unlock()
 }
 
@@ -253,7 +255,6 @@ func (h *MaxStreakHeap) Update(player *Player) {
 	heap.Fix(h, index)
 
 	currentMostDangerous := h.Peek()
-	// can't  && currentMostDangerous.getKillCountSync() >= 5 because it won't always be a change
 	if currentMostDangerous != previousMostDangerous {
 		notifyChangeInMostDangerous(currentMostDangerous)
 	}

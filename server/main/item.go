@@ -6,10 +6,9 @@ import (
 	"strings"
 )
 
-// Both func of player?
 type SpawnAction struct {
-	Should func(*Player, *Stage) bool // "and" method
-	Action func(*Stage)
+	Should func(*Player, *Stage) bool
+	Action func(*Stage) // func of player?
 }
 
 func (s *SpawnAction) activateFor(player *Player, stage *Stage) {
@@ -22,8 +21,11 @@ func (s *SpawnAction) activateFor(player *Player, stage *Stage) {
 }
 
 var spawnActions = map[string][]SpawnAction{
-	"none":           []SpawnAction{SpawnAction{}},                                                                                                      // Same as Should: Always, Action: doNothing
-	"":               []SpawnAction{SpawnAction{Should: checkDistanceFromEdge(8, 8), Action: basicSpawn}, SpawnAction{Should: nil, Action: basicSpawn}}, // CheckDistanceFromEdge(8, 8)
+	"none": []SpawnAction{SpawnAction{}}, // Same as Should: Always, Action: doNothing
+	"": []SpawnAction{
+		SpawnAction{Should: checkDistanceFromEdge(8, 8), Action: basicSpawn},
+		SpawnAction{Should: nil, Action: basicSpawn},
+	},
 	"tutorial-boost": []SpawnAction{SpawnAction{Should: always, Action: tutorialBoost}},
 	"tutorial-power": []SpawnAction{SpawnAction{Should: always, Action: tutorialPower}},
 }
@@ -57,10 +59,7 @@ func checkDistanceFromEdge(gridHeight, gridWidth int) func(*Player, *Stage) bool
 
 func checkTeamName(teamname string) func(*Player, *Stage) bool {
 	return func(p *Player, _ *Stage) bool {
-		// getTeamName Method
-		p.viewLock.Lock()
-		defer p.viewLock.Unlock()
-		return p.team == teamname
+		return teamname == p.getTeamNameSync()
 	}
 }
 

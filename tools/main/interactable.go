@@ -192,7 +192,6 @@ func (c Context) putInteractable(w http.ResponseWriter, r *http.Request) {
 	interactable.Fragile = fragile
 	interactable.Reactions = reactions
 
-	//fmt.Println(interactable)
 	collection.saveInteractableSet(setName)
 
 	io.WriteString(w, "<h3>Done.</h3>")

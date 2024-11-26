@@ -252,43 +252,8 @@ img {
 }
   
 /*
-floor1
-floor2
-zp
-zi
-zs
-cailing1
-ceiling2
-zw
-top
-
+    Box z-Indices
 */
-
-.zp {
-    z-index: 20;
-  }
- 
-  /*
-.zu {
-    z-index: 21;
-}
-    */
-  
-.zi {
-    z-index: 25;
-}
-  
-.zs {
-    z-index: 26;
-}
-  
-.zw {
-    z-index: 35;
-}
-  
-.top {
-    z-index: 40;
-  }
 
 .floor1 {
     z-index: 10;
@@ -298,6 +263,18 @@ top
     z-index: 11;
 } 
 
+.zp {
+    z-index: 20;
+}
+  
+.zi {
+    z-index: 25;
+}
+  
+.zs {
+    z-index: 26;
+}
+
 .ceiling1 {
     z-index: 30;
 }
@@ -305,6 +282,16 @@ top
 .ceiling2 {
     z-index: 31;
 }
+  
+.zw {
+    z-index: 35;
+}
+  
+.top {
+    z-index: 40;
+}
+
+/* Transparency */
 
 .trsp {
     opacity: 0;

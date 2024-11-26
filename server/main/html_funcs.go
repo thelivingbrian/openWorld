@@ -303,12 +303,6 @@ func htmlForPlayerTile(tile *Tile, icon string) string {
 	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x))
 }
 
-/*
-func userBox(y, x int, icon string) string {
-	return fmt.Sprintf(`<div id="u%d-%d" class="box zu %s"></div>`, y, x, icon)
-}
-*/
-
 func playerBoxSpecifc(y, x int, icon string) string {
 	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, y, x, icon)
 }
@@ -316,7 +310,7 @@ func playerBoxSpecifc(y, x int, icon string) string {
 func playerBox(tile *Tile) string {
 	playerIndicator := ""
 	if p := tile.getAPlayer(); p != nil {
-		playerIndicator = p.icon
+		playerIndicator = p.getIconSync()
 	}
 	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, tile.y, tile.x, playerIndicator)
 }

@@ -62,6 +62,14 @@ func (player *Player) setHealth(n int) {
 	updateOne(divPlayerInformation(player)+playerBoxSpecifc(player.tile.y, player.tile.x, player.getIconSync()), player)
 }
 
+func (player *Player) addToHealth(n int) bool {
+	player.healthLock.Lock()
+	newHealth := player.health + n
+	player.healthLock.Unlock()
+	player.setHealth(newHealth)
+	return newHealth > 0
+}
+
 func (player *Player) getHealthSync() int {
 	player.healthLock.Lock()
 	defer player.healthLock.Unlock()
@@ -105,6 +113,12 @@ func (player *Player) getStageNameSync() string {
 	player.stageLock.Lock()
 	defer player.stageLock.Unlock()
 	return player.stageName
+}
+
+func (player *Player) getStageSync() *Stage {
+	player.stageLock.Lock()
+	defer player.stageLock.Unlock()
+	return player.stage
 }
 
 // Money observer, All Money changes should go through here
@@ -191,14 +205,6 @@ func (player *Player) isDead() bool {
 }
 */
 
-func (player *Player) addToHealth(n int) bool {
-	player.healthLock.Lock()
-	newHealth := player.health + n
-	player.healthLock.Unlock()
-	player.setHealth(newHealth)
-	return newHealth > 0
-}
-
 // always called with placeOnStage?
 func (p *Player) assignStageAndListen() {
 	stage := p.world.getNamedStageOrDefault(p.getStageNameSync())
@@ -218,10 +224,7 @@ func (p *Player) placeOnStage() {
 	p.stage.tiles[p.y][p.x].addPlayerAndNotifyOthers(p)
 	updateScreenFromScratch(p)
 
-	// getStageSync
-	p.stageLock.Lock()
-	stageToSpawn := p.stage
-	p.stageLock.Unlock()
+	stageToSpawn := p.getStageSync()
 	spawnItemsFor(p, stageToSpawn)
 }
 
@@ -376,9 +379,9 @@ func (p *Player) move(yOffset int, xOffset int) {
 
 		p.push(destTile, nil, yOffset, xOffset)
 		if walkable(destTile) {
-			// benchmark this vs atomic map swap
+			// possible atomic map swap? benchmarks?
 			sourceTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
-			destTile.addPlayerAndNotifyOthers(p)      // Not atomic. Also potentially adding a dead players to tile (?)
+			destTile.addPlayerAndNotifyOthers(p)      // Not atomic. Also potentially adding dead player(s) to tile (?)
 
 			previousTile := sourceTile
 			impactedTiles := p.updateSpaceHighlights()
@@ -475,13 +478,9 @@ func (player *Player) activatePower() {
 	// pop power and use shape + player coords instead?
 	for tile := range player.actions.spaceHighlights {
 		go tile.damageAll(50, player)
-		tile.destroy(player)
-
-		// This doesn't really make sense, it does prevent early termination but leaves old color to persist instead of new
-		tile.incrementAndReturnIfFirst()
-		//if tileToHighlight != nil {
+		destroyInteractable(tile, player)
+		tile.eventsInFlight.Add(1)
 		tilesToHighlight = append(tilesToHighlight, tile)
-		//}
 
 		go tile.tryToNotifyAfter(100) // Flat for player if more powers?
 	}
@@ -544,30 +543,6 @@ func (player *Player) updateBottomText(message string) {
 func (p *Player) trySend(msg []byte) {
 	p.updates <- Update{p, msg}
 }
-
-/*
-// Show boost when boost counter first breaks 0 with message explaining shift
-// Hide boost on next movement
-
-func (player *Player) showBoost() {
-	player.actions.shiftEngaged = true
-	player.actions.shiftHighlights = map[*Tile]bool{}
-	absCoordinatePairs := applyRelativeDistance(player.y, player.x, jumpCross())
-	for _, pair := range absCoordinatePairs {
-		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
-			tile := player.stage.tiles[pair[0]][pair[1]]
-			player.actions.shiftHighlights[tile] = true
-		}
-	}
-	oobUpdateWithHud(player, mapOfTileToArray(player.actions.shiftHighlights))
-}
-func (player *Player) hideBoost() {
-	player.actions.shiftEngaged = false
-	previous := player.actions.shiftHighlights
-	player.actions.shiftHighlights = map[*Tile]bool{}
-	oobUpdateWithHud(player, mapOfTileToArray(previous))
-}
-*/
 
 /////////////////////////////////////////////////////////////
 // Actions
