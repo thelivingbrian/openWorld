@@ -428,7 +428,9 @@ func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bo
 func (player *Player) nextPower() {
 	player.actions.spaceStack.pop() // Throw old power away
 	player.setSpaceHighlights()
-	oobUpdateWithHud(player, mapOfTileToArray(player.actions.spaceHighlights))
+	//oobUpdateWithHud(player, mapOfTileToArray(player.actions.spaceHighlights))
+	//spaceHighlighter(tile)
+	updateOne(sliceOfTileToHighlightBoxes(mapOfTileToArray(player.actions.spaceHighlights), "half-trsp salmon"), player)
 }
 
 func (player *Player) setSpaceHighlights() {
@@ -468,15 +470,17 @@ func (player *Player) activatePower() {
 		tile.damageAll(50, player)
 		tile.destroy(player)
 
-		tileToHighlight := tile.incrementAndReturnIfFirst()
-		if tileToHighlight != nil {
-			tilesToHighlight = append(tilesToHighlight, tileToHighlight)
-		}
+		// This doesn't really make sense, it does prevent early termination but leaves old color to persist instead of new
+		tile.incrementAndReturnIfFirst()
+		//if tileToHighlight != nil {
+		tilesToHighlight = append(tilesToHighlight, tile)
+		//}
 
 		go tile.tryToNotifyAfter(2000) // Flat for player if more powers?
 	}
-	highlightHtml := sliceOfTileToColoredOoB(tilesToHighlight, randomFieryColor())
-	player.stage.updateAll(highlightHtml)
+	damageBoxes := sliceOfTileToWeatherBoxes(tilesToHighlight, randomFieryColor())
+	player.stage.updateAll(damageBoxes)
+	updateOne(sliceOfTileToHighlightBoxes(tilesToHighlight, ""), player)
 
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	if player.actions.spaceStack.hasPower() {

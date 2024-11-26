@@ -251,20 +251,39 @@ img {
     padding: 0px;
 }
   
+/*
+floor1
+floor2
+zp
+zi
+zs
+cailing1
+ceiling2
+zw
+top
+
+*/
+
 .zp {
     z-index: 20;
   }
-  
+ 
+  /*
 .zu {
     z-index: 21;
 }
+    */
   
 .zi {
     z-index: 25;
 }
   
-.zS {
+.zs {
     z-index: 26;
+}
+  
+.zw {
+    z-index: 35;
 }
   
 .top {

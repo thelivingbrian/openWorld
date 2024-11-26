@@ -108,6 +108,7 @@ func (stage *Stage) addPlayer(player *Player) {
 
 // Enqueue updates
 
+/*
 func (stage *Stage) updateAllWithHud(tiles []*Tile) {
 	stage.playerMutex.Lock()
 	defer stage.playerMutex.Unlock()
@@ -115,6 +116,7 @@ func (stage *Stage) updateAllWithHud(tiles []*Tile) {
 		oobUpdateWithHud(player, tiles)
 	}
 }
+*/
 
 func oobUpdateWithHud(player *Player, tiles []*Tile) {
 	// If "shared highlights" e.g. explosive damage had own channel this would be unneeded.

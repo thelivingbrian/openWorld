@@ -296,20 +296,22 @@ func getHeartsFromHealth(i int) string {
 func htmlForTile(tile *Tile) string {
 	svgtag := svgFromTile(tile)
 	// grab tile y and x only once here or in parent method?
-	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), emptyUserBox(tile.y, tile.x), interactableBox(tile), svgtag)
+	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x))
 }
 
 func htmlForPlayerTile(tile *Tile, icon string) string {
 	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), emptyUserBox(tile.y, tile.x), interactableBox(tile), svgtag)
+	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x))
 }
 
+/*
 func userBox(y, x int, icon string) string {
 	return fmt.Sprintf(`<div id="u%d-%d" class="box zu %s"></div>`, y, x, icon)
 }
+*/
 
 func playerBoxSpecifc(y, x int, icon string) string {
-	return fmt.Sprintf(`<div id="p%d-%d" class="box zu %s"></div>`, y, x, icon)
+	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, y, x, icon)
 }
 
 func playerBox(tile *Tile) string {
@@ -328,8 +330,8 @@ func interactableBox(tile *Tile) string {
 	return fmt.Sprintf(`<div id="i%d-%d" class="box zi %s"></div>`, tile.y, tile.x, indicator)
 }
 
-func emptyUserBox(y, x int) string {
-	return fmt.Sprintf(`<div id="u%d-%d" class="box zu"></div>`, y, x)
+func emptyWeatherBox(y, x int) string {
+	return fmt.Sprintf(`<div id="w%d-%d" class="box zw blue trsp20"></div>`, y, x)
 }
 
 // Create slice of proper size? Currently has many null entries
@@ -363,8 +365,13 @@ func oobHighlightBox(tile *Tile, cssClass string) string {
 	return fmt.Sprintf(template, tile.y, tile.x, cssClass)
 }
 
+func weatherBox(tile *Tile, cssClass string) string {
+	template := `<div id="w%d-%d" class="box zw %s"></div>`
+	return fmt.Sprintf(template, tile.y, tile.x, cssClass)
+}
+
 func svgFromTile(tile *Tile) string {
-	svgtag := `<div id="%s" class="box zS">`
+	svgtag := `<div id="%s" class="box zs">`
 	if tile.powerUp != nil || tile.money != 0 || tile.boosts != 0 {
 		svgtag += `<svg width="22" height="22">`
 		if tile.powerUp != nil {

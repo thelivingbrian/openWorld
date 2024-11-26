@@ -59,7 +59,7 @@ func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 func makeTileTemplate(mat Material, y, x int) string {
 	tileCoord := fmt.Sprintf("%d-%d", y, x)
 	cId := "c" + tileCoord // This is used to identify the entire square
-	hId := "t" + tileCoord // This is used to identify the top highlight box
+	tId := "t" + tileCoord // This is used to identify the top highlight box
 	placeHold := "%s"      // later becomes user, player, interactable, and svg boxes
 
 	floor1css := ""
@@ -93,7 +93,7 @@ func makeTileTemplate(mat Material, y, x int) string {
 					%s
 					<div id="%s" class="box top"></div>
 				</div>`
-	return fmt.Sprintf(template, cId, mat.CssColor, floor1css, floor2css, placeHold, placeHold, placeHold, placeHold, ceil1css, ceil2css, hId)
+	return fmt.Sprintf(template, cId, mat.CssColor, floor1css, floor2css, placeHold, placeHold, placeHold, ceil1css, ceil2css, placeHold, tId)
 }
 
 // newTile w/ teleport?
@@ -184,7 +184,8 @@ func (tile *Tile) tryToNotifyAfter(delay int) {
 	time.Sleep(time.Millisecond * time.Duration(delay))
 	tile.eventsInFlight.Add(-1)
 	if tile.eventsInFlight.Load() == 0 {
-		tile.stage.updateAllWithHud([]*Tile{tile})
+		// crazy
+		tile.stage.updateAll(weatherBox(tile, "blue trsp20"))
 	}
 }
 
@@ -300,7 +301,15 @@ func mapOfTileToArray(m map[*Tile]bool) []*Tile {
 	return out
 }
 
-func sliceOfTileToColoredOoB(tiles []*Tile, cssClass string) string {
+func sliceOfTileToWeatherBoxes(tiles []*Tile, cssClass string) string {
+	html := ``
+	for _, tile := range tiles {
+		html += weatherBox(tile, cssClass)
+	}
+	return html
+}
+
+func sliceOfTileToHighlightBoxes(tiles []*Tile, cssClass string) string {
 	html := ``
 	for _, tile := range tiles {
 		html += oobHighlightBox(tile, cssClass)
