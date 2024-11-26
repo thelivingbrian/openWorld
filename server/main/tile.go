@@ -60,7 +60,7 @@ func makeTileTemplate(mat Material, y, x int) string {
 	tileCoord := fmt.Sprintf("%d-%d", y, x)
 	cId := "c" + tileCoord // This is used to identify the entire square
 	tId := "t" + tileCoord // This is used to identify the top highlight box
-	placeHold := "%s"      // later becomes user, player, interactable, and svg boxes
+	placeHold := "%s"      // later becomes player, interactable, svg, and weather boxes
 
 	floor1css := ""
 	if mat.Floor1Css != "" {
