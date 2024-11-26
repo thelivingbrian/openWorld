@@ -62,6 +62,12 @@ func (player *Player) setHealth(n int) {
 	updateOne(divPlayerInformation(player)+playerBoxSpecifc(player.tile.y, player.tile.x, player.getIconSync()), player)
 }
 
+func (player *Player) getHealthSync() int {
+	player.healthLock.Lock()
+	defer player.healthLock.Unlock()
+	return player.health
+}
+
 // Icon Observer, note that health can not be locked
 func (player *Player) setIcon() {
 	player.viewLock.Lock()
@@ -245,6 +251,7 @@ func (player *Player) removeFromStage() {
 
 // Recv type
 func respawn(player *Player) {
+	// Can we copy here so that old player is causally disconnected?
 	player.setHealth(150)
 	player.setKillStreak(0)
 	player.setStageName("clinic")
@@ -467,7 +474,7 @@ func (player *Player) activatePower() {
 	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
 	// pop power and use shape + player coords instead?
 	for tile := range player.actions.spaceHighlights {
-		tile.damageAll(50, player)
+		go tile.damageAll(50, player)
 		tile.destroy(player)
 
 		// This doesn't really make sense, it does prevent early termination but leaves old color to persist instead of new
@@ -476,7 +483,7 @@ func (player *Player) activatePower() {
 		tilesToHighlight = append(tilesToHighlight, tile)
 		//}
 
-		go tile.tryToNotifyAfter(2000) // Flat for player if more powers?
+		go tile.tryToNotifyAfter(100) // Flat for player if more powers?
 	}
 	damageBoxes := sliceOfTileToWeatherBoxes(tilesToHighlight, randomFieryColor())
 	player.stage.updateAll(damageBoxes)

@@ -18,7 +18,8 @@ type World struct {
 }
 
 func createGameWorld(db *DB) *World {
-	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: make([]*Player, 0), index: make(map[*Player]int)}}
+	initialPlayer := Player{id: "HS-only", killstreak: 5}
+	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: []*Player{&initialPlayer}, index: make(map[*Player]int)}}
 	return &World{db: db, worldPlayers: make(map[string]*Player), worldStages: make(map[string]*Stage), leaderBoard: lb}
 }
 
@@ -259,6 +260,9 @@ func (h *MaxStreakHeap) Update(player *Player) {
 }
 
 func notifyChangeInMostDangerous(currentMostDangerous *Player) {
+	if currentMostDangerous.id == "HS-only" {
+		return
+	}
 	for _, p := range currentMostDangerous.world.worldPlayers {
 		if p == currentMostDangerous {
 			p.updateBottomText("You are the most dangerous bloop!")

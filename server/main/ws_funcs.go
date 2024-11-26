@@ -201,7 +201,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 		//player.updateBottomText("Heyo ;) ")
 		go func() {
 			randstr := fmt.Sprint(rand.Intn(50000000))
-			p1 := player.world.join(&PlayerRecord{Username: "hello" + randstr, Y: player.y, X: player.x, StageName: player.stage.name, Team: "fuchsia", Trim: "white-b thick"})
+			p1 := player.world.join(&PlayerRecord{Username: "hello" + randstr, Health: 50, Y: player.y, X: player.x, StageName: player.stage.name, Team: "fuchsia", Trim: "white-b thick"})
 			go func() {
 				for {
 					<-p1.updates
