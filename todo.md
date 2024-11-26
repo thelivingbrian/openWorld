@@ -12,8 +12,8 @@
 - [-] No player detail update on respawn 
 - [-] green dot of money is invisible after killing other player
 - [-] relative border radius
-- [ ] Score goal
-- [ ] Minimum streak for most dangerous (Possibly just for award but possibly for inclusion in heap as well)
+- [-] Score goal
+- [-] Minimum streak for most dangerous (Possibly just for award but possibly for inclusion in heap as well)
 
 ## Design Workspace
 - [-] Rotations
