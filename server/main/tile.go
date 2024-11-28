@@ -174,23 +174,12 @@ func (tile *Tile) getAPlayer() *Player {
 	return nil
 }
 
-/*
-func (tile *Tile) incrementAndReturnIfFirst() *Tile {
-	if tile.eventsInFlight.Load() == 0 {
-		tile.eventsInFlight.Add(1)
-		return tile
-	} else {
-		tile.eventsInFlight.Add(1)
-		return nil
-	}
-}
-*/
-
 func (tile *Tile) tryToNotifyAfter(delay int) {
 	time.Sleep(time.Millisecond * time.Duration(delay))
 	tile.eventsInFlight.Add(-1)
 	if tile.eventsInFlight.Load() == 0 {
-		tile.stage.updateAll(weatherBox(tile, "blue trsp20"))
+		// blue trsp20 for gloom
+		tile.stage.updateAll(weatherBox(tile, ""))
 	}
 }
 

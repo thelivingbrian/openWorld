@@ -324,7 +324,8 @@ func interactableBox(tile *Tile) string {
 }
 
 func emptyWeatherBox(y, x int) string {
-	return fmt.Sprintf(`<div id="w%d-%d" class="box zw blue trsp20"></div>`, y, x)
+	//  blue trsp20 for gloom
+	return fmt.Sprintf(`<div id="w%d-%d" class="box zw"></div>`, y, x)
 }
 
 // Create slice of proper size? Currently has many null entries
