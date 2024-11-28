@@ -261,6 +261,6 @@ func teleportEventHandler(teleport *Teleport) func(*Player) {
 
 func sourceStageAuthorizer(source string) func(*Player) bool {
 	return func(p *Player) bool {
-		return p.stageName == source
+		return p.getStageNameSync() == source
 	}
 }

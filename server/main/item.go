@@ -2,13 +2,108 @@ package main
 
 import (
 	"math/rand"
+	"strconv"
+	"strings"
 )
 
-var spawnActions = map[string]func(*Stage){
-	"":               basicSpawn,
-	"none":           nil,
-	"tutorial-boost": tutorialBoost,
-	"tutorial-power": tutorialPower,
+type SpawnAction struct {
+	Should func(*Player, *Stage) bool
+	Action func(*Stage) // func of player?
+}
+
+func (s *SpawnAction) activateFor(player *Player, stage *Stage) {
+	if s.Should == nil || s.Should(player, stage) {
+		if s.Action == nil {
+			return
+		}
+		s.Action(stage)
+	}
+}
+
+var spawnActions = map[string][]SpawnAction{
+	"none": []SpawnAction{SpawnAction{}}, // Same as Should: Always, Action: doNothing
+	"": []SpawnAction{
+		SpawnAction{Should: checkDistanceFromEdge(8, 8), Action: basicSpawn},
+		SpawnAction{Should: nil, Action: basicSpawn},
+	},
+	"tutorial-boost": []SpawnAction{SpawnAction{Should: always, Action: tutorialBoost}},
+	"tutorial-power": []SpawnAction{SpawnAction{Should: always, Action: tutorialPower}},
+}
+
+/////////////////////////////////////////////
+// Gates
+
+func always(*Player, *Stage) bool {
+	return true
+}
+
+func both(f1, f2 func(*Player, *Stage) bool) func(*Player, *Stage) bool {
+	return func(p *Player, s *Stage) bool {
+		return f1(p, s) && f2(p, s)
+	}
+}
+
+func checkDistanceFromEdge(gridHeight, gridWidth int) func(*Player, *Stage) bool {
+	return func(_ *Player, stage *Stage) bool {
+		maxDistance := min((gridHeight-1)/2, (gridWidth-1)/2)
+		currentDistance := distanceFromEdgeOfSpace(stage, gridHeight, gridWidth)
+
+		// Faster than equivalent:  1.0 / math.Pow(4.0, float64(maxDistance-currentDistance))
+		denominator := 1 << (2 * (maxDistance - currentDistance))
+		probability := 1.0 / float64(denominator)
+
+		r := rand.Float64()
+		return r < probability
+	}
+}
+
+func checkTeamName(teamname string) func(*Player, *Stage) bool {
+	return func(p *Player, _ *Stage) bool {
+		return teamname == p.getTeamNameSync()
+	}
+}
+
+func distanceFromEdgeOfSpace(stage *Stage, gridHeight, gridWidth int) int {
+	if stage == nil {
+		return -1
+	}
+	arr := strings.Split(stage.name, ":")
+	if len(arr) != 2 {
+		return -1
+	}
+	coords := strings.Split(arr[1], "-")
+	if len(coords) != 2 {
+		return -1
+	}
+	y, err := strconv.Atoi(coords[0])
+	if err != nil {
+		return -1
+	}
+	x, err := strconv.Atoi(coords[1])
+	if err != nil {
+		return -1
+	}
+	return min(y, x, gridHeight-1-y, gridWidth-1-x)
+}
+
+func min(vals ...int) int {
+	if len(vals) == 0 {
+		panic("min requires at least one argument")
+	}
+	minVal := vals[0]
+	for _, v := range vals[1:] {
+		if v < minVal {
+			minVal = v
+		}
+	}
+	return minVal
+}
+
+/////////////////////////////////////////////
+//  Actions
+
+func doNothing(*Stage) {
+
 }
 
 func tutorialBoost(stage *Stage) {
@@ -51,13 +146,7 @@ func basicSpawn(stage *Stage) {
 			uncoveredTiles[randomIndex].addBoostsAndNotifyAll()
 		}
 	}
-
-}
-
-func (stage *Stage) spawnItems() {
-	if stage.spawn != nil {
-		stage.spawn(stage)
-	}
+	//fmt.Println(randn)
 }
 
 func sortWalkableTiles(tiles [][]*Tile) ([]*Tile, []*Tile) {
@@ -74,4 +163,16 @@ func sortWalkableTiles(tiles [][]*Tile) ([]*Tile, []*Tile) {
 		}
 	}
 	return outCovered, outUncovered
+}
+
+func walkableTiles(tiles [][]*Tile) []*Tile {
+	var out []*Tile
+	for y := range tiles {
+		for x := range tiles[y] {
+			if tiles[y][x].material.Walkable {
+				out = append(out, tiles[y][x])
+			}
+		}
+	}
+	return out
 }

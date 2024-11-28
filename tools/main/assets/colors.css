@@ -46,9 +46,9 @@
 
 .blue-b { border-color: rgb(72, 52, 238); }
 
-.fusia { background-color: rgb(253, 52, 172); }
+.fuchsia { background-color: rgb(253, 52, 172); }
 
-.fusia-b { border-color: rgb(253, 52, 172); }
+.fuchsia-b { border-color: rgb(253, 52, 172); }
 
 .pink { background-color: rgb(253, 182, 215); }
 
@@ -153,4 +153,12 @@
 .dark-grass { background-color: rgb(160, 200, 130); }
 
 .dark-grass-b { border-color: rgb(160, 200, 130); }
+
+.sky-blue { background-color: rgb(48, 152, 240); }
+
+.sky-blue-b { border-color: rgb(48, 152, 240); }
+
+.black { background-color: rgb(0, 0, 0); }
+
+.black-b { border-color: rgb(0, 0, 0); }
 

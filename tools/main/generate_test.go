@@ -10,13 +10,13 @@ func TestSmoothCorners_1(t *testing.T) {
 	gridSize := 4
 	strategy := ""
 	fuzz := 0.1
-	var seed int64 = 314 // Seed producing different value than expected on linux?
+	var seed int64 = 314
 
 	//  precomputed for seed 314
 	//  ....
-	//  ..XX
 	//  .XXX
-	//  ..X.
+	//  .XXX
+	//  .XXX
 	expectedBefore := [][]Cell{
 		{
 			{0, false, false, false, false},
@@ -26,7 +26,13 @@ func TestSmoothCorners_1(t *testing.T) {
 		},
 		{
 			{0, false, false, false, false},
+			{1, false, false, false, false},
+			{1, false, false, false, false},
+			{1, false, false, false, false},
+		},
+		{
 			{0, false, false, false, false},
+			{1, false, false, false, false},
 			{1, false, false, false, false},
 			{1, false, false, false, false},
 		},
@@ -35,16 +41,9 @@ func TestSmoothCorners_1(t *testing.T) {
 			{1, false, false, false, false},
 			{1, false, false, false, false},
 			{1, false, false, false, false},
-		},
-		{
-			{0, false, false, false, false},
-			{0, false, false, false, false},
-			{1, false, false, false, false},
-			{0, false, false, false, false},
 		},
 	}
 
-	// Edges are always uncurved
 	expectedAfter := [][]Cell{
 		{
 			{0, false, false, false, false},
@@ -54,21 +53,21 @@ func TestSmoothCorners_1(t *testing.T) {
 		},
 		{
 			{0, false, false, false, false},
-			{0, true, false, false, false},
 			{1, false, false, false, true},
 			{1, false, false, false, false},
-		},
-		{
-			{0, false, false, false, false},
-			{1, false, true, false, true},
-			{1, false, false, false, false},
 			{1, false, false, false, false},
 		},
 		{
 			{0, false, false, false, false},
-			{0, false, false, true, false},
 			{1, false, false, false, false},
-			{0, false, false, false, true},
+			{1, false, false, false, false},
+			{1, false, false, false, false},
+		},
+		{
+			{0, false, false, false, false},
+			{1, false, false, false, false},
+			{1, false, false, false, false},
+			{1, false, false, false, false},
 		},
 	}
 

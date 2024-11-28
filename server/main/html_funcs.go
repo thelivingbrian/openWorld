@@ -23,7 +23,7 @@ var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(scre
 func htmlFromPlayer(player *Player) []byte {
 	var buf bytes.Buffer
 
-	tileHtml := htmlFromTileGrid(player.stage.tiles, player.y, player.x, player.color)
+	tileHtml := htmlFromTileGrid(player.stage.tiles, player.y, player.x, player.icon)
 
 	err := parsedScreenTemplate.Execute(&buf, tileHtml)
 	if err != nil {
@@ -109,14 +109,14 @@ func chooseYourColor() string {
 					
 					<div class="form-group color-selection">
 						<label id="color-window-0">
-							<input type="radio" name="player-color" value="fusia" checked />
+							<input type="radio" name="player-team" value="fuchsia" checked />
 							<div id="exampleSquare-0">
 								<div class="grid-square-example fusia"></div>
 							</div>
 						</label>
 
 						<label id="color-window-1">
-							<input type="radio" name="player-color" value="sky-blue" />
+							<input type="radio" name="player-team" value="sky-blue" />
 							<div id="exampleSquare-1">
 								<div class="grid-square-example sky-blue"></div>
 							</div>
@@ -271,8 +271,7 @@ func divInputDisabled() string {
 }
 
 func playerInformation(player *Player) string {
-	// mutexing?
-	hearts := getHeartsFromHealth(player.health)
+	hearts := getHeartsFromHealth(player.getHealthSync())
 	return fmt.Sprintf(`%s %s<br /><span class="red">Streak %d</span> | <span class="blue">^ %d</span>  | <span class="dark-green">$ %d</span>`, player.username, hearts, player.getKillStreakSync(), player.actions.boostCounter, player.money)
 }
 
@@ -296,22 +295,22 @@ func getHeartsFromHealth(i int) string {
 func htmlForTile(tile *Tile) string {
 	svgtag := svgFromTile(tile)
 	// grab tile y and x only once here or in parent method?
-	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), emptyUserBox(tile.y, tile.x), interactableBox(tile), svgtag)
+	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x))
 }
 
-func htmlForPlayerTile(tile *Tile, color string) string {
+func htmlForPlayerTile(tile *Tile, icon string) string {
 	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), userBox(tile.y, tile.x, color), interactableBox(tile), svgtag)
+	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x))
 }
 
-func userBox(y, x int, color string) string {
-	return fmt.Sprintf(`<div id="u%d-%d" class="box zu %s r0"></div>`, y, x, color)
+func playerBoxSpecifc(y, x int, icon string) string {
+	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, y, x, icon)
 }
 
 func playerBox(tile *Tile) string {
 	playerIndicator := ""
 	if p := tile.getAPlayer(); p != nil {
-		playerIndicator = cssClassFromHealth(p)
+		playerIndicator = p.getIconSync()
 	}
 	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, tile.y, tile.x, playerIndicator)
 }
@@ -324,8 +323,9 @@ func interactableBox(tile *Tile) string {
 	return fmt.Sprintf(`<div id="i%d-%d" class="box zi %s"></div>`, tile.y, tile.x, indicator)
 }
 
-func emptyUserBox(y, x int) string {
-	return fmt.Sprintf(`<div id="u%d-%d" class="box zu"></div>`, y, x)
+func emptyWeatherBox(y, x int) string {
+	//  blue trsp20 for gloom
+	return fmt.Sprintf(`<div id="w%d-%d" class="box zw"></div>`, y, x)
 }
 
 // Create slice of proper size? Currently has many null entries
@@ -359,18 +359,23 @@ func oobHighlightBox(tile *Tile, cssClass string) string {
 	return fmt.Sprintf(template, tile.y, tile.x, cssClass)
 }
 
+func weatherBox(tile *Tile, cssClass string) string {
+	template := `<div id="w%d-%d" class="box zw %s"></div>`
+	return fmt.Sprintf(template, tile.y, tile.x, cssClass)
+}
+
 func svgFromTile(tile *Tile) string {
-	svgtag := `<div id="%s" class="box zS">`
+	svgtag := `<div id="%s" class="box zs">`
 	if tile.powerUp != nil || tile.money != 0 || tile.boosts != 0 {
-		svgtag += `<svg width="30" height="30">`
+		svgtag += `<svg width="22" height="22">`
 		if tile.powerUp != nil {
-			svgtag += `<circle class="svgRed" cx="10" cy="10" r="10" />`
+			svgtag += `<circle class="svgRed" cx="7" cy="7" r="7" />`
 		}
 		if tile.money != 0 {
-			svgtag += `<circle class="svgGreen" cx="10" cy="20" r="10" />`
+			svgtag += `<circle class="svgGreen" cx="7" cy="14" r="7" />`
 		}
 		if tile.boosts != 0 {
-			svgtag += `<circle class="svgBlue" cx="20" cy="20" r="10" />`
+			svgtag += `<circle class="svgBlue" cx="14" cy="14" r="7" />`
 		}
 		svgtag += `</svg>`
 	}

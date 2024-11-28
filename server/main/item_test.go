@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// Break this out somehow.
+// Pick one and have this specify area.SpawnStrategy
 var itemStageNames = [2]string{"clinic", "test-large"}
 
 func BenchmarkSpawnItems(b *testing.B) {
@@ -21,7 +21,7 @@ func BenchmarkSpawnItems(b *testing.B) {
 			b.StartTimer()
 
 			for i := 0; i < b.N; i++ {
-				testStage.spawnItems()
+				spawnItemsFor(nil, testStage)
 			}
 		})
 	}

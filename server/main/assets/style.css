@@ -16,6 +16,11 @@ html, body {
     overflow-x: hidden;
   }
 
+html {
+    min-height:100%;
+}
+
+
 body {
     /*
     Sunset: #ef693c;
@@ -199,20 +204,20 @@ img {
     background-color: rgb(72, 52, 238);
   }
 
-  .fusia {
+  .fuchsia {
     background-color: rgb(253, 52, 172);
   }
 
   .sky-blue {
-    background-color: rgba(48, 152, 240, 1);
+    background-color: rgba(48, 152, 240);
   }
 
-  .dim-fusia {
-    background-color: rgb(101, 20, 69); /* 60% darker */
+  .dim-fuchsia {
+    background-color: rgb(89, 18, 60); /* 60% darker */
   }
 
   .dim-sky-blue {
-    background-color: rgb(19, 61, 96); /* 60% darker */
+    background-color: rgb(17, 53, 84); /* 60% darker */
   }
 
   .pink {
@@ -246,25 +251,9 @@ img {
     padding: 0px;
 }
   
-.zP {
-    z-index: 20;
-  }
-  
-.zU {
-    z-index: 21;
-}
-  
-.zI {
-    z-index: 25;
-}
-  
-.zS {
-    z-index: 26;
-}
-  
-.top {
-    z-index: 40;
-  }
+/*
+    Box z-Indices
+*/
 
 .floor1 {
     z-index: 10;
@@ -274,6 +263,18 @@ img {
     z-index: 11;
 } 
 
+.zp {
+    z-index: 20;
+}
+  
+.zi {
+    z-index: 25;
+}
+  
+.zs {
+    z-index: 26;
+}
+
 .ceiling1 {
     z-index: 30;
 }
@@ -281,6 +282,16 @@ img {
 .ceiling2 {
     z-index: 31;
 }
+  
+.zw {
+    z-index: 35;
+}
+  
+.top {
+    z-index: 40;
+}
+
+/* Transparency */
 
 .trsp {
     opacity: 0;
@@ -411,7 +422,6 @@ img {
     fill-opacity: .8;
 }
 
-
 /* Buttons */
 .container {
     display: none;
@@ -492,7 +502,7 @@ form {
 }
 
 b {
-    font-size: 1.5em;
+    font-size: 1em;
     display: block;
     margin-bottom: 15px;
     text-align: center;

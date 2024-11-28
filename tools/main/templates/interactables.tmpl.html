@@ -75,6 +75,10 @@
             <label>Destroyable:</label>
             <input type="checkbox" name="fragile">
         </div>
+        <div>
+            <label>Reactions: </label>
+            <input type="text" name="reactions" value="">
+        </div>
         <button class="btn">Save</button>
     </form>
 </div>
@@ -105,6 +109,10 @@
         <div>
             <label>Destroyable:</label>
             <input type="checkbox" name="fragile" {{if .Fragile}}checked{{end}} />
+        </div>
+        <div>
+            <label>Reactions: </label>
+            <input type="text" name="reactions" value="{{.Reactions}}">
         </div>
         <button class="btn">Save</button>
     </form>

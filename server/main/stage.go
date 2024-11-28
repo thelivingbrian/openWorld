@@ -15,7 +15,7 @@ type Stage struct {
 	east        string
 	west        string
 	mapId       string
-	spawn       func(*Stage)
+	spawn       []SpawnAction
 }
 
 // benchmark this please
@@ -72,7 +72,8 @@ func createStageFromArea(area Area) *Stage {
 			if area.Interactables != nil && y < len(area.Interactables) && x < len(area.Interactables[y]) {
 				description := area.Interactables[y][x]
 				if description != nil {
-					outputStage.tiles[y][x].interactable = &Interactable{cssClass: description.CssClass, pushable: description.Pushable, fragile: description.Fragile}
+					reaction := interactableReactions[description.Reactions]
+					outputStage.tiles[y][x].interactable = &Interactable{name: description.Name, cssClass: description.CssClass, pushable: description.Pushable, fragile: description.Fragile, reactions: reaction}
 				}
 			}
 		}
@@ -106,28 +107,11 @@ func (stage *Stage) addPlayer(player *Player) {
 
 // Enqueue updates
 
-func (stage *Stage) updateAllWithHud(tiles []*Tile) {
-	stage.playerMutex.Lock()
-	defer stage.playerMutex.Unlock()
-	for _, player := range stage.playerMap {
-		oobUpdateWithHud(player, tiles)
-	}
-}
-
-func oobUpdateWithHud(player *Player, tiles []*Tile) {
-	// If "shared highlights" e.g. explosive damage had own channel this would be unneeded.
-	// At present it solves the problem of when a global highlight resets each individual player
-	// may view the reset value differently.
-	// Weather channel?
-	player.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles))}
-}
-
 func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
-	playerIcon := fmt.Sprintf(`<div id="u%d-%d" class="box zu %s r0"></div>`, player.y, player.x, player.color)
+	playerIcon := playerBoxSpecifc(player.y, player.x, player.icon)
 	previousBoxes := ""
 	if previous.stage == player.stage {
-		previousBoxes += fmt.Sprintf(`<div id="u%d-%d" class="box zu"></div>`, previous.y, previous.x)
-		previousBoxes += playerBox(previous) // This box may be including the user as well so it needs an update
+		previousBoxes += playerBox(previous)
 	}
 
 	player.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles) + previousBoxes + playerIcon)}
@@ -152,6 +136,7 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 	}
 }
 
+// not related to stage?
 func updateOne(update string, player *Player) {
 	player.updates <- Update{player, []byte(update)}
 }

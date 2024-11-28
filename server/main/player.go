@@ -11,25 +11,34 @@ import (
 type Player struct {
 	id        string
 	username  string
-	color     string
+	team      string
+	trim      string
+	icon      string
+	viewLock  sync.Mutex
 	world     *World
 	stage     *Stage
+	stageLock sync.Mutex
 	tile      *Tile
+	tileLock  sync.Mutex
 	updates   chan Update
 	stageName string
 	conn      *websocket.Conn
 	connLock  sync.Mutex
-	x         int
-	y         int
-	actions   *Actions
-	health    int
-	money     int
-	moneyLock sync.Mutex
+	// x, y are highly mutated and are unsafe to read/difficult to lock. Use tile instead
+	x          int
+	y          int
+	actions    *Actions
+	health     int
+	healthLock sync.Mutex
+	money      int
+	moneyLock  sync.Mutex
 
-	killCount      int
-	killCountLock  sync.Mutex
-	deathCount     int
-	deathCountLock sync.Mutex
+	killCount       int
+	killCountLock   sync.Mutex
+	deathCount      int
+	deathCountLock  sync.Mutex
+	goalsScored     int
+	goalsScoredLock sync.Mutex
 	//experience int //?
 
 	killstreak int
@@ -39,12 +48,77 @@ type Player struct {
 
 // Health observer, All Health changes should go through here
 func (player *Player) setHealth(n int) {
+	player.healthLock.Lock()
 	player.health = n
-	if player.isDead() {
+	player.healthLock.Unlock()
+	if n <= 0 {
 		player.handleDeath()
 		return
 	}
-	updateOne(divPlayerInformation(player), player)
+	player.setIcon()
+	// tile lock
+	player.tileLock.Lock()
+	defer player.tileLock.Unlock()
+	updateOne(divPlayerInformation(player)+playerBoxSpecifc(player.tile.y, player.tile.x, player.getIconSync()), player)
+}
+
+func (player *Player) addToHealth(n int) bool {
+	player.healthLock.Lock()
+	newHealth := player.health + n
+	player.healthLock.Unlock()
+	player.setHealth(newHealth)
+	return newHealth > 0
+}
+
+func (player *Player) getHealthSync() int {
+	player.healthLock.Lock()
+	defer player.healthLock.Unlock()
+	return player.health
+}
+
+// Icon Observer, note that health can not be locked
+func (player *Player) setIcon() {
+	player.viewLock.Lock()
+	defer player.viewLock.Unlock()
+	player.healthLock.Lock()
+	defer player.healthLock.Unlock()
+	if player.health <= 50 {
+		player.icon = "dim-" + player.team + " " + player.trim + " r0"
+		return
+	} else {
+		player.icon = player.team + " " + player.trim + " r0"
+		return
+	}
+}
+
+func (player *Player) getIconSync() string {
+	player.viewLock.Lock()
+	defer player.viewLock.Unlock()
+	return player.icon
+}
+
+func (player *Player) getTeamNameSync() string {
+	player.viewLock.Lock()
+	defer player.viewLock.Unlock()
+	return player.team
+}
+
+func (player *Player) setStageName(name string) {
+	player.stageLock.Lock()
+	defer player.stageLock.Unlock()
+	player.stageName = name
+}
+
+func (player *Player) getStageNameSync() string {
+	player.stageLock.Lock()
+	defer player.stageLock.Unlock()
+	return player.stageName
+}
+
+func (player *Player) getStageSync() *Stage {
+	player.stageLock.Lock()
+	defer player.stageLock.Unlock()
+	return player.stage
 }
 
 // Money observer, All Money changes should go through here
@@ -61,7 +135,7 @@ func (player *Player) getMoneySync() int {
 	return player.money
 }
 
-// Streak observer, All Money changes should go through here
+// Streak observer, All streak changes should go through here
 func (player *Player) setKillStreak(n int) {
 	player.streakLock.Lock()
 	//defer player.streakLock.Unlock()
@@ -110,22 +184,36 @@ func (player *Player) incrementDeathCount() {
 	player.deathCount++
 }
 
-func (player *Player) isDead() bool {
-	return player.health <= 0
+// goals observer no direct set
+func (player *Player) incrementGoalsScored() {
+	player.goalsScoredLock.Lock()
+	defer player.goalsScoredLock.Unlock()
+	player.goalsScored++
 }
 
-func (player *Player) addToHealth(n int) bool {
-	newHealth := player.health + n
-	player.setHealth(newHealth)
-	return newHealth > 0
+func (player *Player) getGoalsScored() int {
+	player.goalsScoredLock.Lock()
+	defer player.goalsScoredLock.Unlock()
+	return player.goalsScored
 }
+
+/*
+func (player *Player) isDead() bool {
+	player.healthLock.Lock()
+	defer player.healthLock.Unlock()
+	return player.health <= 0
+}
+*/
 
 // always called with placeOnStage?
 func (p *Player) assignStageAndListen() {
-	stage := p.world.getNamedStageOrDefault(p.stageName)
+	stage := p.world.getNamedStageOrDefault(p.getStageNameSync())
 	if stage == nil {
 		log.Fatal("Fatal: Default Stage Not Found.")
 	}
+	// read/write concern?
+	p.stageLock.Lock()
+	defer p.stageLock.Unlock()
 	p.stage = stage
 }
 
@@ -136,8 +224,15 @@ func (p *Player) placeOnStage() {
 	p.stage.tiles[p.y][p.x].addPlayerAndNotifyOthers(p)
 	updateScreenFromScratch(p)
 
-	// Could be enhanced
-	p.stage.spawnItems()
+	stageToSpawn := p.getStageSync()
+	spawnItemsFor(p, stageToSpawn)
+}
+
+func spawnItemsFor(p *Player, stage *Stage) {
+	// Should be nil safe but test needed
+	for i := range stage.spawn {
+		stage.spawn[i].activateFor(p, stage)
+	}
 }
 
 func (player *Player) handleDeath() {
@@ -159,9 +254,11 @@ func (player *Player) removeFromStage() {
 
 // Recv type
 func respawn(player *Player) {
+	// Can we copy here so that old player is causally disconnected?
 	player.setHealth(150)
 	player.setKillStreak(0)
-	player.stageName = "clinic"
+	player.setStageName("clinic")
+	//player.stageName = "clinic"
 	player.x = 2
 	player.y = 2
 	player.actions = createDefaultActions()
@@ -260,7 +357,8 @@ func (p *Player) moveWestBoost() {
 
 func (p *Player) tryGoNeighbor(yOffset, xOffset int) {
 	newTile := p.world.getRelativeTile(p.stage.tiles[p.y][p.x], yOffset, xOffset)
-	if p.world.initialPush(newTile, yOffset, xOffset) {
+	p.push(newTile, nil, yOffset, xOffset)
+	if walkable(newTile) {
 		t := &Teleport{destStage: newTile.stage.name, destY: newTile.y, destX: newTile.x}
 		previousTile := p.stage.tiles[p.y][p.x]
 
@@ -275,13 +373,15 @@ func (p *Player) move(yOffset int, xOffset int) {
 	destY := p.y + yOffset
 	destX := p.x + xOffset
 
-	if validCoordinate(destY, destX, p.stage.tiles) && walkable(p.stage.tiles[destY][destX]) {
+	if validCoordinate(destY, destX, p.stage.tiles) { // && p.stage.tiles[destY][destX].material.Walkable {
 		sourceTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
 
-		if p.world.initialPush(destTile, yOffset, xOffset) {
+		p.push(destTile, nil, yOffset, xOffset)
+		if walkable(destTile) {
+			// possible atomic map swap? benchmarks?
 			sourceTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
-			destTile.addPlayerAndNotifyOthers(p)
+			destTile.addPlayerAndNotifyOthers(p)      // Not atomic. Also potentially adding dead player(s) to tile (?)
 
 			previousTile := sourceTile
 			impactedTiles := p.updateSpaceHighlights()
@@ -293,120 +393,54 @@ func (p *Player) move(yOffset int, xOffset int) {
 func (p *Player) pushUnder(yOffset int, xOffset int) {
 	currentTile := p.stage.tiles[p.y][p.x]
 	if currentTile != nil && currentTile.interactable != nil {
-		p.world.initialPush(p.stage.tiles[p.y][p.x], yOffset, xOffset)
+		p.push(p.stage.tiles[p.y][p.x], nil, yOffset, xOffset)
 	}
 }
 
-func (w *World) initialPush(tile *Tile, yOff, xOff int) bool {
-	if tile == nil {
-		return false
-	}
-	tile.interactableMutex.Lock()
-	defer tile.interactableMutex.Unlock()
-	w.push(tile, yOff, xOff)
-	tile.stage.updateAll(interactableBox(tile))
-
-	if tile.interactable == nil {
-		return walkable(tile)
-	} else {
-		return tile.interactable.pushable
-	}
-}
-
-func (w *World) push(tile *Tile, yOff, xOff int) bool { // Returns availability of the tile for an interactible
+func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bool { // Returns if given interacable successfully pushed
 	if tile == nil || tile.teleport != nil {
 		return false
 	}
-	if tile.interactable == nil {
-		return walkable(tile)
+
+	ownLock := tile.interactableMutex.TryLock()
+	if !ownLock {
+		return false // Tile is already locked by another operation
 	}
+	defer tile.interactableMutex.Unlock()
+
+	if tile.interactable == nil {
+		if tile.material.Walkable { // Prevents lock contention from using Walkable()
+			tile.interactable = interactable
+			tile.stage.updateAll(interactableBox(tile))
+			return true
+		}
+		return false
+	}
+
+	if tile.interactable.React(interactable, p, tile) {
+		tile.stage.updateAll(interactableBox(tile)) // full tile?
+		return true
+	}
+
 	if tile.interactable.pushable {
-		nextTile := w.getRelativeTile(tile, yOff, xOff)
+		nextTile := p.world.getRelativeTile(tile, yOff, xOff)
 		if nextTile != nil {
-			ownLock := nextTile.interactableMutex.TryLock()
-			if !ownLock {
-				return false // Tile is already locked by another operation
-			}
-			defer nextTile.interactableMutex.Unlock()
-			if w.push(nextTile, yOff, xOff) {
-				nextTile.interactable = tile.interactable
-				nextTile.stage.updateAll(interactableBox(nextTile))
-				tile.interactable = nil // Take *Interactable and assign here to have option of reacting
+			if p.push(nextTile, tile.interactable, yOff, xOff) {
+				tile.interactable = interactable
+				tile.stage.updateAll(interactableBox(tile))
 				return true
 			}
-		} else {
-			return false
 		}
 	}
 	return false
 }
 
-func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
-	destY := tile.y + yOff
-	destX := tile.x + xOff
-	if validCoordinate(destY, destX, tile.stage.tiles) {
-		return tile.stage.tiles[destY][destX]
-	} else {
-		escapesVertically, escapesHorizontally := validityByAxis(destY, destX, tile.stage.tiles)
-		if escapesVertically && escapesHorizontally {
-			// in bloop world cardinal direction travel may be non-communative
-			// therefore north-east etc neighbor is not uniquely defined
-			// order can probably be uniquely determined when tile.y != tile.x
-			return nil
-		}
-		if escapesVertically {
-			var newStage *Stage
-			if yOff > 0 {
-				newStage = w.getStageByName(tile.stage.south)
-				if newStage == nil {
-					newStage = w.loadStageByName(tile.stage.south)
-				}
-			}
-			if yOff < 0 {
-				newStage = w.getStageByName(tile.stage.north)
-				if newStage == nil {
-					newStage = w.loadStageByName(tile.stage.north)
-				}
-			}
-
-			if newStage != nil {
-				if validCoordinate(mod(destY, len(newStage.tiles)), destX, newStage.tiles) {
-					return newStage.tiles[mod(destY, len(newStage.tiles))][destX]
-				}
-			}
-			return nil
-		}
-		if escapesHorizontally {
-			var newStage *Stage
-			if xOff > 0 {
-				newStage = w.getStageByName(tile.stage.east)
-				if newStage == nil {
-					newStage = w.loadStageByName(tile.stage.east)
-				}
-			}
-			if xOff < 0 {
-				newStage = w.getStageByName(tile.stage.west)
-				if newStage == nil {
-					newStage = w.loadStageByName(tile.stage.west)
-				}
-			}
-
-			if newStage != nil {
-				if validCoordinate(destY, mod(destX, len(newStage.tiles)), newStage.tiles) {
-					return newStage.tiles[destY][mod(destX, len(newStage.tiles))]
-				}
-			}
-			return nil
-		}
-
-		return nil
-	}
-}
-
 func (player *Player) nextPower() {
 	player.actions.spaceStack.pop() // Throw old power away
 	player.setSpaceHighlights()
-	oobUpdateWithHud(player, mapOfTileToArray(player.actions.spaceHighlights))
+	//oobUpdateWithHud(player, mapOfTileToArray(player.actions.spaceHighlights))
+	//spaceHighlighter(tile)
+	updateOne(sliceOfTileToHighlightBoxes(mapOfTileToArray(player.actions.spaceHighlights), "half-trsp salmon"), player)
 }
 
 func (player *Player) setSpaceHighlights() {
@@ -443,18 +477,16 @@ func (player *Player) activatePower() {
 	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
 	// pop power and use shape + player coords instead?
 	for tile := range player.actions.spaceHighlights {
-		tile.damageAll(50, player)
-		tile.destroy(player)
-
-		tileToHighlight := tile.incrementAndReturnIfFirst()
-		if tileToHighlight != nil {
-			tilesToHighlight = append(tilesToHighlight, tileToHighlight)
-		}
+		go tile.damageAll(50, player)
+		destroyInteractable(tile, player)
+		tile.eventsInFlight.Add(1)
+		tilesToHighlight = append(tilesToHighlight, tile)
 
 		go tile.tryToNotifyAfter(100) // Flat for player if more powers?
 	}
-	highlightHtml := sliceOfTileToColoredOoB(tilesToHighlight, randomFieryColor())
-	player.stage.updateAll(highlightHtml)
+	damageBoxes := sliceOfTileToWeatherBoxes(tilesToHighlight, randomFieryColor())
+	player.stage.updateAll(damageBoxes)
+	updateOne(sliceOfTileToHighlightBoxes(tilesToHighlight, ""), player)
 
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	if player.actions.spaceStack.hasPower() {
@@ -512,30 +544,6 @@ func (p *Player) trySend(msg []byte) {
 	p.updates <- Update{p, msg}
 }
 
-/*
-// Show boost when boost counter first breaks 0 with message explaining shift
-// Hide boost on next movement
-
-func (player *Player) showBoost() {
-	player.actions.shiftEngaged = true
-	player.actions.shiftHighlights = map[*Tile]bool{}
-	absCoordinatePairs := applyRelativeDistance(player.y, player.x, jumpCross())
-	for _, pair := range absCoordinatePairs {
-		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
-			tile := player.stage.tiles[pair[0]][pair[1]]
-			player.actions.shiftHighlights[tile] = true
-		}
-	}
-	oobUpdateWithHud(player, mapOfTileToArray(player.actions.shiftHighlights))
-}
-func (player *Player) hideBoost() {
-	player.actions.shiftEngaged = false
-	previous := player.actions.shiftHighlights
-	player.actions.shiftHighlights = map[*Tile]bool{}
-	oobUpdateWithHud(player, mapOfTileToArray(previous))
-}
-*/
-
 /////////////////////////////////////////////////////////////
 // Actions
 
@@ -557,11 +565,8 @@ type StackOfPowerUp struct {
 }
 
 func (player *Player) addBoosts(n int) {
-	//first := player.actions.boostCounter == 0
+	// not thread-safe
 	player.actions.boostCounter += n
-	/*if first {
-		player.showBoost()
-	}*/
 	updateOne(divPlayerInformation(player), player)
 }
 
@@ -590,6 +595,7 @@ func (stack *StackOfPowerUp) pop() *PowerUp {
 
 // Watch this lead to item dupe bugs
 func (stack *StackOfPowerUp) peek() PowerUp {
+	// TOCTOU
 	if stack.hasPower() {
 		stack.powerMutex.Lock()
 		defer stack.powerMutex.Unlock()

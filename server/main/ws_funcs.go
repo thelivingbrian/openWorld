@@ -4,7 +4,9 @@ import (
 	"container/heap"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -136,6 +138,8 @@ type PlayerSocketEvent struct {
 	Arg0     string `json:"arg0"`
 }
 
+var npcs = 0
+
 func getKeyPress(input []byte) (event *PlayerSocketEvent, success bool) {
 	event = &PlayerSocketEvent{}
 	err := json.Unmarshal(input, event)
@@ -194,7 +198,39 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 					<div id="t0-0" class="box top green"></div>`
 			updateOne(exTile, player)
 		*/
-		player.updateBottomText("Heyo ;) ")
+		//player.updateBottomText("Heyo ;) ")
+		go func() {
+			randstr := fmt.Sprint(rand.Intn(50000000))
+			p1 := player.world.join(&PlayerRecord{Username: "hello" + randstr, Health: 50, Y: player.y, X: player.x, StageName: player.stage.name, Team: "fuchsia", Trim: "white-b thick"})
+			go func() {
+				for {
+					<-p1.updates
+				}
+			}()
+			npcs++
+			fmt.Println(npcs)
+			p1.assignStageAndListen()
+			p1.placeOnStage()
+			fmt.Println(p1.stage.name + "Has spawned new npc")
+			for {
+				time.Sleep(250 * time.Millisecond)
+				randn := rand.Intn(5000)
+
+				if randn%4 == 0 {
+					//fmt.Println(randn)
+					p1.moveNorth()
+				}
+				if randn%4 == 1 {
+					p1.moveSouth()
+				}
+				if randn%4 == 2 {
+					p1.moveEast()
+				}
+				if randn%4 == 3 {
+					p1.moveWest()
+				}
+			}
+		}()
 	}
 	if event.Name == "Space-On" {
 		if player.actions.spaceStack.hasPower() {

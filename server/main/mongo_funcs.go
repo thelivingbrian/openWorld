@@ -30,7 +30,8 @@ type AuthorizedUser struct {
 
 type PlayerRecord struct {
 	Username    string    `bson:"username"`
-	Color       string    `bson:"color"`
+	Team        string    `bson:"team"`
+	Trim        string    `bson:"trim"`
 	LastLogin   time.Time `bson:"lastLogin,omitempty"`
 	LastLogout  time.Time `bson:"lastLogout,omitempty"`
 	LastRespawn time.Time `bson:"lastRespawn,omitempty"`
@@ -228,13 +229,15 @@ func (db *DB) updateRecordForPlayer(p *Player) error {
 		bson.M{"username": p.username},
 		bson.M{
 			"$set": bson.M{
-				"x":          p.x,
-				"y":          p.y,
-				"health":     p.health,
-				"stagename":  p.stageName,
-				"money":      p.money,
-				"killCount":  p.killCount,
-				"deathCount": p.deathCount,
+				"x":           p.x, // All of this feels dangerous tbh
+				"y":           p.y,
+				"health":      p.health,
+				"stagename":   p.stageName, // feels risky
+				"money":       p.money,
+				"killCount":   p.killCount,
+				"deathCount":  p.deathCount,
+				"goalsScored": p.goalsScored,
+				"trim":        p.trim,
 			},
 		},
 	)
