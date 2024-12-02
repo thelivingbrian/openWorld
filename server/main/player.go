@@ -236,7 +236,7 @@ func spawnItemsFor(p *Player, stage *Stage) {
 }
 
 func handleDeath(player *Player) {
-	player.tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10) // Tile money needs mutex?
+	player.tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10) // Tile money needs mutex. Use mmath.Min(.., 10) to prevent money glitch
 	player.removeFromStage()
 	player.incrementDeathCount()
 	//player.updateRecord() This will happen in respawn. Doing here seems risky.
