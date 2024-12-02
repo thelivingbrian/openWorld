@@ -78,6 +78,7 @@ var pauseMenu = Menu{
 		{Text: "Resume", eventHandler: turnMenuOff, auth: nil},
 		{Text: "You", eventHandler: openStatsMenu, auth: nil},
 		{Text: "Map", eventHandler: openMapMenu, auth: nil},
+		{Text: "Respawn", eventHandler: openRespawnMenu, auth: nil},
 		{Text: "Quit", eventHandler: Quit, auth: nil},
 	},
 }
@@ -95,6 +96,16 @@ var statsMenu = Menu{
 	InfoHtml: "<h2>Coming Soon</h2>",
 	Links: []MenuLink{
 		{Text: "Back", eventHandler: openPauseMenu, auth: nil},
+	},
+}
+
+var respawnMenu = Menu{
+	Name:     "respawn",
+	CssClass: "",
+	InfoHtml: "<h3>Are you sure? (you will die)</h3>",
+	Links: []MenuLink{
+		{Text: "Yes", eventHandler: handleDeath, auth: nil},
+		{Text: "No", eventHandler: openPauseMenu, auth: nil},
 	},
 }
 
@@ -232,6 +243,10 @@ func openPauseMenu(p *Player) {
 
 func openStatsMenu(p *Player) {
 	turnMenuOn(p, "stats")
+}
+
+func openRespawnMenu(p *Player) {
+	turnMenuOn(p, "respawn")
 }
 
 // Player specific menues

@@ -52,7 +52,7 @@ func (player *Player) setHealth(n int) {
 	player.health = n
 	player.healthLock.Unlock()
 	if n <= 0 {
-		player.handleDeath()
+		handleDeath(player)
 		return
 	}
 	player.setIcon()
@@ -235,7 +235,7 @@ func spawnItemsFor(p *Player, stage *Stage) {
 	}
 }
 
-func (player *Player) handleDeath() {
+func handleDeath(player *Player) {
 	player.tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10) // Tile money needs mutex?
 	player.removeFromStage()
 	player.incrementDeathCount()
