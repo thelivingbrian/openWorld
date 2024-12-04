@@ -56,7 +56,7 @@ func (player *Player) setHealth(n int) {
 		return
 	}
 	player.setIcon()
-	// tile lock
+	// tile could be nil?
 	player.tileLock.Lock()
 	defer player.tileLock.Unlock()
 	updateOne(divPlayerInformation(player)+playerBoxSpecifc(player.tile.y, player.tile.x, player.getIconSync()), player)
@@ -221,7 +221,9 @@ func (p *Player) placeOnStage() {
 	p.stage.addPlayer(p)
 
 	// This is unsafe  (out of range)
+	//p.tileLock.Lock()
 	p.stage.tiles[p.y][p.x].addPlayerAndNotifyOthers(p)
+	//p.tileLock.Unlock()
 	updateScreenFromScratch(p)
 
 	stageToSpawn := p.getStageSync()
@@ -248,7 +250,9 @@ func (player *Player) updateRecord() {
 }
 
 func (player *Player) removeFromStage() {
-	player.tile.removePlayerAndNotifyOthers(player)
+	if !player.tile.removePlayerAndNotifyOthers(player) {
+		player.tile.removePlayerAndNotifyOthers(player)
+	}
 	player.stage.removePlayerById(player.id)
 }
 
@@ -380,8 +384,13 @@ func (p *Player) move(yOffset int, xOffset int) {
 		p.push(destTile, nil, yOffset, xOffset)
 		if walkable(destTile) {
 			// possible atomic map swap? benchmarks?
-			sourceTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
-			destTile.addPlayerAndNotifyOthers(p)      // Not atomic. Also potentially adding dead player(s) to tile (?)
+			p.tileLock.Lock()
+			defer p.tileLock.Unlock()
+			if !sourceTile.removePlayerAndNotifyOthers(p) {
+				fmt.Println("failed to remove")
+				return
+			}
+			destTile.addPlayerAndNotifyOthers(p) // Not atomic. Also potentially adding dead player(s) to tile (?)
 
 			previousTile := sourceTile
 			impactedTiles := p.updateSpaceHighlights()

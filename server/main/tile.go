@@ -141,8 +141,8 @@ func (tile *Tile) addPlayer(player *Player) {
 		player.y = tile.y
 		player.x = tile.x
 		// Is reverse order better?
-		player.tileLock.Lock()
-		defer player.tileLock.Unlock()
+		//player.tileLock.Lock()
+		//defer player.tileLock.Unlock()
 		player.tile = tile
 	} else {
 		if tile.teleport.confirmation {
@@ -154,15 +154,20 @@ func (tile *Tile) addPlayer(player *Player) {
 	}
 }
 
-func (tile *Tile) removePlayerAndNotifyOthers(player *Player) {
-	tile.removePlayer(player.id)
+func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
+	success = tile.removePlayer(player.id)
 	tile.stage.updateAllExcept(playerBox(tile), player)
+	return success
 }
 
-func (tile *Tile) removePlayer(playerId string) {
+func (tile *Tile) removePlayer(playerId string) (success bool) {
 	tile.playerMutex.Lock()
-	delete(tile.playerMap, playerId)
+	_, ok := tile.playerMap[playerId]
+	if ok {
+		delete(tile.playerMap, playerId)
+	}
 	tile.playerMutex.Unlock() // Defer instead?
+	return ok
 }
 
 func (tile *Tile) getAPlayer() *Player {
