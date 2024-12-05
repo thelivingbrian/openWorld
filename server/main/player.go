@@ -92,9 +92,7 @@ func (player *Player) setIcon() {
 }
 
 func (player *Player) getIconSync() string {
-	//fmt.Println("2a")
 	player.viewLock.Lock()
-	//fmt.Println("2b")
 	defer player.viewLock.Unlock()
 	return player.icon
 }
@@ -204,19 +202,17 @@ func (p *Player) assignStageAndListen() {
 	if stage == nil {
 		log.Fatal("Fatal: Default Stage Not Found.")
 	}
-	// read/write concern?
+
 	p.stageLock.Lock()
-	defer p.stageLock.Unlock()
 	p.stage = stage
+	p.stageLock.Unlock()
 }
 
-func (p *Player) placeOnStage() {
+func placePlayerOnStageAt(p *Player, y, x int) {
 	p.stage.addPlayer(p)
 
-	p.tileLock.Lock()
 	// This is unsafe  (out of range)
-	p.stage.tiles[p.y][p.x].addPlayerAndNotifyOthers(p)
-	p.tileLock.Unlock()
+	p.stage.tiles[y][x].addPlayerAndNotifyOthers(p)
 	updateScreenFromScratch(p)
 
 	stageToSpawn := p.getStageSync()
@@ -261,7 +257,8 @@ func respawn(player *Player) {
 	player.actions = createDefaultActions()
 	player.updateRecord()
 	player.assignStageAndListen()
-	player.placeOnStage()
+	//player.placeOnStage()
+	placePlayerOnStageAt(player, 2, 2)
 }
 
 func (p *Player) moveNorth() {
@@ -455,8 +452,7 @@ func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bo
 func (player *Player) nextPower() {
 	player.actions.spaceStack.pop() // Throw old power away
 	player.setSpaceHighlights()
-	//oobUpdateWithHud(player, mapOfTileToArray(player.actions.spaceHighlights))
-	//spaceHighlighter(tile)
+	// change to constant or let player configure
 	updateOne(sliceOfTileToHighlightBoxes(mapOfTileToArray(player.actions.spaceHighlights), "half-trsp salmon"), player)
 }
 
@@ -516,11 +512,11 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 		player.stage.removePlayerById(player.id)
 	}
 	player.stageName = teleport.destStage
-	player.y = teleport.destY
-	player.x = teleport.destX
+	//player.y = teleport.destY
+	//player.x = teleport.destX
 	player.updateRecord()
 	player.assignStageAndListen()
-	player.placeOnStage()
+	placePlayerOnStageAt(player, teleport.destY, teleport.destX)
 	impactedTiles := player.updateSpaceHighlights()
 	updateOneAfterMovement(player, impactedTiles, nil)
 }

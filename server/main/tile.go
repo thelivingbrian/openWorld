@@ -99,10 +99,12 @@ func makeTileTemplate(mat Material, y, x int) string {
 // newTile w/ teleport?
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
+	player.tileLock.Lock()
 	tile.playerMutex.Lock()
 	tile.addPlayer(player)
+	player.tileLock.Unlock()
 	tile.playerMutex.Unlock()
-	tile.stage.updateAllExcept(playerBox(tile), player)
+	tile.stage.updateAllExcept(playerBox(tile), player) // Update all?
 }
 
 func (tile *Tile) addPlayer(player *Player) {
@@ -136,7 +138,7 @@ func (tile *Tile) addPlayer(player *Player) {
 		// tile.playerMutex.Lock() should already be locked
 		tile.playerMap[player.id] = player
 
-		// player.tileLock.Lock() should already be locked (usually by transfer)
+		// player.tileLock.Lock() should already be locked (usually by transfer or addAndNotify)
 		player.tile = tile
 		player.y = tile.y
 		player.x = tile.x

@@ -40,3 +40,7 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 
 	}
 }
+
+func (p *Player) placeOnStage() {
+	placePlayerOnStageAt(p, p.y, p.x)
+}
