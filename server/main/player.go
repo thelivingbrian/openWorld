@@ -353,13 +353,13 @@ func (p *Player) tryGoNeighbor(yOffset, xOffset int) {
 	newTile := p.world.getRelativeTile(p.stage.tiles[p.y][p.x], yOffset, xOffset)
 	p.push(newTile, nil, yOffset, xOffset)
 	if walkable(newTile) {
-		t := &Teleport{destStage: newTile.stage.name, destY: newTile.y, destX: newTile.x}
-		previousTile := p.stage.tiles[p.y][p.x]
-
 		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
+
+		t := &Teleport{destStage: newTile.stage.name, destY: newTile.y, destX: newTile.x}
 		p.applyTeleport(t)
+
 		impactedTiles := p.updateSpaceHighlights()
-		updateOneAfterMovement(p, impactedTiles, previousTile)
+		updateOneAfterMovement(p, impactedTiles)
 	}
 }
 
@@ -368,7 +368,7 @@ func (p *Player) move(yOffset int, xOffset int) {
 	destX := p.x + xOffset
 
 	if validCoordinate(destY, destX, p.stage.tiles) {
-		sourceTile := p.stage.tiles[p.y][p.x]
+		sourceTile := p.stage.tiles[p.y][p.x] // reading twice
 		destTile := p.stage.tiles[destY][destX]
 
 		p.push(destTile, nil, yOffset, xOffset)
@@ -377,7 +377,7 @@ func (p *Player) move(yOffset int, xOffset int) {
 			transferPlayer(p, sourceTile, destTile)
 
 			impactedTiles := p.updateSpaceHighlights()
-			updateOneAfterMovement(p, impactedTiles, sourceTile)
+			updateOneAfterMovement(p, impactedTiles)
 		}
 	}
 }
@@ -394,8 +394,8 @@ func transferPlayer(p *Player, source, dest *Tile) {
 			source.playerMutex.Unlock()
 			dest.playerMutex.Unlock()
 			if ok {
-				source.stage.updateAllExcept(playerBox(source), p)
-				dest.stage.updateAllExcept(playerBox(dest), p)
+				source.stage.updateAll(playerBox(source))
+				dest.stage.updateAll(playerBox(dest))
 			}
 		} else {
 			source.playerMutex.Unlock()
@@ -467,7 +467,7 @@ func (player *Player) setSpaceHighlights() {
 	}
 }
 
-func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highlights
+func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed and new highlights
 	previous := player.actions.spaceHighlights
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceStack.peek().areaOfInfluence)
@@ -518,7 +518,7 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	player.assignStageAndListen()
 	placePlayerOnStageAt(player, teleport.destY, teleport.destX)
 	impactedTiles := player.updateSpaceHighlights()
-	updateOneAfterMovement(player, impactedTiles, nil)
+	updateOneAfterMovement(player, impactedTiles)
 }
 
 ////////////////////////////////////////////////////////////
