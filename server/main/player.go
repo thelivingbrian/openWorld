@@ -140,7 +140,6 @@ func (player *Player) getMoneySync() int {
 // Streak observer, All streak changes should go through here
 func (player *Player) setKillStreak(n int) {
 	player.streakLock.Lock()
-	//defer player.streakLock.Unlock()
 	player.killstreak = n
 	player.streakLock.Unlock()
 
@@ -199,14 +198,6 @@ func (player *Player) getGoalsScored() int {
 	return player.goalsScored
 }
 
-/*
-func (player *Player) isDead() bool {
-	player.healthLock.Lock()
-	defer player.healthLock.Unlock()
-	return player.health <= 0
-}
-*/
-
 // always called with placeOnStage?
 func (p *Player) assignStageAndListen() {
 	stage := p.world.getNamedStageOrDefault(p.getStageNameSync())
@@ -222,10 +213,10 @@ func (p *Player) assignStageAndListen() {
 func (p *Player) placeOnStage() {
 	p.stage.addPlayer(p)
 
+	p.tileLock.Lock()
 	// This is unsafe  (out of range)
-	//p.tileLock.Lock()
 	p.stage.tiles[p.y][p.x].addPlayerAndNotifyOthers(p)
-	//p.tileLock.Unlock()
+	p.tileLock.Unlock()
 	updateScreenFromScratch(p)
 
 	stageToSpawn := p.getStageSync()
@@ -243,7 +234,6 @@ func handleDeath(player *Player) {
 	player.tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10) // Tile money needs mutex. Use mmath.Min(.., 10) to prevent money glitch
 	player.removeFromTileAndStage()
 	player.incrementDeathCount()
-	//player.updateRecord() This will happen in respawn. Doing here seems risky.
 	respawn(player)
 }
 
@@ -252,21 +242,20 @@ func (player *Player) updateRecord() {
 }
 
 func (player *Player) removeFromTileAndStage() {
-	//player.tile.removePlayerAndNotifyOthers(player)
 	if !player.tile.removePlayerAndNotifyOthers(player) {
-		fmt.Println("trying again")
+		fmt.Println("Trying again") // Can prevent race with transfer but not perfect
 		player.tile.removePlayerAndNotifyOthers(player)
 	}
 	player.stage.removePlayerById(player.id)
 }
 
-// Recv type
 func respawn(player *Player) {
 	// Can we copy here so that old player is causally disconnected?
+	// not easily.
 	player.setHealth(150)
 	player.setKillStreak(0)
 	player.setStageName("clinic")
-	//player.stageName = "clinic"
+
 	player.x = 2
 	player.y = 2
 	player.actions = createDefaultActions()
@@ -381,29 +370,22 @@ func (p *Player) move(yOffset int, xOffset int) {
 	destY := p.y + yOffset
 	destX := p.x + xOffset
 
-	if validCoordinate(destY, destX, p.stage.tiles) { // && p.stage.tiles[destY][destX].material.Walkable {
+	if validCoordinate(destY, destX, p.stage.tiles) {
 		sourceTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
 
 		p.push(destTile, nil, yOffset, xOffset)
 		if walkable(destTile) {
-			// possible atomic map swap? benchmarks?
+			// atomic map swap
 			transferPlayer(p, sourceTile, destTile)
-			//fmt.Println("yo2")
-			/*
-				if !sourceTile.removePlayerAndNotifyOthers(p) {
-					fmt.Println("failed to remove")
-					return
-				}
-				destTile.addPlayerAndNotifyOthers(p) // Not atomic. Also potentially adding dead player(s) to tile (?)
-			*/
+
 			impactedTiles := p.updateSpaceHighlights()
 			updateOneAfterMovement(p, impactedTiles, sourceTile)
 		}
 	}
 }
 
-func transferPlayer(p *Player, source, dest *Tile) bool {
+func transferPlayer(p *Player, source, dest *Tile) {
 	p.tileLock.Lock()
 	if source.playerMutex.TryLock() {
 		if dest.playerMutex.TryLock() {
@@ -423,7 +405,6 @@ func transferPlayer(p *Player, source, dest *Tile) bool {
 		}
 	}
 	p.tileLock.Unlock()
-	return false
 }
 
 func (p *Player) pushUnder(yOffset int, xOffset int) {
@@ -533,7 +514,6 @@ func (player *Player) activatePower() {
 func (player *Player) applyTeleport(teleport *Teleport) {
 	if player.stageName != teleport.destStage {
 		player.stage.removePlayerById(player.id)
-		//player.removeFromStage() // This was always happening before but in multiple places
 	}
 	player.stageName = teleport.destStage
 	player.y = teleport.destY

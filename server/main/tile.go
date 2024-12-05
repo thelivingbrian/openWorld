@@ -133,27 +133,19 @@ func (tile *Tile) addPlayer(player *Player) {
 		player.stage.updateAll(svgFromTile(tile))
 	}
 	if tile.teleport == nil {
-		// Worth it? no - but maybe with dupe logic?
-		//if player.getHealthSync() == 0 {
-		//	return
-		//}
-		//tile.playerMutex.Lock()
+		// tile.playerMutex.Lock() should already be locked
 		tile.playerMap[player.id] = player
-		//tile.playerMutex.Unlock()
+
+		// player.tileLock.Lock() should already be locked (usually by transfer)
+		player.tile = tile
 		player.y = tile.y
 		player.x = tile.x
-		// Is reverse order better?
-		//player.tileLock.Lock()
-		//defer player.tileLock.Unlock()
-		player.tile = tile
-
-		//impactedTiles := player.updateSpaceHighlights()
-		//updateOneAfterMovement(player, impactedTiles, nil)
 	} else {
 		if tile.teleport.confirmation {
 			player.menues["teleport"] = continueTeleporting(tile.teleport)
 			turnMenuOn(player, "teleport")
 		} else {
+			// new routine prevents deadlock
 			go player.applyTeleport(tile.teleport)
 		}
 	}
