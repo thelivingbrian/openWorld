@@ -56,10 +56,10 @@ func (player *Player) setHealth(n int) {
 		return
 	}
 	player.setIcon()
-	// tile could be nil?
 	player.tileLock.Lock()
+	tile := player.tile
 	defer player.tileLock.Unlock()
-	updateOne(divPlayerInformation(player)+playerBoxSpecifc(player.tile.y, player.tile.x, player.getIconSync()), player)
+	updateOne(divPlayerInformation(player)+playerBoxSpecifc(tile.y, tile.x, player.getIconSync()), player)
 }
 
 func (player *Player) addToHealth(n int) bool {
@@ -92,7 +92,9 @@ func (player *Player) setIcon() {
 }
 
 func (player *Player) getIconSync() string {
+	//fmt.Println("2a")
 	player.viewLock.Lock()
+	//fmt.Println("2b")
 	defer player.viewLock.Unlock()
 	return player.icon
 }
@@ -239,7 +241,7 @@ func spawnItemsFor(p *Player, stage *Stage) {
 
 func handleDeath(player *Player) {
 	player.tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10) // Tile money needs mutex. Use mmath.Min(.., 10) to prevent money glitch
-	player.removeFromStage()
+	player.removeFromTileAndStage()
 	player.incrementDeathCount()
 	//player.updateRecord() This will happen in respawn. Doing here seems risky.
 	respawn(player)
@@ -249,8 +251,10 @@ func (player *Player) updateRecord() {
 	go player.world.db.updateRecordForPlayer(player)
 }
 
-func (player *Player) removeFromStage() {
+func (player *Player) removeFromTileAndStage() {
+	//player.tile.removePlayerAndNotifyOthers(player)
 	if !player.tile.removePlayerAndNotifyOthers(player) {
+		fmt.Println("trying again")
 		player.tile.removePlayerAndNotifyOthers(player)
 	}
 	player.stage.removePlayerById(player.id)
@@ -384,19 +388,42 @@ func (p *Player) move(yOffset int, xOffset int) {
 		p.push(destTile, nil, yOffset, xOffset)
 		if walkable(destTile) {
 			// possible atomic map swap? benchmarks?
-			p.tileLock.Lock()
-			defer p.tileLock.Unlock()
-			if !sourceTile.removePlayerAndNotifyOthers(p) {
-				fmt.Println("failed to remove")
-				return
-			}
-			destTile.addPlayerAndNotifyOthers(p) // Not atomic. Also potentially adding dead player(s) to tile (?)
-
-			previousTile := sourceTile
+			transferPlayer(p, sourceTile, destTile)
+			//fmt.Println("yo2")
+			/*
+				if !sourceTile.removePlayerAndNotifyOthers(p) {
+					fmt.Println("failed to remove")
+					return
+				}
+				destTile.addPlayerAndNotifyOthers(p) // Not atomic. Also potentially adding dead player(s) to tile (?)
+			*/
 			impactedTiles := p.updateSpaceHighlights()
-			updateOneAfterMovement(p, impactedTiles, previousTile)
+			updateOneAfterMovement(p, impactedTiles, sourceTile)
 		}
 	}
+}
+
+func transferPlayer(p *Player, source, dest *Tile) bool {
+	p.tileLock.Lock()
+	if source.playerMutex.TryLock() {
+		if dest.playerMutex.TryLock() {
+			_, ok := source.playerMap[p.id]
+			if ok {
+				delete(source.playerMap, p.id)
+				dest.addPlayer(p)
+			}
+			source.playerMutex.Unlock()
+			dest.playerMutex.Unlock()
+			if ok {
+				source.stage.updateAllExcept(playerBox(source), p)
+				dest.stage.updateAllExcept(playerBox(dest), p)
+			}
+		} else {
+			source.playerMutex.Unlock()
+		}
+	}
+	p.tileLock.Unlock()
+	return false
 }
 
 func (p *Player) pushUnder(yOffset int, xOffset int) {
@@ -505,7 +532,8 @@ func (player *Player) activatePower() {
 
 func (player *Player) applyTeleport(teleport *Teleport) {
 	if player.stageName != teleport.destStage {
-		player.removeFromStage() // This was always happening before but in multiple places
+		player.stage.removePlayerById(player.id)
+		//player.removeFromStage() // This was always happening before but in multiple places
 	}
 	player.stageName = teleport.destStage
 	player.y = teleport.destY
@@ -513,6 +541,8 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	player.updateRecord()
 	player.assignStageAndListen()
 	player.placeOnStage()
+	impactedTiles := player.updateSpaceHighlights()
+	updateOneAfterMovement(player, impactedTiles, nil)
 }
 
 ////////////////////////////////////////////////////////////

@@ -99,7 +99,9 @@ func makeTileTemplate(mat Material, y, x int) string {
 // newTile w/ teleport?
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
+	tile.playerMutex.Lock()
 	tile.addPlayer(player)
+	tile.playerMutex.Unlock()
 	tile.stage.updateAllExcept(playerBox(tile), player)
 }
 
@@ -135,21 +137,24 @@ func (tile *Tile) addPlayer(player *Player) {
 		//if player.getHealthSync() == 0 {
 		//	return
 		//}
-		tile.playerMutex.Lock()
+		//tile.playerMutex.Lock()
 		tile.playerMap[player.id] = player
-		tile.playerMutex.Unlock()
+		//tile.playerMutex.Unlock()
 		player.y = tile.y
 		player.x = tile.x
 		// Is reverse order better?
 		//player.tileLock.Lock()
 		//defer player.tileLock.Unlock()
 		player.tile = tile
+
+		//impactedTiles := player.updateSpaceHighlights()
+		//updateOneAfterMovement(player, impactedTiles, nil)
 	} else {
 		if tile.teleport.confirmation {
 			player.menues["teleport"] = continueTeleporting(tile.teleport)
 			turnMenuOn(player, "teleport")
 		} else {
-			player.applyTeleport(tile.teleport)
+			go player.applyTeleport(tile.teleport)
 		}
 	}
 }

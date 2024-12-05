@@ -86,7 +86,7 @@ func handleNewPlayer(existingPlayer *Player) {
 
 func logOut(player *Player) {
 	player.updateRecord() // Should return error
-	player.removeFromStage()
+	player.removeFromTileAndStage()
 	player.world.wPlayerMutex.Lock()
 	delete(player.world.worldPlayers, player.id)
 	index, exists := player.world.leaderBoard.mostDangerous.index[player]
