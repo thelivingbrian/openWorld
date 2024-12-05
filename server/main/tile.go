@@ -104,7 +104,7 @@ func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	tile.addPlayer(player)
 	player.tileLock.Unlock()
 	tile.playerMutex.Unlock()
-	tile.stage.updateAll(playerBox(tile)) // Update all?
+	tile.stage.updateAllExcept(playerBox(tile), player) // Update all?
 }
 
 func (tile *Tile) addPlayer(player *Player) {
@@ -155,7 +155,7 @@ func (tile *Tile) addPlayer(player *Player) {
 
 func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
 	success = tile.removePlayer(player.id)
-	tile.stage.updateAll(playerBox(tile))
+	tile.stage.updateAllExcept(playerBox(tile), player)
 	return success
 }
 

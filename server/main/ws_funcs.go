@@ -56,7 +56,7 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 func handleNewPlayer(existingPlayer *Player) {
 	go existingPlayer.sendUpdates()
 	existingPlayer.assignStageAndListen()
-	existingPlayer.placeOnStage()
+	placePlayerOnStageAt(existingPlayer, existingPlayer.y, existingPlayer.x)
 	fmt.Println("New Connection")
 	for {
 		_, msg, err := existingPlayer.conn.ReadMessage()
@@ -210,7 +210,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 			npcs++
 			fmt.Println(npcs)
 			p1.assignStageAndListen()
-			p1.placeOnStage()
+			placePlayerOnStageAt(p1, p1.y, p1.x)
 			fmt.Println(p1.stage.name + "Has spawned new npc")
 			for {
 				time.Sleep(250 * time.Millisecond)

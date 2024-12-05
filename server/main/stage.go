@@ -107,14 +107,14 @@ func (stage *Stage) addPlayer(player *Player) {
 
 // Enqueue updates
 
-func updateOneAfterMovement(player *Player, tiles []*Tile) {
-	/*playerIcon := playerBoxSpecifc(player.y, player.x, player.icon)
+func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
+	playerIcon := playerBoxSpecifc(player.y, player.x, player.icon)
 	previousBoxes := ""
 	if previous != nil && previous.stage == player.stage {
 		previousBoxes += playerBox(previous)
-	}*/
+	}
 
-	player.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles))} // + previousBoxes + playerIcon)}
+	player.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles) + previousBoxes + playerIcon)}
 }
 
 func (stage *Stage) updateAll(update string) {

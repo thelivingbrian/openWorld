@@ -133,6 +133,12 @@
       - [-] Resize grid squares
   - [-] fix display of map
 
+## Display 
+- [ ] Highlights
+  - [ ] Same stage teleport highlights
+    - [ ] Overlap excluded
+    - [ ] Sometimes entire highlight is removed at once shortly after displaying ?
+
 ## Bottom text
  - [-] Trigger
  - [ ] Display as "!" Notification in mobile instead of on screen
