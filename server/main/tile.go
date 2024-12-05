@@ -10,7 +10,7 @@ import (
 
 type Tile struct {
 	material          Material
-	playerMap         map[string]*Player
+	playerMap         map[string]**Player
 	playerMutex       sync.Mutex
 	interactable      *Interactable
 	interactableMutex sync.Mutex
@@ -41,7 +41,7 @@ func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 	}
 	return &Tile{
 		material:       mat,
-		playerMap:      make(map[string]*Player),
+		playerMap:      make(map[string]**Player),
 		playerMutex:    sync.Mutex{},
 		stage:          nil,
 		teleport:       nil,
@@ -98,37 +98,37 @@ func makeTileTemplate(mat Material, y, x int) string {
 
 // newTile w/ teleport?
 
-func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
+func (tile *Tile) addPlayerAndNotifyOthers(player **Player) {
 	tile.addPlayer(player)
-	tile.stage.updateAllExcept(playerBox(tile), player)
+	tile.stage.updateAllExcept(playerBox(tile), *player)
 }
 
-func (tile *Tile) addPlayer(player *Player) {
+func (tile *Tile) addPlayer(player **Player) {
 	itemChange := false
 	if tile.bottomText != "" {
-		player.updateBottomText(tile.bottomText)
+		(*player).updateBottomText(tile.bottomText)
 	}
 	if tile.powerUp != nil {
 		// This should be mutexed I think
 		powerUp := tile.powerUp
 		tile.powerUp = nil
-		player.actions.spaceStack.push(powerUp)
+		(*player).actions.spaceStack.push(powerUp)
 		itemChange = true
 	}
 	if tile.money != 0 {
 		// I tex you tex
-		player.setMoney(player.money + tile.money)
+		(*player).setMoney((*player).money + tile.money)
 		tile.money = 0
 		itemChange = true
 	}
 	if tile.boosts > 0 {
 		// We all tex
-		player.addBoosts(tile.boosts)
+		(*player).addBoosts(tile.boosts)
 		tile.boosts = 0
 		itemChange = true
 	}
 	if itemChange {
-		player.stage.updateAll(svgFromTile(tile))
+		(*player).stage.updateAll(svgFromTile(tile))
 	}
 	if tile.teleport == nil {
 		// Worth it? no - but maybe with dupe logic?
@@ -136,45 +136,46 @@ func (tile *Tile) addPlayer(player *Player) {
 		//	return
 		//}
 		tile.playerMutex.Lock()
-		tile.playerMap[player.id] = player
+		tile.playerMap[(*player).id] = player
 		tile.playerMutex.Unlock()
-		player.y = tile.y
-		player.x = tile.x
+		(*player).y = tile.y
+		(*player).x = tile.x
 		// Is reverse order better?
 		//player.tileLock.Lock()
 		//defer player.tileLock.Unlock()
-		player.tile = tile
+		(*player).tile = tile
 	} else {
 		if tile.teleport.confirmation {
-			player.menues["teleport"] = continueTeleporting(tile.teleport)
-			turnMenuOn(player, "teleport")
+			(*player).menues["teleport"] = continueTeleporting(tile.teleport)
+			turnMenuOn((*player), "teleport")
 		} else {
-			player.applyTeleport(tile.teleport)
+			applyTeleport(player, tile.teleport)
 		}
 	}
 }
 
-func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
-	success = tile.removePlayer(player.id)
+func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (locator **Player, success bool) {
+	locator, success = tile.removePlayer(player.id)
 	tile.stage.updateAllExcept(playerBox(tile), player)
-	return success
+	return locator, success
 }
 
-func (tile *Tile) removePlayer(playerId string) (success bool) {
+func (tile *Tile) removePlayer(playerId string) (locator **Player, success bool) {
 	tile.playerMutex.Lock()
-	_, ok := tile.playerMap[playerId]
+	locator, ok := tile.playerMap[playerId]
 	if ok {
 		delete(tile.playerMap, playerId)
 	}
 	tile.playerMutex.Unlock() // Defer instead?
-	return ok
+	return locator, ok
 }
 
 func (tile *Tile) getAPlayer() *Player {
 	tile.playerMutex.Lock()
 	defer tile.playerMutex.Unlock()
 	for _, player := range tile.playerMap {
-		return player
+		//fmt.Println(fmt.Sprintf("Got %p : %s - %s", player, (*player).id, (*player).username))
+		return *player
 	}
 	return nil
 }
@@ -192,16 +193,16 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	survivors := false
 	// player map needs mutex ?
 	for _, player := range tile.playerMap {
-		if player.getTeamNameSync() == initiator.getTeamNameSync() {
+		if (*player).getTeamNameSync() == initiator.getTeamNameSync() {
 			continue
 		}
-		survived := player.addToHealth(-dmg)
+		survived := (*player).addToHealth(-dmg)
 		survivors = survivors || survived
 		if !survived {
 			initiator.incrementKillCount()
 			initiator.incrementKillStreak()
 			initiator.updateRecord()
-			go player.world.db.saveKillEvent(tile, initiator, player) // Maybe should just pass in required fields?
+			go (*player).world.db.saveKillEvent(tile, initiator, (*player)) // Maybe should just pass in required fields?
 		}
 	}
 	if survivors {

@@ -10,7 +10,7 @@ import (
 
 type World struct {
 	db           *DB
-	worldPlayers map[string]*Player
+	worldPlayers map[string]**Player
 	wPlayerMutex sync.Mutex
 	worldStages  map[string]*Stage
 	wStageMutex  sync.Mutex
@@ -20,7 +20,17 @@ type World struct {
 func createGameWorld(db *DB) *World {
 	minimumKillstreak := Player{id: "HS-only", killstreak: 0} // Do somewhere else?
 	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: []*Player{&minimumKillstreak}, index: make(map[*Player]int)}}
-	return &World{db: db, worldPlayers: make(map[string]*Player), worldStages: make(map[string]*Stage), leaderBoard: lb}
+	return &World{db: db, worldPlayers: make(map[string]**Player), worldStages: make(map[string]*Stage), leaderBoard: lb}
+}
+
+func createZombie(w *World) *Player {
+	return &Player{
+		id:       "",
+		username: "ZOMBIE",
+		team:     "black",
+		trim:     "",
+		world:    w,
+	}
 }
 
 func (world *World) join(record *PlayerRecord) *Player {
@@ -64,7 +74,7 @@ func (world *World) join(record *PlayerRecord) *Player {
 
 	//New Method
 	world.wPlayerMutex.Lock()
-	world.worldPlayers[token] = newPlayer
+	world.worldPlayers[token] = &newPlayer
 	world.leaderBoard.mostDangerous.Push(newPlayer) // Give own mutex?
 	world.wPlayerMutex.Unlock()
 
@@ -75,7 +85,7 @@ func (world *World) isLoggedInAlready(username string) bool {
 	world.wPlayerMutex.Lock()
 	defer world.wPlayerMutex.Unlock()
 	for _, player := range world.worldPlayers {
-		if player.username == username {
+		if (*player).username == username {
 			return true
 		}
 	}
@@ -265,10 +275,10 @@ func notifyChangeInMostDangerous(currentMostDangerous *Player) {
 		return
 	}
 	for _, p := range currentMostDangerous.world.worldPlayers {
-		if p == currentMostDangerous {
-			p.updateBottomText("You are the most dangerous bloop!")
+		if (*p) == currentMostDangerous {
+			(*p).updateBottomText("You are the most dangerous bloop!")
 		} else {
-			p.updateBottomText(currentMostDangerous.username + " has become the most dangerous bloop...")
+			(*p).updateBottomText(currentMostDangerous.username + " has become the most dangerous bloop...")
 		}
 	}
 }

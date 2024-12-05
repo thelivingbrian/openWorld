@@ -272,7 +272,11 @@ func continueTeleporting(teleport *Teleport) Menu {
 func teleportEventHandler(teleport *Teleport) func(*Player) {
 	return func(player *Player) {
 		previousTile := player.tile
-		player.applyTeleport(teleport)
+		locator, ok := previousTile.removePlayerAndNotifyOthers(player)
+		if !ok {
+			return
+		}
+		applyTeleport(locator, teleport)
 
 		impactedTiles := player.updateSpaceHighlights()
 		updateOneAfterMovement(player, impactedTiles, previousTile)

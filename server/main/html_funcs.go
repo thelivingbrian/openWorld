@@ -272,6 +272,9 @@ func divInputDisabled() string {
 
 func playerInformation(player *Player) string {
 	hearts := getHeartsFromHealth(player.getHealthSync())
+	if player.actions == nil {
+		return ""
+	}
 	return fmt.Sprintf(`%s %s<br /><span class="red">Streak %d</span> | <span class="blue">^ %d</span>  | <span class="dark-green">$ %d</span>`, player.username, hearts, player.getKillStreakSync(), player.actions.boostCounter, player.money)
 }
 

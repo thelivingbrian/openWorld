@@ -45,24 +45,28 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 	world.wPlayerMutex.Unlock()
 
 	if playerExists {
-		existingPlayer.conn = conn
+		(*existingPlayer).conn = conn
 		//existingPlayer.world = world
+
+		fmt.Println(fmt.Sprintf("world locator - %p : %p - %s - %s", existingPlayer, (*existingPlayer), (*existingPlayer).id, (*existingPlayer).username))
 		handleNewPlayer(existingPlayer)
 	} else {
 		fmt.Println("player not found with token: " + token)
 	}
 }
 
-func handleNewPlayer(existingPlayer *Player) {
-	go existingPlayer.sendUpdates()
-	existingPlayer.assignStageAndListen()
-	existingPlayer.placeOnStage()
+func handleNewPlayer(existingPlayer **Player) {
+	go (*existingPlayer).sendUpdates()
+	assignStageAndListen(existingPlayer)
+	fmt.Println(fmt.Sprintf("placing - %p : %p - %s - %s", existingPlayer, (*existingPlayer), (*existingPlayer).id, (*existingPlayer).username))
+	placeOnStage(existingPlayer)
 	fmt.Println("New Connection")
+	player := (*existingPlayer)
 	for {
-		_, msg, err := existingPlayer.conn.ReadMessage()
+		_, msg, err := player.conn.ReadMessage()
 		if err != nil {
 			// This allows for rage quit by pressing X, should add timeout to encourage finding safety
-			logOut(existingPlayer)
+			logOut(player)
 			return
 		}
 
@@ -71,14 +75,14 @@ func handleNewPlayer(existingPlayer *Player) {
 			fmt.Println("Invalid input")
 			continue
 		}
-		if event.Token != existingPlayer.id {
+		if event.Token != player.id {
 			fmt.Println("Cheating")
 			break
 		}
 		// Throttle input here?
 
-		existingPlayer.handlePress(event)
-		if existingPlayer.conn == nil {
+		player.handlePress(event)
+		if player.conn == nil {
 			return
 		}
 	}
@@ -179,6 +183,12 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 	}
 	if event.Name == "f" {
 		updateScreenFromScratch(player)
+		player.tile.playerMutex.Lock()
+		defer player.tile.playerMutex.Unlock()
+		for _, player := range player.tile.playerMap {
+			fmt.Println(fmt.Sprintf("%p : %p - %s - %s", player, (*player), (*player).id, (*player).username))
+			//return *player
+		}
 	}
 	if event.Name == "g" {
 		/*
@@ -209,8 +219,15 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 			}()
 			npcs++
 			fmt.Println(npcs)
-			p1.assignStageAndListen()
-			p1.placeOnStage()
+
+			player.world.wPlayerMutex.Lock()
+			loc, ok := player.world.worldPlayers[p1.id]
+			player.world.wPlayerMutex.Unlock()
+			if !ok {
+				return
+			}
+			assignStageAndListen(loc)
+			placeOnStage(loc)
 			fmt.Println(p1.stage.name + "Has spawned new npc")
 			for {
 				time.Sleep(250 * time.Millisecond)

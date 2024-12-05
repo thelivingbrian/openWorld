@@ -206,7 +206,8 @@ func (player *Player) isDead() bool {
 */
 
 // always called with placeOnStage?
-func (p *Player) assignStageAndListen() {
+func assignStageAndListen(loc **Player) {
+	p := *loc
 	stage := p.world.getNamedStageOrDefault(p.getStageNameSync())
 	if stage == nil {
 		log.Fatal("Fatal: Default Stage Not Found.")
@@ -217,21 +218,27 @@ func (p *Player) assignStageAndListen() {
 	p.stage = stage
 }
 
-func (p *Player) placeOnStage() {
-	p.stage.addPlayer(p)
+func placeOnStage(p **Player) {
+	stage := (*p).stage
+	if stage == nil {
+		return
+	}
+	stage.addPlayer(*p)
 
 	// This is unsafe  (out of range)
 	//p.tileLock.Lock()
-	p.stage.tiles[p.y][p.x].addPlayerAndNotifyOthers(p)
+	stage.tiles[(*p).y][(*p).x].addPlayerAndNotifyOthers(p)
 	//p.tileLock.Unlock()
-	updateScreenFromScratch(p)
+	updateScreenFromScratch((*p))
 
-	stageToSpawn := p.getStageSync()
-	spawnItemsFor(p, stageToSpawn)
+	stageToSpawn := (*p).getStageSync()
+	spawnItemsFor((*p), stageToSpawn)
 }
 
 func spawnItemsFor(p *Player, stage *Stage) {
-	// Should be nil safe but test needed
+	if stage == nil {
+		return
+	}
 	for i := range stage.spawn {
 		stage.spawn[i].activateFor(p, stage)
 	}
@@ -242,7 +249,20 @@ func handleDeath(player *Player) {
 	player.removeFromStage()
 	player.incrementDeathCount()
 	//player.updateRecord() This will happen in respawn. Doing here seems risky.
-	respawn(player)
+	player.world.wPlayerMutex.Lock()
+	oldLocator, ok := player.world.worldPlayers[player.id]
+	fmt.Println(fmt.Sprintf("oldLocator before - %p : %p - %s - %s", oldLocator, (*oldLocator), (*oldLocator).id, (*oldLocator).username))
+	if !ok {
+		fmt.Println("no old locator")
+	}
+	*oldLocator = createZombie(player.world)
+	fmt.Println(fmt.Sprintf("oldLocator after  - %p : %p - %s - %s", oldLocator, (*oldLocator), (*oldLocator).id, (*oldLocator).username))
+	newLoc := &player
+	fmt.Println(fmt.Sprintf("newLocator        - %p : %p - %s - %s", newLoc, (*newLoc), (*newLoc).id, (*newLoc).username))
+	player.world.worldPlayers[player.id] = newLoc
+	player.world.wPlayerMutex.Unlock()
+
+	respawn(newLoc)
 }
 
 func (player *Player) updateRecord() {
@@ -250,14 +270,16 @@ func (player *Player) updateRecord() {
 }
 
 func (player *Player) removeFromStage() {
-	if !player.tile.removePlayerAndNotifyOthers(player) {
+	_, ok := player.tile.removePlayerAndNotifyOthers(player)
+	if !ok {
 		player.tile.removePlayerAndNotifyOthers(player)
 	}
 	player.stage.removePlayerById(player.id)
 }
 
 // Recv type
-func respawn(player *Player) {
+func respawn(locator **Player) {
+	player := *locator
 	// Can we copy here so that old player is causally disconnected?
 	player.setHealth(150)
 	player.setKillStreak(0)
@@ -267,8 +289,9 @@ func respawn(player *Player) {
 	player.y = 2
 	player.actions = createDefaultActions()
 	player.updateRecord()
-	player.assignStageAndListen()
-	player.placeOnStage()
+	assignStageAndListen(locator)
+	//player.placeOnStage()
+	placeOnStage(locator)
 }
 
 func (p *Player) moveNorth() {
@@ -366,8 +389,11 @@ func (p *Player) tryGoNeighbor(yOffset, xOffset int) {
 		t := &Teleport{destStage: newTile.stage.name, destY: newTile.y, destX: newTile.x}
 		previousTile := p.stage.tiles[p.y][p.x]
 
-		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
-		p.applyTeleport(t)
+		locator, ok := p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
+		if !ok {
+			return
+		}
+		applyTeleport(locator, t)
 		impactedTiles := p.updateSpaceHighlights()
 		updateOneAfterMovement(p, impactedTiles, previousTile)
 	}
@@ -386,11 +412,12 @@ func (p *Player) move(yOffset int, xOffset int) {
 			// possible atomic map swap? benchmarks?
 			p.tileLock.Lock()
 			defer p.tileLock.Unlock()
-			if !sourceTile.removePlayerAndNotifyOthers(p) {
+			locator, ok := sourceTile.removePlayerAndNotifyOthers(p)
+			if !ok {
 				fmt.Println("failed to remove")
 				return
 			}
-			destTile.addPlayerAndNotifyOthers(p) // Not atomic. Also potentially adding dead player(s) to tile (?)
+			destTile.addPlayerAndNotifyOthers(locator) // Not atomic. Also potentially adding dead player(s) to tile (?)
 
 			previousTile := sourceTile
 			impactedTiles := p.updateSpaceHighlights()
@@ -503,7 +530,8 @@ func (player *Player) activatePower() {
 	}
 }
 
-func (player *Player) applyTeleport(teleport *Teleport) {
+func applyTeleport(locator **Player, teleport *Teleport) {
+	player := *locator
 	if player.stageName != teleport.destStage {
 		player.removeFromStage() // This was always happening before but in multiple places
 	}
@@ -511,8 +539,9 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	player.y = teleport.destY
 	player.x = teleport.destX
 	player.updateRecord()
-	player.assignStageAndListen()
-	player.placeOnStage()
+	assignStageAndListen(locator)
+	//player.placeOnStage()
+	placeOnStage(locator)
 }
 
 ////////////////////////////////////////////////////////////
