@@ -389,7 +389,7 @@ func transferPlayer(p *Player, source, dest *Tile) {
 			_, ok := source.playerMap[p.id]
 			if ok {
 				delete(source.playerMap, p.id)
-				dest.addPlayer(p)
+				dest.addLockedPlayertoLockedTile(p)
 			}
 			source.playerMutex.Unlock()
 			dest.playerMutex.Unlock()

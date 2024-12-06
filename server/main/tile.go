@@ -101,13 +101,13 @@ func makeTileTemplate(mat Material, y, x int) string {
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	player.tileLock.Lock()
 	tile.playerMutex.Lock()
-	tile.addPlayer(player)
+	tile.addLockedPlayertoLockedTile(player)
 	player.tileLock.Unlock()
 	tile.playerMutex.Unlock()
 	tile.stage.updateAllExcept(playerBox(tile), player) // Update all?
 }
 
-func (tile *Tile) addPlayer(player *Player) {
+func (tile *Tile) addLockedPlayertoLockedTile(player *Player) {
 	itemChange := false
 	if tile.bottomText != "" {
 		player.updateBottomText(tile.bottomText)
