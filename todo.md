@@ -7,13 +7,15 @@
 - [ ] Test client
 - [ ] Constant special area names in tests and game 
 - [-] Boosts not spawning at same rate?
-- [ ] Instant kill button or key
+- [-] Instant kill button or key
 - [-] Shift prevents stage changes even with no boosts 
 - [-] No player detail update on respawn 
 - [-] green dot of money is invisible after killing other player
 - [-] relative border radius
 - [-] Score goal
 - [-] Minimum streak for most dangerous (Possibly just for award but possibly for inclusion in heap as well)
+- [-] Player zombies
+  - [-] up to 1,000 concurrent player deaths
 
 ## Design Workspace
 - [-] Rotations
