@@ -36,17 +36,16 @@ func (world *World) join(record *PlayerRecord) *Player {
 	updatesForPlayer := make(chan Update)
 
 	// probably take this out later...
-	/*
-		team := "sky-blue"
-		if record.Team != "" {
-			team = record.Team
-		}
-	*/
+
+	team := "sky-blue"
+	if record.Team != "" {
+		team = record.Team
+	}
 
 	newPlayer := &Player{
 		id:        token,
 		username:  record.Username,
-		team:      record.Team,
+		team:      team,
 		trim:      record.Trim,
 		stage:     nil,
 		updates:   updatesForPlayer,

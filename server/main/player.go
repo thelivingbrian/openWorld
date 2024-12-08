@@ -24,7 +24,7 @@ type Player struct {
 	stageName string
 	conn      *websocket.Conn
 	connLock  sync.Mutex
-	// x, y are highly mutated and are unsafe to read/difficult to lock. Use tile instead
+	// x, y are highly mutated and are unsafe to read/difficult to lock. Use tile instead ?
 	x          int
 	y          int
 	actions    *Actions
@@ -103,9 +103,18 @@ func (player *Player) getTeamNameSync() string {
 	return player.team
 }
 
+// Stage observer, also sets name.
+func (player *Player) setStage(stage *Stage) {
+	player.stageLock.Lock()
+	defer player.stageLock.Unlock()
+	player.stage = stage
+	player.stageName = stage.name
+}
+
 func (player *Player) setStageName(name string) {
 	player.stageLock.Lock()
 	defer player.stageLock.Unlock()
+	player.stage = nil // hm
 	player.stageName = name
 }
 
@@ -196,27 +205,27 @@ func (player *Player) getGoalsScored() int {
 	return player.goalsScored
 }
 
-// always called with placeOnStage?
-func (p *Player) assignStageAndListen() {
-	stage := p.world.getNamedStageOrDefault(p.getStageNameSync())
+func getStageFromStageName(world *World, stageName string) *Stage {
+	stage := world.getNamedStageOrDefault(stageName)
 	if stage == nil {
 		log.Fatal("Fatal: Default Stage Not Found.")
 	}
 
-	p.stageLock.Lock()
-	p.stage = stage
-	p.stageLock.Unlock()
+	return stage
 }
 
-func placePlayerOnStageAt(p *Player, y, x int) {
-	p.stage.addPlayer(p)
+// take stage
+func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
+	if y >= len(stage.tiles) || x >= len(stage.tiles[y]) {
+		log.Fatal("Fatal: Invalid coords to place on stage.")
+	}
 
-	// This is unsafe  (out of range)
-	p.stage.tiles[y][x].addPlayerAndNotifyOthers(p)
+	stage.addPlayer(p)
+	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
+	spawnItemsFor(p, stage)
+
+	p.setStage(stage)
 	updateScreenFromScratch(p)
-
-	stageToSpawn := p.getStageSync()
-	spawnItemsFor(p, stageToSpawn)
 }
 
 func spawnItemsFor(p *Player, stage *Stage) {
@@ -227,6 +236,7 @@ func spawnItemsFor(p *Player, stage *Stage) {
 }
 
 func handleDeath(player *Player) {
+	//tile lock
 	player.tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10) // Tile money needs mutex. Use mmath.Min(.., 10) to prevent money glitch
 	player.removeFromTileAndStage()
 	player.incrementDeathCount()
@@ -246,19 +256,18 @@ func (player *Player) removeFromTileAndStage() {
 }
 
 func respawn(player *Player) {
-	// Can we copy here so that old player is causally disconnected?
-	// not easily.
+	// Copy here so old player is disconnected?
 	player.setHealth(150)
 	player.setKillStreak(0)
-	player.setStageName("clinic")
+	player.setStageName("clinic") // Set here for record
 
 	player.x = 2
 	player.y = 2
 	player.actions = createDefaultActions()
 	player.updateRecord()
-	player.assignStageAndListen()
-	//player.placeOnStage()
-	placePlayerOnStageAt(player, 2, 2)
+
+	stage := getStageFromStageName(player.world, "clinic")
+	placePlayerOnStageAt(player, stage, 2, 2)
 }
 
 func (p *Player) moveNorth() {
@@ -511,12 +520,11 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	if player.stageName != teleport.destStage {
 		player.stage.removePlayerById(player.id)
 	}
-	player.stageName = teleport.destStage
-	//player.y = teleport.destY
-	//player.x = teleport.destX
+	stage := getStageFromStageName(player.world, teleport.destStage)
+	placePlayerOnStageAt(player, stage, teleport.destY, teleport.destX)
+
 	player.updateRecord()
-	player.assignStageAndListen()
-	placePlayerOnStageAt(player, teleport.destY, teleport.destX)
+
 	impactedTiles := player.updateSpaceHighlights()
 	updateOneAfterMovement(player, impactedTiles, nil)
 }
