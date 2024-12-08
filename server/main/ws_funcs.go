@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -138,8 +139,6 @@ type PlayerSocketEvent struct {
 	Arg0     string `json:"arg0"`
 }
 
-var npcs = 0
-
 func getKeyPress(input []byte) (event *PlayerSocketEvent, success bool) {
 	event = &PlayerSocketEvent{}
 	err := json.Unmarshal(input, event)
@@ -198,39 +197,8 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 					<div id="t0-0" class="box top green"></div>`
 			updateOne(exTile, player)
 		*/
-		//player.updateBottomText("Heyo ;) ")
-		go func() {
-			randstr := fmt.Sprint(rand.Intn(50000000))
-			p1 := player.world.join(&PlayerRecord{Username: "hello" + randstr, Health: 50, Y: player.y, X: player.x, StageName: player.stage.name, Team: "fuchsia", Trim: "white-b thick"})
-			go func() {
-				for {
-					<-p1.updates
-				}
-			}()
-			npcs++
-			fmt.Println(npcs)
-			s := getStageFromStageName(p1.world, player.stage.name)
-			placePlayerOnStageAt(p1, s, p1.y, p1.x)
-			fmt.Println(p1.stage.name + "Has spawned new npc")
-			for {
-				time.Sleep(250 * time.Millisecond)
-				randn := rand.Intn(5000)
-
-				if randn%4 == 0 {
-					//fmt.Println(randn)
-					p1.moveNorth()
-				}
-				if randn%4 == 1 {
-					p1.moveSouth()
-				}
-				if randn%4 == 2 {
-					p1.moveEast()
-				}
-				if randn%4 == 3 {
-					p1.moveWest()
-				}
-			}
-		}()
+		player.updateBottomText("Heyo ;) ")
+		newPlayerWithRandomMovement(player)
 	}
 	if event.Name == "Space-On" {
 		if player.actions.spaceStack.hasPower() {
@@ -261,4 +229,36 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 			menu.attemptClick(player, *event)
 		}
 	}
+}
+
+func newPlayerWithRandomMovement(ref *Player) {
+	username := "user-" + uuid.New().String()
+	newPlayer := ref.world.join(&PlayerRecord{Username: username, Health: 50, Y: ref.y, X: ref.x, StageName: ref.stage.name, Team: "fuchsia", Trim: "white-b thick"})
+	go func() {
+		for {
+			<-newPlayer.updates
+		}
+	}()
+	s := getStageFromStageName(newPlayer.world, newPlayer.stageName)
+	placePlayerOnStageAt(newPlayer, s, newPlayer.y, newPlayer.x)
+	fmt.Println(newPlayer.stage.name + "Has spawned new npc")
+	go func() {
+		for {
+			time.Sleep(250 * time.Millisecond)
+			randn := rand.Intn(5000)
+
+			if randn%4 == 0 {
+				newPlayer.moveNorth()
+			}
+			if randn%4 == 1 {
+				newPlayer.moveSouth()
+			}
+			if randn%4 == 2 {
+				newPlayer.moveEast()
+			}
+			if randn%4 == 3 {
+				newPlayer.moveWest()
+			}
+		}
+	}()
 }
