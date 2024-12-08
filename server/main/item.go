@@ -99,6 +99,19 @@ func min(vals ...int) int {
 	return minVal
 }
 
+func max(vals ...int) int {
+	if len(vals) == 0 {
+		panic("max requires at least one argument")
+	}
+	maxVal := vals[0]
+	for _, v := range vals[1:] {
+		if v > maxVal {
+			maxVal = v
+		}
+	}
+	return maxVal
+}
+
 /////////////////////////////////////////////
 //  Actions
 

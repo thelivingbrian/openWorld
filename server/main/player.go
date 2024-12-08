@@ -114,7 +114,7 @@ func (player *Player) setStage(stage *Stage) {
 func (player *Player) setStageName(name string) {
 	player.stageLock.Lock()
 	defer player.stageLock.Unlock()
-	player.stage = nil // hm
+	//player.stage = nil // hm
 	player.stageName = name
 }
 
@@ -220,11 +220,11 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 		log.Fatal("Fatal: Invalid coords to place on stage.")
 	}
 
+	p.setStage(stage)
+	spawnItemsFor(p, stage)
 	stage.addPlayer(p)
 	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
-	spawnItemsFor(p, stage)
 
-	p.setStage(stage)
 	updateScreenFromScratch(p)
 }
 
@@ -236,8 +236,9 @@ func spawnItemsFor(p *Player, stage *Stage) {
 }
 
 func handleDeath(player *Player) {
-	//tile lock
-	player.tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10) // Tile money needs mutex. Use mmath.Min(.., 10) to prevent money glitch
+	player.tileLock.Lock()
+	player.tile.addMoneyAndNotifyAll(max(halveMoneyOf(player), 10)) // Tile money needs mutex. Use mmath.Min(.., 10) to prevent money glitch
+	player.tileLock.Unlock()
 	player.removeFromTileAndStage()
 	player.incrementDeathCount()
 	respawn(player)
