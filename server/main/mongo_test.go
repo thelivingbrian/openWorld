@@ -32,6 +32,7 @@ func testdb() *DB {
 		testDB = &DB{
 			users:         testClient.Database("bloop-TESTdb").Collection("testusers"),
 			playerRecords: testClient.Database("bloop-TESTdb").Collection("testplayers"),
+			events:        testClient.Database("bloop-TESTdb").Collection("testevents"),
 		}
 	}
 	return testDB

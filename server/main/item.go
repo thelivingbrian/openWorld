@@ -26,7 +26,7 @@ var spawnActions = map[string][]SpawnAction{
 		SpawnAction{Should: checkDistanceFromEdge(8, 8), Action: basicSpawn},
 		SpawnAction{Should: nil, Action: basicSpawn},
 	},
-	"tutorial-boost": []SpawnAction{SpawnAction{Should: always, Action: tutorialBoost}},
+	"tutorial-boost": []SpawnAction{SpawnAction{Should: always, Action: tutorialBoost()}},
 	"tutorial-power": []SpawnAction{SpawnAction{Should: always, Action: tutorialPower}},
 }
 
@@ -119,8 +119,23 @@ func doNothing(*Stage) {
 
 }
 
+func addBoostsAt(y, x int) func(stage *Stage) {
+	return func(stage *Stage) {
+		if y >= len(stage.tiles) || x >= len(stage.tiles[y]) {
+			return
+		}
+		stage.tiles[y][x].addBoostsAndNotifyAll()
+	}
+}
+
+/*
 func tutorialBoost(stage *Stage) {
 	stage.tiles[8][8].addBoostsAndNotifyAll()
+}
+*/
+
+func tutorialBoost() func(stage *Stage) {
+	return addBoostsAt(8, 8)
 }
 
 func tutorialPower(stage *Stage) {
@@ -131,7 +146,7 @@ func basicSpawn(stage *Stage) {
 	// Very basic spawn algorithm
 	// Will spawn on convered tiles with higher freq. than uncovered
 	// Will spawn boost and powers with equal probability
-	shapes := [][][2]int{grid9x9, grid3x3, grid5x5, grid7x7, grid9x9, jumpCross(), cross(), x()}
+	shapes := [][][2]int{grid9x9} //, grid3x3, grid5x5, grid7x7, grid9x9, jumpCross(), cross(), x()}
 
 	randn := rand.Intn(30)
 	spawnCovered := randn%3 == 0

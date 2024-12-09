@@ -25,8 +25,9 @@ func createGameWorld(db *DB) *World {
 
 func (world *World) join(record *PlayerRecord) *Player {
 	token := uuid.New().String()
+	// need log levels
 	fmt.Println("New Player: " + record.Username)
-	fmt.Println("Token: " + token)
+	//fmt.Println("Token: " + token)
 
 	if world.isLoggedInAlready(record.Username) {
 		fmt.Println("User attempting to log in but is logged in already: " + record.Username)

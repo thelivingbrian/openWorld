@@ -149,6 +149,8 @@ func getKeyPress(input []byte) (event *PlayerSocketEvent, success bool) {
 	return event, true
 }
 
+var npcs = 0
+
 func (player *Player) handlePress(event *PlayerSocketEvent) {
 	if event.Name == "w" {
 		/*class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "twilight"</script> </div>`
@@ -197,8 +199,10 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 					<div id="t0-0" class="box top green"></div>`
 			updateOne(exTile, player)
 		*/
+		npcs++
+		fmt.Println(npcs)
 		player.updateBottomText("Heyo ;) ")
-		newPlayerWithRandomMovement(player)
+		spawnNewPlayerWithRandomMovement(player)
 	}
 	if event.Name == "Space-On" {
 		if player.actions.spaceStack.hasPower() {
@@ -231,7 +235,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 	}
 }
 
-func newPlayerWithRandomMovement(ref *Player) {
+func spawnNewPlayerWithRandomMovement(ref *Player) *Player {
 	username := "user-" + uuid.New().String()
 	newPlayer := ref.world.join(&PlayerRecord{Username: username, Health: 50, Y: ref.y, X: ref.x, StageName: ref.stage.name, Team: "fuchsia", Trim: "white-b thick"})
 	go func() {
@@ -241,7 +245,7 @@ func newPlayerWithRandomMovement(ref *Player) {
 	}()
 	s := getStageFromStageName(newPlayer.world, newPlayer.stageName)
 	placePlayerOnStageAt(newPlayer, s, newPlayer.y, newPlayer.x)
-	fmt.Println(newPlayer.stage.name + "Has spawned new npc")
+	//fmt.Println(newPlayer.stage.name + "Has spawned new npc")
 	go func() {
 		for {
 			time.Sleep(250 * time.Millisecond)
@@ -261,4 +265,5 @@ func newPlayerWithRandomMovement(ref *Player) {
 			}
 		}
 	}()
+	return newPlayer
 }
