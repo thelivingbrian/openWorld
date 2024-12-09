@@ -241,7 +241,6 @@ func spawnNewPlayerWithRandomMovement(ref *Player, interval int64) *Player {
 	}()
 	s := getStageFromStageName(newPlayer.world, newPlayer.stageName)
 	placePlayerOnStageAt(newPlayer, s, newPlayer.y, newPlayer.x)
-	//fmt.Println(newPlayer.stage.name + "Has spawned new npc")
 	go func() {
 		for {
 			time.Sleep(time.Duration(interval) * time.Millisecond)

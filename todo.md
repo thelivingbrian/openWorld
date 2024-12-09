@@ -16,6 +16,7 @@
 - [-] Minimum streak for most dangerous (Possibly just for award but possibly for inclusion in heap as well)
 - [-] Player zombies
   - [-] up to 1,000 concurrent player deaths
+  - [-] Automated test
 
 ## Design Workspace
 - [-] Rotations
@@ -190,7 +191,7 @@
       - [-] testing db works and is arguably better?
     - [ ] Test fails due to race condition 
   - [-] Most Dangerous
-  - [ ] Precomputed seed disagrees with current result (on linux)
+  - [-] Precomputed seed disagrees with current result (on linux)
 - [ ] Load testing
   - [ ] Selenium? 
 

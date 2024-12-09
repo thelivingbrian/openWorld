@@ -96,15 +96,13 @@ func makeTileTemplate(mat Material, y, x int) string {
 	return fmt.Sprintf(template, cId, mat.CssColor, floor1css, floor2css, placeHold, placeHold, placeHold, ceil1css, ceil2css, placeHold, tId)
 }
 
-// newTile w/ teleport?
-
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	player.tileLock.Lock()
 	tile.playerMutex.Lock()
 	tile.addLockedPlayertoLockedTile(player)
 	player.tileLock.Unlock()
 	tile.playerMutex.Unlock()
-	tile.stage.updateAllExcept(playerBox(tile), player) // Update all?
+	tile.stage.updateAllExcept(playerBox(tile), player)
 }
 
 func (tile *Tile) addLockedPlayertoLockedTile(player *Player) {

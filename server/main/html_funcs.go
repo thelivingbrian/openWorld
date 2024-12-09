@@ -48,16 +48,8 @@ func htmlFromTileGrid(tiles [][]*Tile, py, px int, color string) [][]string {
 	return output
 }
 
-func spaceHighlighter(_ *Tile) string {
-	/*
-		This has bugs because it doesn't update on movement of the other player, only the highlight viewer
-		if len(tile.playerMap) > 0 {
-			return "half-trsp dark-blue"
-		}
-	*/
-	//if walkable(tile) {
-	//	return "half-trsp salmon" // vs "" to show no effect
-	//}
+func spaceHighlighter() string {
+	// constant instead.
 	return "half-trsp salmon"
 }
 
@@ -344,7 +336,7 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 
 		_, impactsHud := player.actions.spaceHighlights[tile]
 		if impactsHud {
-			highlights += oobHighlightBox(tile, spaceHighlighter(tile))
+			highlights += oobHighlightBox(tile, spaceHighlighter())
 			continue
 		}
 

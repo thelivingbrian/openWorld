@@ -114,7 +114,6 @@ func (player *Player) setStage(stage *Stage) {
 func (player *Player) setStageName(name string) {
 	player.stageLock.Lock()
 	defer player.stageLock.Unlock()
-	//player.stage = nil // hm
 	player.stageName = name
 }
 
@@ -214,7 +213,6 @@ func getStageFromStageName(world *World, stageName string) *Stage {
 	return stage
 }
 
-// take stage
 func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 	if y >= len(stage.tiles) || x >= len(stage.tiles[y]) {
 		log.Fatal("Fatal: Invalid coords to place on stage.")
@@ -237,7 +235,7 @@ func spawnItemsFor(p *Player, stage *Stage) {
 
 func handleDeath(player *Player) {
 	player.tileLock.Lock()
-	player.tile.addMoneyAndNotifyAll(max(halveMoneyOf(player), 10)) // Tile money needs mutex. Use mmath.Min(.., 10) to prevent money glitch
+	player.tile.addMoneyAndNotifyAll(max(halveMoneyOf(player), 10)) // Tile money needs mutex.
 	player.tileLock.Unlock()
 	player.removeFromTileAndStage()
 	player.incrementDeathCount()
@@ -463,7 +461,7 @@ func (player *Player) nextPower() {
 	player.actions.spaceStack.pop() // Throw old power away
 	player.setSpaceHighlights()
 	// change to constant or let player configure
-	updateOne(sliceOfTileToHighlightBoxes(mapOfTileToArray(player.actions.spaceHighlights), "half-trsp salmon"), player)
+	updateOne(sliceOfTileToHighlightBoxes(mapOfTileToArray(player.actions.spaceHighlights), spaceHighlighter()), player)
 }
 
 func (player *Player) setSpaceHighlights() {
