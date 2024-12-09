@@ -19,16 +19,14 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	testStage := world.getNamedStageOrDefault("test-walls-interactable")
 	testStage.spawn = []SpawnAction{SpawnAction{always, addBoostsAt(11, 13)}}
 
-	// . | . p b
-	// p | p p p
-	// . | p p p
+	// . | p p b
+	// p | p . p
+	// . | . . p
 	testStage.tiles[13][13].addPowerUpAndNotifyAll(grid9x9)
 	testStage.tiles[12][13].addPowerUpAndNotifyAll(grid9x9)
 	// 11,13 should have boosts
 	testStage.tiles[11][12].addPowerUpAndNotifyAll(grid9x9)
-	testStage.tiles[12][12].addPowerUpAndNotifyAll(grid9x9)
-	testStage.tiles[13][12].addPowerUpAndNotifyAll(grid9x9)
-	testStage.tiles[13][11].addPowerUpAndNotifyAll(grid9x9)
+	testStage.tiles[11][11].addPowerUpAndNotifyAll(grid9x9)
 	testStage.tiles[12][11].addPowerUpAndNotifyAll(grid9x9)
 	testStage.tiles[12][9].addPowerUpAndNotifyAll(grid9x9)
 	if len(world.worldStages) != 2 {
@@ -66,7 +64,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 		t.Error("Player should not have moved")
 	}
 
-	for count := 0; count < 9; count++ {
+	for count := 0; count < 7; count++ {
 		p.activatePower()
 		time.Sleep(1000 * time.Millisecond)
 		fmt.Println("current ks", p.getKillStreakSync())
@@ -82,4 +80,6 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	menu := p.menues["respawn"]
 	menu.attemptClick(p, PlayerSocketEvent{Arg0: "0"})
 	fmt.Println("1" + p.stage.name)
+
+	// check original box is empty
 }

@@ -132,6 +132,7 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 		if player == ignore {
 			continue
 		}
+		// inefficient, so many casts
 		updateOne(update, player)
 	}
 }
