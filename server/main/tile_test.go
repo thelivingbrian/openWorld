@@ -10,18 +10,22 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	loadFromJson()
 	world := createGameWorld(testdb())
 
+	testStage := world.getNamedStageOrDefault("test-walls-interactable")
+	testStage.spawn = []SpawnAction{SpawnAction{always, addBoostsAt(11, 13)}}
+	if len(world.worldStages) != 1 {
+		t.Error("Should have two stages")
+	}
 	clinic := world.getNamedStageOrDefault("clinic")
 	clinic.tiles[12][12].teleport = nil
-	if len(world.worldStages) != 1 {
+	if len(world.worldStages) != 2 {
 		t.Error("Should have one stage")
 	}
 
-	testStage := world.getNamedStageOrDefault("test-walls-interactable")
-	testStage.spawn = []SpawnAction{SpawnAction{always, addBoostsAt(11, 13)}}
-
-	// . | p p b
-	// p | p . p
-	// . | . . p
+	//
+	//   . | p p b
+	//   p | p . p
+	//   . | . . p <- 13,13
+	//
 	testStage.tiles[13][13].addPowerUpAndNotifyAll(grid9x9)
 	testStage.tiles[12][13].addPowerUpAndNotifyAll(grid9x9)
 	// 11,13 should have boosts
@@ -29,14 +33,13 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	testStage.tiles[11][11].addPowerUpAndNotifyAll(grid9x9)
 	testStage.tiles[12][11].addPowerUpAndNotifyAll(grid9x9)
 	testStage.tiles[12][9].addPowerUpAndNotifyAll(grid9x9)
-	if len(world.worldStages) != 2 {
-		t.Error("Should have two stages")
-	}
 
+	// Join initial player
 	p := world.join(&PlayerRecord{Username: "test1", Y: 13, X: 13, StageName: testStage.name})
 	go drainChannel(p.updates)
 	p.placeOnStage(testStage)
 
+	// Get in position
 	p.moveEastBoost() // should do nothing
 	if p.tile != testStage.tiles[13][13] {
 		t.Error("Player should not have moved")
@@ -48,38 +51,60 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	p.moveWest()
 	p.moveSouth()
 
+	// Spawn all of the clone players
 	var clones [500]*Player
 	for i := range clones {
-		clones[i] = spawnNewPlayerWithRandomMovement(p)
+		clones[i] = spawnNewPlayerWithRandomMovement(p, 200)
 	}
-
-	fmt.Println("current players", len(p.world.worldPlayers))
-
 	if len(p.world.worldPlayers) != 501 {
 		t.Error(fmt.Sprintf("Player count should be 501 but is: %d", len(p.world.worldPlayers)))
 	}
 
+	// Escape the box
 	p.moveWestBoost()
 	if p.tile != testStage.tiles[12][9] {
 		t.Error("Player should not have moved")
 	}
 
+	// Activate every collected power
 	for count := 0; count < 7; count++ {
 		p.activatePower()
 		time.Sleep(1000 * time.Millisecond)
-		fmt.Println("current ks", p.getKillStreakSync())
+		fmt.Println("current ks: ", p.getKillStreakSync(), " / 500")
 	}
 
+	// check each clone is in clinic
 	for i := range clones {
 		if clones[i].stage.name != "clinic" {
 			t.Error(fmt.Sprintf("Clone#%d should be on clinic but is on: %s", i, clones[i].stage.name))
 		}
 	}
 
-	fmt.Println("0" + p.stage.name)
+	// check original box is empty of clones
+	for dy := 0; dy < 3; dy++ {
+		for dx := 0; dx < 3; dx++ {
+			yPos, xPos, playerCount := 11+dy, 11+dx, len(testStage.tiles[11+dy][11+dx].playerMap)
+			if playerCount != 0 {
+				t.Error(fmt.Sprintf("Tile(y:%d x:%d) should have 0 players but has: %d", yPos, xPos, playerCount))
+			}
+		}
+	}
+
+	// check player
+	if p.stage != testStage {
+		t.Error("Player should be on the test stage")
+	}
+	if p.getKillStreakSync() < 500 {
+		t.Error("Killstreak should be at least 500")
+	}
+
+	// respawn using menu
 	menu := p.menues["respawn"]
 	menu.attemptClick(p, PlayerSocketEvent{Arg0: "0"})
-	fmt.Println("1" + p.stage.name)
-
-	// check original box is empty
+	if p.stage.name != "clinic" {
+		t.Error("Player should be in the clinic")
+	}
+	if p.getKillStreakSync() != 0 {
+		t.Error("Killstreak should have reset to 0")
+	}
 }
