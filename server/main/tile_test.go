@@ -54,7 +54,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	// Spawn all of the clone players
 	var clones [500]*Player
 	for i := range clones {
-		clones[i] = spawnNewPlayerWithRandomMovement(p, 200)
+		clones[i] = spawnNewPlayerWithRandomMovement(p, 100)
 	}
 	if len(p.world.worldPlayers) != 501 {
 		t.Error(fmt.Sprintf("Player count should be 501 but is: %d", len(p.world.worldPlayers)))
@@ -67,9 +67,10 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	}
 
 	// Activate every collected power
+	fmt.Println("Starting killstreak: ", p.getKillStreakSync(), " / 500")
 	for count := 0; count < 7; count++ {
 		p.activatePower()
-		time.Sleep(1000 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 		fmt.Println("current ks: ", p.getKillStreakSync(), " / 500")
 	}
 

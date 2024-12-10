@@ -188,21 +188,12 @@ func (tile *Tile) tryToNotifyAfter(delay int) {
 func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	//survivors := false
 	// player map needs mutex ?
-	/*
-		players := make([]*Player, 0)
-		tile.playerMutex.Lock()
-		for _, player := range tile.playerMap {
-			if player.getTeamNameSync() == initiator.getTeamNameSync() {
-				continue
-			}
-			players = append(players, player)
-		}
-		tile.playerMutex.Unlock()
-	*/
-	fatalities := false
-	for _, player := range tile.playerMap {
 
-		fatalities = damageOnBehalfOf(player, initiator, dmg) || fatalities
+	fatalities := false
+	for _, player := range tile.copyOfPlayers() {
+		//for _, player := range tile.playerMap {
+
+		fatalities = damageTargetOnBehalfOf(player, initiator, dmg) || fatalities
 		/*if player.getTeamNameSync() == initiator.getTeamNameSync() {
 			continue
 		}
@@ -222,7 +213,17 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	}
 }
 
-func damageOnBehalfOf(target, initiator *Player, dmg int) bool {
+func (tile *Tile) copyOfPlayers() []*Player {
+	players := make([]*Player, 0)
+	tile.playerMutex.Lock()
+	for _, player := range tile.playerMap {
+		players = append(players, player)
+	}
+	tile.playerMutex.Unlock()
+	return players
+}
+
+func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 	if target.getTeamNameSync() == initiator.getTeamNameSync() {
 		return false
 	}
