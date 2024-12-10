@@ -199,6 +199,8 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 		*/
 		//player.updateBottomText("Heyo ;) ")
 		spawnNewPlayerWithRandomMovement(player, 250)
+		npcs++
+		println("npcs: ", npcs)
 	}
 	if event.Name == "Space-On" {
 		if player.actions.spaceStack.hasPower() {
@@ -230,6 +232,8 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 		}
 	}
 }
+
+var npcs = 0
 
 func spawnNewPlayerWithRandomMovement(ref *Player, interval int64) *Player {
 	username := "user-" + uuid.New().String()

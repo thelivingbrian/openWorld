@@ -247,15 +247,18 @@ func (player *Player) updateRecord() {
 }
 
 func (player *Player) removeFromTileAndStage() {
-	if !player.tile.removePlayerAndNotifyOthers(player) {
-		fmt.Println("Trying again") // Can prevent race with transfer but not perfect
-		player.tile.removePlayerAndNotifyOthers(player)
-	}
+	/*
+		if !player.tile.removePlayerAndNotifyOthers(player) {
+			fmt.Println("Trying again") // Can prevent race with transfer but not perfect
+			player.tile.removePlayerAndNotifyOthers(player)
+		}
+	*/
+	player.tile.removePlayerAndNotifyOthers(player)
 	player.stage.removePlayerById(player.id)
 }
 
 func respawn(player *Player) {
-	// Copy here so old player is disconnected?
+	// Copy here so old player is disconnected? - Hard
 	player.setHealth(150)
 	player.setKillStreak(0)
 	player.setStageName("clinic") // Set here for record
@@ -460,7 +463,6 @@ func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bo
 func (player *Player) nextPower() {
 	player.actions.spaceStack.pop() // Throw old power away
 	player.setSpaceHighlights()
-	// change to constant or let player configure
 	updateOne(sliceOfTileToHighlightBoxes(mapOfTileToArray(player.actions.spaceHighlights), spaceHighlighter()), player)
 }
 

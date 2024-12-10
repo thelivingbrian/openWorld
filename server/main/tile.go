@@ -186,10 +186,24 @@ func (tile *Tile) tryToNotifyAfter(delay int) {
 }
 
 func (tile *Tile) damageAll(dmg int, initiator *Player) {
-	survivors := false
+	//survivors := false
 	// player map needs mutex ?
+	/*
+		players := make([]*Player, 0)
+		tile.playerMutex.Lock()
+		for _, player := range tile.playerMap {
+			if player.getTeamNameSync() == initiator.getTeamNameSync() {
+				continue
+			}
+			players = append(players, player)
+		}
+		tile.playerMutex.Unlock()
+	*/
+	fatalities := false
 	for _, player := range tile.playerMap {
-		if player.getTeamNameSync() == initiator.getTeamNameSync() {
+
+		fatalities = damageOnBehalfOf(player, initiator, dmg) || fatalities
+		/*if player.getTeamNameSync() == initiator.getTeamNameSync() {
 			continue
 		}
 		survived := player.addToHealth(-dmg)
@@ -200,10 +214,37 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 			initiator.updateRecord()
 			go player.world.db.saveKillEvent(tile, initiator, player) // Maybe should just pass in required fields?
 		}
+		*/
 	}
-	if survivors {
+	//tile.playerMutex.Unlock()
+	if fatalities {
 		tile.stage.updateAll(playerBox(tile))
 	}
+}
+
+func damageOnBehalfOf(target, initiator *Player, dmg int) bool {
+	if target.getTeamNameSync() == initiator.getTeamNameSync() {
+		return false
+	}
+	target.healthLock.Lock()
+	oldHealth := target.health
+	newHealth := oldHealth - dmg
+	target.health = newHealth
+	target.healthLock.Unlock()
+	fatal := oldHealth > 0 && newHealth <= 0
+	if fatal {
+		handleDeath(target)
+		initiator.incrementKillCount()
+		initiator.incrementKillStreak()
+		initiator.updateRecord()
+		target.tileLock.Lock()
+		location := target.tile
+		target.tileLock.Unlock()
+		go initiator.world.db.saveKillEvent(location, initiator, target) // Maybe should just pass in required fields?
+	} else {
+		go target.setHealth(newHealth) // gross just do second half where update is sent
+	}
+	return fatal
 }
 
 func destroyInteractable(tile *Tile, _ *Player) {
