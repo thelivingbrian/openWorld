@@ -235,7 +235,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 
 var npcs = 0
 
-func spawnNewPlayerWithRandomMovement(ref *Player, interval int64) *Player {
+func spawnNewPlayerWithRandomMovement(ref *Player, interval int) *Player {
 	username := "user-" + uuid.New().String()
 	newPlayer := ref.world.join(&PlayerRecord{Username: username, Health: 50, Y: ref.y, X: ref.x, StageName: ref.stage.name, Team: "fuchsia", Trim: "white-b thick"})
 	go func() {

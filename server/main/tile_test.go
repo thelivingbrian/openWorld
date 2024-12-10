@@ -7,6 +7,12 @@ import (
 )
 
 func TestDamageABunchOfPlayers(t *testing.T) {
+	// Settings
+	movementDelay := 200
+	activationDelay := 1000
+	playerCount := 500
+
+	// Arrange
 	loadFromJson()
 	world := createGameWorld(testdb())
 
@@ -52,9 +58,9 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	p.moveSouth()
 
 	// Spawn all of the clone players
-	var clones [500]*Player
+	clones := make([]*Player, playerCount)
 	for i := range clones {
-		clones[i] = spawnNewPlayerWithRandomMovement(p, 200)
+		clones[i] = spawnNewPlayerWithRandomMovement(p, movementDelay)
 	}
 	if len(p.world.worldPlayers) != 501 {
 		t.Error(fmt.Sprintf("Player count should be 501 but is: %d", len(p.world.worldPlayers)))
@@ -70,7 +76,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	fmt.Println("Starting killstreak: ", p.getKillStreakSync(), " / 500")
 	for count := 0; count < 7; count++ {
 		p.activatePower()
-		time.Sleep(1000 * time.Millisecond)
+		time.Sleep(time.Duration(activationDelay) * time.Millisecond)
 		fmt.Println("current ks: ", p.getKillStreakSync(), " / 500")
 	}
 
@@ -100,7 +106,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	}
 
 	// For laptop:
-	//time.Sleep(2000 * time.Millisecond) // slow computer can have trailing kills flowing in
+	time.Sleep(2000 * time.Millisecond) // slow computer can have trailing kills flowing in
 
 	// respawn using menu
 	menu := p.menues["respawn"]
