@@ -194,6 +194,10 @@
   - [-] Precomputed seed disagrees with current result (on linux)
 - [ ] Load testing
   - [ ] Selenium? 
+- [ ] Benchmarks 
+  - [ ] Benchmark slowness caused by test: TestDamageABunchOfPlayers. MoveAllTwice went from ~17ms to ~30ms
+    - [ ] close routines
+    - [-] introduced via commit 90a3043177f78f90fb651c2cc1e427031c888e33
 
 
 ## Transformation syntax:
