@@ -225,7 +225,8 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 		target.tileLock.Unlock()
 		go initiator.world.db.saveKillEvent(location, initiator, target) // Maybe should just pass in required fields?
 	} else {
-		go target.setHealth(newHealth) // gross just do second half where update is sent
+		go target.updateInformation()
+		//go target.setHealth(newHealth) // gross just do second half where update is sent
 	}
 	return fatal
 }

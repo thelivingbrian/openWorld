@@ -128,12 +128,6 @@ func addBoostsAt(y, x int) func(stage *Stage) {
 	}
 }
 
-/*
-func tutorialBoost(stage *Stage) {
-	stage.tiles[8][8].addBoostsAndNotifyAll()
-}
-*/
-
 func tutorialBoost() func(stage *Stage) {
 	return addBoostsAt(8, 8)
 }
@@ -146,7 +140,7 @@ func basicSpawn(stage *Stage) {
 	// Very basic spawn algorithm
 	// Will spawn on convered tiles with higher freq. than uncovered
 	// Will spawn boost and powers with equal probability
-	shapes := [][][2]int{grid9x9} //, grid3x3, grid5x5, grid7x7, grid9x9, jumpCross(), cross(), x()}
+	shapes := [][][2]int{grid9x9, grid3x3, grid5x5, grid7x7, grid9x9, jumpCross(), cross(), x()}
 
 	randn := rand.Intn(30)
 	spawnCovered := randn%3 == 0

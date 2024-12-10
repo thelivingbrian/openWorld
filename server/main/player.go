@@ -55,6 +55,10 @@ func (player *Player) setHealth(n int) {
 		handleDeath(player)
 		return
 	}
+	go player.updateInformation()
+}
+
+func (player *Player) updateInformation() {
 	player.setIcon()
 	player.tileLock.Lock()
 	tile := player.tile
@@ -62,6 +66,7 @@ func (player *Player) setHealth(n int) {
 	updateOne(divPlayerInformation(player)+playerBoxSpecifc(tile.y, tile.x, player.getIconSync()), player)
 }
 
+/*
 func (player *Player) addToHealth(n int) bool {
 	player.healthLock.Lock()
 	newHealth := player.health + n
@@ -69,6 +74,7 @@ func (player *Player) addToHealth(n int) bool {
 	player.setHealth(newHealth)
 	return newHealth > 0
 }
+*/
 
 func (player *Player) getHealthSync() int {
 	player.healthLock.Lock()
