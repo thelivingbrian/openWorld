@@ -104,7 +104,7 @@ var respawnMenu = Menu{
 	CssClass: "",
 	InfoHtml: "<h3>Are you sure? (you will die)</h3>",
 	Links: []MenuLink{
-		{Text: "Yes", eventHandler: turnMenuOffAnd(handleDeath), auth: sourceStageAuthorizerExclude("clinic")},
+		{Text: "Yes", eventHandler: turnMenuOffAnd(handleDeath), auth: sourceStageAuthorizerExclude("clinic")}, // Exclude tutorial as well (maybe via default menu though?)
 		{Text: "No", eventHandler: openPauseMenu, auth: nil},
 	},
 }
