@@ -25,8 +25,9 @@ func createGameWorld(db *DB) *World {
 
 func (world *World) join(record *PlayerRecord) *Player {
 	token := uuid.New().String()
-	fmt.Println("New Player: " + record.Username)
-	fmt.Println("Token: " + token)
+	// need log levels
+	//fmt.Println("New Player: " + record.Username)
+	//fmt.Println("Token: " + token)
 
 	if world.isLoggedInAlready(record.Username) {
 		fmt.Println("User attempting to log in but is logged in already: " + record.Username)
@@ -36,17 +37,16 @@ func (world *World) join(record *PlayerRecord) *Player {
 	updatesForPlayer := make(chan Update)
 
 	// probably take this out later...
-	/*
-		team := "sky-blue"
-		if record.Team != "" {
-			team = record.Team
-		}
-	*/
+
+	team := "sky-blue"
+	if record.Team != "" {
+		team = record.Team
+	}
 
 	newPlayer := &Player{
 		id:        token,
 		username:  record.Username,
-		team:      record.Team,
+		team:      team,
 		trim:      record.Trim,
 		stage:     nil,
 		updates:   updatesForPlayer,
@@ -57,7 +57,7 @@ func (world *World) join(record *PlayerRecord) *Player {
 		health:    record.Health,
 		money:     record.Money,
 		world:     world,
-		menues:    map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu},
+		menues:    map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu}, // terrifying
 	}
 
 	newPlayer.setIcon()

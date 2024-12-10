@@ -96,14 +96,16 @@ func makeTileTemplate(mat Material, y, x int) string {
 	return fmt.Sprintf(template, cId, mat.CssColor, floor1css, floor2css, placeHold, placeHold, placeHold, ceil1css, ceil2css, placeHold, tId)
 }
 
-// newTile w/ teleport?
-
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
-	tile.addPlayer(player)
+	player.tileLock.Lock()
+	tile.playerMutex.Lock()
+	tile.addLockedPlayertoLockedTile(player)
+	player.tileLock.Unlock()
+	tile.playerMutex.Unlock()
 	tile.stage.updateAllExcept(playerBox(tile), player)
 }
 
-func (tile *Tile) addPlayer(player *Player) {
+func (tile *Tile) addLockedPlayertoLockedTile(player *Player) {
 	itemChange := false
 	if tile.bottomText != "" {
 		player.updateBottomText(tile.bottomText)
@@ -131,38 +133,38 @@ func (tile *Tile) addPlayer(player *Player) {
 		player.stage.updateAll(svgFromTile(tile))
 	}
 	if tile.teleport == nil {
-		// Worth it? no - but maybe with dupe logic?
-		//if player.getHealthSync() == 0 {
-		//	return
-		//}
-		tile.playerMutex.Lock()
+		// tile.playerMutex.Lock() should already be locked
 		tile.playerMap[player.id] = player
-		tile.playerMutex.Unlock()
+
+		// player.tileLock.Lock() should already be locked (usually by transfer or addAndNotify)
+		player.tile = tile
 		player.y = tile.y
 		player.x = tile.x
-		// Is reverse order better?
-		player.tileLock.Lock()
-		defer player.tileLock.Unlock()
-		player.tile = tile
 	} else {
 		if tile.teleport.confirmation {
 			player.menues["teleport"] = continueTeleporting(tile.teleport)
 			turnMenuOn(player, "teleport")
 		} else {
-			player.applyTeleport(tile.teleport)
+			// new routine prevents deadlock
+			go player.applyTeleport(tile.teleport)
 		}
 	}
 }
 
-func (tile *Tile) removePlayerAndNotifyOthers(player *Player) {
-	tile.removePlayer(player.id)
+func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
+	success = tile.removePlayer(player.id)
 	tile.stage.updateAllExcept(playerBox(tile), player)
+	return success
 }
 
-func (tile *Tile) removePlayer(playerId string) {
+func (tile *Tile) removePlayer(playerId string) (success bool) {
 	tile.playerMutex.Lock()
-	delete(tile.playerMap, playerId)
-	tile.playerMutex.Unlock() // Defer instead?
+	_, ok := tile.playerMap[playerId]
+	if ok {
+		delete(tile.playerMap, playerId)
+	}
+	tile.playerMutex.Unlock()
+	return ok
 }
 
 func (tile *Tile) getAPlayer() *Player {
@@ -184,24 +186,48 @@ func (tile *Tile) tryToNotifyAfter(delay int) {
 }
 
 func (tile *Tile) damageAll(dmg int, initiator *Player) {
-	survivors := false
-	// player map needs mutex ?
-	for _, player := range tile.playerMap {
-		if player.getTeamNameSync() == initiator.getTeamNameSync() {
-			continue
-		}
-		survived := player.addToHealth(-dmg)
-		survivors = survivors || survived
-		if !survived {
-			initiator.incrementKillCount()
-			initiator.incrementKillStreak()
-			initiator.updateRecord()
-			go player.world.db.saveKillEvent(tile, initiator, player) // Maybe should just pass in required fields?
-		}
+	fatalities := false
+	for _, player := range tile.copyOfPlayers() {
+		fatalities = damageTargetOnBehalfOf(player, initiator, dmg) || fatalities
 	}
-	if survivors {
+	if fatalities {
 		tile.stage.updateAll(playerBox(tile))
 	}
+}
+
+func (tile *Tile) copyOfPlayers() []*Player {
+	players := make([]*Player, 0)
+	tile.playerMutex.Lock()
+	for _, player := range tile.playerMap {
+		players = append(players, player)
+	}
+	tile.playerMutex.Unlock()
+	return players
+}
+
+func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
+	if target.getTeamNameSync() == initiator.getTeamNameSync() {
+		return false
+	}
+	target.healthLock.Lock()
+	oldHealth := target.health
+	newHealth := oldHealth - dmg
+	target.health = newHealth
+	target.healthLock.Unlock()
+	fatal := oldHealth > 0 && newHealth <= 0
+	if fatal {
+		handleDeath(target)
+		initiator.incrementKillCount()
+		initiator.incrementKillStreak()
+		initiator.updateRecord()
+		target.tileLock.Lock()
+		location := target.tile
+		target.tileLock.Unlock()
+		go initiator.world.db.saveKillEvent(location, initiator, target) // Maybe should just pass in required fields?
+	} else {
+		go target.updateInformation()
+	}
+	return fatal
 }
 
 func destroyInteractable(tile *Tile, _ *Player) {

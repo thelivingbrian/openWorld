@@ -78,6 +78,7 @@ var pauseMenu = Menu{
 		{Text: "Resume", eventHandler: turnMenuOff, auth: nil},
 		{Text: "You", eventHandler: openStatsMenu, auth: nil},
 		{Text: "Map", eventHandler: openMapMenu, auth: nil},
+		{Text: "Respawn", eventHandler: openRespawnMenu, auth: sourceStageAuthorizerExclude("clinic")},
 		{Text: "Quit", eventHandler: Quit, auth: nil},
 	},
 }
@@ -95,6 +96,16 @@ var statsMenu = Menu{
 	InfoHtml: "<h2>Coming Soon</h2>",
 	Links: []MenuLink{
 		{Text: "Back", eventHandler: openPauseMenu, auth: nil},
+	},
+}
+
+var respawnMenu = Menu{
+	Name:     "respawn",
+	CssClass: "",
+	InfoHtml: "<h3>Are you sure? (you will die)</h3>",
+	Links: []MenuLink{
+		{Text: "Yes", eventHandler: turnMenuOffAnd(handleDeath), auth: sourceStageAuthorizerExclude("clinic")}, // Exclude tutorial as well (maybe via default menu though?)
+		{Text: "No", eventHandler: openPauseMenu, auth: nil},
 	},
 }
 
@@ -187,6 +198,12 @@ func mod(i, n int) int {
 func turnMenuOff(p *Player) {
 	p.trySend([]byte(divModalDisabled() + divInput()))
 }
+func turnMenuOffAnd(f func(*Player)) func(*Player) {
+	return func(p *Player) {
+		turnMenuOff(p)
+		f(p)
+	}
+}
 
 func Quit(p *Player) {
 	defer logOut(p)
@@ -234,6 +251,10 @@ func openStatsMenu(p *Player) {
 	turnMenuOn(p, "stats")
 }
 
+func openRespawnMenu(p *Player) {
+	turnMenuOn(p, "respawn")
+}
+
 // Player specific menues
 
 func continueTeleporting(teleport *Teleport) Menu {
@@ -242,7 +263,7 @@ func continueTeleporting(teleport *Teleport) Menu {
 		CssClass: "",
 		InfoHtml: "<h2>Continue?</h2>",
 		Links: []MenuLink{
-			{Text: "Yes", eventHandler: teleportEventHandler(teleport), auth: sourceStageAuthorizer(teleport.sourceStage)},
+			{Text: "Yes", eventHandler: teleportEventHandler(teleport), auth: sourceStageAuthorizerAffirmative(teleport.sourceStage)},
 			{Text: "No", eventHandler: turnMenuOff, auth: nil},
 		},
 	}
@@ -251,16 +272,24 @@ func continueTeleporting(teleport *Teleport) Menu {
 func teleportEventHandler(teleport *Teleport) func(*Player) {
 	return func(player *Player) {
 		previousTile := player.tile
-		player.applyTeleport(teleport)
+		go func() {
+			player.applyTeleport(teleport)
 
-		impactedTiles := player.updateSpaceHighlights()
-		updateOneAfterMovement(player, impactedTiles, previousTile)
+			impactedTiles := player.updateSpaceHighlights()
+			updateOneAfterMovement(player, impactedTiles, previousTile)
+		}()
 		turnMenuOff(player) // try other order
 	}
 }
 
-func sourceStageAuthorizer(source string) func(*Player) bool {
+func sourceStageAuthorizerAffirmative(source string) func(*Player) bool {
 	return func(p *Player) bool {
 		return p.getStageNameSync() == source
+	}
+}
+
+func sourceStageAuthorizerExclude(source string) func(*Player) bool {
+	return func(p *Player) bool {
+		return p.getStageNameSync() != source
 	}
 }

@@ -26,7 +26,7 @@ var spawnActions = map[string][]SpawnAction{
 		SpawnAction{Should: checkDistanceFromEdge(8, 8), Action: basicSpawn},
 		SpawnAction{Should: nil, Action: basicSpawn},
 	},
-	"tutorial-boost": []SpawnAction{SpawnAction{Should: always, Action: tutorialBoost}},
+	"tutorial-boost": []SpawnAction{SpawnAction{Should: always, Action: tutorialBoost()}},
 	"tutorial-power": []SpawnAction{SpawnAction{Should: always, Action: tutorialPower}},
 }
 
@@ -99,6 +99,19 @@ func min(vals ...int) int {
 	return minVal
 }
 
+func max(vals ...int) int {
+	if len(vals) == 0 {
+		panic("max requires at least one argument")
+	}
+	maxVal := vals[0]
+	for _, v := range vals[1:] {
+		if v > maxVal {
+			maxVal = v
+		}
+	}
+	return maxVal
+}
+
 /////////////////////////////////////////////
 //  Actions
 
@@ -106,8 +119,17 @@ func doNothing(*Stage) {
 
 }
 
-func tutorialBoost(stage *Stage) {
-	stage.tiles[8][8].addBoostsAndNotifyAll()
+func addBoostsAt(y, x int) func(stage *Stage) {
+	return func(stage *Stage) {
+		if y >= len(stage.tiles) || x >= len(stage.tiles[y]) {
+			return
+		}
+		stage.tiles[y][x].addBoostsAndNotifyAll()
+	}
+}
+
+func tutorialBoost() func(stage *Stage) {
+	return addBoostsAt(8, 8)
 }
 
 func tutorialPower(stage *Stage) {

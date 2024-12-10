@@ -24,7 +24,7 @@ type Player struct {
 	stageName string
 	conn      *websocket.Conn
 	connLock  sync.Mutex
-	// x, y are highly mutated and are unsafe to read/difficult to lock. Use tile instead
+	// x, y are highly mutated and are unsafe to read/difficult to lock. Use tile instead ?
 	x          int
 	y          int
 	actions    *Actions
@@ -52,22 +52,18 @@ func (player *Player) setHealth(n int) {
 	player.health = n
 	player.healthLock.Unlock()
 	if n <= 0 {
-		player.handleDeath()
+		handleDeath(player)
 		return
 	}
-	player.setIcon()
-	// tile lock
-	player.tileLock.Lock()
-	defer player.tileLock.Unlock()
-	updateOne(divPlayerInformation(player)+playerBoxSpecifc(player.tile.y, player.tile.x, player.getIconSync()), player)
+	go player.updateInformation()
 }
 
-func (player *Player) addToHealth(n int) bool {
-	player.healthLock.Lock()
-	newHealth := player.health + n
-	player.healthLock.Unlock()
-	player.setHealth(newHealth)
-	return newHealth > 0
+func (player *Player) updateInformation() {
+	player.setIcon()
+	player.tileLock.Lock()
+	tile := player.tile
+	defer player.tileLock.Unlock()
+	updateOne(divPlayerInformation(player)+playerBoxSpecifc(tile.y, tile.x, player.getIconSync()), player)
 }
 
 func (player *Player) getHealthSync() int {
@@ -101,6 +97,14 @@ func (player *Player) getTeamNameSync() string {
 	player.viewLock.Lock()
 	defer player.viewLock.Unlock()
 	return player.team
+}
+
+// Stage observer, also sets name.
+func (player *Player) setStage(stage *Stage) {
+	player.stageLock.Lock()
+	defer player.stageLock.Unlock()
+	player.stage = stage
+	player.stageName = stage.name
 }
 
 func (player *Player) setStageName(name string) {
@@ -138,7 +142,6 @@ func (player *Player) getMoneySync() int {
 // Streak observer, All streak changes should go through here
 func (player *Player) setKillStreak(n int) {
 	player.streakLock.Lock()
-	//defer player.streakLock.Unlock()
 	player.killstreak = n
 	player.streakLock.Unlock()
 
@@ -197,35 +200,26 @@ func (player *Player) getGoalsScored() int {
 	return player.goalsScored
 }
 
-/*
-func (player *Player) isDead() bool {
-	player.healthLock.Lock()
-	defer player.healthLock.Unlock()
-	return player.health <= 0
-}
-*/
-
-// always called with placeOnStage?
-func (p *Player) assignStageAndListen() {
-	stage := p.world.getNamedStageOrDefault(p.getStageNameSync())
+func getStageFromStageName(world *World, stageName string) *Stage {
+	stage := world.getNamedStageOrDefault(stageName)
 	if stage == nil {
 		log.Fatal("Fatal: Default Stage Not Found.")
 	}
-	// read/write concern?
-	p.stageLock.Lock()
-	defer p.stageLock.Unlock()
-	p.stage = stage
+
+	return stage
 }
 
-func (p *Player) placeOnStage() {
-	p.stage.addPlayer(p)
+func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
+	if y >= len(stage.tiles) || x >= len(stage.tiles[y]) {
+		log.Fatal("Fatal: Invalid coords to place on stage.")
+	}
 
-	// This is unsafe  (out of range)
-	p.stage.tiles[p.y][p.x].addPlayerAndNotifyOthers(p)
+	p.setStage(stage)
+	spawnItemsFor(p, stage)
+	stage.addPlayer(p)
+	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
+
 	updateScreenFromScratch(p)
-
-	stageToSpawn := p.getStageSync()
-	spawnItemsFor(p, stageToSpawn)
 }
 
 func spawnItemsFor(p *Player, stage *Stage) {
@@ -235,11 +229,12 @@ func spawnItemsFor(p *Player, stage *Stage) {
 	}
 }
 
-func (player *Player) handleDeath() {
-	player.tile.addMoneyAndNotifyAll(halveMoneyOf(player) + 10) // Tile money needs mutex?
-	player.removeFromStage()
+func handleDeath(player *Player) {
+	player.tileLock.Lock()
+	player.tile.addMoneyAndNotifyAll(max(halveMoneyOf(player), 10)) // Tile money needs mutex.
+	player.tileLock.Unlock()
+	player.removeFromTileAndStage()
 	player.incrementDeathCount()
-	//player.updateRecord() This will happen in respawn. Doing here seems risky.
 	respawn(player)
 }
 
@@ -247,24 +242,30 @@ func (player *Player) updateRecord() {
 	go player.world.db.updateRecordForPlayer(player)
 }
 
-func (player *Player) removeFromStage() {
+func (player *Player) removeFromTileAndStage() {
+	/*
+		if !player.tile.removePlayerAndNotifyOthers(player) {
+			fmt.Println("Trying again") // Can prevent race with transfer but not perfect
+			player.tile.removePlayerAndNotifyOthers(player)
+		}
+	*/
 	player.tile.removePlayerAndNotifyOthers(player)
 	player.stage.removePlayerById(player.id)
 }
 
-// Recv type
 func respawn(player *Player) {
-	// Can we copy here so that old player is causally disconnected?
+	// Copy here so old player is disconnected? - Hard
 	player.setHealth(150)
 	player.setKillStreak(0)
-	player.setStageName("clinic")
-	//player.stageName = "clinic"
+	player.setStageName("clinic") // Set here for record
+
 	player.x = 2
 	player.y = 2
 	player.actions = createDefaultActions()
 	player.updateRecord()
-	player.assignStageAndListen()
-	player.placeOnStage()
+
+	stage := getStageFromStageName(player.world, "clinic")
+	placePlayerOnStageAt(player, stage, 2, 2)
 }
 
 func (p *Player) moveNorth() {
@@ -373,21 +374,41 @@ func (p *Player) move(yOffset int, xOffset int) {
 	destY := p.y + yOffset
 	destX := p.x + xOffset
 
-	if validCoordinate(destY, destX, p.stage.tiles) { // && p.stage.tiles[destY][destX].material.Walkable {
+	if validCoordinate(destY, destX, p.stage.tiles) {
 		sourceTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
 
 		p.push(destTile, nil, yOffset, xOffset)
 		if walkable(destTile) {
-			// possible atomic map swap? benchmarks?
-			sourceTile.removePlayerAndNotifyOthers(p) // The routines coming in can race where the first successfully removes and both add
-			destTile.addPlayerAndNotifyOthers(p)      // Not atomic. Also potentially adding dead player(s) to tile (?)
+			// atomic map swap
+			transferPlayer(p, sourceTile, destTile)
 
-			previousTile := sourceTile
 			impactedTiles := p.updateSpaceHighlights()
-			updateOneAfterMovement(p, impactedTiles, previousTile)
+			updateOneAfterMovement(p, impactedTiles, sourceTile)
 		}
 	}
+}
+
+func transferPlayer(p *Player, source, dest *Tile) {
+	p.tileLock.Lock()
+	if source.playerMutex.TryLock() {
+		if dest.playerMutex.TryLock() {
+			_, ok := source.playerMap[p.id]
+			if ok {
+				delete(source.playerMap, p.id)
+				dest.addLockedPlayertoLockedTile(p)
+			}
+			source.playerMutex.Unlock()
+			dest.playerMutex.Unlock()
+			if ok {
+				source.stage.updateAllExcept(playerBox(source), p)
+				dest.stage.updateAllExcept(playerBox(dest), p)
+			}
+		} else {
+			source.playerMutex.Unlock()
+		}
+	}
+	p.tileLock.Unlock()
 }
 
 func (p *Player) pushUnder(yOffset int, xOffset int) {
@@ -438,9 +459,7 @@ func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bo
 func (player *Player) nextPower() {
 	player.actions.spaceStack.pop() // Throw old power away
 	player.setSpaceHighlights()
-	//oobUpdateWithHud(player, mapOfTileToArray(player.actions.spaceHighlights))
-	//spaceHighlighter(tile)
-	updateOne(sliceOfTileToHighlightBoxes(mapOfTileToArray(player.actions.spaceHighlights), "half-trsp salmon"), player)
+	updateOne(sliceOfTileToHighlightBoxes(mapOfTileToArray(player.actions.spaceHighlights), spaceHighlighter()), player)
 }
 
 func (player *Player) setSpaceHighlights() {
@@ -496,14 +515,15 @@ func (player *Player) activatePower() {
 
 func (player *Player) applyTeleport(teleport *Teleport) {
 	if player.stageName != teleport.destStage {
-		player.removeFromStage() // This was always happening before but in multiple places
+		player.stage.removePlayerById(player.id)
 	}
-	player.stageName = teleport.destStage
-	player.y = teleport.destY
-	player.x = teleport.destX
+	stage := getStageFromStageName(player.world, teleport.destStage)
+	placePlayerOnStageAt(player, stage, teleport.destY, teleport.destX)
+
 	player.updateRecord()
-	player.assignStageAndListen()
-	player.placeOnStage()
+
+	impactedTiles := player.updateSpaceHighlights()
+	updateOneAfterMovement(player, impactedTiles, nil)
 }
 
 ////////////////////////////////////////////////////////////

@@ -147,7 +147,7 @@ func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 			updates:   updatesForPlayer,
 		}
 		go drainChannel(players[i].updates)
-		players[i].placeOnStage()
+		players[i].placeOnStage(stage)
 	}
 	return players
 }

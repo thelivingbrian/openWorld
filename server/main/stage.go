@@ -110,7 +110,7 @@ func (stage *Stage) addPlayer(player *Player) {
 func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
 	playerIcon := playerBoxSpecifc(player.y, player.x, player.icon)
 	previousBoxes := ""
-	if previous.stage == player.stage {
+	if previous != nil && previous.stage == player.stage {
 		previousBoxes += playerBox(previous)
 	}
 
@@ -132,6 +132,7 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 		if player == ignore {
 			continue
 		}
+		// inefficient, so many casts
 		updateOne(update, player)
 	}
 }

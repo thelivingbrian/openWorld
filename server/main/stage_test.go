@@ -22,7 +22,7 @@ func TestEnsureInteractableWillPush(t *testing.T) {
 		health:    100,
 		updates:   updatesForPlayer,
 	}
-	player.placeOnStage()
+	player.placeOnStage(testStage)
 
 	if len(player.stage.tiles[14][1].playerMap) == 0 {
 		t.Error("Player did not spawn at correct location")
@@ -78,7 +78,7 @@ func TestSurroundedPushableSquare(t *testing.T) {
 	}
 
 	for _, player := range players {
-		player.placeOnStage()
+		player.placeOnStage(testStage)
 	}
 
 	// Act
@@ -127,7 +127,7 @@ func TestSurroundedPushableSquareMultipleThreads(t *testing.T) {
 	}
 
 	for _, player := range players {
-		player.placeOnStage()
+		player.placeOnStage(testStage)
 	}
 
 	var wg sync.WaitGroup
@@ -205,7 +205,7 @@ func TestEnsureNoInteractableDuplication(t *testing.T) {
 	}
 
 	for _, player := range players {
-		player.placeOnStage()
+		player.placeOnStage(testStage)
 	}
 
 	var wg sync.WaitGroup

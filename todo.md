@@ -7,13 +7,17 @@
 - [ ] Test client
 - [ ] Constant special area names in tests and game 
 - [-] Boosts not spawning at same rate?
-- [ ] Instant kill button or key
+- [-] Instant kill button or key
 - [-] Shift prevents stage changes even with no boosts 
 - [-] No player detail update on respawn 
 - [-] green dot of money is invisible after killing other player
 - [-] relative border radius
 - [-] Score goal
 - [-] Minimum streak for most dangerous (Possibly just for award but possibly for inclusion in heap as well)
+- [-] Player zombies
+  - [-] up to 1,000 concurrent player deaths
+  - [-] Automated test
+- [ ] Disable respawn from tutorial
 
 ## Design Workspace
 - [-] Rotations
@@ -133,6 +137,12 @@
       - [-] Resize grid squares
   - [-] fix display of map
 
+## Display 
+- [ ] Highlights
+  - [ ] Same stage teleport highlights
+    - [ ] Overlap excluded
+    - [ ] Sometimes entire highlight is removed at once shortly after displaying ?
+
 ## Bottom text
  - [-] Trigger
  - [ ] Display as "!" Notification in mobile instead of on screen
@@ -182,9 +192,13 @@
       - [-] testing db works and is arguably better?
     - [ ] Test fails due to race condition 
   - [-] Most Dangerous
-  - [ ] Precomputed seed disagrees with current result (on linux)
+  - [-] Precomputed seed disagrees with current result (on linux)
 - [ ] Load testing
   - [ ] Selenium? 
+- [ ] Benchmarks 
+  - [ ] Benchmark slowness caused by test: TestDamageABunchOfPlayers. MoveAllTwice went from ~17ms to ~30ms
+    - [ ] close routines
+    - [-] introduced via commit 90a3043177f78f90fb651c2cc1e427031c888e33
 
 
 ## Transformation syntax:

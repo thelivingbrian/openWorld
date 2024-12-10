@@ -50,21 +50,19 @@ func TestSocketJoinAndMove(t *testing.T) {
 
 func TestMostDangerous(t *testing.T) {
 	world := createGameWorld(testdb())
+	stage := getStageFromStageName(world, "test-large")
 
-	p1 := world.join(&PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
+	p1 := world.join(&PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: stage.name})
 	go p1.sendUpdates()
-	p1.assignStageAndListen()
-	p1.placeOnStage()
+	p1.placeOnStage(stage)
 
-	p2 := world.join(&PlayerRecord{Username: "test2", Y: 3, X: 3, StageName: "test-large"})
+	p2 := world.join(&PlayerRecord{Username: "test2", Y: 3, X: 3, StageName: stage.name})
 	go p2.sendUpdates()
-	p2.assignStageAndListen()
-	p2.placeOnStage()
+	p2.placeOnStage(stage)
 
-	p3 := world.join(&PlayerRecord{Username: "test3", Y: 3, X: 3, StageName: "test-large"})
+	p3 := world.join(&PlayerRecord{Username: "test3", Y: 3, X: 3, StageName: stage.name})
 	go p3.sendUpdates()
-	p3.assignStageAndListen()
-	p3.placeOnStage()
+	p3.placeOnStage(stage)
 
 	// Assert
 	p2.incrementKillStreak()

@@ -20,7 +20,7 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 		updates:   updatesForPlayer,
 		world:     world,
 	}
-	player.placeOnStage()
+	player.placeOnStage(testStage)
 
 	// Act
 	player.addBoosts(5)
@@ -39,4 +39,8 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 		t.Error("Player should be ay y:7 x:4")
 
 	}
+}
+
+func (p *Player) placeOnStage(stage *Stage) {
+	placePlayerOnStageAt(p, stage, p.y, p.x)
 }
