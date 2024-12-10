@@ -226,7 +226,6 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 		go initiator.world.db.saveKillEvent(location, initiator, target) // Maybe should just pass in required fields?
 	} else {
 		go target.updateInformation()
-		//go target.setHealth(newHealth) // gross just do second half where update is sent
 	}
 	return fatal
 }

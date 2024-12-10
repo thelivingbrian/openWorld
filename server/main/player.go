@@ -66,16 +66,6 @@ func (player *Player) updateInformation() {
 	updateOne(divPlayerInformation(player)+playerBoxSpecifc(tile.y, tile.x, player.getIconSync()), player)
 }
 
-/*
-func (player *Player) addToHealth(n int) bool {
-	player.healthLock.Lock()
-	newHealth := player.health + n
-	player.healthLock.Unlock()
-	player.setHealth(newHealth)
-	return newHealth > 0
-}
-*/
-
 func (player *Player) getHealthSync() int {
 	player.healthLock.Lock()
 	defer player.healthLock.Unlock()
