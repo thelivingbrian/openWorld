@@ -17,6 +17,7 @@
 - [-] Player zombies
   - [-] up to 1,000 concurrent player deaths
   - [-] Automated test
+- [ ] Disable respawn from tutorial
 
 ## Design Workspace
 - [-] Rotations
