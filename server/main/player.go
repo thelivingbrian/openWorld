@@ -381,34 +381,60 @@ func (p *Player) move(yOffset int, xOffset int) {
 		p.push(destTile, nil, yOffset, xOffset)
 		if walkable(destTile) {
 			// atomic map swap
-			transferPlayer(p, sourceTile, destTile)
-
-			impactedTiles := p.updateSpaceHighlights()
-			updateOneAfterMovement(p, impactedTiles, sourceTile)
+			if transferPlayer(p, sourceTile, destTile) {
+				impactedTiles := p.updateSpaceHighlights()
+				updateOneAfterMovement(p, impactedTiles, sourceTile)
+			}
 		}
 	}
 }
 
-func transferPlayer(p *Player, source, dest *Tile) {
+func transferPlayer(p *Player, source, dest *Tile) bool {
 	p.tileLock.Lock()
-	if source.playerMutex.TryLock() {
-		if dest.playerMutex.TryLock() {
-			_, ok := source.playerMap[p.id]
-			if ok {
-				delete(source.playerMap, p.id)
-				dest.addLockedPlayertoLockedTile(p)
-			}
-			source.playerMutex.Unlock()
-			dest.playerMutex.Unlock()
-			if ok {
-				source.stage.updateAllExcept(playerBox(source), p)
-				dest.stage.updateAllExcept(playerBox(dest), p)
-			}
-		} else {
-			source.playerMutex.Unlock()
-		}
+	defer p.tileLock.Unlock()
+
+	if !source.playerMutex.TryLock() {
+		return false
 	}
-	p.tileLock.Unlock()
+	defer source.playerMutex.Unlock()
+
+	if !dest.playerMutex.TryLock() {
+		return false
+	}
+	defer dest.playerMutex.Unlock()
+
+	_, ok := source.playerMap[p.id]
+	if ok {
+		delete(source.playerMap, p.id)
+		dest.addLockedPlayertoLockedTile(p)
+		go func() {
+			source.stage.updateAllExcept(playerBox(source), p)
+			dest.stage.updateAllExcept(playerBox(dest), p)
+
+		}()
+	}
+
+	return ok
+	/*
+		if source.playerMutex.TryLock() {
+			if dest.playerMutex.TryLock() {
+				_, ok := source.playerMap[p.id]
+				if ok {
+					delete(source.playerMap, p.id)
+					dest.addLockedPlayertoLockedTile(p)
+				}
+				source.playerMutex.Unlock()
+				dest.playerMutex.Unlock()
+				if ok {
+					source.stage.updateAllExcept(playerBox(source), p)
+					dest.stage.updateAllExcept(playerBox(dest), p)
+				}
+			} else {
+				source.playerMutex.Unlock()
+			}
+		}
+		p.tileLock.Unlock()
+	*/
 }
 
 func (p *Player) pushUnder(yOffset int, xOffset int) {
