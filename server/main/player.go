@@ -415,26 +415,6 @@ func transferPlayer(p *Player, source, dest *Tile) bool {
 	}
 
 	return ok
-	/*
-		if source.playerMutex.TryLock() {
-			if dest.playerMutex.TryLock() {
-				_, ok := source.playerMap[p.id]
-				if ok {
-					delete(source.playerMap, p.id)
-					dest.addLockedPlayertoLockedTile(p)
-				}
-				source.playerMutex.Unlock()
-				dest.playerMutex.Unlock()
-				if ok {
-					source.stage.updateAllExcept(playerBox(source), p)
-					dest.stage.updateAllExcept(playerBox(dest), p)
-				}
-			} else {
-				source.playerMutex.Unlock()
-			}
-		}
-		p.tileLock.Unlock()
-	*/
 }
 
 func (p *Player) pushUnder(yOffset int, xOffset int) {
