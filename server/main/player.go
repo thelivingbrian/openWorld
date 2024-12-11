@@ -20,7 +20,7 @@ type Player struct {
 	stageLock sync.Mutex
 	tile      *Tile
 	tileLock  sync.Mutex
-	updates   chan Update
+	updates   chan []byte
 	stageName string
 	conn      *websocket.Conn
 	connLock  sync.Mutex
@@ -538,15 +538,15 @@ func (player *Player) sendUpdates() {
 			return
 		}
 
-		sendUpdate(update)
+		sendUpdate(player, update)
 	}
 }
 
-func sendUpdate(update Update) {
-	update.player.connLock.Lock()
-	defer update.player.connLock.Unlock()
-	if update.player.conn != nil {
-		update.player.conn.WriteMessage(websocket.TextMessage, update.update)
+func sendUpdate(player *Player, update []byte) {
+	player.connLock.Lock()
+	player.connLock.Unlock()
+	if player.conn != nil {
+		player.conn.WriteMessage(websocket.TextMessage, update)
 	} else {
 		fmt.Println("WARN: Attempted to serve update to expired connection.")
 	}
@@ -561,7 +561,7 @@ func (player *Player) updateBottomText(message string) {
 }
 
 func (p *Player) trySend(msg []byte) {
-	p.updates <- Update{p, msg}
+	p.updates <- msg
 }
 
 /////////////////////////////////////////////////////////////

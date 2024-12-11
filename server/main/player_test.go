@@ -6,7 +6,7 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 	loadFromJson()
 	world := createGameWorld(testdb())
 	testStage := createStageByName("hallway")
-	updatesForPlayer := make(chan Update)
+	updatesForPlayer := make(chan []byte)
 	go drainChannel(updatesForPlayer)
 
 	player := &Player{

@@ -135,7 +135,7 @@ func drainChannel[T any](c chan T) {
 func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 	players := make([]*Player, n)
 	for i := range players {
-		updatesForPlayer := make(chan Update)
+		updatesForPlayer := make(chan []byte)
 		players[i] = &Player{
 			id:        fmt.Sprintf("tp%d", i),
 			stage:     stage,

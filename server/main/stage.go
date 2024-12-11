@@ -114,7 +114,7 @@ func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
 		previousBoxes += playerBox(previous)
 	}
 
-	player.updates <- Update{player, []byte(highlightBoxesForPlayer(player, tiles) + previousBoxes + playerIcon)}
+	player.updates <- []byte(highlightBoxesForPlayer(player, tiles) + previousBoxes + playerIcon)
 }
 
 func (stage *Stage) updateAll(update string) {
@@ -139,9 +139,9 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 
 // not related to stage?
 func updateOne(update string, player *Player) {
-	player.updates <- Update{player, []byte(update)}
+	player.updates <- []byte(update)
 }
 
 func updateScreenFromScratch(player *Player) {
-	player.updates <- Update{player, htmlFromPlayer(player)}
+	player.updates <- htmlFromPlayer(player)
 }

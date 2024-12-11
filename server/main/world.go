@@ -34,7 +34,7 @@ func (world *World) join(record *PlayerRecord) *Player {
 		return nil
 	}
 
-	updatesForPlayer := make(chan Update)
+	updatesForPlayer := make(chan []byte)
 
 	// probably take this out later...
 
