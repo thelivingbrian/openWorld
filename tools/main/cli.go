@@ -27,7 +27,6 @@ func deployCollection(c *Context) func(cmd *cobra.Command, args []string) {
 
 func generateKeys() func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
-		fmt.Println(len(args))
 		keys := make([]byte, 64) // Create a slice to hold 32 bytes
 		_, err := rand.Read(keys)
 		if err != nil {
@@ -49,14 +48,16 @@ func ExecuteCLICommands(c *Context) {
 		Run:   deployCollection(c),
 	}
 	rootCmd.AddCommand(deployCmd)
+
 	var keysCmd = &cobra.Command{
-		Use:   "keys [quantity]",
-		Short: "Generate a quantity of keys (default 1)",
-		Long:  `Generate a quantity of keys (default 1)`,
-		Args:  cobra.MaximumNArgs(1),
+		Use:   "keys",
+		Short: "Generate a set of keys",
+		Long:  `Generate a set of keys`,
+		Args:  cobra.MaximumNArgs(0),
 		Run:   generateKeys(),
 	}
 	rootCmd.AddCommand(keysCmd)
+
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
