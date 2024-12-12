@@ -27,7 +27,7 @@ func deployCollection(c *Context) func(cmd *cobra.Command, args []string) {
 
 func generateKeys() func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
-		keys := make([]byte, 64) // Create a slice to hold 32 bytes
+		keys := make([]byte, 64)
 		_, err := rand.Read(keys)
 		if err != nil {
 			return

@@ -410,7 +410,6 @@ func transferPlayer(p *Player, source, dest *Tile) bool {
 		go func() {
 			source.stage.updateAllExcept(playerBox(source), p)
 			dest.stage.updateAllExcept(playerBox(dest), p)
-
 		}()
 	}
 

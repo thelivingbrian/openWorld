@@ -36,7 +36,7 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 	}
 
 	if player.y != 7 || player.x != 4 {
-		t.Error("Player should be ay y:7 x:4")
+		t.Error("Player should be at y:7 x:4")
 
 	}
 }
