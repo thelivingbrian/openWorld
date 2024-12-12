@@ -64,6 +64,52 @@ func BenchmarkMoveAllTwice(b *testing.B) {
 
 // Teleport test
 
+func BenchmarkDivByte(b *testing.B) {
+	colors := []string{"black", "", "blue trsp20"}
+	for _, color := range colors {
+		b.Run(fmt.Sprintf("stage:%s Cores", color), func(b *testing.B) {
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				generateWeatherSolidBytes(color)
+			}
+
+			b.StopTimer()
+
+		})
+	}
+}
+func BenchmarkDivString(b *testing.B) {
+	colors := []string{"black", "", "blue trsp20"}
+	for _, color := range colors {
+		b.Run(fmt.Sprintf("stage:%s Cores", color), func(b *testing.B) {
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				generateWeatherSolid(color)
+			}
+
+			b.StopTimer()
+
+		})
+	}
+}
+func BenchmarkDivDumb(b *testing.B) {
+	colors := []string{"black", "", "blue trsp20"}
+	for _, color := range colors {
+		b.Run(fmt.Sprintf("stage:%s Cores", color), func(b *testing.B) {
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				generateWeatherDumb(color)
+			}
+
+			b.StopTimer()
+
+		})
+	}
+}
+
 // /////////////////////////////////////////
 // Loading times
 
