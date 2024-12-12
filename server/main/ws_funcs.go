@@ -13,12 +13,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// ...move to different file?
-type Update struct {
-	player *Player
-	update []byte
-}
-
 var (
 	upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
