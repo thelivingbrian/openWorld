@@ -183,40 +183,41 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 
 		//exTile := `<div id="t1-0" class="box top green"></div>
 		//			<div id="t1-1" class="box top green"></div>`
-		/*
-			go func() {
-				for i := 0; i <= 80; i++ {
-					time.Sleep(20 * time.Millisecond)
-					updateOne(generateDivs(i), player)
-				}
 
-			}()
-		*/
+		go func() {
+			for i := 0; i <= 80; i++ {
+				time.Sleep(20 * time.Millisecond)
+				updateOne(generateDivs(i), player)
+			}
+
+		}()
 
 		//updateOne(generateWeatherSolid("blue trsp20"), player)
 		//player.updates <- generateWeatherSolidBytes("night trsp20")
 
-		trsp := []string{"trsp20", "trsp40", "trsp60", "trsp80"}
-		for _, t := range trsp {
-			d := time.Duration(75)
-			player.updates <- generateWeatherDynamic(twoColorParity("red", "pink", t))
-			time.Sleep(d * time.Millisecond)
-			player.updates <- generateWeatherDynamic(twoColorParity("pink", "red", t))
-			time.Sleep(d * time.Millisecond)
-			player.updates <- generateWeatherDynamic(twoColorParity("green", "grass", t))
-			time.Sleep(d * time.Millisecond)
-			player.updates <- generateWeatherDynamic(twoColorParity("grass", "green", t))
-			time.Sleep(d * time.Millisecond)
-			player.updates <- generateWeatherDynamic(twoColorParity("blue", "ice", t))
-			time.Sleep(d * time.Millisecond)
-			player.updates <- generateWeatherDynamic(twoColorParity("ice", "blue", t))
-			time.Sleep(d * time.Millisecond)
-			player.updates <- generateWeatherDynamic(twoColorParity("black", "half-gray", t))
-			time.Sleep(d * time.Millisecond)
-			player.updates <- generateWeatherDynamic(twoColorParity("half-gray", "black", t))
-			time.Sleep(d * time.Millisecond)
+		/*
+			trsp := []string{"trsp20", "trsp40", "trsp60", "trsp80"}
+			for _, t := range trsp {
+				d := time.Duration(75)
+				player.updates <- generateWeatherDynamic(twoColorParity("red", "pink", t))
+				time.Sleep(d * time.Millisecond)
+				player.updates <- generateWeatherDynamic(twoColorParity("pink", "red", t))
+				time.Sleep(d * time.Millisecond)
+				player.updates <- generateWeatherDynamic(twoColorParity("green", "grass", t))
+				time.Sleep(d * time.Millisecond)
+				player.updates <- generateWeatherDynamic(twoColorParity("grass", "green", t))
+				time.Sleep(d * time.Millisecond)
+				player.updates <- generateWeatherDynamic(twoColorParity("blue", "ice", t))
+				time.Sleep(d * time.Millisecond)
+				player.updates <- generateWeatherDynamic(twoColorParity("ice", "blue", t))
+				time.Sleep(d * time.Millisecond)
+				player.updates <- generateWeatherDynamic(twoColorParity("black", "half-gray", t))
+				time.Sleep(d * time.Millisecond)
+				player.updates <- generateWeatherDynamic(twoColorParity("half-gray", "black", t))
+				time.Sleep(d * time.Millisecond)
 
-		}
+			}
+		*/
 
 		/*
 			//player.updateBottomText("Heyo ;) ")
