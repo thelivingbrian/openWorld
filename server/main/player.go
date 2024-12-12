@@ -20,7 +20,7 @@ type Player struct {
 	stageLock sync.Mutex
 	tile      *Tile
 	tileLock  sync.Mutex
-	updates   chan Update
+	updates   chan []byte
 	stageName string
 	conn      *websocket.Conn
 	connLock  sync.Mutex
@@ -381,34 +381,39 @@ func (p *Player) move(yOffset int, xOffset int) {
 		p.push(destTile, nil, yOffset, xOffset)
 		if walkable(destTile) {
 			// atomic map swap
-			transferPlayer(p, sourceTile, destTile)
-
-			impactedTiles := p.updateSpaceHighlights()
-			updateOneAfterMovement(p, impactedTiles, sourceTile)
+			if transferPlayer(p, sourceTile, destTile) {
+				impactedTiles := p.updateSpaceHighlights()
+				updateOneAfterMovement(p, impactedTiles, sourceTile)
+			}
 		}
 	}
 }
 
-func transferPlayer(p *Player, source, dest *Tile) {
+func transferPlayer(p *Player, source, dest *Tile) bool {
 	p.tileLock.Lock()
-	if source.playerMutex.TryLock() {
-		if dest.playerMutex.TryLock() {
-			_, ok := source.playerMap[p.id]
-			if ok {
-				delete(source.playerMap, p.id)
-				dest.addLockedPlayertoLockedTile(p)
-			}
-			source.playerMutex.Unlock()
-			dest.playerMutex.Unlock()
-			if ok {
-				source.stage.updateAllExcept(playerBox(source), p)
-				dest.stage.updateAllExcept(playerBox(dest), p)
-			}
-		} else {
-			source.playerMutex.Unlock()
-		}
+	defer p.tileLock.Unlock()
+
+	if !source.playerMutex.TryLock() {
+		return false
 	}
-	p.tileLock.Unlock()
+	defer source.playerMutex.Unlock()
+
+	if !dest.playerMutex.TryLock() {
+		return false
+	}
+	defer dest.playerMutex.Unlock()
+
+	_, ok := source.playerMap[p.id]
+	if ok {
+		delete(source.playerMap, p.id)
+		dest.addLockedPlayertoLockedTile(p)
+		go func() {
+			source.stage.updateAllExcept(playerBox(source), p)
+			dest.stage.updateAllExcept(playerBox(dest), p)
+		}()
+	}
+
+	return ok
 }
 
 func (p *Player) pushUnder(yOffset int, xOffset int) {
@@ -538,15 +543,15 @@ func (player *Player) sendUpdates() {
 			return
 		}
 
-		sendUpdate(update)
+		sendUpdate(player, update)
 	}
 }
 
-func sendUpdate(update Update) {
-	update.player.connLock.Lock()
-	defer update.player.connLock.Unlock()
-	if update.player.conn != nil {
-		update.player.conn.WriteMessage(websocket.TextMessage, update.update)
+func sendUpdate(player *Player, update []byte) {
+	player.connLock.Lock()
+	player.connLock.Unlock()
+	if player.conn != nil {
+		player.conn.WriteMessage(websocket.TextMessage, update)
 	} else {
 		fmt.Println("WARN: Attempted to serve update to expired connection.")
 	}
@@ -561,7 +566,7 @@ func (player *Player) updateBottomText(message string) {
 }
 
 func (p *Player) trySend(msg []byte) {
-	p.updates <- Update{p, msg}
+	p.updates <- msg
 }
 
 /////////////////////////////////////////////////////////////

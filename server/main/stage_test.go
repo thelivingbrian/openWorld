@@ -9,7 +9,7 @@ import (
 func TestEnsureInteractableWillPush(t *testing.T) {
 	loadFromJson()
 	testStage := createStageByName("test-walls-interactable")
-	updatesForPlayer := make(chan Update)
+	updatesForPlayer := make(chan []byte)
 	go drainChannel(updatesForPlayer)
 
 	player := &Player{
@@ -54,7 +54,7 @@ func TestEnsureInteractableWillPush(t *testing.T) {
 func TestSurroundedPushableSquare(t *testing.T) {
 	loadFromJson()
 	testStage := createStageByName("test-walls-interactable")
-	updatesForPlayer := make(chan Update)
+	updatesForPlayer := make(chan []byte)
 	go drainChannel(updatesForPlayer)
 
 	if testStage.tiles[14][2].interactable == nil ||
@@ -103,7 +103,7 @@ func TestSurroundedPushableSquare(t *testing.T) {
 func TestSurroundedPushableSquareMultipleThreads(t *testing.T) {
 	loadFromJson()
 	testStage := createStageByName("test-walls-interactable")
-	updatesForPlayer := make(chan Update)
+	updatesForPlayer := make(chan []byte)
 	go drainChannel(updatesForPlayer)
 
 	if testStage.tiles[14][2].interactable == nil ||
@@ -165,7 +165,7 @@ func TestSurroundedPushableSquareMultipleThreads(t *testing.T) {
 func TestEnsureNoInteractableDuplication(t *testing.T) {
 	loadFromJson()
 	testStage := createStageByName("test-walls-interactable")
-	updatesForPlayer := make(chan Update)
+	updatesForPlayer := make(chan []byte)
 	go drainChannel(updatesForPlayer)
 
 	if testStage.tiles[14][2].interactable == nil ||

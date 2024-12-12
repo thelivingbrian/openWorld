@@ -60,7 +60,9 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	// Spawn all of the clone players
 	clones := make([]*Player, playerCount)
 	for i := range clones {
-		clones[i] = spawnNewPlayerWithRandomMovement(p, movementDelay)
+		clone, cancel := spawnNewPlayerWithRandomMovement(p, movementDelay)
+		clones[i] = clone
+		defer cancel()
 	}
 	if len(p.world.worldPlayers) != 501 {
 		t.Error(fmt.Sprintf("Player count should be 501 but is: %d", len(p.world.worldPlayers)))
