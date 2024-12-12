@@ -122,7 +122,6 @@ func (stage *Stage) updateAll(update string) {
 	defer stage.playerMutex.Unlock()
 	updateAsBytes := []byte(update)
 	for _, player := range stage.playerMap {
-		//updateOne(update, player)
 		player.updates <- updateAsBytes
 	}
 }
@@ -135,8 +134,6 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 		if player == ignore {
 			continue
 		}
-		// inefficient, so many casts
-		//updateOne(update, player)
 		player.updates <- updateAsBytes
 	}
 }

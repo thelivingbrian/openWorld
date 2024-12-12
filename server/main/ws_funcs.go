@@ -2,6 +2,7 @@ package main
 
 import (
 	"container/heap"
+	"context"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -235,34 +236,45 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 
 var npcs = 0
 
-func spawnNewPlayerWithRandomMovement(ref *Player, interval int) *Player {
+func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, context.CancelFunc) {
 	username := "user-" + uuid.New().String()
 	newPlayer := ref.world.join(&PlayerRecord{Username: username, Health: 50, Y: ref.y, X: ref.x, StageName: ref.stage.name, Team: "fuchsia", Trim: "white-b thick"})
-	go func() {
+	ctx, cancel := context.WithCancel(context.Background())
+	go func(ctx context.Context) {
 		for {
-			<-newPlayer.updates
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				<-newPlayer.updates
+			}
 		}
-	}()
+	}(ctx)
 	s := getStageFromStageName(newPlayer.world, newPlayer.stageName)
 	placePlayerOnStageAt(newPlayer, s, newPlayer.y, newPlayer.x)
-	go func() {
+	go func(ctx context.Context) {
 		for {
-			time.Sleep(time.Duration(interval) * time.Millisecond)
-			randn := rand.Intn(5000)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				time.Sleep(time.Duration(interval) * time.Millisecond)
+				randn := rand.Intn(5000)
 
-			if randn%4 == 0 {
-				newPlayer.moveNorth()
-			}
-			if randn%4 == 1 {
-				newPlayer.moveSouth()
-			}
-			if randn%4 == 2 {
-				newPlayer.moveEast()
-			}
-			if randn%4 == 3 {
-				newPlayer.moveWest()
+				if randn%4 == 0 {
+					newPlayer.moveNorth()
+				}
+				if randn%4 == 1 {
+					newPlayer.moveSouth()
+				}
+				if randn%4 == 2 {
+					newPlayer.moveEast()
+				}
+				if randn%4 == 3 {
+					newPlayer.moveWest()
+				}
 			}
 		}
-	}()
-	return newPlayer
+	}(ctx)
+	return newPlayer, cancel
 }
