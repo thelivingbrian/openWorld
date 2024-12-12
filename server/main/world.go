@@ -268,7 +268,7 @@ func notifyChangeInMostDangerous(currentMostDangerous *Player) {
 		if p == currentMostDangerous {
 			p.updateBottomText("You are the most dangerous bloop!")
 		} else {
-			p.updateBottomText(currentMostDangerous.username + " has become the most dangerous bloop...")
+			p.updateBottomText(currentMostDangerous.username + " has become the most dangerous bloop!")
 		}
 	}
 }
