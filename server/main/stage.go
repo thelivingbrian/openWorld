@@ -120,20 +120,24 @@ func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
 func (stage *Stage) updateAll(update string) {
 	stage.playerMutex.Lock()
 	defer stage.playerMutex.Unlock()
+	updateAsBytes := []byte(update)
 	for _, player := range stage.playerMap {
-		updateOne(update, player)
+		//updateOne(update, player)
+		player.updates <- updateAsBytes
 	}
 }
 
 func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 	stage.playerMutex.Lock()
 	defer stage.playerMutex.Unlock()
+	updateAsBytes := []byte(update)
 	for _, player := range stage.playerMap {
 		if player == ignore {
 			continue
 		}
 		// inefficient, so many casts
-		updateOne(update, player)
+		//updateOne(update, player)
+		player.updates <- updateAsBytes
 	}
 }
 
