@@ -38,14 +38,20 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatal("No player found for user") // lol too extreme
 		}
-		player := world.join(record)
-		if player != nil {
+		// queue here
+		//token := createRandomToken()
+		loginRequest := createLoginRequest(record)
+		world.addIncoming(loginRequest)
+
+		tmpl.ExecuteTemplate(w, "player-page", loginRequest)
+		//player := world.join(record)
+		/*if player != nil {
 			io.WriteString(w, printPageFor(player))
 			return
 		} else {
 			io.WriteString(w, "<h2>Invalid (User logged in already)</h2>")
 			return
-		}
+		}*/
 	}
 }
 
@@ -105,12 +111,15 @@ func (world *World) postNew(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		player := world.join(&record)
-		if player != nil {
+		loginRequest := createLoginRequest(record)
+		world.addIncoming(loginRequest)
+
+		tmpl.ExecuteTemplate(w, "player-page", loginRequest)
+		/*if player != nil {
 			io.WriteString(w, printPageFor(player))
 		} else {
 			io.WriteString(w, "<h2>Invalid (User logged in already)</h2>") // Should be impossible because new?
-		}
+		}*/
 	} else {
 		io.WriteString(w, divBottomInvalid("Username unavailable. Try again."))
 		return
@@ -241,14 +250,17 @@ func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatal("No player found for user") // lol too extreme
 		}
-		player := world.join(record)
-		if player != nil {
+		loginRequest := createLoginRequest(record)
+		world.addIncoming(loginRequest)
+
+		tmpl.ExecuteTemplate(w, "player-page", loginRequest)
+		/*if player != nil {
 			io.WriteString(w, printPageFor(player))
 			return
 		} else {
 			io.WriteString(w, "<h2>Invalid (User logged in already)</h2>")
 			return
-		}
+		}*/
 	} else {
 		io.WriteString(w, invalidSignin())
 		return

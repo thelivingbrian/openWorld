@@ -2,51 +2,112 @@ package main
 
 import (
 	"container/heap"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"sync"
-
-	"github.com/google/uuid"
+	"time"
 )
 
 type World struct {
-	db           *DB
-	worldPlayers map[string]*Player
-	wPlayerMutex sync.Mutex
-	worldStages  map[string]*Stage
-	wStageMutex  sync.Mutex
-	leaderBoard  *LeaderBoard
+	db                  *DB
+	worldPlayers        map[string]*Player
+	wPlayerMutex        sync.Mutex
+	incomingPlayers     map[string]LoginRequest
+	incomingPlayerMutex sync.Mutex
+	worldStages         map[string]*Stage
+	wStageMutex         sync.Mutex
+	leaderBoard         *LeaderBoard
 }
 
 func createGameWorld(db *DB) *World {
 	minimumKillstreak := Player{id: "HS-only", killstreak: 0} // Do somewhere else?
 	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: []*Player{&minimumKillstreak}, index: make(map[*Player]int)}}
-	return &World{db: db, worldPlayers: make(map[string]*Player), worldStages: make(map[string]*Stage), leaderBoard: lb}
+	return &World{db: db, worldPlayers: make(map[string]*Player), incomingPlayers: make(map[string]LoginRequest), worldStages: make(map[string]*Stage), leaderBoard: lb}
 }
 
-func (world *World) join(record *PlayerRecord) *Player {
-	token := uuid.New().String()
+type LoginRequest struct {
+	Token     string
+	Record    PlayerRecord
+	timestamp time.Time
+}
+
+func createLoginRequest(record PlayerRecord) LoginRequest {
+	return LoginRequest{
+		Token:     createRandomToken(),
+		Record:    record,
+		timestamp: time.Now(),
+	}
+}
+
+func isLessThan15SecondsAgo(t time.Time) bool {
+	if time.Since(t) < 0 {
+		// t is in the future
+		return false
+	}
+	return time.Since(t) < 15*time.Second
+}
+
+func (world *World) addIncoming(loginRequest LoginRequest) {
+	world.incomingPlayerMutex.Lock()
+	defer world.incomingPlayerMutex.Unlock()
+	world.incomingPlayers[loginRequest.Token] = loginRequest
+}
+
+func (world *World) retreiveIncoming(token string) *LoginRequest {
+	world.incomingPlayerMutex.Lock()
+	defer world.incomingPlayerMutex.Unlock()
+	request, ok := world.incomingPlayers[token]
+	if ok {
+		delete(world.incomingPlayers, token)
+		if isLessThan15SecondsAgo(request.timestamp) {
+			return &request
+		}
+	}
+	return nil
+}
+
+func createRandomToken() string {
+	token := make([]byte, 16)
+	_, err := rand.Read(token)
+	if err != nil {
+		panic(err)
+	}
+	return hex.EncodeToString(token)
+}
+
+func (world *World) join(incoming LoginRequest) *Player {
+	//token := uuid.New().String()
 	// need log levels
 	//fmt.Println("New Player: " + record.Username)
-	fmt.Println("Token: " + token)
+	//fmt.Println("Token: " + token)
 
-	if world.isLoggedInAlready(record.Username) {
-		fmt.Println("User attempting to log in but is logged in already: " + record.Username)
+	if world.isLoggedInAlready(incoming.Record.Username) {
+		fmt.Println("User attempting to log in but is logged in already: " + incoming.Record.Username)
 		return nil
 	}
 
-	updatesForPlayer := make(chan []byte)
+	newPlayer := world.newPlayerFromRecord(incoming.Record, incoming.Token)
 
+	//New Method
+	world.wPlayerMutex.Lock()
+	world.worldPlayers[incoming.Token] = newPlayer  // join that never upgrades is a leak, could be exploited into save point
+	world.leaderBoard.mostDangerous.Push(newPlayer) // Has own mutex. pMutex needed?
+	world.wPlayerMutex.Unlock()
+
+	return newPlayer
+}
+
+func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player {
 	// probably take this out later...
-
-	team := "sky-blue"
-	if record.Team != "" {
-		team = record.Team
+	if record.Team == "" {
+		record.Team = "sky-blue"
 	}
-
+	updatesForPlayer := make(chan []byte)
 	newPlayer := &Player{
-		id:        token,
+		id:        id,
 		username:  record.Username,
-		team:      team,
+		team:      record.Team,
 		trim:      record.Trim,
 		stage:     nil,
 		updates:   updatesForPlayer,
@@ -61,13 +122,6 @@ func (world *World) join(record *PlayerRecord) *Player {
 	}
 
 	newPlayer.setIcon()
-
-	//New Method
-	world.wPlayerMutex.Lock()
-	world.worldPlayers[token] = newPlayer           // join that never upgrades is a leak, could be exploited into save point
-	world.leaderBoard.mostDangerous.Push(newPlayer) // Has own mutex. pMutex needed?
-	world.wPlayerMutex.Unlock()
-
 	return newPlayer
 }
 

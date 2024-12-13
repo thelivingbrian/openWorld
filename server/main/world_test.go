@@ -13,24 +13,29 @@ import (
 func TestSocketJoinAndMove(t *testing.T) {
 	world := createGameWorld(testdb())
 
-	p := world.join(&PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
-	initialCoordiate := 2
+	req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
+	world.addIncoming(req)
+	//p := world.join(req)
+	//initialCoordiate := 2
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		world.NewSocketConnection(w, r)
 	}))
 	defer server.Close()
 
+	//testingSocket := createTestingSocket("https://bloop.world/screen")
 	testingSocket := createTestingSocket(server.URL)
 	defer testingSocket.ws.Close()
 
-	testingSocket.writeOrFatal(createInitialTokenMessage(p.id))
+	//id := "fc7ee25f-376b-422e-866f-7bde0fd742f8"
+
+	testingSocket.writeOrFatal(createInitialTokenMessage(req.Token))
 	_ = testingSocket.readOrFatal()
 
-	testingSocket.writeOrFatal(createSocketEventMessage(p.id, "d"))
+	testingSocket.writeOrFatal(createSocketEventMessage(req.Token, "d"))
 	_ = testingSocket.readOrFatal()
 
-	testingSocket.writeOrFatal(createSocketEventMessage(p.id, "d"))
+	testingSocket.writeOrFatal(createSocketEventMessage(req.Token, "d"))
 	_ = testingSocket.readOrFatal()
 
 	// Assert
@@ -38,29 +43,38 @@ func TestSocketJoinAndMove(t *testing.T) {
 		t.Error("Incorrect number of players")
 	}
 
-	if world.leaderBoard.mostDangerous.Peek() == p {
+	if world.leaderBoard.mostDangerous.Peek().username == req.Record.Username {
 		t.Error("New Player should not be most dangerous") // Minimum killstreak player prevents newly joining from being most dangerous
 	}
 
 	//fmt.Println(p.x)
-	if initialCoordiate == p.x {
-		t.Error("Player has not moved") // This can fail due to race
-	}
+	/*
+		Cannot be tested via the socket
+			if initialCoordiate == p.x {
+				t.Error("Player has not moved") // This can fail due to race
+			}
+	*/
 }
 
 func TestMostDangerous(t *testing.T) {
 	world := createGameWorld(testdb())
 	stage := getStageFromStageName(world, "test-large")
 
-	p1 := world.join(&PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: stage.name})
+	req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: stage.name})
+	world.addIncoming(req)
+	p1 := world.join(req)
 	go p1.sendUpdates()
 	p1.placeOnStage(stage)
 
-	p2 := world.join(&PlayerRecord{Username: "test2", Y: 3, X: 3, StageName: stage.name})
+	req2 := createLoginRequest(PlayerRecord{Username: "test2", Y: 3, X: 3, StageName: stage.name})
+	world.addIncoming(req2)
+	p2 := world.join(req2)
 	go p2.sendUpdates()
 	p2.placeOnStage(stage)
 
-	p3 := world.join(&PlayerRecord{Username: "test3", Y: 3, X: 3, StageName: stage.name})
+	req3 := createLoginRequest(PlayerRecord{Username: "test3", Y: 3, X: 3, StageName: stage.name})
+	world.addIncoming(req3)
+	p3 := world.join(req3)
 	go p3.sendUpdates()
 	p3.placeOnStage(stage)
 

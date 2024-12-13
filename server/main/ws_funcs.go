@@ -32,24 +32,34 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 	}
 	defer conn.Close()
 
+	// Issue additional challenge  ?
+	// or no advantage vs an incoming queue
+	// or incoming[challengeToken]
 	token, success := getTokenFromFirstMessage(conn) // Pattern for input?
 	if !success {
 		fmt.Println("Invalid Connection")
 		return
 	}
 
-	// New method on world
-	world.wPlayerMutex.Lock()
-	existingPlayer, playerExists := world.worldPlayers[token]
-	world.wPlayerMutex.Unlock()
-
-	if playerExists {
-		existingPlayer.conn = conn
-		//existingPlayer.world = world
-		handleNewPlayer(existingPlayer)
-	} else {
+	incoming := world.retreiveIncoming(token)
+	if incoming == nil {
 		fmt.Println("player not found with token: " + token)
+		return
 	}
+	existingPlayer := world.join(*incoming)
+	if existingPlayer == nil {
+		fmt.Println("Failed to join player with token: " + token)
+		return
+	}
+	existingPlayer.conn = conn
+	//existingPlayer.world = world
+	handleNewPlayer(existingPlayer)
+	// New method on world
+	/*
+		world.wPlayerMutex.Lock()
+		existingPlayer, playerExists := world.worldPlayers[token]
+		world.wPlayerMutex.Unlock()
+	*/
 }
 
 func handleNewPlayer(existingPlayer *Player) {
@@ -71,6 +81,7 @@ func handleNewPlayer(existingPlayer *Player) {
 			continue
 		}
 		if event.Token != existingPlayer.id {
+			// check mildly irrelevant?
 			fmt.Println("Cheating")
 			break
 		}
@@ -431,7 +442,10 @@ var npcs = 0
 
 func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, context.CancelFunc) {
 	username := "user-" + uuid.New().String()
-	newPlayer := ref.world.join(&PlayerRecord{Username: username, Health: 50, Y: ref.y, X: ref.x, StageName: ref.stage.name, Team: "fuchsia", Trim: "white-b thick"})
+	record := PlayerRecord{Username: username, Health: 50, Y: ref.y, X: ref.x, StageName: ref.stage.name, Team: "fuchsia", Trim: "white-b thick"}
+	req := createLoginRequest(record)
+	ref.world.addIncoming(req)
+	newPlayer := ref.world.join(req)
 	ctx, cancel := context.WithCancel(context.Background())
 	go func(ctx context.Context) {
 		for {
