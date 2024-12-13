@@ -79,7 +79,7 @@ func printPageFor(player *Player) string {
 		<div id="controls" hx-ext="ws" ws-connect="/screen">
 			<input id="token" type="hidden" name="token" value="` + player.id + `" />
 			<input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" />
-			<input id="tick" ws-send hx-trigger="load once" type="hidden" name="token" value="` + player.id + `" />
+
 			<div id="modal_background">
 				
 			</div>
