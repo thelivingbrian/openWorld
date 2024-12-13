@@ -103,7 +103,7 @@ func chooseYourColor() string {
 						<label id="color-window-0">
 							<input type="radio" name="player-team" value="fuchsia" checked />
 							<div id="exampleSquare-0">
-								<div class="grid-square-example fusia"></div>
+								<div class="grid-square-example fuchsia"></div>
 							</div>
 						</label>
 
