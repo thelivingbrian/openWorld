@@ -64,8 +64,8 @@ func (world *World) join(record *PlayerRecord) *Player {
 
 	//New Method
 	world.wPlayerMutex.Lock()
-	world.worldPlayers[token] = newPlayer
-	world.leaderBoard.mostDangerous.Push(newPlayer) // Give own mutex?
+	world.worldPlayers[token] = newPlayer           // join that never upgrades is a leak, could be exploited into save point
+	world.leaderBoard.mostDangerous.Push(newPlayer) // Has own mutex. pMutex needed?
 	world.wPlayerMutex.Unlock()
 
 	return newPlayer

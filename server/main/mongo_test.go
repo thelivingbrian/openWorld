@@ -85,6 +85,7 @@ func cleanUp() {
 
 	testdb().users.Drop(context.Background())
 	testdb().playerRecords.Drop(context.Background())
+	// should drop event records here too but curious to see if and when/how this becomes a problem
 }
 
 func BenchmarkMongoInsert(b *testing.B) {
