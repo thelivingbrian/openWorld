@@ -5,6 +5,11 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -30,6 +35,41 @@ type LoginRequest struct {
 	Token     string
 	Record    PlayerRecord
 	timestamp time.Time
+}
+
+func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
+	secret := os.Getenv("AUTO_PLAYER_PASSWORD")
+	if secret == "" {
+		fmt.Println("Bypass is disabled - but has been requested.")
+		return
+	}
+	props, ok := requestToProperties(r)
+	if !ok {
+		fmt.Println("invalid props")
+	}
+	if props["secret"] != secret {
+		fmt.Println("Bypass is disabled - but has been requested.")
+		return
+	}
+	countString := props["count"]
+	count, err := strconv.Atoi(countString)
+	if err != nil {
+		fmt.Println("Invalid count")
+		return
+	}
+	username := props["username"]
+	stage := props["stagename"]
+	team := props["team"]
+	tokens := make([]string, 0, count)
+	for i := 0; i < count; i++ {
+		iStr := strconv.Itoa(i)
+		record := PlayerRecord{Username: username + iStr, Health: 50, Y: 8, X: 8, StageName: stage, Team: team, Trim: "white-b thick"}
+		loginRequest := createLoginRequest(record)
+		world.addIncoming(loginRequest)
+		fmt.Println(loginRequest.Token)
+		tokens = append(tokens, loginRequest.Token)
+	}
+	io.WriteString(w, "{\""+strings.Join(tokens, "\",\"")+"}\"")
 }
 
 func createLoginRequest(record PlayerRecord) LoginRequest {

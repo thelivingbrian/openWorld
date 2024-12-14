@@ -443,9 +443,9 @@ var npcs = 0
 func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, context.CancelFunc) {
 	username := "user-" + uuid.New().String()
 	record := PlayerRecord{Username: username, Health: 50, Y: ref.y, X: ref.x, StageName: ref.stage.name, Team: "fuchsia", Trim: "white-b thick"}
-	req := createLoginRequest(record)
-	ref.world.addIncoming(req)
-	newPlayer := ref.world.join(req)
+	loginRequest := createLoginRequest(record)
+	ref.world.addIncoming(loginRequest)
+	newPlayer := ref.world.join(loginRequest)
 	ctx, cancel := context.WithCancel(context.Background())
 	go func(ctx context.Context) {
 		for {

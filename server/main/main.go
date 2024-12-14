@@ -57,6 +57,7 @@ func main() {
 
 	fmt.Println("Preparing for interactions...")
 	http.HandleFunc("/clear", clearScreen)
+	http.HandleFunc("/insert", world.postHorribleBypass)
 
 	fmt.Println("Initiating Websockets...")
 	http.HandleFunc("/screen", world.NewSocketConnection)
