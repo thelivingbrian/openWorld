@@ -37,6 +37,10 @@ type LoginRequest struct {
 	timestamp time.Time
 }
 
+func (record PlayerRecord) HeartsFromRecord() string {
+	return getHeartsFromHealth(record.Health)
+}
+
 func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 	secret := os.Getenv("AUTO_PLAYER_PASSWORD")
 	if secret == "" {
@@ -69,7 +73,7 @@ func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(loginRequest.Token)
 		tokens = append(tokens, loginRequest.Token)
 	}
-	io.WriteString(w, "{\""+strings.Join(tokens, "\",\"")+"}\"")
+	io.WriteString(w, "{\""+strings.Join(tokens, "\",\"")+"\"}")
 }
 
 func createLoginRequest(record PlayerRecord) LoginRequest {
@@ -85,7 +89,7 @@ func isLessThan15SecondsAgo(t time.Time) bool {
 		// t is in the future
 		return false
 	}
-	return time.Since(t) < 15*time.Second
+	return time.Since(t) < 150*time.Second
 }
 
 func (world *World) addIncoming(loginRequest LoginRequest) {

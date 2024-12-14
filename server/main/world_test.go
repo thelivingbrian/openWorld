@@ -6,9 +6,44 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
+
+func TestIntegrationA(t *testing.T) {
+	//world := createGameWorld(testdb())
+
+	//req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
+	//world.addIncoming(req)
+	//p := world.join(req)
+	//initialCoordiate := 2
+
+	testingSocket := createTestingSocket("https://bloop.world/screen")
+	defer testingSocket.ws.Close()
+
+	tokens := []string{}
+
+	sockets := make([]*TestingSocket, 0, len(tokens))
+	for _, token := range tokens {
+		testingSocket := createTestingSocket("https://bloop.world/screen")
+		defer testingSocket.ws.Close()
+		sockets = append(sockets, testingSocket)
+		testingSocket.writeOrFatal(createInitialTokenMessage(token))
+		_ = testingSocket.readOrFatal()
+		go func() {
+			testingSocket.writeOrFatal(createSocketEventMessage(token, "d"))
+			_ = testingSocket.readOrFatal()
+
+			testingSocket.writeOrFatal(createSocketEventMessage(token, "s"))
+			_ = testingSocket.readOrFatal()
+
+			testingSocket.writeOrFatal(createSocketEventMessage(token, "a"))
+			_ = testingSocket.readOrFatal()
+		}()
+		time.Sleep(5000 * time.Millisecond)
+	}
+}
 
 func TestSocketJoinAndMove(t *testing.T) {
 	world := createGameWorld(testdb())

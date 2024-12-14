@@ -43,6 +43,7 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 		loginRequest := createLoginRequest(record)
 		world.addIncoming(loginRequest)
 
+		fmt.Println("loginRequest for: " + loginRequest.Record.Username)
 		tmpl.ExecuteTemplate(w, "player-page", loginRequest)
 		//player := world.join(record)
 		/*if player != nil {
