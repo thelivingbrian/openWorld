@@ -84,7 +84,7 @@ func (world *World) postNew(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(team)
 	fmt.Println(username)
 
-	if !world.db.usernameExists(username) {
+	if !world.db.usernameExists(username) { // If username exists it is taken
 		if !validTeam(team) {
 			io.WriteString(w, divBottomInvalid("Invalid Player Color"))
 			return

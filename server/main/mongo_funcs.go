@@ -177,7 +177,7 @@ func (db *DB) getPlayerRecord(username string) (PlayerRecord, error) {
 
 func (db *DB) usernameExists(username string) bool {
 	_, err := db.getPlayerRecord(username)
-	return err != nil
+	return err == nil
 }
 
 // This is only being used by a test
