@@ -73,7 +73,7 @@ func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(loginRequest.Token)
 		tokens = append(tokens, loginRequest.Token)
 	}
-	io.WriteString(w, "{\""+strings.Join(tokens, "\",\"")+"\"}")
+	io.WriteString(w, "{\n\""+strings.Join(tokens, "\",\n\"")+"\",\n}")
 }
 
 func createLoginRequest(record PlayerRecord) LoginRequest {
@@ -89,7 +89,7 @@ func isLessThan15SecondsAgo(t time.Time) bool {
 		// t is in the future
 		return false
 	}
-	return time.Since(t) < 150*time.Second
+	return time.Since(t) < 450*time.Second
 }
 
 func (world *World) addIncoming(loginRequest LoginRequest) {
