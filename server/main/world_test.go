@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,7 +12,11 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// make endpoint
 func TestIntegrationA(t *testing.T) {
+	start := time.Now()
+	fmt.Println("0")
+	fmt.Println("Elapsed time:", time.Since(start))
 	//world := createGameWorld(testdb())
 
 	//req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
@@ -22,27 +27,69 @@ func TestIntegrationA(t *testing.T) {
 	testingSocket := createTestingSocket("https://bloop.world/screen")
 	defer testingSocket.ws.Close()
 
-	tokens := []string{}
+	tokens := []string{
+		"a0b04e4b4fcf61e0c25a38d4169644b7",
+		"fb88adf9b531a6acf9afb8a0f659515d",
+		"370e35a67e80e73836f56c065d6cf0d5",
+		"6208f5cdbb9ed7c2cf4dfeee280b61fc",
+		"1a85fe5d6c4456beed30ded32fdc1f8b",
+		"5eb1c74f433c6ad9f42098d6d090b29f",
+		"458406fc7a4caa051ee3277db0a76289",
+		"2077d7dbb3afd2537b7597d80a792e93",
+		"ae23f91998f038782b024fa3d7644fd2",
+		"0ad47ed927d8c0a4b27c34e7b62bc52a",
+		"536d3166a727f83d8cdf772a306b613b",
+		"b018499aa7da8b738b2db1c86aa4dda4",
+		"99aa10125ea751b8eca2df947d62a843",
+		"c93707d557fb1932a0bfff534f9b1267",
+		"51a456360236c4fcea929926050f0db7",
+		"714bc969e4ed7d4277291a0e41306764",
+		"db8c4cf969b7bf6499c37f5d83d523ab",
+		"f968526b306042a57010927dfee869bd",
+		"2849be7b6890ab9772f4711e30533c05",
+		"fb4c2f57d19ba3af282ac25bea735623",
+	}
 
 	sockets := make([]*TestingSocket, 0, len(tokens))
 	for _, token := range tokens {
+		fmt.Println(token)
 		testingSocket := createTestingSocket("https://bloop.world/screen")
 		defer testingSocket.ws.Close()
 		sockets = append(sockets, testingSocket)
 		testingSocket.writeOrFatal(createInitialTokenMessage(token))
 		_ = testingSocket.readOrFatal()
 		go func() {
-			testingSocket.writeOrFatal(createSocketEventMessage(token, "d"))
-			_ = testingSocket.readOrFatal()
+			for {
 
-			testingSocket.writeOrFatal(createSocketEventMessage(token, "s"))
-			_ = testingSocket.readOrFatal()
+				randn := rand.Intn(5000)
+				if randn%4 == 0 {
+					testingSocket.writeOrFatal(createSocketEventMessage(token, "w"))
+					_ = testingSocket.readOrFatal()
+					time.Sleep(100 * time.Millisecond)
+				}
+				if randn%4 == 1 {
+					testingSocket.writeOrFatal(createSocketEventMessage(token, "s"))
+					_ = testingSocket.readOrFatal()
+					time.Sleep(100 * time.Millisecond)
+				}
+				if randn%4 == 2 {
+					testingSocket.writeOrFatal(createSocketEventMessage(token, "d"))
+					_ = testingSocket.readOrFatal()
+					time.Sleep(100 * time.Millisecond)
+				}
+				if randn%4 == 3 {
+					testingSocket.writeOrFatal(createSocketEventMessage(token, "a"))
+					_ = testingSocket.readOrFatal()
+					time.Sleep(100 * time.Millisecond)
+				}
 
-			testingSocket.writeOrFatal(createSocketEventMessage(token, "a"))
-			_ = testingSocket.readOrFatal()
+				// testingSocket.writeOrFatal(createSocketEventMessage(token, "w"))
+				// _ = testingSocket.readOrFatal()
+				// time.Sleep(100 * time.Millisecond)
+			}
 		}()
-		time.Sleep(5000 * time.Millisecond)
 	}
+	time.Sleep(30000 * time.Millisecond)
 }
 
 func TestSocketJoinAndMove(t *testing.T) {
