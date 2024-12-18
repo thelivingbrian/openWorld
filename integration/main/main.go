@@ -87,7 +87,7 @@ func IntegrationA(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("failed to create testing socket")
 			return
 		}
-		//defer testingSocket.ws.Close()
+		//defer testingSocket.ws.Close() // This is being done by code below but shoudl make more clear
 		testingSocket.tryWrite(createInitialTokenMessage(token))
 
 		if read {
@@ -99,7 +99,8 @@ func IntegrationA(w http.ResponseWriter, r *http.Request) {
 		term := make(chan bool)
 		go testingSocket.closeOnRec(term)
 		go func(chan bool) {
-			time.Sleep(5 * time.Second)
+			// parameterize
+			time.Sleep(95 * time.Second)
 			term <- true
 		}(term)
 	}
