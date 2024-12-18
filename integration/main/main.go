@@ -87,16 +87,24 @@ func IntegrationA(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("failed to create testing socket")
 			return
 		}
-		defer testingSocket.ws.Close()
+		//defer testingSocket.ws.Close()
 		testingSocket.tryWrite(createInitialTokenMessage(token))
 
 		if read {
 			go testingSocket.readUntilNil()
 		}
 		go testingSocket.moveInCircles(token)
+
+		// feels hacky
+		term := make(chan bool)
+		go testingSocket.closeOnRec(term)
+		go func(chan bool) {
+			time.Sleep(5 * time.Second)
+			term <- true
+		}(term)
 	}
-	// need better context
-	time.Sleep(120000 * time.Millisecond)
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "Request successful!")
 }
 
 type TestingSocket struct {
@@ -156,6 +164,11 @@ func (ts *TestingSocket) tryWrite(msg []byte) error {
 		return err
 	}
 	return nil
+}
+
+func (ts *TestingSocket) closeOnRec(term chan bool) {
+	<-term
+	ts.ws.Close()
 }
 
 func (ts *TestingSocket) tryRead() []byte {
