@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -59,8 +60,26 @@ func requestTokens(stagename, count string) []string {
 }
 
 func IntegrationA(w http.ResponseWriter, r *http.Request) {
-	// get from request
-	tokens := requestTokens("team-blue:3-3", "100")
+	// curl -X POST "http://localhost:4440/mass?stagename=team-blue:3-3&read=true&count=70"
+	readParam := r.URL.Query().Get("read")
+	var read bool
+	if readParam != "" {
+		var err error
+		read, err = strconv.ParseBool(readParam)
+		if err != nil {
+			http.Error(w, "Invalid 'read' parameter", http.StatusBadRequest)
+			return
+		}
+	}
+
+	stagename := r.URL.Query().Get("stagename")
+	count := r.URL.Query().Get("count")
+	if stagename == "" || count == "" {
+		http.Error(w, "Missing required token parameters", http.StatusBadRequest)
+		return
+	}
+	// Need to include username if planning to call more than once
+	tokens := requestTokens(stagename, count)
 	for _, token := range tokens {
 		fmt.Println(token)
 		testingSocket := createTestingSocket(os.Getenv("BLOOP_HOST") + "/screen")
@@ -71,7 +90,9 @@ func IntegrationA(w http.ResponseWriter, r *http.Request) {
 		defer testingSocket.ws.Close()
 		testingSocket.tryWrite(createInitialTokenMessage(token))
 
-		go testingSocket.readUntilNil()
+		if read {
+			go testingSocket.readUntilNil()
+		}
 		go testingSocket.moveInCircles(token)
 	}
 	// need better context
