@@ -127,13 +127,17 @@ func (stage *Stage) updateAll(update string) {
 }
 
 func (stage *Stage) updateAllExcept(update string, ignore *Player) {
+	// getting locked up here
+	// RW mutex?
 	stage.playerMutex.Lock()
 	defer stage.playerMutex.Unlock()
 	updateAsBytes := []byte(update)
+	// copy map
 	for _, player := range stage.playerMap {
 		if player == ignore {
 			continue
 		}
+		// bottlenecked by reader speed?
 		player.updates <- updateAsBytes
 	}
 }
