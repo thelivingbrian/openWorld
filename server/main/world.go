@@ -73,7 +73,7 @@ func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(loginRequest.Token)
 		tokens = append(tokens, loginRequest.Token)
 	}
-	io.WriteString(w, "{\n\""+strings.Join(tokens, "\",\n\"")+"\",\n}")
+	io.WriteString(w, "[\""+strings.Join(tokens, "\",\"")+"\"]")
 }
 
 func createLoginRequest(record PlayerRecord) LoginRequest {
