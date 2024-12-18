@@ -31,81 +31,50 @@ func main() {
 	}
 }
 
-func IntegrationA(w http.ResponseWriter, r *http.Request) {
-	host := os.Getenv("BLOOP_HOST")
-	tokenEndpoint := host + "/insert"
+func requestTokens(stagename, count string) []string {
 	secret := os.Getenv("AUTO_PLAYER_PASSWORD")
-	payload := []byte("secret=" + secret + "&username=uname&stagename=team-blue:3-3&team=fuchsia&count=120")
+	payload := []byte("secret=" + secret + "&username=uname&stagename=" + stagename + "&team=fuchsia&count=" + count)
 
-	// Make POST to retrieve tokens
+	tokenEndpoint := os.Getenv("BLOOP_HOST") + "/insert"
 	resp, err := http.Post(tokenEndpoint, "application/x-www-form-urlencoded", bytes.NewBuffer(payload))
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to fetch tokens: %v", err), http.StatusInternalServerError)
-		return
+		fmt.Printf("Failed to fetch tokens: %v", err)
+		return nil
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to read response: %v", err), http.StatusInternalServerError)
-		return
+		fmt.Printf("Failed to read response: %v", err)
+		return nil
 	}
 	var tokens []string
 	if err := json.Unmarshal(body, &tokens); err != nil {
-		http.Error(w, fmt.Sprintf("Failed to parse token response: %v", err), http.StatusInternalServerError)
-		return
+		fmt.Printf("Failed to parse token response: %v", err)
+		return nil
 	}
 
 	fmt.Println("Retrieved tokens:", tokens)
+	return tokens
+}
 
-	//sockets := make([]*TestingSocket, 0, len(tokens))
+func IntegrationA(w http.ResponseWriter, r *http.Request) {
+	// get from request
+	tokens := requestTokens("team-blue:3-3", "100")
 	for _, token := range tokens {
 		fmt.Println(token)
-		testingSocket := createTestingSocket(host + "/screen")
+		testingSocket := createTestingSocket(os.Getenv("BLOOP_HOST") + "/screen")
 		if testingSocket == nil {
 			fmt.Println("failed to create testing socket")
 			return
 		}
 		defer testingSocket.ws.Close()
-		//sockets = append(sockets, testingSocket)
-		testingSocket.writeOrFatal(createInitialTokenMessage(token))
-		go func() {
-			for testingSocket.readOrFatal() != nil {
+		testingSocket.tryWrite(createInitialTokenMessage(token))
 
-			}
-		}()
-
-		go func(token string) {
-			for {
-				randn := rand.Intn(5000)
-				if randn%4 == 0 {
-					if testingSocket.writeOrFatal(createSocketEventMessage(token, "a")) != nil {
-						break
-					}
-					time.Sleep(100 * time.Millisecond)
-				}
-				if randn%4 == 1 {
-					if testingSocket.writeOrFatal(createSocketEventMessage(token, "w")) != nil {
-						break
-					}
-					time.Sleep(100 * time.Millisecond)
-				}
-				if randn%4 == 2 {
-					if testingSocket.writeOrFatal(createSocketEventMessage(token, "d")) != nil {
-						break
-					}
-					time.Sleep(100 * time.Millisecond)
-				}
-				if randn%4 == 3 {
-					if testingSocket.writeOrFatal(createSocketEventMessage(token, "s")) != nil {
-						break
-					}
-					time.Sleep(100 * time.Millisecond)
-				}
-			}
-		}(token)
+		go testingSocket.readUntilNil()
+		go testingSocket.moveInCircles(token)
 	}
-
+	// need better context
 	time.Sleep(120000 * time.Millisecond)
 }
 
@@ -120,8 +89,8 @@ func createTestingSocket(url string) *TestingSocket {
 	}
 	ws, _, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
+		fmt.Printf("could not dial: %v\n", err)
 		return nil
-		//panic(fmt.Sprintf("could not dial: %v", err))
 	}
 	return &TestingSocket{ws: ws}
 }
@@ -130,7 +99,7 @@ func createInitialTokenMessage(token string) []byte {
 	var msg = struct {
 		Token string
 	}{
-		Token: token, //"",
+		Token: token,
 	}
 	initialTokenMessage, err := json.Marshal(msg)
 	if err != nil {
@@ -159,22 +128,80 @@ func createSocketEventMessage(token, name string) []byte {
 	return socketMsg
 }
 
-func (ts *TestingSocket) writeOrFatal(msg []byte) error {
+func (ts *TestingSocket) tryWrite(msg []byte) error {
 	err := ts.ws.WriteMessage(websocket.TextMessage, msg)
 	if err != nil {
 		fmt.Printf("could not send message: %s, Error: %v\n", string(msg), err)
 		return err
-		//panic(fmt.Sprintf("could not send message: %s, Error: %v", string(msg), err))
 	}
 	return nil
 }
 
-func (ts *TestingSocket) readOrFatal() []byte {
+func (ts *TestingSocket) tryRead() []byte {
 	_, msg, err := ts.ws.ReadMessage()
 	if err != nil {
 		fmt.Printf("could not read message - Error: %v\n", err)
 		return nil
-		//panic(fmt.Sprintf("could not read message - Error: %v", err))
 	}
 	return msg
+}
+
+func (ts *TestingSocket) readUntilNil() {
+	for ts.tryRead() != nil {
+
+	}
+}
+
+func (ts *TestingSocket) moveRandomly(token string) {
+	for {
+		randn := rand.Intn(5000)
+		if randn%4 == 0 {
+			if ts.tryWrite(createSocketEventMessage(token, "a")) != nil {
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+		if randn%4 == 1 {
+			if ts.tryWrite(createSocketEventMessage(token, "w")) != nil {
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+		if randn%4 == 2 {
+			if ts.tryWrite(createSocketEventMessage(token, "d")) != nil {
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+		if randn%4 == 3 {
+			if ts.tryWrite(createSocketEventMessage(token, "s")) != nil {
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+	}
+}
+
+func (ts *TestingSocket) moveInCircles(token string) {
+	for {
+		if ts.tryWrite(createSocketEventMessage(token, "w")) != nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+
+		if ts.tryWrite(createSocketEventMessage(token, "a")) != nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+
+		if ts.tryWrite(createSocketEventMessage(token, "s")) != nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+
+		if ts.tryWrite(createSocketEventMessage(token, "d")) != nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
 }
