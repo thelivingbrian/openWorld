@@ -8,7 +8,7 @@ import (
 type Stage struct {
 	tiles       [][]*Tile          // [][]**Tile would be weird and open up FP over mutation (also lookup is less fragile)
 	playerMap   map[string]*Player // Player Map to Bson map to save whole stage in one command
-	playerMutex sync.Mutex
+	playerMutex sync.RWMutex
 	name        string
 	north       string
 	south       string
@@ -63,7 +63,7 @@ func (world *World) loadStageByName(name string) *Stage {
 
 func createStageFromArea(area Area) *Stage {
 	spawnAction := spawnActions[area.SpawnStrategy]
-	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.Mutex{}, area.Name, area.North, area.South, area.East, area.West, area.MapId, spawnAction}
+	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.RWMutex{}, area.Name, area.North, area.South, area.East, area.West, area.MapId, spawnAction}
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
 		for x := range outputStage.tiles[y] {
@@ -118,8 +118,8 @@ func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
 }
 
 func (stage *Stage) updateAll(update string) {
-	stage.playerMutex.Lock()
-	defer stage.playerMutex.Unlock()
+	stage.playerMutex.RLock()
+	defer stage.playerMutex.RUnlock()
 	updateAsBytes := []byte(update)
 	for _, player := range stage.playerMap {
 		player.updates <- updateAsBytes
@@ -128,17 +128,25 @@ func (stage *Stage) updateAll(update string) {
 
 func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 	// getting locked up here
-	// RW mutex?
-	stage.playerMutex.Lock()
-	defer stage.playerMutex.Unlock()
+	stage.playerMutex.RLock()
+	defer stage.playerMutex.RUnlock()
 	updateAsBytes := []byte(update)
-	// copy map
+	// copy map ?
 	for _, player := range stage.playerMap {
 		if player == ignore {
 			continue
 		}
 		// bottlenecked by reader speed?
+		// update capacity?
 		player.updates <- updateAsBytes
+		/*
+			// This felt generally bad with no benefit noticed even with no readers
+			select {
+			case player.updates <- updateAsBytes:
+				// Message sent
+			default:
+				fmt.Println("dropping message D:")
+			}*/
 	}
 }
 
