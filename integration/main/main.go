@@ -92,30 +92,32 @@ func IntegrationA(w http.ResponseWriter, r *http.Request) {
 	}
 	// Need to include username if planning to call more than once
 	tokens := requestTokens(stagename, count)
-	for _, token := range tokens {
-		fmt.Println(token)
-		testingSocket := createTestingSocket(os.Getenv("BLOOP_HOST") + "/screen")
-		if testingSocket == nil {
-			fmt.Println("failed to create testing socket")
-			return
-		}
-		//defer testingSocket.ws.Close() // This is being done by code below but shoudl make more clear
-		testingSocket.tryWrite(createInitialTokenMessage(token))
+	go func() {
+		for _, token := range tokens {
+			fmt.Println(token)
+			testingSocket := createTestingSocket(os.Getenv("BLOOP_HOST") + "/screen")
+			if testingSocket == nil {
+				fmt.Println("failed to create testing socket")
+				return
+			}
+			//defer testingSocket.ws.Close() // This is being done by code below but shoudl make more clear
+			testingSocket.tryWrite(createInitialTokenMessage(token))
 
-		if read {
-			go testingSocket.readUntilNil()
-		}
-		go testingSocket.moveInCircles(token)
+			if read {
+				go testingSocket.readUntilNil()
+			}
+			go testingSocket.moveInCircles(token)
 
-		// feels hacky
-		term := make(chan bool)
-		go testingSocket.closeOnRec(term)
-		go func(chan bool) {
-			// parameterize
-			time.Sleep(95 * time.Second)
-			term <- true
-		}(term)
-	}
+			// feels hacky
+			term := make(chan bool)
+			go testingSocket.closeOnRec(term)
+			go func(chan bool) {
+				// parameterize
+				time.Sleep(180 * time.Second)
+				term <- true
+			}(term)
+		}
+	}()
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, "Request successful!")
 }
