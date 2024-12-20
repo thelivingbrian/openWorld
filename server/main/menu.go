@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"strconv"
-
-	"github.com/gorilla/websocket"
 )
 
 type Menu struct {
@@ -219,11 +217,13 @@ func Quit(p *Player) {
 	  </div>`
 
 	//p.trySend([]byte(logOutSuccess)) // This races with logout
-	p.connLock.Lock()
+	/*p.connLock.Lock()
 	if p.conn != nil {
 		p.conn.WriteMessage(websocket.TextMessage, []byte(logOutSuccess))
 	}
 	p.connLock.Unlock()
+	*/
+	sendUpdate(p, []byte(logOutSuccess))
 }
 
 func openMapMenu(p *Player) {

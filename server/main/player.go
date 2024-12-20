@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -23,7 +25,7 @@ type Player struct {
 	updates   chan []byte
 	stageName string
 	conn      *websocket.Conn
-	connLock  sync.Mutex
+	connLock  sync.RWMutex
 	// x, y are highly mutated and are unsafe to read/difficult to lock. Use tile instead ?
 	x          int
 	y          int
@@ -536,20 +538,33 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 
 func (player *Player) sendUpdates() {
 	username := player.username
-	for {
-		update, ok := <-player.updates
-		if !ok {
-			fmt.Println("Player: " + username + " - update channel closed")
-			return
-		}
+	ticker := time.NewTicker(25 * time.Millisecond)
+	defer ticker.Stop()
 
-		sendUpdate(player, update)
+	var buffer bytes.Buffer
+	for {
+		select {
+		case update, ok := <-player.updates:
+			if !ok {
+				fmt.Println("Player:", username, "- update channel closed")
+				return
+			}
+			// Accumulate the update in the buffer.
+			buffer.Write(update)
+
+		case <-ticker.C:
+			// Every 25ms, if there's anything in the buffer, send it.
+			if buffer.Len() > 0 {
+				sendUpdate(player, buffer.Bytes())
+				buffer.Reset()
+			}
+		}
 	}
 }
 
 func sendUpdate(player *Player, update []byte) {
-	player.connLock.Lock()
-	player.connLock.Unlock()
+	player.connLock.RLock()
+	defer player.connLock.RUnlock()
 	if player.conn != nil {
 		player.conn.WriteMessage(websocket.TextMessage, update)
 	} else {

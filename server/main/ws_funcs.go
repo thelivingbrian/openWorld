@@ -115,6 +115,9 @@ func logOut(player *Player) {
 
 	player.connLock.Lock()
 	defer player.connLock.Unlock()
+	if player.conn != nil {
+		player.conn.Close()
+	}
 	player.conn = nil
 
 	close(player.updates)
