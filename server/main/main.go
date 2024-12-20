@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
@@ -35,6 +36,12 @@ func main() {
 	db := createDbConnection(config)
 	world := createGameWorld(db)
 	loadFromJson()
+
+	// start pprof
+	go func() {
+		fmt.Println("Starting pprof HTTP server on :6060")
+		fmt.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	fmt.Println("Establishing Routes...")
 
