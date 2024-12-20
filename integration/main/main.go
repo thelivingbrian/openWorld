@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	crand "crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -32,9 +34,19 @@ func main() {
 	}
 }
 
+func createRandomString() string {
+	bytes := make([]byte, 8)
+	_, err := crand.Read(bytes)
+	if err != nil {
+		panic(err)
+	}
+	return hex.EncodeToString(bytes)
+}
+
 func requestTokens(stagename, count string) []string {
 	secret := os.Getenv("AUTO_PLAYER_PASSWORD")
-	payload := []byte("secret=" + secret + "&username=uname&stagename=" + stagename + "&team=fuchsia&count=" + count)
+	username := createRandomString()
+	payload := []byte("secret=" + secret + "&username=" + username + "&stagename=" + stagename + "&team=fuchsia&count=" + count)
 
 	tokenEndpoint := os.Getenv("BLOOP_HOST") + "/insert"
 	resp, err := http.Post(tokenEndpoint, "application/x-www-form-urlencoded", bytes.NewBuffer(payload))
