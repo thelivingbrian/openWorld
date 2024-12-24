@@ -32,6 +32,7 @@
       - [ ] Allows backpressure
       - [ ] only available on chrome
 - [ ] Highlight code not working with buffered sends
+  - [ ] Initial screen load no longer requires button press? 
 - [ ] Result of removing buffer with the new timeout deadlines (Should still get overwhelmed)
 
 ## Design Workspace
