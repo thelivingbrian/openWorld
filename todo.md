@@ -19,6 +19,16 @@
   - [-] Automated test
 - [ ] Disable respawn from tutorial
 
+## Performance 
+- [ ] Performance from Ec2 is degraded vs localhost
+  - [ ] Client overwhelmed Potentially?
+    - [ ] Relation to integration test with no reader?
+      - [-] Run PProf on Ec2  
+      - [-] Run PProf locally with no reader
+    - [ ] Websocketstream? 
+      - [ ] Allows backpressure
+      - [ ] only available on chrome
+
 ## Design Workspace
 - [-] Rotations
   - [-] New collection
