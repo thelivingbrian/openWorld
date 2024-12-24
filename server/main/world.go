@@ -147,7 +147,7 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 	if record.Team == "" {
 		record.Team = "sky-blue"
 	}
-	updatesForPlayer := make(chan []byte)
+	updatesForPlayer := make(chan []byte) // raise capacity?
 	newPlayer := &Player{
 		id:        id,
 		username:  record.Username,

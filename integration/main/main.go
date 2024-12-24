@@ -94,7 +94,7 @@ func IntegrationA(w http.ResponseWriter, r *http.Request) {
 	tokens := requestTokens(stagename, count)
 	go func() {
 		for _, token := range tokens {
-			fmt.Println(token)
+			//fmt.Println(token)
 			testingSocket := createTestingSocket(os.Getenv("BLOOP_HOST") + "/screen")
 			if testingSocket == nil {
 				fmt.Println("failed to create testing socket")
@@ -113,7 +113,7 @@ func IntegrationA(w http.ResponseWriter, r *http.Request) {
 			go testingSocket.closeOnRec(term)
 			go func(chan bool) {
 				// parameterize
-				time.Sleep(180 * time.Second)
+				time.Sleep(120 * time.Second)
 				term <- true
 			}(term)
 		}

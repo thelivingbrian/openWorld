@@ -537,20 +537,28 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 //   Updates
 
 func (player *Player) sendUpdates() {
-	username := player.username
 	ticker := time.NewTicker(25 * time.Millisecond)
 	defer ticker.Stop()
 
+	const maxBufferSize = 256 * 1024
 	var buffer bytes.Buffer
 	for {
 		select {
 		case update, ok := <-player.updates:
 			if !ok {
-				fmt.Println("Player:", username, "- update channel closed")
+				fmt.Println("Player:", player.username, "- update channel closed")
 				return
 			}
 			// Accumulate the update in the buffer.
-			buffer.Write(update)
+			//buffer.Write(update)
+			if buffer.Len()+len(update) > maxBufferSize {
+				// Does / Can this happen? Useful to cap growth?
+				fmt.Printf("Player: %s - buffer exceeded %d bytes, wiping buffer\n", player.username, maxBufferSize)
+				buffer.Reset()
+			} else {
+				// Otherwise, accumulate the update in the buffer.
+				buffer.Write(update)
+			}
 
 		case <-ticker.C:
 			// Every 25ms, if there's anything in the buffer, send it.
@@ -566,7 +574,18 @@ func sendUpdate(player *Player, update []byte) {
 	player.connLock.RLock()
 	defer player.connLock.RUnlock()
 	if player.conn != nil {
-		player.conn.WriteMessage(websocket.TextMessage, update)
+		//player.conn.WriteMessage(websocket.TextMessage, update)
+		err := player.conn.SetWriteDeadline(time.Now().Add(500 * time.Millisecond))
+		if err != nil {
+			fmt.Println("Failed to set write deadline:", err)
+			return
+		}
+		err = player.conn.WriteMessage(websocket.TextMessage, update)
+		if err != nil {
+			fmt.Printf("WARN: WriteMessage failed for player %s: %v\n", player.username, err)
+			// Close connection if writes consistently fail ?
+			// logout(player) ?
+		}
 	} else {
 		fmt.Println("WARN: Attempted to serve update to expired connection.")
 	}
