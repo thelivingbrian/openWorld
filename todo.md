@@ -25,9 +25,14 @@
     - [ ] Relation to integration test with no reader?
       - [-] Run PProf on Ec2  
       - [-] Run PProf locally with no reader
+      - [ ] Lack of reader can be solved by timeout on socket send
+        - [ ] Logout is unclean, can leave channels closed before writes ? 
+        - [ ] Performance still degrades dsignificantly 
     - [ ] Websocketstream? 
       - [ ] Allows backpressure
       - [ ] only available on chrome
+- [ ] Highlight code not working with buffered sends
+- [ ] Result of removing buffer with the new timeout deadlines (Should still get overwhelmed)
 
 ## Design Workspace
 - [-] Rotations
