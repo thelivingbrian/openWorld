@@ -216,13 +216,6 @@ func Quit(p *Player) {
 	      </div>
 	  </div>`
 
-	//p.trySend([]byte(logOutSuccess)) // This races with logout
-	/*p.connLock.Lock()
-	if p.conn != nil {
-		p.conn.WriteMessage(websocket.TextMessage, []byte(logOutSuccess))
-	}
-	p.connLock.Unlock()
-	*/
 	sendUpdate(p, []byte(logOutSuccess))
 }
 

@@ -25,6 +25,7 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 	if userRecord == nil {
 		// deeply confusing
 		// Could imply hacked cookie?
+		// Has happened when db record is lost/destroyed
 		return
 	}
 
@@ -36,23 +37,13 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 	} else {
 		record, err := world.db.getPlayerRecord(userRecord.Username)
 		if err != nil {
-			log.Fatal("No player found for user") // lol too extreme
+			log.Fatal("No player found for user") // Too extreme.
 		}
-		// queue here
-		//token := createRandomToken()
 		loginRequest := createLoginRequest(record)
 		world.addIncoming(loginRequest)
 
 		fmt.Println("loginRequest for: " + loginRequest.Record.Username)
 		tmpl.ExecuteTemplate(w, "player-page", loginRequest)
-		//player := world.join(record)
-		/*if player != nil {
-			io.WriteString(w, printPageFor(player))
-			return
-		} else {
-			io.WriteString(w, "<h2>Invalid (User logged in already)</h2>")
-			return
-		}*/
 	}
 }
 
@@ -84,47 +75,43 @@ func (world *World) postNew(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(team)
 	fmt.Println(username)
 
-	if !world.db.usernameExists(username) { // If username exists it is taken
-		if !validTeam(team) {
-			io.WriteString(w, divBottomInvalid("Invalid Player Color"))
-			return
+	if !validTeam(team) {
+		io.WriteString(w, divBottomInvalid("Invalid Player Color"))
+		return
+	}
 
-		}
-		record := PlayerRecord{
-			Username:  username,
-			Team:      team,
-			Trim:      "",
-			Health:    100,
-			StageName: "tutorial:0-0",
-			X:         4,
-			Y:         4,
-			Money:     80,
-		}
-
-		err := world.db.InsertPlayerRecord(record)
-		if err != nil {
-			io.WriteString(w, divBottomInvalid("Error saving new player"))
-			return
-		}
-		ok := world.db.updateUserName(id, username)
-		if !ok {
-			io.WriteString(w, divBottomInvalid("Error, username not updated"))
-			return
-		}
-
-		loginRequest := createLoginRequest(record)
-		world.addIncoming(loginRequest)
-
-		tmpl.ExecuteTemplate(w, "player-page", loginRequest)
-		/*if player != nil {
-			io.WriteString(w, printPageFor(player))
-		} else {
-			io.WriteString(w, "<h2>Invalid (User logged in already)</h2>") // Should be impossible because new?
-		}*/
-	} else {
+	if world.db.foundUsername(username) {
 		io.WriteString(w, divBottomInvalid("Username unavailable. Try again."))
 		return
 	}
+
+	// new method
+	record := PlayerRecord{
+		Username:  username,
+		Team:      team,
+		Trim:      "",
+		Health:    100,
+		StageName: "tutorial:0-0",
+		X:         4,
+		Y:         4,
+		Money:     80,
+	}
+
+	err := world.db.InsertPlayerRecord(record)
+	if err != nil {
+		io.WriteString(w, divBottomInvalid("Error saving new player"))
+		return
+	}
+	ok = world.db.updateUsernameForUserWithId(id, username)
+	if !ok {
+		io.WriteString(w, divBottomInvalid("Error, username not updated"))
+		return
+	}
+
+	loginRequest := createLoginRequest(record)
+	world.addIncoming(loginRequest)
+
+	tmpl.ExecuteTemplate(w, "player-page", loginRequest)
 }
 
 func validTeam(team string) bool {
@@ -249,19 +236,12 @@ func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 	if worked {
 		record, err := world.db.getPlayerRecord(user.Username)
 		if err != nil {
-			log.Fatal("No player found for user") // lol too extreme
+			log.Fatal("No player found for user") // Too extreme.
 		}
 		loginRequest := createLoginRequest(record)
 		world.addIncoming(loginRequest)
 
 		tmpl.ExecuteTemplate(w, "player-page", loginRequest)
-		/*if player != nil {
-			io.WriteString(w, printPageFor(player))
-			return
-		} else {
-			io.WriteString(w, "<h2>Invalid (User logged in already)</h2>")
-			return
-		}*/
 	} else {
 		io.WriteString(w, invalidSignin())
 		return

@@ -15,7 +15,7 @@ func TestSocketJoinAndMove(t *testing.T) {
 
 	req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
 	world.addIncoming(req)
-	//p := world.join(req)
+
 	//initialCoordiate := 2
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

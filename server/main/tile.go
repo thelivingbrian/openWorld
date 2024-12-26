@@ -177,7 +177,6 @@ func (tile *Tile) getAPlayer() *Player {
 
 func (tile *Tile) tryToNotifyAfter(delay int) {
 	time.Sleep(time.Millisecond * time.Duration(delay))
-	//tile.eventsInFlight.Add(-1)
 	if tile.eventsInFlight.Add(-1) == 0 {
 		// blue trsp20 for gloom
 		tile.stage.updateAll(weatherBox(tile, ""))

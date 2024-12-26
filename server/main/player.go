@@ -367,7 +367,7 @@ func (p *Player) tryGoNeighbor(yOffset, xOffset int) {
 
 		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
 		p.applyTeleport(t)
-		impactedTiles := p.updateSpaceHighlights()
+		impactedTiles := p.updateSpaceHighlights() //Duped in applyTeleport, ineffective with buffer
 		updateOneAfterMovement(p, impactedTiles, previousTile)
 	}
 }

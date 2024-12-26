@@ -135,7 +135,7 @@ func (db *DB) insertAuthorizedUser(user AuthorizedUser) error {
 	return err
 }
 
-func (db *DB) updateUserName(identifier, username string) bool {
+func (db *DB) updateUsernameForUserWithId(identifier, username string) bool {
 	filter := bson.M{"identifier": identifier, "username": ""}
 	update := bson.M{"$set": bson.M{"username": username}}
 
@@ -175,7 +175,7 @@ func (db *DB) getPlayerRecord(username string) (PlayerRecord, error) {
 	return result, nil
 }
 
-func (db *DB) usernameExists(username string) bool {
+func (db *DB) foundUsername(username string) bool {
 	_, err := db.getPlayerRecord(username)
 	return err == nil
 }

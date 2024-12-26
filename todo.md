@@ -28,9 +28,8 @@
       - [ ] Lack of reader can be solved by timeout on socket send
         - [ ] Logout is unclean, can leave channels closed before writes ? 
         - [ ] Performance still degrades dsignificantly 
-    - [ ] Websocketstream? 
-      - [ ] Allows backpressure
-      - [ ] only available on chrome
+    - [-] Websocketstream? 
+      - [-] No - only available on chrome
 - [ ] Highlight code not working with buffered sends
   - [ ] Initial screen load no longer requires button press? 
 - [ ] Result of removing buffer with the new timeout deadlines (Should still get overwhelmed)

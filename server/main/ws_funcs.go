@@ -32,9 +32,6 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 	}
 	defer conn.Close()
 
-	// Issue additional challenge  ?
-	// or no advantage vs an incoming queue
-	// or incoming[challengeToken]
 	token, success := getTokenFromFirstMessage(conn) // Pattern for input?
 	if !success {
 		fmt.Println("Invalid Connection")
@@ -52,14 +49,8 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	existingPlayer.conn = conn
-	//existingPlayer.world = world
+
 	handleNewPlayer(existingPlayer)
-	// New method on world
-	/*
-		world.wPlayerMutex.Lock()
-		existingPlayer, playerExists := world.worldPlayers[token]
-		world.wPlayerMutex.Unlock()
-	*/
 }
 
 func handleNewPlayer(existingPlayer *Player) {

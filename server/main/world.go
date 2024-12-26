@@ -121,7 +121,6 @@ func createRandomToken() string {
 }
 
 func (world *World) join(incoming LoginRequest) *Player {
-	//token := uuid.New().String()
 	// need log levels
 	//fmt.Println("New Player: " + record.Username)
 	//fmt.Println("Token: " + token)
@@ -135,7 +134,7 @@ func (world *World) join(incoming LoginRequest) *Player {
 
 	//New Method
 	world.wPlayerMutex.Lock()
-	world.worldPlayers[incoming.Token] = newPlayer  // join that never upgrades is a leak, could be exploited into save point
+	world.worldPlayers[incoming.Token] = newPlayer
 	world.leaderBoard.mostDangerous.Push(newPlayer) // Has own mutex. pMutex needed?
 	world.wPlayerMutex.Unlock()
 
