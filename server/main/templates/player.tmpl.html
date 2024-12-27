@@ -15,7 +15,7 @@
         </div>
     </div>
     <div id="controls" hx-ext="ws" ws-connect="/screen">
-        <input id="token" type="hidden" name="token" value="{{.Token}}" />
+        <input id="token" ws-send hx-trigger="load once" type="hidden" name="token" value="{{.Token}}" />
         <input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" />
 
         <div id="modal_background">

@@ -156,5 +156,6 @@ func updateOne(update string, player *Player) {
 }
 
 func updateScreenFromScratch(player *Player) {
-	player.updates <- htmlFromPlayer(player)
+	sendUpdate(player, htmlFromPlayer(player))
+	//player.updates <- htmlFromPlayer(player)
 }

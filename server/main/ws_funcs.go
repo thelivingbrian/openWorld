@@ -63,6 +63,7 @@ func handleNewPlayer(existingPlayer *Player) {
 		if err != nil {
 			// This allows for rage quit by pressing X, should add timeout to encourage finding safety
 			logOut(existingPlayer)
+			fmt.Println("Ending", err)
 			return
 		}
 

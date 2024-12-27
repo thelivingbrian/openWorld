@@ -104,7 +104,7 @@ func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	tile.stage.updateAllExcept(playerBox(tile), player)
 }
 
-func (tile *Tile) addLockedPlayertoLockedTile(player *Player) {
+func (tile *Tile) addLockedPlayertoLockedTile(player *Player) bool {
 	itemChange := false
 	if tile.bottomText != "" {
 		player.updateBottomText(tile.bottomText)
@@ -139,6 +139,8 @@ func (tile *Tile) addLockedPlayertoLockedTile(player *Player) {
 		player.tile = tile
 		player.y = tile.y
 		player.x = tile.x
+
+		return true
 	} else {
 		if tile.teleport.confirmation {
 			player.menues["teleport"] = continueTeleporting(tile.teleport)
@@ -147,6 +149,7 @@ func (tile *Tile) addLockedPlayertoLockedTile(player *Player) {
 			// new routine prevents deadlock
 			go player.applyTeleport(tile.teleport)
 		}
+		return false
 	}
 }
 

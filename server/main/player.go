@@ -220,7 +220,6 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 	spawnItemsFor(p, stage)
 	stage.addPlayer(p)
 	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
-
 	updateScreenFromScratch(p)
 }
 
@@ -408,7 +407,7 @@ func transferPlayer(p *Player, source, dest *Tile) bool {
 	_, ok := source.playerMap[p.id]
 	if ok {
 		delete(source.playerMap, p.id)
-		dest.addLockedPlayertoLockedTile(p)
+		ok = dest.addLockedPlayertoLockedTile(p)
 		go func() {
 			source.stage.updateAllExcept(playerBox(source), p)
 			dest.stage.updateAllExcept(playerBox(dest), p)
@@ -525,6 +524,7 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 		player.stage.removePlayerById(player.id)
 	}
 	stage := getStageFromStageName(player.world, teleport.destStage)
+	// player x and y may be out of date causing ghost
 	placePlayerOnStageAt(player, stage, teleport.destY, teleport.destX)
 
 	player.updateRecord()
@@ -584,7 +584,8 @@ func sendUpdate(player *Player, update []byte) {
 		if err != nil {
 			fmt.Printf("WARN: WriteMessage failed for player %s: %v\n", player.username, err)
 			// Close connection if writes consistently fail ?
-			// logout(player) ?
+			//go logOut(player)
+			//player.conn = nil
 		}
 	} else {
 		fmt.Println("WARN: Attempted to serve update to expired connection.")
