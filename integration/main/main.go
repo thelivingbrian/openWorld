@@ -113,7 +113,7 @@ func IntegrationA(w http.ResponseWriter, r *http.Request) {
 			go testingSocket.closeOnRec(term)
 			go func(chan bool) {
 				// parameterize
-				time.Sleep(120 * time.Second)
+				time.Sleep(100 * time.Second)
 				term <- true
 			}(term)
 		}

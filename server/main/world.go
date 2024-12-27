@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -146,22 +147,23 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 	if record.Team == "" {
 		record.Team = "sky-blue"
 	}
-	updatesForPlayer := make(chan []byte) // raise capacity?
+	updatesForPlayer := make(chan []byte, 0) // raise capacity?
 	newPlayer := &Player{
-		id:        id,
-		username:  record.Username,
-		team:      record.Team,
-		trim:      record.Trim,
-		stage:     nil,
-		updates:   updatesForPlayer,
-		stageName: record.StageName,
-		x:         record.X,
-		y:         record.Y,
-		actions:   createDefaultActions(),
-		health:    record.Health,
-		money:     record.Money,
-		world:     world,
-		menues:    map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu}, // terrifying
+		id:                       id,
+		username:                 record.Username,
+		team:                     record.Team,
+		trim:                     record.Trim,
+		stage:                    nil,
+		updates:                  updatesForPlayer,
+		sessionTimeOutViolations: atomic.Int32{},
+		stageName:                record.StageName,
+		x:                        record.X,
+		y:                        record.Y,
+		actions:                  createDefaultActions(),
+		health:                   record.Health,
+		money:                    record.Money,
+		world:                    world,
+		menues:                   map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu}, // terrifying
 	}
 
 	newPlayer.setIcon()

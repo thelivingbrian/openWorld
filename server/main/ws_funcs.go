@@ -58,13 +58,12 @@ func handleNewPlayer(existingPlayer *Player) {
 	stage := getStageFromStageName(existingPlayer.world, existingPlayer.stageName)
 	placePlayerOnStageAt(existingPlayer, stage, existingPlayer.y, existingPlayer.x)
 	fmt.Println("New Connection")
-	for {
+	for existingPlayer.sessionTimeOutViolations.Load() <= 3 {
 		_, msg, err := existingPlayer.conn.ReadMessage()
 		if err != nil {
 			// This allows for rage quit by pressing X, should add timeout to encourage finding safety
-			logOut(existingPlayer)
 			fmt.Println("Ending", err)
-			return
+			break
 		}
 
 		event, success := getKeyPress(msg)
@@ -84,6 +83,7 @@ func handleNewPlayer(existingPlayer *Player) {
 			return
 		}
 	}
+	logOut(existingPlayer)
 }
 
 func logOut(player *Player) {
@@ -112,9 +112,20 @@ func logOut(player *Player) {
 	}
 	player.conn = nil
 
+	// hmm.
 	close(player.updates)
+	//safeClose(player.updates)
 
 	fmt.Println("Logging Out " + player.username)
+}
+
+func safeClose(ch chan []byte) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered from panic:", r)
+		}
+	}()
+	close(ch)
 }
 
 func getTokenFromFirstMessage(conn *websocket.Conn) (token string, success bool) {

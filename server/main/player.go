@@ -1,31 +1,33 @@
 package main
 
 import (
-	"bytes"
+	"errors"
 	"fmt"
 	"log"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
 
 type Player struct {
-	id        string
-	username  string
-	team      string
-	trim      string
-	icon      string
-	viewLock  sync.Mutex
-	world     *World
-	stage     *Stage
-	stageLock sync.Mutex
-	tile      *Tile
-	tileLock  sync.Mutex
-	updates   chan []byte
-	stageName string
-	conn      *websocket.Conn
-	connLock  sync.RWMutex
+	id                       string
+	username                 string
+	team                     string
+	trim                     string
+	icon                     string
+	viewLock                 sync.Mutex
+	world                    *World
+	stage                    *Stage
+	stageLock                sync.Mutex
+	tile                     *Tile
+	tileLock                 sync.Mutex
+	updates                  chan []byte
+	sessionTimeOutViolations atomic.Int32
+	stageName                string
+	conn                     *websocket.Conn
+	connLock                 sync.RWMutex
 	// x, y are highly mutated and are unsafe to read/difficult to lock. Use tile instead ?
 	x          int
 	y          int
@@ -536,7 +538,8 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 ////////////////////////////////////////////////////////////
 //   Updates
 
-func (player *Player) sendUpdates() {
+/*
+func (player *Player) sendUpdatesBuff() {
 	ticker := time.NewTicker(25 * time.Millisecond)
 	defer ticker.Stop()
 
@@ -559,7 +562,6 @@ func (player *Player) sendUpdates() {
 				// Otherwise, accumulate the update in the buffer.
 				buffer.Write(update)
 			}
-
 		case <-ticker.C:
 			// Every 25ms, if there's anything in the buffer, send it.
 			if buffer.Len() > 0 {
@@ -569,27 +571,47 @@ func (player *Player) sendUpdates() {
 		}
 	}
 }
+*/
 
-func sendUpdate(player *Player, update []byte) {
-	player.connLock.RLock()
-	defer player.connLock.RUnlock()
-	if player.conn != nil {
-		//player.conn.WriteMessage(websocket.TextMessage, update)
-		err := player.conn.SetWriteDeadline(time.Now().Add(500 * time.Millisecond))
-		if err != nil {
-			fmt.Println("Failed to set write deadline:", err)
+func (player *Player) sendUpdates() {
+	continueSending := true
+	for {
+		update, ok := <-player.updates
+		if !ok {
+			fmt.Println("Player:", player.username, "- update channel closed")
 			return
 		}
-		err = player.conn.WriteMessage(websocket.TextMessage, update)
-		if err != nil {
-			fmt.Printf("WARN: WriteMessage failed for player %s: %v\n", player.username, err)
-			// Close connection if writes consistently fail ?
-			//go logOut(player)
-			//player.conn = nil
+		if continueSending {
+			err := sendUpdate(player, update)
+			if err != nil {
+				continueSending = false
+			}
 		}
-	} else {
-		fmt.Println("WARN: Attempted to serve update to expired connection.")
 	}
+}
+
+func sendUpdate(player *Player, update []byte) error {
+	player.connLock.Lock()
+	defer player.connLock.Unlock()
+	if player.conn == nil {
+		fmt.Println("WARN: Attempted to serve update to expired connection.")
+		return errors.New("connection is expired")
+	}
+
+	err := player.conn.SetWriteDeadline(time.Now().Add(500 * time.Millisecond))
+	if err != nil {
+		fmt.Println("Failed to set write deadline:", err)
+		return err
+	}
+	err = player.conn.WriteMessage(websocket.TextMessage, update)
+	if err != nil {
+		fmt.Printf("WARN: WriteMessage failed for player %s: %v\n", player.username, err)
+		// Close connection if writes consistently fail ?
+		//player.sessionTimeOutViolations.Add(1)
+		return err
+	}
+
+	return nil
 }
 
 func (player *Player) updateBottomText(message string) {
