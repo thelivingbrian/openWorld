@@ -90,6 +90,12 @@ func IntegrationA(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing required token parameters", http.StatusBadRequest)
 		return
 	}
+	ttlString := r.URL.Query().Get("ttl")
+	ttl, err := strconv.Atoi(ttlString)
+	if err != nil {
+		fmt.Println("Invalid TTL")
+		ttl = 30
+	}
 	// Need to include username if planning to call more than once
 	tokens := requestTokens(stagename, count)
 	go func() {
@@ -113,7 +119,7 @@ func IntegrationA(w http.ResponseWriter, r *http.Request) {
 			go testingSocket.closeOnRec(term)
 			go func(chan bool) {
 				// parameterize
-				time.Sleep(100 * time.Second)
+				time.Sleep(time.Duration(ttl) * time.Second)
 				term <- true
 			}(term)
 		}
