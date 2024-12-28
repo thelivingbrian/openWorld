@@ -181,18 +181,21 @@ func drainChannel[T any](c chan T) {
 func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 	players := make([]*Player, n)
 	for i := range players {
+		bufferClearChannel := make(chan struct{})
+		go drainChannel(bufferClearChannel)
 		updatesForPlayer := make(chan []byte)
+		go drainChannel(updatesForPlayer)
 		players[i] = &Player{
-			id:        fmt.Sprintf("tp%d", i),
-			stage:     stage,
-			stageName: stage.name,
-			x:         2,
-			y:         2,
-			actions:   createDefaultActions(),
-			health:    100,
-			updates:   updatesForPlayer,
+			id:                fmt.Sprintf("tp%d", i),
+			stage:             stage,
+			stageName:         stage.name,
+			x:                 2,
+			y:                 2,
+			actions:           createDefaultActions(),
+			health:            100,
+			updates:           updatesForPlayer,
+			clearUpdateBuffer: bufferClearChannel,
 		}
-		go drainChannel(players[i].updates)
 		players[i].placeOnStage(stage)
 	}
 	return players

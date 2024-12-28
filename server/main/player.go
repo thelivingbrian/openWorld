@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"log"
@@ -24,6 +25,7 @@ type Player struct {
 	tile                     *Tile
 	tileLock                 sync.Mutex
 	updates                  chan []byte
+	clearUpdateBuffer        chan struct{}
 	sessionTimeOutViolations atomic.Int32
 	stageName                string
 	conn                     *websocket.Conn
@@ -538,8 +540,13 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 ////////////////////////////////////////////////////////////
 //   Updates
 
-/*
-func (player *Player) sendUpdatesBuff() {
+func (player *Player) sendUpdates() {
+	player.sendUpdatesB()
+}
+
+func (player *Player) sendUpdatesB() {
+	continueSending := true
+
 	ticker := time.NewTicker(25 * time.Millisecond)
 	defer ticker.Stop()
 
@@ -552,28 +559,39 @@ func (player *Player) sendUpdatesBuff() {
 				fmt.Println("Player:", player.username, "- update channel closed")
 				return
 			}
-			// Accumulate the update in the buffer.
-			//buffer.Write(update)
-			if buffer.Len()+len(update) > maxBufferSize {
-				// Does / Can this happen? Useful to cap growth?
+			if !continueSending {
+				continue
+			}
+
+			if buffer.Len()+len(update) >= maxBufferSize {
 				fmt.Printf("Player: %s - buffer exceeded %d bytes, wiping buffer\n", player.username, maxBufferSize)
 				buffer.Reset()
 			} else {
-				// Otherwise, accumulate the update in the buffer.
+				// Accumulate the update in the buffer.
 				buffer.Write(update)
 			}
+		case <-player.clearUpdateBuffer:
+			buffer.Reset()
 		case <-ticker.C:
 			// Every 25ms, if there's anything in the buffer, send it.
-			if buffer.Len() > 0 {
-				sendUpdate(player, buffer.Bytes())
+			if continueSending && buffer.Len() > 0 {
+				err := sendUpdate(player, buffer.Bytes())
+				if err != nil {
+					continueSending = false
+					player.connLock.Lock()
+					if player.conn != nil {
+						player.conn.Close()
+					}
+					player.connLock.Unlock()
+				}
+
 				buffer.Reset()
 			}
 		}
 	}
 }
-*/
 
-func (player *Player) sendUpdates() {
+func (player *Player) sendUpdatesA() {
 	continueSending := true
 	for {
 		update, ok := <-player.updates
@@ -585,6 +603,13 @@ func (player *Player) sendUpdates() {
 			err := sendUpdate(player, update)
 			if err != nil {
 				continueSending = false
+				player.connLock.Lock()
+				//fmt.Println("conn is locked")
+				//defer player.connLock.Unlock()
+				if player.conn != nil {
+					player.conn.Close()
+				}
+				player.connLock.Unlock()
 			}
 		}
 	}
@@ -594,7 +619,8 @@ func sendUpdate(player *Player, update []byte) error {
 	player.connLock.Lock()
 	defer player.connLock.Unlock()
 	if player.conn == nil {
-		fmt.Println("WARN: Attempted to serve update to expired connection.")
+		// This spams the tests agressively because updatinghtmlbyPlayer calls this directly
+		//fmt.Println("WARN: Attempted to serve update to expired connection.")
 		return errors.New("connection is expired")
 	}
 
@@ -607,8 +633,9 @@ func sendUpdate(player *Player, update []byte) error {
 	if err != nil {
 		fmt.Printf("WARN: WriteMessage failed for player %s: %v\n", player.username, err)
 		// Close connection if writes consistently fail ?
-		//player.sessionTimeOutViolations.Add(1)
-		return err
+		if player.sessionTimeOutViolations.Add(1) >= 1 {
+			return err
+		}
 	}
 
 	return nil

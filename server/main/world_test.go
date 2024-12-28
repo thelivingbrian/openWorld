@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -89,12 +90,14 @@ func TestMostDangerous(t *testing.T) {
 	p3.incrementKillStreak()
 	p3.incrementKillStreak()
 	p3.incrementKillStreak()
+
 	p1.incrementKillStreak()
 	p1.incrementKillStreak()
 	if world.leaderBoard.mostDangerous.Peek() != p3 {
 		t.Error("Invalid leader should be p3")
 	}
 
+	time.Sleep(25 * time.Millisecond)
 	logOut(p3)
 	if world.leaderBoard.mostDangerous.Peek() != p1 {
 		t.Error("Invalid leader should be p1")

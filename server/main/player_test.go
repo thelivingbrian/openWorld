@@ -8,17 +8,20 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 	testStage := createStageByName("hallway")
 	updatesForPlayer := make(chan []byte)
 	go drainChannel(updatesForPlayer)
+	bufferClearChannel := make(chan struct{})
+	go drainChannel(bufferClearChannel)
 
 	player := &Player{
-		id:        "tp",
-		stage:     testStage,
-		stageName: testStage.name,
-		x:         4,
-		y:         1,
-		actions:   createDefaultActions(),
-		health:    100,
-		updates:   updatesForPlayer,
-		world:     world,
+		id:                "tp",
+		stage:             testStage,
+		stageName:         testStage.name,
+		x:                 4,
+		y:                 1,
+		actions:           createDefaultActions(),
+		health:            100,
+		updates:           updatesForPlayer,
+		clearUpdateBuffer: bufferClearChannel,
+		world:             world,
 	}
 	player.placeOnStage(testStage)
 

@@ -54,11 +54,12 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 }
 
 func handleNewPlayer(existingPlayer *Player) {
+	defer logOut(existingPlayer)
 	go existingPlayer.sendUpdates()
 	stage := getStageFromStageName(existingPlayer.world, existingPlayer.stageName)
 	placePlayerOnStageAt(existingPlayer, stage, existingPlayer.y, existingPlayer.x)
 	fmt.Println("New Connection")
-	for existingPlayer.sessionTimeOutViolations.Load() <= 3 {
+	for {
 		_, msg, err := existingPlayer.conn.ReadMessage()
 		if err != nil {
 			// This allows for rage quit by pressing X, should add timeout to encourage finding safety
@@ -83,16 +84,18 @@ func handleNewPlayer(existingPlayer *Player) {
 			return
 		}
 	}
-	logOut(existingPlayer)
 }
 
 func logOut(player *Player) {
+	time.Sleep(500 * time.Millisecond)
+	player.removeFromTileAndStage() // check if successful?
+
 	player.updateRecord() // Should return error
-	player.removeFromTileAndStage()
 	player.world.wPlayerMutex.Lock()
 	delete(player.world.worldPlayers, player.id)
 	index, exists := player.world.leaderBoard.mostDangerous.index[player]
 	if exists {
+		// this is unsafe index position can change
 		heap.Remove(&player.world.leaderBoard.mostDangerous, index)
 		//  If index was 0 before, need to update new most dangerous
 		if index == 0 {
@@ -119,6 +122,7 @@ func logOut(player *Player) {
 	fmt.Println("Logging Out " + player.username)
 }
 
+/*
 func safeClose(ch chan []byte) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -127,6 +131,7 @@ func safeClose(ch chan []byte) {
 	}()
 	close(ch)
 }
+*/
 
 func getTokenFromFirstMessage(conn *websocket.Conn) (token string, success bool) {
 	_, bytes, err := conn.ReadMessage()
@@ -460,6 +465,16 @@ func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, conte
 				return
 			default:
 				<-newPlayer.updates
+			}
+		}
+	}(ctx)
+	go func(ctx context.Context) {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				<-newPlayer.clearUpdateBuffer
 			}
 		}
 	}(ctx)

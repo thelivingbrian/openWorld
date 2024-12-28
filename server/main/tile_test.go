@@ -46,6 +46,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	world.addIncoming(req)
 	p := world.join(req)
 	go drainChannel(p.updates)
+	go drainChannel(p.clearUpdateBuffer)
 	p.placeOnStage(testStage)
 
 	// Get in position

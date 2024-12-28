@@ -155,6 +155,7 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		trim:                     record.Trim,
 		stage:                    nil,
 		updates:                  updatesForPlayer,
+		clearUpdateBuffer:        make(chan struct{}),
 		sessionTimeOutViolations: atomic.Int32{},
 		stageName:                record.StageName,
 		x:                        record.X,

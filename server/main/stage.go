@@ -156,6 +156,19 @@ func updateOne(update string, player *Player) {
 }
 
 func updateScreenFromScratch(player *Player) {
-	//sendUpdate(player, htmlFromPlayer(player))
-	player.updates <- htmlFromPlayer(player)
+	clearChannel(player.updates)
+	player.clearUpdateBuffer <- struct{}{}
+	sendUpdate(player, htmlFromPlayer(player))
+	//player.updates <- htmlFromPlayer(player)
+}
+
+func clearChannel(ch chan []byte) {
+	for {
+		select {
+		case <-ch: // Read from the channel
+			// Do nothing, just drain
+		default: // Exit when the channel is empty
+			return
+		}
+	}
 }
