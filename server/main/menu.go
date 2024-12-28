@@ -194,7 +194,11 @@ func mod(i, n int) int {
 // Menu event handlers
 
 func turnMenuOff(p *Player) {
-	p.trySend([]byte(divModalDisabled() + divInput()))
+	var buffer bytes.Buffer
+	buffer.Write([]byte(divModalDisabled()))
+	tmpl.ExecuteTemplate(&buffer, "input", nil)
+	sendUpdate(p, buffer.Bytes())
+	//p.trySend([]byte(divModalDisabled() + divInput()))
 }
 func turnMenuOffAnd(f func(*Player)) func(*Player) {
 	return func(p *Player) {

@@ -271,6 +271,7 @@ func respawn(player *Player) {
 
 	stage := getStageFromStageName(player.world, "clinic")
 	placePlayerOnStageAt(player, stage, 2, 2)
+	go player.updateInformation()
 }
 
 func (p *Player) moveNorth() {
