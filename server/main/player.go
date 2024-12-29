@@ -13,25 +13,27 @@ import (
 )
 
 type Player struct {
-	id                       string
-	username                 string
-	team                     string
-	trim                     string
-	icon                     string
-	viewLock                 sync.Mutex
-	world                    *World
-	stage                    *Stage
-	stageLock                sync.Mutex
-	tile                     *Tile
-	tileLock                 sync.Mutex
-	updates                  chan []byte
-	clearUpdateBuffer        chan struct{}
-	stopSend                 chan struct{}
-	startSend                chan struct{}
+	id                string
+	username          string
+	team              string
+	trim              string
+	icon              string
+	viewLock          sync.Mutex
+	world             *World
+	stage             *Stage
+	stageLock         sync.Mutex
+	tile              *Tile
+	tileLock          sync.Mutex
+	updates           chan []byte
+	clearUpdateBuffer chan struct{}
+	// stopSend                 chan struct{}
+	// startSend                chan struct{}
 	sessionTimeOutViolations atomic.Int32
 	stageName                string
 	conn                     WebsocketConnection
 	connLock                 sync.RWMutex
+	tangible                 bool
+	tangibilityLock          sync.Mutex
 	// x, y are highly mutated and are unsafe to read/difficult to lock. Use tile instead ?
 	x          int
 	y          int
@@ -231,18 +233,18 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 	}
 
 	p.setStage(stage)
-	fmt.Println("p (placeOnStage) - spawn items")
+	//fmt.Println("p (placeOnStage) - spawn items")
 	spawnItemsFor(p, stage)
-	fmt.Println("p - add player") // source stage and clinic locking
+	//fmt.Println("p - add player") // source stage and clinic locking
 	stage.addPlayer(p)
-	fmt.Println("p - notify")
+	//fmt.Println("p - notify")
 	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
-	fmt.Println("p - -")
+	//fmt.Println("p - -")
 	//p.actions.spaceHighlights = map[*Tile]bool{}
 	p.setSpaceHighlights()
-	fmt.Println("p - ij (update screen)")
+	//fmt.Println("p - ij (update screen)")
 	updateScreenFromScratch(p)
-	fmt.Println("p (placeOnStage) - done")
+	//fmt.Println("p (placeOnStage) - done")
 }
 
 func spawnItemsFor(p *Player, stage *Stage) {
@@ -278,11 +280,11 @@ func (player *Player) removeFromTileAndStage() {
 
 func respawn(player *Player) {
 	// Require connlock so that player removed by logout cannot be readded to a stage here
-	player.connLock.Lock()
-	//defer player.connLock.Unlock()
-	if player.conn == nil {
-		return
-	}
+	// player.connLock.Lock()
+	// //defer player.connLock.Unlock()
+	// if player.conn == nil {
+	// 	return
+	// }
 	// close player.updates
 	// create new one and send updates
 	// open connlock
@@ -290,25 +292,36 @@ func respawn(player *Player) {
 	// add player with closed channel to stage :(
 
 	// Add stop and start sending channel
-	player.stopSend <- struct{}{}
+	//player.stopSend <- struct{}{}
 	// stop sending before adding to stage
 	// unlock conn before start sending
 
+	// New mutex
+	// hold while logging out or respawing
+	player.tangibilityLock.Lock()
+	defer player.tangibilityLock.Unlock()
+	if !player.tangible {
+		return
+	}
+
 	// Copy here so old player is disconnected? - Hard
 	player.setHealth(150)
+	player.setKillStreak(0)
+	player.setStageName("clinic")
+	player.x = 2
 	player.y = 2
 	player.actions = createDefaultActions()
 	player.updateRecord()
 	stage := getStageFromStageName(player.world, "clinic")
-	fmt.Println("have stage.")
+	//fmt.Println("have stage.")
 	placePlayerOnStageAt(player, stage, 2, 2)
-	fmt.Println("placed.")
+	//fmt.Println("placed.")
 
-	player.connLock.Unlock()
-	player.startSend <- struct{}{}
+	// player.connLock.Unlock()
+	//player.startSend <- struct{}{}
 	player.updateInformation()
-	fmt.Println("updated.")
-	updateScreenFromScratch(player)
+	//fmt.Println("updated.")
+	// updateScreenFromScratch(player)
 }
 
 func (p *Player) moveNorth() {
@@ -610,17 +623,19 @@ func (player *Player) sendUpdatesB() {
 			}
 		case <-player.clearUpdateBuffer:
 			buffer.Reset()
-		case <-player.stopSend:
-			continueSending = false
-		case <-player.startSend:
-			continueSending = true
+		// case <-player.stopSend:
+		// 	continueSending = false
+		// case <-player.startSend:
+		// 	continueSending = true
 		case <-ticker.C:
 			// Every 25ms, if there's anything in the buffer, send it.
 			if continueSending && buffer.Len() > 0 {
 				err := sendUpdate(player, buffer.Bytes())
 				if err != nil {
+					fmt.Println("Error before stop send: ", err)
+					continueSending = false
 					// Can deadlock?
-					stopSendingAndCloseConnFor(player)
+					//stopSendingAndCloseConnFor(player)
 
 					// Can have panics with mass logout + kill
 					// go func() {
@@ -635,14 +650,16 @@ func (player *Player) sendUpdatesB() {
 }
 
 func stopSendingAndCloseConnFor(player *Player) {
-	player.stopSend <- struct{}{}
+	//player.stopSend <- struct{}{}
 	//continueSending = false
 	// lock conn in new routine ?
+	fmt.Println("stoping: " + player.username)
 	player.connLock.Lock()
 	if player.conn != nil {
 		player.conn.Close()
 	}
 	player.connLock.Unlock()
+	fmt.Println("stoped: " + player.username)
 
 }
 

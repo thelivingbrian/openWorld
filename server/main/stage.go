@@ -156,14 +156,14 @@ func updateOne(update string, player *Player) {
 }
 
 func updateScreenFromScratch(player *Player) {
-	fmt.Println("i")
+	//fmt.Println("i")
 	clearChannel(player.updates)
-	fmt.Println("ij-clear")
+	//fmt.Println("ij-clear")
 	player.clearUpdateBuffer <- struct{}{}
-	fmt.Println("ij-update")
+	//fmt.Println("ij-update")
 	//sendUpdate(player, htmlFromPlayer(player))
 	player.updates <- htmlFromPlayer(player)
-	fmt.Println("j")
+	//fmt.Println("j")
 }
 
 func clearChannel(ch chan []byte) {

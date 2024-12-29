@@ -119,7 +119,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	menu := p.menues["respawn"]
 	menu.attemptClick(p, PlayerSocketEvent{Arg0: "0"})
 	//time.Sleep(2000 * time.Millisecond)
-	respawn(p)
+	//respawn(p)
 	if p.stage.name != "clinic" {
 		t.Error("Player should be in the clinic")
 	}

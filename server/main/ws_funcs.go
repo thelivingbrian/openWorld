@@ -101,18 +101,23 @@ func processLogouts(players chan *Player) {
 }
 func initiatelogout(player *Player) {
 	//time.Sleep(5000 * time.Millisecond)
-	//player.removeFromTileAndStage() // check if successful?
+	player.tangibilityLock.Lock()
+	player.tangible = false
+	player.tangibilityLock.Unlock()
 
+	//player.removeFromTileAndStage() // check if successful?
+	fmt.Println("initate logout: " + player.username)
 	if !fullyRemovePlayer(player) {
 		fmt.Println("This is a sad state of affairs. We have attempted to remove the player and failed. :( ")
 	}
 
-	//time.Sleep(5000 * time.Millisecond)
+	time.Sleep(5000 * time.Millisecond)
 	playersToLogout <- player
 
 }
 
 func completeLogout(player *Player) {
+
 	player.updateRecord() // Should return error
 	player.world.wPlayerMutex.Lock()
 	delete(player.world.worldPlayers, player.id)
