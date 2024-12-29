@@ -98,7 +98,12 @@ func TestMostDangerous(t *testing.T) {
 	}
 
 	time.Sleep(25 * time.Millisecond)
-	logOut(p3)
+
+	// bypass initiatelogout(p3) which executes non-deterministically
+	fullyRemovePlayer(p3)
+	completeLogout(p3)
+
+	//time.Sleep(2500 * time.Millisecond)
 	if world.leaderBoard.mostDangerous.Peek() != p1 {
 		t.Error("Invalid leader should be p1")
 	}

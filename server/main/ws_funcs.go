@@ -54,7 +54,7 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 }
 
 func handleNewPlayer(existingPlayer *Player) {
-	defer logOut(existingPlayer)
+	defer initiatelogout(existingPlayer)
 	go existingPlayer.sendUpdates()
 	stage := getStageFromStageName(existingPlayer.world, existingPlayer.stageName)
 	placePlayerOnStageAt(existingPlayer, stage, existingPlayer.y, existingPlayer.x)
@@ -86,10 +86,33 @@ func handleNewPlayer(existingPlayer *Player) {
 	}
 }
 
-func logOut(player *Player) {
-	time.Sleep(500 * time.Millisecond)
-	player.removeFromTileAndStage() // check if successful?
+// transfer player to log out queue
+var playersToLogout = make(chan *Player, 500)
 
+func processLogouts(players chan *Player) {
+	for {
+		player, ok := <-players
+		if !ok {
+			return
+		}
+
+		completeLogout(player)
+	}
+}
+func initiatelogout(player *Player) {
+	//time.Sleep(5000 * time.Millisecond)
+	//player.removeFromTileAndStage() // check if successful?
+
+	if !fullyRemovePlayer(player) {
+		fmt.Println("This is a sad state of affairs. We have attempted to remove the player and failed. :( ")
+	}
+
+	//time.Sleep(5000 * time.Millisecond)
+	playersToLogout <- player
+
+}
+
+func completeLogout(player *Player) {
 	player.updateRecord() // Should return error
 	player.world.wPlayerMutex.Lock()
 	delete(player.world.worldPlayers, player.id)
@@ -117,9 +140,30 @@ func logOut(player *Player) {
 
 	// hmm.
 	close(player.updates)
-	//safeClose(player.updates)
 
 	fmt.Println("Logging Out " + player.username)
+
+}
+
+func fullyRemovePlayer(player *Player) bool {
+	found := false
+	for i := 0; i < 5; i++ {
+		if player.tile.removePlayerAndNotifyOthers(player) {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		fmt.Println("Never removed player from tile successfully")
+	}
+
+	player.stage.playerMutex.Lock()
+	_, ok := player.stage.playerMap[player.id]
+	delete(player.stage.playerMap, player.id)
+	player.stage.playerMutex.Unlock()
+
+	return found && ok
 }
 
 /*
@@ -451,12 +495,35 @@ func generateDivs3(frame int) string {
 
 var npcs = 0
 
+type MockConn struct{}
+
+func (m *MockConn) WriteMessage(messageType int, data []byte) error {
+	//fmt.Printf("Mock WriteMessage called with type: %d, data: %s\n", messageType, string(data))
+	return nil
+}
+
+func (m *MockConn) ReadMessage() (messageType int, p []byte, err error) {
+	//fmt.Println("Mock ReadMessage called")
+	return 1, []byte("mock data"), nil // Returning a mock message type and data
+}
+
+func (m *MockConn) Close() error {
+	//fmt.Println("Mock Close called")
+	return nil
+}
+
+func (m *MockConn) SetWriteDeadline(t time.Time) error {
+	//fmt.Printf("Mock SetWriteDeadline called with time: %s\n", t)
+	return nil
+}
+
 func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, context.CancelFunc) {
 	username := "user-" + uuid.New().String()
 	record := PlayerRecord{Username: username, Health: 50, Y: ref.y, X: ref.x, StageName: ref.stage.name, Team: "fuchsia", Trim: "white-b thick"}
 	loginRequest := createLoginRequest(record)
 	ref.world.addIncoming(loginRequest)
 	newPlayer := ref.world.join(loginRequest)
+	newPlayer.conn = &MockConn{}
 	ctx, cancel := context.WithCancel(context.Background())
 	go func(ctx context.Context) {
 		for {

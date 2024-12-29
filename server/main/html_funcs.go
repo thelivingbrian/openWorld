@@ -23,7 +23,7 @@ var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(scre
 func htmlFromPlayer(player *Player) []byte {
 	var buf bytes.Buffer
 
-	tileHtml := htmlFromTileGrid(player.stage.tiles, player.y, player.x, player.icon)
+	tileHtml := htmlFromTileGrid(player.stage.tiles, player.y, player.x, player.actions.spaceHighlights)
 
 	err := parsedScreenTemplate.Execute(&buf, tileHtml)
 	if err != nil {
@@ -33,16 +33,21 @@ func htmlFromPlayer(player *Player) []byte {
 	return buf.Bytes()
 }
 
-func htmlFromTileGrid(tiles [][]*Tile, py, px int, color string) [][]string {
+func htmlFromTileGrid(tiles [][]*Tile, py, px int, highlights map[*Tile]bool) [][]string {
 	output := make([][]string, len(tiles))
 	for y := range output {
 		output[y] = make([]string, len(tiles[y]))
 		for x := range output[y] {
-			if x == px && y == py {
-				output[y][x] = htmlForPlayerTile(tiles[y][x], color)
-				continue
+			// if x == px && y == py {
+			// 	output[y][x] = htmlForTile(tiles[y][x]) //htmlForPlayerTile(tiles[y][x], color)
+			// 	continue
+			// }
+			hl := ""
+			_, found := highlights[tiles[y][x]]
+			if found {
+				hl = spaceHighlighter()
 			}
-			output[y][x] = htmlForTile(tiles[y][x])
+			output[y][x] = htmlForTile(tiles[y][x], hl)
 		}
 	}
 	return output
@@ -284,16 +289,18 @@ func getHeartsFromHealth(i int) string {
 	return fmt.Sprintf("❤️x%d", i)
 }
 
-func htmlForTile(tile *Tile) string {
+func htmlForTile(tile *Tile, highlight string) string {
 	svgtag := svgFromTile(tile)
 	// grab tile y and x only once here or in parent method?
-	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x))
+	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x), oobHighlightBox(tile, highlight))
 }
 
+/*
 func htmlForPlayerTile(tile *Tile, icon string) string {
 	svgtag := svgFromTile(tile)
 	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x))
 }
+*/
 
 func playerBoxSpecifc(y, x int, icon string) string {
 	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, y, x, icon)

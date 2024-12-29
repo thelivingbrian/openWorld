@@ -208,7 +208,6 @@ func turnMenuOffAnd(f func(*Player)) func(*Player) {
 }
 
 func Quit(p *Player) {
-	defer logOut(p)
 	logOutSuccess := `
 	  <div id="page">
 	      <div id="logo">
@@ -221,6 +220,12 @@ func Quit(p *Player) {
 	  </div>`
 
 	sendUpdate(p, []byte(logOutSuccess))
+	p.connLock.Lock()
+	defer p.connLock.Unlock()
+	if p.conn == nil {
+		return
+	}
+	defer p.conn.Close() //logOut(p)
 }
 
 func openMapMenu(p *Player) {

@@ -26,9 +26,11 @@ type Player struct {
 	tileLock                 sync.Mutex
 	updates                  chan []byte
 	clearUpdateBuffer        chan struct{}
+	stopSend                 chan struct{}
+	startSend                chan struct{}
 	sessionTimeOutViolations atomic.Int32
 	stageName                string
-	conn                     *websocket.Conn
+	conn                     WebsocketConnection
 	connLock                 sync.RWMutex
 	// x, y are highly mutated and are unsafe to read/difficult to lock. Use tile instead ?
 	x          int
@@ -52,6 +54,13 @@ type Player struct {
 	menues     map[string]Menu
 }
 
+type WebsocketConnection interface {
+	WriteMessage(messageType int, data []byte) error
+	ReadMessage() (messageType int, p []byte, err error)
+	Close() error
+	SetWriteDeadline(t time.Time) error
+}
+
 // Health observer, All Health changes should go through here
 func (player *Player) setHealth(n int) {
 	player.healthLock.Lock()
@@ -61,14 +70,14 @@ func (player *Player) setHealth(n int) {
 		handleDeath(player)
 		return
 	}
-	go player.updateInformation()
+	player.updateInformation()
 }
 
 func (player *Player) updateInformation() {
 	player.setIcon()
 	player.tileLock.Lock()
 	tile := player.tile
-	defer player.tileLock.Unlock()
+	player.tileLock.Unlock()
 	updateOne(divPlayerInformation(player)+playerBoxSpecifc(tile.y, tile.x, player.getIconSync()), player)
 }
 
@@ -153,6 +162,7 @@ func (player *Player) setKillStreak(n int) {
 
 	player.world.leaderBoard.mostDangerous.Update(player)
 	// New method. This is blocking defer
+	// too many of these filling up updates channel
 	updateOne(divPlayerInformation(player), player)
 }
 
@@ -221,10 +231,18 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 	}
 
 	p.setStage(stage)
+	fmt.Println("p (placeOnStage) - spawn items")
 	spawnItemsFor(p, stage)
+	fmt.Println("p - add player") // source stage and clinic locking
 	stage.addPlayer(p)
+	fmt.Println("p - notify")
 	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
+	fmt.Println("p - -")
+	//p.actions.spaceHighlights = map[*Tile]bool{}
+	p.setSpaceHighlights()
+	fmt.Println("p - ij (update screen)")
 	updateScreenFromScratch(p)
+	fmt.Println("p (placeOnStage) - done")
 }
 
 func spawnItemsFor(p *Player, stage *Stage) {
@@ -259,19 +277,38 @@ func (player *Player) removeFromTileAndStage() {
 }
 
 func respawn(player *Player) {
+	// Require connlock so that player removed by logout cannot be readded to a stage here
+	player.connLock.Lock()
+	//defer player.connLock.Unlock()
+	if player.conn == nil {
+		return
+	}
+	// close player.updates
+	// create new one and send updates
+	// open connlock
+	// = get closed by logout
+	// add player with closed channel to stage :(
+
+	// Add stop and start sending channel
+	player.stopSend <- struct{}{}
+	// stop sending before adding to stage
+	// unlock conn before start sending
+
 	// Copy here so old player is disconnected? - Hard
 	player.setHealth(150)
-	player.setKillStreak(0)
-	player.setStageName("clinic") // Set here for record
-
-	player.x = 2
 	player.y = 2
 	player.actions = createDefaultActions()
 	player.updateRecord()
-
 	stage := getStageFromStageName(player.world, "clinic")
+	fmt.Println("have stage.")
 	placePlayerOnStageAt(player, stage, 2, 2)
-	go player.updateInformation()
+	fmt.Println("placed.")
+
+	player.connLock.Unlock()
+	player.startSend <- struct{}{}
+	player.updateInformation()
+	fmt.Println("updated.")
+	updateScreenFromScratch(player)
 }
 
 func (p *Player) moveNorth() {
@@ -534,8 +571,8 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 
 	player.updateRecord()
 
-	impactedTiles := player.updateSpaceHighlights()
-	updateOneAfterMovement(player, impactedTiles, nil)
+	//impactedTiles := player.updateSpaceHighlights()
+	//updateOneAfterMovement(player, impactedTiles, nil)
 }
 
 ////////////////////////////////////////////////////////////
@@ -548,7 +585,7 @@ func (player *Player) sendUpdates() {
 func (player *Player) sendUpdatesB() {
 	continueSending := true
 
-	ticker := time.NewTicker(25 * time.Millisecond)
+	ticker := time.NewTicker(5 * time.Millisecond)
 	defer ticker.Stop()
 
 	const maxBufferSize = 256 * 1024
@@ -573,17 +610,22 @@ func (player *Player) sendUpdatesB() {
 			}
 		case <-player.clearUpdateBuffer:
 			buffer.Reset()
+		case <-player.stopSend:
+			continueSending = false
+		case <-player.startSend:
+			continueSending = true
 		case <-ticker.C:
 			// Every 25ms, if there's anything in the buffer, send it.
 			if continueSending && buffer.Len() > 0 {
 				err := sendUpdate(player, buffer.Bytes())
 				if err != nil {
-					continueSending = false
-					player.connLock.Lock()
-					if player.conn != nil {
-						player.conn.Close()
-					}
-					player.connLock.Unlock()
+					// Can deadlock?
+					stopSendingAndCloseConnFor(player)
+
+					// Can have panics with mass logout + kill
+					// go func() {
+					// 	stopSendingAndCloseConnFor(player)
+					// }()
 				}
 
 				buffer.Reset()
@@ -592,8 +634,25 @@ func (player *Player) sendUpdatesB() {
 	}
 }
 
+func stopSendingAndCloseConnFor(player *Player) {
+	player.stopSend <- struct{}{}
+	//continueSending = false
+	// lock conn in new routine ?
+	player.connLock.Lock()
+	if player.conn != nil {
+		player.conn.Close()
+	}
+	player.connLock.Unlock()
+
+}
+
 func (player *Player) sendUpdatesA() {
 	continueSending := true
+	go func() {
+		for {
+			<-player.clearUpdateBuffer
+		}
+	}()
 	for {
 		update, ok := <-player.updates
 		if !ok {
@@ -605,8 +664,6 @@ func (player *Player) sendUpdatesA() {
 			if err != nil {
 				continueSending = false
 				player.connLock.Lock()
-				//fmt.Println("conn is locked")
-				//defer player.connLock.Unlock()
 				if player.conn != nil {
 					player.conn.Close()
 				}
@@ -621,7 +678,7 @@ func sendUpdate(player *Player, update []byte) error {
 	defer player.connLock.Unlock()
 	if player.conn == nil {
 		// This spams the tests agressively because updatinghtmlbyPlayer calls this directly
-		//fmt.Println("WARN: Attempted to serve update to expired connection.")
+		//   fmt.Println("WARN: Attempted to serve update to expired connection.")
 		return errors.New("connection is expired")
 	}
 

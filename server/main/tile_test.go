@@ -45,6 +45,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	req := createLoginRequest(record)
 	world.addIncoming(req)
 	p := world.join(req)
+	p.conn = &MockConn{}
 	go drainChannel(p.updates)
 	go drainChannel(p.clearUpdateBuffer)
 	p.placeOnStage(testStage)
@@ -75,7 +76,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	// Escape the box
 	p.moveWestBoost()
 	if p.tile != testStage.tiles[12][9] {
-		t.Error("Player should not have moved")
+		t.Error("Player should have moved")
 	}
 
 	// Activate every collected power
@@ -117,6 +118,8 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	// respawn using menu
 	menu := p.menues["respawn"]
 	menu.attemptClick(p, PlayerSocketEvent{Arg0: "0"})
+	//time.Sleep(2000 * time.Millisecond)
+	respawn(p)
 	if p.stage.name != "clinic" {
 		t.Error("Player should be in the clinic")
 	}

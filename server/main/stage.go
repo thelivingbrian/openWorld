@@ -118,35 +118,35 @@ func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
 }
 
 func (stage *Stage) updateAll(update string) {
-	stage.playerMutex.RLock()
-	defer stage.playerMutex.RUnlock()
-	updateAsBytes := []byte(update)
-	for _, player := range stage.playerMap {
-		player.updates <- updateAsBytes
-	}
+	stage.updateAllExcept(update, nil)
+	/*
+		stage.playerMutex.RLock()
+		defer stage.playerMutex.RUnlock()
+		updateAsBytes := []byte(update)
+		for _, player := range stage.playerMap {
+			player.updates <- updateAsBytes
+		}
+	*/
 }
 
 func (stage *Stage) updateAllExcept(update string, ignore *Player) {
-	// getting locked up here
 	stage.playerMutex.RLock()
 	defer stage.playerMutex.RUnlock()
 	updateAsBytes := []byte(update)
-	// copy map ?
 	for _, player := range stage.playerMap {
 		if player == ignore {
 			continue
 		}
-		// bottlenecked by reader speed?
-		// update capacity?
 		player.updates <- updateAsBytes
-		/*
-			// This felt generally bad with no benefit noticed even with no readers
-			select {
-			case player.updates <- updateAsBytes:
-				// Message sent
-			default:
-				fmt.Println("dropping message D:")
-			}*/
+
+		// This felt generally bad with no benefit noticed even with no readers
+		// select {
+		// case player.updates <- updateAsBytes:
+		// 	// Message sent
+		// default:
+		// 	fmt.Println("dropping message D:")
+		// }
+
 	}
 }
 
@@ -156,10 +156,14 @@ func updateOne(update string, player *Player) {
 }
 
 func updateScreenFromScratch(player *Player) {
+	fmt.Println("i")
 	clearChannel(player.updates)
+	fmt.Println("ij-clear")
 	player.clearUpdateBuffer <- struct{}{}
-	sendUpdate(player, htmlFromPlayer(player))
-	//player.updates <- htmlFromPlayer(player)
+	fmt.Println("ij-update")
+	//sendUpdate(player, htmlFromPlayer(player))
+	player.updates <- htmlFromPlayer(player)
+	fmt.Println("j")
 }
 
 func clearChannel(ch chan []byte) {

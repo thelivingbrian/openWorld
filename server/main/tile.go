@@ -58,8 +58,8 @@ func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 func makeTileTemplate(mat Material, y, x int) string {
 	tileCoord := fmt.Sprintf("%d-%d", y, x)
 	cId := "c" + tileCoord // This is used to identify the entire square
-	tId := "t" + tileCoord // This is used to identify the top highlight box
-	placeHold := "%s"      // later becomes player, interactable, svg, and weather boxes
+	//tId := "t" + tileCoord // This is used to identify the top highlight box
+	placeHold := "%s" // later becomes player, interactable, svg, and weather boxes
 
 	floor1css := ""
 	if mat.Floor1Css != "" {
@@ -90,9 +90,9 @@ func makeTileTemplate(mat Material, y, x int) string {
 					%s
 					%s
 					%s
-					<div id="%s" class="box top"></div>
+					%s
 				</div>`
-	return fmt.Sprintf(template, cId, mat.CssColor, floor1css, floor2css, placeHold, placeHold, placeHold, ceil1css, ceil2css, placeHold, tId)
+	return fmt.Sprintf(template, cId, mat.CssColor, floor1css, floor2css, placeHold, placeHold, placeHold, ceil1css, ceil2css, placeHold, placeHold)
 }
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
@@ -217,10 +217,13 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 	target.healthLock.Unlock()
 	fatal := oldHealth > 0 && newHealth <= 0
 	if fatal {
+		fmt.Println("about to die.")
 		handleDeath(target)
+		fmt.Println("dead")
 		initiator.incrementKillCount()
 		initiator.incrementKillStreak()
 		initiator.updateRecord()
+		// should handle death after getting location?
 		target.tileLock.Lock()
 		location := target.tile
 		target.tileLock.Unlock()

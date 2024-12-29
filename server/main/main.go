@@ -17,6 +17,8 @@ var store *sessions.CookieStore
 var tmpl = template.Must(template.ParseGlob("templates/*.tmpl.html"))
 
 func main() {
+	go processLogouts(playersToLogout)
+
 	fmt.Println("Initializing...")
 	err := godotenv.Load()
 	if err != nil {
