@@ -107,12 +107,11 @@ func initiatelogout(player *Player) {
 	defer player.tangibilityLock.Unlock()
 	player.tangible = false
 
-	//player.removeFromTileAndStage() // check if successful?
 	fmt.Println("initate logout: " + player.username)
 	if !fullyRemovePlayer(player) {
 		fmt.Println("This is a sad state of affairs. We have attempted to remove the player and failed. :( ")
 		// dangerous because the tLock is about to open and the player is likely still somewhere
-		// if they . . .  they can be spawned with closed chan to update to ? ?
+		// call initiateLogout if intangible player is damaged?
 	}
 
 	playersToLogout <- player
@@ -138,12 +137,10 @@ func completeLogout(player *Player) {
 	}
 	player.world.wPlayerMutex.Unlock()
 
+	player.closeConnectionSync() // uneeded but harmless?
 	player.connLock.Lock()
-	defer player.connLock.Unlock()
-	if player.conn != nil {
-		player.conn.Close()
-	}
 	player.conn = nil
+	player.connLock.Unlock()
 
 	// hmm.
 	close(player.updates)
@@ -494,22 +491,19 @@ var npcs = 0
 type MockConn struct{}
 
 func (m *MockConn) WriteMessage(messageType int, data []byte) error {
-	//fmt.Printf("Mock WriteMessage called with type: %d, data: %s\n", messageType, string(data))
 	return nil
 }
 
 func (m *MockConn) ReadMessage() (messageType int, p []byte, err error) {
-	//fmt.Println("Mock ReadMessage called")
-	return 1, []byte("mock data"), nil // Returning a mock message type and data
+	return 1, []byte("mock data"), nil
 }
 
 func (m *MockConn) Close() error {
-	//fmt.Println("Mock Close called")
+	// Adjust so that subsequent reads have error?
 	return nil
 }
 
 func (m *MockConn) SetWriteDeadline(t time.Time) error {
-	//fmt.Printf("Mock SetWriteDeadline called with time: %s\n", t)
 	return nil
 }
 

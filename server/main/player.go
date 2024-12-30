@@ -13,21 +13,19 @@ import (
 )
 
 type Player struct {
-	id                string
-	username          string
-	team              string
-	trim              string
-	icon              string
-	viewLock          sync.Mutex
-	world             *World
-	stage             *Stage
-	stageLock         sync.Mutex
-	tile              *Tile
-	tileLock          sync.Mutex
-	updates           chan []byte
-	clearUpdateBuffer chan struct{}
-	// stopSend                 chan struct{}
-	// startSend                chan struct{}
+	id                       string
+	username                 string
+	team                     string
+	trim                     string
+	icon                     string
+	viewLock                 sync.Mutex
+	world                    *World
+	stage                    *Stage
+	stageLock                sync.Mutex
+	tile                     *Tile
+	tileLock                 sync.Mutex
+	updates                  chan []byte
+	clearUpdateBuffer        chan struct{}
 	sessionTimeOutViolations atomic.Int32
 	stageName                string
 	conn                     WebsocketConnection
@@ -163,8 +161,6 @@ func (player *Player) setKillStreak(n int) {
 	player.streakLock.Unlock()
 
 	player.world.leaderBoard.mostDangerous.Update(player)
-	// New method. This is blocking defer
-	// too many of these filling up updates channel
 	updateOne(divPlayerInformation(player), player)
 }
 
@@ -218,6 +214,16 @@ func (player *Player) getGoalsScored() int {
 	return player.goalsScored
 }
 
+// generally will trigger a logout
+func (player *Player) closeConnectionSync() error {
+	player.connLock.Lock()
+	defer player.connLock.Unlock()
+	if player.conn == nil {
+		return errors.New("Player connection nil before attempted close.")
+	}
+	return player.conn.Close()
+}
+
 func getStageFromStageName(world *World, stageName string) *Stage {
 	stage := world.getNamedStageOrDefault(stageName)
 	if stage == nil {
@@ -233,18 +239,11 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 	}
 
 	p.setStage(stage)
-	//fmt.Println("p (placeOnStage) - spawn items")
 	spawnItemsFor(p, stage)
-	//fmt.Println("p - add player") // source stage and clinic locking
 	stage.addPlayer(p)
-	//fmt.Println("p - notify")
 	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
-	//fmt.Println("p - -")
-	//p.actions.spaceHighlights = map[*Tile]bool{}
 	p.setSpaceHighlights()
-	//fmt.Println("p - ij (update screen)")
 	updateScreenFromScratch(p)
-	//fmt.Println("p (placeOnStage) - done")
 }
 
 func spawnItemsFor(p *Player, stage *Stage) {
@@ -395,12 +394,12 @@ func (p *Player) tryGoNeighbor(yOffset, xOffset int) {
 	p.push(newTile, nil, yOffset, xOffset)
 	if walkable(newTile) {
 		t := &Teleport{destStage: newTile.stage.name, destY: newTile.y, destX: newTile.x}
-		previousTile := p.stage.tiles[p.y][p.x]
+		//previousTile := p.stage.tiles[p.y][p.x]
 
 		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
 		p.applyTeleport(t)
-		impactedTiles := p.updateSpaceHighlights() //Duped in applyTeleport, ineffective with buffer
-		updateOneAfterMovement(p, impactedTiles, previousTile)
+		//impactedTiles := p.updateSpaceHighlights() //Duped in applyTeleport, ineffective with buffer
+		//updateOneAfterMovement(p, impactedTiles, previousTile)
 	}
 }
 
@@ -540,7 +539,7 @@ func (player *Player) activatePower() {
 		tile.eventsInFlight.Add(1)
 		tilesToHighlight = append(tilesToHighlight, tile)
 
-		go tile.tryToNotifyAfter(100) // Flat for player if more powers?
+		go tile.tryToNotifyAfter(100)
 	}
 	damageBoxes := sliceOfTileToWeatherBoxes(tilesToHighlight, randomFieryColor())
 	player.stage.updateAll(damageBoxes)
@@ -557,13 +556,9 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 		player.stage.removePlayerById(player.id)
 	}
 	stage := getStageFromStageName(player.world, teleport.destStage)
-	// player x and y may be out of date causing ghost
 	placePlayerOnStageAt(player, stage, teleport.destY, teleport.destX)
 
-	player.updateRecord()
-
-	//impactedTiles := player.updateSpaceHighlights()
-	//updateOneAfterMovement(player, impactedTiles, nil)
+	player.updateRecord() // no?
 }
 
 ////////////////////////////////////////////////////////////
@@ -574,13 +569,12 @@ func (player *Player) sendUpdates() {
 }
 
 func (player *Player) sendUpdatesB() {
-	continueSending := true
+	var buffer bytes.Buffer
+	const maxBufferSize = 256 * 1024
 
+	shouldSendUpdates := true
 	ticker := time.NewTicker(25 * time.Millisecond)
 	defer ticker.Stop()
-
-	const maxBufferSize = 256 * 1024
-	var buffer bytes.Buffer
 	for {
 		select {
 		case update, ok := <-player.updates:
@@ -588,51 +582,35 @@ func (player *Player) sendUpdatesB() {
 				fmt.Println("Player:", player.username, "- update channel closed")
 				return
 			}
-			if !continueSending {
+			if !shouldSendUpdates {
 				continue
 			}
 
-			if buffer.Len()+len(update) >= maxBufferSize {
-				fmt.Printf("Player: %s - buffer exceeded %d bytes, wiping buffer\n", player.username, maxBufferSize)
-				buffer.Reset()
-			} else {
+			if buffer.Len()+len(update) < maxBufferSize {
 				// Accumulate the update in the buffer.
 				buffer.Write(update)
+			} else {
+				// Has not occurred - nice to check anyway ?
+				fmt.Printf("Player: %s - buffer exceeded %d bytes, wiping buffer\n", player.username, maxBufferSize)
+				buffer.Reset()
 			}
 		case <-player.clearUpdateBuffer:
 			buffer.Reset()
 		case <-ticker.C:
-			// Every 25ms, if there's anything in the buffer, send it.
-			if continueSending && buffer.Len() > 0 {
-				err := sendUpdate(player, buffer.Bytes())
-				if err != nil {
-					fmt.Println("Error before stop send: ", err)
-					continueSending = false
-					player.connLock.Lock()
-					if player.conn != nil {
-						player.conn.Close()
-					}
-					player.connLock.Unlock()
-				}
-
-				buffer.Reset()
+			if !shouldSendUpdates || buffer.Len() == 0 {
+				continue
 			}
+			// Every 25ms, if there's anything in the buffer, send it.
+			err := sendUpdate(player, buffer.Bytes())
+			if err != nil {
+				fmt.Println("Error - Stopping furture sends: ", err)
+				shouldSendUpdates = false
+				player.closeConnectionSync()
+			}
+
+			buffer.Reset()
 		}
 	}
-}
-
-func stopSendingAndCloseConnFor(player *Player) {
-	//player.stopSend <- struct{}{}
-	//continueSending = false
-	// lock conn in new routine ?
-	fmt.Println("stoping: " + player.username)
-	player.connLock.Lock()
-	if player.conn != nil {
-		player.conn.Close()
-	}
-	player.connLock.Unlock()
-	fmt.Println("stoped: " + player.username)
-
 }
 
 func (player *Player) sendUpdatesA() {
@@ -652,11 +630,7 @@ func (player *Player) sendUpdatesA() {
 			err := sendUpdate(player, update)
 			if err != nil {
 				continueSending = false
-				player.connLock.Lock()
-				if player.conn != nil {
-					player.conn.Close()
-				}
-				player.connLock.Unlock()
+				player.closeConnectionSync()
 			}
 		}
 	}

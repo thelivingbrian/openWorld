@@ -7,8 +7,8 @@ import (
 )
 
 type SpawnAction struct {
-	Should func(*Player, *Stage) bool // Do not send notifications in here or respawn conn lock can deadlock; may only apply to clinic
-	Action func(*Stage)               // func of player?
+	Should func(*Player, *Stage) bool
+	Action func(*Stage) // func of player?
 }
 
 func (s *SpawnAction) activateFor(player *Player, stage *Stage) {
@@ -16,7 +16,7 @@ func (s *SpawnAction) activateFor(player *Player, stage *Stage) {
 		if s.Action == nil {
 			return
 		}
-		go s.Action(stage)
+		s.Action(stage)
 	}
 }
 

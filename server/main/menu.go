@@ -198,7 +198,6 @@ func turnMenuOff(p *Player) {
 	buffer.Write([]byte(divModalDisabled()))
 	tmpl.ExecuteTemplate(&buffer, "input", nil)
 	sendUpdate(p, buffer.Bytes())
-	//p.trySend([]byte(divModalDisabled() + divInput()))
 }
 func turnMenuOffAnd(f func(*Player)) func(*Player) {
 	return func(p *Player) {
@@ -220,12 +219,7 @@ func Quit(p *Player) {
 	  </div>`
 
 	sendUpdate(p, []byte(logOutSuccess))
-	p.connLock.Lock()
-	defer p.connLock.Unlock()
-	if p.conn == nil {
-		return
-	}
-	defer p.conn.Close() //logOut(p)
+	p.closeConnectionSync() // This will initiate log out
 }
 
 func openMapMenu(p *Player) {

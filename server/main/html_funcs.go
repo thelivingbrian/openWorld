@@ -38,16 +38,12 @@ func htmlFromTileGrid(tiles [][]*Tile, py, px int, highlights map[*Tile]bool) []
 	for y := range output {
 		output[y] = make([]string, len(tiles[y]))
 		for x := range output[y] {
-			// if x == px && y == py {
-			// 	output[y][x] = htmlForTile(tiles[y][x]) //htmlForPlayerTile(tiles[y][x], color)
-			// 	continue
-			// }
-			hl := ""
+			highlightColor := ""
 			_, found := highlights[tiles[y][x]]
 			if found {
-				hl = spaceHighlighter()
+				highlightColor = spaceHighlighter()
 			}
-			output[y][x] = htmlForTile(tiles[y][x], hl)
+			output[y][x] = htmlForTile(tiles[y][x], highlightColor)
 		}
 	}
 	return output
@@ -69,13 +65,14 @@ func randomFieryColor() string {
 	return "red"
 }
 
+/*
 func printPageFor(player *Player) string {
 	return `
 	<div id="page" hx-swap-oob="true">
 		<div id="main_view">
 			` + divPlayerInformation(player) + `
 			<div id="screen" class="grid">
-					
+
 			</div>
 			<div id="bottom_text">
 				&nbsp;&nbsp;> Press 'm' for Menu.
@@ -86,13 +83,14 @@ func printPageFor(player *Player) string {
 			<input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" />
 
 			<div id="modal_background">
-				
+
 			</div>
 			` + divInput() + `
 			<div id="script"></div>
 		</div>
 	</div>`
 }
+*/
 
 func chooseYourColor() string {
 	return `
@@ -165,97 +163,19 @@ func divModalDisabled() string {
 
 func divInput() string {
 	return `
-	<div id="input">
-		<div id="input-desktop">
-			<input id="wKey" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='ArrowUp'] from:body" hx-include="#token" name="eventname" value="w" />
-			<input id="aKey" type="hidden" ws-send hx-trigger="keydown[key=='a'||key=='ArrowLeft'] from:body" hx-include="#token" name="eventname" value="a" />
-			<input id="sKey" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='ArrowDown'] from:body" hx-include="#token" name="eventname" value="s" />
-			<input id="dKey" type="hidden" ws-send hx-trigger="keydown[key=='d'||key=='ArrowRight'] from:body" hx-include="#token" name="eventname" value="d" />
-			<input id="wShift" type="hidden" ws-send hx-trigger="keydown[key=='W'] from:body" hx-include="#token" name="eventname" value="W" />
-			<input id="aShift" type="hidden" ws-send hx-trigger="keydown[key=='A'] from:body" hx-include="#token" name="eventname" value="A" />
-			<input id="sShift" type="hidden" ws-send hx-trigger="keydown[key=='S'] from:body" hx-include="#token" name="eventname" value="S" />
-			<input id="dShift" type="hidden" ws-send hx-trigger="keydown[key=='D'] from:body" hx-include="#token" name="eventname" value="D" />
-			<input id="fKey" type="hidden" ws-send hx-trigger="keydown[key=='f'] from:body" hx-include="#token" name="eventname" value="f" />
-			<input id="gKey" type="hidden" ws-send hx-trigger="keydown[key=='g'] from:body" hx-include="#token" name="eventname" value="g" />
-			<input id="menuOnKey" type="hidden" ws-send hx-trigger="keydown[key=='m'||key=='M'||key=='Escape'] from:body" hx-include="#token" name="eventname" value="menuOn" />
-			<input id="space-onKey" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body" hx-include="#token" name="eventname" value="Space-On" />
-		</div>
-
-		<input id="w" type="hidden" ws-send hx-trigger="click from:#but-w" hx-include="#token" name="eventname" value="w" />
-		<input id="a" type="hidden" ws-send hx-trigger="click from:#but-a" hx-include="#token" name="eventname" value="a" />
-		<input id="s" type="hidden" ws-send hx-trigger="click from:#but-s" hx-include="#token" name="eventname" value="s" />
-		<input id="d" type="hidden" ws-send hx-trigger="click from:#but-d" hx-include="#token" name="eventname" value="d" />
-
-		<input id="menuOn" type="hidden" ws-send hx-trigger="click from:#but-m" hx-include="#token" name="eventname" value="menuOn" />
-		<input id="space-on" type="hidden" ws-send hx-trigger="click from:#but-space" hx-include="#token" name="eventname" value="Space-On" />
-		<input id="shift-on" type="hidden" ws-send hx-trigger="click from:#but-shift-on" hx-include="#token" name="eventname" value="Shift-On" />
-
-		<div class="container">
-			<div id="dpad" class="dpad-container">
-				<button id="but-w" class="button up">Up</button>
-				<button id="but-a" class="button left">Left</button>
-				<button class="button middle"></button>
-				<button id="but-d" class="button right">Right</button>
-				<button id="but-s" class="button down">Down</button>
-			</div>
-			<div class="center-container">
-				<button id="but-m" class="half-button">menu</button>
-			</div>
-			<div class="a-b-container">
-				<button id="but-space" class="button A">Space</button>
-				<button id="but-shift-on" class="button B">Shift</button>
-			</div>
-		</div>
-	
+	<div id="x0-0" class="container">
+	</div>
+	<div id="x0-1" class="container hidden">
 	</div>
 `
 }
 
 func divInputShift() string {
 	return `
-	<div id="input">
-		<div id="input-desktop">
-			<input id="wKey" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='ArrowUp'] from:body" hx-include="#token" name="eventname" value="w" />
-			<input id="aKey" type="hidden" ws-send hx-trigger="keydown[key=='a'||key=='ArrowLeft'] from:body" hx-include="#token" name="eventname" value="a" />
-			<input id="sKey" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='ArrowDown'] from:body" hx-include="#token" name="eventname" value="s" />
-			<input id="dKey" type="hidden" ws-send hx-trigger="keydown[key=='d'||key=='ArrowRight'] from:body" hx-include="#token" name="eventname" value="d" />
-			<input id="wShift" type="hidden" ws-send hx-trigger="keydown[key=='W'] from:body" hx-include="#token" name="eventname" value="W" />
-			<input id="aShift" type="hidden" ws-send hx-trigger="keydown[key=='A'] from:body" hx-include="#token" name="eventname" value="A" />
-			<input id="sShift" type="hidden" ws-send hx-trigger="keydown[key=='S'] from:body" hx-include="#token" name="eventname" value="S" />
-			<input id="dShift" type="hidden" ws-send hx-trigger="keydown[key=='D'] from:body" hx-include="#token" name="eventname" value="D" />
-			<input id="fKey" type="hidden" ws-send hx-trigger="keydown[key=='f'] from:body" hx-include="#token" name="eventname" value="f" />
-			<input id="gKey" type="hidden" ws-send hx-trigger="keydown[key=='g'] from:body" hx-include="#token" name="eventname" value="g" />
-			<input id="menuOnKey" type="hidden" ws-send hx-trigger="keydown[key=='m'||key=='M'||key=='Escape'] from:body" hx-include="#token" name="eventname" value="menuOn" />
-			<input id="space-onKey" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body" hx-include="#token" name="eventname" value="Space-On" />
-		</div>
-
-		<input id="wShift" type="hidden" ws-send hx-trigger="click from:#but-w" hx-include="#token" name="eventname" value="W" />
-		<input id="aShift" type="hidden" ws-send hx-trigger="click from:#but-a" hx-include="#token" name="eventname" value="A" />
-		<input id="sShift" type="hidden" ws-send hx-trigger="click from:#but-s" hx-include="#token" name="eventname" value="S" />
-		<input id="dShift" type="hidden" ws-send hx-trigger="click from:#but-d" hx-include="#token" name="eventname" value="D" />
-
-		<input id="menuOn" type="hidden" ws-send hx-trigger="click from:#but-m" hx-include="#token" name="eventname" value="menuOn" />
-		<input id="space-on" type="hidden" ws-send hx-trigger="click from:#but-space" hx-include="#token" name="eventname" value="Space-On" />
-		<input id="shift-off" type="hidden" ws-send hx-trigger="click from:#but-shift-off" hx-include="#token" name="eventname" value="Shift-Off" />
-	
-		<div class="container">
-			<div id="dpad" class="dpad-container">
-				<button id="but-w" class="button up">UP</button>
-				<button id="but-a" class="button left">LEFT</button>
-				<button class="button middle"></button>
-				<button id="but-d" class="button right">RIGHT</button>
-				<button id="but-s" class="button down">DOWN</button>
-			</div>
-			<div class="center-container">
-				<button id="but-m" class="half-button">menu</button>
-			</div>
-			<div class="a-b-container">
-				<button id="but-space" class="button A">Space</button>
-				<button id="but-shift-off" class="button B">Shift</button>
-			</div>
-		</div>
-	
-	</div
+	<div id="x0-0" class="container hidden">
+	</div>
+	<div id="x0-1" class="container">
+	</div>
 `
 }
 
@@ -294,13 +214,6 @@ func htmlForTile(tile *Tile, highlight string) string {
 	// grab tile y and x only once here or in parent method?
 	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x), oobHighlightBox(tile, highlight))
 }
-
-/*
-func htmlForPlayerTile(tile *Tile, icon string) string {
-	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x))
-}
-*/
 
 func playerBoxSpecifc(y, x int, icon string) string {
 	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, y, x, icon)

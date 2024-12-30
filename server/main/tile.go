@@ -58,8 +58,7 @@ func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 func makeTileTemplate(mat Material, y, x int) string {
 	tileCoord := fmt.Sprintf("%d-%d", y, x)
 	cId := "c" + tileCoord // This is used to identify the entire square
-	//tId := "t" + tileCoord // This is used to identify the top highlight box
-	placeHold := "%s" // later becomes player, interactable, svg, and weather boxes
+	placeHold := "%s"      // later becomes player, interactable, svg, weather, and highlight boxes
 
 	floor1css := ""
 	if mat.Floor1Css != "" {
@@ -220,7 +219,6 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 		return false
 	}
 
-	// ignore in clinic ?
 	target.healthLock.Lock()
 	oldHealth := target.health
 	newHealth := oldHealth - dmg
@@ -228,9 +226,7 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 	target.healthLock.Unlock()
 	fatal := oldHealth > 0 && newHealth <= 0
 	if fatal {
-		//fmt.Println("about to die.")
 		handleDeath(target)
-		//fmt.Println("dead")
 		initiator.incrementKillCount()
 		initiator.incrementKillStreak()
 		initiator.updateRecord()

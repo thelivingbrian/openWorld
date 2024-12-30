@@ -139,8 +139,8 @@ func updateOne(update string, player *Player) {
 }
 
 func updateScreenFromScratch(player *Player) {
-	clearChannel(player.updates)
 	player.clearUpdateBuffer <- struct{}{}
+	clearChannel(player.updates)
 	player.updates <- htmlFromPlayer(player)
 }
 

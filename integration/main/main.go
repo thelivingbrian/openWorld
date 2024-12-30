@@ -34,13 +34,59 @@ func main() {
 	}
 }
 
-func createRandomString() string {
-	bytes := make([]byte, 8)
-	_, err := crand.Read(bytes)
-	if err != nil {
-		panic(err)
+func IntegrationA(w http.ResponseWriter, r *http.Request) {
+	// curl -X POST "http://localhost:4440/mass?stagename=team-blue:3-3&read=true&count=70&ttl=5"
+	readParam := r.URL.Query().Get("read")
+	var read bool
+	if readParam != "" {
+		var err error
+		read, err = strconv.ParseBool(readParam)
+		if err != nil {
+			http.Error(w, "Invalid 'read' parameter", http.StatusBadRequest)
+			return
+		}
 	}
-	return hex.EncodeToString(bytes)
+
+	stagename := r.URL.Query().Get("stagename")
+	count := r.URL.Query().Get("count")
+	if stagename == "" || count == "" {
+		http.Error(w, "Missing required token parameters", http.StatusBadRequest)
+		return
+	}
+	ttlString := r.URL.Query().Get("ttl")
+	ttl, err := strconv.Atoi(ttlString)
+	if err != nil {
+		fmt.Println("Invalid TTL")
+		ttl = 30
+	}
+	tokens := requestTokens(stagename, count)
+	go func() {
+		for _, token := range tokens {
+			testingSocket := createTestingSocket(os.Getenv("BLOOP_HOST") + "/screen")
+			if testingSocket == nil {
+				fmt.Println("failed to create testing socket")
+				return
+			}
+
+			//defer testingSocket.ws.Close() occurs in closeOnRec
+			term := make(chan bool)
+			go testingSocket.closeOnRec(term)
+			go func(chan bool) {
+				time.Sleep(time.Duration(ttl) * time.Second)
+				term <- true
+			}(term)
+
+			testingSocket.tryWrite(createInitialTokenMessage(token))
+
+			if read {
+				go testingSocket.readUntilNil()
+			}
+
+			go testingSocket.moveInCircles(token)
+		}
+	}()
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "Request successful!")
 }
 
 func requestTokens(stagename, count string) []string {
@@ -71,61 +117,13 @@ func requestTokens(stagename, count string) []string {
 	return tokens
 }
 
-func IntegrationA(w http.ResponseWriter, r *http.Request) {
-	// curl -X POST "http://localhost:4440/mass?stagename=team-blue:3-3&read=true&count=70"
-	readParam := r.URL.Query().Get("read")
-	var read bool
-	if readParam != "" {
-		var err error
-		read, err = strconv.ParseBool(readParam)
-		if err != nil {
-			http.Error(w, "Invalid 'read' parameter", http.StatusBadRequest)
-			return
-		}
-	}
-
-	stagename := r.URL.Query().Get("stagename")
-	count := r.URL.Query().Get("count")
-	if stagename == "" || count == "" {
-		http.Error(w, "Missing required token parameters", http.StatusBadRequest)
-		return
-	}
-	ttlString := r.URL.Query().Get("ttl")
-	ttl, err := strconv.Atoi(ttlString)
+func createRandomString() string {
+	bytes := make([]byte, 8)
+	_, err := crand.Read(bytes)
 	if err != nil {
-		fmt.Println("Invalid TTL")
-		ttl = 30
+		panic(err)
 	}
-	// Need to include username if planning to call more than once
-	tokens := requestTokens(stagename, count)
-	go func() {
-		for _, token := range tokens {
-			//fmt.Println(token)
-			testingSocket := createTestingSocket(os.Getenv("BLOOP_HOST") + "/screen")
-			if testingSocket == nil {
-				fmt.Println("failed to create testing socket")
-				return
-			}
-			//defer testingSocket.ws.Close() // This is being done by code below but shoudl make more clear
-			testingSocket.tryWrite(createInitialTokenMessage(token))
-
-			if read {
-				go testingSocket.readUntilNil()
-			}
-			go testingSocket.moveInCircles(token)
-
-			// feels hacky
-			term := make(chan bool)
-			go testingSocket.closeOnRec(term)
-			go func(chan bool) {
-				// parameterize
-				time.Sleep(time.Duration(ttl) * time.Second)
-				term <- true
-			}(term)
-		}
-	}()
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, "Request successful!")
+	return hex.EncodeToString(bytes)
 }
 
 type TestingSocket struct {
