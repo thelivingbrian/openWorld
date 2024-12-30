@@ -321,7 +321,7 @@ func respawn(player *Player) {
 	//player.startSend <- struct{}{}
 	player.updateInformation()
 	//fmt.Println("updated.")
-	// updateScreenFromScratch(player)
+	//updateScreenFromScratch(player)
 }
 
 func (p *Player) moveNorth() {
@@ -598,7 +598,7 @@ func (player *Player) sendUpdates() {
 func (player *Player) sendUpdatesB() {
 	continueSending := true
 
-	ticker := time.NewTicker(5 * time.Millisecond)
+	ticker := time.NewTicker(25 * time.Millisecond)
 	defer ticker.Stop()
 
 	const maxBufferSize = 256 * 1024

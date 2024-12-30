@@ -111,7 +111,7 @@ func initiatelogout(player *Player) {
 		fmt.Println("This is a sad state of affairs. We have attempted to remove the player and failed. :( ")
 	}
 
-	time.Sleep(5000 * time.Millisecond)
+	//time.Sleep(5000 * time.Millisecond)
 	playersToLogout <- player
 
 }

@@ -210,6 +210,7 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 	if target.getTeamNameSync() == initiator.getTeamNameSync() {
 		return false
 	}
+	// ignore in clinic ?
 	target.healthLock.Lock()
 	oldHealth := target.health
 	newHealth := oldHealth - dmg

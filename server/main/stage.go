@@ -152,10 +152,20 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 
 // not related to stage?
 func updateOne(update string, player *Player) {
+	// player.tangibilityLock.Lock()
+	// defer player.tangibilityLock.Unlock()
+	// if !player.tangible {
+	// 	return
+	// }
 	player.updates <- []byte(update)
 }
 
 func updateScreenFromScratch(player *Player) {
+	// player.tangibilityLock.Lock()
+	// defer player.tangibilityLock.Unlock()
+	// if !player.tangible {
+	// 	return
+	// }
 	//fmt.Println("i")
 	clearChannel(player.updates)
 	//fmt.Println("ij-clear")
