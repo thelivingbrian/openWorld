@@ -62,22 +62,18 @@ func TestMostDangerous(t *testing.T) {
 	req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: stage.name})
 	world.addIncoming(req)
 	p1 := world.join(req)
-
-	//go drainChannel(p1.updates)
 	go p1.sendUpdates()
 	p1.placeOnStage(stage)
 
 	req2 := createLoginRequest(PlayerRecord{Username: "test2", Y: 3, X: 3, StageName: stage.name})
 	world.addIncoming(req2)
 	p2 := world.join(req2)
-	//go drainChannel(p2.updates)
 	go p2.sendUpdates()
 	p2.placeOnStage(stage)
 
 	req3 := createLoginRequest(PlayerRecord{Username: "test3", Y: 3, X: 3, StageName: stage.name})
 	world.addIncoming(req3)
 	p3 := world.join(req3)
-	//go drainChannel(p3.updates)
 	go p3.sendUpdates()
 	p3.placeOnStage(stage)
 
@@ -103,7 +99,6 @@ func TestMostDangerous(t *testing.T) {
 	fullyRemovePlayer(p3)
 	completeLogout(p3)
 
-	//time.Sleep(2500 * time.Millisecond)
 	if world.leaderBoard.mostDangerous.Peek() != p1 {
 		t.Error("Invalid leader should be p1")
 	}

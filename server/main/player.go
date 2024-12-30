@@ -286,7 +286,6 @@ func respawn(player *Player) {
 		return
 	}
 
-	// Copy here so old player is disconnected? - Hard
 	player.setHealth(150)
 	player.setKillStreak(0)
 	player.setStageName("clinic") // Do in handle death as well in case player became intangible?
@@ -394,12 +393,9 @@ func (p *Player) tryGoNeighbor(yOffset, xOffset int) {
 	p.push(newTile, nil, yOffset, xOffset)
 	if walkable(newTile) {
 		t := &Teleport{destStage: newTile.stage.name, destY: newTile.y, destX: newTile.x}
-		//previousTile := p.stage.tiles[p.y][p.x]
 
 		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
 		p.applyTeleport(t)
-		//impactedTiles := p.updateSpaceHighlights() //Duped in applyTeleport, ineffective with buffer
-		//updateOneAfterMovement(p, impactedTiles, previousTile)
 	}
 }
 
@@ -565,10 +561,6 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 //   Updates
 
 func (player *Player) sendUpdates() {
-	player.sendUpdatesB()
-}
-
-func (player *Player) sendUpdatesB() {
 	var buffer bytes.Buffer
 	const maxBufferSize = 256 * 1024
 
@@ -609,29 +601,6 @@ func (player *Player) sendUpdatesB() {
 			}
 
 			buffer.Reset()
-		}
-	}
-}
-
-func (player *Player) sendUpdatesA() {
-	continueSending := true
-	go func() {
-		for {
-			<-player.clearUpdateBuffer
-		}
-	}()
-	for {
-		update, ok := <-player.updates
-		if !ok {
-			fmt.Println("Player:", player.username, "- update channel closed")
-			return
-		}
-		if continueSending {
-			err := sendUpdate(player, update)
-			if err != nil {
-				continueSending = false
-				player.closeConnectionSync()
-			}
 		}
 	}
 }

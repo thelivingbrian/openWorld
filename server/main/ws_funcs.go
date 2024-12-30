@@ -62,8 +62,9 @@ func handleNewPlayer(existingPlayer *Player) {
 	for {
 		_, msg, err := existingPlayer.conn.ReadMessage()
 		if err != nil {
-			// This allows for rage quit by pressing X, should add timeout to encourage finding safety
-			fmt.Println("Ending", err)
+			// After Exiting loop player is logged out
+			//   Add time delay to prevent rage quit ?
+			fmt.Println("Conn Read Error: ", err)
 			break
 		}
 
@@ -77,6 +78,7 @@ func handleNewPlayer(existingPlayer *Player) {
 			fmt.Println("Cheating")
 			break
 		}
+
 		// Throttle input here?
 
 		existingPlayer.handlePress(event)
@@ -142,10 +144,9 @@ func completeLogout(player *Player) {
 	player.conn = nil
 	player.connLock.Unlock()
 
-	// hmm.
 	close(player.updates)
 
-	fmt.Println("Logging Out " + player.username)
+	fmt.Println("Logout complete: " + player.username)
 
 }
 

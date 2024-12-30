@@ -65,33 +65,7 @@ func randomFieryColor() string {
 	return "red"
 }
 
-/*
-func printPageFor(player *Player) string {
-	return `
-	<div id="page" hx-swap-oob="true">
-		<div id="main_view">
-			` + divPlayerInformation(player) + `
-			<div id="screen" class="grid">
-
-			</div>
-			<div id="bottom_text">
-				&nbsp;&nbsp;> Press 'm' for Menu.
-			</div>
-		</div>
-		<div id="controls" hx-ext="ws" ws-connect="/screen">
-			<input id="token" type="hidden" name="token" value="` + player.id + `" />
-			<input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" />
-
-			<div id="modal_background">
-
-			</div>
-			` + divInput() + `
-			<div id="script"></div>
-		</div>
-	</div>`
-}
-*/
-
+// Should be template ?
 func chooseYourColor() string {
 	return `
 	<div id="page" hx-swap-oob="true">
@@ -162,6 +136,7 @@ func divModalDisabled() string {
 }
 
 func divInput() string {
+	// uses htmx bypass to function
 	return `
 	<div id="x0-0" class="container">
 	</div>
@@ -171,6 +146,7 @@ func divInput() string {
 }
 
 func divInputShift() string {
+	// uses htmx bypass to function
 	return `
 	<div id="x0-0" class="container hidden">
 	</div>
@@ -241,7 +217,6 @@ func emptyWeatherBox(y, x int) string {
 	return fmt.Sprintf(`<div id="w%d-%d" class="box zw"></div>`, y, x)
 }
 
-// Create slice of proper size? Currently has many null entries
 func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 	highlights := ""
 
