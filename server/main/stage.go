@@ -119,14 +119,6 @@ func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
 
 func (stage *Stage) updateAll(update string) {
 	stage.updateAllExcept(update, nil)
-	/*
-		stage.playerMutex.RLock()
-		defer stage.playerMutex.RUnlock()
-		updateAsBytes := []byte(update)
-		for _, player := range stage.playerMap {
-			player.updates <- updateAsBytes
-		}
-	*/
 }
 
 func (stage *Stage) updateAllExcept(update string, ignore *Player) {
@@ -138,42 +130,18 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 			continue
 		}
 		player.updates <- updateAsBytes
-
-		// This felt generally bad with no benefit noticed even with no readers
-		// select {
-		// case player.updates <- updateAsBytes:
-		// 	// Message sent
-		// default:
-		// 	fmt.Println("dropping message D:")
-		// }
-
 	}
 }
 
 // not related to stage?
 func updateOne(update string, player *Player) {
-	// player.tangibilityLock.Lock()
-	// defer player.tangibilityLock.Unlock()
-	// if !player.tangible {
-	// 	return
-	// }
 	player.updates <- []byte(update)
 }
 
 func updateScreenFromScratch(player *Player) {
-	// player.tangibilityLock.Lock()
-	// defer player.tangibilityLock.Unlock()
-	// if !player.tangible {
-	// 	return
-	// }
-	//fmt.Println("i")
 	clearChannel(player.updates)
-	//fmt.Println("ij-clear")
 	player.clearUpdateBuffer <- struct{}{}
-	//fmt.Println("ij-update")
-	//sendUpdate(player, htmlFromPlayer(player))
 	player.updates <- htmlFromPlayer(player)
-	//fmt.Println("j")
 }
 
 func clearChannel(ch chan []byte) {

@@ -316,6 +316,7 @@ func playerBox(tile *Tile) string {
 
 func interactableBox(tile *Tile) string {
 	indicator := ""
+	//mutex
 	if tile.interactable != nil {
 		indicator = tile.interactable.cssClass
 	}

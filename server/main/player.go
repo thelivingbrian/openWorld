@@ -601,10 +601,6 @@ func (player *Player) sendUpdatesB() {
 			}
 		case <-player.clearUpdateBuffer:
 			buffer.Reset()
-		// case <-player.stopSend:
-		// 	continueSending = false
-		// case <-player.startSend:
-		// 	continueSending = true
 		case <-ticker.C:
 			// Every 25ms, if there's anything in the buffer, send it.
 			if continueSending && buffer.Len() > 0 {
@@ -612,13 +608,11 @@ func (player *Player) sendUpdatesB() {
 				if err != nil {
 					fmt.Println("Error before stop send: ", err)
 					continueSending = false
-					// Can deadlock?
-					//stopSendingAndCloseConnFor(player)
-
-					// Can have panics with mass logout + kill
-					// go func() {
-					// 	stopSendingAndCloseConnFor(player)
-					// }()
+					player.connLock.Lock()
+					if player.conn != nil {
+						player.conn.Close()
+					}
+					player.connLock.Unlock()
 				}
 
 				buffer.Reset()
