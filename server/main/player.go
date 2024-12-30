@@ -256,10 +256,12 @@ func spawnItemsFor(p *Player, stage *Stage) {
 
 func handleDeath(player *Player) {
 	player.tileLock.Lock()
+	// NotifyAllExcept
 	player.tile.addMoneyAndNotifyAll(max(halveMoneyOf(player), 10)) // Tile money needs mutex.
 	player.tileLock.Unlock()
 	player.removeFromTileAndStage()
 	player.incrementDeathCount()
+	// set stagename
 	respawn(player)
 }
 
@@ -279,25 +281,6 @@ func (player *Player) removeFromTileAndStage() {
 }
 
 func respawn(player *Player) {
-	// Require connlock so that player removed by logout cannot be readded to a stage here
-	// player.connLock.Lock()
-	// //defer player.connLock.Unlock()
-	// if player.conn == nil {
-	// 	return
-	// }
-	// close player.updates
-	// create new one and send updates
-	// open connlock
-	// = get closed by logout
-	// add player with closed channel to stage :(
-
-	// Add stop and start sending channel
-	//player.stopSend <- struct{}{}
-	// stop sending before adding to stage
-	// unlock conn before start sending
-
-	// New mutex
-	// hold while logging out or respawing
 	player.tangibilityLock.Lock()
 	defer player.tangibilityLock.Unlock()
 	if !player.tangible {
@@ -307,21 +290,16 @@ func respawn(player *Player) {
 	// Copy here so old player is disconnected? - Hard
 	player.setHealth(150)
 	player.setKillStreak(0)
-	player.setStageName("clinic")
+	player.setStageName("clinic") // Do in handle death as well in case player became intangible?
 	player.x = 2
 	player.y = 2
 	player.actions = createDefaultActions()
 	player.updateRecord()
 	stage := getStageFromStageName(player.world, "clinic")
-	//fmt.Println("have stage.")
 	placePlayerOnStageAt(player, stage, 2, 2)
-	//fmt.Println("placed.")
 
-	// player.connLock.Unlock()
-	//player.startSend <- struct{}{}
+	// redo because place wipes buffer
 	player.updateInformation()
-	//fmt.Println("updated.")
-	//updateScreenFromScratch(player)
 }
 
 func (p *Player) moveNorth() {

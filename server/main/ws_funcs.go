@@ -86,7 +86,10 @@ func handleNewPlayer(existingPlayer *Player) {
 	}
 }
 
-// transfer player to log out queue
+// ////////////////////////////////////////////////////
+//
+//	Logging Out
+
 var playersToLogout = make(chan *Player, 500)
 
 func processLogouts(players chan *Player) {
@@ -100,7 +103,6 @@ func processLogouts(players chan *Player) {
 	}
 }
 func initiatelogout(player *Player) {
-	//time.Sleep(5000 * time.Millisecond)
 	player.tangibilityLock.Lock()
 	defer player.tangibilityLock.Unlock()
 	player.tangible = false
@@ -113,13 +115,11 @@ func initiatelogout(player *Player) {
 		// if they . . .  they can be spawned with closed chan to update to ? ?
 	}
 
-	//time.Sleep(5000 * time.Millisecond)
 	playersToLogout <- player
 
 }
 
 func completeLogout(player *Player) {
-
 	player.updateRecord() // Should return error
 	player.world.wPlayerMutex.Lock()
 	delete(player.world.worldPlayers, player.id)
@@ -172,17 +172,6 @@ func fullyRemovePlayer(player *Player) bool {
 
 	return found && ok
 }
-
-/*
-func safeClose(ch chan []byte) {
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("Recovered from panic:", r)
-		}
-	}()
-	close(ch)
-}
-*/
 
 func getTokenFromFirstMessage(conn *websocket.Conn) (token string, success bool) {
 	_, bytes, err := conn.ReadMessage()
