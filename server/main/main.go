@@ -5,6 +5,8 @@ import (
 	"html/template"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
+	"strconv"
 
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
@@ -17,8 +19,6 @@ var store *sessions.CookieStore
 var tmpl = template.Must(template.ParseGlob("templates/*.tmpl.html"))
 
 func main() {
-	go processLogouts(playersToLogout)
-
 	fmt.Println("Initializing...")
 	err := godotenv.Load()
 	if err != nil {
@@ -39,11 +39,13 @@ func main() {
 	world := createGameWorld(db)
 	loadFromJson()
 
+	// Process Loggouts, should remove global ?
+	go processLogouts(playersToLogout)
+
 	// start pprof
-	go func() {
-		fmt.Println("Starting pprof HTTP server on :6060")
-		fmt.Println(http.ListenAndServe("localhost:6060", nil))
-	}()
+	if pProfEnabled() {
+		go initiatePProf()
+	}
 
 	fmt.Println("Establishing Routes...")
 
@@ -100,4 +102,20 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl.ExecuteTemplate(w, "homepage", true)
+}
+
+func initiatePProf() {
+	fmt.Println("Starting pprof HTTP server on :6060")
+	// need to isolate mux
+	fmt.Println(http.ListenAndServe("localhost:6060", nil))
+}
+
+func pProfEnabled() bool {
+	rawValue := os.Getenv("PPROF_ENABLED")
+	featureEnabled, err := strconv.ParseBool(rawValue)
+	if err != nil {
+		fmt.Printf("Error parsing PPROF_ENABLED: %v. Defaulting to false.\n", err)
+		return false
+	}
+	return featureEnabled
 }
