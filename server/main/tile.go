@@ -207,9 +207,19 @@ func (tile *Tile) copyOfPlayers() []*Player {
 }
 
 func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
+	target.tangibilityLock.Lock()
+	if !target.tangible {
+		target.tangibilityLock.Unlock()
+		return false
+	}
+	target.tangibilityLock.Unlock()
+	if target.getStageNameSync() == "clinic" {
+		return false
+	}
 	if target.getTeamNameSync() == initiator.getTeamNameSync() {
 		return false
 	}
+
 	// ignore in clinic ?
 	target.healthLock.Lock()
 	oldHealth := target.health
@@ -218,9 +228,9 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 	target.healthLock.Unlock()
 	fatal := oldHealth > 0 && newHealth <= 0
 	if fatal {
-		fmt.Println("about to die.")
+		//fmt.Println("about to die.")
 		handleDeath(target)
-		fmt.Println("dead")
+		//fmt.Println("dead")
 		initiator.incrementKillCount()
 		initiator.incrementKillStreak()
 		initiator.updateRecord()

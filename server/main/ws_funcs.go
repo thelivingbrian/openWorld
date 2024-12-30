@@ -102,13 +102,15 @@ func processLogouts(players chan *Player) {
 func initiatelogout(player *Player) {
 	//time.Sleep(5000 * time.Millisecond)
 	player.tangibilityLock.Lock()
+	defer player.tangibilityLock.Unlock()
 	player.tangible = false
-	player.tangibilityLock.Unlock()
 
 	//player.removeFromTileAndStage() // check if successful?
 	fmt.Println("initate logout: " + player.username)
 	if !fullyRemovePlayer(player) {
 		fmt.Println("This is a sad state of affairs. We have attempted to remove the player and failed. :( ")
+		// dangerous because the tLock is about to open and the player is likely still somewhere
+		// if they . . .  they can be spawned with closed chan to update to ? ?
 	}
 
 	//time.Sleep(5000 * time.Millisecond)
