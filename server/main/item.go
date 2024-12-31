@@ -23,8 +23,8 @@ func (s *SpawnAction) activateFor(player *Player, stage *Stage) {
 var spawnActions = map[string][]SpawnAction{
 	"none": []SpawnAction{SpawnAction{}}, // Same as Should: Always, Action: doNothing
 	"": []SpawnAction{
-		SpawnAction{Should: checkDistanceFromEdge(8, 8), Action: basicSpawn},
-		SpawnAction{Should: nil, Action: basicSpawn},
+		//SpawnAction{Should: checkDistanceFromEdge(8, 8), Action: basicSpawn},
+		SpawnAction{Should: excludeClinic, Action: basicSpawn},
 	},
 	"tutorial-boost": []SpawnAction{SpawnAction{Should: always, Action: tutorialBoost()}},
 	"tutorial-power": []SpawnAction{SpawnAction{Should: always, Action: tutorialPower}},
@@ -61,6 +61,10 @@ func checkTeamName(teamname string) func(*Player, *Stage) bool {
 	return func(p *Player, _ *Stage) bool {
 		return teamname == p.getTeamNameSync()
 	}
+}
+
+func excludeClinic(p *Player, s *Stage) bool {
+	return s.name != "clinic"
 }
 
 func distanceFromEdgeOfSpace(stage *Stage, gridHeight, gridWidth int) int {
@@ -140,11 +144,11 @@ func basicSpawn(stage *Stage) {
 	// Very basic spawn algorithm
 	// Will spawn on convered tiles with higher freq. than uncovered
 	// Will spawn boost and powers with equal probability
-	shapes := [][][2]int{grid9x9, grid3x3, grid5x5, grid7x7, grid9x9, jumpCross(), cross(), x()}
+	shapes := [][][2]int{grid9x9, grid5x5} //, grid3x3, grid5x5, grid7x7, grid9x9, jumpCross(), cross(), x()}
 
 	randn := rand.Intn(30)
-	spawnCovered := randn%3 == 0
-	spawnUncovered := randn%7 == 0
+	spawnCovered := false //randn%3 == 0
+	spawnUncovered := randn%3 == 0
 	heads := randn%2 == 0
 
 	coveredTiles, uncoveredTiles := sortWalkableTiles(stage.tiles)

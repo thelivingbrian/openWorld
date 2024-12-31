@@ -2,72 +2,176 @@ package main
 
 import (
 	"container/heap"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
 	"sync"
-
-	"github.com/google/uuid"
+	"sync/atomic"
+	"time"
 )
 
 type World struct {
-	db           *DB
-	worldPlayers map[string]*Player
-	wPlayerMutex sync.Mutex
-	worldStages  map[string]*Stage
-	wStageMutex  sync.Mutex
-	leaderBoard  *LeaderBoard
+	db                  *DB
+	worldPlayers        map[string]*Player
+	wPlayerMutex        sync.Mutex
+	incomingPlayers     map[string]LoginRequest
+	incomingPlayerMutex sync.Mutex
+	worldStages         map[string]*Stage
+	wStageMutex         sync.Mutex
+	leaderBoard         *LeaderBoard
 }
 
 func createGameWorld(db *DB) *World {
 	minimumKillstreak := Player{id: "HS-only", killstreak: 0} // Do somewhere else?
 	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: []*Player{&minimumKillstreak}, index: make(map[*Player]int)}}
-	return &World{db: db, worldPlayers: make(map[string]*Player), worldStages: make(map[string]*Stage), leaderBoard: lb}
+	return &World{db: db, worldPlayers: make(map[string]*Player), incomingPlayers: make(map[string]LoginRequest), worldStages: make(map[string]*Stage), leaderBoard: lb}
 }
 
-func (world *World) join(record *PlayerRecord) *Player {
-	token := uuid.New().String()
+type LoginRequest struct {
+	Token     string
+	Record    PlayerRecord
+	timestamp time.Time
+}
+
+func (record PlayerRecord) HeartsFromRecord() string {
+	return getHeartsFromHealth(record.Health)
+}
+
+func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
+	secret := os.Getenv("AUTO_PLAYER_PASSWORD")
+	if secret == "" {
+		fmt.Println("Bypass is disabled - but has been requested.")
+		return
+	}
+	props, ok := requestToProperties(r)
+	if !ok {
+		fmt.Println("invalid props")
+	}
+	if props["secret"] != secret {
+		fmt.Println("Bypass is disabled - but has been requested.")
+		return
+	}
+	countString := props["count"]
+	count, err := strconv.Atoi(countString)
+	if err != nil {
+		fmt.Println("Invalid count")
+		return
+	}
+	username := props["username"]
+	stage := props["stagename"]
+	team := props["team"]
+	tokens := make([]string, 0, count)
+	for i := 0; i < count; i++ {
+		iStr := strconv.Itoa(i)
+		record := PlayerRecord{Username: username + iStr, Health: 50, Y: 8, X: 8, StageName: stage, Team: team, Trim: "white-b thick"}
+		loginRequest := createLoginRequest(record)
+		world.addIncoming(loginRequest)
+		fmt.Println(loginRequest.Token)
+		tokens = append(tokens, loginRequest.Token)
+	}
+	io.WriteString(w, "[\""+strings.Join(tokens, "\",\"")+"\"]")
+}
+
+func createLoginRequest(record PlayerRecord) LoginRequest {
+	return LoginRequest{
+		Token:     createRandomToken(),
+		Record:    record,
+		timestamp: time.Now(),
+	}
+}
+
+func isLessThan15SecondsAgo(t time.Time) bool {
+	if time.Since(t) < 0 {
+		// t is in the future
+		return false
+	}
+	return time.Since(t) < 450*time.Second
+}
+
+func (world *World) addIncoming(loginRequest LoginRequest) {
+	world.incomingPlayerMutex.Lock()
+	defer world.incomingPlayerMutex.Unlock()
+	world.incomingPlayers[loginRequest.Token] = loginRequest
+}
+
+func (world *World) retreiveIncoming(token string) *LoginRequest {
+	world.incomingPlayerMutex.Lock()
+	defer world.incomingPlayerMutex.Unlock()
+	request, ok := world.incomingPlayers[token]
+	if ok {
+		delete(world.incomingPlayers, token)
+		if isLessThan15SecondsAgo(request.timestamp) {
+			return &request
+		}
+	}
+	return nil
+}
+
+func createRandomToken() string {
+	token := make([]byte, 16)
+	_, err := rand.Read(token)
+	if err != nil {
+		panic(err)
+	}
+	return hex.EncodeToString(token)
+}
+
+func (world *World) join(incoming LoginRequest) *Player {
 	// need log levels
 	//fmt.Println("New Player: " + record.Username)
 	//fmt.Println("Token: " + token)
 
-	if world.isLoggedInAlready(record.Username) {
-		fmt.Println("User attempting to log in but is logged in already: " + record.Username)
+	if world.isLoggedInAlready(incoming.Record.Username) {
+		fmt.Println("User attempting to log in but is logged in already: " + incoming.Record.Username)
 		return nil
 	}
 
-	updatesForPlayer := make(chan []byte)
-
-	// probably take this out later...
-
-	team := "sky-blue"
-	if record.Team != "" {
-		team = record.Team
-	}
-
-	newPlayer := &Player{
-		id:        token,
-		username:  record.Username,
-		team:      team,
-		trim:      record.Trim,
-		stage:     nil,
-		updates:   updatesForPlayer,
-		stageName: record.StageName,
-		x:         record.X,
-		y:         record.Y,
-		actions:   createDefaultActions(),
-		health:    record.Health,
-		money:     record.Money,
-		world:     world,
-		menues:    map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu}, // terrifying
-	}
-
-	newPlayer.setIcon()
+	newPlayer := world.newPlayerFromRecord(incoming.Record, incoming.Token)
 
 	//New Method
 	world.wPlayerMutex.Lock()
-	world.worldPlayers[token] = newPlayer
-	world.leaderBoard.mostDangerous.Push(newPlayer) // Give own mutex?
+	world.worldPlayers[incoming.Token] = newPlayer
+	world.leaderBoard.mostDangerous.Push(newPlayer) // Has own mutex. pMutex needed?
 	world.wPlayerMutex.Unlock()
 
+	return newPlayer
+}
+
+func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player {
+	// probably take this out later...
+	if record.Team == "" {
+		record.Team = "sky-blue"
+	}
+	updatesForPlayer := make(chan []byte, 0) // raise capacity?
+	newPlayer := &Player{
+		id:                id,
+		username:          record.Username,
+		team:              record.Team,
+		trim:              record.Trim,
+		stage:             nil,
+		updates:           updatesForPlayer,
+		clearUpdateBuffer: make(chan struct{}, 0),
+		// startSend:                make(chan struct{}, 0),
+		// stopSend:                 make(chan struct{}, 0),
+		sessionTimeOutViolations: atomic.Int32{},
+		tangible:                 true,
+		tangibilityLock:          sync.Mutex{},
+		stageName:                record.StageName,
+		x:                        record.X,
+		y:                        record.Y,
+		actions:                  createDefaultActions(),
+		health:                   record.Health,
+		money:                    record.Money,
+		world:                    world,
+		menues:                   map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu}, // terrifying
+	}
+
+	newPlayer.setIcon()
 	return newPlayer
 }
 
@@ -268,7 +372,7 @@ func notifyChangeInMostDangerous(currentMostDangerous *Player) {
 		if p == currentMostDangerous {
 			p.updateBottomText("You are the most dangerous bloop!")
 		} else {
-			p.updateBottomText(currentMostDangerous.username + " has become the most dangerous bloop...")
+			p.updateBottomText(currentMostDangerous.username + " has become the most dangerous bloop!")
 		}
 	}
 }

@@ -5,8 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"math/rand"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -35,21 +38,23 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// New method on world
-	world.wPlayerMutex.Lock()
-	existingPlayer, playerExists := world.worldPlayers[token]
-	world.wPlayerMutex.Unlock()
-
-	if playerExists {
-		existingPlayer.conn = conn
-		//existingPlayer.world = world
-		handleNewPlayer(existingPlayer)
-	} else {
+	incoming := world.retreiveIncoming(token)
+	if incoming == nil {
 		fmt.Println("player not found with token: " + token)
+		return
 	}
+	existingPlayer := world.join(*incoming)
+	if existingPlayer == nil {
+		fmt.Println("Failed to join player with token: " + token)
+		return
+	}
+	existingPlayer.conn = conn
+
+	handleNewPlayer(existingPlayer)
 }
 
 func handleNewPlayer(existingPlayer *Player) {
+	defer initiatelogout(existingPlayer)
 	go existingPlayer.sendUpdates()
 	stage := getStageFromStageName(existingPlayer.world, existingPlayer.stageName)
 	placePlayerOnStageAt(existingPlayer, stage, existingPlayer.y, existingPlayer.x)
@@ -57,9 +62,10 @@ func handleNewPlayer(existingPlayer *Player) {
 	for {
 		_, msg, err := existingPlayer.conn.ReadMessage()
 		if err != nil {
-			// This allows for rage quit by pressing X, should add timeout to encourage finding safety
-			logOut(existingPlayer)
-			return
+			// After Exiting loop player is logged out
+			//   Add time delay to prevent rage quit ?
+			fmt.Println("Conn Read Error: ", err)
+			break
 		}
 
 		event, success := getKeyPress(msg)
@@ -68,9 +74,11 @@ func handleNewPlayer(existingPlayer *Player) {
 			continue
 		}
 		if event.Token != existingPlayer.id {
+			// check mildly irrelevant?
 			fmt.Println("Cheating")
 			break
 		}
+
 		// Throttle input here?
 
 		existingPlayer.handlePress(event)
@@ -80,13 +88,45 @@ func handleNewPlayer(existingPlayer *Player) {
 	}
 }
 
-func logOut(player *Player) {
+// ////////////////////////////////////////////////////
+//
+//	Logging Out
+
+var playersToLogout = make(chan *Player, 500)
+
+func processLogouts(players chan *Player) {
+	for {
+		player, ok := <-players
+		if !ok {
+			return
+		}
+
+		completeLogout(player)
+	}
+}
+func initiatelogout(player *Player) {
+	player.tangibilityLock.Lock()
+	defer player.tangibilityLock.Unlock()
+	player.tangible = false
+
+	fmt.Println("initate logout: " + player.username)
+	if !fullyRemovePlayer(player) {
+		fmt.Println("This is a sad state of affairs. We have attempted to remove the player and failed. :( ")
+		// dangerous because the tLock is about to open and the player is likely still somewhere
+		// call initiateLogout if intangible player is damaged?
+	}
+
+	playersToLogout <- player
+
+}
+
+func completeLogout(player *Player) {
 	player.updateRecord() // Should return error
-	player.removeFromTileAndStage()
 	player.world.wPlayerMutex.Lock()
 	delete(player.world.worldPlayers, player.id)
 	index, exists := player.world.leaderBoard.mostDangerous.index[player]
 	if exists {
+		// this is unsafe index position can change
 		heap.Remove(&player.world.leaderBoard.mostDangerous, index)
 		//  If index was 0 before, need to update new most dangerous
 		if index == 0 {
@@ -99,13 +139,36 @@ func logOut(player *Player) {
 	}
 	player.world.wPlayerMutex.Unlock()
 
+	player.closeConnectionSync() // uneeded but harmless?
 	player.connLock.Lock()
-	defer player.connLock.Unlock()
 	player.conn = nil
+	player.connLock.Unlock()
 
 	close(player.updates)
 
-	fmt.Println("Logging Out " + player.username)
+	fmt.Println("Logout complete: " + player.username)
+
+}
+
+func fullyRemovePlayer(player *Player) bool {
+	found := false
+	for i := 0; i < 5; i++ {
+		if player.tile.removePlayerAndNotifyOthers(player) {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		fmt.Println("Never removed player from tile successfully")
+	}
+
+	player.stage.playerMutex.Lock()
+	_, ok := player.stage.playerMap[player.id]
+	delete(player.stage.playerMap, player.id)
+	player.stage.playerMutex.Unlock()
+
+	return found && ok
 }
 
 func getTokenFromFirstMessage(conn *websocket.Conn) (token string, success bool) {
@@ -175,27 +238,53 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 		updateScreenFromScratch(player)
 	}
 	if event.Name == "g" {
+
+		//Full swap takes priority in either order, otherwise both may apply
+
+		//exTile := `<div id="t1-0" class="box top green"></div>
+		//			<div id="t1-1" class="box top green"></div>`
+
+		go func() {
+			for i := 0; i <= 80; i++ {
+				time.Sleep(20 * time.Millisecond)
+				updateOne(generateDivs(i), player)
+			}
+
+		}()
+
+		//updateOne(generateWeatherSolid("blue trsp20"), player)
+		//player.updates <- generateWeatherSolidBytes("night trsp20")
+
 		/*
-			Full swap takes priority in either order, otherwise both may apply
-			exTile := `<div class="grid-square blue" id="c0-0">
-							<div id="p0-0" class="box zp "></div>
-							<div id="s0-0" class="box zS"></div>
-							<div id="t0-0" class="box top"></div>
-						</div>
-						<div class="grid-square blue" id="c0-1">
-							<div id="p0-1" class="box zp "></div>
-							<div id="s0-1" class="box zS"></div>
-							<div id="t0-1" class="box top"></div>
-						</div>
-						`
-			exTile += `<div id="t1-0" class="box top green"></div>
-					<div id="t0-0" class="box top green"></div>`
-			updateOne(exTile, player)
+			trsp := []string{"trsp20", "trsp40", "trsp60", "trsp80"}
+			for _, t := range trsp {
+				d := time.Duration(75)
+				player.updates <- generateWeatherDynamic(twoColorParity("red", "pink", t))
+				time.Sleep(d * time.Millisecond)
+				player.updates <- generateWeatherDynamic(twoColorParity("pink", "red", t))
+				time.Sleep(d * time.Millisecond)
+				player.updates <- generateWeatherDynamic(twoColorParity("green", "grass", t))
+				time.Sleep(d * time.Millisecond)
+				player.updates <- generateWeatherDynamic(twoColorParity("grass", "green", t))
+				time.Sleep(d * time.Millisecond)
+				player.updates <- generateWeatherDynamic(twoColorParity("blue", "ice", t))
+				time.Sleep(d * time.Millisecond)
+				player.updates <- generateWeatherDynamic(twoColorParity("ice", "blue", t))
+				time.Sleep(d * time.Millisecond)
+				player.updates <- generateWeatherDynamic(twoColorParity("black", "half-gray", t))
+				time.Sleep(d * time.Millisecond)
+				player.updates <- generateWeatherDynamic(twoColorParity("half-gray", "black", t))
+				time.Sleep(d * time.Millisecond)
+
+			}
 		*/
-		//player.updateBottomText("Heyo ;) ")
-		spawnNewPlayerWithRandomMovement(player, 250)
-		npcs++
-		println("npcs: ", npcs)
+
+		/*
+			//player.updateBottomText("Heyo ;) ")
+			spawnNewPlayerWithRandomMovement(player, 250)
+			npcs++
+			println("npcs: ", npcs)
+		*/
 	}
 	if event.Name == "Space-On" {
 		if player.actions.spaceStack.hasPower() {
@@ -228,11 +317,204 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 	}
 }
 
+func generateDivs(frame int) string {
+	var sb strings.Builder
+
+	// Define the center of the grid
+	center := 7.5
+
+	// Determine which color set to use based on the frame
+	var col1, col2 string
+	if ((frame / 20) % 2) == 0 {
+		// Use the first color set
+		col1, col2 = "red trsp40", "gold trsp40"
+	} else {
+		// Use the second color set
+		col1, col2 = "blue trsp40", "green trsp40"
+	}
+
+	for i := 0; i < 16; i++ {
+		for j := 0; j < 16; j++ {
+			dx := float64(i) - center
+			dy := float64(j) - center
+
+			// Radius from the center
+			r := math.Sqrt(dx*dx + dy*dy)
+
+			// Base angle in radians, range (-π, π]
+			angle := math.Atan2(dy, dx)
+
+			// Add rotation based on the frame
+			angle += float64(frame) * 0.1
+
+			// Determine pattern: If this value is even, use col1; if odd, use col2
+			// Multiplying angle by r gives a spiral-like indexing pattern.
+			colorIndex := int((angle * r))
+
+			var color string
+			if colorIndex%2 == 0 {
+				color = col1
+			} else {
+				color = col2
+			}
+
+			sb.WriteString(fmt.Sprintf(`<div id="w%d-%d" class="box zw %s"></div>`+"\n", i, j, color))
+		}
+	}
+
+	return sb.String()
+}
+
+func generateWeatherSolid(color string) string {
+	var sb strings.Builder
+
+	for i := 0; i < 16; i++ {
+		for j := 0; j < 16; j++ {
+			sb.WriteString(fmt.Sprintf(`<div id="w%d-%d" class="box zw %s"></div>`+"\n", i, j, color))
+		}
+	}
+
+	return sb.String()
+}
+
+func generateWeatherDumb(color string) string {
+	out := ""
+
+	for i := 0; i < 16; i++ {
+		for j := 0; j < 16; j++ {
+			out += fmt.Sprintf(`<div id="w%d-%d" class="box zw %s"></div>`+"\n", i, j, color)
+		}
+	}
+
+	return out
+}
+
+func generateWeatherSolidBytes(color string) []byte {
+	const rows = 16
+	const cols = 16
+
+	// Estimate capacity to avoid growth:
+	// Each element has a pattern:
+	// <div id="w{i}-{j}" class="box zw {color}"></div>\n
+	//
+	// Breakdown of constant parts:
+	// "<div id=\"w"      = 10 bytes (including the quote)
+	// "-"                = 1 byte
+	// "\" class=\"box zw " = 15 bytes (including the leading quote)
+	// "\"></div>"       = 8 bytes (including quotes and newline)
+	// Total constant overhead per line = 10 + 1 + 15 + 9 = 34 bytes
+	//
+	// Now add the length for i and j (up to "15") and "w":
+	// "w" + i + "-" + j: "w" (1 byte), max i=2 digits, "-" (1 byte), max j=2 digits
+	// Max i and j length = 2 digits each = 4 bytes + "w" + "-" = 6 bytes max
+	// So worst: 34 (constant) + 6 (id part) = 40 bytes + len(color) per line
+	//
+	// We have 256 lines (16x16):
+	// capacity ~ 256 * (40 + len(color))
+	estCap := 256 * (40 + len(color))
+	b := make([]byte, 0, estCap)
+
+	prefix := []byte(`<div id="w`)
+	sep := []byte(`-`)
+	cls := []byte(`" class="box zw `)
+	suffix := []byte(`"></div>`)
+
+	for i := 0; i < rows; i++ {
+		for j := 0; j < cols; j++ {
+			b = append(b, prefix...)
+			b = strconv.AppendInt(b, int64(i), 10)
+			b = append(b, sep...)
+			b = strconv.AppendInt(b, int64(j), 10)
+			b = append(b, cls...)
+			b = append(b, color...)
+			b = append(b, suffix...)
+		}
+	}
+
+	return b
+}
+
+func generateWeatherDynamic(getColor func(i, j int) string) []byte {
+	estCap := 256 * 60
+	b := make([]byte, 0, estCap)
+
+	prefix := []byte(`<div id="w`)
+	sep := []byte(`-`)
+	cls := []byte(`" class="box zw `)
+	suffix := []byte(`"></div>`)
+
+	for i := 0; i < 16; i++ {
+		for j := 0; j < 16; j++ {
+			b = append(b, prefix...)
+			b = strconv.AppendInt(b, int64(i), 10)
+			b = append(b, sep...)
+			b = strconv.AppendInt(b, int64(j), 10)
+			b = append(b, cls...)
+			b = append(b, getColor(i, j)...)
+			b = append(b, suffix...)
+		}
+	}
+	return b
+}
+
+func twoColorParity(c1, c2, t string) func(i, j int) string {
+	return func(i, j int) string {
+		if (i+j)%2 == 0 {
+			return c1 + "-b thick " + c2 + " " + t
+		} else {
+			return c2 + "-b thick " + c1 + " " + t
+
+		}
+	}
+}
+
+func generateDivs3(frame int) string {
+	var sb strings.Builder
+
+	// Define a set of colors to cycle through
+	colors := []string{"red", "blue", "green", "gold", "white", "black", "half-gray"}
+
+	for i := 0; i < 16; i++ {
+		for j := 0; j < 16; j++ {
+			// Compute color based on i, j, and the current frame.
+			// This will cause the color pattern to "shift" each frame.
+			color := colors[(i+j+frame)%len(colors)]
+
+			sb.WriteString(fmt.Sprintf(`<div id="t%d-%d" class="box top %s"></div>`+"\n", i, j, color))
+		}
+	}
+
+	return sb.String()
+}
+
 var npcs = 0
+
+type MockConn struct{}
+
+func (m *MockConn) WriteMessage(messageType int, data []byte) error {
+	return nil
+}
+
+func (m *MockConn) ReadMessage() (messageType int, p []byte, err error) {
+	return 1, []byte("mock data"), nil
+}
+
+func (m *MockConn) Close() error {
+	// Adjust so that subsequent reads have error?
+	return nil
+}
+
+func (m *MockConn) SetWriteDeadline(t time.Time) error {
+	return nil
+}
 
 func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, context.CancelFunc) {
 	username := "user-" + uuid.New().String()
-	newPlayer := ref.world.join(&PlayerRecord{Username: username, Health: 50, Y: ref.y, X: ref.x, StageName: ref.stage.name, Team: "fuchsia", Trim: "white-b thick"})
+	record := PlayerRecord{Username: username, Health: 50, Y: ref.y, X: ref.x, StageName: ref.stage.name, Team: "fuchsia", Trim: "white-b thick"}
+	loginRequest := createLoginRequest(record)
+	ref.world.addIncoming(loginRequest)
+	newPlayer := ref.world.join(loginRequest)
+	newPlayer.conn = &MockConn{}
 	ctx, cancel := context.WithCancel(context.Background())
 	go func(ctx context.Context) {
 		for {
@@ -241,6 +523,16 @@ func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, conte
 				return
 			default:
 				<-newPlayer.updates
+			}
+		}
+	}(ctx)
+	go func(ctx context.Context) {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				<-newPlayer.clearUpdateBuffer
 			}
 		}
 	}(ctx)

@@ -41,8 +41,13 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	testStage.tiles[12][9].addPowerUpAndNotifyAll(grid9x9)
 
 	// Join initial player
-	p := world.join(&PlayerRecord{Username: "test1", Y: 13, X: 13, StageName: testStage.name})
+	record := PlayerRecord{Username: "test1", Y: 13, X: 13, StageName: testStage.name}
+	req := createLoginRequest(record)
+	world.addIncoming(req)
+	p := world.join(req)
+	p.conn = &MockConn{}
 	go drainChannel(p.updates)
+	go drainChannel(p.clearUpdateBuffer)
 	p.placeOnStage(testStage)
 
 	// Get in position
@@ -71,7 +76,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	// Escape the box
 	p.moveWestBoost()
 	if p.tile != testStage.tiles[12][9] {
-		t.Error("Player should not have moved")
+		t.Error("Player should have moved")
 	}
 
 	// Activate every collected power

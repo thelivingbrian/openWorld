@@ -9,3 +9,4 @@ tools/main/data/out**
 main.exe
 **/spaces/maps/**
 .env
+.vscode

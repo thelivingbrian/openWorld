@@ -19,6 +19,23 @@
   - [-] Automated test
 - [ ] Disable respawn from tutorial
 
+## Performance 
+- [-] Performance from Ec2 is degraded vs localhost - 400 Websocket users / 8 stages very stable
+  - [-] Client overwhelmed Potentially?
+    - [-] Relation to integration test with no reader?
+      - [-] Run PProf on Ec2  
+      - [-] Run PProf locally with no reader
+      - [-] Lack of reader can be solved by timeout on socket send
+        - [-] Logout is unclean, can leave channels closed before writes ? 
+        - [-] Performance still degrades significantly - Only with mass timeout ? 
+    - [-] Websocketstream? 
+      - [-] No - only available on chrome
+- [-] Highlight code not working with buffered sends
+  - [-] Initial screen load no longer requires button press? 
+- [-] Highlight code broken for overlapping after teleport
+- [-] Result of removing buffer with the new timeout deadlines (Should still get overwhelmed)
+  - [-] Not as good
+
 ## Design Workspace
 - [-] Rotations
   - [-] New collection

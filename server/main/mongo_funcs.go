@@ -135,7 +135,7 @@ func (db *DB) insertAuthorizedUser(user AuthorizedUser) error {
 	return err
 }
 
-func (db *DB) updateUserName(identifier, username string) bool {
+func (db *DB) updateUsernameForUserWithId(identifier, username string) bool {
 	filter := bson.M{"identifier": identifier, "username": ""}
 	update := bson.M{"$set": bson.M{"username": username}}
 
@@ -160,24 +160,24 @@ func (db *DB) updateUserName(identifier, username string) bool {
 }
 
 // needs to return error?
-func (db *DB) getPlayerRecord(username string) (*PlayerRecord, error) {
+func (db *DB) getPlayerRecord(username string) (PlayerRecord, error) {
 	collection := db.playerRecords
 	var result PlayerRecord
 	err := collection.FindOne(context.TODO(), bson.M{"username": username}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			fmt.Println("No document was found with the given email")
-			return nil, err
+			return PlayerRecord{Username: "invalild"}, err
 		} else {
 			log.Fatal(err)
 		}
 	}
-	return &result, nil
+	return result, nil
 }
 
-func (db *DB) usernameExists(username string) bool {
-	record, _ := db.getPlayerRecord(username)
-	return record != nil
+func (db *DB) foundUsername(username string) bool {
+	_, err := db.getPlayerRecord(username)
+	return err == nil
 }
 
 // This is only being used by a test

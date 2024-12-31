@@ -20,6 +20,9 @@ html {
     min-height:100%;
 }
 
+.hidden {
+    visibility: hidden;
+}
 
 body {
     /*

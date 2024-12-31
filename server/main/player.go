@@ -1,29 +1,37 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"log"
 	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
 
 type Player struct {
-	id        string
-	username  string
-	team      string
-	trim      string
-	icon      string
-	viewLock  sync.Mutex
-	world     *World
-	stage     *Stage
-	stageLock sync.Mutex
-	tile      *Tile
-	tileLock  sync.Mutex
-	updates   chan []byte
-	stageName string
-	conn      *websocket.Conn
-	connLock  sync.Mutex
+	id                       string
+	username                 string
+	team                     string
+	trim                     string
+	icon                     string
+	viewLock                 sync.Mutex
+	world                    *World
+	stage                    *Stage
+	stageLock                sync.Mutex
+	tile                     *Tile
+	tileLock                 sync.Mutex
+	updates                  chan []byte
+	clearUpdateBuffer        chan struct{}
+	sessionTimeOutViolations atomic.Int32
+	stageName                string
+	conn                     WebsocketConnection
+	connLock                 sync.RWMutex
+	tangible                 bool
+	tangibilityLock          sync.Mutex
 	// x, y are highly mutated and are unsafe to read/difficult to lock. Use tile instead ?
 	x          int
 	y          int
@@ -46,6 +54,13 @@ type Player struct {
 	menues     map[string]Menu
 }
 
+type WebsocketConnection interface {
+	WriteMessage(messageType int, data []byte) error
+	ReadMessage() (messageType int, p []byte, err error)
+	Close() error
+	SetWriteDeadline(t time.Time) error
+}
+
 // Health observer, All Health changes should go through here
 func (player *Player) setHealth(n int) {
 	player.healthLock.Lock()
@@ -55,14 +70,14 @@ func (player *Player) setHealth(n int) {
 		handleDeath(player)
 		return
 	}
-	go player.updateInformation()
+	player.updateInformation()
 }
 
 func (player *Player) updateInformation() {
 	player.setIcon()
 	player.tileLock.Lock()
 	tile := player.tile
-	defer player.tileLock.Unlock()
+	player.tileLock.Unlock()
 	updateOne(divPlayerInformation(player)+playerBoxSpecifc(tile.y, tile.x, player.getIconSync()), player)
 }
 
@@ -146,7 +161,6 @@ func (player *Player) setKillStreak(n int) {
 	player.streakLock.Unlock()
 
 	player.world.leaderBoard.mostDangerous.Update(player)
-	// New method. This is blocking defer
 	updateOne(divPlayerInformation(player), player)
 }
 
@@ -200,6 +214,16 @@ func (player *Player) getGoalsScored() int {
 	return player.goalsScored
 }
 
+// generally will trigger a logout
+func (player *Player) closeConnectionSync() error {
+	player.connLock.Lock()
+	defer player.connLock.Unlock()
+	if player.conn == nil {
+		return errors.New("Player connection nil before attempted close.")
+	}
+	return player.conn.Close()
+}
+
 func getStageFromStageName(world *World, stageName string) *Stage {
 	stage := world.getNamedStageOrDefault(stageName)
 	if stage == nil {
@@ -218,7 +242,7 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 	spawnItemsFor(p, stage)
 	stage.addPlayer(p)
 	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
-
+	p.setSpaceHighlights()
 	updateScreenFromScratch(p)
 }
 
@@ -231,10 +255,12 @@ func spawnItemsFor(p *Player, stage *Stage) {
 
 func handleDeath(player *Player) {
 	player.tileLock.Lock()
+	// NotifyAllExcept
 	player.tile.addMoneyAndNotifyAll(max(halveMoneyOf(player), 10)) // Tile money needs mutex.
 	player.tileLock.Unlock()
 	player.removeFromTileAndStage()
 	player.incrementDeathCount()
+	// set stagename
 	respawn(player)
 }
 
@@ -254,18 +280,24 @@ func (player *Player) removeFromTileAndStage() {
 }
 
 func respawn(player *Player) {
-	// Copy here so old player is disconnected? - Hard
+	player.tangibilityLock.Lock()
+	defer player.tangibilityLock.Unlock()
+	if !player.tangible {
+		return
+	}
+
 	player.setHealth(150)
 	player.setKillStreak(0)
-	player.setStageName("clinic") // Set here for record
-
+	player.setStageName("clinic") // Do in handle death as well in case player became intangible?
 	player.x = 2
 	player.y = 2
 	player.actions = createDefaultActions()
 	player.updateRecord()
-
 	stage := getStageFromStageName(player.world, "clinic")
 	placePlayerOnStageAt(player, stage, 2, 2)
+
+	// redo because place wipes buffer
+	player.updateInformation()
 }
 
 func (p *Player) moveNorth() {
@@ -361,12 +393,9 @@ func (p *Player) tryGoNeighbor(yOffset, xOffset int) {
 	p.push(newTile, nil, yOffset, xOffset)
 	if walkable(newTile) {
 		t := &Teleport{destStage: newTile.stage.name, destY: newTile.y, destX: newTile.x}
-		previousTile := p.stage.tiles[p.y][p.x]
 
 		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
 		p.applyTeleport(t)
-		impactedTiles := p.updateSpaceHighlights()
-		updateOneAfterMovement(p, impactedTiles, previousTile)
 	}
 }
 
@@ -406,7 +435,7 @@ func transferPlayer(p *Player, source, dest *Tile) bool {
 	_, ok := source.playerMap[p.id]
 	if ok {
 		delete(source.playerMap, p.id)
-		dest.addLockedPlayertoLockedTile(p)
+		ok = dest.addLockedPlayertoLockedTile(p)
 		go func() {
 			source.stage.updateAllExcept(playerBox(source), p)
 			dest.stage.updateAllExcept(playerBox(dest), p)
@@ -506,7 +535,7 @@ func (player *Player) activatePower() {
 		tile.eventsInFlight.Add(1)
 		tilesToHighlight = append(tilesToHighlight, tile)
 
-		go tile.tryToNotifyAfter(100) // Flat for player if more powers?
+		go tile.tryToNotifyAfter(100)
 	}
 	damageBoxes := sliceOfTileToWeatherBoxes(tilesToHighlight, randomFieryColor())
 	player.stage.updateAll(damageBoxes)
@@ -525,36 +554,81 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	stage := getStageFromStageName(player.world, teleport.destStage)
 	placePlayerOnStageAt(player, stage, teleport.destY, teleport.destX)
 
-	player.updateRecord()
-
-	impactedTiles := player.updateSpaceHighlights()
-	updateOneAfterMovement(player, impactedTiles, nil)
+	player.updateRecord() // no?
 }
 
 ////////////////////////////////////////////////////////////
 //   Updates
 
 func (player *Player) sendUpdates() {
-	username := player.username
-	for {
-		update, ok := <-player.updates
-		if !ok {
-			fmt.Println("Player: " + username + " - update channel closed")
-			return
-		}
+	var buffer bytes.Buffer
+	const maxBufferSize = 256 * 1024
 
-		sendUpdate(player, update)
+	shouldSendUpdates := true
+	ticker := time.NewTicker(25 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		select {
+		case update, ok := <-player.updates:
+			if !ok {
+				fmt.Println("Player:", player.username, "- update channel closed")
+				return
+			}
+			if !shouldSendUpdates {
+				continue
+			}
+
+			if buffer.Len()+len(update) < maxBufferSize {
+				// Accumulate the update in the buffer.
+				buffer.Write(update)
+			} else {
+				// Has not occurred - nice to check anyway ?
+				fmt.Printf("Player: %s - buffer exceeded %d bytes, wiping buffer\n", player.username, maxBufferSize)
+				buffer.Reset()
+			}
+		case <-player.clearUpdateBuffer:
+			buffer.Reset()
+		case <-ticker.C:
+			if !shouldSendUpdates || buffer.Len() == 0 {
+				continue
+			}
+			// Every 25ms, if there's anything in the buffer, send it.
+			err := sendUpdate(player, buffer.Bytes())
+			if err != nil {
+				fmt.Println("Error - Stopping furture sends: ", err)
+				shouldSendUpdates = false
+				player.closeConnectionSync()
+			}
+
+			buffer.Reset()
+		}
 	}
 }
 
-func sendUpdate(player *Player, update []byte) {
+func sendUpdate(player *Player, update []byte) error {
 	player.connLock.Lock()
-	player.connLock.Unlock()
-	if player.conn != nil {
-		player.conn.WriteMessage(websocket.TextMessage, update)
-	} else {
-		fmt.Println("WARN: Attempted to serve update to expired connection.")
+	defer player.connLock.Unlock()
+	if player.conn == nil {
+		// This spams the tests agressively because updatinghtmlbyPlayer calls this directly
+		//   fmt.Println("WARN: Attempted to serve update to expired connection.")
+		return errors.New("connection is expired")
 	}
+
+	err := player.conn.SetWriteDeadline(time.Now().Add(500 * time.Millisecond))
+	if err != nil {
+		fmt.Println("Failed to set write deadline:", err)
+		return err
+	}
+	err = player.conn.WriteMessage(websocket.TextMessage, update)
+	if err != nil {
+		fmt.Printf("WARN: WriteMessage failed for player %s: %v\n", player.username, err)
+		// Close connection if writes consistently fail ?
+		if player.sessionTimeOutViolations.Add(1) >= 1 {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (player *Player) updateBottomText(message string) {

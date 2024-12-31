@@ -64,6 +64,52 @@ func BenchmarkMoveAllTwice(b *testing.B) {
 
 // Teleport test
 
+func BenchmarkDivByte(b *testing.B) {
+	colors := []string{"black", "", "blue trsp20"}
+	for _, color := range colors {
+		b.Run(fmt.Sprintf("stage:%s Cores", color), func(b *testing.B) {
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				generateWeatherSolidBytes(color)
+			}
+
+			b.StopTimer()
+
+		})
+	}
+}
+func BenchmarkDivString(b *testing.B) {
+	colors := []string{"black", "", "blue trsp20"}
+	for _, color := range colors {
+		b.Run(fmt.Sprintf("stage:%s Cores", color), func(b *testing.B) {
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				generateWeatherSolid(color)
+			}
+
+			b.StopTimer()
+
+		})
+	}
+}
+func BenchmarkDivDumb(b *testing.B) {
+	colors := []string{"black", "", "blue trsp20"}
+	for _, color := range colors {
+		b.Run(fmt.Sprintf("stage:%s Cores", color), func(b *testing.B) {
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				generateWeatherDumb(color)
+			}
+
+			b.StopTimer()
+
+		})
+	}
+}
+
 // /////////////////////////////////////////
 // Loading times
 
@@ -135,18 +181,21 @@ func drainChannel[T any](c chan T) {
 func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 	players := make([]*Player, n)
 	for i := range players {
+		bufferClearChannel := make(chan struct{})
+		go drainChannel(bufferClearChannel)
 		updatesForPlayer := make(chan []byte)
+		go drainChannel(updatesForPlayer)
 		players[i] = &Player{
-			id:        fmt.Sprintf("tp%d", i),
-			stage:     stage,
-			stageName: stage.name,
-			x:         2,
-			y:         2,
-			actions:   createDefaultActions(),
-			health:    100,
-			updates:   updatesForPlayer,
+			id:                fmt.Sprintf("tp%d", i),
+			stage:             stage,
+			stageName:         stage.name,
+			x:                 2,
+			y:                 2,
+			actions:           createDefaultActions(),
+			health:            100,
+			updates:           updatesForPlayer,
+			clearUpdateBuffer: bufferClearChannel,
 		}
-		go drainChannel(players[i].updates)
 		players[i].placeOnStage(stage)
 	}
 	return players

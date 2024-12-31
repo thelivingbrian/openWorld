@@ -58,8 +58,7 @@ func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 func makeTileTemplate(mat Material, y, x int) string {
 	tileCoord := fmt.Sprintf("%d-%d", y, x)
 	cId := "c" + tileCoord // This is used to identify the entire square
-	tId := "t" + tileCoord // This is used to identify the top highlight box
-	placeHold := "%s"      // later becomes player, interactable, svg, and weather boxes
+	placeHold := "%s"      // later becomes player, interactable, svg, weather, and highlight boxes
 
 	floor1css := ""
 	if mat.Floor1Css != "" {
@@ -90,9 +89,9 @@ func makeTileTemplate(mat Material, y, x int) string {
 					%s
 					%s
 					%s
-					<div id="%s" class="box top"></div>
+					%s
 				</div>`
-	return fmt.Sprintf(template, cId, mat.CssColor, floor1css, floor2css, placeHold, placeHold, placeHold, ceil1css, ceil2css, placeHold, tId)
+	return fmt.Sprintf(template, cId, mat.CssColor, floor1css, floor2css, placeHold, placeHold, placeHold, ceil1css, ceil2css, placeHold, placeHold)
 }
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
@@ -104,7 +103,7 @@ func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	tile.stage.updateAllExcept(playerBox(tile), player)
 }
 
-func (tile *Tile) addLockedPlayertoLockedTile(player *Player) {
+func (tile *Tile) addLockedPlayertoLockedTile(player *Player) bool {
 	itemChange := false
 	if tile.bottomText != "" {
 		player.updateBottomText(tile.bottomText)
@@ -139,6 +138,8 @@ func (tile *Tile) addLockedPlayertoLockedTile(player *Player) {
 		player.tile = tile
 		player.y = tile.y
 		player.x = tile.x
+
+		return true
 	} else {
 		if tile.teleport.confirmation {
 			player.menues["teleport"] = continueTeleporting(tile.teleport)
@@ -147,6 +148,7 @@ func (tile *Tile) addLockedPlayertoLockedTile(player *Player) {
 			// new routine prevents deadlock
 			go player.applyTeleport(tile.teleport)
 		}
+		return false
 	}
 }
 
@@ -177,8 +179,7 @@ func (tile *Tile) getAPlayer() *Player {
 
 func (tile *Tile) tryToNotifyAfter(delay int) {
 	time.Sleep(time.Millisecond * time.Duration(delay))
-	tile.eventsInFlight.Add(-1)
-	if tile.eventsInFlight.Load() == 0 {
+	if tile.eventsInFlight.Add(-1) == 0 {
 		// blue trsp20 for gloom
 		tile.stage.updateAll(weatherBox(tile, ""))
 	}
@@ -205,9 +206,19 @@ func (tile *Tile) copyOfPlayers() []*Player {
 }
 
 func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
+	target.tangibilityLock.Lock()
+	if !target.tangible {
+		target.tangibilityLock.Unlock()
+		return false
+	}
+	target.tangibilityLock.Unlock()
+	if target.getStageNameSync() == "clinic" {
+		return false
+	}
 	if target.getTeamNameSync() == initiator.getTeamNameSync() {
 		return false
 	}
+
 	target.healthLock.Lock()
 	oldHealth := target.health
 	newHealth := oldHealth - dmg
@@ -219,6 +230,7 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 		initiator.incrementKillCount()
 		initiator.incrementKillStreak()
 		initiator.updateRecord()
+		// should handle death after getting location?
 		target.tileLock.Lock()
 		location := target.tile
 		target.tileLock.Unlock()
