@@ -82,7 +82,7 @@ func IntegrationA(w http.ResponseWriter, r *http.Request) {
 				go testingSocket.readUntilNil()
 			}
 
-			go testingSocket.moveInCircles(token)
+			go testingSocket.moveRandomly(token)
 		}
 	}()
 	w.WriteHeader(http.StatusOK)
@@ -231,6 +231,12 @@ func (ts *TestingSocket) moveRandomly(token string) {
 				break
 			}
 			time.Sleep(100 * time.Millisecond)
+		}
+
+		if randn%250 == 0 {
+			if ts.tryWrite(createSocketEventMessage(token, "Space-On")) != nil {
+				break
+			}
 		}
 	}
 }
