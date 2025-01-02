@@ -59,7 +59,8 @@ func IntegrationA(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Invalid TTL")
 		ttl = 30
 	}
-	tokens := requestTokens(stagename, count)
+	team := r.URL.Query().Get("team")
+	tokens := requestTokens(stagename, count, team)
 	go func() {
 		for _, token := range tokens {
 			testingSocket := createTestingSocket(os.Getenv("BLOOP_HOST") + "/screen")
@@ -89,10 +90,10 @@ func IntegrationA(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Request successful!")
 }
 
-func requestTokens(stagename, count string) []string {
+func requestTokens(stagename, count, team string) []string {
 	secret := os.Getenv("AUTO_PLAYER_PASSWORD")
 	username := createRandomString()
-	payload := []byte("secret=" + secret + "&username=" + username + "&stagename=" + stagename + "&team=fuchsia&count=" + count)
+	payload := []byte("secret=" + secret + "&username=" + username + "&stagename=" + stagename + "&team=" + team + "&count=" + count)
 
 	tokenEndpoint := os.Getenv("BLOOP_HOST") + "/insert"
 	resp, err := http.Post(tokenEndpoint, "application/x-www-form-urlencoded", bytes.NewBuffer(payload))
