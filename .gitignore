@@ -3,6 +3,7 @@ server/main/cert/*
 server/main/data/images/
 tools/main/main
 tools/main/data/out**
+integration/main/main
 /*.sh
 /scratch.*
 /*.txt
