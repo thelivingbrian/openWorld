@@ -31,6 +31,14 @@ func createOddGrid(n int) [][2]int {
 	return points
 }
 
+func findOffsetsGivenPowerUp(y int, x int, powerUp *PowerUp) [][2]int {
+	output := make([][2]int, 0)
+	if powerUp != nil {
+		output = applyRelativeDistance(y, x, powerUp.areaOfInfluence)
+	}
+	return output
+}
+
 func applyRelativeDistance(y int, x int, offsets [][2]int) [][2]int {
 	output := make([][2]int, len(offsets))
 	for i := range offsets {

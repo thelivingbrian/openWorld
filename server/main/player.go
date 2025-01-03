@@ -500,7 +500,7 @@ func (player *Player) setSpaceHighlights() {
 	player.actions.spaceHighlightMutex.Lock()
 	defer player.actions.spaceHighlightMutex.Unlock()
 	player.actions.spaceHighlights = map[*Tile]bool{}
-	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceStack.peek().areaOfInfluence)
+	absCoordinatePairs := findOffsetsGivenPowerUp(player.y, player.x, player.actions.spaceStack.peek())
 	for _, pair := range absCoordinatePairs {
 		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
 			tile := player.stage.tiles[pair[0]][pair[1]]
@@ -514,7 +514,7 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 	defer player.actions.spaceHighlightMutex.Unlock()
 	previous := player.actions.spaceHighlights
 	player.actions.spaceHighlights = map[*Tile]bool{}
-	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceStack.peek().areaOfInfluence)
+	absCoordinatePairs := findOffsetsGivenPowerUp(player.y, player.x, player.actions.spaceStack.peek())
 	var impactedTiles []*Tile
 	for _, pair := range absCoordinatePairs {
 		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
@@ -697,9 +697,9 @@ func (stack *StackOfPowerUp) hasPower() bool {
 
 // Don't even return anything? Delete?
 func (stack *StackOfPowerUp) pop() *PowerUp {
-	if stack.hasPower() {
-		stack.powerMutex.Lock()
-		defer stack.powerMutex.Unlock()
+	stack.powerMutex.Lock()
+	defer stack.powerMutex.Unlock()
+	if len(stack.powers) > 0 {
 		out := stack.powers[len(stack.powers)-1]
 		stack.powers = stack.powers[:len(stack.powers)-1]
 		return out
@@ -707,16 +707,13 @@ func (stack *StackOfPowerUp) pop() *PowerUp {
 	return nil // Should be impossible but return default power instead?
 }
 
-// Watch this lead to item dupe bugs
-func (stack *StackOfPowerUp) peek() PowerUp {
-	// TOCTOU
-	if stack.hasPower() {
-		// move out of conditional to fix ?
-		stack.powerMutex.Lock()
-		defer stack.powerMutex.Unlock()
-		return *stack.powers[len(stack.powers)-1]
+func (stack *StackOfPowerUp) peek() *PowerUp {
+	stack.powerMutex.Lock()
+	defer stack.powerMutex.Unlock()
+	if len(stack.powers) > 0 {
+		return stack.powers[len(stack.powers)-1]
 	}
-	return PowerUp{}
+	return nil
 }
 
 func (stack *StackOfPowerUp) push(power *PowerUp) *StackOfPowerUp {

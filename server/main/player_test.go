@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sync"
 	"testing"
 )
@@ -49,8 +48,6 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 }
 
 func TestActivateHighlightWithMovement_NoConcurrentWrite(t *testing.T) {
-	fmt.Println("hello")
-
 	loadFromJson()
 	world := createGameWorld(testdb())
 	testStage := createStageByName("hallway")
