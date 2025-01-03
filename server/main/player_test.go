@@ -1,6 +1,10 @@
 package main
 
-import "testing"
+import (
+	"fmt"
+	"sync"
+	"testing"
+)
 
 func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 	loadFromJson()
@@ -42,6 +46,68 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 		t.Error("Player should be at y:7 x:4")
 
 	}
+}
+
+func TestActivateHighlightWithMovement_NoConcurrentWrite(t *testing.T) {
+	fmt.Println("hello")
+
+	loadFromJson()
+	world := createGameWorld(testdb())
+	testStage := createStageByName("hallway")
+	updatesForPlayer := make(chan []byte)
+	go drainChannel(updatesForPlayer)
+	bufferClearChannel := make(chan struct{})
+	go drainChannel(bufferClearChannel)
+
+	player := &Player{
+		id:                "tp",
+		stage:             testStage,
+		stageName:         testStage.name,
+		x:                 4,
+		y:                 1,
+		actions:           createDefaultActions(),
+		health:            100,
+		updates:           updatesForPlayer,
+		clearUpdateBuffer: bufferClearChannel,
+		world:             world,
+	}
+	player.placeOnStage(testStage)
+
+	powerUp1 := &PowerUp{areaOfInfluence: grid9x9}
+	powerUp2 := &PowerUp{areaOfInfluence: grid5x5}
+	powerUp3 := &PowerUp{areaOfInfluence: jumpCross()}
+	// seems sufficient for roughly 50% trigger rate
+	for i := 0; i < 50; i++ {
+		player.actions.spaceStack.push(powerUp1)
+		player.actions.spaceStack.push(powerUp2)
+		player.actions.spaceStack.push(powerUp3)
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 50; i++ {
+			wg.Add(4) // Add 4 waits for each iteration of the loop
+			go func() { defer wg.Done(); player.moveNorth() }()
+			go func() { defer wg.Done(); player.moveSouth() }()
+			go func() { defer wg.Done(); player.moveEast() }()
+			go func() { defer wg.Done(); player.moveWest() }()
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 150; i++ {
+			wg.Add(1)
+			go func() { defer wg.Done(); player.activatePower() }()
+		}
+	}()
+
+	wg.Wait()
+
+	// No throw indicates success.
 }
 
 func (p *Player) placeOnStage(stage *Stage) {
