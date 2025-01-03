@@ -49,6 +49,10 @@ func htmlFromTileGrid(tiles [][]*Tile, py, px int, highlights map[*Tile]bool) []
 	return output
 }
 
+func (record PlayerRecord) HeartsFromRecord() string {
+	return getHeartsFromHealth(record.Health)
+}
+
 func spaceHighlighter() string {
 	// constant instead.
 	return "half-trsp salmon"

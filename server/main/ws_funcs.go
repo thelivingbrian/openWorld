@@ -1,7 +1,6 @@
 package main
 
 import (
-	"container/heap"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -86,89 +85,6 @@ func handleNewPlayer(existingPlayer *Player) {
 			return
 		}
 	}
-}
-
-// ////////////////////////////////////////////////////
-//
-//	Logging Out
-
-var playersToLogout = make(chan *Player, 500)
-
-func processLogouts(players chan *Player) {
-	for {
-		player, ok := <-players
-		if !ok {
-			return
-		}
-
-		completeLogout(player)
-	}
-}
-func initiatelogout(player *Player) {
-	player.tangibilityLock.Lock()
-	defer player.tangibilityLock.Unlock()
-	player.tangible = false
-
-	fmt.Println("initate logout: " + player.username)
-	if !fullyRemovePlayer(player) {
-		fmt.Println("This is a sad state of affairs. We have attempted to remove the player and failed. :( ")
-		// dangerous because the tLock is about to open and the player is likely still somewhere
-		// call initiateLogout if intangible player is damaged?
-	}
-
-	playersToLogout <- player
-
-}
-
-func completeLogout(player *Player) {
-	player.updateRecord() // Should return error
-	player.world.wPlayerMutex.Lock()
-	delete(player.world.worldPlayers, player.id)
-	index, exists := player.world.leaderBoard.mostDangerous.index[player]
-	if exists {
-		// this is unsafe index position can change
-		heap.Remove(&player.world.leaderBoard.mostDangerous, index)
-		//  If index was 0 before, need to update new most dangerous
-		if index == 0 {
-			fmt.Println("New Most Dangerous!")
-			mostDangerous := player.world.leaderBoard.mostDangerous.Peek()
-			if mostDangerous != nil {
-				notifyChangeInMostDangerous(mostDangerous)
-			}
-		}
-	}
-	player.world.wPlayerMutex.Unlock()
-
-	player.closeConnectionSync() // uneeded but harmless?
-	player.connLock.Lock()
-	player.conn = nil
-	player.connLock.Unlock()
-
-	close(player.updates)
-
-	fmt.Println("Logout complete: " + player.username)
-
-}
-
-func fullyRemovePlayer(player *Player) bool {
-	found := false
-	for i := 0; i < 5; i++ {
-		if player.tile.removePlayerAndNotifyOthers(player) {
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		fmt.Println("Never removed player from tile successfully")
-	}
-
-	player.stage.playerMutex.Lock()
-	_, ok := player.stage.playerMap[player.id]
-	delete(player.stage.playerMap, player.id)
-	player.stage.playerMutex.Unlock()
-
-	return found && ok
 }
 
 func getTokenFromFirstMessage(conn *websocket.Conn) (token string, success bool) {

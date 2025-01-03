@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -140,6 +142,19 @@ func getUserIdFromSession(r *http.Request) (string, bool) {
 }
 
 /////////////////////////////////////////////
+// Stats
+
+func (world *World) getStats(w http.ResponseWriter, r *http.Request) {
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	out := fmt.Sprintf("World Player Count: %d\n", len(world.worldPlayers))
+	for key, val := range world.teamQuantities {
+		out += fmt.Sprintf("%s: %d\n", key, val)
+	}
+	io.WriteString(w, out)
+}
+
+/////////////////////////////////////////////
 //  Oauth
 
 func auth(w http.ResponseWriter, r *http.Request) {
@@ -192,6 +207,44 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/", http.StatusFound) // redirects.
+}
+
+/////////////////////////////////////////////
+// Integration Endpoint
+
+func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
+	secret := os.Getenv("AUTO_PLAYER_PASSWORD")
+	if secret == "" {
+		fmt.Println("Bypass is disabled - but has been requested.")
+		return
+	}
+	props, ok := requestToProperties(r)
+	if !ok {
+		fmt.Println("invalid props")
+	}
+	if props["secret"] != secret {
+		fmt.Println("Bypass is disabled - but has been requested.")
+		return
+	}
+	countString := props["count"]
+	count, err := strconv.Atoi(countString)
+	if err != nil {
+		fmt.Println("Invalid count")
+		return
+	}
+	username := props["username"]
+	stage := props["stagename"]
+	team := props["team"]
+	tokens := make([]string, 0, count)
+	for i := 0; i < count; i++ {
+		iStr := strconv.Itoa(i)
+		record := PlayerRecord{Username: username + iStr, Health: 50, Y: 8, X: 8, StageName: stage, Team: team, Trim: "white-b thick"}
+		loginRequest := createLoginRequest(record)
+		world.addIncoming(loginRequest)
+		fmt.Println(loginRequest.Token)
+		tokens = append(tokens, loginRequest.Token)
+	}
+	io.WriteString(w, "[\""+strings.Join(tokens, "\",\"")+"\"]")
 }
 
 /////////////////////////////////////////////

@@ -5,11 +5,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"io"
-	"net/http"
-	"os"
-	"strconv"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -19,17 +14,12 @@ type World struct {
 	db                  *DB
 	worldPlayers        map[string]*Player
 	wPlayerMutex        sync.Mutex
+	teamQuantities      map[string]int
 	incomingPlayers     map[string]LoginRequest
 	incomingPlayerMutex sync.Mutex
 	worldStages         map[string]*Stage
 	wStageMutex         sync.Mutex
 	leaderBoard         *LeaderBoard
-}
-
-func createGameWorld(db *DB) *World {
-	minimumKillstreak := Player{id: "HS-only", killstreak: 0} // Do somewhere else?
-	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: []*Player{&minimumKillstreak}, index: make(map[*Player]int)}}
-	return &World{db: db, worldPlayers: make(map[string]*Player), incomingPlayers: make(map[string]LoginRequest), worldStages: make(map[string]*Stage), leaderBoard: lb}
 }
 
 type LoginRequest struct {
@@ -38,44 +28,40 @@ type LoginRequest struct {
 	timestamp time.Time
 }
 
-func (record PlayerRecord) HeartsFromRecord() string {
-	return getHeartsFromHealth(record.Health)
+func createGameWorld(db *DB) *World {
+	minimumKillstreak := Player{id: "HS-only", killstreak: 0} // Do somewhere else?
+	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: []*Player{&minimumKillstreak}, index: make(map[*Player]int)}}
+	return &World{
+		db:                  db,
+		worldPlayers:        make(map[string]*Player),
+		wPlayerMutex:        sync.Mutex{},
+		teamQuantities:      map[string]int{},
+		incomingPlayers:     make(map[string]LoginRequest),
+		incomingPlayerMutex: sync.Mutex{},
+		worldStages:         make(map[string]*Stage),
+		wStageMutex:         sync.Mutex{},
+		leaderBoard:         lb,
+	}
 }
 
-func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
-	secret := os.Getenv("AUTO_PLAYER_PASSWORD")
-	if secret == "" {
-		fmt.Println("Bypass is disabled - but has been requested.")
-		return
-	}
-	props, ok := requestToProperties(r)
-	if !ok {
-		fmt.Println("invalid props")
-	}
-	if props["secret"] != secret {
-		fmt.Println("Bypass is disabled - but has been requested.")
-		return
-	}
-	countString := props["count"]
-	count, err := strconv.Atoi(countString)
-	if err != nil {
-		fmt.Println("Invalid count")
-		return
-	}
-	username := props["username"]
-	stage := props["stagename"]
-	team := props["team"]
-	tokens := make([]string, 0, count)
-	for i := 0; i < count; i++ {
-		iStr := strconv.Itoa(i)
-		record := PlayerRecord{Username: username + iStr, Health: 50, Y: 8, X: 8, StageName: stage, Team: team, Trim: "white-b thick"}
-		loginRequest := createLoginRequest(record)
-		world.addIncoming(loginRequest)
-		fmt.Println(loginRequest.Token)
-		tokens = append(tokens, loginRequest.Token)
-	}
-	io.WriteString(w, "[\""+strings.Join(tokens, "\",\"")+"\"]")
+func (world *World) addPlayer(p *Player) {
+	world.wPlayerMutex.Lock()
+	world.worldPlayers[p.id] = p
+	previousCount := world.teamQuantities[p.team]
+	world.teamQuantities[p.team] = previousCount + 1
+	world.wPlayerMutex.Unlock()
 }
+
+func (world *World) removePlayer(p *Player) {
+	world.wPlayerMutex.Lock()
+	delete(world.worldPlayers, p.id)
+	previousCount := world.teamQuantities[p.team]
+	world.teamQuantities[p.team] = previousCount - 1
+	world.wPlayerMutex.Unlock()
+}
+
+//////////////////////////////////////////////////
+//  Log in
 
 func createLoginRequest(record PlayerRecord) LoginRequest {
 	return LoginRequest{
@@ -83,14 +69,6 @@ func createLoginRequest(record PlayerRecord) LoginRequest {
 		Record:    record,
 		timestamp: time.Now(),
 	}
-}
-
-func isLessThan15SecondsAgo(t time.Time) bool {
-	if time.Since(t) < 0 {
-		// t is in the future
-		return false
-	}
-	return time.Since(t) < 450*time.Second
 }
 
 func (world *World) addIncoming(loginRequest LoginRequest) {
@@ -102,6 +80,8 @@ func (world *World) addIncoming(loginRequest LoginRequest) {
 func (world *World) retreiveIncoming(token string) *LoginRequest {
 	world.incomingPlayerMutex.Lock()
 	defer world.incomingPlayerMutex.Unlock()
+	// Can leak spammed unattempted tokens
+	// Use list and iterate fully instead?
 	request, ok := world.incomingPlayers[token]
 	if ok {
 		delete(world.incomingPlayers, token)
@@ -110,6 +90,14 @@ func (world *World) retreiveIncoming(token string) *LoginRequest {
 		}
 	}
 	return nil
+}
+
+func isLessThan15SecondsAgo(t time.Time) bool {
+	if time.Since(t) < 0 {
+		// t is in the future
+		return false
+	}
+	return time.Since(t) < 450*time.Second
 }
 
 func createRandomToken() string {
@@ -132,12 +120,11 @@ func (world *World) join(incoming LoginRequest) *Player {
 	}
 
 	newPlayer := world.newPlayerFromRecord(incoming.Record, incoming.Token)
+	world.addPlayer(newPlayer)
 
-	//New Method
-	world.wPlayerMutex.Lock()
-	world.worldPlayers[incoming.Token] = newPlayer
-	world.leaderBoard.mostDangerous.Push(newPlayer) // Has own mutex. pMutex needed?
-	world.wPlayerMutex.Unlock()
+	world.leaderBoard.mostDangerous.Lock()
+	world.leaderBoard.mostDangerous.Push(newPlayer)
+	world.leaderBoard.mostDangerous.Unlock()
 
 	return newPlayer
 }
@@ -149,15 +136,13 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 	}
 	updatesForPlayer := make(chan []byte, 0) // raise capacity?
 	newPlayer := &Player{
-		id:                id,
-		username:          record.Username,
-		team:              record.Team,
-		trim:              record.Trim,
-		stage:             nil,
-		updates:           updatesForPlayer,
-		clearUpdateBuffer: make(chan struct{}, 0),
-		// startSend:                make(chan struct{}, 0),
-		// stopSend:                 make(chan struct{}, 0),
+		id:                       id,
+		username:                 record.Username,
+		team:                     record.Team,
+		trim:                     record.Trim,
+		stage:                    nil,
+		updates:                  updatesForPlayer,
+		clearUpdateBuffer:        make(chan struct{}, 0),
 		sessionTimeOutViolations: atomic.Int32{},
 		tangible:                 true,
 		tangibilityLock:          sync.Mutex{},
@@ -184,6 +169,97 @@ func (world *World) isLoggedInAlready(username string) bool {
 		}
 	}
 	return false
+}
+
+// ////////////////////////////////////////////////////
+//
+//	Logging Out
+
+var playersToLogout = make(chan *Player, 500)
+
+func processLogouts(players chan *Player) {
+	for {
+		player, ok := <-players
+		if !ok {
+			return
+		}
+
+		completeLogout(player)
+	}
+}
+func initiatelogout(player *Player) {
+	player.tangibilityLock.Lock()
+	defer player.tangibilityLock.Unlock()
+	player.tangible = false
+
+	fmt.Println("initate logout: " + player.username)
+	if !fullyRemovePlayer(player) {
+		fmt.Println("This is a sad state of affairs. We have attempted to remove the player and failed. :( ")
+		// dangerous because the tLock is about to open and the player is likely still somewhere
+		// call initiateLogout if intangible player is damaged?
+		// player may be trapped in clinic
+	}
+
+	playersToLogout <- player
+
+}
+
+func completeLogout(player *Player) {
+	player.updateRecord() // Should return error
+
+	// new method
+	player.setKillStreak(0)
+	player.world.leaderBoard.mostDangerous.Lock()
+	index, exists := player.world.leaderBoard.mostDangerous.index[player]
+	if exists {
+		heap.Remove(&player.world.leaderBoard.mostDangerous, index)
+	}
+	player.world.leaderBoard.mostDangerous.Unlock()
+
+	// fmt.Println("0d")
+	// if exists && index == 0 {
+	// 	fmt.Println("New Most Dangerous!")
+	// 	mostDangerous := player.world.leaderBoard.mostDangerous.Peek()
+	// 	if mostDangerous != nil {
+	// 		notifyChangeInMostDangerous(mostDangerous)
+	// 	}
+	// }
+	// fmt.Println("1")
+
+	player.world.removePlayer(player)
+	fmt.Println("2")
+
+	player.closeConnectionSync() // uneeded but harmless?
+	player.connLock.Lock()
+	player.conn = nil
+	player.connLock.Unlock()
+
+	close(player.updates)
+	// close(player.clearUpdateBuffer)
+
+	fmt.Println("Logout complete: " + player.username)
+
+}
+
+func fullyRemovePlayer(player *Player) bool {
+	found := false
+	for i := 0; i < 5; i++ {
+		if player.tile.removePlayerAndNotifyOthers(player) {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		fmt.Println("Never removed player from tile successfully")
+	}
+
+	player.stage.playerMutex.Lock()
+	_, ok := player.stage.playerMap[player.id]
+	delete(player.stage.playerMap, player.id)
+	player.stage.playerMutex.Unlock()
+
+	return found && ok
 }
 
 ///////////////////////////////////////////////////////////////
@@ -302,37 +378,38 @@ type MaxStreakHeap struct {
 	sync.Mutex
 }
 
+// must hold lock before calling
 func (h *MaxStreakHeap) Len() int {
-	h.Lock()
-	defer h.Unlock()
+	//h.Lock()
+	//defer h.Unlock()
 	return len(h.items)
 }
 
 func (h *MaxStreakHeap) Less(i, j int) bool {
-	h.Lock()
-	defer h.Unlock()
+	//h.Lock()
+	//defer h.Unlock()
 	return h.items[i].getKillStreakSync() > h.items[j].getKillStreakSync()
 }
 
 func (h *MaxStreakHeap) Swap(i, j int) {
-	h.Lock()
+	//h.Lock()
 	h.items[i], h.items[j] = h.items[j], h.items[i]
 	h.index[h.items[i]], h.index[h.items[j]] = i, j
-	h.Unlock()
+	//h.Unlock()
 }
 
 func (h *MaxStreakHeap) Push(x interface{}) {
-	h.Lock()
+	//h.Lock()
 	n := len(h.items)
 	item := x.(*Player)
 	h.items = append(h.items, item)
 	h.index[h.items[n]] = n // would need fix if not at bottom. (e.g. richest)
-	h.Unlock()
+	//h.Unlock()
 }
 
 func (h *MaxStreakHeap) Pop() interface{} {
-	h.Lock()
-	defer h.Unlock()
+	// h.Lock()
+	// defer h.Unlock()
 	old := h.items
 	n := len(old)
 	item := old[n-1]
@@ -342,8 +419,8 @@ func (h *MaxStreakHeap) Pop() interface{} {
 }
 
 func (h *MaxStreakHeap) Peek() *Player {
-	h.Lock()
-	defer h.Unlock()
+	// h.Lock()
+	// defer h.Unlock()
 	if len(h.items) == 0 {
 		return nil
 		//panic("Heap Underflow")
@@ -353,6 +430,8 @@ func (h *MaxStreakHeap) Peek() *Player {
 
 // Update fixes the heap after player has a change in killstreak, notiying any change in most dangerous
 func (h *MaxStreakHeap) Update(player *Player) {
+	h.Lock()
+	defer h.Unlock()
 	previousMostDangerous := h.Peek()
 
 	index := h.index[player]

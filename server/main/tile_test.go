@@ -111,7 +111,9 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	if p.getKillStreakSync() < 500 {
 		t.Error("Killstreak should be at least 500")
 	}
-
+	if p.world.leaderBoard.mostDangerous.Peek() != p {
+		t.Error("Player should be most dangerous")
+	}
 	// For laptop:
 	time.Sleep(2000 * time.Millisecond) // slow computer can have trailing kills flowing in
 
