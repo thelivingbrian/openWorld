@@ -493,10 +493,12 @@ func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bo
 func (player *Player) nextPower() {
 	player.actions.spaceStack.pop() // Throw old power away
 	player.setSpaceHighlights()
-	updateOne(sliceOfTileToHighlightBoxes(mapOfTileToArray(player.actions.spaceHighlights), spaceHighlighter()), player)
+	updateOne(sliceOfTileToHighlightBoxes(highlightMapToSlice(player), spaceHighlighter()), player)
 }
 
 func (player *Player) setSpaceHighlights() {
+	player.actions.spaceHighlightMutex.Lock()
+	defer player.actions.spaceHighlightMutex.Unlock()
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceStack.peek().areaOfInfluence)
 	for _, pair := range absCoordinatePairs {
@@ -508,6 +510,8 @@ func (player *Player) setSpaceHighlights() {
 }
 
 func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highlights
+	player.actions.spaceHighlightMutex.Lock()
+	defer player.actions.spaceHighlightMutex.Unlock()
 	previous := player.actions.spaceHighlights
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceStack.peek().areaOfInfluence)
@@ -528,8 +532,9 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 
 func (player *Player) activatePower() {
 	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
-	// pop power and use shape + player coords instead?
-	for tile := range player.actions.spaceHighlights {
+
+	playerHighlights := highlightMapToSlice(player)
+	for _, tile := range playerHighlights {
 		go tile.damageAll(50, player)
 		destroyInteractable(tile, player)
 		tile.eventsInFlight.Add(1)
@@ -545,6 +550,16 @@ func (player *Player) activatePower() {
 	if player.actions.spaceStack.hasPower() {
 		player.nextPower()
 	}
+}
+
+func highlightMapToSlice(player *Player) []*Tile {
+	out := make([]*Tile, 0)
+	player.actions.spaceHighlightMutex.Lock()
+	defer player.actions.spaceHighlightMutex.Unlock()
+	for tile := range player.actions.spaceHighlights {
+		out = append(out, tile)
+	}
+	return out
 }
 
 func (player *Player) applyTeleport(teleport *Teleport) {
@@ -647,10 +662,10 @@ func (p *Player) trySend(msg []byte) {
 // Actions
 
 type Actions struct {
-	spaceReadyable  bool
-	spaceHighlights map[*Tile]bool
-	spaceStack      *StackOfPowerUp
-	boostCounter    int
+	spaceHighlights     map[*Tile]bool
+	spaceHighlightMutex sync.Mutex
+	spaceStack          *StackOfPowerUp
+	boostCounter        int
 }
 
 type PowerUp struct {
@@ -696,6 +711,7 @@ func (stack *StackOfPowerUp) pop() *PowerUp {
 func (stack *StackOfPowerUp) peek() PowerUp {
 	// TOCTOU
 	if stack.hasPower() {
+		// move out of conditional to fix ?
 		stack.powerMutex.Lock()
 		defer stack.powerMutex.Unlock()
 		return *stack.powers[len(stack.powers)-1]
@@ -711,5 +727,10 @@ func (stack *StackOfPowerUp) push(power *PowerUp) *StackOfPowerUp {
 }
 
 func createDefaultActions() *Actions {
-	return &Actions{false, map[*Tile]bool{}, &StackOfPowerUp{}, 0}
+	return &Actions{
+		spaceHighlights:     map[*Tile]bool{},
+		spaceHighlightMutex: sync.Mutex{},
+		spaceStack:          &StackOfPowerUp{},
+		boostCounter:        0,
+	}
 }

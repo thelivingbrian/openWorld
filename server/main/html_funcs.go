@@ -23,7 +23,7 @@ var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(scre
 func htmlFromPlayer(player *Player) []byte {
 	var buf bytes.Buffer
 
-	tileHtml := htmlFromTileGrid(player.stage.tiles, player.y, player.x, player.actions.spaceHighlights)
+	tileHtml := htmlFromTileGrid(player.stage.tiles, player.y, player.x, duplicateMapOfHighlights(player))
 
 	err := parsedScreenTemplate.Execute(&buf, tileHtml)
 	if err != nil {
@@ -220,7 +220,7 @@ func emptyWeatherBox(y, x int) string {
 func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 	highlights := ""
 
-	// Still risk here of concurrent read/write?
+	playerHighlightCopy := duplicateMapOfHighlights(player)
 	for _, tile := range tiles {
 		if tile == nil {
 			fmt.Println(".") // seems to match number of actual highlights to add
@@ -230,7 +230,7 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 			continue
 		}
 
-		_, impactsHud := player.actions.spaceHighlights[tile]
+		_, impactsHud := playerHighlightCopy[tile]
 		if impactsHud {
 			highlights += oobHighlightBox(tile, spaceHighlighter())
 			continue
@@ -240,6 +240,17 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 	}
 
 	return highlights
+}
+
+func duplicateMapOfHighlights(player *Player) map[*Tile]bool {
+	player.actions.spaceHighlightMutex.Lock()
+	defer player.actions.spaceHighlightMutex.Unlock()
+	original := player.actions.spaceHighlights
+	duplicate := make(map[*Tile]bool, len(original))
+	for key, value := range original {
+		duplicate[key] = value
+	}
+	return duplicate
 }
 
 func oobHighlightBox(tile *Tile, cssClass string) string {

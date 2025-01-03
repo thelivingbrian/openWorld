@@ -77,7 +77,8 @@ func TestActivateHighlightWithMovement_NoConcurrentWrite(t *testing.T) {
 	powerUp2 := &PowerUp{areaOfInfluence: grid5x5}
 	powerUp3 := &PowerUp{areaOfInfluence: jumpCross()}
 	// seems sufficient for roughly 50% trigger rate
-	for i := 0; i < 50; i++ {
+	reps := 50
+	for i := 0; i < reps; i++ {
 		player.actions.spaceStack.push(powerUp1)
 		player.actions.spaceStack.push(powerUp2)
 		player.actions.spaceStack.push(powerUp3)
@@ -87,7 +88,7 @@ func TestActivateHighlightWithMovement_NoConcurrentWrite(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		for i := 0; i < 50; i++ {
+		for i := 0; i < reps; i++ {
 			wg.Add(4) // Add 4 waits for each iteration of the loop
 			go func() { defer wg.Done(); player.moveNorth() }()
 			go func() { defer wg.Done(); player.moveSouth() }()
@@ -99,7 +100,7 @@ func TestActivateHighlightWithMovement_NoConcurrentWrite(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		for i := 0; i < 150; i++ {
+		for i := 0; i < reps*3; i++ {
 			wg.Add(1)
 			go func() { defer wg.Done(); player.activatePower() }()
 		}
