@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -212,7 +213,7 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 		return false
 	}
 	target.tangibilityLock.Unlock()
-	if target.getStageNameSync() == "clinic" {
+	if isInClinicOrInfirmary(target) {
 		return false
 	}
 	if target.getTeamNameSync() == initiator.getTeamNameSync() {
@@ -239,6 +240,17 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 		go target.updateInformation()
 	}
 	return fatal
+}
+
+func isInClinicOrInfirmary(p *Player) bool {
+	stagename := p.getStageNameSync()
+	if stagename == "clinic" {
+		return true
+	}
+	if strings.HasPrefix(stagename, "infirmary") {
+		return true
+	}
+	return false
 }
 
 func destroyInteractable(tile *Tile, _ *Player) {

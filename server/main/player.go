@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand/v2"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -260,6 +262,7 @@ func handleDeath(player *Player) {
 	player.tileLock.Unlock()
 	player.removeFromTileAndStage()
 	player.incrementDeathCount()
+	player.setStageName(infirmaryStagenameForPlayer(player))
 	// set stagename
 	respawn(player)
 }
@@ -279,6 +282,22 @@ func (player *Player) removeFromTileAndStage() {
 	player.stage.removePlayerById(player.id)
 }
 
+func infirmaryStagenameForPlayer(player *Player) string {
+	team := player.getTeamNameSync()
+	if team != "sky-blue" && team != "fuchsia" {
+		return "clinic"
+	}
+	longitude := strconv.Itoa(rand.IntN(4))
+	latitude := ""
+	if team == "fuchsia" {
+		latitude = "0"
+	}
+	if team == "sky-blue" {
+		latitude = "3"
+	}
+	return fmt.Sprintf("infirmary:%s-%s", latitude, longitude)
+}
+
 func respawn(player *Player) {
 	player.tangibilityLock.Lock()
 	defer player.tangibilityLock.Unlock()
@@ -288,12 +307,12 @@ func respawn(player *Player) {
 
 	player.setHealth(150)
 	player.setKillStreak(0)
-	player.setStageName("clinic") // Do in handle death as well in case player became intangible?
+	//player.setStageName("clinic") // Do in handle death as well in case player became intangible?
 	player.x = 2
 	player.y = 2
 	player.actions = createDefaultActions()
 	player.updateRecord()
-	stage := getStageFromStageName(player.world, "clinic")
+	stage := getStageFromStageName(player.world, player.getStageNameSync())
 	placePlayerOnStageAt(player, stage, 2, 2)
 
 	// redo because place wipes buffer

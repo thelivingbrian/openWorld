@@ -26,10 +26,12 @@
 {{range $i, $proto := .}}
 <div id="prototype-window-{{$i}}" class="left">
     <input type="hidden" name="prototype" value="{{$proto.ID}}" />
-    <input type="radio" name="selected-asset-id" value="{{$proto.ID}}" {{if eq $i 0}} checked {{end}} />
+    <input id="{{$proto.ID}}" type="radio" name="selected-asset-id" value="{{$proto.ID}}" {{if eq $i 0}} checked {{end}} />
     <br />
-    {{template "proto-square" $proto}}
-    <label>{{$proto.CommonName}}</label><br />
+    <label for="{{$proto.ID}}">
+        {{template "proto-square" $proto}}
+        {{$proto.CommonName}}
+    </label><br />
     <a href="#" hx-get="/prototype" hx-target="#edit_tool" hx-include="#prototype-set,#prototype-window-{{$i}} [name='prototype'],[name='currentCollection']">edit</a>
 </div>
 {{end}}

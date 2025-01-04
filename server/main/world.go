@@ -227,7 +227,6 @@ func completeLogout(player *Player) {
 	// fmt.Println("1")
 
 	player.world.removePlayer(player)
-	fmt.Println("2")
 
 	player.closeConnectionSync() // uneeded but harmless?
 	player.connLock.Lock()
