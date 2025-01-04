@@ -50,9 +50,10 @@ type GridDetails struct {
 }
 
 type AreaEditPageData struct {
-	GridDetails     GridDetails
+	AreaWithGrid
+	//GridDetails     GridDetails
 	PrototypeSelect PrototypeSelectPage
-	SelectedArea    AreaDescription
+	//SelectedArea    AreaDescription
 }
 
 // //////////////////////////////////////////////////////////
@@ -149,17 +150,21 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 
 	modifications := collection.generateMaterials(selectedArea.Blueprint.Tiles)
 
+	// uneeded with seperate area load
 	var pageData = AreaEditPageData{
 		// Can be generated only with area
-		GridDetails: GridDetails{
-			MaterialGrid:     modifications,
-			InteractableGrid: collection.generateInteractables(selectedArea.Blueprint.Tiles),
-			DefaultTileColor: selectedArea.DefaultTileColor,
-			Location:         locationStringFromArea(selectedArea, space.Name),
-			GridType:         "area",
-			ScreenID:         "screen",
+		AreaWithGrid: AreaWithGrid{
+			GridDetails: GridDetails{
+				MaterialGrid:     modifications,
+				InteractableGrid: collection.generateInteractables(selectedArea.Blueprint.Tiles),
+				DefaultTileColor: selectedArea.DefaultTileColor,
+				Location:         locationStringFromArea(selectedArea, space.Name),
+				GridType:         "area",
+				ScreenID:         "screen",
+			},
+			SelectedArea:   *selectedArea,
+			NavHasHadClick: false,
 		},
-		SelectedArea: *selectedArea,
 		// Generic Tool option?
 		PrototypeSelect: PrototypeSelectPage{
 			PrototypeSets: setOptions,
@@ -168,6 +173,51 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 	err := tmpl.ExecuteTemplate(w, "area-edit", pageData)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+type AreaWithGrid struct {
+	GridDetails    GridDetails
+	SelectedArea   AreaDescription
+	NavHasHadClick bool
+}
+
+func (c *Context) areaGridHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		c.getAreaGrid(w, r)
+	}
+}
+
+func (c *Context) getAreaGrid(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	space := c.spaceFromGET(r)
+	name := queryValues.Get("area-name-selected")
+	selectedArea := getAreaByName(space.Areas, name)
+	if selectedArea == nil {
+		io.WriteString(w, "<h2>no Area</h2>")
+		return
+	}
+
+	collection := c.collectionFromGet(r)
+
+	modifications := collection.generateMaterials(selectedArea.Blueprint.Tiles)
+
+	areaWithGrid := AreaWithGrid{
+		GridDetails: GridDetails{
+			MaterialGrid:     modifications,
+			InteractableGrid: collection.generateInteractables(selectedArea.Blueprint.Tiles),
+			DefaultTileColor: selectedArea.DefaultTileColor,
+			Location:         locationStringFromArea(selectedArea, space.Name),
+			GridType:         "area",
+			ScreenID:         "screen",
+		},
+		SelectedArea:   *selectedArea,
+		NavHasHadClick: true,
+	}
+
+	err := tmpl.ExecuteTemplate(w, "area-grid", areaWithGrid)
 	if err != nil {
 		fmt.Println(err)
 	}

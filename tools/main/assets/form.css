@@ -5,14 +5,18 @@ a, a:visited, a:hover, a:active {
 a:hover {
     color: #8aabc8;
 }
+
+div.notify-click a {
+  color: #fff7a1;
+}
   
   body {
-    font-family: Arial, sans-serif; /* Use a modern, easy-to-read font */
+    font-family: Arial, sans-serif;
   }
   
   /* Form Styles */
   form {
-    max-width: 500px; /* Adjust based on preference */
+    max-width: 500px;
     margin: 20px auto;
     padding: 20px;
     background-color: #353545;

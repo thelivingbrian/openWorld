@@ -28,6 +28,7 @@ func main() {
 	http.HandleFunc("/areas", c.areasHandler)
 	http.HandleFunc("/areas/new", c.newAreaHandler)
 	http.HandleFunc("/area", c.areaHandler)
+	http.HandleFunc("/areagrid", c.areaGridHandler)
 	http.HandleFunc("/area/details", c.areaDetailsHandler)
 	http.HandleFunc("/area/display", c.areaDisplayHandler)
 	http.HandleFunc("/area/neighbors", c.areaNeighborsHandler)
