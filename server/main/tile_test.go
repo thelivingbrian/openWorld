@@ -41,7 +41,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	testStage.tiles[12][9].addPowerUpAndNotifyAll(grid9x9)
 
 	// Join initial player
-	record := PlayerRecord{Username: "test1", Y: 13, X: 13, StageName: testStage.name}
+	record := PlayerRecord{Username: "test1", Team: "imaginary-test-team", Y: 13, X: 13, StageName: testStage.name}
 	req := createLoginRequest(record)
 	world.addIncoming(req)
 	p := world.join(req)

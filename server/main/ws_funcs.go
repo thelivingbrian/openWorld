@@ -426,7 +426,7 @@ func (m *MockConn) SetWriteDeadline(t time.Time) error {
 
 func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, context.CancelFunc) {
 	username := "user-" + uuid.New().String()
-	record := PlayerRecord{Username: username, Health: 50, Y: ref.y, X: ref.x, StageName: ref.stage.name, Team: "fuchsia", Trim: "white-b thick"}
+	record := PlayerRecord{Username: username, Health: 50, Y: ref.y, X: ref.x, StageName: ref.stage.name, Team: "test-team-2", Trim: "white-b thick"}
 	loginRequest := createLoginRequest(record)
 	ref.world.addIncoming(loginRequest)
 	newPlayer := ref.world.join(loginRequest)
