@@ -293,9 +293,9 @@ func sourceStageAuthorizerExclude(source string) func(*Player) bool {
 
 func excludeSpecialStages(p *Player) bool {
 	stagename := p.getStageNameSync()
-	if stagename == "clinic" {
-		return false
-	}
+	// if stagename == "clinic" {
+	// 	return false
+	// }
 	if strings.HasPrefix(stagename, "infirmary") {
 		return false
 	}
