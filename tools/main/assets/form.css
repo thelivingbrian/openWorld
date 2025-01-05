@@ -9,6 +9,10 @@ a:hover {
 div.notify-click a {
   color: #fff7a1;
 }
+
+.scroll-y {
+  overflow-y: auto;
+}
   
   body {
     font-family: Arial, sans-serif;
