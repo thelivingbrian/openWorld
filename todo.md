@@ -4,7 +4,12 @@
 - [ ] Update player view refactor
   - [-] Empty boost swaps 
 - [ ] Admin screen
-- [ ] Test client
+ - [-] Player / Team count
+ - [ ] Stage list 
+ - [ ] Most Dangerous stats 
+ - [ ] Observe stage / player 
+- [-] Test client
+  - [-] integration client
 - [ ] Constant special area names in tests and game 
 - [-] Boosts not spawning at same rate?
 - [-] Instant kill button or key
@@ -17,7 +22,21 @@
 - [-] Player zombies
   - [-] up to 1,000 concurrent player deaths
   - [-] Automated test
-- [ ] Disable respawn from tutorial
+- [-] Disable respawn from tutorial
+- [ ] Player still on stage with closed channel
+- [ ] Improved goal scoring
+- [ ] Improved bottom text 
+  - [ ] Tutorial text no longer viewable 
+  - [ ] color code most dangerous 
+  - [ ] Notify goal scores and team in lead 
+
+## Integration 
+- [ ] Bot AI
+  - [ ] Use boosts
+  - [ ] Move in line
+  - [ ] Open menus
+  - [ ] Hallucinate
+- [-] All players in tutorial 
 
 ## Performance 
 - [-] Performance from Ec2 is degraded vs localhost - 400 Websocket users / 8 stages very stable
@@ -71,8 +90,9 @@
     - [ ] Area updates with instruction  
       - [ ] Update on rotation / deletion / addition of instruction 
       - [ ] reload area-edit
-      - [ ] modular area-edit 
-        - [ ] Follow current page style with reload (blueprint etc) 
+      - [-] modular area-edit 
+        - [-] Follow current page style with reload (blueprint etc) 
+          - [-] Tiny nav only
     - [-] oob highlight
       - [-] Select corner 
   - [ ] Blueprint page for fragment is broken 
@@ -128,6 +148,7 @@
     - [-] clean up collection logic
     - [-] add cli  
   - [-] get rid of proc folder?
+- [ ] level player? 
 
 
 ## Mobile
@@ -171,6 +192,8 @@
    - [-] Total Deaths
    - [ ] Highest Streak
    - [ ] Time alive/In Danger ?
+- [ ] Test conconcurrency
+- [ ] Add trim reward
 
 ## Stats / Metrics
 
@@ -199,22 +222,23 @@
 - [-] Additions
   - [-] Prototype edit map color (And generate automatically?)
   - [-] Map has wrong size on wide monitor 
+- [-] Infirmary
   
 
 ## Testing
-- [ ] Unit testing 
+- [-] Unit testing 
   - [-] WebSocket
     - [-] Move Player via websocket in unit test
     - [-] Interface DB? or testing database....
       - [-] testing db works and is arguably better?
-    - [ ] Test fails due to race condition 
+    - [-] Test fails due to race condition 
   - [-] Most Dangerous
   - [-] Precomputed seed disagrees with current result (on linux)
-- [ ] Load testing
+- [-] Load testing
   - [ ] Selenium? 
-- [ ] Benchmarks 
-  - [ ] Benchmark slowness caused by test: TestDamageABunchOfPlayers. MoveAllTwice went from ~17ms to ~30ms
-    - [ ] close routines
+- [-] Benchmarks 
+  - [-] Benchmark slowness caused by test: TestDamageABunchOfPlayers. MoveAllTwice went from ~17ms to ~30ms
+    - [-] close routines
     - [-] introduced via commit 90a3043177f78f90fb651c2cc1e427031c888e33
 
 
@@ -225,9 +249,9 @@ layerXCss : "static {transformationType:value} string"
 
 -goals:
 
-Expose endpoint that returns world player count and player count by team 
+x - Expose endpoint that returns world player count and player count by team 
 
-Tidy Up sandy world 
+x - Tidy Up sandy world 
 
 improve goal scoring experience 
 
