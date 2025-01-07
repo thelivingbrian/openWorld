@@ -216,16 +216,6 @@ func completeLogout(player *Player) {
 	}
 	player.world.leaderBoard.mostDangerous.Unlock()
 
-	// fmt.Println("0d")
-	// if exists && index == 0 {
-	// 	fmt.Println("New Most Dangerous!")
-	// 	mostDangerous := player.world.leaderBoard.mostDangerous.Peek()
-	// 	if mostDangerous != nil {
-	// 		notifyChangeInMostDangerous(mostDangerous)
-	// 	}
-	// }
-	// fmt.Println("1")
-
 	player.world.removePlayer(player)
 
 	player.closeConnectionSync() // uneeded but harmless?
@@ -378,6 +368,7 @@ type MaxStreakHeap struct {
 }
 
 // must hold lock before calling
+// have concerns here...
 func (h *MaxStreakHeap) Len() int {
 	//h.Lock()
 	//defer h.Unlock()

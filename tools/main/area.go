@@ -51,9 +51,13 @@ type GridDetails struct {
 
 type AreaEditPageData struct {
 	AreaWithGrid
-	//GridDetails     GridDetails
 	PrototypeSelect PrototypeSelectPage
-	//SelectedArea    AreaDescription
+}
+
+type AreaWithGrid struct {
+	GridDetails    GridDetails
+	SelectedArea   AreaDescription
+	NavHasHadClick bool
 }
 
 // //////////////////////////////////////////////////////////
@@ -150,9 +154,7 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 
 	modifications := collection.generateMaterials(selectedArea.Blueprint.Tiles)
 
-	// uneeded with seperate area load
 	var pageData = AreaEditPageData{
-		// Can be generated only with area
 		AreaWithGrid: AreaWithGrid{
 			GridDetails: GridDetails{
 				MaterialGrid:     modifications,
@@ -165,7 +167,6 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 			SelectedArea:   *selectedArea,
 			NavHasHadClick: false,
 		},
-		// Generic Tool option?
 		PrototypeSelect: PrototypeSelectPage{
 			PrototypeSets: setOptions,
 			CurrentSet:    "",
@@ -178,12 +179,7 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type AreaWithGrid struct {
-	GridDetails    GridDetails
-	SelectedArea   AreaDescription
-	NavHasHadClick bool
-}
-
+// For tiny nav with minimal disruption:
 func (c *Context) areaGridHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		c.getAreaGrid(w, r)

@@ -101,7 +101,6 @@ func createSocketsAndSendActions(tokens []string, read bool, ttl int, action fun
 		}
 
 		go action(testingSocket, token)
-		//go testingSocket.moveRandomly(token)
 	}
 
 }
