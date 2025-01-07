@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"strconv"
+	"strings"
 )
 
 type Menu struct {
@@ -76,7 +77,7 @@ var pauseMenu = Menu{
 		{Text: "Resume", eventHandler: turnMenuOff, auth: nil},
 		{Text: "You", eventHandler: openStatsMenu, auth: nil},
 		{Text: "Map", eventHandler: openMapMenu, auth: nil},
-		{Text: "Respawn", eventHandler: openRespawnMenu, auth: sourceStageAuthorizerExclude("clinic")},
+		{Text: "Respawn", eventHandler: openRespawnMenu, auth: excludeSpecialStages},
 		{Text: "Quit", eventHandler: Quit, auth: nil},
 	},
 }
@@ -102,7 +103,7 @@ var respawnMenu = Menu{
 	CssClass: "",
 	InfoHtml: "<h3>Are you sure? (you will die)</h3>",
 	Links: []MenuLink{
-		{Text: "Yes", eventHandler: turnMenuOffAnd(handleDeath), auth: sourceStageAuthorizerExclude("clinic")}, // Exclude tutorial as well (maybe via default menu though?)
+		{Text: "Yes", eventHandler: turnMenuOffAnd(handleDeath), auth: excludeSpecialStages},
 		{Text: "No", eventHandler: openPauseMenu, auth: nil},
 	},
 }
@@ -288,4 +289,18 @@ func sourceStageAuthorizerExclude(source string) func(*Player) bool {
 	return func(p *Player) bool {
 		return p.getStageNameSync() != source
 	}
+}
+
+func excludeSpecialStages(p *Player) bool {
+	stagename := p.getStageNameSync()
+	// if stagename == "clinic" {
+	// 	return false
+	// }
+	if strings.HasPrefix(stagename, "infirmary") {
+		return false
+	}
+	if strings.HasPrefix(stagename, "tutorial") {
+		return false
+	}
+	return true
 }

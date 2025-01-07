@@ -41,7 +41,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	testStage.tiles[12][9].addPowerUpAndNotifyAll(grid9x9)
 
 	// Join initial player
-	record := PlayerRecord{Username: "test1", Y: 13, X: 13, StageName: testStage.name}
+	record := PlayerRecord{Username: "test1", Team: "imaginary-test-team", Y: 13, X: 13, StageName: testStage.name}
 	req := createLoginRequest(record)
 	world.addIncoming(req)
 	p := world.join(req)
@@ -111,7 +111,9 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	if p.getKillStreakSync() < 500 {
 		t.Error("Killstreak should be at least 500")
 	}
-
+	if p.world.leaderBoard.mostDangerous.Peek() != p {
+		t.Error("Player should be most dangerous")
+	}
 	// For laptop:
 	time.Sleep(2000 * time.Millisecond) // slow computer can have trailing kills flowing in
 

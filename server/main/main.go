@@ -70,6 +70,7 @@ func main() {
 	fmt.Println("Preparing for interactions...")
 	mux.HandleFunc("/clear", clearScreen)
 	mux.HandleFunc("/insert", world.postHorribleBypass)
+	mux.HandleFunc("/stats", world.getStats)
 
 	fmt.Println("Initiating Websockets...")
 	mux.HandleFunc("/screen", world.NewSocketConnection)

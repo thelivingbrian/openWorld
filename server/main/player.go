@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand/v2"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -260,6 +262,7 @@ func handleDeath(player *Player) {
 	player.tileLock.Unlock()
 	player.removeFromTileAndStage()
 	player.incrementDeathCount()
+	player.setStageName(infirmaryStagenameForPlayer(player))
 	// set stagename
 	respawn(player)
 }
@@ -279,6 +282,22 @@ func (player *Player) removeFromTileAndStage() {
 	player.stage.removePlayerById(player.id)
 }
 
+func infirmaryStagenameForPlayer(player *Player) string {
+	team := player.getTeamNameSync()
+	if team != "sky-blue" && team != "fuchsia" {
+		return "clinic"
+	}
+	longitude := strconv.Itoa(rand.IntN(4))
+	latitude := ""
+	if team == "fuchsia" {
+		latitude = "0"
+	}
+	if team == "sky-blue" {
+		latitude = "3"
+	}
+	return fmt.Sprintf("infirmary:%s-%s", latitude, longitude)
+}
+
 func respawn(player *Player) {
 	player.tangibilityLock.Lock()
 	defer player.tangibilityLock.Unlock()
@@ -288,12 +307,12 @@ func respawn(player *Player) {
 
 	player.setHealth(150)
 	player.setKillStreak(0)
-	player.setStageName("clinic") // Do in handle death as well in case player became intangible?
+	//player.setStageName("clinic") // Do in handle death as well in case player became intangible?
 	player.x = 2
 	player.y = 2
 	player.actions = createDefaultActions()
 	player.updateRecord()
-	stage := getStageFromStageName(player.world, "clinic")
+	stage := getStageFromStageName(player.world, player.getStageNameSync())
 	placePlayerOnStageAt(player, stage, 2, 2)
 
 	// redo because place wipes buffer
@@ -493,12 +512,14 @@ func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bo
 func (player *Player) nextPower() {
 	player.actions.spaceStack.pop() // Throw old power away
 	player.setSpaceHighlights()
-	updateOne(sliceOfTileToHighlightBoxes(mapOfTileToArray(player.actions.spaceHighlights), spaceHighlighter()), player)
+	updateOne(sliceOfTileToHighlightBoxes(highlightMapToSlice(player), spaceHighlighter()), player)
 }
 
 func (player *Player) setSpaceHighlights() {
+	player.actions.spaceHighlightMutex.Lock()
+	defer player.actions.spaceHighlightMutex.Unlock()
 	player.actions.spaceHighlights = map[*Tile]bool{}
-	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceStack.peek().areaOfInfluence)
+	absCoordinatePairs := findOffsetsGivenPowerUp(player.y, player.x, player.actions.spaceStack.peek())
 	for _, pair := range absCoordinatePairs {
 		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
 			tile := player.stage.tiles[pair[0]][pair[1]]
@@ -508,9 +529,11 @@ func (player *Player) setSpaceHighlights() {
 }
 
 func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highlights
+	player.actions.spaceHighlightMutex.Lock()
+	defer player.actions.spaceHighlightMutex.Unlock()
 	previous := player.actions.spaceHighlights
 	player.actions.spaceHighlights = map[*Tile]bool{}
-	absCoordinatePairs := applyRelativeDistance(player.y, player.x, player.actions.spaceStack.peek().areaOfInfluence)
+	absCoordinatePairs := findOffsetsGivenPowerUp(player.y, player.x, player.actions.spaceStack.peek())
 	var impactedTiles []*Tile
 	for _, pair := range absCoordinatePairs {
 		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
@@ -528,8 +551,9 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 
 func (player *Player) activatePower() {
 	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
-	// pop power and use shape + player coords instead?
-	for tile := range player.actions.spaceHighlights {
+
+	playerHighlights := highlightMapToSlice(player)
+	for _, tile := range playerHighlights {
 		go tile.damageAll(50, player)
 		destroyInteractable(tile, player)
 		tile.eventsInFlight.Add(1)
@@ -545,6 +569,16 @@ func (player *Player) activatePower() {
 	if player.actions.spaceStack.hasPower() {
 		player.nextPower()
 	}
+}
+
+func highlightMapToSlice(player *Player) []*Tile {
+	out := make([]*Tile, 0)
+	player.actions.spaceHighlightMutex.Lock()
+	defer player.actions.spaceHighlightMutex.Unlock()
+	for tile := range player.actions.spaceHighlights {
+		out = append(out, tile)
+	}
+	return out
 }
 
 func (player *Player) applyTeleport(teleport *Teleport) {
@@ -647,10 +681,10 @@ func (p *Player) trySend(msg []byte) {
 // Actions
 
 type Actions struct {
-	spaceReadyable  bool
-	spaceHighlights map[*Tile]bool
-	spaceStack      *StackOfPowerUp
-	boostCounter    int
+	spaceHighlights     map[*Tile]bool
+	spaceHighlightMutex sync.Mutex
+	spaceStack          *StackOfPowerUp
+	boostCounter        int
 }
 
 type PowerUp struct {
@@ -682,9 +716,9 @@ func (stack *StackOfPowerUp) hasPower() bool {
 
 // Don't even return anything? Delete?
 func (stack *StackOfPowerUp) pop() *PowerUp {
-	if stack.hasPower() {
-		stack.powerMutex.Lock()
-		defer stack.powerMutex.Unlock()
+	stack.powerMutex.Lock()
+	defer stack.powerMutex.Unlock()
+	if len(stack.powers) > 0 {
 		out := stack.powers[len(stack.powers)-1]
 		stack.powers = stack.powers[:len(stack.powers)-1]
 		return out
@@ -692,15 +726,13 @@ func (stack *StackOfPowerUp) pop() *PowerUp {
 	return nil // Should be impossible but return default power instead?
 }
 
-// Watch this lead to item dupe bugs
-func (stack *StackOfPowerUp) peek() PowerUp {
-	// TOCTOU
-	if stack.hasPower() {
-		stack.powerMutex.Lock()
-		defer stack.powerMutex.Unlock()
-		return *stack.powers[len(stack.powers)-1]
+func (stack *StackOfPowerUp) peek() *PowerUp {
+	stack.powerMutex.Lock()
+	defer stack.powerMutex.Unlock()
+	if len(stack.powers) > 0 {
+		return stack.powers[len(stack.powers)-1]
 	}
-	return PowerUp{}
+	return nil
 }
 
 func (stack *StackOfPowerUp) push(power *PowerUp) *StackOfPowerUp {
@@ -711,5 +743,10 @@ func (stack *StackOfPowerUp) push(power *PowerUp) *StackOfPowerUp {
 }
 
 func createDefaultActions() *Actions {
-	return &Actions{false, map[*Tile]bool{}, &StackOfPowerUp{}, 0}
+	return &Actions{
+		spaceHighlights:     map[*Tile]bool{},
+		spaceHighlightMutex: sync.Mutex{},
+		spaceStack:          &StackOfPowerUp{},
+		boostCounter:        0,
+	}
 }

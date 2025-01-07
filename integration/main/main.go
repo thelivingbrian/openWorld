@@ -25,7 +25,7 @@ func main() {
 	}
 
 	fmt.Println("Preparing for interactions...")
-	http.HandleFunc("/mass", IntegrationA)
+	http.HandleFunc("/mass", IntegrationClientBed)
 
 	err = http.ListenAndServe(":4440", nil)
 	if err != nil {
@@ -34,10 +34,12 @@ func main() {
 	}
 }
 
-func IntegrationA(w http.ResponseWriter, r *http.Request) {
-	// curl -X POST "http://localhost:4440/mass?stagename=team-blue:3-3&read=true&count=70&ttl=5"
-	readParam := r.URL.Query().Get("read")
+func IntegrationClientBed(w http.ResponseWriter, r *http.Request) {
+	// curl -X POST "http://localhost:4440/mass?stagename=team-blue:3-3&read=true&count=70&ttl=5&action=circles"
+	stagename := r.URL.Query().Get("stagename")
+
 	var read bool
+	readParam := r.URL.Query().Get("read")
 	if readParam != "" {
 		var err error
 		read, err = strconv.ParseBool(readParam)
@@ -47,52 +49,66 @@ func IntegrationA(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	stagename := r.URL.Query().Get("stagename")
 	count := r.URL.Query().Get("count")
 	if stagename == "" || count == "" {
-		http.Error(w, "Missing required token parameters", http.StatusBadRequest)
+		http.Error(w, "Missing required param stagename", http.StatusBadRequest)
 		return
 	}
+
 	ttlString := r.URL.Query().Get("ttl")
 	ttl, err := strconv.Atoi(ttlString)
 	if err != nil {
 		fmt.Println("Invalid TTL")
 		ttl = 30
 	}
-	tokens := requestTokens(stagename, count)
+
+	team := r.URL.Query().Get("team")
+
+	action := r.URL.Query().Get("action")
+	socketAction := moveInCircles
+	if action == "random" {
+		socketAction = moveRandomly
+	}
+
+	tokens := requestTokens(stagename, count, team)
 	go func() {
-		for _, token := range tokens {
-			testingSocket := createTestingSocket(os.Getenv("BLOOP_HOST") + "/screen")
-			if testingSocket == nil {
-				fmt.Println("failed to create testing socket")
-				return
-			}
-
-			//defer testingSocket.ws.Close() occurs in closeOnRec
-			term := make(chan bool)
-			go testingSocket.closeOnRec(term)
-			go func(chan bool) {
-				time.Sleep(time.Duration(ttl) * time.Second)
-				term <- true
-			}(term)
-
-			testingSocket.tryWrite(createInitialTokenMessage(token))
-
-			if read {
-				go testingSocket.readUntilNil()
-			}
-
-			go testingSocket.moveInCircles(token)
-		}
+		createSocketsAndSendActions(tokens, read, ttl, socketAction)
 	}()
+
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, "Request successful!")
 }
 
-func requestTokens(stagename, count string) []string {
+func createSocketsAndSendActions(tokens []string, read bool, ttl int, action func(*TestingSocket, string)) {
+	for _, token := range tokens {
+		testingSocket := createTestingSocket(os.Getenv("BLOOP_HOST") + "/screen")
+		if testingSocket == nil {
+			fmt.Println("failed to create testing socket")
+			return
+		}
+
+		term := make(chan bool)
+		go testingSocket.closeOnRec(term) //defer testingSocket.ws.Close() occurs in closeOnRec
+		go func(chan bool) {
+			time.Sleep(time.Duration(ttl) * time.Second)
+			term <- true
+		}(term)
+
+		testingSocket.tryWrite(createInitialTokenMessage(token))
+
+		if read {
+			go testingSocket.readUntilNil()
+		}
+
+		go action(testingSocket, token)
+	}
+
+}
+
+func requestTokens(stagename, count, team string) []string {
 	secret := os.Getenv("AUTO_PLAYER_PASSWORD")
 	username := createRandomString()
-	payload := []byte("secret=" + secret + "&username=" + username + "&stagename=" + stagename + "&team=fuchsia&count=" + count)
+	payload := []byte("secret=" + secret + "&username=" + username + "&stagename=" + stagename + "&team=" + team + "&count=" + count)
 
 	tokenEndpoint := os.Getenv("BLOOP_HOST") + "/insert"
 	resp, err := http.Post(tokenEndpoint, "application/x-www-form-urlencoded", bytes.NewBuffer(payload))
@@ -205,7 +221,7 @@ func (ts *TestingSocket) readUntilNil() {
 	}
 }
 
-func (ts *TestingSocket) moveRandomly(token string) {
+func moveRandomly(ts *TestingSocket, token string) {
 	for {
 		randn := rand.Intn(5000)
 		if randn%4 == 0 {
@@ -232,10 +248,16 @@ func (ts *TestingSocket) moveRandomly(token string) {
 			}
 			time.Sleep(100 * time.Millisecond)
 		}
+
+		if randn%250 == 0 {
+			if ts.tryWrite(createSocketEventMessage(token, "Space-On")) != nil {
+				break
+			}
+		}
 	}
 }
 
-func (ts *TestingSocket) moveInCircles(token string) {
+func moveInCircles(ts *TestingSocket, token string) {
 	for {
 		if ts.tryWrite(createSocketEventMessage(token, "w")) != nil {
 			break

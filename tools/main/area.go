@@ -18,8 +18,8 @@ type AreaDescription struct {
 	East             string      `json:"east,omitempty"`
 	West             string      `json:"west,omitempty"`
 	MapId            string      `json:"mapId"`
-	LoadStrategy     string      `json:"loadStrategy,omitempty"`
-	SpawnStrategy    string      `json:"spawnStrategy,omitempty"`
+	LoadStrategy     string      `json:"loadStrategy"`
+	SpawnStrategy    string      `json:"spawnStrategy"`
 }
 
 // Import from the other project instead? Or import from here. Transport too
@@ -36,7 +36,7 @@ type AreaOutput struct {
 	West             string                       `json:"west,omitempty"`
 	MapId            string                       `json:"mapId,omitempty"`
 	LoadStrategy     string                       `json:"loadStrategy,omitempty"`
-	SpawnStrategy    string                       `json:"spawnStrategy,omitempty"`
+	SpawnStrategy    string                       `json:"spawnStrategy"`
 }
 
 type GridDetails struct {
@@ -50,9 +50,14 @@ type GridDetails struct {
 }
 
 type AreaEditPageData struct {
-	GridDetails     GridDetails
+	AreaWithGrid
 	PrototypeSelect PrototypeSelectPage
-	SelectedArea    AreaDescription
+}
+
+type AreaWithGrid struct {
+	GridDetails    GridDetails
+	SelectedArea   AreaDescription
+	NavHasHadClick bool
 }
 
 // //////////////////////////////////////////////////////////
@@ -150,7 +155,52 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 	modifications := collection.generateMaterials(selectedArea.Blueprint.Tiles)
 
 	var pageData = AreaEditPageData{
-		// Can be generated only with area
+		AreaWithGrid: AreaWithGrid{
+			GridDetails: GridDetails{
+				MaterialGrid:     modifications,
+				InteractableGrid: collection.generateInteractables(selectedArea.Blueprint.Tiles),
+				DefaultTileColor: selectedArea.DefaultTileColor,
+				Location:         locationStringFromArea(selectedArea, space.Name),
+				GridType:         "area",
+				ScreenID:         "screen",
+			},
+			SelectedArea:   *selectedArea,
+			NavHasHadClick: false,
+		},
+		PrototypeSelect: PrototypeSelectPage{
+			PrototypeSets: setOptions,
+			CurrentSet:    "",
+			Prototypes:    nil,
+		},
+	}
+	err := tmpl.ExecuteTemplate(w, "area-edit", pageData)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+// For tiny nav with minimal disruption:
+func (c *Context) areaGridHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		c.getAreaGrid(w, r)
+	}
+}
+
+func (c *Context) getAreaGrid(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	space := c.spaceFromGET(r)
+	name := queryValues.Get("area-name-selected")
+	selectedArea := getAreaByName(space.Areas, name)
+	if selectedArea == nil {
+		io.WriteString(w, "<h2>no Area</h2>")
+		return
+	}
+
+	collection := c.collectionFromGet(r)
+
+	modifications := collection.generateMaterials(selectedArea.Blueprint.Tiles)
+
+	areaWithGrid := AreaWithGrid{
 		GridDetails: GridDetails{
 			MaterialGrid:     modifications,
 			InteractableGrid: collection.generateInteractables(selectedArea.Blueprint.Tiles),
@@ -159,15 +209,11 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 			GridType:         "area",
 			ScreenID:         "screen",
 		},
-		SelectedArea: *selectedArea,
-		// Generic Tool option?
-		PrototypeSelect: PrototypeSelectPage{
-			PrototypeSets: setOptions,
-			CurrentSet:    "",
-			Prototypes:    nil,
-		},
+		SelectedArea:   *selectedArea,
+		NavHasHadClick: true,
 	}
-	err := tmpl.ExecuteTemplate(w, "area-edit", pageData)
+
+	err := tmpl.ExecuteTemplate(w, "area-grid", areaWithGrid)
 	if err != nil {
 		fmt.Println(err)
 	}

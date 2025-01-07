@@ -1,17 +1,8 @@
 {{define "area-edit"}}
 <div id="edit_window" class="side">
-    <input id="area-name" type="hidden" name="area-name" value="{{.SelectedArea.Name}}"/>
-    <div id="edit_material" class="left">
-        <div id="top_window">
-            {{template "neighbors-tiny" .SelectedArea}}
-        </div>
-        
-        {{template "grid" .GridDetails}}
 
-        <div id="bottom_window">
-        </div>
-        
-    </div>
+    {{template "area-grid" .AreaWithGrid}}
+
     <div id="edit_sidebar" class="left">
         <div id="edit_options">
             <a hx-get="/area/details" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Details</a> |
@@ -30,5 +21,20 @@
             {{template "grid-modify" .PrototypeSelect}}
         </div>
     </div>
+</div>
+{{end}}
+
+{{define "area-grid"}}
+<div id="edit_material" class="left">
+    <input id="area-name" type="hidden" name="area-name" value="{{.SelectedArea.Name}}"/>
+    <div id="top_window" class="{{if .NavHasHadClick}}notify-click{{end}}">
+        {{template "neighbors-tiny" .SelectedArea}}
+    </div>
+    
+    {{template "grid" .GridDetails}}
+
+    <div id="bottom_window">
+    </div>
+    
 </div>
 {{end}}

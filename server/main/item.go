@@ -21,10 +21,10 @@ func (s *SpawnAction) activateFor(player *Player, stage *Stage) {
 }
 
 var spawnActions = map[string][]SpawnAction{
-	"none": []SpawnAction{SpawnAction{}}, // Same as Should: Always, Action: doNothing
+	"none": []SpawnAction{}, // Same as Should: Always, Action: doNothing
 	"": []SpawnAction{
 		//SpawnAction{Should: checkDistanceFromEdge(8, 8), Action: basicSpawn},
-		SpawnAction{Should: excludeClinic, Action: basicSpawn},
+		SpawnAction{Should: excludeInfirmary, Action: basicSpawn},
 	},
 	"tutorial-boost": []SpawnAction{SpawnAction{Should: always, Action: tutorialBoost()}},
 	"tutorial-power": []SpawnAction{SpawnAction{Should: always, Action: tutorialPower}},
@@ -63,8 +63,8 @@ func checkTeamName(teamname string) func(*Player, *Stage) bool {
 	}
 }
 
-func excludeClinic(p *Player, s *Stage) bool {
-	return s.name != "clinic"
+func excludeInfirmary(p *Player, s *Stage) bool {
+	return !strings.HasPrefix(s.name, "infirmary")
 }
 
 func distanceFromEdgeOfSpace(stage *Stage, gridHeight, gridWidth int) int {
