@@ -435,20 +435,20 @@ func (p *Player) move(yOffset int, xOffset int) {
 	destTile := p.world.getRelativeTile(sourceTile, yOffset, xOffset)
 	p.push(destTile, nil, yOffset, xOffset)
 	if walkable(destTile) {
-		// atomic map swap
 		if sourceTile.stage == destTile.stage {
-			if transferPlayerWithinStage(p, destTile) {
+			if transferPlayerWithinStage(p, sourceTile, destTile) {
 				impactedTiles := p.updateSpaceHighlights()
 				updateOneAfterMovement(p, impactedTiles, sourceTile)
 			} else {
 				//fmt.Println("failed to transfer")
 			}
 		} else {
-			if transferPlayerToDestination(p, destTile) {
+			// need to pass in source tile to prevent hop post death
+			if transferPlayerToDestination(p, sourceTile, destTile) {
 				spawnItemsFor(p, destTile.stage)
 				p.setSpaceHighlights()
 				updateScreenFromScratch(p)
-				p.updateRecord() // no ?
+				p.updateRecord() // too much?
 			}
 		}
 	}
@@ -508,7 +508,7 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	if teleport.destY >= len(stage.tiles) || teleport.destX >= len(stage.tiles[teleport.destY]) {
 		log.Fatal("Fatal: Invalid coords from teleport: ", teleport.destStage, teleport.destY, teleport.destX)
 	}
-	if transferPlayerToDestination(player, stage.tiles[teleport.destY][teleport.destX]) {
+	if transferPlayerToDestination(player, player.getTileSync(), stage.tiles[teleport.destY][teleport.destX]) {
 		spawnItemsFor(player, stage)
 		player.setSpaceHighlights()
 		updateScreenFromScratch(player)
@@ -516,22 +516,22 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	}
 }
 
-func transferPlayerToDestination(p *Player, dest *Tile) bool {
+func transferPlayerToDestination(p *Player, source, dest *Tile) bool {
 	p.stageLock.Lock()
 	defer p.stageLock.Unlock()
 	if p.stage == nil {
 		return false
 	}
+	// overloaded. this double checks but need stage lock
 	if p.stage == dest.stage {
-		return transferPlayerWithinStage(p, dest)
+		return transferPlayerWithinStage(p, source, dest)
 	}
-	return transferPlayerAcrossStages(p, dest)
+	return transferPlayerAcrossStages(p, source, dest)
 }
 
-func transferPlayerWithinStage(p *Player, dest *Tile) bool {
+func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
-	source := p.tile
 
 	if !source.playerMutex.TryLock() {
 		//fmt.Println("no lock source")
@@ -558,7 +558,7 @@ func transferPlayerWithinStage(p *Player, dest *Tile) bool {
 	return ok
 }
 
-func transferPlayerAcrossStages(p *Player, dest *Tile) bool {
+func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 	if !p.stage.playerMutex.TryLock() {
 		return false
 	}
@@ -572,7 +572,7 @@ func transferPlayerAcrossStages(p *Player, dest *Tile) bool {
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
 
-	source := p.tile
+	//source := p.tile
 
 	if !source.playerMutex.TryLock() {
 		return false
