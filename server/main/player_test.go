@@ -25,8 +25,11 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 		updates:           updatesForPlayer,
 		clearUpdateBuffer: bufferClearChannel,
 		world:             world,
+		tangible:          true,
 	}
 	player.placeOnStage(testStage)
+
+	//fmt.Println(player.tile)
 
 	// Act
 	player.addBoosts(5)
@@ -67,6 +70,7 @@ func TestActivateHighlightWithMovement_NoConcurrentWrite(t *testing.T) {
 		updates:           updatesForPlayer,
 		clearUpdateBuffer: bufferClearChannel,
 		world:             world,
+		tangible:          true,
 	}
 	player.placeOnStage(testStage)
 

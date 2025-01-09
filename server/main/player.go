@@ -241,11 +241,15 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 		log.Fatal("Fatal: Invalid coords to place on stage.")
 	}
 	// check tangible?
-	p.tangibilityLock.Lock()
-	defer p.tangibilityLock.Unlock()
-	if !p.tangible {
-		return
-	}
+	// p.tangibilityLock.Lock()
+	// defer p.tangibilityLock.Unlock()
+	// if !p.tangible {
+	// 	return
+	// }
+
+	// Just combine with Respawn?
+
+	// Reject if stage != nil?
 
 	p.setStage(stage)
 	spawnItemsFor(p, stage)
@@ -306,11 +310,11 @@ func infirmaryStagenameForPlayer(player *Player) string {
 }
 
 func respawn(player *Player) {
-	// player.tangibilityLock.Lock()
-	// defer player.tangibilityLock.Unlock()
-	// if !player.tangible {
-	// 	return
-	// }
+	player.tangibilityLock.Lock()
+	defer player.tangibilityLock.Unlock()
+	if !player.tangible {
+		return
+	}
 
 	player.setHealth(150)
 	player.setKillStreak(0)
@@ -437,7 +441,7 @@ func (p *Player) move(yOffset int, xOffset int) {
 		p.push(destTile, nil, yOffset, xOffset)
 		if walkable(destTile) {
 			// atomic map swap
-			if transferPlayer(p, destTile) {
+			if transferPlayerWithinStage(p, destTile) {
 				impactedTiles := p.updateSpaceHighlights()
 				updateOneAfterMovement(p, impactedTiles, sourceTile)
 			}
@@ -445,7 +449,7 @@ func (p *Player) move(yOffset int, xOffset int) {
 	}
 }
 
-func transferPlayer(p *Player, dest *Tile) bool {
+func transferPlayerWithinStage(p *Player, dest *Tile) bool {
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
 	source := p.tile
@@ -599,7 +603,7 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	//}
 	// race with respawn
 	stage := getStageFromStageName(player.world, teleport.destStage)
-	if transferPlayerToTileOnNewStage(player, stage.tiles[teleport.destY][teleport.destX]) {
+	if transferPlayerToDestination(player, stage.tiles[teleport.destY][teleport.destX]) {
 		spawnItemsFor(player, stage)
 		player.setSpaceHighlights()
 		updateScreenFromScratch(player)
@@ -611,16 +615,19 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	//player.updateRecord() // no?
 }
 
-func transferPlayerToTileOnNewStage(p *Player, dest *Tile) bool {
+func transferPlayerToDestination(p *Player, dest *Tile) bool {
 	p.stageLock.Lock()
 	defer p.stageLock.Unlock()
 	if p.stage == nil {
 		return false
 	}
 	if p.stage == dest.stage {
-		return transferPlayer(p, dest)
+		return transferPlayerWithinStage(p, dest)
 	}
+	return transferPlayerAcrossStages(p, dest)
+}
 
+func transferPlayerAcrossStages(p *Player, dest *Tile) bool {
 	if !p.stage.playerMutex.TryLock() {
 		return false
 	}
@@ -648,7 +655,7 @@ func transferPlayerToTileOnNewStage(p *Player, dest *Tile) bool {
 	_, foundOnStage := p.stage.playerMap[p.id]
 
 	_, foundOnTile := source.playerMap[p.id]
-	fmt.Println("found: ", foundOnStage, foundOnTile, len(p.stage.playerMap), p.stage.name)
+
 	success := foundOnStage && foundOnTile
 	if success {
 		delete(p.stage.playerMap, p.id)
