@@ -124,6 +124,7 @@ func (player *Player) setStage(stage *Stage) {
 	player.stageName = stage.name
 }
 
+// meaningless use stage
 func (player *Player) setStageName(name string) {
 	player.stageLock.Lock()
 	defer player.stageLock.Unlock()
@@ -239,6 +240,12 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 	if y >= len(stage.tiles) || x >= len(stage.tiles[y]) {
 		log.Fatal("Fatal: Invalid coords to place on stage.")
 	}
+	// check tangible?
+	p.tangibilityLock.Lock()
+	defer p.tangibilityLock.Unlock()
+	if !p.tangible {
+		return
+	}
 
 	p.setStage(stage)
 	spawnItemsFor(p, stage)
@@ -299,11 +306,11 @@ func infirmaryStagenameForPlayer(player *Player) string {
 }
 
 func respawn(player *Player) {
-	player.tangibilityLock.Lock()
-	defer player.tangibilityLock.Unlock()
-	if !player.tangible {
-		return
-	}
+	// player.tangibilityLock.Lock()
+	// defer player.tangibilityLock.Unlock()
+	// if !player.tangible {
+	// 	return
+	// }
 
 	player.setHealth(150)
 	player.setKillStreak(0)
@@ -311,7 +318,7 @@ func respawn(player *Player) {
 	player.x = 2
 	player.y = 2
 	player.actions = createDefaultActions()
-	player.updateRecord()
+	player.updateRecord() // do in handle death
 	stage := getStageFromStageName(player.world, player.getStageNameSync())
 	placePlayerOnStageAt(player, stage, 2, 2)
 
@@ -413,7 +420,7 @@ func (p *Player) tryGoNeighbor(yOffset, xOffset int) {
 	if walkable(newTile) {
 		t := &Teleport{destStage: newTile.stage.name, destY: newTile.y, destX: newTile.x}
 
-		p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p)
+		//p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p) // no
 		p.applyTeleport(t)
 	}
 }
@@ -422,6 +429,7 @@ func (p *Player) move(yOffset int, xOffset int) {
 	destY := p.y + yOffset
 	destX := p.x + xOffset
 
+	// use getRelativeTile
 	if validCoordinate(destY, destX, p.stage.tiles) {
 		sourceTile := p.stage.tiles[p.y][p.x]
 		destTile := p.stage.tiles[destY][destX]
@@ -429,7 +437,7 @@ func (p *Player) move(yOffset int, xOffset int) {
 		p.push(destTile, nil, yOffset, xOffset)
 		if walkable(destTile) {
 			// atomic map swap
-			if transferPlayer(p, sourceTile, destTile) {
+			if transferPlayer(p, destTile) {
 				impactedTiles := p.updateSpaceHighlights()
 				updateOneAfterMovement(p, impactedTiles, sourceTile)
 			}
@@ -437,9 +445,10 @@ func (p *Player) move(yOffset int, xOffset int) {
 	}
 }
 
-func transferPlayer(p *Player, source, dest *Tile) bool {
+func transferPlayer(p *Player, dest *Tile) bool {
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
+	source := p.tile
 
 	if !source.playerMutex.TryLock() {
 		return false
@@ -454,10 +463,10 @@ func transferPlayer(p *Player, source, dest *Tile) bool {
 	_, ok := source.playerMap[p.id]
 	if ok {
 		delete(source.playerMap, p.id)
-		ok = dest.addLockedPlayertoLockedTile(p)
+		dest.addLockedPlayertoLockedTile(p)
 		go func() {
 			source.stage.updateAllExcept(playerBox(source), p)
-			dest.stage.updateAllExcept(playerBox(dest), p)
+			dest.stage.updateAllExcept(playerBox(dest), p) // technically unneeded to getAnewPlayer
 		}()
 	}
 
@@ -484,8 +493,11 @@ func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bo
 
 	if tile.interactable == nil {
 		if tile.material.Walkable { // Prevents lock contention from using Walkable()
-			tile.interactable = interactable
-			tile.stage.updateAll(interactableBox(tile))
+			// nil = nil ?
+			if interactable != nil {
+				tile.interactable = interactable
+				tile.stage.updateAll(interactableBox(tile))
+			}
 			return true
 		}
 		return false
@@ -582,13 +594,78 @@ func highlightMapToSlice(player *Player) []*Tile {
 }
 
 func (player *Player) applyTeleport(teleport *Teleport) {
-	if player.stageName != teleport.destStage {
-		player.stage.removePlayerById(player.id)
-	}
+	//if player.stageName != teleport.destStage {
+	//	player.stage.removePlayerById(player.id)
+	//}
+	// race with respawn
 	stage := getStageFromStageName(player.world, teleport.destStage)
-	placePlayerOnStageAt(player, stage, teleport.destY, teleport.destX)
+	if transferPlayerToTileOnNewStage(player, stage.tiles[teleport.destY][teleport.destX]) {
+		spawnItemsFor(player, stage)
+		player.setSpaceHighlights()
+		updateScreenFromScratch(player)
+	}
+	//placePlayerOnStageAt(player, stage, teleport.destY, teleport.destX)
+	// transferstage
+	// transfertile?
 
-	player.updateRecord() // no?
+	//player.updateRecord() // no?
+}
+
+func transferPlayerToTileOnNewStage(p *Player, dest *Tile) bool {
+	p.stageLock.Lock()
+	defer p.stageLock.Unlock()
+	if p.stage == nil {
+		return false
+	}
+	if p.stage == dest.stage {
+		return transferPlayer(p, dest)
+	}
+
+	if !p.stage.playerMutex.TryLock() {
+		return false
+	}
+	defer p.stage.playerMutex.Unlock()
+
+	if !dest.stage.playerMutex.TryLock() {
+		return false
+	}
+	defer dest.stage.playerMutex.Unlock()
+
+	p.tileLock.Lock()
+	defer p.tileLock.Unlock()
+
+	source := p.tile
+
+	if !source.playerMutex.TryLock() {
+		return false
+	}
+	defer source.playerMutex.Unlock()
+	if !dest.playerMutex.TryLock() {
+		return false
+	}
+	defer dest.playerMutex.Unlock()
+
+	_, foundOnStage := p.stage.playerMap[p.id]
+
+	_, foundOnTile := source.playerMap[p.id]
+	fmt.Println("found: ", foundOnStage, foundOnTile, len(p.stage.playerMap), p.stage.name)
+	success := foundOnStage && foundOnTile
+	if success {
+		delete(p.stage.playerMap, p.id)
+		delete(source.playerMap, p.id)
+		dest.stage.playerMap[p.id] = p
+		p.stage = dest.stage
+		p.stageName = dest.stage.name
+		dest.addLockedPlayertoLockedTile(p)
+
+		go func() {
+			source.stage.updateAllExcept(playerBox(source), p)
+			dest.stage.updateAllExcept(playerBox(dest), p)
+		}()
+	}
+
+	return success
+
 }
 
 ////////////////////////////////////////////////////////////

@@ -16,6 +16,7 @@ type Stage struct {
 	west        string
 	mapId       string
 	spawn       []SpawnAction
+	//incoming chan *Player // or just chan[]byte? how to id later
 }
 
 // benchmark this please

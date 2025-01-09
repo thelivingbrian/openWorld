@@ -272,6 +272,7 @@ func teleportEventHandler(teleport *Teleport) func(*Player) {
 		go func() {
 			player.applyTeleport(teleport)
 
+			// no to next lines?
 			impactedTiles := player.updateSpaceHighlights()
 			updateOneAfterMovement(player, impactedTiles, previousTile)
 		}()

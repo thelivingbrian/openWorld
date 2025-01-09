@@ -160,13 +160,17 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 		//exTile := `<div id="t1-0" class="box top green"></div>
 		//			<div id="t1-1" class="box top green"></div>`
 
-		go func() {
-			for i := 0; i <= 80; i++ {
-				time.Sleep(20 * time.Millisecond)
-				updateOne(generateDivs(i), player)
-			}
+		// go func() {
+		// 	for i := 0; i <= 80; i++ {
+		// 		time.Sleep(20 * time.Millisecond)
+		// 		updateOne(generateDivs(i), player)
+		// 	}
 
-		}()
+		// }()
+
+		//stage := getStageFromStageName(player.world, "team-blue:3-3")
+		//stage.addPlayer(player)
+		fmt.Println(len(player.stage.playerMap), len(player.tile.stage.playerMap))
 
 		//updateOne(generateWeatherSolid("blue trsp20"), player)
 		//player.updates <- generateWeatherSolidBytes("night trsp20")

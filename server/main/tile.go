@@ -104,7 +104,7 @@ func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	tile.stage.updateAllExcept(playerBox(tile), player)
 }
 
-func (tile *Tile) addLockedPlayertoLockedTile(player *Player) bool {
+func (tile *Tile) addLockedPlayertoLockedTile(player *Player) {
 	itemChange := false
 	if tile.bottomText != "" {
 		player.updateBottomText(tile.bottomText)
@@ -131,17 +131,15 @@ func (tile *Tile) addLockedPlayertoLockedTile(player *Player) bool {
 	if itemChange {
 		player.stage.updateAll(svgFromTile(tile))
 	}
-	if tile.teleport == nil {
-		// tile.playerMutex.Lock() should already be locked
-		tile.playerMap[player.id] = player
 
-		// player.tileLock.Lock() should already be locked (usually by transfer or addAndNotify)
-		player.tile = tile
-		player.y = tile.y
-		player.x = tile.x
+	tile.playerMap[player.id] = player
 
-		return true
-	} else {
+	// player.tileLock.Lock() should already be locked (usually by transfer or addAndNotify)
+	player.tile = tile
+	player.y = tile.y
+	player.x = tile.x
+
+	if tile.teleport != nil {
 		if tile.teleport.confirmation {
 			player.menues["teleport"] = continueTeleporting(tile.teleport)
 			turnMenuOn(player, "teleport")
@@ -149,7 +147,6 @@ func (tile *Tile) addLockedPlayertoLockedTile(player *Player) bool {
 			// new routine prevents deadlock
 			go player.applyTeleport(tile.teleport)
 		}
-		return false
 	}
 }
 
