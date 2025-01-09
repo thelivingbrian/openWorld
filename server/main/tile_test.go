@@ -44,10 +44,10 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	record := PlayerRecord{Username: "test1", Team: "imaginary-test-team", Y: 13, X: 13, StageName: testStage.name}
 	req := createLoginRequest(record)
 	world.addIncoming(req)
-	p := world.join(req)
-	p.conn = &MockConn{}
-	go drainChannel(p.updates)
-	go drainChannel(p.clearUpdateBuffer)
+	p := world.join(req, &MockConn{})
+
+	//go drainChannel(p.updates)
+	//go drainChannel(p.clearUpdateBuffer)
 	p.placeOnStage(testStage)
 
 	// Get in position

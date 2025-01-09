@@ -125,11 +125,11 @@ func (player *Player) setStage(stage *Stage) {
 }
 
 // meaningless use stage
-func (player *Player) setStageName(name string) {
+/*func (player *Player) setStageName(name string) {
 	player.stageLock.Lock()
 	defer player.stageLock.Unlock()
 	player.stageName = name
-}
+}*/
 
 func (player *Player) getStageNameSync() string {
 	player.stageLock.Lock()
@@ -271,11 +271,23 @@ func handleDeath(player *Player) {
 	// NotifyAllExcept
 	player.tile.addMoneyAndNotifyAll(max(halveMoneyOf(player), 10)) // Tile money needs mutex.
 	player.tileLock.Unlock()
+
 	player.removeFromTileAndStage()
 	player.incrementDeathCount()
-	player.setStageName(infirmaryStagenameForPlayer(player))
-	// set stagename
-	respawn(player)
+	player.setHealth(150)
+	player.setKillStreak(0)
+	player.actions = createDefaultActions()
+	player.updateRecord()
+
+	player.tangibilityLock.Lock()
+	defer player.tangibilityLock.Unlock()
+	if !player.tangible {
+		return
+	}
+
+	stage := getStageFromStageName(player.world, infirmaryStagenameForPlayer(player))
+	placePlayerOnStageAt(player, stage, 2, 2)
+	player.updateInformation()
 }
 
 func (player *Player) updateRecord() {
@@ -309,26 +321,9 @@ func infirmaryStagenameForPlayer(player *Player) string {
 	return fmt.Sprintf("infirmary:%s-%s", latitude, longitude)
 }
 
-func respawn(player *Player) {
-	player.tangibilityLock.Lock()
-	defer player.tangibilityLock.Unlock()
-	if !player.tangible {
-		return
-	}
+//func respawn(player *Player) {
 
-	player.setHealth(150)
-	player.setKillStreak(0)
-	//player.setStageName("clinic") // Do in handle death as well in case player became intangible?
-	player.x = 2
-	player.y = 2
-	player.actions = createDefaultActions()
-	player.updateRecord() // do in handle death
-	stage := getStageFromStageName(player.world, player.getStageNameSync())
-	placePlayerOnStageAt(player, stage, 2, 2)
-
-	// redo because place wipes buffer
-	player.updateInformation()
-}
+//}
 
 func (p *Player) moveNorth() {
 	if p.y == 0 {
@@ -449,34 +444,6 @@ func (p *Player) move(yOffset int, xOffset int) {
 	}
 }
 
-func transferPlayerWithinStage(p *Player, dest *Tile) bool {
-	p.tileLock.Lock()
-	defer p.tileLock.Unlock()
-	source := p.tile
-
-	if !source.playerMutex.TryLock() {
-		return false
-	}
-	defer source.playerMutex.Unlock()
-
-	if !dest.playerMutex.TryLock() {
-		return false
-	}
-	defer dest.playerMutex.Unlock()
-
-	_, ok := source.playerMap[p.id]
-	if ok {
-		delete(source.playerMap, p.id)
-		dest.addLockedPlayertoLockedTile(p)
-		go func() {
-			source.stage.updateAllExcept(playerBox(source), p)
-			dest.stage.updateAllExcept(playerBox(dest), p) // technically unneeded to getAnewPlayer
-		}()
-	}
-
-	return ok
-}
-
 func (p *Player) pushUnder(yOffset int, xOffset int) {
 	currentTile := p.stage.tiles[p.y][p.x]
 	if currentTile != nil && currentTile.interactable != nil {
@@ -525,94 +492,17 @@ func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bo
 	return false
 }
 
-func (player *Player) nextPower() {
-	player.actions.spaceStack.pop() // Throw old power away
-	player.setSpaceHighlights()
-	updateOne(sliceOfTileToHighlightBoxes(highlightMapToSlice(player), spaceHighlighter()), player)
-}
-
-func (player *Player) setSpaceHighlights() {
-	player.actions.spaceHighlightMutex.Lock()
-	defer player.actions.spaceHighlightMutex.Unlock()
-	player.actions.spaceHighlights = map[*Tile]bool{}
-	absCoordinatePairs := findOffsetsGivenPowerUp(player.y, player.x, player.actions.spaceStack.peek())
-	for _, pair := range absCoordinatePairs {
-		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
-			tile := player.stage.tiles[pair[0]][pair[1]]
-			player.actions.spaceHighlights[tile] = true
-		}
-	}
-}
-
-func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highlights
-	player.actions.spaceHighlightMutex.Lock()
-	defer player.actions.spaceHighlightMutex.Unlock()
-	previous := player.actions.spaceHighlights
-	player.actions.spaceHighlights = map[*Tile]bool{}
-	absCoordinatePairs := findOffsetsGivenPowerUp(player.y, player.x, player.actions.spaceStack.peek())
-	var impactedTiles []*Tile
-	for _, pair := range absCoordinatePairs {
-		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
-			tile := player.stage.tiles[pair[0]][pair[1]]
-			player.actions.spaceHighlights[tile] = true
-			if _, contains := previous[tile]; contains {
-				delete(previous, tile)
-			} else {
-				impactedTiles = append(impactedTiles, tile)
-			}
-		}
-	}
-	return append(impactedTiles, mapOfTileToArray(previous)...)
-}
-
-func (player *Player) activatePower() {
-	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
-
-	playerHighlights := highlightMapToSlice(player)
-	for _, tile := range playerHighlights {
-		go tile.damageAll(50, player)
-		destroyInteractable(tile, player)
-		tile.eventsInFlight.Add(1)
-		tilesToHighlight = append(tilesToHighlight, tile)
-
-		go tile.tryToNotifyAfter(100)
-	}
-	damageBoxes := sliceOfTileToWeatherBoxes(tilesToHighlight, randomFieryColor())
-	player.stage.updateAll(damageBoxes)
-	updateOne(sliceOfTileToHighlightBoxes(tilesToHighlight, ""), player)
-
-	player.actions.spaceHighlights = map[*Tile]bool{}
-	if player.actions.spaceStack.hasPower() {
-		player.nextPower()
-	}
-}
-
-func highlightMapToSlice(player *Player) []*Tile {
-	out := make([]*Tile, 0)
-	player.actions.spaceHighlightMutex.Lock()
-	defer player.actions.spaceHighlightMutex.Unlock()
-	for tile := range player.actions.spaceHighlights {
-		out = append(out, tile)
-	}
-	return out
-}
-
 func (player *Player) applyTeleport(teleport *Teleport) {
-	//if player.stageName != teleport.destStage {
-	//	player.stage.removePlayerById(player.id)
-	//}
-	// race with respawn
 	stage := getStageFromStageName(player.world, teleport.destStage)
+	if teleport.destY >= len(stage.tiles) || teleport.destX >= len(stage.tiles[teleport.destY]) {
+		log.Fatal("Fatal: Invalid coords from teleport: ", teleport.destStage, teleport.destY, teleport.destX)
+	}
 	if transferPlayerToDestination(player, stage.tiles[teleport.destY][teleport.destX]) {
 		spawnItemsFor(player, stage)
 		player.setSpaceHighlights()
 		updateScreenFromScratch(player)
+		player.updateRecord() // no ?
 	}
-	//placePlayerOnStageAt(player, stage, teleport.destY, teleport.destX)
-	// transferstage
-	// transfertile?
-
-	//player.updateRecord() // no?
 }
 
 func transferPlayerToDestination(p *Player, dest *Tile) bool {
@@ -625,6 +515,34 @@ func transferPlayerToDestination(p *Player, dest *Tile) bool {
 		return transferPlayerWithinStage(p, dest)
 	}
 	return transferPlayerAcrossStages(p, dest)
+}
+
+func transferPlayerWithinStage(p *Player, dest *Tile) bool {
+	p.tileLock.Lock()
+	defer p.tileLock.Unlock()
+	source := p.tile
+
+	if !source.playerMutex.TryLock() {
+		return false
+	}
+	defer source.playerMutex.Unlock()
+
+	if !dest.playerMutex.TryLock() {
+		return false
+	}
+	defer dest.playerMutex.Unlock()
+
+	_, ok := source.playerMap[p.id]
+	if ok {
+		delete(source.playerMap, p.id)
+		dest.addLockedPlayertoLockedTile(p)
+		go func() {
+			source.stage.updateAllExcept(playerBox(source), p)
+			dest.stage.updateAllExcept(playerBox(dest), p) // technically unneeded to getAnewPlayer
+		}()
+	}
+
+	return ok
 }
 
 func transferPlayerAcrossStages(p *Player, dest *Tile) bool {
@@ -780,6 +698,91 @@ type StackOfPowerUp struct {
 	powerMutex sync.Mutex
 }
 
+func createDefaultActions() *Actions {
+	return &Actions{
+		spaceHighlights:     map[*Tile]bool{},
+		spaceHighlightMutex: sync.Mutex{},
+		spaceStack:          &StackOfPowerUp{},
+		boostCounter:        0,
+	}
+}
+
+// Space Highlights
+
+func (player *Player) setSpaceHighlights() {
+	player.actions.spaceHighlightMutex.Lock()
+	defer player.actions.spaceHighlightMutex.Unlock()
+	player.actions.spaceHighlights = map[*Tile]bool{}
+	absCoordinatePairs := findOffsetsGivenPowerUp(player.y, player.x, player.actions.spaceStack.peek())
+	for _, pair := range absCoordinatePairs {
+		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
+			tile := player.stage.tiles[pair[0]][pair[1]]
+			player.actions.spaceHighlights[tile] = true
+		}
+	}
+}
+
+func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highlights
+	player.actions.spaceHighlightMutex.Lock()
+	defer player.actions.spaceHighlightMutex.Unlock()
+	previous := player.actions.spaceHighlights
+	player.actions.spaceHighlights = map[*Tile]bool{}
+	absCoordinatePairs := findOffsetsGivenPowerUp(player.y, player.x, player.actions.spaceStack.peek())
+	var impactedTiles []*Tile
+	for _, pair := range absCoordinatePairs {
+		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
+			tile := player.stage.tiles[pair[0]][pair[1]]
+			player.actions.spaceHighlights[tile] = true
+			if _, contains := previous[tile]; contains {
+				delete(previous, tile)
+			} else {
+				impactedTiles = append(impactedTiles, tile)
+			}
+		}
+	}
+	return append(impactedTiles, mapOfTileToArray(previous)...)
+}
+
+func (player *Player) activatePower() {
+	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
+
+	playerHighlights := highlightMapToSlice(player)
+	for _, tile := range playerHighlights {
+		go tile.damageAll(50, player)
+		destroyInteractable(tile, player)
+		tile.eventsInFlight.Add(1)
+		tilesToHighlight = append(tilesToHighlight, tile)
+
+		go tile.tryToNotifyAfter(100)
+	}
+	damageBoxes := sliceOfTileToWeatherBoxes(tilesToHighlight, randomFieryColor())
+	player.stage.updateAll(damageBoxes)
+	updateOne(sliceOfTileToHighlightBoxes(tilesToHighlight, ""), player)
+
+	player.actions.spaceHighlights = map[*Tile]bool{}
+	if player.actions.spaceStack.hasPower() {
+		player.nextPower()
+	}
+}
+
+func (player *Player) nextPower() {
+	player.actions.spaceStack.pop() // Throw old power away
+	player.setSpaceHighlights()
+	updateOne(sliceOfTileToHighlightBoxes(highlightMapToSlice(player), spaceHighlighter()), player)
+}
+
+func highlightMapToSlice(player *Player) []*Tile {
+	out := make([]*Tile, 0)
+	player.actions.spaceHighlightMutex.Lock()
+	defer player.actions.spaceHighlightMutex.Unlock()
+	for tile := range player.actions.spaceHighlights {
+		out = append(out, tile)
+	}
+	return out
+}
+
+// Boosts
+
 func (player *Player) addBoosts(n int) {
 	// not thread-safe
 	player.actions.boostCounter += n
@@ -797,7 +800,8 @@ func (stack *StackOfPowerUp) hasPower() bool {
 	return len(stack.powers) > 0
 }
 
-// Don't even return anything? Delete?
+// Power up stack
+
 func (stack *StackOfPowerUp) pop() *PowerUp {
 	stack.powerMutex.Lock()
 	defer stack.powerMutex.Unlock()
@@ -823,13 +827,4 @@ func (stack *StackOfPowerUp) push(power *PowerUp) *StackOfPowerUp {
 	defer stack.powerMutex.Unlock()
 	stack.powers = append(stack.powers, power)
 	return stack
-}
-
-func createDefaultActions() *Actions {
-	return &Actions{
-		spaceHighlights:     map[*Tile]bool{},
-		spaceHighlightMutex: sync.Mutex{},
-		spaceStack:          &StackOfPowerUp{},
-		boostCounter:        0,
-	}
 }

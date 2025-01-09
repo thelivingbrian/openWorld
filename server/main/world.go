@@ -109,7 +109,7 @@ func createRandomToken() string {
 	return hex.EncodeToString(token)
 }
 
-func (world *World) join(incoming LoginRequest) *Player {
+func (world *World) join(incoming LoginRequest, conn WebsocketConnection) *Player {
 	// need log levels
 	//fmt.Println("New Player: " + record.Username)
 	//fmt.Println("Token: " + token)
@@ -125,6 +125,11 @@ func (world *World) join(incoming LoginRequest) *Player {
 	world.leaderBoard.mostDangerous.Lock()
 	world.leaderBoard.mostDangerous.Push(newPlayer)
 	world.leaderBoard.mostDangerous.Unlock()
+
+	newPlayer.conn = conn
+	go newPlayer.sendUpdates()
+	stage := getStageFromStageName(world, incoming.Record.StageName)
+	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
 
 	return newPlayer
 }

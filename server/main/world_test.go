@@ -61,21 +61,15 @@ func TestMostDangerous(t *testing.T) {
 
 	req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: stage.name})
 	world.addIncoming(req)
-	p1 := world.join(req)
-	go p1.sendUpdates()
-	p1.placeOnStage(stage)
+	p1 := world.join(req, &MockConn{})
 
 	req2 := createLoginRequest(PlayerRecord{Username: "test2", Y: 3, X: 3, StageName: stage.name})
 	world.addIncoming(req2)
-	p2 := world.join(req2)
-	go p2.sendUpdates()
-	p2.placeOnStage(stage)
+	p2 := world.join(req2, &MockConn{})
 
 	req3 := createLoginRequest(PlayerRecord{Username: "test3", Y: 3, X: 3, StageName: stage.name})
 	world.addIncoming(req3)
-	p3 := world.join(req3)
-	go p3.sendUpdates()
-	p3.placeOnStage(stage)
+	p3 := world.join(req3, &MockConn{})
 
 	// Assert
 	p2.incrementKillStreak()
