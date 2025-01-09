@@ -672,7 +672,6 @@ func transferPlayerAcrossStages(p *Player, dest *Tile) bool {
 	}
 
 	return success
-
 }
 
 ////////////////////////////////////////////////////////////

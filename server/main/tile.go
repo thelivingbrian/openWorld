@@ -129,7 +129,8 @@ func (tile *Tile) addLockedPlayertoLockedTile(player *Player) {
 		itemChange = true
 	}
 	if itemChange {
-		player.stage.updateAll(svgFromTile(tile))
+		// locks with transfer across stages
+		go player.stage.updateAll(svgFromTile(tile))
 	}
 
 	tile.playerMap[player.id] = player
