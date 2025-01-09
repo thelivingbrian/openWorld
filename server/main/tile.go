@@ -139,6 +139,7 @@ func (tile *Tile) addLockedPlayertoLockedTile(player *Player) {
 	player.tile = tile
 	player.y = tile.y
 	player.x = tile.x
+	//fmt.Println(player.y, player.x)
 
 	if tile.teleport != nil {
 		if tile.teleport.confirmation {

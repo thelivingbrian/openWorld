@@ -29,11 +29,11 @@ type Player struct {
 	updates                  chan []byte
 	clearUpdateBuffer        chan struct{}
 	sessionTimeOutViolations atomic.Int32
-	stageName                string
-	conn                     WebsocketConnection
-	connLock                 sync.RWMutex
-	tangible                 bool
-	tangibilityLock          sync.Mutex
+	//stageName                string
+	conn            WebsocketConnection
+	connLock        sync.RWMutex
+	tangible        bool
+	tangibilityLock sync.Mutex
 	// x, y are highly mutated and are unsafe to read/difficult to lock. Use tile instead ?
 	x          int
 	y          int
@@ -121,7 +121,6 @@ func (player *Player) setStage(stage *Stage) {
 	player.stageLock.Lock()
 	defer player.stageLock.Unlock()
 	player.stage = stage
-	player.stageName = stage.name
 }
 
 // meaningless use stage
@@ -134,13 +133,20 @@ func (player *Player) setStage(stage *Stage) {
 func (player *Player) getStageNameSync() string {
 	player.stageLock.Lock()
 	defer player.stageLock.Unlock()
-	return player.stageName
+	// nil ?
+	return player.stage.name
 }
 
 func (player *Player) getStageSync() *Stage {
 	player.stageLock.Lock()
 	defer player.stageLock.Unlock()
 	return player.stage
+}
+
+func (player *Player) getTileSync() *Tile {
+	player.tileLock.Lock()
+	defer player.tileLock.Unlock()
+	return player.tile
 }
 
 // Money observer, All Money changes should go through here
@@ -267,25 +273,16 @@ func spawnItemsFor(p *Player, stage *Stage) {
 }
 
 func handleDeath(player *Player) {
-	player.tileLock.Lock()
-	// NotifyAllExcept
-	player.tile.addMoneyAndNotifyAll(max(halveMoneyOf(player), 10)) // Tile money needs mutex.
-	player.tileLock.Unlock()
-
 	player.removeFromTileAndStage()
 	player.incrementDeathCount()
 	player.setHealth(150)
 	player.setKillStreak(0)
 	player.actions = createDefaultActions()
-	player.updateRecord()
-
-	player.tangibilityLock.Lock()
-	defer player.tangibilityLock.Unlock()
-	if !player.tangible {
-		return
-	}
 
 	stage := getStageFromStageName(player.world, infirmaryStagenameForPlayer(player))
+	player.setStage(stage)
+	player.updateRecord()
+
 	placePlayerOnStageAt(player, stage, 2, 2)
 	player.updateInformation()
 }
@@ -301,7 +298,14 @@ func (player *Player) removeFromTileAndStage() {
 			player.tile.removePlayerAndNotifyOthers(player)
 		}
 	*/
+	player.stageLock.Lock()
+	defer player.stageLock.Unlock()
+	player.tileLock.Lock()
+	defer player.tileLock.Unlock()
+	// NotifyAllExcept
+	player.tile.addMoneyAndNotifyAll(max(halveMoneyOf(player), 10)) // Tile money needs mutex.
 	player.tile.removePlayerAndNotifyOthers(player)
+
 	player.stage.removePlayerById(player.id)
 }
 
@@ -327,7 +331,7 @@ func infirmaryStagenameForPlayer(player *Player) string {
 
 func (p *Player) moveNorth() {
 	if p.y == 0 {
-		p.tryGoNeighbor(-1, 0)
+		p.move(-1, 0)
 		return
 	}
 	p.move(-1, 0)
@@ -338,7 +342,7 @@ func (p *Player) moveNorthBoost() {
 		p.useBoost()
 		p.pushUnder(-1, 0)
 		if p.y <= 1 {
-			p.tryGoNeighbor(-2, 0)
+			p.move(-2, 0)
 			return
 		}
 		p.move(-2, 0)
@@ -349,7 +353,7 @@ func (p *Player) moveNorthBoost() {
 
 func (p *Player) moveSouth() {
 	if p.y == len(p.stage.tiles)-1 {
-		p.tryGoNeighbor(1, 0)
+		p.move(1, 0)
 		return
 	}
 	p.move(1, 0)
@@ -360,7 +364,7 @@ func (p *Player) moveSouthBoost() {
 		p.useBoost()
 		p.pushUnder(1, 0)
 		if p.y == len(p.stage.tiles)-1 || p.y == len(p.stage.tiles)-2 {
-			p.tryGoNeighbor(2, 0)
+			p.move(2, 0)
 			return
 		}
 		p.move(2, 0)
@@ -371,7 +375,7 @@ func (p *Player) moveSouthBoost() {
 
 func (p *Player) moveEast() {
 	if p.x == len(p.stage.tiles[p.y])-1 {
-		p.tryGoNeighbor(0, 1)
+		p.move(0, 1)
 		return
 	}
 	p.move(0, 1)
@@ -382,7 +386,7 @@ func (p *Player) moveEastBoost() {
 		p.useBoost()
 		p.pushUnder(0, 1)
 		if p.x == len(p.stage.tiles[p.y])-1 || p.x == len(p.stage.tiles[p.y])-2 {
-			p.tryGoNeighbor(0, 2)
+			p.move(0, 2)
 			return
 		}
 		p.move(0, 2)
@@ -393,7 +397,7 @@ func (p *Player) moveEastBoost() {
 
 func (p *Player) moveWest() {
 	if p.x == 0 {
-		p.tryGoNeighbor(0, -1)
+		p.move(0, -1)
 		return
 	}
 	p.move(0, -1)
@@ -404,7 +408,7 @@ func (p *Player) moveWestBoost() {
 		p.useBoost()
 		p.pushUnder(0, -1)
 		if p.x == 0 || p.x == 1 {
-			p.tryGoNeighbor(0, -2)
+			p.move(0, -2)
 			return
 		}
 		p.move(0, -2)
@@ -413,32 +417,38 @@ func (p *Player) moveWestBoost() {
 	}
 }
 
-func (p *Player) tryGoNeighbor(yOffset, xOffset int) {
-	newTile := p.world.getRelativeTile(p.stage.tiles[p.y][p.x], yOffset, xOffset)
-	p.push(newTile, nil, yOffset, xOffset)
-	if walkable(newTile) {
-		t := &Teleport{destStage: newTile.stage.name, destY: newTile.y, destX: newTile.x}
+// func (p *Player) tryGoNeighbor(yOffset, xOffset int) {
+// 	newTile := p.world.getRelativeTile(p.stage.tiles[p.y][p.x], yOffset, xOffset)
+// 	p.push(newTile, nil, yOffset, xOffset)
+// 	if walkable(newTile) {
+// 		t := &Teleport{destStage: newTile.stage.name, destY: newTile.y, destX: newTile.x}
 
-		//p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p) // no
-		p.applyTeleport(t)
-	}
-}
+// 		//p.stage.tiles[p.y][p.x].removePlayerAndNotifyOthers(p) // no
+// 		p.applyTeleport(t)
+// 	}
+// }
 
 func (p *Player) move(yOffset int, xOffset int) {
-	destY := p.y + yOffset
-	destX := p.x + xOffset
-
-	// use getRelativeTile
-	if validCoordinate(destY, destX, p.stage.tiles) {
-		sourceTile := p.stage.tiles[p.y][p.x]
-		destTile := p.stage.tiles[destY][destX]
-
-		p.push(destTile, nil, yOffset, xOffset)
-		if walkable(destTile) {
-			// atomic map swap
+	//destY := p.y + yOffset
+	//destX := p.x + xOffset
+	sourceTile := p.getTileSync()
+	destTile := p.world.getRelativeTile(sourceTile, yOffset, xOffset)
+	p.push(destTile, nil, yOffset, xOffset)
+	if walkable(destTile) {
+		// atomic map swap
+		if sourceTile.stage == destTile.stage {
 			if transferPlayerWithinStage(p, destTile) {
 				impactedTiles := p.updateSpaceHighlights()
 				updateOneAfterMovement(p, impactedTiles, sourceTile)
+			} else {
+				//fmt.Println("failed to transfer")
+			}
+		} else {
+			if transferPlayerToDestination(p, destTile) {
+				spawnItemsFor(p, destTile.stage)
+				p.setSpaceHighlights()
+				updateScreenFromScratch(p)
+				p.updateRecord() // no ?
 			}
 		}
 	}
@@ -494,6 +504,7 @@ func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bo
 
 func (player *Player) applyTeleport(teleport *Teleport) {
 	stage := getStageFromStageName(player.world, teleport.destStage)
+	// doesnt catch underflow
 	if teleport.destY >= len(stage.tiles) || teleport.destX >= len(stage.tiles[teleport.destY]) {
 		log.Fatal("Fatal: Invalid coords from teleport: ", teleport.destStage, teleport.destY, teleport.destX)
 	}
@@ -523,11 +534,13 @@ func transferPlayerWithinStage(p *Player, dest *Tile) bool {
 	source := p.tile
 
 	if !source.playerMutex.TryLock() {
+		//fmt.Println("no lock source")
 		return false
 	}
 	defer source.playerMutex.Unlock()
 
 	if !dest.playerMutex.TryLock() {
+		//fmt.Println("no lock dest")
 		return false
 	}
 	defer dest.playerMutex.Unlock()
@@ -580,7 +593,6 @@ func transferPlayerAcrossStages(p *Player, dest *Tile) bool {
 		delete(source.playerMap, p.id)
 		dest.stage.playerMap[p.id] = p
 		p.stage = dest.stage
-		p.stageName = dest.stage.name
 		dest.addLockedPlayertoLockedTile(p)
 
 		go func() {

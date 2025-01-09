@@ -41,6 +41,8 @@ func BenchmarkMoveAllTwice(b *testing.B) {
 
 		testStage := createStageByName(stageName)
 
+		b.SetParallelism(1)
+
 		for _, playerCount := range playerCounts {
 			b.Run(fmt.Sprintf("stage:%s players:%d Cores", stageName, playerCount), func(b *testing.B) {
 				b.StopTimer()
@@ -48,12 +50,14 @@ func BenchmarkMoveAllTwice(b *testing.B) {
 
 				b.StartTimer()
 				for i := 0; i < b.N; i++ {
+					//fmt.Println(len(testStage.playerMap))
 					for index := range players {
 						players[index].move(-1, 0)
-					}
-					for index := range players {
 						players[index].move(1, 0)
 					}
+					// for index := range players {
+					// 	players[index].move(1, 0)
+					// }
 				}
 			})
 		}
@@ -188,13 +192,13 @@ func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 		players[i] = &Player{
 			id:                fmt.Sprintf("tp%d", i),
 			stage:             stage,
-			stageName:         stage.name,
 			x:                 2,
 			y:                 2,
 			actions:           createDefaultActions(),
 			health:            100,
 			updates:           updatesForPlayer,
 			clearUpdateBuffer: bufferClearChannel,
+			world:             &World{worldStages: make(map[string]*Stage)},
 		}
 		players[i].placeOnStage(stage)
 	}

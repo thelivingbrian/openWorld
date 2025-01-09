@@ -151,7 +151,6 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		sessionTimeOutViolations: atomic.Int32{},
 		tangible:                 true,
 		tangibilityLock:          sync.Mutex{},
-		stageName:                record.StageName,
 		x:                        record.X,
 		y:                        record.Y,
 		actions:                  createDefaultActions(),
@@ -265,6 +264,10 @@ func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
 	if validCoordinate(destY, destX, tile.stage.tiles) {
 		return tile.stage.tiles[destY][destX]
 	} else {
+		//fmt.Println("invalid: ", destY, destX)
+		// if w == nil {
+		// 	return nil
+		// }
 		escapesVertically, escapesHorizontally := validityByAxis(destY, destX, tile.stage.tiles)
 		if escapesVertically && escapesHorizontally {
 			// in bloop world cardinal direction travel may be non-communative

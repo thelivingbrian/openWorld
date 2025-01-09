@@ -452,7 +452,7 @@ func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, conte
 			}
 		}
 	}(ctx)
-	s := getStageFromStageName(newPlayer.world, newPlayer.stageName)
+	s := getStageFromStageName(newPlayer.world, ref.getStageNameSync())
 	placePlayerOnStageAt(newPlayer, s, newPlayer.y, newPlayer.x)
 	go func(ctx context.Context) {
 		for {

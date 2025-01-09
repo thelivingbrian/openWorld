@@ -15,9 +15,9 @@ func TestEnsureInteractableWillPush(t *testing.T) {
 	go drainChannel(bufferClearChannel)
 
 	player := &Player{
-		id:                "tp",
-		stage:             testStage,
-		stageName:         testStage.name,
+		id:    "tp",
+		stage: testStage,
+		//stageName:         testStage.name,
 		x:                 1,
 		y:                 14,
 		actions:           createDefaultActions(),
@@ -72,14 +72,14 @@ func TestSurroundedPushableSquare(t *testing.T) {
 
 	// Place players around the 2x2 square of pushable tiles (3,7) (3,8) (4,7) (4,8)
 	players := []*Player{
-		{id: "p0", stage: testStage, stageName: testStage.name, y: 2, x: 7, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p1", stage: testStage, stageName: testStage.name, y: 2, x: 8, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p2", stage: testStage, stageName: testStage.name, y: 3, x: 6, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p3", stage: testStage, stageName: testStage.name, y: 4, x: 6, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p4", stage: testStage, stageName: testStage.name, y: 3, x: 9, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p5", stage: testStage, stageName: testStage.name, y: 4, x: 9, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p6", stage: testStage, stageName: testStage.name, y: 5, x: 7, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p7", stage: testStage, stageName: testStage.name, y: 5, x: 8, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p0", stage: testStage, y: 2, x: 7, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p1", stage: testStage, y: 2, x: 8, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p2", stage: testStage, y: 3, x: 6, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p3", stage: testStage, y: 4, x: 6, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p4", stage: testStage, y: 3, x: 9, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p5", stage: testStage, y: 4, x: 9, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p6", stage: testStage, y: 5, x: 7, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p7", stage: testStage, y: 5, x: 8, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
 	}
 
 	for _, player := range players {
@@ -123,14 +123,14 @@ func TestSurroundedPushableSquareMultipleThreads(t *testing.T) {
 
 	// Place players around the 2x2 square of pushable tiles (3,7) (3,8) (4,7) (4,8)
 	players := []*Player{
-		{id: "p0", stage: testStage, stageName: testStage.name, y: 2, x: 7, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p1", stage: testStage, stageName: testStage.name, y: 2, x: 8, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p2", stage: testStage, stageName: testStage.name, y: 3, x: 6, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p3", stage: testStage, stageName: testStage.name, y: 4, x: 6, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p4", stage: testStage, stageName: testStage.name, y: 3, x: 9, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p5", stage: testStage, stageName: testStage.name, y: 4, x: 9, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p6", stage: testStage, stageName: testStage.name, y: 5, x: 7, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p7", stage: testStage, stageName: testStage.name, y: 5, x: 8, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p0", stage: testStage, y: 2, x: 7, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p1", stage: testStage, y: 2, x: 8, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p2", stage: testStage, y: 3, x: 6, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p3", stage: testStage, y: 4, x: 6, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p4", stage: testStage, y: 3, x: 9, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p5", stage: testStage, y: 4, x: 9, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p6", stage: testStage, y: 5, x: 7, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p7", stage: testStage, y: 5, x: 8, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
 	}
 
 	for _, player := range players {
@@ -202,15 +202,15 @@ func TestEnsureNoInteractableDuplication(t *testing.T) {
 
 	// Place players around the 2x2 square of pushable tiles (3,7) (3,8) (4,7) (4,8)
 	players := []*Player{
-		{id: "p0", stage: testStage, stageName: testStage.name, y: 2, x: 7, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p1", stage: testStage, stageName: testStage.name, y: 2, x: 8, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p2", stage: testStage, stageName: testStage.name, y: 3, x: 6, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p3", stage: testStage, stageName: testStage.name, y: 4, x: 6, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p4", stage: testStage, stageName: testStage.name, y: 3, x: 9, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p5", stage: testStage, stageName: testStage.name, y: 4, x: 9, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p6", stage: testStage, stageName: testStage.name, y: 5, x: 7, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p7", stage: testStage, stageName: testStage.name, y: 5, x: 8, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
-		{id: "p8", stage: testStage, stageName: testStage.name, y: 14, x: 7, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p0", stage: testStage, y: 2, x: 7, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p1", stage: testStage, y: 2, x: 8, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p2", stage: testStage, y: 3, x: 6, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p3", stage: testStage, y: 4, x: 6, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p4", stage: testStage, y: 3, x: 9, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p5", stage: testStage, y: 4, x: 9, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p6", stage: testStage, y: 5, x: 7, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p7", stage: testStage, y: 5, x: 8, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
+		{id: "p8", stage: testStage, y: 14, x: 7, updates: updatesForPlayer, clearUpdateBuffer: bufferClearChannel, actions: createDefaultActions(), health: 100},
 	}
 
 	for _, player := range players {

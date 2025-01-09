@@ -15,9 +15,9 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 	go drainChannel(bufferClearChannel)
 
 	player := &Player{
-		id:                "tp",
-		stage:             testStage,
-		stageName:         testStage.name,
+		id:    "tp",
+		stage: testStage,
+		//stageName:         testStage.name,
 		x:                 4,
 		y:                 1,
 		actions:           createDefaultActions(),
@@ -36,9 +36,9 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 	player.moveNorthBoost()
 
 	// Assert
-	if player.stageName != "hallway2" {
-		t.Error("player stageName should be hallway2 but is: " + player.stageName)
-	}
+	// if player.stageName != "hallway2" {
+	// 	t.Error("player stageName should be hallway2 but is: " + player.stageName)
+	// }
 
 	if player.stage.name != "hallway2" {
 		t.Error("player.stage.name should be hallway2")
@@ -62,7 +62,6 @@ func TestActivateHighlightWithMovement_NoConcurrentWrite(t *testing.T) {
 	player := &Player{
 		id:                "tp",
 		stage:             testStage,
-		stageName:         testStage.name,
 		x:                 4,
 		y:                 1,
 		actions:           createDefaultActions(),
