@@ -710,6 +710,7 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 	player.actions.spaceHighlightMutex.Lock()
 	defer player.actions.spaceHighlightMutex.Unlock()
 	previous := player.actions.spaceHighlights
+	player.actions.spaceHighlights = map[*Tile]bool{}
 	currentTile := player.getTileSync()
 	absCoordinatePairs := findOffsetsGivenPowerUp(currentTile.y, currentTile.x, player.actions.spaceStack.peek())
 	var impactedTiles []*Tile
