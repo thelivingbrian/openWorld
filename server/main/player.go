@@ -29,31 +29,24 @@ type Player struct {
 	updates                  chan []byte
 	clearUpdateBuffer        chan struct{}
 	sessionTimeOutViolations atomic.Int32
-	//stageName                string
-	conn            WebsocketConnection
-	connLock        sync.RWMutex
-	tangible        bool
-	tangibilityLock sync.Mutex
-	// x, y are highly mutated and are unsafe to read/difficult to lock. Use tile instead ?
-	//x          int
-	//y          int
-	actions    *Actions
-	health     int
-	healthLock sync.Mutex
-	money      int
-	moneyLock  sync.Mutex
-
-	killCount       int
-	killCountLock   sync.Mutex
-	deathCount      int
-	deathCountLock  sync.Mutex
-	goalsScored     int
-	goalsScoredLock sync.Mutex
-	//experience int //?
-
-	killstreak int
-	streakLock sync.Mutex
-	menues     map[string]Menu
+	conn                     WebsocketConnection
+	connLock                 sync.RWMutex
+	tangible                 bool
+	tangibilityLock          sync.Mutex // still has purpose?
+	health                   int
+	healthLock               sync.Mutex
+	money                    int
+	moneyLock                sync.Mutex
+	killCount                int
+	killCountLock            sync.Mutex
+	deathCount               int
+	deathCountLock           sync.Mutex
+	goalsScored              int
+	goalsScoredLock          sync.Mutex
+	killstreak               int
+	streakLock               sync.Mutex
+	actions                  *Actions
+	menues                   map[string]Menu
 }
 
 type WebsocketConnection interface {
@@ -122,13 +115,6 @@ func (player *Player) setStage(stage *Stage) {
 	defer player.stageLock.Unlock()
 	player.stage = stage
 }
-
-// meaningless use stage
-/*func (player *Player) setStageName(name string) {
-	player.stageLock.Lock()
-	defer player.stageLock.Unlock()
-	player.stageName = name
-}*/
 
 func (player *Player) getStageNameSync() string {
 	player.stageLock.Lock()
@@ -243,19 +229,15 @@ func getStageFromStageName(world *World, stageName string) *Stage {
 }
 
 func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
-	if y >= len(stage.tiles) || x >= len(stage.tiles[y]) {
+	if !validCoordinate(y, x, stage.tiles) {
 		log.Fatal("Fatal: Invalid coords to place on stage.")
 	}
-	// check tangible?
-	// p.tangibilityLock.Lock()
-	// defer p.tangibilityLock.Unlock()
-	// if !p.tangible {
-	// 	return
-	// }
-
-	// Just combine with Respawn?
-
-	// Reject if stage != nil?
+	// Prevent add of player with closed channel
+	p.tangibilityLock.Lock()
+	defer p.tangibilityLock.Unlock()
+	if !p.tangible {
+		return
+	}
 
 	p.setStage(stage)
 	spawnItemsFor(p, stage)
