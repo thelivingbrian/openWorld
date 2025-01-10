@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"sync"
 )
 
@@ -16,10 +17,20 @@ type Stage struct {
 	west        string
 	mapId       string
 	spawn       []SpawnAction
-	//incoming chan *Player // or just chan[]byte? how to id later
 }
 
-// benchmark this please
+////////////////////////////////////////////////////
+// Get / Create and Load Stage
+
+func getStageFromStageName(world *World, stageName string) *Stage {
+	stage := world.getNamedStageOrDefault(stageName)
+	if stage == nil {
+		log.Fatal("Fatal: Default Stage Not Found.")
+	}
+
+	return stage
+}
+
 func (world *World) getNamedStageOrDefault(name string) *Stage {
 	stage := world.getStageByName(name)
 	if stage != nil {
@@ -38,7 +49,6 @@ func (world *World) getNamedStageOrDefault(name string) *Stage {
 	return stage
 }
 
-// compare these two
 func (world *World) getStageByName(name string) *Stage {
 	world.wStageMutex.Lock()
 	defer world.wStageMutex.Unlock()
@@ -94,16 +104,47 @@ func createStageFromArea(area Area) *Stage {
 	return &outputStage
 }
 
+////////////////////////////////////////////////////
+// Add / Remove Player
+
+func (stage *Stage) addPlayer(player *Player) {
+	stage.playerMutex.Lock()
+	stage.playerMap[player.id] = player
+	stage.playerMutex.Unlock()
+}
+
 func (stage *Stage) removePlayerById(id string) {
 	stage.playerMutex.Lock()
 	delete(stage.playerMap, id)
 	stage.playerMutex.Unlock()
 }
 
-func (stage *Stage) addPlayer(player *Player) {
-	stage.playerMutex.Lock()
-	stage.playerMap[player.id] = player
-	stage.playerMutex.Unlock()
+func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
+	if !validCoordinate(y, x, stage.tiles) {
+		log.Fatal("Fatal: Invalid coords to place on stage.")
+	}
+	// Prevents add of player with closed channel
+	p.tangibilityLock.Lock()
+	defer p.tangibilityLock.Unlock()
+	if !p.tangible {
+		return
+	}
+
+	p.setStage(stage)
+	spawnItemsFor(p, stage)
+	stage.addPlayer(p)
+	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
+	p.setSpaceHighlights()
+	updateScreenFromScratch(p)
+}
+
+///////////////////////////////////////////////////
+// Spawn Items
+
+func spawnItemsFor(p *Player, stage *Stage) {
+	for i := range stage.spawn {
+		stage.spawn[i].activateFor(p, stage)
+	}
 }
 
 // Enqueue updates

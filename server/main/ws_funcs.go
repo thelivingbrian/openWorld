@@ -427,7 +427,8 @@ func (m *MockConn) SetWriteDeadline(t time.Time) error {
 
 func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, context.CancelFunc) {
 	username := "user-" + uuid.New().String()
-	record := PlayerRecord{Username: username, Health: 50, StageName: ref.stage.name, Team: "test-team-2", Trim: "white-b thick"}
+	refTile := ref.getTileSync()
+	record := PlayerRecord{Username: username, Health: 50, StageName: ref.stage.name, X: refTile.x, Y: refTile.y, Team: "test-team-2", Trim: "white-b thick"}
 	loginRequest := createLoginRequest(record)
 	ref.world.addIncoming(loginRequest)
 	newPlayer := ref.world.join(loginRequest, &MockConn{})
@@ -452,9 +453,6 @@ func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, conte
 			}
 		}
 	}(ctx)
-	s := getStageFromStageName(newPlayer.world, ref.getStageNameSync())
-	refTile := ref.getTileSync()
-	placePlayerOnStageAt(newPlayer, s, refTile.y, refTile.x)
 	go func(ctx context.Context) {
 		for {
 			select {

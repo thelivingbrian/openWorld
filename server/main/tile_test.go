@@ -46,10 +46,6 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	world.addIncoming(req)
 	p := world.join(req, &MockConn{})
 
-	//go drainChannel(p.updates)
-	//go drainChannel(p.clearUpdateBuffer)
-	//p.placeOnStage(testStage)
-
 	// Get in position
 	p.moveEastBoost() // should do nothing
 	if p.tile != testStage.tiles[13][13] {

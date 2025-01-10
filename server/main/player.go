@@ -219,41 +219,6 @@ func (player *Player) closeConnectionSync() error {
 	return player.conn.Close()
 }
 
-func getStageFromStageName(world *World, stageName string) *Stage {
-	stage := world.getNamedStageOrDefault(stageName)
-	if stage == nil {
-		log.Fatal("Fatal: Default Stage Not Found.")
-	}
-
-	return stage
-}
-
-func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
-	if !validCoordinate(y, x, stage.tiles) {
-		log.Fatal("Fatal: Invalid coords to place on stage.")
-	}
-	// Prevent add of player with closed channel
-	p.tangibilityLock.Lock()
-	defer p.tangibilityLock.Unlock()
-	if !p.tangible {
-		return
-	}
-
-	p.setStage(stage)
-	spawnItemsFor(p, stage)
-	stage.addPlayer(p)
-	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
-	p.setSpaceHighlights()
-	updateScreenFromScratch(p)
-}
-
-func spawnItemsFor(p *Player, stage *Stage) {
-	// Should be nil safe but test needed
-	for i := range stage.spawn {
-		stage.spawn[i].activateFor(p, stage)
-	}
-}
-
 func handleDeath(player *Player) {
 	player.removeFromTileAndStage()
 	player.incrementDeathCount()

@@ -15,11 +15,8 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 	go drainChannel(bufferClearChannel)
 
 	player := &Player{
-		id:    "tp",
-		stage: testStage,
-		//stageName:         testStage.name,
-		// x:                 4,
-		// y:                 1,
+		id:                "tp",
+		stage:             testStage,
 		actions:           createDefaultActions(),
 		health:            100,
 		updates:           updatesForPlayer,
@@ -29,16 +26,9 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 	}
 	player.placeOnStage(testStage, 1, 4)
 
-	//fmt.Println(player.tile)
-
 	// Act
 	player.addBoosts(5)
 	player.moveNorthBoost()
-
-	// Assert
-	// if player.stageName != "hallway2" {
-	// 	t.Error("player stageName should be hallway2 but is: " + player.stageName)
-	// }
 
 	if player.stage.name != "hallway2" {
 		t.Error("player.stage.name should be hallway2")
