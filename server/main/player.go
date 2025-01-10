@@ -35,8 +35,8 @@ type Player struct {
 	tangible        bool
 	tangibilityLock sync.Mutex
 	// x, y are highly mutated and are unsafe to read/difficult to lock. Use tile instead ?
-	x          int
-	y          int
+	//x          int
+	//y          int
 	actions    *Actions
 	health     int
 	healthLock sync.Mutex
@@ -288,7 +288,8 @@ func handleDeath(player *Player) {
 }
 
 func (player *Player) updateRecord() {
-	go player.world.db.updateRecordForPlayer(player)
+	currentTile := player.getTileSync()
+	go player.world.db.updateRecordForPlayer(player, currentTile)
 }
 
 func (player *Player) removeFromTileAndStage() {
@@ -390,7 +391,7 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 func transferPlayer(p *Player, source, dest *Tile) {
 	if source.stage == dest.stage {
 		if transferPlayerWithinStage(p, source, dest) {
-			updateOneAfterMovement(p, source)
+			updateOneAfterMovement(p, dest, source)
 		}
 	} else {
 		if transferPlayerAcrossStages(p, source, dest) {
@@ -406,7 +407,7 @@ func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
 	defer p.tileLock.Unlock()
 
 	if !source.playerMutex.TryLock() {
-		fmt.Println("failed to get lock")
+		//fmt.Println("failed to get lock")
 		return false
 	}
 	defer source.playerMutex.Unlock()
@@ -524,9 +525,9 @@ func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bo
 }
 
 func (p *Player) pushUnder(yOffset int, xOffset int) {
-	currentTile := p.stage.tiles[p.y][p.x]
+	currentTile := p.getTileSync()
 	if currentTile != nil && currentTile.interactable != nil {
-		p.push(p.stage.tiles[p.y][p.x], nil, yOffset, xOffset)
+		p.push(currentTile, nil, yOffset, xOffset)
 	}
 }
 
@@ -606,13 +607,13 @@ func sendUpdate(player *Player, update []byte) error {
 
 // Updates - Enqueue
 
-func updateOneAfterMovement(player *Player, previous *Tile) {
+func updateOneAfterMovement(player *Player, current, previous *Tile) {
 	impactedHighlights := player.updateSpaceHighlights()
 
-	playerIcon := playerBoxSpecifc(player.y, player.x, player.icon)
+	playerIcon := playerBoxSpecifc(current.y, current.x, player.getIconSync())
 
 	previousBoxes := ""
-	if previous != nil && previous.stage == player.stage {
+	if previous != nil && previous.stage == player.getStageSync() {
 		previousBoxes += playerBox(previous)
 	}
 
@@ -695,7 +696,8 @@ func (player *Player) setSpaceHighlights() {
 	player.actions.spaceHighlightMutex.Lock()
 	defer player.actions.spaceHighlightMutex.Unlock()
 	player.actions.spaceHighlights = map[*Tile]bool{}
-	absCoordinatePairs := findOffsetsGivenPowerUp(player.y, player.x, player.actions.spaceStack.peek())
+	currentTile := player.getTileSync()
+	absCoordinatePairs := findOffsetsGivenPowerUp(currentTile.y, currentTile.x, player.actions.spaceStack.peek())
 	for _, pair := range absCoordinatePairs {
 		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
 			tile := player.stage.tiles[pair[0]][pair[1]]
@@ -708,8 +710,8 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 	player.actions.spaceHighlightMutex.Lock()
 	defer player.actions.spaceHighlightMutex.Unlock()
 	previous := player.actions.spaceHighlights
-	player.actions.spaceHighlights = map[*Tile]bool{}
-	absCoordinatePairs := findOffsetsGivenPowerUp(player.y, player.x, player.actions.spaceStack.peek())
+	currentTile := player.getTileSync()
+	absCoordinatePairs := findOffsetsGivenPowerUp(currentTile.y, currentTile.x, player.actions.spaceStack.peek())
 	var impactedTiles []*Tile
 	for _, pair := range absCoordinatePairs {
 		if validCoordinate(pair[0], pair[1], player.stage.tiles) {

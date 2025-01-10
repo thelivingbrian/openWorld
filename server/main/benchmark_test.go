@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 )
 
@@ -41,7 +42,7 @@ func BenchmarkMoveAllTwice(b *testing.B) {
 
 		testStage := createStageByName(stageName)
 
-		b.SetParallelism(1)
+		//b.SetParallelism(1)
 
 		for _, playerCount := range playerCounts {
 			b.Run(fmt.Sprintf("stage:%s players:%d Cores", stageName, playerCount), func(b *testing.B) {
@@ -50,18 +51,65 @@ func BenchmarkMoveAllTwice(b *testing.B) {
 
 				b.StartTimer()
 				for i := 0; i < b.N; i++ {
-					//fmt.Println(len(testStage.playerMap))
 					for index := range players {
 						players[index].move(-1, 0)
+					}
+					for index := range players {
 						players[index].move(1, 0)
 					}
-					// for index := range players {
-					// 	players[index].move(1, 0)
-					// }
 				}
 			})
 		}
 	}
+}
+
+func BenchmarkDemoTryLock(b *testing.B) {
+	loadFromJson()
+	for _, stageName := range stageNames {
+
+		counts := []int{1, 100}
+
+		//b.SetParallelism(1)
+
+		for _, count := range counts {
+			b.Run(fmt.Sprintf("stage:%s players:%d Cores", stageName, count), func(b *testing.B) {
+				// b.StopTimer()
+				// players := placeNPlayersOnStage(playerCount, testStage)
+
+				// b.StartTimer()
+				f := &Foo{}
+				lock1, lock2 := sync.Mutex{}, sync.Mutex{}
+
+				for i := 0; i < b.N; i++ {
+					for index := 0; index < count; index++ {
+						f.tryLockUnlock(&lock1, &lock2)
+						f.tryLockUnlock(&lock2, &lock1)
+					}
+				}
+			})
+		}
+	}
+}
+
+type Foo struct {
+}
+
+func (*Foo) lockUnlock(lock1, lock2 *sync.Mutex) {
+	lock1.Lock()
+	defer lock1.Unlock()
+	lock2.Lock()
+	defer lock2.Unlock()
+}
+
+func (*Foo) tryLockUnlock(lock1, lock2 *sync.Mutex) {
+	if !lock1.TryLock() {
+		fmt.Println("lock1 already locked :( ")
+	}
+	defer lock1.Unlock()
+	if !lock2.TryLock() {
+		fmt.Println("lock2 already locked :( ")
+	}
+	defer lock2.Unlock()
 }
 
 // Move in circles test
@@ -192,15 +240,13 @@ func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 		players[i] = &Player{
 			id:                fmt.Sprintf("tp%d", i),
 			stage:             stage,
-			x:                 2,
-			y:                 2,
 			actions:           createDefaultActions(),
 			health:            100,
 			updates:           updatesForPlayer,
 			clearUpdateBuffer: bufferClearChannel,
 			world:             &World{worldStages: make(map[string]*Stage)},
 		}
-		players[i].placeOnStage(stage)
+		players[i].placeOnStage(stage, 2, 2)
 	}
 	return players
 }

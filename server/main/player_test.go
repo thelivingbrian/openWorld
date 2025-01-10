@@ -18,8 +18,8 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 		id:    "tp",
 		stage: testStage,
 		//stageName:         testStage.name,
-		x:                 4,
-		y:                 1,
+		// x:                 4,
+		// y:                 1,
 		actions:           createDefaultActions(),
 		health:            100,
 		updates:           updatesForPlayer,
@@ -27,7 +27,7 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 		world:             world,
 		tangible:          true,
 	}
-	player.placeOnStage(testStage)
+	player.placeOnStage(testStage, 1, 4)
 
 	//fmt.Println(player.tile)
 
@@ -44,7 +44,7 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 		t.Error("player.stage.name should be hallway2")
 	}
 
-	if player.y != 7 || player.x != 4 {
+	if player.getTileSync().y != 7 || player.getTileSync().x != 4 {
 		t.Error("Player should be at y:7 x:4")
 
 	}
@@ -62,8 +62,6 @@ func TestActivateHighlightWithMovement_NoConcurrentWrite(t *testing.T) {
 	player := &Player{
 		id:                "tp",
 		stage:             testStage,
-		x:                 4,
-		y:                 1,
 		actions:           createDefaultActions(),
 		health:            100,
 		updates:           updatesForPlayer,
@@ -71,7 +69,7 @@ func TestActivateHighlightWithMovement_NoConcurrentWrite(t *testing.T) {
 		world:             world,
 		tangible:          true,
 	}
-	player.placeOnStage(testStage)
+	player.placeOnStage(testStage, 1, 4)
 
 	powerUp1 := &PowerUp{areaOfInfluence: grid9x9}
 	powerUp2 := &PowerUp{areaOfInfluence: grid5x5}
@@ -111,6 +109,6 @@ func TestActivateHighlightWithMovement_NoConcurrentWrite(t *testing.T) {
 	// No throw indicates success.
 }
 
-func (p *Player) placeOnStage(stage *Stage) {
-	placePlayerOnStageAt(p, stage, p.y, p.x)
+func (p *Player) placeOnStage(stage *Stage, y, x int) {
+	placePlayerOnStageAt(p, stage, y, x)
 }

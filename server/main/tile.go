@@ -137,8 +137,8 @@ func (tile *Tile) addLockedPlayertoLockedTile(player *Player) {
 
 	// player.tileLock.Lock() should already be locked (usually by transfer or addAndNotify)
 	player.tile = tile
-	player.y = tile.y
-	player.x = tile.x
+	//player.y = tile.y
+	//player.x = tile.x
 	//fmt.Println(player.y, player.x)
 
 	if tile.teleport != nil {

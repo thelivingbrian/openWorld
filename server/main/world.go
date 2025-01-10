@@ -151,13 +151,13 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		sessionTimeOutViolations: atomic.Int32{},
 		tangible:                 true,
 		tangibilityLock:          sync.Mutex{},
-		x:                        record.X,
-		y:                        record.Y,
-		actions:                  createDefaultActions(),
-		health:                   record.Health,
-		money:                    record.Money,
-		world:                    world,
-		menues:                   map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu}, // terrifying
+		//x:                        record.X,
+		//y:                        record.Y,
+		actions: createDefaultActions(),
+		health:  record.Health,
+		money:   record.Money,
+		world:   world,
+		menues:  map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu}, // terrifying
 	}
 
 	newPlayer.setIcon()

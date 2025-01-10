@@ -48,7 +48,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 
 	//go drainChannel(p.updates)
 	//go drainChannel(p.clearUpdateBuffer)
-	p.placeOnStage(testStage)
+	//p.placeOnStage(testStage)
 
 	// Get in position
 	p.moveEastBoost() // should do nothing
