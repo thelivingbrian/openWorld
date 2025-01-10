@@ -346,21 +346,16 @@ func transferPlayer(p *Player, source, dest *Tile) {
 			updateOneAfterStageChange(p)
 		}
 	}
-
 }
 
 func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
 
-	// if !source.playerMutex.TryLock() {
-	// 	//fmt.Println("failed to get lock")
-	// 	return false
-	// }
-	// defer source.playerMutex.Unlock()
 	source.playerMutex.Lock()
 	defer source.playerMutex.Unlock()
 
+	// Can only try or hard lock can initate via player doing opposite transfer
 	if !dest.playerMutex.TryLock() {
 		return false
 	}
@@ -386,10 +381,6 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 		return false
 	}
 
-	// if !p.stage.playerMutex.TryLock() {
-	// 	return false
-	// }
-	// defer p.stage.playerMutex.Unlock()
 	p.stage.playerMutex.Lock()
 	defer p.stage.playerMutex.Unlock()
 
@@ -401,10 +392,6 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
 
-	// if !source.playerMutex.TryLock() {
-	// 	return false
-	// }
-	// defer source.playerMutex.Unlock()
 	source.playerMutex.Lock()
 	defer source.playerMutex.Unlock()
 
