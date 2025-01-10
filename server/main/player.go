@@ -353,10 +353,12 @@ func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
 
-	if !source.playerMutex.TryLock() {
-		//fmt.Println("failed to get lock")
-		return false
-	}
+	// if !source.playerMutex.TryLock() {
+	// 	//fmt.Println("failed to get lock")
+	// 	return false
+	// }
+	// defer source.playerMutex.Unlock()
+	source.playerMutex.Lock()
 	defer source.playerMutex.Unlock()
 
 	if !dest.playerMutex.TryLock() {
@@ -384,9 +386,11 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 		return false
 	}
 
-	if !p.stage.playerMutex.TryLock() {
-		return false
-	}
+	// if !p.stage.playerMutex.TryLock() {
+	// 	return false
+	// }
+	// defer p.stage.playerMutex.Unlock()
+	p.stage.playerMutex.Lock()
 	defer p.stage.playerMutex.Unlock()
 
 	if !dest.stage.playerMutex.TryLock() {
@@ -397,10 +401,13 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
 
-	if !source.playerMutex.TryLock() {
-		return false
-	}
+	// if !source.playerMutex.TryLock() {
+	// 	return false
+	// }
+	// defer source.playerMutex.Unlock()
+	source.playerMutex.Lock()
 	defer source.playerMutex.Unlock()
+
 	if !dest.playerMutex.TryLock() {
 		return false
 	}
