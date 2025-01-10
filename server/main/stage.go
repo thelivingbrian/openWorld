@@ -153,9 +153,9 @@ func (stage *Stage) updateAll(update string) {
 }
 
 func (stage *Stage) updateAllExcept(update string, ignore *Player) {
+	updateAsBytes := []byte(update)
 	stage.playerMutex.RLock()
 	defer stage.playerMutex.RUnlock()
-	updateAsBytes := []byte(update)
 	for _, player := range stage.playerMap {
 		if player == ignore {
 			continue

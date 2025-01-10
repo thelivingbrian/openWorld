@@ -310,6 +310,9 @@ func (p *Player) moveWestBoost() {
 
 func (p *Player) move(yOffset int, xOffset int) {
 	sourceTile := p.getTileSync()
+	if sourceTile.y != 7 && sourceTile.y != 8 {
+		//fmt.Println("postition at start:", sourceTile.y, sourceTile.x)
+	}
 	destTile := p.world.getRelativeTile(sourceTile, yOffset, xOffset)
 	p.push(destTile, nil, yOffset, xOffset)
 	if walkable(destTile) {
@@ -337,11 +340,11 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 // Atomic Transfers
 func transferPlayer(p *Player, source, dest *Tile) {
 	if source.stage == dest.stage {
-		if transferPlayerWithinStage(p, source, dest) {
+		if transferPlayerWithinStage_Gap(p, source, dest) {
 			updateOneAfterMovement(p, dest, source)
 		}
 	} else {
-		if transferPlayerAcrossStages(p, source, dest) {
+		if transferPlayerAcrossStages_do(p, source, dest) {
 			spawnItemsFor(p, dest.stage)
 			updateOneAfterStageChange(p)
 		}
@@ -357,6 +360,7 @@ func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
 
 	// Can only try or hard lock can initate via player doing opposite transfer
 	if !dest.playerMutex.TryLock() {
+		//fmt.Println("OH NO :(")
 		return false
 	}
 	defer dest.playerMutex.Unlock()
@@ -374,7 +378,31 @@ func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
 	return ok
 }
 
-func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
+func transferPlayerWithinStage_Gap(p *Player, source, dest *Tile) bool {
+	p.tileLock.Lock()
+	defer p.tileLock.Unlock()
+
+	source.playerMutex.Lock()
+	_, ok := source.playerMap[p.id]
+	if !ok {
+		source.playerMutex.Unlock()
+		return false
+	}
+	delete(source.playerMap, p.id)
+	source.playerMutex.Unlock()
+
+	dest.playerMutex.Lock()
+	defer dest.playerMutex.Unlock()
+	dest.addLockedPlayertoLockedTile(p)
+	go func() {
+		source.stage.updateAllExcept(playerBox(source), p)
+		dest.stage.updateAllExcept(playerBox(dest), p) // technically unneeded to getAnewPlayer
+	}()
+
+	return true
+}
+
+func transferPlayerAcrossStages_try(p *Player, source, dest *Tile) bool {
 	p.stageLock.Lock()
 	defer p.stageLock.Unlock()
 	if p.stage == nil || p.stage == dest.stage {
@@ -408,8 +436,11 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 	if success {
 		delete(p.stage.playerMap, p.id)
 		delete(source.playerMap, p.id)
+
+		// do at end ?
 		dest.stage.playerMap[p.id] = p
 		p.stage = dest.stage
+
 		dest.addLockedPlayertoLockedTile(p)
 
 		go func() {
@@ -419,6 +450,51 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 	}
 
 	return success
+}
+
+func transferPlayerAcrossStages_do(p *Player, source, dest *Tile) bool {
+	p.stageLock.Lock()
+	defer p.stageLock.Unlock()
+	if p.stage == nil || p.stage == dest.stage {
+		return false
+	}
+
+	p.tileLock.Lock()
+	defer p.tileLock.Unlock()
+
+	source.playerMutex.Lock()
+
+	_, foundOnStage := p.stage.playerMap[p.id] // no need
+	_, foundOnTile := source.playerMap[p.id]
+	success := foundOnStage && foundOnTile
+	if !success {
+		source.playerMutex.Unlock()
+		return false
+	}
+	delete(source.playerMap, p.id)
+
+	source.playerMutex.Unlock()
+
+	p.stage.playerMutex.Lock()
+	delete(p.stage.playerMap, p.id)
+	p.stage.playerMutex.Unlock()
+
+	dest.stage.playerMutex.Lock()
+	dest.stage.playerMap[p.id] = p
+	p.stage = dest.stage
+	dest.stage.playerMutex.Unlock()
+
+	dest.playerMutex.Lock()
+	defer dest.playerMutex.Unlock()
+
+	dest.addLockedPlayertoLockedTile(p)
+
+	go func() {
+		source.stage.updateAllExcept(playerBox(source), p)
+		dest.stage.updateAllExcept(playerBox(dest), p)
+	}()
+
+	return true
 }
 
 ////////////////////////////////////////////////////////////
