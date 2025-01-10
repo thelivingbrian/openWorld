@@ -104,8 +104,8 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	if p.stage != testStage {
 		t.Error("Player should be on the test stage")
 	}
-	if p.getKillStreakSync() < 500 {
-		t.Error("Killstreak should be at least 500")
+	if p.getKillStreakSync() != 500 {
+		t.Error("Killstreak should be exactly 500")
 	}
 	if p.world.leaderBoard.mostDangerous.Peek() != p {
 		t.Error("Player should be most dangerous")
