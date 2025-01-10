@@ -220,7 +220,7 @@ func (player *Player) closeConnectionSync() error {
 }
 
 func handleDeath(player *Player) {
-	player.removeFromTileAndStage()
+	player.removeFromTileAndStage() // After this should be impossible for any transfer to succeed
 	player.incrementDeathCount()
 	player.setHealth(150)
 	player.setKillStreak(0)
@@ -230,7 +230,7 @@ func handleDeath(player *Player) {
 	player.setStage(stage)
 	player.updateRecord()
 
-	placePlayerOnStageAt(player, stage, 2, 2)
+	placePlayerOnStageAt(player, stage, 2, 2) // This should succeed almost always, unless the player has been logged out or is logging out.
 	player.updateInformation()
 }
 
@@ -241,6 +241,8 @@ func (player *Player) updateRecord() {
 
 func (player *Player) removeFromTileAndStage() {
 	/*
+
+		// Should be uneeded / impossible
 		if !player.tile.removePlayerAndNotifyOthers(player) {
 			fmt.Println("Trying again") // Can prevent race with transfer but not perfect
 			player.tile.removePlayerAndNotifyOthers(player)
@@ -382,14 +384,9 @@ func transferPlayerWithinStage_Gap(p *Player, source, dest *Tile) bool {
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
 
-	source.playerMutex.Lock()
-	_, ok := source.playerMap[p.id]
-	if !ok {
-		source.playerMutex.Unlock()
+	if !removePlayerIfFound(source, p) {
 		return false
 	}
-	delete(source.playerMap, p.id)
-	source.playerMutex.Unlock()
 
 	dest.playerMutex.Lock()
 	defer dest.playerMutex.Unlock()
@@ -462,31 +459,16 @@ func transferPlayerAcrossStages_do(p *Player, source, dest *Tile) bool {
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
 
-	source.playerMutex.Lock()
-
-	_, foundOnStage := p.stage.playerMap[p.id] // no need
-	_, foundOnTile := source.playerMap[p.id]
-	success := foundOnStage && foundOnTile
-	if !success {
-		source.playerMutex.Unlock()
+	if !removePlayerIfFound(source, p) {
 		return false
 	}
-	delete(source.playerMap, p.id)
 
-	source.playerMutex.Unlock()
-
-	p.stage.playerMutex.Lock()
-	delete(p.stage.playerMap, p.id)
-	p.stage.playerMutex.Unlock()
-
-	dest.stage.playerMutex.Lock()
-	dest.stage.playerMap[p.id] = p
+	p.stage.removePlayerById(p.id)
+	dest.stage.addPlayer(p)
 	p.stage = dest.stage
-	dest.stage.playerMutex.Unlock()
 
 	dest.playerMutex.Lock()
 	defer dest.playerMutex.Unlock()
-
 	dest.addLockedPlayertoLockedTile(p)
 
 	go func() {

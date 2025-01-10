@@ -164,6 +164,19 @@ func (tile *Tile) removePlayer(playerId string) (success bool) {
 	return ok
 }
 
+func removePlayerIfFound(tile *Tile, player *Player) bool {
+	tile.playerMutex.Lock()
+	defer tile.playerMutex.Unlock()
+
+	_, foundOnTile := tile.playerMap[player.id]
+	if !foundOnTile {
+		return false
+	}
+
+	delete(tile.playerMap, player.id)
+	return true
+}
+
 func (tile *Tile) getAPlayer() *Player {
 	tile.playerMutex.Lock()
 	defer tile.playerMutex.Unlock()
