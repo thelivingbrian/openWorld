@@ -268,13 +268,12 @@ func continueTeleporting(teleport *Teleport) Menu {
 
 func teleportEventHandler(teleport *Teleport) func(*Player) {
 	return func(player *Player) {
-		previousTile := player.tile
+		//previousTile := player.tile
 		go func() {
 			player.applyTeleport(teleport)
 
 			// no to next lines?
-			impactedTiles := player.updateSpaceHighlights()
-			updateOneAfterMovement(player, impactedTiles, previousTile)
+			//updateOneAfterMovement(player, previousTile)
 		}()
 		turnMenuOff(player) // try other order
 	}

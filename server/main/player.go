@@ -325,6 +325,9 @@ func infirmaryStagenameForPlayer(player *Player) string {
 	return fmt.Sprintf("infirmary:%s-%s", latitude, longitude)
 }
 
+////////////////////////////////////////////////////////////
+//   Movement
+
 func (p *Player) moveNorth() {
 	p.move(-1, 0)
 }
@@ -362,19 +365,7 @@ func (p *Player) move(yOffset int, xOffset int) {
 	destTile := p.world.getRelativeTile(sourceTile, yOffset, xOffset)
 	p.push(destTile, nil, yOffset, xOffset)
 	if walkable(destTile) {
-		if sourceTile.stage == destTile.stage {
-			if transferPlayerWithinStage(p, sourceTile, destTile) {
-				impactedTiles := p.updateSpaceHighlights()
-				updateOneAfterMovement(p, impactedTiles, sourceTile)
-			}
-		} else {
-			if transferPlayerToDestination(p, sourceTile, destTile) {
-				spawnItemsFor(p, destTile.stage)
-				p.setSpaceHighlights()
-				updateScreenFromScratch(p)
-				p.updateRecord() // too much?
-			}
-		}
+		transferPlayer(p, sourceTile, destTile)
 	}
 }
 
@@ -389,30 +380,25 @@ func (p *Player) moveBoost(yOffset int, xOffset int) {
 
 func (player *Player) applyTeleport(teleport *Teleport) {
 	stage := getStageFromStageName(player.world, teleport.destStage)
-	// doesnt catch underflow
-	// Use validCoordinate?
-	if teleport.destY >= len(stage.tiles) || teleport.destX >= len(stage.tiles[teleport.destY]) {
+	if !validCoordinate(teleport.destY, teleport.destX, stage.tiles) {
 		log.Fatal("Fatal: Invalid coords from teleport: ", teleport.destStage, teleport.destY, teleport.destX)
 	}
-	if transferPlayerToDestination(player, player.getTileSync(), stage.tiles[teleport.destY][teleport.destX]) {
-		spawnItemsFor(player, stage)
-		player.setSpaceHighlights()
-		updateScreenFromScratch(player)
-		player.updateRecord() // no ?
-	}
+	transferPlayer(player, player.getTileSync(), stage.tiles[teleport.destY][teleport.destX])
 }
 
-func transferPlayerToDestination(p *Player, source, dest *Tile) bool {
-	p.stageLock.Lock()
-	defer p.stageLock.Unlock()
-	if p.stage == nil {
-		return false
+// Atomic Transfers
+func transferPlayer(p *Player, source, dest *Tile) {
+	if source.stage == dest.stage {
+		if transferPlayerWithinStage(p, source, dest) {
+			updateOneAfterMovement(p, source)
+		}
+	} else {
+		if transferPlayerAcrossStages(p, source, dest) {
+			spawnItemsFor(p, dest.stage)
+			updateOneAfterStageChange(p)
+		}
 	}
-	// overloaded. this double checks but need stage lock
-	if p.stage == dest.stage {
-		return transferPlayerWithinStage(p, source, dest)
-	}
-	return transferPlayerAcrossStages(p, source, dest)
+
 }
 
 func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
@@ -420,6 +406,7 @@ func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
 	defer p.tileLock.Unlock()
 
 	if !source.playerMutex.TryLock() {
+		fmt.Println("failed to get lock")
 		return false
 	}
 	defer source.playerMutex.Unlock()
@@ -443,6 +430,12 @@ func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
 }
 
 func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
+	p.stageLock.Lock()
+	defer p.stageLock.Unlock()
+	if p.stage == nil || p.stage == dest.stage {
+		return false
+	}
+
 	if !p.stage.playerMutex.TryLock() {
 		return false
 	}
@@ -486,12 +479,8 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 	return success
 }
 
-func (p *Player) pushUnder(yOffset int, xOffset int) {
-	currentTile := p.stage.tiles[p.y][p.x]
-	if currentTile != nil && currentTile.interactable != nil {
-		p.push(p.stage.tiles[p.y][p.x], nil, yOffset, xOffset)
-	}
-}
+////////////////////////////////////////////////////////////
+//   Pushing
 
 func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bool { // Returns if given interacable successfully pushed
 	if tile == nil || tile.teleport != nil {
@@ -532,6 +521,13 @@ func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bo
 		}
 	}
 	return false
+}
+
+func (p *Player) pushUnder(yOffset int, xOffset int) {
+	currentTile := p.stage.tiles[p.y][p.x]
+	if currentTile != nil && currentTile.interactable != nil {
+		p.push(p.stage.tiles[p.y][p.x], nil, yOffset, xOffset)
+	}
 }
 
 ////////////////////////////////////////////////////////////
@@ -608,12 +604,54 @@ func sendUpdate(player *Player, update []byte) error {
 	return nil
 }
 
+// Updates - Enqueue
+
+func updateOneAfterMovement(player *Player, previous *Tile) {
+	impactedHighlights := player.updateSpaceHighlights()
+
+	playerIcon := playerBoxSpecifc(player.y, player.x, player.icon)
+
+	previousBoxes := ""
+	if previous != nil && previous.stage == player.stage {
+		previousBoxes += playerBox(previous)
+	}
+
+	player.updates <- []byte(highlightBoxesForPlayer(player, impactedHighlights) + previousBoxes + playerIcon)
+}
+
+func updateOneAfterStageChange(p *Player) {
+	p.setSpaceHighlights()
+	updateScreenFromScratch(p)
+	p.updateRecord() // too much?
+}
+
+func updateScreenFromScratch(player *Player) {
+	player.clearUpdateBuffer <- struct{}{}
+	clearChannel(player.updates)
+	player.updates <- htmlFromPlayer(player)
+}
+
+func clearChannel(ch chan []byte) {
+	for {
+		select {
+		case <-ch: // Read from the channel
+			// Do nothing, just drain
+		default: // Exit when the channel is empty
+			return
+		}
+	}
+}
+
 func (player *Player) updateBottomText(message string) {
 	msg := fmt.Sprintf(`
 			<div id="bottom_text">
 				&nbsp;&nbsp;> %s
 			</div>`, message)
 	updateOne(msg, player)
+}
+
+func updateOne(update string, player *Player) {
+	player.updates <- []byte(update)
 }
 
 func (p *Player) trySend(msg []byte) {

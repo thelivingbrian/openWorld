@@ -107,17 +107,6 @@ func (stage *Stage) addPlayer(player *Player) {
 }
 
 // Enqueue updates
-
-func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
-	playerIcon := playerBoxSpecifc(player.y, player.x, player.icon)
-	previousBoxes := ""
-	if previous != nil && previous.stage == player.stage {
-		previousBoxes += playerBox(previous)
-	}
-
-	player.updates <- []byte(highlightBoxesForPlayer(player, tiles) + previousBoxes + playerIcon)
-}
-
 func (stage *Stage) updateAll(update string) {
 	stage.updateAllExcept(update, nil)
 }
@@ -131,27 +120,5 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 			continue
 		}
 		player.updates <- updateAsBytes
-	}
-}
-
-// not related to stage?
-func updateOne(update string, player *Player) {
-	player.updates <- []byte(update)
-}
-
-func updateScreenFromScratch(player *Player) {
-	player.clearUpdateBuffer <- struct{}{}
-	clearChannel(player.updates)
-	player.updates <- htmlFromPlayer(player)
-}
-
-func clearChannel(ch chan []byte) {
-	for {
-		select {
-		case <-ch: // Read from the channel
-			// Do nothing, just drain
-		default: // Exit when the channel is empty
-			return
-		}
 	}
 }
