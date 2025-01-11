@@ -107,13 +107,13 @@ func createStageFromArea(area Area) *Stage {
 ////////////////////////////////////////////////////
 // Add / Remove Player
 
-func (stage *Stage) addPlayer(player *Player) {
+func (stage *Stage) addLockedPlayer(player *Player) {
 	stage.playerMutex.Lock()
 	stage.playerMap[player.id] = player
 	stage.playerMutex.Unlock()
 }
 
-func (stage *Stage) removePlayerById(id string) {
+func (stage *Stage) removeLockedPlayerById(id string) {
 	stage.playerMutex.Lock()
 	delete(stage.playerMap, id)
 	stage.playerMutex.Unlock()
@@ -132,7 +132,7 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 
 	p.setStage(stage)
 	spawnItemsFor(p, stage)
-	stage.addPlayer(p)
+	stage.addLockedPlayer(p)
 	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
 	p.setSpaceHighlights()
 	updateScreenFromScratch(p)

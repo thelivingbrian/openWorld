@@ -63,17 +63,6 @@ func (player *Player) setHealth(n int) {
 	player.health = n
 }
 
-/*
-func (player *Player) setHealthAndHandleDeath(n int) {
-	player.setHealth(n)
-	if n <= 0 {
-		handleDeath(player)
-		return
-	}
-	player.updateInformation()
-}
-*/
-
 func (player *Player) updateInformation() {
 	icon := player.setIcon()
 	tile := player.getTileSync()
@@ -260,7 +249,7 @@ func (player *Player) removeFromTileAndStage() {
 	player.tile.addMoneyAndNotifyAll(max(halveMoneyOf(player), 10)) // Tile money needs mutex.
 	player.tile.removePlayerAndNotifyOthers(player)
 
-	player.stage.removePlayerById(player.id)
+	player.stage.removeLockedPlayerById(player.id)
 }
 
 func infirmaryStagenameForPlayer(player *Player) string {
@@ -383,10 +372,10 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 		return false
 	}
 
-	p.stage.removePlayerById(p.id)
+	p.stage.removeLockedPlayerById(p.id)
 	p.stage = dest.stage
 
-	dest.stage.addPlayer(p)
+	dest.stage.addLockedPlayer(p)
 	dest.addLockedPlayertoTile(p)
 	return true
 }
