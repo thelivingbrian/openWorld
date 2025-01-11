@@ -97,14 +97,15 @@ func makeTileTemplate(mat Material, y, x int) string {
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	player.tileLock.Lock()
-	tile.playerMutex.Lock()
-	tile.addLockedPlayertoLockedTile(player)
-	player.tileLock.Unlock()
-	tile.playerMutex.Unlock()
+	defer player.tileLock.Unlock()
+	tile.addLockedPlayertoTile(player)
 	tile.stage.updateAllExcept(playerBox(tile), player)
 }
 
-func (tile *Tile) addLockedPlayertoLockedTile(player *Player) {
+func (tile *Tile) addLockedPlayertoTile(player *Player) {
+	tile.playerMutex.Lock()
+	defer tile.playerMutex.Unlock()
+
 	itemChange := false
 	if tile.bottomText != "" {
 		player.updateBottomText(tile.bottomText)
@@ -133,7 +134,7 @@ func (tile *Tile) addLockedPlayertoLockedTile(player *Player) {
 		go player.stage.updateAll(svgFromTile(tile))
 	}
 
-	// Both locks must be held
+	// players tile lock should be held
 	tile.playerMap[player.id] = player
 	player.tile = tile
 
@@ -164,7 +165,7 @@ func (tile *Tile) removePlayer(playerId string) (success bool) {
 	return ok
 }
 
-func removePlayerIfFound(tile *Tile, player *Player) bool {
+func tryRemovePlayer(tile *Tile, player *Player) bool {
 	tile.playerMutex.Lock()
 	defer tile.playerMutex.Unlock()
 

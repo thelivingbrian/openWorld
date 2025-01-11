@@ -343,12 +343,14 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 func transferPlayer(p *Player, source, dest *Tile) {
 	if source.stage == dest.stage {
 		if transferPlayerWithinStage(p, source, dest) {
-			updateOneAfterMovement(p, dest, source)
+			updateOthersAfterMovement(p, dest, source)
+			updatePlayerAfterMovement(p, dest, source)
 		}
 	} else {
 		if transferPlayerAcrossStages(p, source, dest) {
 			spawnItemsFor(p, dest.stage)
-			updateOneAfterStageChange(p)
+			updateOthersAfterMovement(p, dest, source)
+			updatePlayerAfterStageChange(p)
 		}
 	}
 }
@@ -357,52 +359,37 @@ func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
 
-	if !removePlayerIfFound(source, p) {
+	if !tryRemovePlayer(source, p) {
 		return false
 	}
 
-	dest.playerMutex.Lock()
-	defer dest.playerMutex.Unlock()
-	dest.addLockedPlayertoLockedTile(p)
-
-	go func() {
-		source.stage.updateAllExcept(playerBox(source), p)
-		dest.stage.updateAllExcept(playerBox(dest), p) // technically unneeded to getAnewPlayer
-	}()
+	dest.addLockedPlayertoTile(p)
 	return true
 }
 
 func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 	p.stageLock.Lock()
 	defer p.stageLock.Unlock()
+	p.tileLock.Lock()
+	defer p.tileLock.Unlock()
+
 	if p.stage == nil || p.stage == dest.stage {
 		return false
 	}
 
-	p.tileLock.Lock()
-	defer p.tileLock.Unlock()
-
-	if !removePlayerIfFound(source, p) {
+	if !tryRemovePlayer(source, p) {
 		return false
 	}
 
 	p.stage.removePlayerById(p.id)
-	dest.stage.addPlayer(p)
 	p.stage = dest.stage
 
-	dest.playerMutex.Lock()
-	defer dest.playerMutex.Unlock()
-	dest.addLockedPlayertoLockedTile(p) // tile can lock self
-
-	// no longer need new thread?
-	go func() {
-		source.stage.updateAllExcept(playerBox(source), p)
-		dest.stage.updateAllExcept(playerBox(dest), p)
-	}()
-
+	dest.stage.addPlayer(p)
+	dest.addLockedPlayertoTile(p)
 	return true
 }
 
+/*
 func transferPlayerWithinStage_try(p *Player, source, dest *Tile) bool {
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
@@ -478,6 +465,7 @@ func transferPlayerAcrossStages_try(p *Player, source, dest *Tile) bool {
 
 	return success
 }
+*/
 
 ////////////////////////////////////////////////////////////
 //   Pushing
@@ -605,8 +593,12 @@ func sendUpdate(player *Player, update []byte) error {
 }
 
 // Updates - Enqueue
+func updateOthersAfterMovement(player *Player, current, previous *Tile) {
+	previous.stage.updateAllExcept(playerBox(previous), player)
+	current.stage.updateAllExcept(playerBox(current), player)
+}
 
-func updateOneAfterMovement(player *Player, current, previous *Tile) {
+func updatePlayerAfterMovement(player *Player, current, previous *Tile) {
 	impactedHighlights := player.updateSpaceHighlights()
 
 	playerIcon := playerBoxSpecifc(current.y, current.x, player.getIconSync())
@@ -619,7 +611,7 @@ func updateOneAfterMovement(player *Player, current, previous *Tile) {
 	player.updates <- []byte(highlightBoxesForPlayer(player, impactedHighlights) + previousBoxes + playerIcon)
 }
 
-func updateOneAfterStageChange(p *Player) {
+func updatePlayerAfterStageChange(p *Player) {
 	p.setSpaceHighlights()
 	updateScreenFromScratch(p)
 	p.updateRecord() // too much?
