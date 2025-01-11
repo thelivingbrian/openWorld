@@ -56,24 +56,28 @@ type WebsocketConnection interface {
 	SetWriteDeadline(t time.Time) error
 }
 
-// Health observer, All Health changes should go through here
+// Does not handle death
 func (player *Player) setHealth(n int) {
 	player.healthLock.Lock()
+	defer player.healthLock.Unlock()
 	player.health = n
-	player.healthLock.Unlock()
+}
+
+/*
+func (player *Player) setHealthAndHandleDeath(n int) {
+	player.setHealth(n)
 	if n <= 0 {
 		handleDeath(player)
 		return
 	}
 	player.updateInformation()
 }
+*/
 
 func (player *Player) updateInformation() {
-	player.setIcon()
-	player.tileLock.Lock()
-	tile := player.tile
-	player.tileLock.Unlock()
-	updateOne(divPlayerInformation(player)+playerBoxSpecifc(tile.y, tile.x, player.getIconSync()), player)
+	icon := player.setIcon()
+	tile := player.getTileSync()
+	updateOne(divPlayerInformation(player)+playerBoxSpecifc(tile.y, tile.x, icon), player)
 }
 
 func (player *Player) getHealthSync() int {
@@ -83,17 +87,17 @@ func (player *Player) getHealthSync() int {
 }
 
 // Icon Observer, note that health can not be locked
-func (player *Player) setIcon() {
+func (player *Player) setIcon() string {
 	player.viewLock.Lock()
 	defer player.viewLock.Unlock()
 	player.healthLock.Lock()
 	defer player.healthLock.Unlock()
 	if player.health <= 50 {
 		player.icon = "dim-" + player.team + " " + player.trim + " r0"
-		return
+		return player.icon
 	} else {
 		player.icon = player.team + " " + player.trim + " r0"
-		return
+		return player.icon
 	}
 }
 
@@ -312,9 +316,6 @@ func (p *Player) moveWestBoost() {
 
 func (p *Player) move(yOffset int, xOffset int) {
 	sourceTile := p.getTileSync()
-	if sourceTile.y != 7 && sourceTile.y != 8 {
-		//fmt.Println("postition at start:", sourceTile.y, sourceTile.x)
-	}
 	destTile := p.world.getRelativeTile(sourceTile, yOffset, xOffset)
 	p.push(destTile, nil, yOffset, xOffset)
 	if walkable(destTile) {
@@ -336,6 +337,7 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	if !validCoordinate(teleport.destY, teleport.destX, stage.tiles) {
 		log.Fatal("Fatal: Invalid coords from teleport: ", teleport.destStage, teleport.destY, teleport.destX)
 	}
+	// Is using getTileSync a risk with the menu teleport authorizer?
 	transferPlayer(player, player.getTileSync(), stage.tiles[teleport.destY][teleport.destX])
 }
 
@@ -388,84 +390,6 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 	dest.addLockedPlayertoTile(p)
 	return true
 }
-
-/*
-func transferPlayerWithinStage_try(p *Player, source, dest *Tile) bool {
-	p.tileLock.Lock()
-	defer p.tileLock.Unlock()
-
-	source.playerMutex.Lock()
-	defer source.playerMutex.Unlock()
-
-	// Can only try or hard lock can initate via player doing opposite transfer
-	if !dest.playerMutex.TryLock() {
-		return false
-	}
-	defer dest.playerMutex.Unlock()
-
-	_, ok := source.playerMap[p.id]
-	if ok {
-		delete(source.playerMap, p.id)
-		dest.addLockedPlayertoLockedTile(p)
-		go func() {
-			source.stage.updateAllExcept(playerBox(source), p)
-			dest.stage.updateAllExcept(playerBox(dest), p) // technically unneeded to getAnewPlayer
-		}()
-	}
-
-	return ok
-}
-
-func transferPlayerAcrossStages_try(p *Player, source, dest *Tile) bool {
-	p.stageLock.Lock()
-	defer p.stageLock.Unlock()
-	if p.stage == nil || p.stage == dest.stage {
-		return false
-	}
-
-	p.stage.playerMutex.Lock()
-	defer p.stage.playerMutex.Unlock()
-
-	if !dest.stage.playerMutex.TryLock() {
-		return false
-	}
-	defer dest.stage.playerMutex.Unlock()
-
-	p.tileLock.Lock()
-	defer p.tileLock.Unlock()
-
-	source.playerMutex.Lock()
-	defer source.playerMutex.Unlock()
-
-	if !dest.playerMutex.TryLock() {
-		return false
-	}
-	defer dest.playerMutex.Unlock()
-
-	_, foundOnStage := p.stage.playerMap[p.id]
-
-	_, foundOnTile := source.playerMap[p.id]
-
-	success := foundOnStage && foundOnTile
-	if success {
-		delete(p.stage.playerMap, p.id)
-		delete(source.playerMap, p.id)
-
-		// do at end ?
-		dest.stage.playerMap[p.id] = p
-		p.stage = dest.stage
-
-		dest.addLockedPlayertoLockedTile(p)
-
-		go func() {
-			source.stage.updateAllExcept(playerBox(source), p)
-			dest.stage.updateAllExcept(playerBox(dest), p)
-		}()
-	}
-
-	return success
-}
-*/
 
 ////////////////////////////////////////////////////////////
 //   Pushing

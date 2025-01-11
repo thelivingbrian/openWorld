@@ -229,25 +229,35 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 		return false
 	}
 
-	target.healthLock.Lock()
-	oldHealth := target.health
-	newHealth := oldHealth - dmg
-	target.health = newHealth
-	target.healthLock.Unlock()
-	fatal := oldHealth > 0 && newHealth <= 0
+	location := target.getTileSync()
+	fatal := damagePlayerAndHandleDeath(target, dmg)
 	if fatal {
-		handleDeath(target)
 		initiator.incrementKillCount()
 		initiator.incrementKillStreak()
 		initiator.updateRecord()
-		// should handle death after getting location?
-		target.tileLock.Lock()
-		location := target.tile
-		target.tileLock.Unlock()
-		go initiator.world.db.saveKillEvent(location, initiator, target) // Maybe should just pass in required fields?
-	} else {
-		go target.updateInformation()
+		go initiator.world.db.saveKillEvent(location, initiator, target)
 	}
+	return fatal
+}
+func damagePlayerAndHandleDeath(player *Player, dmg int) bool {
+	fatal := reduceHealthAndCheckFatal(player, dmg)
+	if fatal {
+		handleDeath(player)
+	} else {
+		player.updateInformation()
+	}
+	return fatal
+}
+
+func reduceHealthAndCheckFatal(player *Player, dmg int) bool {
+	player.healthLock.Lock()
+	defer player.healthLock.Unlock()
+	oldHealth := player.health
+	newHealth := oldHealth - dmg
+	player.health = newHealth
+
+	// negative health is invincibility, alternative is killstreak for killing a zombie
+	fatal := oldHealth > 0 && newHealth <= 0
 	return fatal
 }
 
