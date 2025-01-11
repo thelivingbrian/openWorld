@@ -247,8 +247,8 @@ func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 			health:            100,
 			updates:           updatesForPlayer,
 			clearUpdateBuffer: bufferClearChannel,
-			world:             &World{worldStages: make(map[string]*Stage)},
-			tangible:          true,
+			//world:             &World{worldStages: make(map[string]*Stage)},
+			tangible: true,
 		}
 		players[i].placeOnStage(stage, 2, 2)
 	}
