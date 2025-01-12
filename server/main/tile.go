@@ -144,7 +144,7 @@ func (tile *Tile) addLockedPlayertoTile(player *Player) {
 			player.menues["teleport"] = continueTeleporting(tile.teleport)
 			turnMenuOn(player, "teleport")
 		} else {
-			// new routine prevents deadlock
+			// new routine prevents deadlock // still needed ? test.
 			go player.applyTeleport(tile.teleport)
 		}
 	}

@@ -268,6 +268,7 @@ func continueTeleporting(teleport *Teleport) Menu {
 
 func teleportEventHandler(teleport *Teleport) func(*Player) {
 	return func(player *Player) {
+		// No need for new routine?
 		go func() {
 			player.applyTeleport(teleport)
 		}()
@@ -289,9 +290,6 @@ func sourceStageAuthorizerExclude(source string) func(*Player) bool {
 
 func excludeSpecialStages(p *Player) bool {
 	stagename := p.getStageNameSync()
-	// if stagename == "clinic" {
-	// 	return false
-	// }
 	if strings.HasPrefix(stagename, "infirmary") {
 		return false
 	}

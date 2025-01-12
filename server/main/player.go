@@ -22,7 +22,7 @@ type Player struct {
 	icon                     string
 	viewLock                 sync.Mutex
 	world                    *World
-	stage                    *Stage
+	stage                    *Stage // Shouldn't exist except for tile?
 	stageLock                sync.Mutex
 	tile                     *Tile
 	tileLock                 sync.Mutex
@@ -32,7 +32,7 @@ type Player struct {
 	conn                     WebsocketConnection
 	connLock                 sync.RWMutex
 	tangible                 bool
-	tangibilityLock          sync.Mutex // still has purpose?
+	tangibilityLock          sync.Mutex
 	health                   int
 	healthLock               sync.Mutex
 	money                    int
@@ -54,231 +54,6 @@ type WebsocketConnection interface {
 	ReadMessage() (messageType int, p []byte, err error)
 	Close() error
 	SetWriteDeadline(t time.Time) error
-}
-
-// Does not handle death
-func (player *Player) setHealth(n int) {
-	player.healthLock.Lock()
-	defer player.healthLock.Unlock()
-	player.health = n
-}
-
-func (player *Player) updateInformation() {
-	icon := player.setIcon()
-	tile := player.getTileSync()
-	updateOne(divPlayerInformation(player)+playerBoxSpecifc(tile.y, tile.x, icon), player)
-}
-
-func (player *Player) getHealthSync() int {
-	player.healthLock.Lock()
-	defer player.healthLock.Unlock()
-	return player.health
-}
-
-// Icon Observer, note that health can not be locked
-func (player *Player) setIcon() string {
-	player.viewLock.Lock()
-	defer player.viewLock.Unlock()
-	player.healthLock.Lock()
-	defer player.healthLock.Unlock()
-	if player.health <= 50 {
-		player.icon = "dim-" + player.team + " " + player.trim + " r0"
-		return player.icon
-	} else {
-		player.icon = player.team + " " + player.trim + " r0"
-		return player.icon
-	}
-}
-
-func (player *Player) getIconSync() string {
-	player.viewLock.Lock()
-	defer player.viewLock.Unlock()
-	return player.icon
-}
-
-func (player *Player) getTeamNameSync() string {
-	player.viewLock.Lock()
-	defer player.viewLock.Unlock()
-	return player.team
-}
-
-// Stage observer, also sets name.
-func (player *Player) setStage(stage *Stage) {
-	player.stageLock.Lock()
-	defer player.stageLock.Unlock()
-	player.stage = stage
-}
-
-func (player *Player) getStageNameSync() string {
-	player.stageLock.Lock()
-	defer player.stageLock.Unlock()
-	// nil ?
-	return player.stage.name
-}
-
-func (player *Player) getStageSync() *Stage {
-	player.stageLock.Lock()
-	defer player.stageLock.Unlock()
-	return player.stage
-}
-
-func (player *Player) getTileSync() *Tile {
-	player.tileLock.Lock()
-	defer player.tileLock.Unlock()
-	return player.tile
-}
-
-// Money observer, All Money changes should go through here
-func (player *Player) setMoney(n int) {
-	player.moneyLock.Lock()
-	defer player.moneyLock.Unlock()
-	player.money = n
-	updateOne(divPlayerInformation(player), player)
-}
-
-func (player *Player) getMoneySync() int {
-	player.moneyLock.Lock()
-	defer player.moneyLock.Unlock()
-	return player.money
-}
-
-// Streak observer, All streak changes should go through here
-func (player *Player) setKillStreak(n int) {
-	player.streakLock.Lock()
-	defer player.streakLock.Unlock()
-	player.killstreak = n
-}
-
-func (player *Player) setKillStreakAndUpdate(n int) {
-	player.setKillStreak(n)
-	player.world.leaderBoard.mostDangerous.Update(player)
-	updateOne(divPlayerInformation(player), player)
-}
-
-func (player *Player) getKillStreakSync() int {
-	player.streakLock.Lock()
-	defer player.streakLock.Unlock()
-	return player.killstreak
-}
-
-func (player *Player) incrementKillStreak() {
-	newStreak := player.getKillStreakSync() + 1
-	player.setKillStreakAndUpdate(newStreak)
-}
-
-func (player *Player) getKillCountSync() int {
-	player.killCountLock.Lock()
-	defer player.killCountLock.Unlock()
-	return player.killCount
-}
-
-// killCount Observer - no direct set
-func (player *Player) incrementKillCount() {
-	player.killCountLock.Lock()
-	defer player.killCountLock.Unlock()
-	player.killCount++
-}
-
-func (player *Player) getDeathCountSync() int {
-	player.deathCountLock.Lock()
-	defer player.deathCountLock.Unlock()
-	return player.deathCount
-}
-
-// deathCount Observer - no direct set
-func (player *Player) incrementDeathCount() {
-	player.deathCountLock.Lock()
-	defer player.deathCountLock.Unlock()
-	player.deathCount++
-}
-
-// goals observer no direct set
-func (player *Player) incrementGoalsScored() {
-	player.goalsScoredLock.Lock()
-	defer player.goalsScoredLock.Unlock()
-	player.goalsScored++
-}
-
-func (player *Player) getGoalsScored() int {
-	player.goalsScoredLock.Lock()
-	defer player.goalsScoredLock.Unlock()
-	return player.goalsScored
-}
-
-// generally will trigger a logout
-func (player *Player) closeConnectionSync() error {
-	player.connLock.Lock()
-	defer player.connLock.Unlock()
-	if player.conn == nil {
-		return errors.New("Player connection nil before attempted close.")
-	}
-	return player.conn.Close()
-}
-
-func handleDeath(player *Player) {
-	player.dropMoneyOnTileAndRemoveFromStage() // After this should be impossible for any transfer to succeed
-	player.incrementDeathCount()
-	player.setHealth(150)
-	player.setKillStreak(0)
-	player.actions = createDefaultActions() // problematic
-
-	stage := getStageFromStageName(player.world, infirmaryStagenameForPlayer(player))
-	player.setStage(stage)
-	player.updateRecordOnDeath(stage.tiles[2][2])
-	respawnOnStage(player, stage)
-}
-
-func respawnOnStage(player *Player, stage *Stage) {
-	player.tangibilityLock.Lock()
-	defer player.tangibilityLock.Unlock()
-	if !player.tangible {
-		return
-	}
-
-	placePlayerOnStageAt(player, stage, 2, 2) // This should succeed almost always, unless the player has been logged out or is logging out.
-	player.updateInformation()
-}
-
-func (player *Player) updateRecord() {
-	currentTile := player.getTileSync()
-	go player.world.db.updateRecordForPlayer(player, currentTile)
-}
-
-func (player *Player) updateRecordOnDeath(respawnTile *Tile) {
-	go player.world.db.updateRecordForPlayer(player, respawnTile)
-}
-
-func (player *Player) dropMoneyOnTileAndRemoveFromStage() {
-	player.getTileSync().addMoneyAndNotifyAll(max(halveMoneyOf(player), 10)) // Tile money needs mutex.
-	player.removeFromTileAndStage()
-}
-
-func (player *Player) removeFromTileAndStage() {
-	player.stageLock.Lock()
-	defer player.stageLock.Unlock()
-	player.tileLock.Lock()
-	defer player.tileLock.Unlock()
-	if player.stage == nil || player.tile == nil {
-		return
-	}
-	player.tile.removePlayerAndNotifyOthers(player)
-	player.stage.removeLockedPlayerById(player.id)
-}
-
-func infirmaryStagenameForPlayer(player *Player) string {
-	team := player.getTeamNameSync()
-	if team != "sky-blue" && team != "fuchsia" {
-		return "clinic"
-	}
-	longitude := strconv.Itoa(rand.IntN(4))
-	latitude := ""
-	if team == "fuchsia" {
-		latitude = "0"
-	}
-	if team == "sky-blue" {
-		latitude = "3"
-	}
-	return fmt.Sprintf("infirmary:%s-%s", latitude, longitude)
 }
 
 ////////////////////////////////////////////////////////////
@@ -405,7 +180,6 @@ func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bo
 
 	if tile.interactable == nil {
 		if tile.material.Walkable { // Prevents lock contention from using Walkable()
-			// nil = nil ?
 			if interactable != nil {
 				tile.interactable = interactable
 				tile.stage.updateAll(interactableBox(tile))
@@ -438,6 +212,66 @@ func (p *Player) pushUnder(yOffset int, xOffset int) {
 	if currentTile != nil && currentTile.interactable != nil {
 		p.push(currentTile, nil, yOffset, xOffset)
 	}
+}
+
+///////////////////////////////////////////////////////////////////////
+// Death
+
+func handleDeath(player *Player) {
+	player.dropMoneyOnTileAndRemoveFromStage() // After this should be impossible for any transfer to succeed
+	player.incrementDeathCount()
+	player.setHealth(150)
+	player.setKillStreak(0)
+	player.actions = createDefaultActions() // problematic
+
+	stage := getStageFromStageName(player.world, infirmaryStagenameForPlayer(player))
+	player.setStage(stage)
+	player.updateRecordOnDeath(stage.tiles[2][2])
+	respawnOnStage(player, stage)
+}
+
+func respawnOnStage(player *Player, stage *Stage) {
+	player.tangibilityLock.Lock()
+	defer player.tangibilityLock.Unlock()
+	if !player.tangible {
+		return
+	}
+
+	placePlayerOnStageAt(player, stage, 2, 2)
+	player.updateInformation()
+}
+
+func (player *Player) dropMoneyOnTileAndRemoveFromStage() {
+	player.getTileSync().addMoneyAndNotifyAllExcept(max(halveMoneyOf(player), 10), player)
+	player.removeFromTileAndStage()
+}
+
+func (player *Player) removeFromTileAndStage() {
+	player.stageLock.Lock()
+	defer player.stageLock.Unlock()
+	player.tileLock.Lock()
+	defer player.tileLock.Unlock()
+	if player.stage == nil || player.tile == nil {
+		return
+	}
+	player.tile.removePlayerAndNotifyOthers(player)
+	player.stage.removeLockedPlayerById(player.id)
+}
+
+func infirmaryStagenameForPlayer(player *Player) string {
+	team := player.getTeamNameSync()
+	if team != "sky-blue" && team != "fuchsia" {
+		return "clinic"
+	}
+	longitude := strconv.Itoa(rand.IntN(4))
+	latitude := ""
+	if team == "fuchsia" {
+		latitude = "0"
+	}
+	if team == "sky-blue" {
+		latitude = "3"
+	}
+	return fmt.Sprintf("infirmary:%s-%s", latitude, longitude)
 }
 
 ////////////////////////////////////////////////////////////
@@ -492,7 +326,6 @@ func sendUpdate(player *Player, update []byte) error {
 	player.connLock.Lock()
 	defer player.connLock.Unlock()
 	if player.conn == nil {
-		// This spams the tests agressively because updatinghtmlbyPlayer calls this directly
 		//   fmt.Println("WARN: Attempted to serve update to expired connection.")
 		return errors.New("connection is expired")
 	}
@@ -505,7 +338,7 @@ func sendUpdate(player *Player, update []byte) error {
 	err = player.conn.WriteMessage(websocket.TextMessage, update)
 	if err != nil {
 		fmt.Printf("WARN: WriteMessage failed for player %s: %v\n", player.username, err)
-		// Close connection if writes consistently fail ?
+		// Close connection if writes consistently fail
 		if player.sessionTimeOutViolations.Add(1) >= 1 {
 			return err
 		}
@@ -564,6 +397,14 @@ func (player *Player) updateBottomText(message string) {
 	updateOne(msg, player)
 }
 
+func (player *Player) updateInformation() {
+	icon := player.setIcon()
+	tile := player.getTileSync()
+	updateOne(divPlayerInformation(player)+playerBoxSpecifc(tile.y, tile.x, icon), player)
+}
+
+// chan Update
+
 func updateOne(update string, player *Player) {
 	player.updates <- []byte(update)
 }
@@ -572,162 +413,168 @@ func (p *Player) trySend(msg []byte) {
 	p.updates <- msg
 }
 
+// Database update
+
+func (player *Player) updateRecord() {
+	currentTile := player.getTileSync()
+	go player.world.db.updateRecordForPlayer(player, currentTile)
+}
+
+func (player *Player) updateRecordOnDeath(respawnTile *Tile) {
+	go player.world.db.updateRecordForPlayer(player, respawnTile)
+}
+
 /////////////////////////////////////////////////////////////
-// Actions
+// Observers
 
-type Actions struct {
-	spaceHighlights     map[*Tile]bool
-	spaceHighlightMutex sync.Mutex
-	spaceStack          *StackOfPowerUp
-	boostCounter        int
-	boostMutex          sync.Mutex
+// Does not handle death
+func (player *Player) setHealth(n int) {
+	player.healthLock.Lock()
+	defer player.healthLock.Unlock()
+	player.health = n
 }
 
-type PowerUp struct {
-	areaOfInfluence [][2]int
-	//damageAtRadius  [4]int // unused
+func (player *Player) getHealthSync() int {
+	player.healthLock.Lock()
+	defer player.healthLock.Unlock()
+	return player.health
 }
 
-type StackOfPowerUp struct {
-	powers     []*PowerUp
-	powerMutex sync.Mutex
-}
-
-func createDefaultActions() *Actions {
-	return &Actions{
-		spaceHighlights:     map[*Tile]bool{},
-		spaceHighlightMutex: sync.Mutex{},
-		spaceStack:          &StackOfPowerUp{},
-		boostCounter:        0,
-		boostMutex:          sync.Mutex{},
+// Icon Observer, note that health can not be locked
+func (player *Player) setIcon() string {
+	player.viewLock.Lock()
+	defer player.viewLock.Unlock()
+	player.healthLock.Lock()
+	defer player.healthLock.Unlock()
+	if player.health <= 50 {
+		player.icon = "dim-" + player.team + " " + player.trim + " r0"
+		return player.icon
+	} else {
+		player.icon = player.team + " " + player.trim + " r0"
+		return player.icon
 	}
 }
 
-// Space Highlights
-
-func (player *Player) setSpaceHighlights() {
-	player.actions.spaceHighlightMutex.Lock()
-	defer player.actions.spaceHighlightMutex.Unlock()
-	player.actions.spaceHighlights = map[*Tile]bool{}
-	currentTile := player.getTileSync()
-	absCoordinatePairs := findOffsetsGivenPowerUp(currentTile.y, currentTile.x, player.actions.spaceStack.peek())
-	for _, pair := range absCoordinatePairs {
-		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
-			tile := player.stage.tiles[pair[0]][pair[1]]
-			player.actions.spaceHighlights[tile] = true
-		}
-	}
+func (player *Player) getIconSync() string {
+	player.viewLock.Lock()
+	defer player.viewLock.Unlock()
+	return player.icon
 }
 
-func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highlights
-	player.actions.spaceHighlightMutex.Lock()
-	defer player.actions.spaceHighlightMutex.Unlock()
-	previous := player.actions.spaceHighlights
-	player.actions.spaceHighlights = map[*Tile]bool{}
-	currentTile := player.getTileSync()
-	absCoordinatePairs := findOffsetsGivenPowerUp(currentTile.y, currentTile.x, player.actions.spaceStack.peek())
-	var impactedTiles []*Tile
-	for _, pair := range absCoordinatePairs {
-		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
-			tile := player.stage.tiles[pair[0]][pair[1]]
-			player.actions.spaceHighlights[tile] = true
-			if _, contains := previous[tile]; contains {
-				delete(previous, tile)
-			} else {
-				impactedTiles = append(impactedTiles, tile)
-			}
-		}
-	}
-	return append(impactedTiles, mapOfTileToArray(previous)...)
+func (player *Player) getTeamNameSync() string {
+	player.viewLock.Lock()
+	defer player.viewLock.Unlock()
+	return player.team
 }
 
-func (player *Player) activatePower() {
-	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
-
-	playerHighlights := highlightMapToSlice(player)
-	for _, tile := range playerHighlights {
-		go tile.damageAll(50, player)
-		destroyInteractable(tile, player)
-		tile.eventsInFlight.Add(1)
-		tilesToHighlight = append(tilesToHighlight, tile)
-
-		go tile.tryToNotifyAfter(100)
-	}
-	damageBoxes := sliceOfTileToWeatherBoxes(tilesToHighlight, randomFieryColor())
-	player.stage.updateAll(damageBoxes)
-	updateOne(sliceOfTileToHighlightBoxes(tilesToHighlight, ""), player)
-
-	player.actions.spaceHighlights = map[*Tile]bool{}
-	if player.actions.spaceStack.hasPower() {
-		player.nextPower()
-	}
+// Stage observer, also sets name.
+func (player *Player) setStage(stage *Stage) {
+	player.stageLock.Lock()
+	defer player.stageLock.Unlock()
+	player.stage = stage
 }
 
-func (player *Player) nextPower() {
-	player.actions.spaceStack.pop() // Throw old power away
-	player.setSpaceHighlights()
-	updateOne(sliceOfTileToHighlightBoxes(highlightMapToSlice(player), spaceHighlighter()), player)
+func (player *Player) getStageNameSync() string {
+	player.stageLock.Lock()
+	defer player.stageLock.Unlock()
+	return player.stage.name
 }
 
-func highlightMapToSlice(player *Player) []*Tile {
-	out := make([]*Tile, 0)
-	player.actions.spaceHighlightMutex.Lock()
-	defer player.actions.spaceHighlightMutex.Unlock()
-	for tile := range player.actions.spaceHighlights {
-		out = append(out, tile)
-	}
-	return out
+func (player *Player) getStageSync() *Stage {
+	player.stageLock.Lock()
+	defer player.stageLock.Unlock()
+	return player.stage
 }
 
-// Boosts
+func (player *Player) getTileSync() *Tile {
+	player.tileLock.Lock()
+	defer player.tileLock.Unlock()
+	return player.tile
+}
 
-func (player *Player) addBoosts(n int) {
-	// not thread-safe
-	player.actions.boostCounter += n
+// Money observer, All Money changes should go through here
+func (player *Player) setMoney(n int) {
+	player.moneyLock.Lock()
+	defer player.moneyLock.Unlock()
+	player.money = n
 	updateOne(divPlayerInformation(player), player)
 }
 
-func (player *Player) useBoost() bool {
-	player.actions.boostMutex.Lock()
-	defer player.actions.boostMutex.Unlock()
-	if player.actions.boostCounter > 0 {
-		player.actions.boostCounter--
-	}
+func (player *Player) getMoneySync() int {
+	player.moneyLock.Lock()
+	defer player.moneyLock.Unlock()
+	return player.money
+}
+
+// Streak observer, All streak changes should go through here
+func (player *Player) setKillStreak(n int) {
+	player.streakLock.Lock()
+	defer player.streakLock.Unlock()
+	player.killstreak = n
+}
+
+func (player *Player) setKillStreakAndUpdate(n int) {
+	player.setKillStreak(n)
+	player.world.leaderBoard.mostDangerous.Update(player)
 	updateOne(divPlayerInformation(player), player)
-	return player.actions.boostCounter > 0
 }
 
-func (stack *StackOfPowerUp) hasPower() bool {
-	stack.powerMutex.Lock()
-	defer stack.powerMutex.Unlock()
-	return len(stack.powers) > 0
+func (player *Player) getKillStreakSync() int {
+	player.streakLock.Lock()
+	defer player.streakLock.Unlock()
+	return player.killstreak
 }
 
-// Power up stack
+func (player *Player) incrementKillStreak() {
+	newStreak := player.getKillStreakSync() + 1
+	player.setKillStreakAndUpdate(newStreak)
+}
 
-func (stack *StackOfPowerUp) pop() *PowerUp {
-	stack.powerMutex.Lock()
-	defer stack.powerMutex.Unlock()
-	if len(stack.powers) > 0 {
-		out := stack.powers[len(stack.powers)-1]
-		stack.powers = stack.powers[:len(stack.powers)-1]
-		return out
+func (player *Player) getKillCountSync() int {
+	player.killCountLock.Lock()
+	defer player.killCountLock.Unlock()
+	return player.killCount
+}
+
+// killCount Observer - no direct set
+func (player *Player) incrementKillCount() {
+	player.killCountLock.Lock()
+	defer player.killCountLock.Unlock()
+	player.killCount++
+}
+
+func (player *Player) getDeathCountSync() int {
+	player.deathCountLock.Lock()
+	defer player.deathCountLock.Unlock()
+	return player.deathCount
+}
+
+// deathCount Observer - no direct set
+func (player *Player) incrementDeathCount() {
+	player.deathCountLock.Lock()
+	defer player.deathCountLock.Unlock()
+	player.deathCount++
+}
+
+// goals observer no direct set
+func (player *Player) incrementGoalsScored() {
+	player.goalsScoredLock.Lock()
+	defer player.goalsScoredLock.Unlock()
+	player.goalsScored++
+}
+
+func (player *Player) getGoalsScored() int {
+	player.goalsScoredLock.Lock()
+	defer player.goalsScoredLock.Unlock()
+	return player.goalsScored
+}
+
+// generally will trigger a logout
+func (player *Player) closeConnectionSync() error {
+	player.connLock.Lock()
+	defer player.connLock.Unlock()
+	if player.conn == nil {
+		return errors.New("Player connection nil before attempted close.")
 	}
-	return nil // Should be impossible but return default power instead?
-}
-
-func (stack *StackOfPowerUp) peek() *PowerUp {
-	stack.powerMutex.Lock()
-	defer stack.powerMutex.Unlock()
-	if len(stack.powers) > 0 {
-		return stack.powers[len(stack.powers)-1]
-	}
-	return nil
-}
-
-func (stack *StackOfPowerUp) push(power *PowerUp) *StackOfPowerUp {
-	stack.powerMutex.Lock()
-	defer stack.powerMutex.Unlock()
-	stack.powers = append(stack.powers, power)
-	return stack
+	return player.conn.Close()
 }

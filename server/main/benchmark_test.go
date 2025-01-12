@@ -14,9 +14,6 @@ var playerCounts = [2]int{1, 100}
 func BenchmarkMoveTwice(b *testing.B) {
 	loadFromJson()
 
-	// races agressively with self unless on one -cpu=1 for reasons I do not understand
-	// setParallelism has no impact
-
 	for _, stageName := range stageNames {
 
 		testStage := createStageByName(stageName)
@@ -62,58 +59,6 @@ func BenchmarkMoveAllTwice(b *testing.B) {
 		}
 	}
 }
-
-/*
-
-// Tinfoil hat purposes
-
-func BenchmarkDemoTryLock(b *testing.B) {
-	loadFromJson()
-
-	counts := []int{1, 100}
-
-	//b.SetParallelism(1)
-
-	for _, count := range counts {
-		b.Run(fmt.Sprintf("stage:%s players:%d Cores", stageName, count), func(b *testing.B) {
-			// b.StopTimer()
-
-			// b.StartTimer()
-			f := &Foo{}
-			lock1, lock2 := sync.Mutex{}, sync.Mutex{}
-
-			for i := 0; i < b.N; i++ {
-				for index := 0; index < count; index++ {
-					f.tryLockUnlock(&lock1, &lock2)
-					f.tryLockUnlock(&lock2, &lock1)
-				}
-			}
-		})
-	}
-}
-
-type Foo struct {
-}
-
-func (*Foo) lockUnlock(lock1, lock2 *sync.Mutex) {
-	lock1.Lock()
-	defer lock1.Unlock()
-	lock2.Lock()
-	defer lock2.Unlock()
-}
-
-func (*Foo) tryLockUnlock(lock1, lock2 *sync.Mutex) {
-	if !lock1.TryLock() {
-		fmt.Println("lock1 already locked :( ")
-	}
-	defer lock1.Unlock()
-	if !lock2.TryLock() {
-		fmt.Println("lock2 already locked :( ")
-	}
-	defer lock2.Unlock()
-}
-
-*/
 
 // Move in circles test
 

@@ -123,12 +123,6 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 	if !validCoordinate(y, x, stage.tiles) {
 		log.Fatal("Fatal: Invalid coords to place on stage.")
 	}
-	// Prevents add of player with closed channel
-	// p.tangibilityLock.Lock()
-	// defer p.tangibilityLock.Unlock()
-	// if !p.tangible {
-	// 	return
-	// }
 
 	p.setStage(stage)
 	spawnItemsFor(p, stage)
