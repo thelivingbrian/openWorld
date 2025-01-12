@@ -213,7 +213,7 @@ func (player *Player) closeConnectionSync() error {
 }
 
 func handleDeath(player *Player) {
-	player.removeFromTileAndStage() // After this should be impossible for any transfer to succeed
+	player.dropMoneyOnTileAndRemoveFromStage() // After this should be impossible for any transfer to succeed
 	player.incrementDeathCount()
 	player.setHealth(150)
 	player.setKillStreak(0)
@@ -232,23 +232,20 @@ func (player *Player) updateRecord() {
 	go player.world.db.updateRecordForPlayer(player, currentTile)
 }
 
-func (player *Player) removeFromTileAndStage() {
-	/*
+func (player *Player) dropMoneyOnTileAndRemoveFromStage() {
+	player.getTileSync().addMoneyAndNotifyAll(max(halveMoneyOf(player), 10)) // Tile money needs mutex.
+	player.removeFromTileAndStage()
+}
 
-		// Should be uneeded / impossible
-		if !player.tile.removePlayerAndNotifyOthers(player) {
-			fmt.Println("Trying again") // Can prevent race with transfer but not perfect
-			player.tile.removePlayerAndNotifyOthers(player)
-		}
-	*/
+func (player *Player) removeFromTileAndStage() {
 	player.stageLock.Lock()
 	defer player.stageLock.Unlock()
 	player.tileLock.Lock()
 	defer player.tileLock.Unlock()
-	// NotifyAllExcept
-	player.tile.addMoneyAndNotifyAll(max(halveMoneyOf(player), 10)) // Tile money needs mutex.
+	if player.stage == nil || player.tile == nil {
+		return
+	}
 	player.tile.removePlayerAndNotifyOthers(player)
-
 	player.stage.removeLockedPlayerById(player.id)
 }
 
@@ -363,10 +360,6 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 	defer p.stageLock.Unlock()
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
-
-	if p.stage == nil || p.stage == dest.stage {
-		return false
-	}
 
 	if !tryRemovePlayer(source, p) {
 		return false

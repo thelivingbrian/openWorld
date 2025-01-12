@@ -195,12 +195,13 @@ func initiatelogout(player *Player) {
 	player.tangible = false
 
 	fmt.Println("initate logout: " + player.username)
-	if !fullyRemovePlayer(player) {
-		fmt.Println("This is a sad state of affairs. We have attempted to remove the player and failed. :( ")
-		// dangerous because the tLock is about to open and the player is likely still somewhere
-		// call initiateLogout if intangible player is damaged?
-		// player may be trapped in clinic
-	}
+	player.removeFromTileAndStage()
+	// if !fullyRemovePlayer(player) {
+	// 	fmt.Println("This is a sad state of affairs. We have attempted to remove the player and failed. :( ")
+	// 	// dangerous because the tLock is about to open and the player is likely still somewhere
+	// 	// call initiateLogout if intangible player is damaged?
+	// 	// player may be trapped in clinic
+	// }
 
 	playersToLogout <- player
 
@@ -230,6 +231,10 @@ func completeLogout(player *Player) {
 
 	fmt.Println("Logout complete: " + player.username)
 
+}
+
+func fullyRemovePlayer_do(player *Player) {
+	player.removeFromTileAndStage()
 }
 
 func fullyRemovePlayer(player *Player) bool {
