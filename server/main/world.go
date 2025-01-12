@@ -444,6 +444,8 @@ func notifyChangeInMostDangerous(currentMostDangerous *Player) {
 	if currentMostDangerous.id == "HS-only" {
 		return
 	}
+	currentMostDangerous.world.wPlayerMutex.Lock()
+	defer currentMostDangerous.world.wPlayerMutex.Unlock()
 	for _, p := range currentMostDangerous.world.worldPlayers {
 		if p == currentMostDangerous {
 			p.updateBottomText("You are the most dangerous bloop!")
