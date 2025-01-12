@@ -124,11 +124,11 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 		log.Fatal("Fatal: Invalid coords to place on stage.")
 	}
 	// Prevents add of player with closed channel
-	p.tangibilityLock.Lock()
-	defer p.tangibilityLock.Unlock()
-	if !p.tangible {
-		return
-	}
+	// p.tangibilityLock.Lock()
+	// defer p.tangibilityLock.Unlock()
+	// if !p.tangible {
+	// 	return
+	// }
 
 	p.setStage(stage)
 	spawnItemsFor(p, stage)

@@ -145,9 +145,12 @@ func (player *Player) getMoneySync() int {
 // Streak observer, All streak changes should go through here
 func (player *Player) setKillStreak(n int) {
 	player.streakLock.Lock()
+	defer player.streakLock.Unlock()
 	player.killstreak = n
-	player.streakLock.Unlock()
+}
 
+func (player *Player) setKillStreakAndUpdate(n int) {
+	player.setKillStreak(n)
 	player.world.leaderBoard.mostDangerous.Update(player)
 	updateOne(divPlayerInformation(player), player)
 }
@@ -160,7 +163,7 @@ func (player *Player) getKillStreakSync() int {
 
 func (player *Player) incrementKillStreak() {
 	newStreak := player.getKillStreakSync() + 1
-	player.setKillStreak(newStreak)
+	player.setKillStreakAndUpdate(newStreak)
 }
 
 func (player *Player) getKillCountSync() int {
@@ -217,11 +220,20 @@ func handleDeath(player *Player) {
 	player.incrementDeathCount()
 	player.setHealth(150)
 	player.setKillStreak(0)
-	player.actions = createDefaultActions()
+	player.actions = createDefaultActions() // problematic
 
 	stage := getStageFromStageName(player.world, infirmaryStagenameForPlayer(player))
 	player.setStage(stage)
-	player.updateRecord()
+	player.updateRecordOnDeath(stage.tiles[2][2])
+	respawnOnStage(player, stage)
+}
+
+func respawnOnStage(player *Player, stage *Stage) {
+	player.tangibilityLock.Lock()
+	defer player.tangibilityLock.Unlock()
+	if !player.tangible {
+		return
+	}
 
 	placePlayerOnStageAt(player, stage, 2, 2) // This should succeed almost always, unless the player has been logged out or is logging out.
 	player.updateInformation()
@@ -230,6 +242,10 @@ func handleDeath(player *Player) {
 func (player *Player) updateRecord() {
 	currentTile := player.getTileSync()
 	go player.world.db.updateRecordForPlayer(player, currentTile)
+}
+
+func (player *Player) updateRecordOnDeath(respawnTile *Tile) {
+	go player.world.db.updateRecordForPlayer(player, respawnTile)
 }
 
 func (player *Player) dropMoneyOnTileAndRemoveFromStage() {

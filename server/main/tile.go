@@ -22,6 +22,7 @@ type Tile struct {
 	powerUp           *PowerUp
 	powerMutex        sync.Mutex
 	money             int
+	moneyMutex        sync.Mutex
 	boosts            int
 	htmlTemplate      string
 	bottomText        string
@@ -316,8 +317,16 @@ func (tile *Tile) addBoostsAndNotifyAll() {
 }
 
 func (tile *Tile) addMoneyAndNotifyAll(amount int) {
+	//tile.money += amount
+	//tile.stage.updateAll(svgFromTile(tile))
+	tile.addMoneyAndNotifyAllExcept(amount, nil)
+}
+
+func (tile *Tile) addMoneyAndNotifyAllExcept(amount int, player *Player) {
+	tile.moneyMutex.Lock()
+	defer tile.moneyMutex.Unlock()
 	tile.money += amount
-	tile.stage.updateAll(svgFromTile(tile))
+	tile.stage.updateAllExcept(svgFromTile(tile), player)
 }
 
 ///

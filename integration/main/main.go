@@ -35,7 +35,8 @@ func main() {
 }
 
 func IntegrationClientBed(w http.ResponseWriter, r *http.Request) {
-	// curl -X POST "http://localhost:4440/mass?stagename=team-blue:3-3&read=true&count=200&ttl=5&action=random"
+	// curl -X POST "http://localhost:4440/mass?stagename=team-fuchsia:3-3&read=true&count=500&ttl=55&action=lr&team=fuchsia"
+	// curl -X GET "https://s0.bloopworld.co/stats"
 	stagename := r.URL.Query().Get("stagename")
 
 	var read bool

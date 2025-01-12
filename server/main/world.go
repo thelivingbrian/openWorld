@@ -211,7 +211,7 @@ func completeLogout(player *Player) {
 	player.updateRecord() // Should return error
 
 	// new method
-	player.setKillStreak(0)
+	player.setKillStreakAndUpdate(0) // Don't update
 	player.world.leaderBoard.mostDangerous.Lock()
 	index, exists := player.world.leaderBoard.mostDangerous.index[player]
 	if exists {
