@@ -42,28 +42,24 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 		fmt.Println("player not found with token: " + token)
 		return
 	}
-	existingPlayer := world.join(*incoming)
-	if existingPlayer == nil {
+	player := world.join(*incoming, conn)
+	if player == nil {
 		fmt.Println("Failed to join player with token: " + token)
 		return
 	}
-	existingPlayer.conn = conn
 
-	handleNewPlayer(existingPlayer)
+	handleNewPlayer(player)
 }
 
-func handleNewPlayer(existingPlayer *Player) {
-	defer initiatelogout(existingPlayer)
-	go existingPlayer.sendUpdates()
-	stage := getStageFromStageName(existingPlayer.world, existingPlayer.stageName)
-	placePlayerOnStageAt(existingPlayer, stage, existingPlayer.y, existingPlayer.x)
-	fmt.Println("New Connection")
+func handleNewPlayer(player *Player) {
+	defer initiatelogout(player)
+	fmt.Println("New Connection from: " + player.username)
 	for {
-		_, msg, err := existingPlayer.conn.ReadMessage()
+		_, msg, err := player.conn.ReadMessage()
 		if err != nil {
 			// After Exiting loop player is logged out
 			//   Add time delay to prevent rage quit ?
-			fmt.Println("Conn Read Error: ", err)
+			//   fmt.Println("Conn Read Error: ", err)
 			break
 		}
 
@@ -72,7 +68,7 @@ func handleNewPlayer(existingPlayer *Player) {
 			fmt.Println("Invalid input")
 			continue
 		}
-		if event.Token != existingPlayer.id {
+		if event.Token != player.id {
 			// check mildly irrelevant?
 			fmt.Println("Cheating")
 			break
@@ -80,8 +76,8 @@ func handleNewPlayer(existingPlayer *Player) {
 
 		// Throttle input here?
 
-		existingPlayer.handlePress(event)
-		if existingPlayer.conn == nil {
+		player.handlePress(event)
+		if player.conn == nil {
 			return
 		}
 	}
@@ -155,18 +151,19 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 	}
 	if event.Name == "g" {
 
-		//Full swap takes priority in either order, otherwise both may apply
+		// go func() {
+		// 	for i := 0; i <= 80; i++ {
+		// 		time.Sleep(20 * time.Millisecond)
+		// 		updateOne(generateDivs(i), player)
+		// 	}
+		// }()
 
-		//exTile := `<div id="t1-0" class="box top green"></div>
-		//			<div id="t1-1" class="box top green"></div>`
+		//stage := getStageFromStageName(player.world, "team-blue:3-3")
+		//stage.addPlayer(player)
 
-		go func() {
-			for i := 0; i <= 80; i++ {
-				time.Sleep(20 * time.Millisecond)
-				updateOne(generateDivs(i), player)
-			}
+		//fmt.Println(len(player.stage.playerMap), len(player.tile.stage.playerMap))
 
-		}()
+		spawnNewPlayerWithRandomMovement(player, 250)
 
 		//updateOne(generateWeatherSolid("blue trsp20"), player)
 		//player.updates <- generateWeatherSolidBytes("night trsp20")
@@ -193,13 +190,6 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 				time.Sleep(d * time.Millisecond)
 
 			}
-		*/
-
-		/*
-			//player.updateBottomText("Heyo ;) ")
-			spawnNewPlayerWithRandomMovement(player, 250)
-			npcs++
-			println("npcs: ", npcs)
 		*/
 	}
 	if event.Name == "Space-On" {
@@ -426,11 +416,11 @@ func (m *MockConn) SetWriteDeadline(t time.Time) error {
 
 func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, context.CancelFunc) {
 	username := "user-" + uuid.New().String()
-	record := PlayerRecord{Username: username, Health: 50, Y: ref.y, X: ref.x, StageName: ref.stage.name, Team: "test-team-2", Trim: "white-b thick"}
+	refTile := ref.getTileSync()
+	record := PlayerRecord{Username: username, Health: 50, StageName: ref.stage.name, X: refTile.x, Y: refTile.y, Team: "test-team-2", Trim: "white-b thick"}
 	loginRequest := createLoginRequest(record)
 	ref.world.addIncoming(loginRequest)
-	newPlayer := ref.world.join(loginRequest)
-	newPlayer.conn = &MockConn{}
+	newPlayer := ref.world.join(loginRequest, &MockConn{})
 	ctx, cancel := context.WithCancel(context.Background())
 	go func(ctx context.Context) {
 		for {
@@ -452,8 +442,6 @@ func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, conte
 			}
 		}
 	}(ctx)
-	s := getStageFromStageName(newPlayer.world, newPlayer.stageName)
-	placePlayerOnStageAt(newPlayer, s, newPlayer.y, newPlayer.x)
 	go func(ctx context.Context) {
 		for {
 			select {

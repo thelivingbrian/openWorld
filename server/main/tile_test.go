@@ -44,11 +44,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	record := PlayerRecord{Username: "test1", Team: "imaginary-test-team", Y: 13, X: 13, StageName: testStage.name}
 	req := createLoginRequest(record)
 	world.addIncoming(req)
-	p := world.join(req)
-	p.conn = &MockConn{}
-	go drainChannel(p.updates)
-	go drainChannel(p.clearUpdateBuffer)
-	p.placeOnStage(testStage)
+	p := world.join(req, &MockConn{})
 
 	// Get in position
 	p.moveEastBoost() // should do nothing
@@ -108,8 +104,8 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	if p.stage != testStage {
 		t.Error("Player should be on the test stage")
 	}
-	if p.getKillStreakSync() < 500 {
-		t.Error("Killstreak should be at least 500")
+	if p.getKillStreakSync() != 500 {
+		t.Error("Killstreak should be exactly 500")
 	}
 	if p.world.leaderBoard.mostDangerous.Peek() != p {
 		t.Error("Player should be most dangerous")

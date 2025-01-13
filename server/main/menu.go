@@ -268,12 +268,9 @@ func continueTeleporting(teleport *Teleport) Menu {
 
 func teleportEventHandler(teleport *Teleport) func(*Player) {
 	return func(player *Player) {
-		previousTile := player.tile
+		// No need for new routine?
 		go func() {
 			player.applyTeleport(teleport)
-
-			impactedTiles := player.updateSpaceHighlights()
-			updateOneAfterMovement(player, impactedTiles, previousTile)
 		}()
 		turnMenuOff(player) // try other order
 	}
@@ -293,9 +290,6 @@ func sourceStageAuthorizerExclude(source string) func(*Player) bool {
 
 func excludeSpecialStages(p *Player) bool {
 	stagename := p.getStageNameSync()
-	// if stagename == "clinic" {
-	// 	return false
-	// }
 	if strings.HasPrefix(stagename, "infirmary") {
 		return false
 	}

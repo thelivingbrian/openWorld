@@ -109,7 +109,7 @@ func createRandomToken() string {
 	return hex.EncodeToString(token)
 }
 
-func (world *World) join(incoming LoginRequest) *Player {
+func (world *World) join(incoming LoginRequest, conn WebsocketConnection) *Player {
 	// need log levels
 	//fmt.Println("New Player: " + record.Username)
 	//fmt.Println("Token: " + token)
@@ -125,6 +125,11 @@ func (world *World) join(incoming LoginRequest) *Player {
 	world.leaderBoard.mostDangerous.Lock()
 	world.leaderBoard.mostDangerous.Push(newPlayer)
 	world.leaderBoard.mostDangerous.Unlock()
+
+	newPlayer.conn = conn
+	go newPlayer.sendUpdates()
+	stage := getStageFromStageName(world, incoming.Record.StageName)
+	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
 
 	return newPlayer
 }
@@ -146,9 +151,6 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		sessionTimeOutViolations: atomic.Int32{},
 		tangible:                 true,
 		tangibilityLock:          sync.Mutex{},
-		stageName:                record.StageName,
-		x:                        record.X,
-		y:                        record.Y,
 		actions:                  createDefaultActions(),
 		health:                   record.Health,
 		money:                    record.Money,
@@ -193,12 +195,7 @@ func initiatelogout(player *Player) {
 	player.tangible = false
 
 	fmt.Println("initate logout: " + player.username)
-	if !fullyRemovePlayer(player) {
-		fmt.Println("This is a sad state of affairs. We have attempted to remove the player and failed. :( ")
-		// dangerous because the tLock is about to open and the player is likely still somewhere
-		// call initiateLogout if intangible player is damaged?
-		// player may be trapped in clinic
-	}
+	player.removeFromTileAndStage()
 
 	playersToLogout <- player
 
@@ -208,7 +205,7 @@ func completeLogout(player *Player) {
 	player.updateRecord() // Should return error
 
 	// new method
-	player.setKillStreak(0)
+	player.setKillStreakAndUpdate(0) // Don't update
 	player.world.leaderBoard.mostDangerous.Lock()
 	index, exists := player.world.leaderBoard.mostDangerous.index[player]
 	if exists {
@@ -228,6 +225,10 @@ func completeLogout(player *Player) {
 
 	fmt.Println("Logout complete: " + player.username)
 
+}
+
+func fullyRemovePlayer_do(player *Player) {
+	player.removeFromTileAndStage()
 }
 
 func fullyRemovePlayer(player *Player) bool {
@@ -270,16 +271,10 @@ func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
 		if escapesVertically {
 			var newStage *Stage
 			if yOff > 0 {
-				newStage = w.getStageByName(tile.stage.south)
-				if newStage == nil {
-					newStage = w.loadStageByName(tile.stage.south)
-				}
+				newStage = w.fetchStageSync(tile.stage.south)
 			}
 			if yOff < 0 {
-				newStage = w.getStageByName(tile.stage.north)
-				if newStage == nil {
-					newStage = w.loadStageByName(tile.stage.north)
-				}
+				newStage = w.fetchStageSync(tile.stage.north)
 			}
 
 			if newStage != nil {
@@ -292,16 +287,10 @@ func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
 		if escapesHorizontally {
 			var newStage *Stage
 			if xOff > 0 {
-				newStage = w.getStageByName(tile.stage.east)
-				if newStage == nil {
-					newStage = w.loadStageByName(tile.stage.east)
-				}
+				newStage = w.fetchStageSync(tile.stage.east)
 			}
 			if xOff < 0 {
-				newStage = w.getStageByName(tile.stage.west)
-				if newStage == nil {
-					newStage = w.loadStageByName(tile.stage.west)
-				}
+				newStage = w.fetchStageSync(tile.stage.west)
 			}
 
 			if newStage != nil {
@@ -437,6 +426,8 @@ func notifyChangeInMostDangerous(currentMostDangerous *Player) {
 	if currentMostDangerous.id == "HS-only" {
 		return
 	}
+	currentMostDangerous.world.wPlayerMutex.Lock()
+	defer currentMostDangerous.world.wPlayerMutex.Unlock()
 	for _, p := range currentMostDangerous.world.worldPlayers {
 		if p == currentMostDangerous {
 			p.updateBottomText("You are the most dangerous bloop!")

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"sync"
 )
 
@@ -18,7 +19,23 @@ type Stage struct {
 	spawn       []SpawnAction
 }
 
-// benchmark this please
+////////////////////////////////////////////////////
+// Get / Create and Load Stage
+
+func getStageFromStageName(world *World, stagename string) *Stage {
+	stage := world.fetchStageSync(stagename)
+	if stage == nil {
+		fmt.Println("WARNING: Fetching default stage  instead of: " + stagename)
+		stage = world.fetchStageSync("clinic")
+		if stage == nil {
+			panic("Default stage not found")
+		}
+	}
+
+	return stage
+}
+
+// remove
 func (world *World) getNamedStageOrDefault(name string) *Stage {
 	stage := world.getStageByName(name)
 	if stage != nil {
@@ -37,13 +54,34 @@ func (world *World) getNamedStageOrDefault(name string) *Stage {
 	return stage
 }
 
-// compare these two
+func (world *World) fetchStageSync(stagename string) *Stage {
+	world.wStageMutex.Lock()
+	defer world.wStageMutex.Unlock()
+	stage, ok := world.worldStages[stagename]
+	if ok && stage != nil {
+		return stage
+	}
+	area, success := areaFromName(stagename)
+	if !success {
+		//panic("ERROR! invalid stage with no area: " + stagename)
+		return nil
+	}
+	stage = createStageFromArea(area)
+	if area.LoadStrategy == "Individual" {
+		return stage
+	}
+
+	world.worldStages[stagename] = stage
+	return stage
+}
+
 func (world *World) getStageByName(name string) *Stage {
 	world.wStageMutex.Lock()
 	defer world.wStageMutex.Unlock()
 	return world.worldStages[name]
 }
 
+// remove ?
 func (world *World) loadStageByName(name string) *Stage {
 	area, success := areaFromName(name)
 	if !success {
@@ -93,64 +131,56 @@ func createStageFromArea(area Area) *Stage {
 	return &outputStage
 }
 
-func (stage *Stage) removePlayerById(id string) {
-	stage.playerMutex.Lock()
-	delete(stage.playerMap, id)
-	stage.playerMutex.Unlock()
-}
+////////////////////////////////////////////////////
+// Add / Remove Player
 
-func (stage *Stage) addPlayer(player *Player) {
+func (stage *Stage) addLockedPlayer(player *Player) {
 	stage.playerMutex.Lock()
 	stage.playerMap[player.id] = player
 	stage.playerMutex.Unlock()
 }
 
-// Enqueue updates
-
-func updateOneAfterMovement(player *Player, tiles []*Tile, previous *Tile) {
-	playerIcon := playerBoxSpecifc(player.y, player.x, player.icon)
-	previousBoxes := ""
-	if previous != nil && previous.stage == player.stage {
-		previousBoxes += playerBox(previous)
-	}
-
-	player.updates <- []byte(highlightBoxesForPlayer(player, tiles) + previousBoxes + playerIcon)
+func (stage *Stage) removeLockedPlayerById(id string) {
+	stage.playerMutex.Lock()
+	delete(stage.playerMap, id)
+	stage.playerMutex.Unlock()
 }
 
+func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
+	if !validCoordinate(y, x, stage.tiles) {
+		log.Fatal("Fatal: Invalid coords to place on stage.")
+	}
+
+	p.setStage(stage)
+	spawnItemsFor(p, stage)
+	stage.addLockedPlayer(p)
+	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
+	p.setSpaceHighlights()
+	updateScreenFromScratch(p)
+}
+
+///////////////////////////////////////////////////
+// Spawn Items
+
+func spawnItemsFor(p *Player, stage *Stage) {
+	for i := range stage.spawn {
+		stage.spawn[i].activateFor(p, stage)
+	}
+}
+
+// Enqueue updates
 func (stage *Stage) updateAll(update string) {
 	stage.updateAllExcept(update, nil)
 }
 
 func (stage *Stage) updateAllExcept(update string, ignore *Player) {
+	updateAsBytes := []byte(update)
 	stage.playerMutex.RLock()
 	defer stage.playerMutex.RUnlock()
-	updateAsBytes := []byte(update)
 	for _, player := range stage.playerMap {
 		if player == ignore {
 			continue
 		}
 		player.updates <- updateAsBytes
-	}
-}
-
-// not related to stage?
-func updateOne(update string, player *Player) {
-	player.updates <- []byte(update)
-}
-
-func updateScreenFromScratch(player *Player) {
-	player.clearUpdateBuffer <- struct{}{}
-	clearChannel(player.updates)
-	player.updates <- htmlFromPlayer(player)
-}
-
-func clearChannel(ch chan []byte) {
-	for {
-		select {
-		case <-ch: // Read from the channel
-			// Do nothing, just drain
-		default: // Exit when the channel is empty
-			return
-		}
 	}
 }

@@ -23,7 +23,8 @@ var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(scre
 func htmlFromPlayer(player *Player) []byte {
 	var buf bytes.Buffer
 
-	tileHtml := htmlFromTileGrid(player.stage.tiles, player.y, player.x, duplicateMapOfHighlights(player))
+	currentTile := player.getTileSync()
+	tileHtml := htmlFromTileGrid(player.getStageSync().tiles, currentTile.y, currentTile.x, duplicateMapOfHighlights(player))
 
 	err := parsedScreenTemplate.Execute(&buf, tileHtml)
 	if err != nil {

@@ -223,20 +223,20 @@ func (db *DB) saveKillEvent(tile *Tile, initiator *Player, defeated *Player) err
 	return nil
 }
 
-func (db *DB) updateRecordForPlayer(p *Player) error {
+func (db *DB) updateRecordForPlayer(p *Player, pTile *Tile) error {
 	_, err := db.playerRecords.UpdateOne(
 		context.TODO(),
 		bson.M{"username": p.username},
 		bson.M{
 			"$set": bson.M{
-				"x":           p.x, // All of this feels dangerous tbh
-				"y":           p.y,
-				"health":      p.health,
-				"stagename":   p.stageName, // feels risky
-				"money":       p.money,
-				"killCount":   p.killCount,
-				"deathCount":  p.deathCount,
-				"goalsScored": p.goalsScored,
+				"x":           pTile.x, // All of this feels dangerous tbh
+				"y":           pTile.y,
+				"health":      p.getHealthSync(),
+				"stagename":   pTile.stage.name, //p.getStageNameSync(), // feels risky
+				"money":       p.getMoneySync(),
+				"killCount":   p.getKillCountSync(),
+				"deathCount":  p.getDeathCountSync(),
+				"goalsScored": p.getGoalsScored(),
 				"trim":        p.trim,
 			},
 		},

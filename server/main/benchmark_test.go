@@ -188,15 +188,14 @@ func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 		players[i] = &Player{
 			id:                fmt.Sprintf("tp%d", i),
 			stage:             stage,
-			stageName:         stage.name,
-			x:                 2,
-			y:                 2,
 			actions:           createDefaultActions(),
 			health:            100,
 			updates:           updatesForPlayer,
 			clearUpdateBuffer: bufferClearChannel,
+			//world:             &World{worldStages: make(map[string]*Stage)},
+			tangible: true,
 		}
-		players[i].placeOnStage(stage)
+		players[i].placeOnStage(stage, 2, 2)
 	}
 	return players
 }

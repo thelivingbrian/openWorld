@@ -22,6 +22,7 @@ type Tile struct {
 	powerUp           *PowerUp
 	powerMutex        sync.Mutex
 	money             int
+	moneyMutex        sync.Mutex
 	boosts            int
 	htmlTemplate      string
 	bottomText        string
@@ -97,14 +98,15 @@ func makeTileTemplate(mat Material, y, x int) string {
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	player.tileLock.Lock()
-	tile.playerMutex.Lock()
-	tile.addLockedPlayertoLockedTile(player)
-	player.tileLock.Unlock()
-	tile.playerMutex.Unlock()
+	defer player.tileLock.Unlock()
+	tile.addLockedPlayertoTile(player)
 	tile.stage.updateAllExcept(playerBox(tile), player)
 }
 
-func (tile *Tile) addLockedPlayertoLockedTile(player *Player) bool {
+func (tile *Tile) addLockedPlayertoTile(player *Player) {
+	tile.playerMutex.Lock()
+	defer tile.playerMutex.Unlock()
+
 	itemChange := false
 	if tile.bottomText != "" {
 		player.updateBottomText(tile.bottomText)
@@ -129,27 +131,22 @@ func (tile *Tile) addLockedPlayertoLockedTile(player *Player) bool {
 		itemChange = true
 	}
 	if itemChange {
-		player.stage.updateAll(svgFromTile(tile))
+		// locks with transfer across stages
+		go player.stage.updateAll(svgFromTile(tile))
 	}
-	if tile.teleport == nil {
-		// tile.playerMutex.Lock() should already be locked
-		tile.playerMap[player.id] = player
 
-		// player.tileLock.Lock() should already be locked (usually by transfer or addAndNotify)
-		player.tile = tile
-		player.y = tile.y
-		player.x = tile.x
+	// players tile lock should be held
+	tile.playerMap[player.id] = player
+	player.tile = tile
 
-		return true
-	} else {
+	if tile.teleport != nil {
 		if tile.teleport.confirmation {
 			player.menues["teleport"] = continueTeleporting(tile.teleport)
 			turnMenuOn(player, "teleport")
 		} else {
-			// new routine prevents deadlock
+			// new routine prevents deadlock // still needed ? test.
 			go player.applyTeleport(tile.teleport)
 		}
-		return false
 	}
 }
 
@@ -167,6 +164,19 @@ func (tile *Tile) removePlayer(playerId string) (success bool) {
 	}
 	tile.playerMutex.Unlock()
 	return ok
+}
+
+func tryRemovePlayer(tile *Tile, player *Player) bool {
+	tile.playerMutex.Lock()
+	defer tile.playerMutex.Unlock()
+
+	_, foundOnTile := tile.playerMap[player.id]
+	if !foundOnTile {
+		return false
+	}
+
+	delete(tile.playerMap, player.id)
+	return true
 }
 
 func (tile *Tile) getAPlayer() *Player {
@@ -220,25 +230,35 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 		return false
 	}
 
-	target.healthLock.Lock()
-	oldHealth := target.health
-	newHealth := oldHealth - dmg
-	target.health = newHealth
-	target.healthLock.Unlock()
-	fatal := oldHealth > 0 && newHealth <= 0
+	location := target.getTileSync()
+	fatal := damagePlayerAndHandleDeath(target, dmg)
 	if fatal {
-		handleDeath(target)
 		initiator.incrementKillCount()
 		initiator.incrementKillStreak()
 		initiator.updateRecord()
-		// should handle death after getting location?
-		target.tileLock.Lock()
-		location := target.tile
-		target.tileLock.Unlock()
-		go initiator.world.db.saveKillEvent(location, initiator, target) // Maybe should just pass in required fields?
-	} else {
-		go target.updateInformation()
+		go initiator.world.db.saveKillEvent(location, initiator, target)
 	}
+	return fatal
+}
+func damagePlayerAndHandleDeath(player *Player, dmg int) bool {
+	fatal := reduceHealthAndCheckFatal(player, dmg)
+	if fatal {
+		handleDeath(player)
+	} else {
+		player.updateInformation()
+	}
+	return fatal
+}
+
+func reduceHealthAndCheckFatal(player *Player, dmg int) bool {
+	player.healthLock.Lock()
+	defer player.healthLock.Unlock()
+	oldHealth := player.health
+	newHealth := oldHealth - dmg
+	player.health = newHealth
+
+	// negative health is invincibility, alternative is killstreak for killing a zombie
+	fatal := oldHealth > 0 && newHealth <= 0
 	return fatal
 }
 
@@ -297,8 +317,14 @@ func (tile *Tile) addBoostsAndNotifyAll() {
 }
 
 func (tile *Tile) addMoneyAndNotifyAll(amount int) {
+	tile.addMoneyAndNotifyAllExcept(amount, nil)
+}
+
+func (tile *Tile) addMoneyAndNotifyAllExcept(amount int, player *Player) {
+	tile.moneyMutex.Lock()
+	defer tile.moneyMutex.Unlock()
 	tile.money += amount
-	tile.stage.updateAll(svgFromTile(tile))
+	tile.stage.updateAllExcept(svgFromTile(tile), player)
 }
 
 ///

@@ -35,7 +35,8 @@ func main() {
 }
 
 func IntegrationClientBed(w http.ResponseWriter, r *http.Request) {
-	// curl -X POST "http://localhost:4440/mass?stagename=team-blue:3-3&read=true&count=70&ttl=5&action=circles"
+	// curl -X POST "http://localhost:4440/mass?stagename=team-fuchsia:3-3&read=true&count=200&ttl=55&action=lr&team=fuchsia"
+	// curl -X GET "http://localhost:4440/stats"
 	stagename := r.URL.Query().Get("stagename")
 
 	var read bool
@@ -68,6 +69,9 @@ func IntegrationClientBed(w http.ResponseWriter, r *http.Request) {
 	socketAction := moveInCircles
 	if action == "random" {
 		socketAction = moveRandomly
+	}
+	if action == "lr" {
+		socketAction = leftRight
 	}
 
 	tokens := requestTokens(stagename, count, team)
@@ -275,6 +279,40 @@ func moveInCircles(ts *TestingSocket, token string) {
 		time.Sleep(100 * time.Millisecond)
 
 		if ts.tryWrite(createSocketEventMessage(token, "d")) != nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+func leftRight(ts *TestingSocket, token string) {
+	for {
+		if ts.tryWrite(createSocketEventMessage(token, "d")) != nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+
+		if ts.tryWrite(createSocketEventMessage(token, "d")) != nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+
+		if ts.tryWrite(createSocketEventMessage(token, "d")) != nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+
+		if ts.tryWrite(createSocketEventMessage(token, "a")) != nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+
+		if ts.tryWrite(createSocketEventMessage(token, "a")) != nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+
+		if ts.tryWrite(createSocketEventMessage(token, "a")) != nil {
 			break
 		}
 		time.Sleep(100 * time.Millisecond)
