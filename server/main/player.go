@@ -224,7 +224,7 @@ func handleDeath(player *Player) {
 	player.setKillStreak(0)
 	player.actions = createDefaultActions() // problematic
 
-	stage := getStageFromStageName(player.world, infirmaryStagenameForPlayer(player))
+	stage := player.world.fetchStageSync(infirmaryStagenameForPlayer(player)) // getStageFromStageName(player.world, infirmaryStagenameForPlayer(player))
 	player.setStage(stage)
 	player.updateRecordOnDeath(stage.tiles[2][2])
 	respawnOnStage(player, stage)
@@ -312,7 +312,7 @@ func (player *Player) sendUpdates() {
 			// Every 25ms, if there's anything in the buffer, send it.
 			err := sendUpdate(player, buffer.Bytes())
 			if err != nil {
-				fmt.Println("Error - Stopping furture sends: ", err)
+				//fmt.Println("Error - Stopping furture sends: ", err)
 				shouldSendUpdates = false
 				player.closeConnectionSync()
 			}
@@ -337,7 +337,7 @@ func sendUpdate(player *Player, update []byte) error {
 	}
 	err = player.conn.WriteMessage(websocket.TextMessage, update)
 	if err != nil {
-		fmt.Printf("WARN: WriteMessage failed for player %s: %v\n", player.username, err)
+		//fmt.Printf("WARN: WriteMessage failed for player %s: %v\n", player.username, err)
 		// Close connection if writes consistently fail
 		if player.sessionTimeOutViolations.Add(1) >= 1 {
 			return err

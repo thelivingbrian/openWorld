@@ -22,10 +22,18 @@ type Stage struct {
 ////////////////////////////////////////////////////
 // Get / Create and Load Stage
 
-func getStageFromStageName(world *World, stageName string) *Stage {
-	stage := world.getNamedStageOrDefault(stageName)
+func getStageFromStageName(world *World, stagename string) *Stage {
+	// stage := world.getNamedStageOrDefault(stageName)
+	// if stage == nil {
+	// 	log.Fatal("Fatal: Default Stage Not Found.")
+	// }
+	stage := world.fetchStageSync(stagename)
 	if stage == nil {
-		log.Fatal("Fatal: Default Stage Not Found.")
+		fmt.Println("WARNING: Fetching default stage  instead of: " + stagename)
+		stage = world.fetchStageSync("clinic")
+		if stage == nil {
+			panic("Default stage not found")
+		}
 	}
 
 	return stage
@@ -46,6 +54,27 @@ func (world *World) getNamedStageOrDefault(name string) *Stage {
 		}
 	}
 
+	return stage
+}
+
+func (world *World) fetchStageSync(stagename string) *Stage {
+	world.wStageMutex.Lock()
+	defer world.wStageMutex.Unlock()
+	stage, ok := world.worldStages[stagename]
+	if ok && stage != nil {
+		return stage
+	}
+	area, success := areaFromName(stagename)
+	if !success {
+		//panic("ERROR! invalid stage with no area: " + stagename)
+		return nil
+	}
+	stage = createStageFromArea(area)
+	if area.LoadStrategy == "Individual" {
+		return stage
+	}
+
+	world.worldStages[stagename] = stage
 	return stage
 }
 

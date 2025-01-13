@@ -277,16 +277,10 @@ func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
 		if escapesVertically {
 			var newStage *Stage
 			if yOff > 0 {
-				newStage = w.getStageByName(tile.stage.south)
-				if newStage == nil {
-					newStage = w.loadStageByName(tile.stage.south)
-				}
+				newStage = w.fetchStageSync(tile.stage.south)
 			}
 			if yOff < 0 {
-				newStage = w.getStageByName(tile.stage.north)
-				if newStage == nil {
-					newStage = w.loadStageByName(tile.stage.north)
-				}
+				newStage = w.fetchStageSync(tile.stage.north)
 			}
 
 			if newStage != nil {
@@ -299,16 +293,10 @@ func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
 		if escapesHorizontally {
 			var newStage *Stage
 			if xOff > 0 {
-				newStage = w.getStageByName(tile.stage.east)
-				if newStage == nil {
-					newStage = w.loadStageByName(tile.stage.east)
-				}
+				newStage = w.fetchStageSync(tile.stage.east)
 			}
 			if xOff < 0 {
-				newStage = w.getStageByName(tile.stage.west)
-				if newStage == nil {
-					newStage = w.loadStageByName(tile.stage.west)
-				}
+				newStage = w.fetchStageSync(tile.stage.west)
 			}
 
 			if newStage != nil {

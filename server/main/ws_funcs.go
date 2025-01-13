@@ -59,7 +59,7 @@ func handleNewPlayer(player *Player) {
 		if err != nil {
 			// After Exiting loop player is logged out
 			//   Add time delay to prevent rage quit ?
-			fmt.Println("Conn Read Error: ", err)
+			//   fmt.Println("Conn Read Error: ", err)
 			break
 		}
 
@@ -151,22 +151,18 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 	}
 	if event.Name == "g" {
 
-		//Full swap takes priority in either order, otherwise both may apply
-
-		//exTile := `<div id="t1-0" class="box top green"></div>
-		//			<div id="t1-1" class="box top green"></div>`
-
 		// go func() {
 		// 	for i := 0; i <= 80; i++ {
 		// 		time.Sleep(20 * time.Millisecond)
 		// 		updateOne(generateDivs(i), player)
 		// 	}
-
 		// }()
 
 		//stage := getStageFromStageName(player.world, "team-blue:3-3")
 		//stage.addPlayer(player)
+
 		//fmt.Println(len(player.stage.playerMap), len(player.tile.stage.playerMap))
+
 		spawnNewPlayerWithRandomMovement(player, 250)
 
 		//updateOne(generateWeatherSolid("blue trsp20"), player)
@@ -194,13 +190,6 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 				time.Sleep(d * time.Millisecond)
 
 			}
-		*/
-
-		/*
-			//player.updateBottomText("Heyo ;) ")
-			spawnNewPlayerWithRandomMovement(player, 250)
-			npcs++
-			println("npcs: ", npcs)
 		*/
 	}
 	if event.Name == "Space-On" {

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 	"time"
 
@@ -52,6 +54,188 @@ func TestSocketJoinAndMove(t *testing.T) {
 				t.Error("Player has not moved") // This can fail due to race
 			}
 	*/
+}
+
+func createWorldForTesting() (*World, context.CancelFunc) {
+	loadFromJson()
+	world := createGameWorld(testdb())
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go func(ctx context.Context) {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case player, ok := <-playersToLogout: // gross and global
+				if !ok {
+					return
+				}
+				completeLogout(player)
+			}
+		}
+	}(ctx)
+	return world, cancel
+}
+
+func TestLogoutAndDeath(t *testing.T) {
+	world, shutDown := createWorldForTesting()
+	defer shutDown()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		world.NewSocketConnection(w, r)
+	}))
+	defer server.Close()
+
+	wg := &sync.WaitGroup{}
+	cancelers := make([]context.CancelFunc, 0)
+	firstToken := ""
+	PLAYER_COUNT := 25
+	for i := 0; i < PLAYER_COUNT; i++ {
+		req := createLoginRequest(PlayerRecord{Username: fmt.Sprintf("TEST%d", i), Team: "test-blue", Y: 2, X: 2, Health: 50, StageName: "test-large"})
+		if i == 0 {
+			req.Record.Team = "test-red"
+			firstToken = req.Token
+		}
+		world.addIncoming(req)
+
+		testingSocket, cancel := createTestingSocketWithCancel(server.URL, wg)
+		if cancel != nil {
+			wg.Add(1)
+		}
+		cancelers = append(cancelers, cancel)
+		testingSocket.writeOrFatal(createInitialTokenMessage(req.Token))
+	}
+
+	// Assert
+	player, ok := world.worldPlayers[firstToken]
+	if !ok || player == nil {
+		t.Error("Player is nil")
+	}
+	powerUp1 := &PowerUp{areaOfInfluence: grid9x9}
+	powerUp2 := &PowerUp{areaOfInfluence: grid5x5}
+	player.actions.spaceStack.push(powerUp1)
+	player.actions.spaceStack.push(powerUp2)
+
+	if player.getKillStreakSync() != 0 {
+		t.Error("Player kill streak should be 0")
+	}
+
+	if player.actions.spaceStack.peek() == nil {
+		t.Error("Player Should have power ")
+	}
+
+	if len(world.worldPlayers) == 0 {
+		t.Error("Should have players")
+	}
+
+	player.moveEast()
+	player.activatePower()
+	player.activatePower()
+	if player.actions.spaceStack.peek() != nil {
+		t.Error("Player powers should be gone")
+
+	}
+
+	if player.getKillStreakSync() != PLAYER_COUNT-1 {
+		t.Error("Player should have killed all others")
+
+	}
+	if len(world.worldPlayers) != PLAYER_COUNT {
+		t.Error("All 100 should be logged in")
+
+	}
+
+	for index := range cancelers {
+		// Log everyone out
+		cancelers[index]()
+	}
+
+	wg.Wait()
+	time.Sleep(1000 * time.Millisecond) // Logout completion is not tied to waitGroup
+
+	if len(world.worldPlayers) != 0 {
+		t.Error("All players should be logged out")
+	}
+}
+
+func TestLogoutAndDeath_Concurrent(t *testing.T) {
+	world, shutDown := createWorldForTesting()
+	defer shutDown()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		world.NewSocketConnection(w, r)
+	}))
+	defer server.Close()
+
+	wg := &sync.WaitGroup{}
+	cancelers := make([]context.CancelFunc, 0)
+	firstToken := ""
+	PLAYER_COUNT := 25
+	for i := 0; i < PLAYER_COUNT; i++ {
+		req := createLoginRequest(PlayerRecord{Username: fmt.Sprintf("TEST%d", i), Team: "test-blue", Y: 2, X: 2, Health: 50, StageName: "test-large"})
+		if i == 0 {
+			req.Record.Team = "test-red"
+			firstToken = req.Token
+		}
+		world.addIncoming(req)
+
+		testingSocket, cancel := createTestingSocketWithCancel(server.URL, wg)
+		if cancel != nil && i != 0 {
+			wg.Add(1)
+		}
+		cancelers = append(cancelers, cancel)
+		testingSocket.writeOrFatal(createInitialTokenMessage(req.Token))
+	}
+	// close last player
+	defer wg.Add(1)
+	defer cancelers[0]()
+
+	// Assert
+	player, ok := world.worldPlayers[firstToken]
+	if !ok || player == nil {
+		t.Error("Player is nil")
+	}
+	powerUp1 := &PowerUp{areaOfInfluence: grid9x9}
+	powerUp2 := &PowerUp{areaOfInfluence: grid5x5}
+	player.actions.spaceStack.push(powerUp1)
+	player.actions.spaceStack.push(powerUp2)
+
+	if player.getKillStreakSync() != 0 {
+		t.Error("Player kill streak should be 0")
+	}
+
+	if player.actions.spaceStack.peek() == nil {
+		t.Error("Player Should have power ")
+	}
+
+	if len(world.worldPlayers) == 0 {
+		t.Error("Should have players")
+	}
+
+	player.moveEast()
+	go player.activatePower()
+	go player.activatePower()
+	time.Sleep(200 * time.Millisecond)
+	for index := range cancelers {
+		if index == 0 {
+			// Skip primary player or the will not be able to attack
+			continue
+		}
+		go cancelers[index]()
+	}
+
+	wg.Wait()
+	time.Sleep(1000 * time.Millisecond)
+	if player.getKillStreakSync() == 0 {
+		t.Error("Player should have killed at least one")
+
+	}
+	fmt.Println("players after logout:", len(world.worldPlayers))
+	if len(world.worldPlayers) != 1 {
+		t.Error("only main player should be logged in")
+
+	}
 }
 
 func TestMostDangerous(t *testing.T) {
@@ -116,6 +300,25 @@ func createTestingSocket(url string) *TestingSocket {
 		panic(fmt.Sprintf("could not dial: %v", err))
 	}
 	return &TestingSocket{ws: ws}
+}
+
+func createTestingSocketWithCancel(url string, wg *sync.WaitGroup) (*TestingSocket, context.CancelFunc) {
+	ts := createTestingSocket(url)
+	ctx, cancel := context.WithCancel(context.Background())
+	go func(ctx context.Context) {
+		defer wg.Done()
+		for {
+			select {
+			case <-ctx.Done():
+				ts.ws.Close()
+				return
+				//default:
+				// just usee ts.ws.ReadMessage() ?
+				//ts.readOrFatal()
+			}
+		}
+	}(ctx)
+	return ts, cancel
 }
 
 func createInitialTokenMessage(token string) []byte {

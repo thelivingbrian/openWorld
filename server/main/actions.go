@@ -74,7 +74,7 @@ func (player *Player) activatePower() {
 
 	playerHighlights := highlightMapToSlice(player)
 	for _, tile := range playerHighlights {
-		go tile.damageAll(50, player)
+		tile.damageAll(50, player)
 		destroyInteractable(tile, player)
 		tile.eventsInFlight.Add(1)
 		tilesToHighlight = append(tilesToHighlight, tile)
