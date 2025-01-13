@@ -218,13 +218,14 @@ func (p *Player) pushUnder(yOffset int, xOffset int) {
 // Death
 
 func handleDeath(player *Player) {
-	player.dropMoneyOnTileAndRemoveFromStage() // After this should be impossible for any transfer to succeed
+	player.getTileSync().addMoneyAndNotifyAllExcept(max(halveMoneyOf(player), 10), player)
+	player.removeFromTileAndStage() // After this should be impossible for any transfer to succeed
 	player.incrementDeathCount()
 	player.setHealth(150)
 	player.setKillStreak(0)
 	player.actions = createDefaultActions() // problematic
 
-	stage := player.world.fetchStageSync(infirmaryStagenameForPlayer(player)) // getStageFromStageName(player.world, infirmaryStagenameForPlayer(player))
+	stage := player.world.fetchStageSync(infirmaryStagenameForPlayer(player))
 	player.setStage(stage)
 	player.updateRecordOnDeath(stage.tiles[2][2])
 	respawnOnStage(player, stage)
@@ -239,11 +240,6 @@ func respawnOnStage(player *Player, stage *Stage) {
 
 	placePlayerOnStageAt(player, stage, 2, 2)
 	player.updateInformation()
-}
-
-func (player *Player) dropMoneyOnTileAndRemoveFromStage() {
-	player.getTileSync().addMoneyAndNotifyAllExcept(max(halveMoneyOf(player), 10), player)
-	player.removeFromTileAndStage()
 }
 
 func (player *Player) removeFromTileAndStage() {

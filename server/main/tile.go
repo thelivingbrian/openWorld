@@ -317,8 +317,6 @@ func (tile *Tile) addBoostsAndNotifyAll() {
 }
 
 func (tile *Tile) addMoneyAndNotifyAll(amount int) {
-	//tile.money += amount
-	//tile.stage.updateAll(svgFromTile(tile))
 	tile.addMoneyAndNotifyAllExcept(amount, nil)
 }
 
