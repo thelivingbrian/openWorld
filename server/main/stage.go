@@ -23,10 +23,6 @@ type Stage struct {
 // Get / Create and Load Stage
 
 func getStageFromStageName(world *World, stagename string) *Stage {
-	// stage := world.getNamedStageOrDefault(stageName)
-	// if stage == nil {
-	// 	log.Fatal("Fatal: Default Stage Not Found.")
-	// }
 	stage := world.fetchStageSync(stagename)
 	if stage == nil {
 		fmt.Println("WARNING: Fetching default stage  instead of: " + stagename)
