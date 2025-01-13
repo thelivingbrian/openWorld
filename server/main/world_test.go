@@ -19,8 +19,6 @@ func TestSocketJoinAndMove(t *testing.T) {
 	req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
 	world.addIncoming(req)
 
-	//initialCoordiate := 2
-
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		world.NewSocketConnection(w, r)
 	}))
@@ -46,39 +44,11 @@ func TestSocketJoinAndMove(t *testing.T) {
 	if world.leaderBoard.mostDangerous.Peek().username == req.Record.Username {
 		t.Error("New Player should not be most dangerous") // Minimum killstreak player prevents newly joining from being most dangerous
 	}
-
-	//fmt.Println(p.x)
-	/*
-		Cannot be tested via the socket, but can check through player list?
-			if initialCoordiate == p.x {
-				t.Error("Player has not moved") // This can fail due to race
-			}
-	*/
-}
-
-func createWorldForTesting() (*World, context.CancelFunc) {
-	loadFromJson()
-	world := createGameWorld(testdb())
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	go func(ctx context.Context) {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case player, ok := <-playersToLogout: // gross and global
-				if !ok {
-					return
-				}
-				completeLogout(player)
-			}
-		}
-	}(ctx)
-	return world, cancel
 }
 
 func TestLogoutAndDeath(t *testing.T) {
+	PLAYER_COUNT := 10
+
 	world, shutDown := createWorldForTesting()
 	defer shutDown()
 
@@ -87,25 +57,10 @@ func TestLogoutAndDeath(t *testing.T) {
 	}))
 	defer server.Close()
 
-	wg := &sync.WaitGroup{}
-	cancelers := make([]context.CancelFunc, 0)
-	firstToken := ""
-	PLAYER_COUNT := 25
-	for i := 0; i < PLAYER_COUNT; i++ {
-		req := createLoginRequest(PlayerRecord{Username: fmt.Sprintf("TEST%d", i), Team: "test-blue", Y: 2, X: 2, Health: 50, StageName: "test-large"})
-		if i == 0 {
-			req.Record.Team = "test-red"
-			firstToken = req.Token
-		}
-		world.addIncoming(req)
+	_, cancel, tokens, _ := socketsCancelsTokensWaiter(world, server.URL, 1, "test-red")
+	firstToken := tokens[0]
 
-		testingSocket, cancel := createTestingSocketWithCancel(server.URL, wg)
-		if cancel != nil {
-			wg.Add(1)
-		}
-		cancelers = append(cancelers, cancel)
-		testingSocket.writeOrFatal(createInitialTokenMessage(req.Token))
-	}
+	_, cancelers, _, wg := socketsCancelsTokensWaiter(world, server.URL, PLAYER_COUNT, "test-blue")
 
 	// Assert
 	player, ok := world.worldPlayers[firstToken]
@@ -137,11 +92,11 @@ func TestLogoutAndDeath(t *testing.T) {
 
 	}
 
-	if player.getKillStreakSync() != PLAYER_COUNT-1 {
+	if player.getKillStreakSync() != PLAYER_COUNT {
 		t.Error("Player should have killed all others")
 
 	}
-	if len(world.worldPlayers) != PLAYER_COUNT {
+	if len(world.worldPlayers) != PLAYER_COUNT+1 {
 		t.Error("All 100 should be logged in")
 
 	}
@@ -150,6 +105,7 @@ func TestLogoutAndDeath(t *testing.T) {
 		// Log everyone out
 		cancelers[index]()
 	}
+	cancel[0]()
 
 	wg.Wait()
 	time.Sleep(1000 * time.Millisecond) // Logout completion is not tied to waitGroup
@@ -160,6 +116,8 @@ func TestLogoutAndDeath(t *testing.T) {
 }
 
 func TestLogoutAndDeath_Concurrent(t *testing.T) {
+	PLAYER_COUNT1 := 15
+	PLAYER_COUNT2 := 15
 	world, shutDown := createWorldForTesting()
 	defer shutDown()
 
@@ -168,28 +126,13 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 	}))
 	defer server.Close()
 
-	wg := &sync.WaitGroup{}
-	cancelers := make([]context.CancelFunc, 0)
-	firstToken := ""
-	PLAYER_COUNT := 25
-	for i := 0; i < PLAYER_COUNT; i++ {
-		req := createLoginRequest(PlayerRecord{Username: fmt.Sprintf("TEST%d", i), Team: "test-blue", Y: 2, X: 2, Health: 50, StageName: "test-large"})
-		if i == 0 {
-			req.Record.Team = "test-red"
-			firstToken = req.Token
-		}
-		world.addIncoming(req)
-
-		testingSocket, cancel := createTestingSocketWithCancel(server.URL, wg)
-		if cancel != nil && i != 0 {
-			wg.Add(1)
-		}
-		cancelers = append(cancelers, cancel)
-		testingSocket.writeOrFatal(createInitialTokenMessage(req.Token))
+	_, cancel, tokens, _ := socketsCancelsTokensWaiter(world, server.URL, PLAYER_COUNT1, "test-red")
+	for i := range cancel {
+		defer cancel[i]()
 	}
-	// close last player
-	defer wg.Add(1)
-	defer cancelers[0]()
+	firstToken := tokens[0]
+
+	_, cancelers, _, wg := socketsCancelsTokensWaiter(world, server.URL, PLAYER_COUNT2, "test-blue")
 
 	// Assert
 	player, ok := world.worldPlayers[firstToken]
@@ -218,10 +161,6 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 	go player.activatePower()
 	time.Sleep(200 * time.Millisecond)
 	for index := range cancelers {
-		if index == 0 {
-			// Skip primary player or the will not be able to attack
-			continue
-		}
 		go cancelers[index]()
 	}
 
@@ -232,8 +171,8 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 
 	}
 	fmt.Println("players after logout:", len(world.worldPlayers))
-	if len(world.worldPlayers) != 1 {
-		t.Error("only main player should be logged in")
+	if len(world.worldPlayers) != PLAYER_COUNT1 {
+		t.Error("Players from first group should be logged in")
 
 	}
 }
@@ -286,8 +225,59 @@ func TestMostDangerous(t *testing.T) {
 //////////////////////////////////////////////////////////////////////////////////////
 // Helpers
 
+//////////// World /////////////
+
+func createWorldForTesting() (*World, context.CancelFunc) {
+	loadFromJson()
+	world := createGameWorld(testdb())
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go func(ctx context.Context) {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case player, ok := <-playersToLogout: // gross and global
+				if !ok {
+					return
+				}
+				completeLogout(player)
+			}
+		}
+	}(ctx)
+	return world, cancel
+}
+
+/////////// Socket /////////////////
+
 type TestingSocket struct {
 	ws *websocket.Conn
+}
+
+func socketsCancelsTokensWaiter(world *World, serverURL string, PLAYER_COUNT int, team string) ([]*TestingSocket, []context.CancelFunc, []string, *sync.WaitGroup) {
+	sockets := make([]*TestingSocket, 0)
+	cancelers := make([]context.CancelFunc, 0)
+	tokens := make([]string, 0)
+	wg := &sync.WaitGroup{}
+	random := createRandomToken()
+	s := random[0 : len(random)/4]
+	for i := 0; i < PLAYER_COUNT; i++ {
+		req := createLoginRequest(PlayerRecord{Username: fmt.Sprintf("TEST-%s-%d", s, i), Team: team, Y: 2, X: 2, Health: 50, StageName: "test-large"})
+		tokens = append(tokens, req.Token)
+		world.addIncoming(req)
+
+		testingSocket, cancel := createTestingSocketWithCancel(serverURL, wg)
+		if testingSocket == nil || cancel == nil {
+			panic("Failed to create cancel or socket")
+		}
+		wg.Add(1)
+		cancelers = append(cancelers, cancel)
+		testingSocket.writeOrFatal(createInitialTokenMessage(req.Token))
+
+		sockets = append(sockets, testingSocket)
+	}
+	return sockets, cancelers, tokens, wg
 }
 
 func createTestingSocket(url string) *TestingSocket {

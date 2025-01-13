@@ -39,6 +39,7 @@ func getStageFromStageName(world *World, stagename string) *Stage {
 	return stage
 }
 
+// remove
 func (world *World) getNamedStageOrDefault(name string) *Stage {
 	stage := world.getStageByName(name)
 	if stage != nil {
@@ -84,6 +85,7 @@ func (world *World) getStageByName(name string) *Stage {
 	return world.worldStages[name]
 }
 
+// remove ?
 func (world *World) loadStageByName(name string) *Stage {
 	area, success := areaFromName(name)
 	if !success {
