@@ -168,8 +168,16 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 //   Pushing
 
 func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bool { // Returns if given interacable successfully pushed
-	if tile == nil || tile.teleport != nil {
+	if tile == nil { //} || tile.teleport != nil {
 		return false
+	}
+
+	if tile.teleport != nil {
+		stage := getStageFromStageName(p.world, tile.teleport.destStage)
+		if !validCoordinate(tile.teleport.destY+yOff, tile.teleport.destX+xOff, stage.tiles) {
+			return false
+		}
+		return p.push(stage.tiles[tile.teleport.destY+yOff][tile.teleport.destX+xOff], interactable, yOff, xOff)
 	}
 
 	ownLock := tile.interactableMutex.TryLock()
@@ -369,7 +377,7 @@ func updatePlayerAfterStageChange(p *Player) {
 }
 
 func updateScreenFromScratch(player *Player) {
-	player.clearUpdateBuffer <- struct{}{}
+	//player.clearUpdateBuffer <- struct{}{}
 	clearChannel(player.updates)
 	player.updates <- htmlFromPlayer(player)
 }

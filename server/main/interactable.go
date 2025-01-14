@@ -8,6 +8,7 @@ import (
 type Interactable struct {
 	name      string
 	pushable  bool
+	walkable  bool
 	cssClass  string
 	fragile   bool
 	reactions []InteractableReaction

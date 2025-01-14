@@ -297,6 +297,7 @@ func walkable(tile *Tile) bool {
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
 
+	// why?
 	if tile.interactable == nil {
 		return tile.material.Walkable
 	} else {
