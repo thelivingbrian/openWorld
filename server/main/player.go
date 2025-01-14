@@ -167,17 +167,16 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 ////////////////////////////////////////////////////////////
 //   Pushing
 
-func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bool { // Returns if given interacable successfully pushed
-	if tile == nil { //} || tile.teleport != nil {
+func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool { // Returns if given interacable successfully pushed
+	// Do not nil check incoming interactable here.
+	// incoming = nil is valid and will continue a push chain
+	// e.g. by taking this tiles interactable and pushing it forward
+	if tile == nil {
 		return false
 	}
 
-	if tile.teleport != nil {
-		stage := getStageFromStageName(p.world, tile.teleport.destStage)
-		if !validCoordinate(tile.teleport.destY+yOff, tile.teleport.destX+xOff, stage.tiles) {
-			return false
-		}
-		return p.push(stage.tiles[tile.teleport.destY+yOff][tile.teleport.destX+xOff], interactable, yOff, xOff)
+	if canTeleportInteractables(tile) {
+		return p.pushTeleport(tile, incoming, yOff, xOff)
 	}
 
 	ownLock := tile.interactableMutex.TryLock()
@@ -187,18 +186,11 @@ func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bo
 	defer tile.interactableMutex.Unlock()
 
 	if tile.interactable == nil {
-		if tile.material.Walkable { // Prevents lock contention from using Walkable()
-			if interactable != nil {
-				tile.interactable = interactable
-				tile.stage.updateAll(interactableBox(tile))
-			}
-			return true
-		}
-		return false
+		return replaceNilInteractable(tile, incoming)
 	}
 
-	if tile.interactable.React(interactable, p, tile) {
-		tile.stage.updateAll(interactableBox(tile)) // full tile?
+	if tile.interactable.React(incoming, p, tile, yOff, xOff) {
+		//tile.stage.updateAll(interactableBox(tile)) // Do swap in react if wanted
 		return true
 	}
 
@@ -206,7 +198,7 @@ func (p *Player) push(tile *Tile, interactable *Interactable, yOff, xOff int) bo
 		nextTile := p.world.getRelativeTile(tile, yOff, xOff)
 		if nextTile != nil {
 			if p.push(nextTile, tile.interactable, yOff, xOff) {
-				tile.interactable = interactable
+				tile.interactable = incoming
 				tile.stage.updateAll(interactableBox(tile))
 				return true
 			}
@@ -220,6 +212,51 @@ func (p *Player) pushUnder(yOffset int, xOffset int) {
 	if currentTile != nil && currentTile.interactable != nil {
 		p.push(currentTile, nil, yOffset, xOffset)
 	}
+}
+
+func (p *Player) pushTeleport(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
+	if canBeTeleported(incoming) {
+		stage := getStageFromStageName(p.world, tile.teleport.destStage)
+		if !validCoordinate(tile.teleport.destY+yOff, tile.teleport.destX+xOff, stage.tiles) {
+			return false
+		}
+		return p.push(stage.tiles[tile.teleport.destY+yOff][tile.teleport.destX+xOff], incoming, yOff, xOff)
+	}
+	return false
+}
+
+func replaceNilInteractable(tile *Tile, incoming *Interactable) bool {
+	if tile.interactable != nil {
+		return false
+	}
+	if !tile.material.Walkable { // Prevents lock contention from using Walkable()
+		return false
+	}
+	swapAndUpdate(tile, incoming)
+
+	return true
+}
+
+func swapAndUpdate(tile *Tile, incoming *Interactable) {
+	experiencedChange := tile.interactable != incoming
+	tile.interactable = incoming
+	if experiencedChange {
+		tile.stage.updateAll(interactableBox(tile))
+	}
+}
+
+func canTeleportInteractables(tile *Tile) bool {
+	if tile == nil || tile.teleport == nil {
+		return false
+	}
+	return !tile.teleport.rejectInteractable
+}
+
+func canBeTeleported(interactable *Interactable) bool {
+	if interactable == nil {
+		return false
+	}
+	return !interactable.rejectTeleport
 }
 
 ///////////////////////////////////////////////////////////////////////

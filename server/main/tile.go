@@ -29,11 +29,12 @@ type Tile struct {
 }
 
 type Teleport struct {
-	destStage    string
-	destY        int
-	destX        int
-	sourceStage  string
-	confirmation bool
+	destStage          string
+	destY              int
+	destX              int
+	sourceStage        string
+	confirmation       bool
+	rejectInteractable bool
 }
 
 func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
