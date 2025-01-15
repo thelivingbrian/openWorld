@@ -266,7 +266,7 @@ func canBeTeleported(interactable *Interactable) bool {
 
 func handleDeath(player *Player) {
 	player.getTileSync().addMoneyAndNotifyAllExcept(max(halveMoneyOf(player), 10), player)
-	player.removeFromTileAndStage() // After this should be impossible for any transfer to succeed
+	removeFromTileAndStage(player) // After this should be impossible for any transfer to succeed
 	player.incrementDeathCount()
 	player.setHealth(150)
 	player.setKillStreak(0)
@@ -289,7 +289,7 @@ func respawnOnStage(player *Player, stage *Stage) {
 	player.updateInformation()
 }
 
-func (player *Player) removeFromTileAndStage() {
+func removeFromTileAndStage(player *Player) {
 	player.stageLock.Lock()
 	defer player.stageLock.Unlock()
 	player.tileLock.Lock()

@@ -196,7 +196,7 @@ func initiatelogout(player *Player) {
 	player.tangible = false
 
 	fmt.Println("initate logout: " + player.username)
-	player.removeFromTileAndStage()
+	removeFromTileAndStage(player)
 
 	playersToLogout <- player
 
@@ -229,7 +229,7 @@ func completeLogout(player *Player) {
 }
 
 func fullyRemovePlayer_do(player *Player) {
-	player.removeFromTileAndStage()
+	removeFromTileAndStage(player)
 }
 
 func fullyRemovePlayer(player *Player) bool {

@@ -215,7 +215,7 @@ func TestMostDangerous(t *testing.T) {
 	time.Sleep(25 * time.Millisecond)
 
 	// bypass initiatelogout(p3) which executes non-deterministically
-	fullyRemovePlayer(p3)
+	removeFromTileAndStage(p3)
 	completeLogout(p3)
 
 	if world.leaderBoard.mostDangerous.Peek() != p1 {
