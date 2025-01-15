@@ -128,7 +128,7 @@ func (world *World) join(incoming LoginRequest, conn WebsocketConnection) *Playe
 
 	newPlayer.conn = conn
 	go newPlayer.sendUpdates()
-	stage := getStageFromStageName(world, incoming.Record.StageName)
+	stage := getStageFromStageName(newPlayer, incoming.Record.StageName)
 	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
 
 	return newPlayer
@@ -156,6 +156,7 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		money:                    record.Money,
 		world:                    world,
 		menues:                   map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu}, // terrifying
+		playerStages:             make(map[string]*Stage),
 	}
 
 	newPlayer.setIcon()
@@ -255,13 +256,13 @@ func fullyRemovePlayer(player *Player) bool {
 ///////////////////////////////////////////////////////////////
 // References / Lookup
 
-func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
-	destY := tile.y + yOff
-	destX := tile.x + xOff
-	if validCoordinate(destY, destX, tile.stage.tiles) {
-		return tile.stage.tiles[destY][destX]
+func getRelativeTile(source *Tile, yOff, xOff int, player *Player) *Tile {
+	destY := source.y + yOff
+	destX := source.x + xOff
+	if validCoordinate(destY, destX, source.stage.tiles) {
+		return source.stage.tiles[destY][destX]
 	} else {
-		escapesVertically, escapesHorizontally := validityByAxis(destY, destX, tile.stage.tiles)
+		escapesVertically, escapesHorizontally := validityByAxis(destY, destX, source.stage.tiles)
 		if escapesVertically && escapesHorizontally {
 			// in bloop world cardinal direction travel may be non-communative
 			// therefore north-east etc neighbor is not uniquely defined
@@ -271,10 +272,10 @@ func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
 		if escapesVertically {
 			var newStage *Stage
 			if yOff > 0 {
-				newStage = w.fetchStageSync(tile.stage.south)
+				newStage = getStageFromStageName(player, source.stage.south)
 			}
 			if yOff < 0 {
-				newStage = w.fetchStageSync(tile.stage.north)
+				newStage = getStageFromStageName(player, source.stage.north)
 			}
 
 			if newStage != nil {
@@ -287,10 +288,10 @@ func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
 		if escapesHorizontally {
 			var newStage *Stage
 			if xOff > 0 {
-				newStage = w.fetchStageSync(tile.stage.east)
+				newStage = getStageFromStageName(player, source.stage.east)
 			}
 			if xOff < 0 {
-				newStage = w.fetchStageSync(tile.stage.west)
+				newStage = getStageFromStageName(player, source.stage.west)
 			}
 
 			if newStage != nil {

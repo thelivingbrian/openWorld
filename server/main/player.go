@@ -47,6 +47,8 @@ type Player struct {
 	streakLock               sync.Mutex
 	actions                  *Actions
 	menues                   map[string]Menu
+	playerStages             map[string]*Stage
+	pStageMutex              sync.Mutex
 }
 
 type WebsocketConnection interface {
@@ -59,58 +61,58 @@ type WebsocketConnection interface {
 ////////////////////////////////////////////////////////////
 //   Movement
 
-func (p *Player) moveNorth() {
-	p.move(-1, 0)
+func (player *Player) moveNorth() {
+	player.move(-1, 0)
 }
 
-func (p *Player) moveNorthBoost() {
-	p.moveBoost(-1, 0)
+func (player *Player) moveNorthBoost() {
+	player.moveBoost(-1, 0)
 }
 
-func (p *Player) moveSouth() {
-	p.move(1, 0)
+func (player *Player) moveSouth() {
+	player.move(1, 0)
 }
 
-func (p *Player) moveSouthBoost() {
-	p.moveBoost(1, 0)
+func (player *Player) moveSouthBoost() {
+	player.moveBoost(1, 0)
 }
 
-func (p *Player) moveEast() {
-	p.move(0, 1)
+func (player *Player) moveEast() {
+	player.move(0, 1)
 }
 
-func (p *Player) moveEastBoost() {
-	p.moveBoost(0, 1)
+func (player *Player) moveEastBoost() {
+	player.moveBoost(0, 1)
 }
 
-func (p *Player) moveWest() {
-	p.move(0, -1)
+func (player *Player) moveWest() {
+	player.move(0, -1)
 }
 
-func (p *Player) moveWestBoost() {
-	p.moveBoost(0, -1)
+func (player *Player) moveWestBoost() {
+	player.moveBoost(0, -1)
 }
 
-func (p *Player) move(yOffset int, xOffset int) {
-	sourceTile := p.getTileSync()
-	destTile := p.world.getRelativeTile(sourceTile, yOffset, xOffset)
-	p.push(destTile, nil, yOffset, xOffset)
+func (player *Player) move(yOffset int, xOffset int) {
+	sourceTile := player.getTileSync()
+	destTile := getRelativeTile(sourceTile, yOffset, xOffset, player)
+	player.push(destTile, nil, yOffset, xOffset)
 	if walkable(destTile) {
-		transferPlayer(p, sourceTile, destTile)
+		transferPlayer(player, sourceTile, destTile)
 	}
 }
 
-func (p *Player) moveBoost(yOffset int, xOffset int) {
-	if p.useBoost() {
-		p.pushUnder(yOffset, xOffset)
-		p.move(2*yOffset, 2*xOffset)
+func (player *Player) moveBoost(yOffset int, xOffset int) {
+	if player.useBoost() {
+		player.pushUnder(yOffset, xOffset)
+		player.move(2*yOffset, 2*xOffset)
 	} else {
-		p.move(yOffset, xOffset)
+		player.move(yOffset, xOffset)
 	}
 }
 
 func (player *Player) applyTeleport(teleport *Teleport) {
-	stage := getStageFromStageName(player.world, teleport.destStage)
+	stage := getStageFromStageName(player, teleport.destStage)
 	if !validCoordinate(teleport.destY, teleport.destX, stage.tiles) {
 		log.Fatal("Fatal: Invalid coords from teleport: ", teleport.destStage, teleport.destY, teleport.destX)
 	}
@@ -196,7 +198,7 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	}
 
 	if tile.interactable.pushable {
-		nextTile := p.world.getRelativeTile(tile, yOff, xOff)
+		nextTile := getRelativeTile(tile, yOff, xOff, p)
 		if nextTile != nil {
 			if p.push(nextTile, tile.interactable, yOff, xOff) {
 				swapInteractableAndUpdate(tile, incoming)
@@ -216,7 +218,7 @@ func (p *Player) pushUnder(yOffset int, xOffset int) {
 
 func (p *Player) pushTeleport(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	if canBeTeleported(incoming) {
-		stage := getStageFromStageName(p.world, tile.teleport.destStage)
+		stage := getStageFromStageName(p, tile.teleport.destStage)
 		if !validCoordinate(tile.teleport.destY+yOff, tile.teleport.destX+xOff, stage.tiles) {
 			return false
 		}
@@ -270,7 +272,7 @@ func handleDeath(player *Player) {
 	player.setKillStreak(0)
 	player.actions = createDefaultActions() // problematic
 
-	stage := player.world.fetchStageSync(infirmaryStagenameForPlayer(player))
+	stage := player.fetchStageSync(infirmaryStagenameForPlayer(player))
 	player.setStage(stage)
 	player.updateRecordOnDeath(stage.tiles[2][2])
 	respawnOnStage(player, stage)
@@ -467,6 +469,39 @@ func (player *Player) updateRecordOnDeath(respawnTile *Tile) {
 
 /////////////////////////////////////////////////////////////
 // Stages
+
+func (player *Player) fetchStageSync(stagename string) *Stage {
+	player.world.wStageMutex.Lock()
+	defer player.world.wStageMutex.Unlock()
+	stage, ok := player.world.worldStages[stagename]
+	if ok && stage != nil {
+		return stage
+	}
+	// stagename + team || stagename + rand
+
+	player.pStageMutex.Lock()
+	defer player.pStageMutex.Unlock()
+	stage, ok = player.playerStages[stagename]
+	if ok && stage != nil {
+		return stage
+	}
+
+	area, success := areaFromName(stagename)
+	stage = createStageFromArea(area)
+	player.playerStages[stagename] = stage
+	if !success {
+		//panic("ERROR! invalid stage with no area: " + stagename)
+		return nil
+	}
+	if area.LoadStrategy == "" {
+		player.world.worldStages[stagename] = stage
+	}
+	if area.LoadStrategy == "Personal" {
+		player.playerStages[stagename] = stage
+	}
+
+	return stage
+}
 
 /////////////////////////////////////////////////////////////
 // Observers

@@ -14,16 +14,7 @@ func TestActivateHighlightWithMovement_NoConcurrentWrite(t *testing.T) {
 	bufferClearChannel := make(chan struct{})
 	go drainChannel(bufferClearChannel)
 
-	player := &Player{
-		id:                "tp",
-		stage:             testStage,
-		actions:           createDefaultActions(),
-		health:            100,
-		updates:           updatesForPlayer,
-		clearUpdateBuffer: bufferClearChannel,
-		world:             world,
-		tangible:          true,
-	}
+	player := createTestingPlayer(world, "")
 	player.placeOnStage(testStage, 1, 4)
 
 	powerUp1 := &PowerUp{areaOfInfluence: grid9x9}

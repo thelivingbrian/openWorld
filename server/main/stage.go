@@ -22,11 +22,15 @@ type Stage struct {
 ////////////////////////////////////////////////////
 // Get / Create and Load Stage
 
-func getStageFromStageName(world *World, stagename string) *Stage {
-	stage := world.fetchStageSync(stagename)
+func getStageFromStageName(player *Player, stagename string) *Stage {
+	// stage := player.world.fetchStageSync(stagename)
+	// if stage != nil {
+	// 	return stage
+	// }
+	stage := player.fetchStageSync(stagename)
 	if stage == nil {
 		fmt.Println("WARNING: Fetching default stage  instead of: " + stagename)
-		stage = world.fetchStageSync("clinic")
+		stage = player.fetchStageSync("clinic")
 		if stage == nil {
 			panic("Default stage not found")
 		}
@@ -55,7 +59,8 @@ func (world *World) getNamedStageOrDefault(name string) *Stage {
 	return stage
 }
 */
-
+/*
+// remove ?
 func (world *World) fetchStageSync(stagename string) *Stage {
 	world.wStageMutex.Lock()
 	defer world.wStageMutex.Unlock()
@@ -65,8 +70,8 @@ func (world *World) fetchStageSync(stagename string) *Stage {
 	}
 	area, success := areaFromName(stagename)
 	if !success {
-		//panic("ERROR! invalid stage with no area: " + stagename)
-		return nil
+		panic("ERROR! invalid stage with no area: " + stagename)
+		//return nil
 	}
 	stage = createStageFromArea(area)
 	if area.LoadStrategy == "Individual" {
@@ -76,6 +81,7 @@ func (world *World) fetchStageSync(stagename string) *Stage {
 	world.worldStages[stagename] = stage
 	return stage
 }
+*/
 
 /*
 func (world *World) getStageByName(name string) *Stage {

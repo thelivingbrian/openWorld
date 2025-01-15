@@ -44,7 +44,7 @@ func (source *Interactable) React(incoming *Interactable, initiator *Player, loc
 		if source.reactions[i].ReactsWith != nil && source.reactions[i].ReactsWith(incoming, initiator) {
 			outgoing, push := source.reactions[i].Reaction(incoming, initiator, location)
 			if push {
-				nextTile := initiator.world.getRelativeTile(location, yOff, xOff)
+				nextTile := getRelativeTile(location, yOff, xOff, initiator)
 				if nextTile != nil {
 					initiator.push(nextTile, outgoing, yOff, xOff)
 				}

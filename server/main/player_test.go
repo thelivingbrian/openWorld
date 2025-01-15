@@ -7,22 +7,11 @@ import (
 func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 	loadFromJson()
 	world := createGameWorld(testdb())
-	testStage := createStageByName("hallway")
-	updatesForPlayer := make(chan []byte)
-	go drainChannel(updatesForPlayer)
-	bufferClearChannel := make(chan struct{})
-	go drainChannel(bufferClearChannel)
+	player := createTestingPlayer(world, "")
+	defer close(player.updates)
+	defer close(player.clearUpdateBuffer)
 
-	player := &Player{
-		id:                "tp",
-		stage:             testStage,
-		actions:           createDefaultActions(),
-		health:            100,
-		updates:           updatesForPlayer,
-		clearUpdateBuffer: bufferClearChannel,
-		world:             world,
-		tangible:          true,
-	}
+	testStage := createStageByName("hallway")
 	player.placeOnStage(testStage, 1, 4)
 
 	// Act
@@ -41,4 +30,26 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 
 func (p *Player) placeOnStage(stage *Stage, y, x int) {
 	placePlayerOnStageAt(p, stage, y, x)
+}
+
+// Utilities
+func createTestingPlayer(world *World, user string) *Player {
+	updatesForPlayer := make(chan []byte)
+	go drainChannel(updatesForPlayer)
+	bufferClearChannel := make(chan struct{})
+	go drainChannel(bufferClearChannel)
+	id := "tp" + user
+	tp := &Player{
+		id:                id,
+		username:          user,
+		actions:           createDefaultActions(),
+		health:            100,
+		updates:           updatesForPlayer,
+		clearUpdateBuffer: bufferClearChannel,
+		tangible:          true,
+		playerStages:      map[string]*Stage{},
+		world:             world,
+	}
+	world.worldPlayers[id] = tp
+	return tp
 }
