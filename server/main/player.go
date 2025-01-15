@@ -499,6 +499,9 @@ func (player *Player) fetchStageSync(stagename string) *Stage {
 	if area.LoadStrategy == "Personal" {
 		player.playerStages[stagename] = stage
 	}
+	if area.LoadStrategy == "Individual" {
+		// no-op stage will load fresh each time
+	}
 
 	return stage
 }
