@@ -34,9 +34,13 @@ func (c *Context) getEditTransports(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	output := transportFormHtml(*selectedArea)
-	output += collection.transportsAsOob(*selectedArea, spaceName)
-	io.WriteString(w, output)
+	//output := transportFormHtml(*selectedArea)
+	err := tmpl.ExecuteTemplate(w, "transport-form", selectedArea)
+	if err != nil {
+		fmt.Println(err)
+	}
+	highlightSelects := collection.transportsAsOob(*selectedArea, spaceName)
+	io.WriteString(w, highlightSelects)
 }
 
 func (c Context) editTransport(w http.ResponseWriter, r *http.Request) {
@@ -50,6 +54,7 @@ func (c Context) editTransport(w http.ResponseWriter, r *http.Request) {
 	areaName := properties["transport-area-name"]
 
 	confirmation := (properties["confirmation"] == "on")
+	rejectInteractable := (properties["reject-interactable"] == "on")
 
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
@@ -67,9 +72,12 @@ func (c Context) editTransport(w http.ResponseWriter, r *http.Request) {
 	currentTransport.SourceX = sourceX
 	currentTransport.DestStage = destStage
 	currentTransport.Confirmation = confirmation
+	currentTransport.RejectInteractable = rejectInteractable
 
-	output := transportFormHtml(*selectedArea)
-	io.WriteString(w, output)
+	err := tmpl.ExecuteTemplate(w, "transport-form", selectedArea)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func (c Context) newTransport(w http.ResponseWriter, r *http.Request) {
@@ -88,15 +96,20 @@ func (c Context) newTransport(w http.ResponseWriter, r *http.Request) {
 
 	selectedArea.Transports = append(selectedArea.Transports, Transport{})
 
-	output := transportFormHtml(*selectedArea)
-	io.WriteString(w, output)
-
+	err := tmpl.ExecuteTemplate(w, "transport-form", selectedArea)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func editTransportForm(i int, t Transport, sourceName string) string {
 	confirmationString := ""
 	if t.Confirmation {
 		confirmationString = "checked"
+	}
+	rejectString := ""
+	if t.RejectInteractable {
+		rejectString = "checked"
 	}
 	output := fmt.Sprintf(`
 	<form hx-post="/editTransport" hx-target="#edit_transports" hx-swap="outerHTML" hx-include="[name='currentCollection'],[name='currentSpace']">
@@ -141,12 +154,18 @@ func editTransportForm(i int, t Transport, sourceName string) string {
 					<input type="checkbox" name="confirmation" %s />
 				</td>
 			<tr />
+			<tr>
+				<td align="right">Confirmation:</td>
+				<td align="left">
+					<input type="checkbox" name="confirmation" %s />
+				</td>
+			<tr />
 		</table>
 
 		<button class="btn">Submit</button>
 		<button class="btn" hx-post="/dupeTransport" hx-include="[name='area-name'],[name='currentCollection'],[name='currentSpace']">Duplicate</button>
 		<button class="btn" hx-post="/deleteTransport" hx-include="[name='area-name'],[name='currentCollection'],[name='currentSpace']">Delete</button>
-	</form>`, i, sourceName, t.DestStage, t.DestY, t.DestX, t.SourceY, t.SourceX, "pink", confirmationString)
+	</form>`, i, sourceName, t.DestStage, t.DestY, t.DestX, t.SourceY, t.SourceX, "pink", confirmationString, rejectString)
 	return output
 }
 
@@ -179,8 +198,10 @@ func (c Context) dupeTransport(w http.ResponseWriter, r *http.Request) {
 	newTransport := *currentTransport
 	selectedArea.Transports = append(selectedArea.Transports, newTransport)
 
-	output := transportFormHtml(*selectedArea)
-	io.WriteString(w, output)
+	err := tmpl.ExecuteTemplate(w, "transport-form", selectedArea)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func (c Context) deleteTransport(w http.ResponseWriter, r *http.Request) {
@@ -200,9 +221,11 @@ func (c Context) deleteTransport(w http.ResponseWriter, r *http.Request) {
 	selectedArea.Transports = append(selectedArea.Transports[:id], selectedArea.Transports[id+1:]...)
 	fmt.Println(len(selectedArea.Transports))
 
-	output := transportFormHtml(*selectedArea)
-	// Remove highlight for deleted transport
-	io.WriteString(w, output)
+	// Still need to remove highlights for deleted transports, and new?
+	err := tmpl.ExecuteTemplate(w, "transport-form", selectedArea)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func (col *Collection) transportsAsOob(area AreaDescription, spacename string) string {
