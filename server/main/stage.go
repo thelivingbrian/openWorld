@@ -35,6 +35,7 @@ func getStageFromStageName(world *World, stagename string) *Stage {
 	return stage
 }
 
+/*
 // remove
 func (world *World) getNamedStageOrDefault(name string) *Stage {
 	stage := world.getStageByName(name)
@@ -53,6 +54,7 @@ func (world *World) getNamedStageOrDefault(name string) *Stage {
 
 	return stage
 }
+*/
 
 func (world *World) fetchStageSync(stagename string) *Stage {
 	world.wStageMutex.Lock()
@@ -75,6 +77,7 @@ func (world *World) fetchStageSync(stagename string) *Stage {
 	return stage
 }
 
+/*
 func (world *World) getStageByName(name string) *Stage {
 	world.wStageMutex.Lock()
 	defer world.wStageMutex.Unlock()
@@ -98,6 +101,7 @@ func (world *World) loadStageByName(name string) *Stage {
 	}
 	return stage
 }
+*/
 
 func createStageFromArea(area Area) *Stage {
 	spawnAction := spawnActions[area.SpawnStrategy]

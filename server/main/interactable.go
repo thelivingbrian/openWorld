@@ -6,9 +6,9 @@ import (
 )
 
 type Interactable struct {
-	name     string
-	pushable bool
-	//walkable  bool
+	name           string
+	pushable       bool
+	walkable       bool
 	cssClass       string
 	fragile        bool
 	reactions      []InteractableReaction // Lowest index match wins
@@ -29,6 +29,10 @@ var interactableReactions = map[string][]InteractableReaction{
 	"sky-blue-goal": []InteractableReaction{
 		InteractableReaction{ReactsWith: interactableHasName("sky-blue-ball"), Reaction: scoreGoalForTeam("fuchsia")},
 		InteractableReaction{ReactsWith: interactableHasName("fuchsia-ball"), Reaction: spawnMoney([]int{10, 20, 50})},
+	},
+	"goal": []InteractableReaction{
+		InteractableReaction{ReactsWith: ballOfMatchingTeam, Reaction: scoreGoalForPlayer},
+		InteractableReaction{ReactsWith: ballOfOtherTeam, Reaction: spawnMoney([]int{10, 20, 50})},
 	},
 }
 
@@ -71,6 +75,23 @@ func interactableHasName(name string) func(*Interactable, *Player) bool {
 	}
 }
 
+func ballOfMatchingTeam(i *Interactable, p *Player) bool {
+	if i == nil {
+		return false
+	}
+	return i.name == "ball-"+p.getTeamNameSync()
+}
+
+func ballOfOtherTeam(i *Interactable, p *Player) bool {
+	if i == nil {
+		return false
+	}
+	if len(i.name) < 5 {
+		return false
+	}
+	return i.name[0:5] == "ball-"
+}
+
 // Actions
 func eat(*Interactable, *Player, *Tile) (*Interactable, bool) {
 	// incoming interactable is discarded
@@ -88,6 +109,16 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 		fmt.Println(p.world.leaderBoard.scoreboard.GetScore(team))
 		return nil, false
 	}
+}
+
+func scoreGoalForPlayer(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	team := p.getTeamNameSync()
+	p.world.leaderBoard.scoreboard.Increment(team)
+	p.incrementGoalsScored()
+	p.updateRecord()
+	// need to  give a trim
+	fmt.Println(p.world.leaderBoard.scoreboard.GetScore(team))
+	return nil, false
 }
 
 func spawnMoney(amounts []int) func(*Interactable, *Player, *Tile) (*Interactable, bool) {

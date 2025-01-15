@@ -16,12 +16,12 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	loadFromJson()
 	world := createGameWorld(testdb())
 
-	testStage := world.getNamedStageOrDefault("test-walls-interactable")
+	testStage := world.fetchStageSync("test-walls-interactable")
 	testStage.spawn = []SpawnAction{SpawnAction{always, addBoostsAt(11, 13)}}
 	if len(world.worldStages) != 1 {
 		t.Error("Should have two stages")
 	}
-	clinic := world.getNamedStageOrDefault("clinic")
+	clinic := world.fetchStageSync("clinic")
 	clinic.tiles[12][12].teleport = nil
 	if len(world.worldStages) != 2 {
 		t.Error("Should have one stage")

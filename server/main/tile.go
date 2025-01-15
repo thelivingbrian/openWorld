@@ -302,8 +302,9 @@ func walkable(tile *Tile) bool {
 	if tile.interactable == nil {
 		return tile.material.Walkable
 	} else {
-		// stops obstruction by pushables
-		return tile.interactable.pushable
+		// pushable must (?) be walkable to prevent blocking of players and interactables in corners
+		// non-pushable may still be walkable
+		return tile.interactable.pushable || tile.interactable.walkable
 	}
 }
 

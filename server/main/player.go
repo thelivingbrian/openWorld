@@ -115,6 +115,7 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 		log.Fatal("Fatal: Invalid coords from teleport: ", teleport.destStage, teleport.destY, teleport.destX)
 	}
 	// Is using getTileSync a risk with the menu teleport authorizer?
+	player.updateBottomText("You are teleporting!")
 	transferPlayer(player, player.getTileSync(), stage.tiles[teleport.destY][teleport.destX])
 }
 
@@ -198,8 +199,7 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 		nextTile := p.world.getRelativeTile(tile, yOff, xOff)
 		if nextTile != nil {
 			if p.push(nextTile, tile.interactable, yOff, xOff) {
-				tile.interactable = incoming
-				tile.stage.updateAll(interactableBox(tile))
+				swapInteractableAndUpdate(tile, incoming)
 				return true
 			}
 		}
@@ -232,12 +232,12 @@ func replaceNilInteractable(tile *Tile, incoming *Interactable) bool {
 	if !tile.material.Walkable { // Prevents lock contention from using Walkable()
 		return false
 	}
-	swapAndUpdate(tile, incoming)
+	swapInteractableAndUpdate(tile, incoming)
 
 	return true
 }
 
-func swapAndUpdate(tile *Tile, incoming *Interactable) {
+func swapInteractableAndUpdate(tile *Tile, incoming *Interactable) {
 	experiencedChange := tile.interactable != incoming
 	tile.interactable = incoming
 	if experiencedChange {
@@ -464,6 +464,9 @@ func (player *Player) updateRecord() {
 func (player *Player) updateRecordOnDeath(respawnTile *Tile) {
 	go player.world.db.updateRecordForPlayer(player, respawnTile)
 }
+
+/////////////////////////////////////////////////////////////
+// Stages
 
 /////////////////////////////////////////////////////////////
 // Observers
