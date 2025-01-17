@@ -416,8 +416,8 @@ func updatePlayerAfterStageChange(p *Player) {
 }
 
 func updateScreenFromScratch(player *Player) {
-	//player.clearUpdateBuffer <- struct{}{}
-	clearChannel(player.updates)
+	// player.clearUpdateBuffer <- struct{}{}
+	// clearChannel(player.updates)
 	player.updates <- htmlFromPlayer(player)
 }
 
@@ -470,6 +470,19 @@ func (player *Player) updateRecordOnDeath(respawnTile *Tile) {
 /////////////////////////////////////////////////////////////
 // Stages
 
+func getStageFromStageName(player *Player, stagename string) *Stage {
+	stage := player.fetchStageSync(stagename)
+	if stage == nil {
+		fmt.Println("WARNING: Fetching default stage instead of: " + stagename)
+		stage = player.fetchStageSync("clinic")
+		if stage == nil {
+			panic("Default stage not found")
+		}
+	}
+
+	return stage
+}
+
 func (player *Player) fetchStageSync(stagename string) *Stage {
 	player.world.wStageMutex.Lock()
 	defer player.world.wStageMutex.Unlock()
@@ -487,8 +500,9 @@ func (player *Player) fetchStageSync(stagename string) *Stage {
 	}
 
 	area, success := areaFromName(stagename)
-	stage = createStageFromArea(area)
-	player.playerStages[stagename] = stage
+	stage = createStageFromArea(area) // can create empty stage
+	// this causes mystery horror
+	//player.playerStages[stagename] = stage
 	if !success {
 		//panic("ERROR! invalid stage with no area: " + stagename)
 		return nil

@@ -272,6 +272,8 @@ func getRelativeTile(source *Tile, yOff, xOff int, player *Player) *Tile {
 		if escapesVertically {
 			var newStage *Stage
 			if yOff > 0 {
+				// should be fetch
+				// otherwise can out of bound into clinic
 				newStage = getStageFromStageName(player, source.stage.south)
 			}
 			if yOff < 0 {
@@ -279,6 +281,7 @@ func getRelativeTile(source *Tile, yOff, xOff int, player *Player) *Tile {
 			}
 
 			if newStage != nil {
+				fmt.Println("NEW STAGE", newStage.name, len(newStage.tiles))
 				if validCoordinate(mod(destY, len(newStage.tiles)), destX, newStage.tiles) {
 					return newStage.tiles[mod(destY, len(newStage.tiles))][destX]
 				}

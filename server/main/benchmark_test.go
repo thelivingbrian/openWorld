@@ -133,25 +133,6 @@ func BenchmarkCreateStage(b *testing.B) {
 	}
 }
 
-/*
-func BenchmarkLoadStage(b *testing.B) {
-	loadFromJson()
-	world := createGameWorld(testdb())
-	for _, stageName := range stageNames {
-
-		b.Run(fmt.Sprintf("stage:%s Cores", stageName), func(b *testing.B) {
-			b.ResetTimer()
-
-			for i := 0; i < b.N; i++ {
-				world.loadStageByName(stageName)
-			}
-
-			b.StopTimer()
-		})
-	}
-}
-*/
-
 func BenchmarkFetchStage(b *testing.B) {
 	loadFromJson()
 	world := createGameWorld(testdb())

@@ -189,6 +189,7 @@ func (m *Menu) unselectedLinkAt(i int) string {
 }
 
 func mod(i, n int) int {
+	fmt.Println("MOD", i, n)
 	return ((i % n) + n) % n
 }
 
