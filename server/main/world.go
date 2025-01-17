@@ -281,7 +281,6 @@ func getRelativeTile(source *Tile, yOff, xOff int, player *Player) *Tile {
 			}
 
 			if newStage != nil {
-				fmt.Println("NEW STAGE", newStage.name, len(newStage.tiles))
 				if validCoordinate(mod(destY, len(newStage.tiles)), destX, newStage.tiles) {
 					return newStage.tiles[mod(destY, len(newStage.tiles))][destX]
 				}
