@@ -50,7 +50,7 @@ func (source *Interactable) React(incoming *Interactable, initiator *Player, loc
 			if push {
 				nextTile := getRelativeTile(location, yOff, xOff, initiator)
 				if nextTile != nil {
-					initiator.push(nextTile, outgoing, yOff, xOff)
+					return initiator.push(nextTile, outgoing, yOff, xOff)
 				}
 			}
 			return true
