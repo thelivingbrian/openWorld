@@ -193,7 +193,6 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	}
 
 	if tile.interactable.React(incoming, p, tile, yOff, xOff) {
-		//tile.stage.updateAll(interactableBox(tile)) // Do swap in react if wanted
 		return true
 	}
 
@@ -503,13 +502,12 @@ func (player *Player) fetchStageSync(stagename string) *Stage {
 	}
 
 	area, success := areaFromName(stagename)
-	stage = createStageFromArea(area) // can create empty stage
-	// this causes mystery horror
-	//player.playerStages[stagename] = stage
 	if !success {
 		//panic("ERROR! invalid stage with no area: " + stagename)
 		return nil
 	}
+
+	stage = createStageFromArea(area) // can create empty stage
 	if area.LoadStrategy == "" {
 		player.world.worldStages[stagename] = stage
 	}
@@ -517,7 +515,7 @@ func (player *Player) fetchStageSync(stagename string) *Stage {
 		player.playerStages[stagename] = stage
 	}
 	if area.LoadStrategy == "Individual" {
-		// no-op stage will load fresh each time
+		// no-op : stage will load fresh each time
 	}
 
 	return stage

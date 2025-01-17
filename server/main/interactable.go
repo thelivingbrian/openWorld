@@ -49,9 +49,10 @@ func (source *Interactable) React(incoming *Interactable, initiator *Player, loc
 			outgoing, push := source.reactions[i].Reaction(incoming, initiator, location)
 			if push {
 				nextTile := getRelativeTile(location, yOff, xOff, initiator)
-				if nextTile != nil {
-					return initiator.push(nextTile, outgoing, yOff, xOff)
+				if nextTile == nil {
+					return false
 				}
+				return initiator.push(nextTile, outgoing, yOff, xOff)
 			}
 			return true
 		}
@@ -111,18 +112,6 @@ func initiatorDifferentTeam(team string) func(*Interactable, *Player) bool {
 		return i.name[0:5] == "ball-" && team == p.getTeamNameSync()
 	}
 }
-
-/*
-func ballOfOtherTeam(i *Interactable, p *Player) bool {
-	if i == nil {
-		return false
-	}
-	if len(i.name) < 5 {
-		return false
-	}
-	return i.name[0:5] == "ball-"
-}
-*/
 
 // Actions
 func eat(*Interactable, *Player, *Tile) (*Interactable, bool) {

@@ -34,7 +34,6 @@ func (c *Context) getEditTransports(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//output := transportFormHtml(*selectedArea)
 	err := tmpl.ExecuteTemplate(w, "transport-form", selectedArea)
 	if err != nil {
 		fmt.Println(err)
