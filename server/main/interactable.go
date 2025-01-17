@@ -30,9 +30,13 @@ var interactableReactions = map[string][]InteractableReaction{
 		InteractableReaction{ReactsWith: interactableHasName("sky-blue-ball"), Reaction: scoreGoalForTeam("fuchsia")},
 		InteractableReaction{ReactsWith: interactableHasName("fuchsia-ball"), Reaction: spawnMoney([]int{10, 20, 50})},
 	},
-	"goal": []InteractableReaction{
-		InteractableReaction{ReactsWith: ballOfMatchingTeam, Reaction: scoreGoalForPlayer},
-		InteractableReaction{ReactsWith: ballOfOtherTeam, Reaction: spawnMoney([]int{10, 20, 50})},
+	"tutorial-goal-sky-blue": []InteractableReaction{
+		InteractableReaction{ReactsWith: ballOfMatchingTeam("sky-blue"), Reaction: destroyEveryotherInteractable},
+		InteractableReaction{ReactsWith: ballOfOtherTeam("sky-blue"), Reaction: notify("Try using the matching ball.")},
+	},
+	"tutorial-goal-fuchsia": []InteractableReaction{
+		InteractableReaction{ReactsWith: ballOfMatchingTeam("fuchsia"), Reaction: destroyEveryotherInteractable},
+		InteractableReaction{ReactsWith: ballOfOtherTeam("fuchsia"), Reaction: notify("Try using the matching ball.")},
 	},
 }
 
@@ -74,14 +78,41 @@ func interactableHasName(name string) func(*Interactable, *Player) bool {
 		return i.name == name
 	}
 }
-
-func ballOfMatchingTeam(i *Interactable, p *Player) bool {
-	if i == nil {
-		return false
+func ballOfMatchingTeam(team string) func(*Interactable, *Player) bool {
+	return func(i *Interactable, p *Player) bool {
+		if i == nil {
+			return false
+		}
+		fmt.Println("HEYO", i.name, team, p.getTeamNameSync())
+		return i.name == "ball-"+team && team == p.getTeamNameSync()
 	}
-	return i.name == "ball-"+p.getTeamNameSync()
 }
 
+func ballOfOtherTeam(team string) func(*Interactable, *Player) bool {
+	return func(i *Interactable, p *Player) bool {
+		if i == nil {
+			return false
+		}
+		if len(i.name) < 5 {
+			return false
+		}
+		return i.name[0:5] == "ball-" && team == p.getTeamNameSync()
+	}
+}
+
+func initiatorDifferentTeam(team string) func(*Interactable, *Player) bool {
+	return func(i *Interactable, p *Player) bool {
+		if i == nil {
+			return false
+		}
+		if len(i.name) < 5 {
+			return false
+		}
+		return i.name[0:5] == "ball-" && team == p.getTeamNameSync()
+	}
+}
+
+/*
 func ballOfOtherTeam(i *Interactable, p *Player) bool {
 	if i == nil {
 		return false
@@ -91,6 +122,7 @@ func ballOfOtherTeam(i *Interactable, p *Player) bool {
 	}
 	return i.name[0:5] == "ball-"
 }
+*/
 
 // Actions
 func eat(*Interactable, *Player, *Tile) (*Interactable, bool) {
@@ -133,5 +165,21 @@ func spawnMoney(amounts []int) func(*Interactable, *Player, *Tile) (*Interactabl
 			tiles[randn].addMoneyAndNotifyAll(amounts[i])
 		}
 		return nil, false
+	}
+}
+
+func destroyEveryotherInteractable(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	tiles := everyOtherTileOnStage(t)
+	for i := range tiles {
+		go destroyInteractable(tiles[i], p)
+	}
+	return nil, false
+}
+
+// Create an always false auth that notifies to prevent consuming incoming
+func notify(notification string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		p.updateBottomText(notification)
+		return i, true
 	}
 }

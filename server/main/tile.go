@@ -162,18 +162,10 @@ func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
 	if success {
 		tile.stage.updateAllExcept(playerBox(tile), player)
 	} else {
-		fmt.Println("WARN FAILED TO REMOVE PLAYER :(")
+		fmt.Println("WARN : FAILED TO REMOVE PLAYER :(")
 	}
 	return success
 }
-
-/*
-func (tile *Tile) removePlayer(playerId string) {
-	tile.playerMutex.Lock()
-	defer tile.playerMutex.Unlock()
-	delete(tile.playerMap, playerId)
-}
-*/
 
 func tryRemovePlayer(tile *Tile, player *Player) bool {
 	tile.playerMutex.Lock()
@@ -291,11 +283,21 @@ func (tile *Tile) tryToNotifyAfter(delay int) {
 //////////////////////////////////////////////////////////////////////
 // Interactables
 
-func destroyInteractable(tile *Tile, _ *Player) {
+func destroyFragileInteractable(tile *Tile, _ *Player) {
 	// *Player is a placeholder for initiator/destroyer in future
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
 	if tile.interactable != nil && tile.interactable.fragile {
+		tile.interactable = nil
+		tile.stage.updateAll(interactableBox(tile))
+	}
+}
+
+func destroyInteractable(tile *Tile, _ *Player) {
+	// *Player is a placeholder for initiator/destroyer in future
+	tile.interactableMutex.Lock()
+	defer tile.interactableMutex.Unlock()
+	if tile.interactable != nil {
 		tile.interactable = nil
 		tile.stage.updateAll(interactableBox(tile))
 	}
@@ -371,6 +373,18 @@ func sliceOfTileToHighlightBoxes(tiles []*Tile, cssClass string) string {
 		html += oobHighlightBox(tile, cssClass)
 	}
 	return html
+}
+
+func everyOtherTileOnStage(tile *Tile) []*Tile {
+	out := make([]*Tile, 0)
+	for i := range tile.stage.tiles {
+		for j := range tile.stage.tiles[i] {
+			if tile != tile.stage.tiles[i][j] {
+				out = append(out, tile.stage.tiles[i][j])
+			}
+		}
+	}
+	return out
 }
 
 /////////////////////////////////////////////////////////////////

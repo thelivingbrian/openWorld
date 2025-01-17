@@ -15,7 +15,7 @@ type World struct {
 	worldPlayers        map[string]*Player
 	wPlayerMutex        sync.Mutex
 	teamQuantities      map[string]int
-	incomingPlayers     map[string]LoginRequest
+	incomingPlayers     map[string]*LoginRequest
 	incomingPlayerMutex sync.Mutex
 	worldStages         map[string]*Stage
 	wStageMutex         sync.Mutex
@@ -36,7 +36,7 @@ func createGameWorld(db *DB) *World {
 		worldPlayers:        make(map[string]*Player),
 		wPlayerMutex:        sync.Mutex{},
 		teamQuantities:      map[string]int{},
-		incomingPlayers:     make(map[string]LoginRequest),
+		incomingPlayers:     make(map[string]*LoginRequest),
 		incomingPlayerMutex: sync.Mutex{},
 		worldStages:         make(map[string]*Stage),
 		wStageMutex:         sync.Mutex{},
@@ -63,15 +63,15 @@ func (world *World) removePlayer(p *Player) {
 //////////////////////////////////////////////////
 //  Log in
 
-func createLoginRequest(record PlayerRecord) LoginRequest {
-	return LoginRequest{
+func createLoginRequest(record PlayerRecord) *LoginRequest {
+	return &LoginRequest{
 		Token:     createRandomToken(),
 		Record:    record,
 		timestamp: time.Now(),
 	}
 }
 
-func (world *World) addIncoming(loginRequest LoginRequest) {
+func (world *World) addIncoming(loginRequest *LoginRequest) {
 	world.incomingPlayerMutex.Lock()
 	defer world.incomingPlayerMutex.Unlock()
 	world.incomingPlayers[loginRequest.Token] = loginRequest
@@ -86,7 +86,7 @@ func (world *World) retreiveIncoming(token string) *LoginRequest {
 	if ok {
 		delete(world.incomingPlayers, token)
 		if isLessThan15SecondsAgo(request.timestamp) {
-			return &request
+			return request
 		}
 	}
 	return nil
@@ -109,7 +109,7 @@ func createRandomToken() string {
 	return hex.EncodeToString(token)
 }
 
-func (world *World) join(incoming LoginRequest, conn WebsocketConnection) *Player {
+func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Player {
 	// need log levels
 	//fmt.Println("New Player: " + record.Username)
 	//fmt.Println("Token: " + token)

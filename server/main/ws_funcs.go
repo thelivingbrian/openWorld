@@ -42,7 +42,7 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 		fmt.Println("player not found with token: " + token)
 		return
 	}
-	player := world.join(*incoming, conn)
+	player := world.join(incoming, conn)
 	if player == nil {
 		fmt.Println("Failed to join player with token: " + token)
 		return

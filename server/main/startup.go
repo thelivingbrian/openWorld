@@ -155,7 +155,7 @@ type Transport struct {
 	DestX              int    `json:"destX"`
 	DestStage          string `json:"destStage"`
 	Confirmation       bool   `json:"confirmation"`
-	RejectInteractable bool   `json:"confirmation"`
+	RejectInteractable bool   `json:"rejectInteractable"`
 }
 
 type Area struct {
