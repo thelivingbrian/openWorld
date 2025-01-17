@@ -178,7 +178,7 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 		return false
 	}
 
-	if canTeleportInteractables(tile) {
+	if hasTeleport(tile) {
 		return p.pushTeleport(tile, incoming, yOff, xOff)
 	}
 
@@ -217,6 +217,9 @@ func (p *Player) pushUnder(yOffset int, xOffset int) {
 }
 
 func (p *Player) pushTeleport(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
+	if tile.teleport.rejectInteractable {
+		return false
+	}
 	if canBeTeleported(incoming) {
 		stage := getStageFromStageName(p, tile.teleport.destStage)
 		if !validCoordinate(tile.teleport.destY+yOff, tile.teleport.destX+xOff, stage.tiles) {
@@ -247,11 +250,11 @@ func swapInteractableAndUpdate(tile *Tile, incoming *Interactable) {
 	}
 }
 
-func canTeleportInteractables(tile *Tile) bool {
+func hasTeleport(tile *Tile) bool {
 	if tile == nil || tile.teleport == nil {
 		return false
 	}
-	return !tile.teleport.rejectInteractable
+	return true
 }
 
 func canBeTeleported(interactable *Interactable) bool {
