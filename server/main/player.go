@@ -117,7 +117,6 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 		log.Fatal("Fatal: Invalid coords from teleport: ", teleport.destStage, teleport.destY, teleport.destX)
 	}
 	// Is using getTileSync a risk with the menu teleport authorizer?
-	player.updateBottomText("You are teleporting!")
 	transferPlayer(player, player.getTileSync(), stage.tiles[teleport.destY][teleport.destX])
 }
 

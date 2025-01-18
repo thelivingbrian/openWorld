@@ -31,11 +31,11 @@ var interactableReactions = map[string][]InteractableReaction{
 		InteractableReaction{ReactsWith: interactableHasName("fuchsia-ball"), Reaction: spawnMoney([]int{10, 20, 50})},
 	},
 	"tutorial-goal-sky-blue": []InteractableReaction{
-		InteractableReaction{ReactsWith: ballOfMatchingTeam("sky-blue"), Reaction: destroyEveryotherInteractable},
+		InteractableReaction{ReactsWith: ballOfMatchingTeam("sky-blue"), Reaction: finishTutorial2},
 		InteractableReaction{ReactsWith: ballOfOtherTeam("sky-blue"), Reaction: notify("Try using the matching ball.")},
 	},
 	"tutorial-goal-fuchsia": []InteractableReaction{
-		InteractableReaction{ReactsWith: ballOfMatchingTeam("fuchsia"), Reaction: destroyEveryotherInteractable},
+		InteractableReaction{ReactsWith: ballOfMatchingTeam("fuchsia"), Reaction: finishTutorial2},
 		InteractableReaction{ReactsWith: ballOfOtherTeam("fuchsia"), Reaction: notify("Try using the matching ball.")},
 	},
 }
@@ -154,6 +154,22 @@ func spawnMoney(amounts []int) func(*Interactable, *Player, *Tile) (*Interactabl
 			tiles[randn].addMoneyAndNotifyAll(amounts[i])
 		}
 		return nil, false
+	}
+}
+
+func finishTutorial2(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	t.stage.tiles[7][7].teleport.destStage = getStageFromTeam(p.getTeamNameSync())
+	t.stage.tiles[8][7].teleport.destStage = getStageFromTeam(p.getTeamNameSync())
+	return destroyEveryotherInteractable(i, p, t)
+}
+
+func getStageFromTeam(s string) string {
+	if s == "fuchsia" {
+		return "team-fuchsia:4-3"
+	} else if s == "sky-blue" {
+		return "team-blue:3-4"
+	} else {
+		return "team-blue:0-0"
 	}
 }
 
