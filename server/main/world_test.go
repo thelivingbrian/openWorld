@@ -182,7 +182,7 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 func TestMostDangerous(t *testing.T) {
 	loadFromJson()
 	world := createGameWorld(testdb())
-	stage := getStageFromStageName(world, "test-large")
+	stage := loadStageByName(world, "test-large")
 
 	req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: stage.name})
 	world.addIncoming(req)
@@ -215,7 +215,7 @@ func TestMostDangerous(t *testing.T) {
 	time.Sleep(25 * time.Millisecond)
 
 	// bypass initiatelogout(p3) which executes non-deterministically
-	fullyRemovePlayer(p3)
+	removeFromTileAndStage(p3)
 	completeLogout(p3)
 
 	if world.leaderBoard.mostDangerous.Peek() != p1 {
@@ -249,6 +249,23 @@ func createWorldForTesting() (*World, context.CancelFunc) {
 		}
 	}(ctx)
 	return world, cancel
+}
+
+func loadStageByName(world *World, name string) *Stage {
+	area, success := areaFromName(name)
+	if !success {
+		return nil
+	}
+	stage := createStageFromArea(area)
+	if area.LoadStrategy == "Individual" {
+		return stage
+	}
+	if stage != nil {
+		world.wStageMutex.Lock()
+		world.worldStages[name] = stage
+		world.wStageMutex.Unlock()
+	}
+	return stage
 }
 
 /////////// Socket /////////////////

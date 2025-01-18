@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"sync"
 )
@@ -22,83 +21,6 @@ type Stage struct {
 ////////////////////////////////////////////////////
 // Get / Create and Load Stage
 
-func getStageFromStageName(world *World, stagename string) *Stage {
-	stage := world.fetchStageSync(stagename)
-	if stage == nil {
-		fmt.Println("WARNING: Fetching default stage  instead of: " + stagename)
-		stage = world.fetchStageSync("clinic")
-		if stage == nil {
-			panic("Default stage not found")
-		}
-	}
-
-	return stage
-}
-
-// remove
-func (world *World) getNamedStageOrDefault(name string) *Stage {
-	stage := world.getStageByName(name)
-	if stage != nil {
-		return stage
-	}
-
-	stage = world.loadStageByName(name)
-	if stage == nil {
-		fmt.Println("INVALID STAGE: Area with name " + name + " does not exist.")
-		stage = world.loadStageByName("clinic")
-		if stage == nil {
-			panic("Unable to load default stage")
-		}
-	}
-
-	return stage
-}
-
-func (world *World) fetchStageSync(stagename string) *Stage {
-	world.wStageMutex.Lock()
-	defer world.wStageMutex.Unlock()
-	stage, ok := world.worldStages[stagename]
-	if ok && stage != nil {
-		return stage
-	}
-	area, success := areaFromName(stagename)
-	if !success {
-		//panic("ERROR! invalid stage with no area: " + stagename)
-		return nil
-	}
-	stage = createStageFromArea(area)
-	if area.LoadStrategy == "Individual" {
-		return stage
-	}
-
-	world.worldStages[stagename] = stage
-	return stage
-}
-
-func (world *World) getStageByName(name string) *Stage {
-	world.wStageMutex.Lock()
-	defer world.wStageMutex.Unlock()
-	return world.worldStages[name]
-}
-
-// remove ?
-func (world *World) loadStageByName(name string) *Stage {
-	area, success := areaFromName(name)
-	if !success {
-		return nil
-	}
-	stage := createStageFromArea(area)
-	if area.LoadStrategy == "Individual" {
-		return stage
-	}
-	if stage != nil {
-		world.wStageMutex.Lock()
-		world.worldStages[name] = stage
-		world.wStageMutex.Unlock()
-	}
-	return stage
-}
-
 func createStageFromArea(area Area) *Stage {
 	spawnAction := spawnActions[area.SpawnStrategy]
 	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.RWMutex{}, area.Name, area.North, area.South, area.East, area.West, area.MapId, spawnAction}
@@ -117,7 +39,7 @@ func createStageFromArea(area Area) *Stage {
 		}
 	}
 	for _, transport := range area.Transports {
-		outputStage.tiles[transport.SourceY][transport.SourceX].teleport = &Teleport{transport.DestStage, transport.DestY, transport.DestX, area.Name, transport.Confirmation}
+		outputStage.tiles[transport.SourceY][transport.SourceX].teleport = &Teleport{transport.DestStage, transport.DestY, transport.DestX, area.Name, transport.Confirmation, transport.RejectInteractable}
 
 		// Change this
 		mat := outputStage.tiles[transport.SourceY][transport.SourceX].material

@@ -42,7 +42,7 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 		fmt.Println("player not found with token: " + token)
 		return
 	}
-	player := world.join(*incoming, conn)
+	player := world.join(incoming, conn)
 	if player == nil {
 		fmt.Println("Failed to join player with token: " + token)
 		return
@@ -151,6 +151,8 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 	}
 	if event.Name == "g" {
 
+		panic("panic button")
+
 		// go func() {
 		// 	for i := 0; i <= 80; i++ {
 		// 		time.Sleep(20 * time.Millisecond)
@@ -163,7 +165,8 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 
 		//fmt.Println(len(player.stage.playerMap), len(player.tile.stage.playerMap))
 
-		spawnNewPlayerWithRandomMovement(player, 250)
+		//spawnNewPlayerWithRandomMovement(player, 250)
+		//player.updateBottomText("clear")
 
 		//updateOne(generateWeatherSolid("blue trsp20"), player)
 		//player.updates <- generateWeatherSolidBytes("night trsp20")

@@ -28,6 +28,7 @@ var spawnActions = map[string][]SpawnAction{
 	},
 	"tutorial-boost": []SpawnAction{SpawnAction{Should: always, Action: tutorialBoost()}},
 	"tutorial-power": []SpawnAction{SpawnAction{Should: always, Action: tutorialPower}},
+	"tutorial-2":     []SpawnAction{SpawnAction{Should: oneOutOf(4), Action: spawnBoosts}},
 }
 
 /////////////////////////////////////////////
@@ -54,6 +55,13 @@ func checkDistanceFromEdge(gridHeight, gridWidth int) func(*Player, *Stage) bool
 
 		r := rand.Float64()
 		return r < probability
+	}
+}
+
+func oneOutOf(n int) func(*Player, *Stage) bool {
+	return func(_ *Player, stage *Stage) bool {
+		r := rand.Intn(n)
+		return r == 0
 	}
 }
 
@@ -138,6 +146,11 @@ func tutorialBoost() func(stage *Stage) {
 
 func tutorialPower(stage *Stage) {
 	stage.tiles[12][12].addPowerUpAndNotifyAll(grid5x5)
+}
+func spawnBoosts(stage *Stage) {
+	_, uncoveredTiles := sortWalkableTiles(stage.tiles)
+	tile := uncoveredTiles[rand.Intn(len(uncoveredTiles))]
+	tile.addBoostsAndNotifyAll()
 }
 
 func basicSpawn(stage *Stage) {

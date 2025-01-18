@@ -29,11 +29,12 @@ type Tile struct {
 }
 
 type Teleport struct {
-	destStage    string
-	destY        int
-	destX        int
-	sourceStage  string
-	confirmation bool
+	destStage          string
+	destY              int
+	destX              int
+	sourceStage        string
+	confirmation       bool
+	rejectInteractable bool
 }
 
 func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
@@ -56,6 +57,9 @@ func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 		bottomText:     mat.DisplayText, // Pre-process needed *String to have option of null?
 	}
 }
+
+////////////////////////////////////////////////
+// HTML
 
 func makeTileTemplate(mat Material, y, x int) string {
 	tileCoord := fmt.Sprintf("%d-%d", y, x)
@@ -95,6 +99,9 @@ func makeTileTemplate(mat Material, y, x int) string {
 				</div>`
 	return fmt.Sprintf(template, cId, mat.CssColor, floor1css, floor2css, placeHold, placeHold, placeHold, ceil1css, ceil2css, placeHold, placeHold)
 }
+
+////////////////////////////////////////////////////////////
+// Players
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	player.tileLock.Lock()
@@ -151,19 +158,13 @@ func (tile *Tile) addLockedPlayertoTile(player *Player) {
 }
 
 func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
-	success = tile.removePlayer(player.id)
-	tile.stage.updateAllExcept(playerBox(tile), player)
-	return success
-}
-
-func (tile *Tile) removePlayer(playerId string) (success bool) {
-	tile.playerMutex.Lock()
-	_, ok := tile.playerMap[playerId]
-	if ok {
-		delete(tile.playerMap, playerId)
+	success = tryRemovePlayer(tile, player)
+	if success {
+		tile.stage.updateAllExcept(playerBox(tile), player)
+	} else {
+		fmt.Println("WARN : FAILED TO REMOVE PLAYER :(")
 	}
-	tile.playerMutex.Unlock()
-	return ok
+	return success
 }
 
 func tryRemovePlayer(tile *Tile, player *Player) bool {
@@ -188,13 +189,8 @@ func (tile *Tile) getAPlayer() *Player {
 	return nil
 }
 
-func (tile *Tile) tryToNotifyAfter(delay int) {
-	time.Sleep(time.Millisecond * time.Duration(delay))
-	if tile.eventsInFlight.Add(-1) == 0 {
-		// blue trsp20 for gloom
-		tile.stage.updateAll(weatherBox(tile, ""))
-	}
-}
+/////////////////////////////////////////////////////////////////////
+// Damage
 
 func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	fatalities := false
@@ -273,11 +269,35 @@ func isInClinicOrInfirmary(p *Player) bool {
 	return false
 }
 
-func destroyInteractable(tile *Tile, _ *Player) {
+////////////////////////////////////////////////////////////////////////
+//  Notify
+
+func (tile *Tile) tryToNotifyAfter(delay int) {
+	time.Sleep(time.Millisecond * time.Duration(delay))
+	if tile.eventsInFlight.Add(-1) == 0 {
+		// blue trsp20 for gloom
+		tile.stage.updateAll(weatherBox(tile, ""))
+	}
+}
+
+//////////////////////////////////////////////////////////////////////
+// Interactables
+
+func destroyFragileInteractable(tile *Tile, _ *Player) {
 	// *Player is a placeholder for initiator/destroyer in future
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
 	if tile.interactable != nil && tile.interactable.fragile {
+		tile.interactable = nil
+		tile.stage.updateAll(interactableBox(tile))
+	}
+}
+
+func destroyInteractable(tile *Tile, _ *Player) {
+	// *Player is a placeholder for initiator/destroyer in future
+	tile.interactableMutex.Lock()
+	defer tile.interactableMutex.Unlock()
+	if tile.interactable != nil {
 		tile.interactable = nil
 		tile.stage.updateAll(interactableBox(tile))
 	}
@@ -297,37 +317,18 @@ func walkable(tile *Tile) bool {
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
 
+	// why?
 	if tile.interactable == nil {
 		return tile.material.Walkable
 	} else {
-		// stops obstruction by pushables
-		return tile.interactable.pushable
+		// pushable must (?) be walkable to prevent blocking of players and interactables in corners
+		// non-pushable may still be walkable
+		return tile.interactable.pushable || tile.interactable.walkable
 	}
 }
 
-// / These need to get looked at (? mutex?)
-func (tile *Tile) addPowerUpAndNotifyAll(shape [][2]int) {
-	tile.powerUp = &PowerUp{shape}
-	tile.stage.updateAll(svgFromTile(tile))
-}
-
-func (tile *Tile) addBoostsAndNotifyAll() {
-	tile.boosts += 10
-	tile.stage.updateAll(svgFromTile(tile))
-}
-
-func (tile *Tile) addMoneyAndNotifyAll(amount int) {
-	tile.addMoneyAndNotifyAllExcept(amount, nil)
-}
-
-func (tile *Tile) addMoneyAndNotifyAllExcept(amount int, player *Player) {
-	tile.moneyMutex.Lock()
-	defer tile.moneyMutex.Unlock()
-	tile.money += amount
-	tile.stage.updateAllExcept(svgFromTile(tile), player)
-}
-
-///
+/////////////////////////////////////////////////////////////
+// Utilities
 
 func validCoordinate(y int, x int, tiles [][]*Tile) bool {
 	if y < 0 || y >= len(tiles) {
@@ -372,4 +373,41 @@ func sliceOfTileToHighlightBoxes(tiles []*Tile, cssClass string) string {
 		html += oobHighlightBox(tile, cssClass)
 	}
 	return html
+}
+
+func everyOtherTileOnStage(tile *Tile) []*Tile {
+	out := make([]*Tile, 0)
+	for i := range tile.stage.tiles {
+		for j := range tile.stage.tiles[i] {
+			if tile != tile.stage.tiles[i][j] {
+				out = append(out, tile.stage.tiles[i][j])
+			}
+		}
+	}
+	return out
+}
+
+/////////////////////////////////////////////////////////////////
+// Observers / Item state
+
+// / These need to get looked at (? mutex?)
+func (tile *Tile) addPowerUpAndNotifyAll(shape [][2]int) {
+	tile.powerUp = &PowerUp{shape}
+	tile.stage.updateAll(svgFromTile(tile))
+}
+
+func (tile *Tile) addBoostsAndNotifyAll() {
+	tile.boosts += 10
+	tile.stage.updateAll(svgFromTile(tile))
+}
+
+func (tile *Tile) addMoneyAndNotifyAll(amount int) {
+	tile.addMoneyAndNotifyAllExcept(amount, nil)
+}
+
+func (tile *Tile) addMoneyAndNotifyAllExcept(amount int, player *Player) {
+	tile.moneyMutex.Lock()
+	defer tile.moneyMutex.Unlock()
+	tile.money += amount
+	tile.stage.updateAllExcept(svgFromTile(tile), player)
 }

@@ -15,7 +15,7 @@ type World struct {
 	worldPlayers        map[string]*Player
 	wPlayerMutex        sync.Mutex
 	teamQuantities      map[string]int
-	incomingPlayers     map[string]LoginRequest
+	incomingPlayers     map[string]*LoginRequest
 	incomingPlayerMutex sync.Mutex
 	worldStages         map[string]*Stage
 	wStageMutex         sync.Mutex
@@ -36,7 +36,7 @@ func createGameWorld(db *DB) *World {
 		worldPlayers:        make(map[string]*Player),
 		wPlayerMutex:        sync.Mutex{},
 		teamQuantities:      map[string]int{},
-		incomingPlayers:     make(map[string]LoginRequest),
+		incomingPlayers:     make(map[string]*LoginRequest),
 		incomingPlayerMutex: sync.Mutex{},
 		worldStages:         make(map[string]*Stage),
 		wStageMutex:         sync.Mutex{},
@@ -63,15 +63,15 @@ func (world *World) removePlayer(p *Player) {
 //////////////////////////////////////////////////
 //  Log in
 
-func createLoginRequest(record PlayerRecord) LoginRequest {
-	return LoginRequest{
+func createLoginRequest(record PlayerRecord) *LoginRequest {
+	return &LoginRequest{
 		Token:     createRandomToken(),
 		Record:    record,
 		timestamp: time.Now(),
 	}
 }
 
-func (world *World) addIncoming(loginRequest LoginRequest) {
+func (world *World) addIncoming(loginRequest *LoginRequest) {
 	world.incomingPlayerMutex.Lock()
 	defer world.incomingPlayerMutex.Unlock()
 	world.incomingPlayers[loginRequest.Token] = loginRequest
@@ -86,7 +86,7 @@ func (world *World) retreiveIncoming(token string) *LoginRequest {
 	if ok {
 		delete(world.incomingPlayers, token)
 		if isLessThan15SecondsAgo(request.timestamp) {
-			return &request
+			return request
 		}
 	}
 	return nil
@@ -109,7 +109,7 @@ func createRandomToken() string {
 	return hex.EncodeToString(token)
 }
 
-func (world *World) join(incoming LoginRequest, conn WebsocketConnection) *Player {
+func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Player {
 	// need log levels
 	//fmt.Println("New Player: " + record.Username)
 	//fmt.Println("Token: " + token)
@@ -128,7 +128,7 @@ func (world *World) join(incoming LoginRequest, conn WebsocketConnection) *Playe
 
 	newPlayer.conn = conn
 	go newPlayer.sendUpdates()
-	stage := getStageFromStageName(world, incoming.Record.StageName)
+	stage := getStageFromStageName(newPlayer, incoming.Record.StageName)
 	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
 
 	return newPlayer
@@ -156,6 +156,7 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		money:                    record.Money,
 		world:                    world,
 		menues:                   map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu}, // terrifying
+		playerStages:             make(map[string]*Stage),
 	}
 
 	newPlayer.setIcon()
@@ -195,7 +196,7 @@ func initiatelogout(player *Player) {
 	player.tangible = false
 
 	fmt.Println("initate logout: " + player.username)
-	player.removeFromTileAndStage()
+	removeFromTileAndStage(player)
 
 	playersToLogout <- player
 
@@ -228,7 +229,7 @@ func completeLogout(player *Player) {
 }
 
 func fullyRemovePlayer_do(player *Player) {
-	player.removeFromTileAndStage()
+	removeFromTileAndStage(player)
 }
 
 func fullyRemovePlayer(player *Player) bool {
@@ -255,13 +256,13 @@ func fullyRemovePlayer(player *Player) bool {
 ///////////////////////////////////////////////////////////////
 // References / Lookup
 
-func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
-	destY := tile.y + yOff
-	destX := tile.x + xOff
-	if validCoordinate(destY, destX, tile.stage.tiles) {
-		return tile.stage.tiles[destY][destX]
+func getRelativeTile(source *Tile, yOff, xOff int, player *Player) *Tile {
+	destY := source.y + yOff
+	destX := source.x + xOff
+	if validCoordinate(destY, destX, source.stage.tiles) {
+		return source.stage.tiles[destY][destX]
 	} else {
-		escapesVertically, escapesHorizontally := validityByAxis(destY, destX, tile.stage.tiles)
+		escapesVertically, escapesHorizontally := validityByAxis(destY, destX, source.stage.tiles)
 		if escapesVertically && escapesHorizontally {
 			// in bloop world cardinal direction travel may be non-communative
 			// therefore north-east etc neighbor is not uniquely defined
@@ -271,10 +272,10 @@ func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
 		if escapesVertically {
 			var newStage *Stage
 			if yOff > 0 {
-				newStage = w.fetchStageSync(tile.stage.south)
+				newStage = player.fetchStageSync(source.stage.south)
 			}
 			if yOff < 0 {
-				newStage = w.fetchStageSync(tile.stage.north)
+				newStage = player.fetchStageSync(source.stage.north)
 			}
 
 			if newStage != nil {
@@ -287,10 +288,10 @@ func (w *World) getRelativeTile(tile *Tile, yOff, xOff int) *Tile {
 		if escapesHorizontally {
 			var newStage *Stage
 			if xOff > 0 {
-				newStage = w.fetchStageSync(tile.stage.east)
+				newStage = player.fetchStageSync(source.stage.east)
 			}
 			if xOff < 0 {
-				newStage = w.fetchStageSync(tile.stage.west)
+				newStage = player.fetchStageSync(source.stage.west)
 			}
 
 			if newStage != nil {

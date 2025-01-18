@@ -6,37 +6,54 @@ import (
 )
 
 type Interactable struct {
-	name      string
-	pushable  bool
-	cssClass  string
-	fragile   bool
-	reactions []InteractableReaction
+	name           string
+	pushable       bool
+	walkable       bool
+	cssClass       string
+	fragile        bool
+	reactions      []InteractableReaction // Lowest index match wins
+	rejectTeleport bool
 }
 
 type InteractableReaction struct {
-	ReactsWith func(*Interactable) bool
-	Reaction   func(incoming *Interactable, initiatior *Player, location *Tile)
+	ReactsWith func(incoming *Interactable, initiatior *Player) bool
+	Reaction   func(incoming *Interactable, initiatior *Player, location *Tile) (outgoing *Interactable, push bool) // rotate ?
 }
 
 var interactableReactions = map[string][]InteractableReaction{
 	"black-hole": []InteractableReaction{InteractableReaction{ReactsWith: everything, Reaction: eat}},
 	"fuchsia-goal": []InteractableReaction{
-		InteractableReaction{ReactsWith: matchesName("fuchsia-ball"), Reaction: scoreGoalForTeam("sky-blue")},
-		InteractableReaction{ReactsWith: matchesName("sky-blue-ball"), Reaction: spawnMoney([]int{10, 20, 50})},
+		InteractableReaction{ReactsWith: interactableHasName("fuchsia-ball"), Reaction: scoreGoalForTeam("sky-blue")},
+		InteractableReaction{ReactsWith: interactableHasName("sky-blue-ball"), Reaction: spawnMoney([]int{10, 20, 50})},
 	},
 	"sky-blue-goal": []InteractableReaction{
-		InteractableReaction{ReactsWith: matchesName("sky-blue-ball"), Reaction: scoreGoalForTeam("fuchsia")},
-		InteractableReaction{ReactsWith: matchesName("fuchsia-ball"), Reaction: spawnMoney([]int{10, 20, 50})},
+		InteractableReaction{ReactsWith: interactableHasName("sky-blue-ball"), Reaction: scoreGoalForTeam("fuchsia")},
+		InteractableReaction{ReactsWith: interactableHasName("fuchsia-ball"), Reaction: spawnMoney([]int{10, 20, 50})},
+	},
+	"tutorial-goal-sky-blue": []InteractableReaction{
+		InteractableReaction{ReactsWith: ballOfMatchingTeam("sky-blue"), Reaction: destroyEveryotherInteractable},
+		InteractableReaction{ReactsWith: ballOfOtherTeam("sky-blue"), Reaction: notify("Try using the matching ball.")},
+	},
+	"tutorial-goal-fuchsia": []InteractableReaction{
+		InteractableReaction{ReactsWith: ballOfMatchingTeam("fuchsia"), Reaction: destroyEveryotherInteractable},
+		InteractableReaction{ReactsWith: ballOfOtherTeam("fuchsia"), Reaction: notify("Try using the matching ball.")},
 	},
 }
 
-func (source *Interactable) React(incoming *Interactable, initiatior *Player, location *Tile) bool {
+func (source *Interactable) React(incoming *Interactable, initiator *Player, location *Tile, yOff, xOff int) bool {
 	if source.reactions == nil {
 		return false
 	}
 	for i := range source.reactions {
-		if source.reactions[i].ReactsWith != nil && source.reactions[i].ReactsWith(incoming) {
-			source.reactions[i].Reaction(incoming, initiatior, location)
+		if source.reactions[i].ReactsWith != nil && source.reactions[i].ReactsWith(incoming, initiator) {
+			outgoing, push := source.reactions[i].Reaction(incoming, initiator, location)
+			if push {
+				nextTile := getRelativeTile(location, yOff, xOff, initiator)
+				if nextTile == nil {
+					return false
+				}
+				return initiator.push(nextTile, outgoing, yOff, xOff)
+			}
 			return true
 		}
 	}
@@ -44,7 +61,7 @@ func (source *Interactable) React(incoming *Interactable, initiatior *Player, lo
 }
 
 // Gates
-func everything(*Interactable) bool {
+func everything(*Interactable, *Player) bool {
 	return true
 }
 
@@ -54,22 +71,56 @@ func matchesCssClass(cssClass string) func(*Interactable) bool {
 	}
 }
 
-func matchesName(name string) func(*Interactable) bool {
-	return func(i *Interactable) bool {
+func interactableHasName(name string) func(*Interactable, *Player) bool {
+	return func(i *Interactable, _ *Player) bool {
 		if i == nil {
 			return false
 		}
 		return i.name == name
 	}
 }
-
-// Actions
-func eat(*Interactable, *Player, *Tile) {
-	// incoming interactable is discarded
+func ballOfMatchingTeam(team string) func(*Interactable, *Player) bool {
+	return func(i *Interactable, p *Player) bool {
+		if i == nil {
+			return false
+		}
+		fmt.Println("HEYO", i.name, team, p.getTeamNameSync())
+		return i.name == "ball-"+team && team == p.getTeamNameSync()
+	}
 }
 
-func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) {
-	return func(i *Interactable, p *Player, t *Tile) {
+func ballOfOtherTeam(team string) func(*Interactable, *Player) bool {
+	return func(i *Interactable, p *Player) bool {
+		if i == nil {
+			return false
+		}
+		if len(i.name) < 5 {
+			return false
+		}
+		return i.name[0:5] == "ball-" && team == p.getTeamNameSync()
+	}
+}
+
+func initiatorDifferentTeam(team string) func(*Interactable, *Player) bool {
+	return func(i *Interactable, p *Player) bool {
+		if i == nil {
+			return false
+		}
+		if len(i.name) < 5 {
+			return false
+		}
+		return i.name[0:5] == "ball-" && team == p.getTeamNameSync()
+	}
+}
+
+// Actions
+func eat(*Interactable, *Player, *Tile) (*Interactable, bool) {
+	// incoming interactable is discarded
+	return nil, false
+}
+
+func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing *Interactable, ok bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 		p.world.leaderBoard.scoreboard.Increment(team)
 		if team == p.getTeamNameSync() {
 			// Otherwise you have scored a goal for a different team
@@ -77,19 +128,47 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) {
 			p.updateRecord()
 		}
 		fmt.Println(p.world.leaderBoard.scoreboard.GetScore(team))
+		return nil, false
 	}
 }
 
-func spawnMoney(amounts []int) func(*Interactable, *Player, *Tile) {
-	return func(i *Interactable, p *Player, t *Tile) {
+func scoreGoalForPlayer(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	team := p.getTeamNameSync()
+	p.world.leaderBoard.scoreboard.Increment(team)
+	p.incrementGoalsScored()
+	p.updateRecord()
+	// need to  give a trim
+	fmt.Println(p.world.leaderBoard.scoreboard.GetScore(team))
+	return nil, false
+}
+
+func spawnMoney(amounts []int) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 		tiles := walkableTiles(t.stage.tiles)
 		count := len(tiles)
 		if count == 0 {
-			return
+			return nil, false
 		}
 		for i := range amounts {
 			randn := rand.Intn(count)
 			tiles[randn].addMoneyAndNotifyAll(amounts[i])
 		}
+		return nil, false
+	}
+}
+
+func destroyEveryotherInteractable(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	tiles := everyOtherTileOnStage(t)
+	for i := range tiles {
+		go destroyInteractable(tiles[i], p)
+	}
+	return nil, false
+}
+
+// Create an always false auth that notifies to prevent consuming incoming
+func notify(notification string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		p.updateBottomText(notification)
+		return i, true
 	}
 }

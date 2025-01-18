@@ -9,12 +9,13 @@ import (
 )
 
 type Transport struct {
-	SourceY      int    `json:"sourceY"`
-	SourceX      int    `json:"sourceX"`
-	DestY        int    `json:"destY"`
-	DestX        int    `json:"destX"`
-	DestStage    string `json:"destStage"`
-	Confirmation bool   `json:"confirmation"`
+	SourceY            int    `json:"sourceY"`
+	SourceX            int    `json:"sourceX"`
+	DestY              int    `json:"destY"`
+	DestX              int    `json:"destX"`
+	DestStage          string `json:"destStage"`
+	Confirmation       bool   `json:"confirmation"`
+	RejectInteractable bool   `json:"rejectInteractable"`
 }
 
 func (c *Context) getEditTransports(w http.ResponseWriter, r *http.Request) {
@@ -33,9 +34,12 @@ func (c *Context) getEditTransports(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	output := transportFormHtml(*selectedArea)
-	output += collection.transportsAsOob(*selectedArea, spaceName)
-	io.WriteString(w, output)
+	err := tmpl.ExecuteTemplate(w, "transport-form", selectedArea)
+	if err != nil {
+		fmt.Println(err)
+	}
+	highlightSelects := collection.transportsAsOob(*selectedArea, spaceName)
+	io.WriteString(w, highlightSelects)
 }
 
 func (c Context) editTransport(w http.ResponseWriter, r *http.Request) {
@@ -49,6 +53,7 @@ func (c Context) editTransport(w http.ResponseWriter, r *http.Request) {
 	areaName := properties["transport-area-name"]
 
 	confirmation := (properties["confirmation"] == "on")
+	rejectInteractable := (properties["reject-interactable"] == "on")
 
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
@@ -66,9 +71,12 @@ func (c Context) editTransport(w http.ResponseWriter, r *http.Request) {
 	currentTransport.SourceX = sourceX
 	currentTransport.DestStage = destStage
 	currentTransport.Confirmation = confirmation
+	currentTransport.RejectInteractable = rejectInteractable
 
-	output := transportFormHtml(*selectedArea)
-	io.WriteString(w, output)
+	err := tmpl.ExecuteTemplate(w, "transport-form", selectedArea)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func (c Context) newTransport(w http.ResponseWriter, r *http.Request) {
@@ -87,77 +95,10 @@ func (c Context) newTransport(w http.ResponseWriter, r *http.Request) {
 
 	selectedArea.Transports = append(selectedArea.Transports, Transport{})
 
-	output := transportFormHtml(*selectedArea)
-	io.WriteString(w, output)
-
-}
-
-func editTransportForm(i int, t Transport, sourceName string) string {
-	confirmationString := ""
-	if t.Confirmation {
-		confirmationString = "checked"
+	err := tmpl.ExecuteTemplate(w, "transport-form", selectedArea)
+	if err != nil {
+		fmt.Println(err)
 	}
-	output := fmt.Sprintf(`
-	<form hx-post="/editTransport" hx-target="#edit_transports" hx-swap="outerHTML" hx-include="[name='currentCollection'],[name='currentSpace']">
-		<input type="hidden" name="transport-id" value="%d" />
-		<input type="hidden" name="transport-area-name" value="%s" />
-		<table>
-			<tr>
-				<td align="right">Dest stage-name:</td>
-				<td align="left">
-					<input type="text" name="transport-stage-name" value="%s" />
-				</td>
-			</tr>
-			<tr>
-				<td align="right">Dest y</td>
-				<td align="left">
-					<input type="text" name="transport-dest-y" value="%d" />
-				</td>
-				<td align="right">x</td>
-				<td align="left">
-					<input type="text" name="transport-dest-x" value="%d" />
-				</td>
-			</tr>
-			<tr>
-				<td align="right">Source y</td>
-				<td align="left">
-					<input type="text" name="transport-source-y" value="%d" />
-				</td>
-				<td align="right">x</td>
-				<td align="left">
-					<input type="text" name="transport-source-x" value="%d" />
-				</td>
-			</tr>
-			<tr>
-				<td align="right">Css-class:</td>
-				<td align="left">
-					<input type="text" name="transport-css-class" value="%s" />
-				</td>
-			<tr />
-			<tr>
-				<td align="right">Confirmation:</td>
-				<td align="left">
-					<input type="checkbox" name="confirmation" %s />
-				</td>
-			<tr />
-		</table>
-
-		<button class="btn">Submit</button>
-		<button class="btn" hx-post="/dupeTransport" hx-include="[name='area-name'],[name='currentCollection'],[name='currentSpace']">Duplicate</button>
-		<button class="btn" hx-post="/deleteTransport" hx-include="[name='area-name'],[name='currentCollection'],[name='currentSpace']">Delete</button>
-	</form>`, i, sourceName, t.DestStage, t.DestY, t.DestX, t.SourceY, t.SourceX, "pink", confirmationString)
-	return output
-}
-
-func transportFormHtml(area AreaDescription) string {
-	output := `<div id="edit_transports">
-					<h4>Transports: </h4>
-					<a hx-post="/newTransport" hx-include="[name='area-name'],[name='currentCollection'],[name='currentSpace']" hx-target="#edit_transports" href="#"> New </a><br />`
-	for i, transport := range area.Transports {
-		output += editTransportForm(i, transport, area.Name)
-	}
-	output += `</div>`
-	return output
 }
 
 func (c Context) dupeTransport(w http.ResponseWriter, r *http.Request) {
@@ -178,8 +119,10 @@ func (c Context) dupeTransport(w http.ResponseWriter, r *http.Request) {
 	newTransport := *currentTransport
 	selectedArea.Transports = append(selectedArea.Transports, newTransport)
 
-	output := transportFormHtml(*selectedArea)
-	io.WriteString(w, output)
+	err := tmpl.ExecuteTemplate(w, "transport-form", selectedArea)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func (c Context) deleteTransport(w http.ResponseWriter, r *http.Request) {
@@ -199,9 +142,11 @@ func (c Context) deleteTransport(w http.ResponseWriter, r *http.Request) {
 	selectedArea.Transports = append(selectedArea.Transports[:id], selectedArea.Transports[id+1:]...)
 	fmt.Println(len(selectedArea.Transports))
 
-	output := transportFormHtml(*selectedArea)
-	// Remove highlight for deleted transport
-	io.WriteString(w, output)
+	// Still need to remove highlights for deleted transports, and new?
+	err := tmpl.ExecuteTemplate(w, "transport-form", selectedArea)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func (col *Collection) transportsAsOob(area AreaDescription, spacename string) string {

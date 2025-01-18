@@ -1,0 +1,83 @@
+{{ define "transport-form" }}
+<div id="edit_transports">
+    <h4>Transports: </h4>
+    <a hx-post="/newTransport"
+       hx-include="[name='area-name'],[name='currentCollection'],[name='currentSpace']"
+       hx-target="#edit_transports"
+       href="#">New</a>
+    <br />
+
+    {{ range $i, $transport := .Transports }}
+    <form hx-post="/editTransport"
+          hx-target="#edit_transports"
+          hx-swap="outerHTML"
+          hx-include="[name='currentCollection'],[name='currentSpace']">
+
+        <!-- Hidden fields -->
+        <input type="hidden" name="transport-id" value="{{ $i }}" />
+        <input type="hidden" name="transport-area-name" value="{{ $.Name }}" />
+
+        <table>
+            <tr>
+                <td align="right">Dest stage-name:</td>
+                <td align="left">
+                    <input type="text" name="transport-stage-name" value="{{ $transport.DestStage }}" />
+                </td>
+            </tr>
+            <tr>
+                <td align="right">Dest y:</td>
+                <td align="left">
+                    <input type="text" name="transport-dest-y" value="{{ $transport.DestY }}" />
+                </td>
+                <td align="right">x:</td>
+                <td align="left">
+                    <input type="text" name="transport-dest-x" value="{{ $transport.DestX }}" />
+                </td>
+            </tr>
+            <tr>
+                <td align="right">Source y:</td>
+                <td align="left">
+                    <input type="text" name="transport-source-y" value="{{ $transport.SourceY }}" />
+                </td>
+                <td align="right">x:</td>
+                <td align="left">
+                    <input type="text" name="transport-source-x" value="{{ $transport.SourceX }}" />
+                </td>
+            </tr>
+            <tr>
+                <td align="right">Css-class:</td>
+                <td align="left">
+                    <!-- Hard-coded "pink" from your original example -->
+                    <input type="text" name="transport-css-class" value="pink" />
+                </td>
+            </tr>
+            <tr>
+                <td align="right">Confirmation:</td>
+                <td align="left">
+                    <input type="checkbox" name="confirmation" {{ if $transport.Confirmation }}checked{{ end }} />
+                </td>
+            </tr>
+            <tr>
+                <td align="right">Reject Interactable:</td>
+                <td align="left">
+                    <input type="checkbox" name="reject-interactable" {{ if $transport.RejectInteractable }}checked{{ end }} />
+                </td>
+            </tr>
+        </table>
+
+        <button class="btn">Submit</button>
+        <button class="btn"
+                hx-post="/dupeTransport"
+                hx-include="[name='area-name'],[name='currentCollection'],[name='currentSpace']">
+            Duplicate
+        </button>
+        <button class="btn"
+                hx-post="/deleteTransport"
+                hx-include="[name='area-name'],[name='currentCollection'],[name='currentSpace']">
+            Delete
+        </button>
+    </form>
+    {{ end }}
+
+</div>
+{{ end }}

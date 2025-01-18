@@ -133,35 +133,24 @@ func BenchmarkCreateStage(b *testing.B) {
 	}
 }
 
-func BenchmarkLoadStage(b *testing.B) {
+func BenchmarkFetchStage(b *testing.B) {
 	loadFromJson()
 	world := createGameWorld(testdb())
-	for _, stageName := range stageNames {
+	for _, stagename := range stageNames {
 
-		b.Run(fmt.Sprintf("stage:%s Cores", stageName), func(b *testing.B) {
+		stage := loadStageByName(world, stagename)
+		if stage == nil {
+			b.Error("Invalid stage: " + stagename)
+		}
+		players := placeNPlayersOnStage(1, stage)
+
+		b.Run(fmt.Sprintf("stage:%s Cores", stagename), func(b *testing.B) {
 			b.ResetTimer()
 
 			for i := 0; i < b.N; i++ {
-				world.loadStageByName(stageName)
-			}
-
-			b.StopTimer()
-		})
-	}
-}
-
-func BenchmarkGetStage(b *testing.B) {
-	loadFromJson()
-	world := createGameWorld(testdb())
-	for _, stageName := range stageNames {
-
-		world.loadStageByName(stageName)
-
-		b.Run(fmt.Sprintf("stage:%s Cores", stageName), func(b *testing.B) {
-			b.ResetTimer()
-
-			for i := 0; i < b.N; i++ {
-				world.getStageByName(stageName)
+				// Going to be pointlessly fast because second hit is a map access
+				// clear stages after ?
+				players[0].fetchStageSync(stagename)
 			}
 
 			b.StopTimer()
@@ -174,7 +163,10 @@ func BenchmarkGetStage(b *testing.B) {
 // Helpers
 func drainChannel[T any](c chan T) {
 	for {
-		<-c
+		_, ok := <-c
+		if !ok {
+			break
+		}
 	}
 }
 
@@ -192,8 +184,9 @@ func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 			health:            100,
 			updates:           updatesForPlayer,
 			clearUpdateBuffer: bufferClearChannel,
-			//world:             &World{worldStages: make(map[string]*Stage)},
-			tangible: true,
+			world:             &World{worldStages: make(map[string]*Stage)},
+			tangible:          true,
+			playerStages:      map[string]*Stage{},
 		}
 		players[i].placeOnStage(stage, 2, 2)
 	}
