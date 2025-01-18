@@ -272,12 +272,10 @@ func getRelativeTile(source *Tile, yOff, xOff int, player *Player) *Tile {
 		if escapesVertically {
 			var newStage *Stage
 			if yOff > 0 {
-				// should be fetch
-				// otherwise can out of bound into clinic
-				newStage = getStageFromStageName(player, source.stage.south)
+				newStage = player.fetchStageSync(source.stage.south)
 			}
 			if yOff < 0 {
-				newStage = getStageFromStageName(player, source.stage.north)
+				newStage = player.fetchStageSync(source.stage.north)
 			}
 
 			if newStage != nil {
@@ -290,10 +288,10 @@ func getRelativeTile(source *Tile, yOff, xOff int, player *Player) *Tile {
 		if escapesHorizontally {
 			var newStage *Stage
 			if xOff > 0 {
-				newStage = getStageFromStageName(player, source.stage.east)
+				newStage = player.fetchStageSync(source.stage.east)
 			}
 			if xOff < 0 {
-				newStage = getStageFromStageName(player, source.stage.west)
+				newStage = player.fetchStageSync(source.stage.west)
 			}
 
 			if newStage != nil {
