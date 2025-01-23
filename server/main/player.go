@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand/v2"
+	"regexp"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -433,11 +434,29 @@ func clearChannel(ch chan []byte) {
 	}
 }
 
+var (
+	// Regular expression for *[color]
+	wordRegex = regexp.MustCompile(`\*\[(.+?)\]`)
+
+	// Regular expression for @[phrase|color]
+	phraseColorRegex = regexp.MustCompile(`@\[(.+?)\|(.+?)\]`)
+)
+
+func processStringForColors(input string) string {
+	//  Replace matches with <span class="color-t">color</span>
+	input = wordRegex.ReplaceAllString(input, `<strong class="$1-t">$1</strong>`)
+
+	//  Replace matches with <span class="color-t">phrase</span>
+	input = phraseColorRegex.ReplaceAllString(input, `<strong class="$2-t">$1</strong>`)
+
+	return input
+}
+
 func (player *Player) updateBottomText(message string) {
 	msg := fmt.Sprintf(`
 			<div id="bottom_text">
 				&nbsp;&nbsp;> %s
-			</div>`, message)
+			</div>`, processStringForColors(message))
 	updateOne(msg, player)
 }
 
