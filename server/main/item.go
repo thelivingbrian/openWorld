@@ -193,7 +193,7 @@ func basicSpawn(stage *Stage) {
 	//fmt.Println(randn)
 }
 
-func sortWalkableTiles(tiles [][]*Tile) ([]*Tile, []*Tile) {
+func sortWalkableTiles(tiles [][]*Tile) (covered []*Tile, uncovered []*Tile) {
 	var outCovered, outUncovered []*Tile
 	for y := range tiles {
 		for x := range tiles[y] {
