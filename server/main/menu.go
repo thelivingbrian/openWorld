@@ -92,7 +92,8 @@ var mapMenu = Menu{
 var statsMenu = Menu{
 	Name:     "stats",
 	CssClass: "",
-	InfoHtml: "<h2>Coming Soon</h2>",
+	InfoHtml: `<h2>Stat population error.</h2>
+				`,
 	Links: []MenuLink{
 		{Text: "Back", eventHandler: openPauseMenu, auth: nil},
 	},
@@ -108,7 +109,7 @@ var respawnMenu = Menu{
 	},
 }
 
-func turnMenuOn(p *Player, menuName string) {
+func turnMenuOnByName(p *Player, menuName string) {
 	menu, ok := p.menues[menuName]
 	if ok {
 		sendMenu(p, menu)
@@ -241,15 +242,29 @@ func openMapMenu(p *Player) {
 }
 
 func openPauseMenu(p *Player) {
-	turnMenuOn(p, "pause")
+	turnMenuOnByName(p, "pause")
 }
 
 func openStatsMenu(p *Player) {
-	turnMenuOn(p, "stats")
+	menu := statsMenu
+	menu.InfoHtml = createInfoHtmlForPlayer(p)
+	sendMenu(p, menu)
+}
+
+func createInfoHtmlForPlayer(p *Player) template.HTML {
+	htmlContent := fmt.Sprintf(
+		`<div class="player-stats">
+			<p><strong>Kills:</strong> %d</p>
+			<p><strong>Deaths:</strong> %d</p>
+		</div>`,
+		p.getKillCountSync(), p.getDeathCountSync(),
+	)
+
+	return template.HTML(htmlContent)
 }
 
 func openRespawnMenu(p *Player) {
-	turnMenuOn(p, "respawn")
+	turnMenuOnByName(p, "respawn")
 }
 
 // Player specific menues
