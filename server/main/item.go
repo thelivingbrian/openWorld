@@ -26,9 +26,10 @@ var spawnActions = map[string][]SpawnAction{
 		//SpawnAction{Should: checkDistanceFromEdge(8, 8), Action: basicSpawn},
 		SpawnAction{Should: excludeInfirmary, Action: basicSpawn},
 	},
-	"tutorial-boost": []SpawnAction{SpawnAction{Should: always, Action: tutorialBoost()}},
-	"tutorial-power": []SpawnAction{SpawnAction{Should: always, Action: tutorialPower}},
-	"tutorial-2":     []SpawnAction{SpawnAction{Should: oneOutOf(4), Action: spawnBoosts}},
+	"tutorial-boost":   []SpawnAction{SpawnAction{Should: always, Action: tutorialBoost()}},
+	"tutorial-power":   []SpawnAction{SpawnAction{Should: always, Action: tutorialPower}},
+	"tutorial-2":       []SpawnAction{SpawnAction{Should: oneOutOf(4), Action: spawnBoosts}},
+	"tutorial-2-boost": []SpawnAction{SpawnAction{Should: always, Action: tutorial2Boost()}},
 }
 
 /////////////////////////////////////////////
@@ -142,6 +143,10 @@ func addBoostsAt(y, x int) func(stage *Stage) {
 
 func tutorialBoost() func(stage *Stage) {
 	return addBoostsAt(8, 8)
+}
+
+func tutorial2Boost() func(stage *Stage) {
+	return addBoostsAt(10, 11)
 }
 
 func tutorialPower(stage *Stage) {

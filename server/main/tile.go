@@ -24,6 +24,7 @@ type Tile struct {
 	money             int
 	moneyMutex        sync.Mutex
 	boosts            int
+	boostsMutex       sync.Mutex
 	htmlTemplate      string
 	bottomText        string
 }

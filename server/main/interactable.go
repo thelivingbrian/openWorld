@@ -31,12 +31,15 @@ var interactableReactions = map[string][]InteractableReaction{
 		InteractableReaction{ReactsWith: interactableHasName("fuchsia-ball"), Reaction: spawnMoney([]int{10, 20, 50})},
 	},
 	"tutorial-goal-sky-blue": []InteractableReaction{
-		InteractableReaction{ReactsWith: ballOfMatchingTeam("sky-blue"), Reaction: finishTutorial2},
-		InteractableReaction{ReactsWith: ballOfOtherTeam("sky-blue"), Reaction: notify("Try using the matching ball.")},
+		InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: destroyEveryotherInteractable},
+		InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: notify("Try using the matching ball.")},
 	},
 	"tutorial-goal-fuchsia": []InteractableReaction{
-		InteractableReaction{ReactsWith: ballOfMatchingTeam("fuchsia"), Reaction: finishTutorial2},
-		InteractableReaction{ReactsWith: ballOfOtherTeam("fuchsia"), Reaction: notify("Try using the matching ball.")},
+		InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: destroyEveryotherInteractable},
+		InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: notify("Try using the matching ball.")},
+	},
+	"gold-target": []InteractableReaction{
+		InteractableReaction{ReactsWith: interactableHasName("ball-gold"), Reaction: destroyEveryotherInteractable},
 	},
 }
 
@@ -79,7 +82,7 @@ func interactableHasName(name string) func(*Interactable, *Player) bool {
 		return i.name == name
 	}
 }
-func ballOfMatchingTeam(team string) func(*Interactable, *Player) bool {
+func playerTeamAndBallNameMatch(team string) func(*Interactable, *Player) bool {
 	return func(i *Interactable, p *Player) bool {
 		if i == nil {
 			return false
@@ -89,19 +92,7 @@ func ballOfMatchingTeam(team string) func(*Interactable, *Player) bool {
 	}
 }
 
-func ballOfOtherTeam(team string) func(*Interactable, *Player) bool {
-	return func(i *Interactable, p *Player) bool {
-		if i == nil {
-			return false
-		}
-		if len(i.name) < 5 {
-			return false
-		}
-		return i.name[0:5] == "ball-" && team == p.getTeamNameSync()
-	}
-}
-
-func initiatorDifferentTeam(team string) func(*Interactable, *Player) bool {
+func PlayerAndTeamMatchButDifferentBall(team string) func(*Interactable, *Player) bool {
 	return func(i *Interactable, p *Player) bool {
 		if i == nil {
 			return false

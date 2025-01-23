@@ -19,6 +19,7 @@
 - [-] relative border radius
 - [-] Score goal
 - [-] Minimum streak for most dangerous (Possibly just for award but possibly for inclusion in heap as well)
+  - [ ] Do not award new most dangerous on logout? - No Ties but legitmate person may get overlooked even with continued steeak
 - [-] Player zombies
   - [-] up to 1,000 concurrent player deaths
   - [-] Automated test
@@ -37,6 +38,14 @@
   - [ ] Open menus
   - [ ] Hallucinate
 - [-] All players in tutorial 
+- [ ] With DB Writes 
+
+## Stats 
+- [ ] Boosts 
+  - [ ] used
+  - [ ] collected
+- [ ] Total money 
+- [ ] Goals scored 
 
 ## Performance 
 - [-] Performance from Ec2 is degraded vs localhost - 400 Websocket users / 8 stages very stable
