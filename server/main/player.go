@@ -52,6 +52,8 @@ type Player struct {
 	pStageMutex              sync.Mutex
 }
 
+// Save Hat and event seperately for potential to reconsile in event of error
+
 type WebsocketConnection interface {
 	WriteMessage(messageType int, data []byte) error
 	ReadMessage() (messageType int, p []byte, err error)
@@ -440,6 +442,8 @@ var (
 
 	// Regular expression for @[phrase|color]
 	phraseColorRegex = regexp.MustCompile(`@\[(.+?)\|(.+?)\]`)
+	// Regular expression for @[phrase|---]
+	teamColorWildRegex = regexp.MustCompile(`@\[(.*?)\|---\]`)
 )
 
 func processStringForColors(input string) string {

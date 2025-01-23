@@ -8,7 +8,7 @@ import (
 type Interactable struct {
 	name           string
 	pushable       bool
-	walkable       bool
+	walkable       bool // problematic, because push onto walkable is undefined?
 	cssClass       string
 	fragile        bool
 	reactions      []InteractableReaction // Lowest index match wins
@@ -39,7 +39,10 @@ var interactableReactions = map[string][]InteractableReaction{
 		InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: notify("Try using the matching ball.")},
 	},
 	"gold-target": []InteractableReaction{
-		InteractableReaction{ReactsWith: interactableHasName("ball-gold"), Reaction: destroyEveryotherInteractable},
+		InteractableReaction{ReactsWith: interactableHasName("ball-gold"), Reaction: destroyInRangeSkipingSelf(5, 3, 10, 8)},
+	},
+	"set-team-wild-text-and-delete": []InteractableReaction{
+		InteractableReaction{ReactsWith: interactableIsNil, Reaction: setTeamWildText},
 	},
 }
 
@@ -66,6 +69,10 @@ func (source *Interactable) React(incoming *Interactable, initiator *Player, loc
 // Gates
 func everything(*Interactable, *Player) bool {
 	return true
+}
+
+func interactableIsNil(i *Interactable, p *Player) bool {
+	return i == nil
 }
 
 func matchesCssClass(cssClass string) func(*Interactable) bool {
@@ -164,12 +171,59 @@ func getStageFromTeam(s string) string {
 	}
 }
 
+func setTeamWildText(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	t.bottomText = teamColorWildRegex.ReplaceAllString(t.material.DisplayText, `@[$1|`+p.getTeamNameSync()+`]`)
+	//fmt.Println(t.material.DisplayText)
+	swapInteractableAndUpdate(t, nil)
+	//t.interactable = nil
+	return nil, true
+}
+
 func destroyEveryotherInteractable(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	tiles := everyOtherTileOnStage(t)
 	for i := range tiles {
 		go destroyInteractable(tiles[i], p)
 	}
 	return nil, false
+}
+
+func destroyInRange(yMin, xMin, yMax, xMax int) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		tiles := t.stage.tiles
+		if yMin >= len(tiles) || yMax >= len(tiles) {
+			return nil, false
+		}
+		if xMin >= len(tiles[yMin]) || xMax >= len(tiles[yMin]) {
+			return nil, false
+		}
+		for i := yMin; i <= yMax; i++ {
+			for j := xMin; j <= xMax; j++ {
+				go destroyInteractable(tiles[i][j], p)
+			}
+		}
+		return nil, false
+	}
+}
+
+func destroyInRangeSkipingSelf(yMin, xMin, yMax, xMax int) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		tiles := t.stage.tiles
+		if yMin >= len(tiles) || yMax >= len(tiles) {
+			return nil, false
+		}
+		if xMin >= len(tiles[yMin]) || xMax >= len(tiles[yMin]) {
+			return nil, false
+		}
+		for i := yMin; i <= yMax; i++ {
+			for j := xMin; j <= xMax; j++ {
+				if tiles[i][j] == t {
+					continue
+				}
+				go destroyInteractable(tiles[i][j], p)
+			}
+		}
+		return nil, false
+	}
 }
 
 // Create an always false auth that notifies to prevent consuming incoming
