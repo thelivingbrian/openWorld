@@ -240,7 +240,7 @@ func (db *DB) updateRecordForPlayer(p *Player, pTile *Tile) error {
 				"deathCount":  p.getDeathCountSync(),
 				"goalsScored": p.getGoalsScored(),
 				//"trim":            p.trim,
-				"hats.current": p.hatList.indexSync(),
+				"hatList.current": p.hatList.indexSync(),
 			},
 		},
 	)
