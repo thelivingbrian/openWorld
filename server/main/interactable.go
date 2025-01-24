@@ -45,11 +45,11 @@ func init() {
 		},
 		"tutorial-goal-sky-blue": []InteractableReaction{
 			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: destroyEveryotherInteractable},
-			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: notify("Try using the matching ball.")},
+			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: notifyAndPass("Try using the matching ball.")},
 		},
 		"tutorial-goal-fuchsia": []InteractableReaction{
 			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: destroyEveryotherInteractable},
-			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: notify("Try using the matching ball.")},
+			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: notifyAndPass("Try using the matching ball.")},
 		},
 		"gold-target": []InteractableReaction{
 			InteractableReaction{ReactsWith: interactableHasName("ball-gold"), Reaction: destroyInRangeSkipingSelf(5, 3, 10, 8)},
@@ -81,7 +81,9 @@ func (source *Interactable) React(incoming *Interactable, initiator *Player, loc
 	return false
 }
 
+////////////////////////////////////////////////////////////////////////
 // Gates
+
 func everything(*Interactable, *Player) bool {
 	return true
 }
@@ -127,17 +129,14 @@ func interactableIsABall(i *Interactable, _ *Player) bool {
 
 func PlayerAndTeamMatchButDifferentBall(team string) func(*Interactable, *Player) bool {
 	return func(i *Interactable, p *Player) bool {
-		// if i == nil {
-		// 	return false
-		// }
-		// if len(i.name) < 5 {
-		// 	return false
-		// }
 		return interactableIsABall(i, nil) && team == p.getTeamNameSync()
 	}
 }
 
-// Actions
+////////////////////////////////////////////////////////////////////////////
+// Rections
+
+// Basic
 func eat(*Interactable, *Player, *Tile) (*Interactable, bool) {
 	// incoming interactable is discarded
 	return nil, false
@@ -147,38 +146,7 @@ func pass(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	return i, true
 }
 
-func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing *Interactable, ok bool) {
-	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-		if team != p.getTeamNameSync() {
-			fmt.Println("ERROR TEAM CHECK FAILED? ", p.getTeamNameSync(), team)
-			return nil, false
-		}
-		p.world.leaderBoard.scoreboard.Increment(team)
-		score := p.world.leaderBoard.scoreboard.GetScore(team)
-		fmt.Println(score)
-
-		p.incrementGoalsScored()
-		p.updateRecord()
-		message := fmt.Sprintf("@[%s|%s] has scored a goal! @[Team %s|%s] now has @[%d|%s] points!", p.username, team, team, team, score, team)
-		broadcastBottomText(p.world, message)
-
-		return hideByTeam(team)(i, p, t)
-		//return nil, false
-	}
-}
-
-/*
-func scoreGoalForPlayer(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-	team := p.getTeamNameSync()
-	p.world.leaderBoard.scoreboard.Increment(team)
-	p.incrementGoalsScored()
-	p.updateRecord()
-	// need to  give a trim
-	fmt.Println(p.world.leaderBoard.scoreboard.GetScore(team))
-	return nil, false
-}
-*/
-
+// Spawn and destroy
 func spawnMoney(amounts []int) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 		tiles := walkableTiles(t.stage.tiles)
@@ -192,30 +160,6 @@ func spawnMoney(amounts []int) func(*Interactable, *Player, *Tile) (*Interactabl
 		}
 		return nil, false
 	}
-}
-
-func finishTutorial2(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-	t.stage.tiles[7][7].teleport.destStage = getStageFromTeam(p.getTeamNameSync())
-	t.stage.tiles[8][7].teleport.destStage = getStageFromTeam(p.getTeamNameSync())
-	return destroyEveryotherInteractable(i, p, t)
-}
-
-func getStageFromTeam(s string) string {
-	if s == "fuchsia" {
-		return "team-fuchsia:4-3"
-	} else if s == "sky-blue" {
-		return "team-blue:3-4"
-	} else {
-		return "team-blue:0-0"
-	}
-}
-
-func setTeamWildText(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-	t.bottomText = teamColorWildRegex.ReplaceAllString(t.material.DisplayText, `@[$1|`+p.getTeamNameSync()+`]`)
-	//fmt.Println(t.material.DisplayText)
-	swapInteractableAndUpdate(t, nil)
-	//t.interactable = nil
-	return nil, true
 }
 
 func destroyEveryotherInteractable(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
@@ -265,19 +209,24 @@ func destroyInRangeSkipingSelf(yMin, xMin, yMax, xMax int) func(*Interactable, *
 	}
 }
 
-func tutorial2HideAndNotify(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-	stagenames := []string{"tutorial2:0-1", "tutorial2:0-2", "tutorial2:1-2", "tutorial2:2-0", "tutorial2:2-1"}
-	index := rand.Intn(5)
-	stagename := stagenames[index]
-	stage := p.fetchStageSync(stagename)
-	tiles := walkableTiles(stage.tiles)
-	placed := false
-	for !placed {
-		index = rand.Intn(len(tiles))
-		placed = trySetInteractable(tiles[index], i)
+// Capture the flag
+func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing *Interactable, ok bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		if team != p.getTeamNameSync() {
+			fmt.Println("ERROR TEAM CHECK FAILED? ", p.getTeamNameSync(), team)
+			return nil, false
+		}
+		p.world.leaderBoard.scoreboard.Increment(team)
+		score := p.world.leaderBoard.scoreboard.GetScore(team)
+		fmt.Println(score)
+
+		p.incrementGoalsScored()
+		p.updateRecord()
+		message := fmt.Sprintf("@[%s|%s] has scored a goal! @[Team %s|%s] now has @[%d|%s] points!", p.username, team, team, team, score, team)
+		broadcastBottomText(p.world, message)
+
+		return hideByTeam(team)(i, p, t)
 	}
-	p.updateBottomText("@[black holes|black] will absorb balls and spit them out elsewhere")
-	return nil, false
 }
 
 func hideByTeam(team string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
@@ -293,7 +242,6 @@ func hideByTeam(team string) func(*Interactable, *Player, *Tile) (*Interactable,
 		}
 		fmt.Println(stagename)
 		stage := p.fetchStageSync(stagename)
-		//var tiles []*Tile
 		tiles, uncovered := sortWalkableTiles(stage.tiles)
 		if len(tiles) == 0 {
 			tiles = uncovered
@@ -308,23 +256,32 @@ func hideByTeam(team string) func(*Interactable, *Player, *Tile) (*Interactable,
 	}
 }
 
-func trySetInteractable(tile *Tile, i *Interactable) bool {
-	ownLock := tile.interactableMutex.TryLock()
-	if !ownLock {
-		return false
-	}
-	defer tile.interactableMutex.Unlock()
-	if tile.interactable != nil {
-		return false
-	}
-	tile.interactable = i
-	return true
+// Tutorial
+func setTeamWildText(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	t.bottomText = teamColorWildRegex.ReplaceAllString(t.material.DisplayText, `@[$1|`+p.getTeamNameSync()+`]`)
+	swapInteractableAndUpdate(t, nil)
+	return nil, true
 }
 
 // Create an always false auth that notifies to prevent consuming incoming
-func notify(notification string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+func notifyAndPass(notification string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 		p.updateBottomText(notification)
 		return i, true
 	}
+}
+
+func tutorial2HideAndNotify(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	stagenames := []string{"tutorial2:0-1", "tutorial2:0-2", "tutorial2:1-2", "tutorial2:2-0", "tutorial2:2-1"}
+	index := rand.Intn(5)
+	stagename := stagenames[index]
+	stage := p.fetchStageSync(stagename)
+	tiles := walkableTiles(stage.tiles)
+	placed := false
+	for !placed {
+		index = rand.Intn(len(tiles))
+		placed = trySetInteractable(tiles[index], i)
+	}
+	p.updateBottomText("@[black holes|black] will absorb balls and spit them out elsewhere")
+	return nil, false
 }

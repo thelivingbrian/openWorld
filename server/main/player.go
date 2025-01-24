@@ -282,6 +282,13 @@ func handleDeath(player *Player) {
 	respawnOnStage(player, stage)
 }
 
+func halveMoneyOf(player *Player) int {
+	currentMoney := player.getMoneySync()
+	newValue := currentMoney / 2
+	player.setMoney(newValue)
+	return newValue
+}
+
 func respawnOnStage(player *Player, stage *Stage) {
 	player.tangibilityLock.Lock()
 	defer player.tangibilityLock.Unlock()
