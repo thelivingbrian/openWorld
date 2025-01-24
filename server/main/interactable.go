@@ -24,17 +24,20 @@ var interactableReactions map[string][]InteractableReaction
 
 func init() {
 	interactableReactions = map[string][]InteractableReaction{
-		"black-hole": []InteractableReaction{InteractableReaction{ReactsWith: everything, Reaction: eat}},
-		"fuchsia-goal": []InteractableReaction{
-			InteractableReaction{ReactsWith: interactableHasName("fuchsia-ball"), Reaction: scoreGoalForTeam("sky-blue")},
-			InteractableReaction{ReactsWith: interactableHasName("sky-blue-ball"), Reaction: spawnMoney([]int{10, 20, 50})},
+		// Capture the flag :
+		"black-hole": []InteractableReaction{
+			InteractableReaction{ReactsWith: everything, Reaction: eat}},
+		"goal-sky-blue": []InteractableReaction{
+			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: scoreGoalForTeam("sky-blue")},
+			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: pass},
 		},
-		"sky-blue-goal": []InteractableReaction{
-			InteractableReaction{ReactsWith: interactableHasName("sky-blue-ball"), Reaction: scoreGoalForTeam("fuchsia")},
-			InteractableReaction{ReactsWith: interactableHasName("fuchsia-ball"), Reaction: spawnMoney([]int{10, 20, 50})},
+		"goal-fuchsia": []InteractableReaction{
+			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: scoreGoalForTeam("fuchsia")},
+			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: pass},
 		},
+		// Tutorial :
 		"tutorial-black-hole": []InteractableReaction{
-			InteractableReaction{ReactsWith: interactableIsABall, Reaction: tutoria2HideAndNotify},
+			InteractableReaction{ReactsWith: interactableIsABall, Reaction: tutorial2HideAndNotify},
 			InteractableReaction{ReactsWith: everything, Reaction: eat},
 		},
 		"tutorial-goal-sky-blue": []InteractableReaction{
@@ -137,19 +140,30 @@ func eat(*Interactable, *Player, *Tile) (*Interactable, bool) {
 	return nil, false
 }
 
+func pass(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	return i, true
+}
+
 func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing *Interactable, ok bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-		p.world.leaderBoard.scoreboard.Increment(team)
-		if team == p.getTeamNameSync() {
-			// Otherwise you have scored a goal for a different team
-			p.incrementGoalsScored()
-			p.updateRecord()
+		if team != p.getTeamNameSync() {
+			fmt.Println("ERROR TEAM CHECK FAILED? ", p.getTeamNameSync(), team)
+			return nil, false
 		}
-		fmt.Println(p.world.leaderBoard.scoreboard.GetScore(team))
+		p.world.leaderBoard.scoreboard.Increment(team)
+		score := p.world.leaderBoard.scoreboard.GetScore(team)
+		fmt.Println(score)
+
+		p.incrementGoalsScored()
+		p.updateRecord()
+		message := fmt.Sprintf("@[%s|%s] has scored a goal! @[Team %s|%s] now has @[%d|%s] points!", p.username, team, team, team, score, team)
+		broadcastBottomText(p.world, message)
+
 		return nil, false
 	}
 }
 
+/*
 func scoreGoalForPlayer(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	team := p.getTeamNameSync()
 	p.world.leaderBoard.scoreboard.Increment(team)
@@ -159,6 +173,7 @@ func scoreGoalForPlayer(i *Interactable, p *Player, t *Tile) (*Interactable, boo
 	fmt.Println(p.world.leaderBoard.scoreboard.GetScore(team))
 	return nil, false
 }
+*/
 
 func spawnMoney(amounts []int) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
@@ -246,7 +261,7 @@ func destroyInRangeSkipingSelf(yMin, xMin, yMax, xMax int) func(*Interactable, *
 	}
 }
 
-func tutoria2HideAndNotify(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+func tutorial2HideAndNotify(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	stagenames := []string{"tutorial2:0-1", "tutorial2:0-2", "tutorial2:1-2", "tutorial2:2-0", "tutorial2:2-1"}
 	index := rand.Intn(5)
 	stagename := stagenames[index]

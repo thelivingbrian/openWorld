@@ -256,6 +256,17 @@ layerXCss : "static {transformationType:value} string"
 
 
 
+
+Interactable machine for teleporting across a boundary:
+
+ [ ] <-  push nil after to reset other side 
+ ---------
+ [ ]
+Enter here
+
+One way or two way.
+
+
 -goals:
 
 x - Expose endpoint that returns world player count and player count by team 

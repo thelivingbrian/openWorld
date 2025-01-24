@@ -439,3 +439,12 @@ func notifyChangeInMostDangerous(currentMostDangerous *Player) {
 		}
 	}
 }
+
+func broadcastBottomText(world *World, message string) {
+	// test origin with panic
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	for _, p := range world.worldPlayers {
+		p.updateBottomText(message)
+	}
+}
