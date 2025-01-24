@@ -220,7 +220,10 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 		score := p.world.leaderBoard.scoreboard.GetScore(team)
 		fmt.Println(score)
 
-		p.incrementGoalsScored()
+		totalGoals := p.incrementGoalsScored()
+		if totalGoals == 1 {
+			p.addHatByName("score-1-goal")
+		}
 		p.updateRecord()
 		message := fmt.Sprintf("@[%s|%s] has scored a goal! @[Team %s|%s] now has @[%d|%s] points!", p.username, team, team, team, score, team)
 		broadcastBottomText(p.world, message)

@@ -154,11 +154,12 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		menues:                   map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu}, // terrifying
 		playerStages:             make(map[string]*Stage),
 		team:                     record.Team,
-		trim:                     record.Trim,
-		health:                   record.Health,
-		money:                    record.Money,
-		killCount:                record.KillCount,
-		deathCount:               record.DeathCount,
+		//trim:                     record.Trim,
+		health:      record.Health,
+		money:       record.Money,
+		killCount:   record.KillCount,
+		deathCount:  record.DeathCount,
+		goalsScored: record.goalsScored,
 	}
 
 	newPlayer.setIcon()

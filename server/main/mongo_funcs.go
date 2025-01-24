@@ -40,12 +40,13 @@ type PlayerRecord struct {
 	X         int    `bson:"x"`
 	Y         int    `bson:"y"`
 	// Stats
-	Team       string `bson:"team"`
-	Trim       string `bson:"trim,omitempty"`
-	Health     int    `bson:"health"`
-	Money      int    `bson:"money,omitempty"`
-	KillCount  int    `bson:"killCount,omitempty"`
-	DeathCount int    `bson:"deathCount,omitempty"`
+	Team        string `bson:"team"`
+	Trim        string `bson:"trim,omitempty"`
+	Health      int    `bson:"health"`
+	Money       int    `bson:"money,omitempty"`
+	KillCount   int    `bson:"killCount,omitempty"`
+	DeathCount  int    `bson:"deathCount,omitempty"`
+	goalsScored int    `bson:"goalsScored,omitempty"`
 }
 
 type Event struct {
@@ -236,9 +237,23 @@ func (db *DB) updateRecordForPlayer(p *Player, pTile *Tile) error {
 				"killCount":   p.getKillCountSync(),
 				"deathCount":  p.getDeathCountSync(),
 				"goalsScored": p.getGoalsScored(),
-				"trim":        p.trim,
+				//"trim":            p.trim,
+				"hats.current": p.hats.indexSync(),
 			},
 		},
 	)
 	return err //Is nil or err
+}
+
+func (db *DB) addHatToPlayer(username string, newHat Hat) error {
+	_, err := db.playerRecords.UpdateOne(
+		context.TODO(),
+		bson.M{"username": username},
+		bson.M{
+			"$push": bson.M{
+				"hats.hatList": newHat,
+			},
+		},
+	)
+	return err
 }

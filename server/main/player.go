@@ -16,10 +16,10 @@ import (
 )
 
 type Player struct {
-	id                       string
-	username                 string
-	team                     string
-	trim                     string
+	id       string
+	username string
+	team     string
+	//trim                     string
 	icon                     string
 	viewLock                 sync.Mutex
 	world                    *World
@@ -50,6 +50,127 @@ type Player struct {
 	menues                   map[string]Menu
 	playerStages             map[string]*Stage
 	pStageMutex              sync.Mutex
+	hats                     HatList
+}
+
+type HatList struct {
+	sync.Mutex
+	hatList []Hat
+	current *int
+}
+
+type Hat struct {
+	Name           string    `bson:"name"`
+	Trim           string    `bson:"trim"`
+	ToggleDisabled bool      `bson:"toggleDisabled"`
+	UnlockedAt     time.Time `bson:"unlockedAt"`
+}
+
+var EVERY_HAT_TO_TRIM map[string]string = map[string]string{
+	"score-1-goal":    "black-b med",
+	"score-1000-goal": "black-b thick",
+	"most-dangerous":  "red-b med",
+	"richest":         "green-b med",
+	"puzzle-solve-1":  "white-b med",
+	"contributor":     "gold-b thick",
+}
+
+func (hatList *HatList) addByName(hatName string) *Hat {
+	hatList.Lock()
+	defer hatList.Unlock()
+	for i := range hatList.hatList {
+		if hatList.hatList[i].Name == hatName {
+			return nil
+		}
+	}
+	trim, ok := EVERY_HAT_TO_TRIM[hatName]
+	if !ok {
+		fmt.Println("INVALID HATNAME: ", hatName)
+		return nil
+	}
+	newHat := Hat{Name: hatName, Trim: trim, ToggleDisabled: false, UnlockedAt: time.Now()}
+	hatList.hatList = append(hatList.hatList, newHat)
+	hatCount := len(hatList.hatList) - 1
+	hatList.current = &hatCount
+	return &hatList.hatList[hatCount]
+}
+
+func (hatList *HatList) indexSync() *int {
+	hatList.Lock()
+	defer hatList.Unlock()
+	return hatList.current
+}
+
+func (hatList *HatList) currentTrim() string {
+	hatList.Lock()
+	defer hatList.Unlock()
+	if hatList.current == nil {
+		return ""
+	}
+	return hatList.hatList[*hatList.current].Trim
+}
+
+func (hatList *HatList) now() *Hat {
+	hatList.Lock()
+	defer hatList.Unlock()
+	if hatList.current == nil {
+		return nil
+	}
+	return &hatList.hatList[*hatList.current]
+}
+
+func (hatList *HatList) next() *Hat {
+	hatList.Lock()
+	defer hatList.Unlock()
+	hatCount := len(hatList.hatList)
+	if hatCount == 0 {
+		return nil
+	}
+	if hatList.current == nil {
+		current := 0
+		hatList.current = &current
+		return &hatList.hatList[0]
+	}
+	if *hatList.current == hatCount-1 {
+		hatList.current = nil
+		return nil
+	}
+	*hatList.current++
+	return &hatList.hatList[*hatList.current]
+}
+
+func (hatList *HatList) nextValid() *Hat {
+	for {
+		hat := hatList.next()
+		if hat == nil {
+			return nil
+		}
+		if !hat.ToggleDisabled {
+			return hat
+		}
+	}
+}
+
+// func (hatList *HatList) last() *Hat {
+// 	hatList.Lock()
+// 	defer hatList.Unlock()
+// 	hatCount := len(hatList.hats)
+// 	if hatCount == 0 {
+// 		return nil
+// 	}
+// 	hatCount--
+// 	hatList.current = &hatCount
+// 	return &hatList.hats[hatCount]
+// }
+
+func (player *Player) addHatByName(hatName string) {
+	hat := player.hats.addByName(hatName)
+	if hat == nil {
+		return
+	}
+	player.world.db.addHatToPlayer(player.username, *hat)
+	player.updateInformation()
+	return
 }
 
 // Save Hat and event seperately for potential to reconsile in event of error
@@ -110,6 +231,7 @@ func (player *Player) moveBoost(yOffset int, xOffset int) {
 		player.pushUnder(2*yOffset, 2*xOffset)
 		player.move(2*yOffset, 2*xOffset)
 	} else {
+		// always push under ?
 		player.move(yOffset, xOffset)
 	}
 }
@@ -573,10 +695,10 @@ func (player *Player) setIcon() string {
 	player.healthLock.Lock()
 	defer player.healthLock.Unlock()
 	if player.health <= 50 {
-		player.icon = "dim-" + player.team + " " + player.trim + " r0"
+		player.icon = "dim-" + player.team + " " + player.hats.currentTrim() + " r0"
 		return player.icon
 	} else {
-		player.icon = player.team + " " + player.trim + " r0"
+		player.icon = player.team + " " + player.hats.currentTrim() + " r0"
 		return player.icon
 	}
 }
@@ -683,10 +805,12 @@ func (player *Player) incrementDeathCount() {
 }
 
 // goals observer no direct set
-func (player *Player) incrementGoalsScored() {
+func (player *Player) incrementGoalsScored() int {
 	player.goalsScoredLock.Lock()
 	defer player.goalsScoredLock.Unlock()
+	// add trim if first ? nah
 	player.goalsScored++
+	return player.goalsScored
 }
 
 func (player *Player) getGoalsScored() int {
