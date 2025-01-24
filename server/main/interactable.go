@@ -112,7 +112,7 @@ func playerTeamAndBallNameMatch(team string) func(*Interactable, *Player) bool {
 		if i == nil {
 			return false
 		}
-		fmt.Println("HEYO", i.name, team, p.getTeamNameSync())
+		//fmt.Println("HEYO", i.name, team, p.getTeamNameSync())
 		return i.name == "ball-"+team && team == p.getTeamNameSync()
 	}
 }

@@ -107,7 +107,7 @@ func (player *Player) move(yOffset int, xOffset int) {
 
 func (player *Player) moveBoost(yOffset int, xOffset int) {
 	if player.useBoost() {
-		player.pushUnder(yOffset, xOffset)
+		player.pushUnder(2*yOffset, 2*xOffset)
 		player.move(2*yOffset, 2*xOffset)
 	} else {
 		player.move(yOffset, xOffset)
