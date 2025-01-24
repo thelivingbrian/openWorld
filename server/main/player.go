@@ -50,13 +50,17 @@ type Player struct {
 	menues                   map[string]Menu
 	playerStages             map[string]*Stage
 	pStageMutex              sync.Mutex
-	hats                     HatList
+	hatList                  SyncHatList
+}
+
+type SyncHatList struct {
+	sync.Mutex
+	HatList
 }
 
 type HatList struct {
-	sync.Mutex
-	hatList []Hat
-	current *int
+	Hats    []Hat `bson:"hats"`
+	Current *int  `bson:"current"`
 }
 
 type Hat struct {
@@ -75,11 +79,11 @@ var EVERY_HAT_TO_TRIM map[string]string = map[string]string{
 	"contributor":     "gold-b thick",
 }
 
-func (hatList *HatList) addByName(hatName string) *Hat {
+func (hatList *SyncHatList) addByName(hatName string) *Hat {
 	hatList.Lock()
 	defer hatList.Unlock()
-	for i := range hatList.hatList {
-		if hatList.hatList[i].Name == hatName {
+	for i := range hatList.Hats {
+		if hatList.Hats[i].Name == hatName {
 			return nil
 		}
 	}
@@ -89,57 +93,42 @@ func (hatList *HatList) addByName(hatName string) *Hat {
 		return nil
 	}
 	newHat := Hat{Name: hatName, Trim: trim, ToggleDisabled: false, UnlockedAt: time.Now()}
-	hatList.hatList = append(hatList.hatList, newHat)
-	hatCount := len(hatList.hatList) - 1
-	hatList.current = &hatCount
-	return &hatList.hatList[hatCount]
+	hatList.Hats = append(hatList.Hats, newHat)
+	hatCount := len(hatList.Hats) - 1
+	hatList.Current = &hatCount
+	return &hatList.Hats[hatCount]
 }
 
-func (hatList *HatList) indexSync() *int {
+func (hatList *SyncHatList) peek() *Hat {
 	hatList.Lock()
 	defer hatList.Unlock()
-	return hatList.current
-}
-
-func (hatList *HatList) currentTrim() string {
-	hatList.Lock()
-	defer hatList.Unlock()
-	if hatList.current == nil {
-		return ""
-	}
-	return hatList.hatList[*hatList.current].Trim
-}
-
-func (hatList *HatList) now() *Hat {
-	hatList.Lock()
-	defer hatList.Unlock()
-	if hatList.current == nil {
+	if hatList.Current == nil {
 		return nil
 	}
-	return &hatList.hatList[*hatList.current]
+	return &hatList.Hats[*hatList.Current]
 }
 
-func (hatList *HatList) next() *Hat {
+func (hatList *SyncHatList) next() *Hat {
 	hatList.Lock()
 	defer hatList.Unlock()
-	hatCount := len(hatList.hatList)
+	hatCount := len(hatList.Hats)
 	if hatCount == 0 {
 		return nil
 	}
-	if hatList.current == nil {
+	if hatList.Current == nil {
 		current := 0
-		hatList.current = &current
-		return &hatList.hatList[0]
+		hatList.Current = &current
+		return &hatList.Hats[0]
 	}
-	if *hatList.current == hatCount-1 {
-		hatList.current = nil
+	if *hatList.Current == hatCount-1 {
+		hatList.Current = nil
 		return nil
 	}
-	*hatList.current++
-	return &hatList.hatList[*hatList.current]
+	*hatList.Current++
+	return &hatList.Hats[*hatList.Current]
 }
 
-func (hatList *HatList) nextValid() *Hat {
+func (hatList *SyncHatList) nextValid() *Hat {
 	for {
 		hat := hatList.next()
 		if hat == nil {
@@ -149,6 +138,21 @@ func (hatList *HatList) nextValid() *Hat {
 			return hat
 		}
 	}
+}
+
+func (hatList *SyncHatList) indexSync() *int {
+	hatList.Lock()
+	defer hatList.Unlock()
+	return hatList.Current
+}
+
+func (hatList *SyncHatList) currentTrim() string {
+	hatList.Lock()
+	defer hatList.Unlock()
+	if hatList.Current == nil {
+		return ""
+	}
+	return hatList.Hats[*hatList.Current].Trim
 }
 
 // func (hatList *HatList) last() *Hat {
@@ -164,11 +168,17 @@ func (hatList *HatList) nextValid() *Hat {
 // }
 
 func (player *Player) addHatByName(hatName string) {
-	hat := player.hats.addByName(hatName)
+	hat := player.hatList.addByName(hatName)
 	if hat == nil {
 		return
 	}
 	player.world.db.addHatToPlayer(player.username, *hat)
+	player.updateInformation()
+	return
+}
+
+func (player *Player) cycleHats() {
+	player.hatList.nextValid()
 	player.updateInformation()
 	return
 }
@@ -695,10 +705,10 @@ func (player *Player) setIcon() string {
 	player.healthLock.Lock()
 	defer player.healthLock.Unlock()
 	if player.health <= 50 {
-		player.icon = "dim-" + player.team + " " + player.hats.currentTrim() + " r0"
+		player.icon = "dim-" + player.team + " " + player.hatList.currentTrim() + " r0"
 		return player.icon
 	} else {
-		player.icon = player.team + " " + player.hats.currentTrim() + " r0"
+		player.icon = player.team + " " + player.hatList.currentTrim() + " r0"
 		return player.icon
 	}
 }

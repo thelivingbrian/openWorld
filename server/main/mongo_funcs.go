@@ -46,7 +46,9 @@ type PlayerRecord struct {
 	Money       int    `bson:"money,omitempty"`
 	KillCount   int    `bson:"killCount,omitempty"`
 	DeathCount  int    `bson:"deathCount,omitempty"`
-	goalsScored int    `bson:"goalsScored,omitempty"`
+	GoalsScored int    `bson:"goalsScored,omitempty"`
+	// Unlocks
+	HatList HatList `bson:"hatList,omitempty"`
 }
 
 type Event struct {
@@ -238,7 +240,7 @@ func (db *DB) updateRecordForPlayer(p *Player, pTile *Tile) error {
 				"deathCount":  p.getDeathCountSync(),
 				"goalsScored": p.getGoalsScored(),
 				//"trim":            p.trim,
-				"hats.current": p.hats.indexSync(),
+				"hats.current": p.hatList.indexSync(),
 			},
 		},
 	)

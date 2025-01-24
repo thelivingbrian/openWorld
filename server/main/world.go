@@ -159,7 +159,8 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		money:       record.Money,
 		killCount:   record.KillCount,
 		deathCount:  record.DeathCount,
-		goalsScored: record.goalsScored,
+		goalsScored: record.GoalsScored,
+		hatList:     SyncHatList{HatList: record.HatList},
 	}
 
 	newPlayer.setIcon()

@@ -165,7 +165,8 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 
 		//fmt.Println(len(player.stage.playerMap), len(player.tile.stage.playerMap))
 
-		spawnNewPlayerWithRandomMovement(player, 250)
+		player.cycleHats()
+		//spawnNewPlayerWithRandomMovement(player, 250)
 		//player.updateBottomText("clear")
 
 		//updateOne(generateWeatherSolid("blue trsp20"), player)
