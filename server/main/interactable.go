@@ -26,7 +26,10 @@ func init() {
 	interactableReactions = map[string][]InteractableReaction{
 		// Capture the flag :
 		"black-hole": []InteractableReaction{
-			InteractableReaction{ReactsWith: everything, Reaction: eat}},
+			InteractableReaction{ReactsWith: interactableHasName("ball-fuchsia"), Reaction: hideByTeam("fuchsia")},
+			InteractableReaction{ReactsWith: interactableHasName("ball-sky-blue"), Reaction: hideByTeam("sky-blue")},
+			InteractableReaction{ReactsWith: everything, Reaction: eat},
+		},
 		"goal-sky-blue": []InteractableReaction{
 			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: scoreGoalForTeam("sky-blue")},
 			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: pass},
@@ -159,7 +162,8 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 		message := fmt.Sprintf("@[%s|%s] has scored a goal! @[Team %s|%s] now has @[%d|%s] points!", p.username, team, team, team, score, team)
 		broadcastBottomText(p.world, message)
 
-		return nil, false
+		return hideByTeam(team)(i, p, t)
+		//return nil, false
 	}
 }
 
@@ -274,6 +278,34 @@ func tutorial2HideAndNotify(i *Interactable, p *Player, t *Tile) (*Interactable,
 	}
 	p.updateBottomText("@[black holes|black] will absorb balls and spit them out elsewhere")
 	return nil, false
+}
+
+func hideByTeam(team string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		lat := rand.Intn(8)
+		long := rand.Intn(8)
+		stagename := "arcade:0-2"
+		if team == "sky-blue" {
+			stagename = fmt.Sprintf("team-fuchsia:%d-%d", lat, long)
+		}
+		if team == "fuchsia" {
+			stagename = fmt.Sprintf("team-blue:%d-%d", lat, long)
+		}
+		fmt.Println(stagename)
+		stage := p.fetchStageSync(stagename)
+		//var tiles []*Tile
+		tiles, uncovered := sortWalkableTiles(stage.tiles)
+		if len(tiles) == 0 {
+			tiles = uncovered
+		}
+		placed := false
+		for !placed {
+			index := rand.Intn(len(tiles))
+			placed = trySetInteractable(tiles[index], i)
+		}
+
+		return nil, false
+	}
 }
 
 func trySetInteractable(tile *Tile, i *Interactable) bool {
