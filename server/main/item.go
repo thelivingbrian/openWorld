@@ -26,9 +26,10 @@ var spawnActions = map[string][]SpawnAction{
 		//SpawnAction{Should: checkDistanceFromEdge(8, 8), Action: basicSpawn},
 		SpawnAction{Should: excludeInfirmary, Action: basicSpawn},
 	},
-	"tutorial-boost": []SpawnAction{SpawnAction{Should: always, Action: tutorialBoost()}},
-	"tutorial-power": []SpawnAction{SpawnAction{Should: always, Action: tutorialPower}},
-	"tutorial-2":     []SpawnAction{SpawnAction{Should: oneOutOf(4), Action: spawnBoosts}},
+	"tutorial-boost":   []SpawnAction{SpawnAction{Should: always, Action: tutorialBoost()}},
+	"tutorial-power":   []SpawnAction{SpawnAction{Should: always, Action: tutorialPower}},
+	"tutorial-2":       []SpawnAction{SpawnAction{Should: oneOutOf(4), Action: spawnBoosts}},
+	"tutorial-2-boost": []SpawnAction{SpawnAction{Should: always, Action: tutorial2Boost()}},
 }
 
 /////////////////////////////////////////////
@@ -144,6 +145,10 @@ func tutorialBoost() func(stage *Stage) {
 	return addBoostsAt(8, 8)
 }
 
+func tutorial2Boost() func(stage *Stage) {
+	return addBoostsAt(10, 11)
+}
+
 func tutorialPower(stage *Stage) {
 	stage.tiles[12][12].addPowerUpAndNotifyAll(grid5x5)
 }
@@ -188,7 +193,7 @@ func basicSpawn(stage *Stage) {
 	//fmt.Println(randn)
 }
 
-func sortWalkableTiles(tiles [][]*Tile) ([]*Tile, []*Tile) {
+func sortWalkableTiles(tiles [][]*Tile) (covered []*Tile, uncovered []*Tile) {
 	var outCovered, outUncovered []*Tile
 	for y := range tiles {
 		for x := range tiles[y] {

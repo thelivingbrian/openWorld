@@ -143,8 +143,6 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 	newPlayer := &Player{
 		id:                       id,
 		username:                 record.Username,
-		team:                     record.Team,
-		trim:                     record.Trim,
 		stage:                    nil,
 		updates:                  updatesForPlayer,
 		clearUpdateBuffer:        make(chan struct{}, 0),
@@ -152,11 +150,17 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		tangible:                 true,
 		tangibilityLock:          sync.Mutex{},
 		actions:                  createDefaultActions(),
-		health:                   record.Health,
-		money:                    record.Money,
 		world:                    world,
 		menues:                   map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu}, // terrifying
 		playerStages:             make(map[string]*Stage),
+		team:                     record.Team,
+		//trim:                     record.Trim,
+		health:      record.Health,
+		money:       record.Money,
+		killCount:   record.KillCount,
+		deathCount:  record.DeathCount,
+		goalsScored: record.GoalsScored,
+		hatList:     SyncHatList{HatList: record.HatList},
 	}
 
 	newPlayer.setIcon()
@@ -435,5 +439,13 @@ func notifyChangeInMostDangerous(currentMostDangerous *Player) {
 		} else {
 			p.updateBottomText(currentMostDangerous.username + " has become the most dangerous bloop!")
 		}
+	}
+}
+
+func broadcastBottomText(world *World, message string) {
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	for _, p := range world.worldPlayers {
+		p.updateBottomText(message)
 	}
 }

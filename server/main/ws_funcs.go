@@ -151,7 +151,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 	}
 	if event.Name == "g" {
 
-		panic("panic button")
+		//panic("panic button")
 
 		// go func() {
 		// 	for i := 0; i <= 80; i++ {
@@ -165,6 +165,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 
 		//fmt.Println(len(player.stage.playerMap), len(player.tile.stage.playerMap))
 
+		player.cycleHats()
 		//spawnNewPlayerWithRandomMovement(player, 250)
 		//player.updateBottomText("clear")
 
@@ -420,7 +421,7 @@ func (m *MockConn) SetWriteDeadline(t time.Time) error {
 func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, context.CancelFunc) {
 	username := "user-" + uuid.New().String()
 	refTile := ref.getTileSync()
-	record := PlayerRecord{Username: username, Health: 50, StageName: ref.stage.name, X: refTile.x, Y: refTile.y, Team: "test-team-2", Trim: "white-b thick"}
+	record := PlayerRecord{Username: username, Health: 50, StageName: ref.stage.name, X: refTile.x, Y: refTile.y, Team: "test-team-2", Trim: "red-b thick"}
 	loginRequest := createLoginRequest(record)
 	ref.world.addIncoming(loginRequest)
 	newPlayer := ref.world.join(loginRequest, &MockConn{})

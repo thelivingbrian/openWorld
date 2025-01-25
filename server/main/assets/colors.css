@@ -1,164 +1,164 @@
 .invisible { background-color: rgba(0, 0, 0, 0); }
-
 .invisible-b { border-color: rgba(0, 0, 0, 0); }
+.invisible-t { color: rgba(0, 0, 0, 0); }
 
 .day { background-color: rgb(170, 255, 255); }
-
 .day-b { border-color: rgb(170, 255, 255); }
+.day-t { color: rgb(170, 255, 255); }
 
 .night { background-color: rgb(18, 5, 0); }
-
 .night-b { border-color: rgb(18, 5, 0); }
+.night-t { color: rgb(18, 5, 0); }
 
 .twilight { background-color: rgb(255, 106, 92); }
-
 .twilight-b { border-color: rgb(255, 106, 92); }
+.twilight-t { color: rgb(255, 106, 92); }
 
 .green { background-color: rgb(32, 255, 60); }
-
 .green-b { border-color: rgb(32, 255, 60); }
+.green-t { color: rgb(32, 255, 60); }
 
 .dark-green { background-color: rgb(32, 155, 60); }
-
 .dark-green-b { border-color: rgb(32, 155, 60); }
+.dark-green-t { color: rgb(32, 155, 60); }
 
 .lime { background-color: rgb(150, 255, 60); }
-
 .lime-b { border-color: rgb(150, 255, 60); }
+.lime-t { color: rgb(150, 255, 60); }
 
 .yellow { background-color: rgb(255, 255, 60); }
-
 .yellow-b { border-color: rgb(255, 255, 60); }
+.yellow-t { color: rgb(255, 255, 60); }
 
 .orange { background-color: rgb(255, 150, 60); }
-
 .orange-b { border-color: rgb(255, 150, 60); }
+.orange-t { color: rgb(255, 150, 60); }
 
 .red { background-color: rgb(255, 32, 60); }
-
 .red-b { border-color: rgb(255, 32, 60); }
+.red-t { color: rgb(255, 32, 60); }
 
 .dark-red { background-color: rgb(139, 0, 0); }
-
 .dark-red-b { border-color: rgb(139, 0, 0); }
+.dark-red-t { color: rgb(139, 0, 0); }
 
 .blue { background-color: rgb(72, 52, 238); }
-
 .blue-b { border-color: rgb(72, 52, 238); }
+.blue-t { color: rgb(72, 52, 238); }
 
 .fuchsia { background-color: rgb(253, 52, 172); }
-
 .fuchsia-b { border-color: rgb(253, 52, 172); }
+.fuchsia-t { color: rgb(253, 52, 172); }
 
 .pink { background-color: rgb(253, 182, 215); }
-
 .pink-b { border-color: rgb(253, 182, 215); }
+.pink-t { color: rgb(253, 182, 215); }
 
 .salmon { background-color: rgb(255, 165, 145); }
-
 .salmon-b { border-color: rgb(255, 165, 145); }
+.salmon-t { color: rgb(255, 165, 145); }
 
 .half-gray { background-color: rgb(120, 120, 129); }
-
 .half-gray-b { border-color: rgb(120, 120, 129); }
+.half-gray-t { color: rgb(120, 120, 129); }
 
 .dark-blue { background-color: rgb(32, 15, 65); }
-
 .dark-blue-b { border-color: rgb(32, 15, 65); }
+.dark-blue-t { color: rgb(32, 15, 65); }
 
 .sand { background-color: rgb(250, 245, 175); }
-
 .sand-b { border-color: rgb(250, 245, 175); }
+.sand-t { color: rgb(250, 245, 175); }
 
 .grass { background-color: rgb(210, 250, 180); }
-
 .grass-b { border-color: rgb(210, 250, 180); }
+.grass-t { color: rgb(210, 250, 180); }
 
 .ice { background-color: rgb(225, 240, 255); }
-
 .ice-b { border-color: rgb(225, 240, 255); }
+.ice-t { color: rgb(225, 240, 255); }
 
 .wall { background-color: rgb(100, 100, 100); }
-
 .wall-b { border-color: rgb(100, 100, 100); }
+.wall-t { color: rgb(100, 100, 100); }
 
 .white { background-color: rgb(255, 255, 255); }
-
 .white-b { border-color: rgb(255, 255, 255); }
+.white-t { color: rgb(255, 255, 255); }
 
 .light-gray { background-color: rgb(210, 210, 210); }
-
 .light-gray-b { border-color: rgb(210, 210, 210); }
+.light-gray-t { color: rgb(210, 210, 210); }
 
 .cinnamon { background-color: rgb(210, 125, 45); }
-
 .cinnamon-b { border-color: rgb(210, 125, 45); }
+.cinnamon-t { color: rgb(210, 125, 45); }
 
 .nude { background-color: rgb(242, 210, 189); }
-
 .nude-b { border-color: rgb(242, 210, 189); }
+.nude-t { color: rgb(242, 210, 189); }
 
 .chocolate { background-color: rgb(123, 63, 0); }
-
 .chocolate-b { border-color: rgb(123, 63, 0); }
+.chocolate-t { color: rgb(123, 63, 0); }
 
 .tan { background-color: rgb(210, 180, 140); }
-
 .tan-b { border-color: rgb(210, 180, 140); }
+.tan-t { color: rgb(210, 180, 140); }
 
 .copper { background-color: rgb(184, 115, 51); }
-
 .copper-b { border-color: rgb(184, 115, 51); }
+.copper-t { color: rgb(184, 115, 51); }
 
 .dark-gray { background-color: rgb(60, 60, 60); }
-
 .dark-gray-b { border-color: rgb(60, 60, 60); }
+.dark-gray-t { color: rgb(60, 60, 60); }
 
 .purple { background-color: rgb(128, 0, 128); }
-
 .purple-b { border-color: rgb(128, 0, 128); }
+.purple-t { color: rgb(128, 0, 128); }
 
 .teal { background-color: rgb(0, 128, 128); }
-
 .teal-b { border-color: rgb(0, 128, 128); }
+.teal-t { color: rgb(0, 128, 128); }
 
 .turquoise { background-color: rgb(64, 224, 208); }
-
 .turquoise-b { border-color: rgb(64, 224, 208); }
+.turquoise-t { color: rgb(64, 224, 208); }
 
 .lavender { background-color: rgb(218, 203, 250); }
-
 .lavender-b { border-color: rgb(218, 203, 250); }
+.lavender-t { color: rgb(218, 203, 250); }
 
 .olive { background-color: rgb(128, 128, 0); }
-
 .olive-b { border-color: rgb(128, 128, 0); }
+.olive-t { color: rgb(128, 128, 0); }
 
 .gold { background-color: rgb(255, 215, 0); }
-
 .gold-b { border-color: rgb(255, 215, 0); }
+.gold-t { color: rgb(255, 215, 0); }
 
 .navy { background-color: rgb(0, 0, 128); }
-
 .navy-b { border-color: rgb(0, 0, 128); }
+.navy-t { color: rgb(0, 0, 128); }
 
 .peach { background-color: rgb(255, 218, 185); }
-
 .peach-b { border-color: rgb(255, 218, 185); }
+.peach-t { color: rgb(255, 218, 185); }
 
 .burgundy { background-color: rgb(128, 0, 32); }
-
 .burgundy-b { border-color: rgb(128, 0, 32); }
+.burgundy-t { color: rgb(128, 0, 32); }
 
 .dark-grass { background-color: rgb(160, 200, 130); }
-
 .dark-grass-b { border-color: rgb(160, 200, 130); }
+.dark-grass-t { color: rgb(160, 200, 130); }
 
 .sky-blue { background-color: rgb(48, 152, 240); }
-
 .sky-blue-b { border-color: rgb(48, 152, 240); }
+.sky-blue-t { color: rgb(48, 152, 240); }
 
 .black { background-color: rgb(0, 0, 0); }
-
 .black-b { border-color: rgb(0, 0, 0); }
+.black-t { color: rgb(0, 0, 0); }
 

@@ -18,7 +18,6 @@ type Player struct {
 	id                       string
 	username                 string
 	team                     string
-	trim                     string
 	icon                     string
 	viewLock                 sync.Mutex
 	world                    *World
@@ -49,6 +48,7 @@ type Player struct {
 	menues                   map[string]Menu
 	playerStages             map[string]*Stage
 	pStageMutex              sync.Mutex
+	hatList                  SyncHatList
 }
 
 type WebsocketConnection interface {
@@ -104,9 +104,10 @@ func (player *Player) move(yOffset int, xOffset int) {
 
 func (player *Player) moveBoost(yOffset int, xOffset int) {
 	if player.useBoost() {
-		player.pushUnder(yOffset, xOffset)
+		player.pushUnder(2*yOffset, 2*xOffset)
 		player.move(2*yOffset, 2*xOffset)
 	} else {
+		// always push under ?
 		player.move(yOffset, xOffset)
 	}
 }
@@ -117,7 +118,6 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 		log.Fatal("Fatal: Invalid coords from teleport: ", teleport.destStage, teleport.destY, teleport.destX)
 	}
 	// Is using getTileSync a risk with the menu teleport authorizer?
-	player.updateBottomText("You are teleporting!")
 	transferPlayer(player, player.getTileSync(), stage.tiles[teleport.destY][teleport.destX])
 }
 
@@ -280,6 +280,13 @@ func handleDeath(player *Player) {
 	respawnOnStage(player, stage)
 }
 
+func halveMoneyOf(player *Player) int {
+	currentMoney := player.getMoneySync()
+	newValue := currentMoney / 2
+	player.setMoney(newValue)
+	return newValue
+}
+
 func respawnOnStage(player *Player, stage *Stage) {
 	player.tangibilityLock.Lock()
 	defer player.tangibilityLock.Unlock()
@@ -438,7 +445,7 @@ func (player *Player) updateBottomText(message string) {
 	msg := fmt.Sprintf(`
 			<div id="bottom_text">
 				&nbsp;&nbsp;> %s
-			</div>`, message)
+			</div>`, processStringForColors(message))
 	updateOne(msg, player)
 }
 
@@ -452,10 +459,6 @@ func (player *Player) updateInformation() {
 
 func updateOne(update string, player *Player) {
 	player.updates <- []byte(update)
-}
-
-func (p *Player) trySend(msg []byte) {
-	p.updates <- msg
 }
 
 // Database update
@@ -522,6 +525,27 @@ func (player *Player) fetchStageSync(stagename string) *Stage {
 }
 
 /////////////////////////////////////////////////////////////
+//  Hats
+
+func (player *Player) addHatByName(hatName string) {
+	hat := player.hatList.addByName(hatName)
+	if hat == nil {
+		return
+	}
+	player.world.db.addHatToPlayer(player.username, *hat)
+	player.updateInformation()
+	return
+}
+
+func (player *Player) cycleHats() {
+	player.hatList.nextValid()
+	player.updateInformation()
+	tile := player.getTileSync()
+	tile.stage.updateAllExcept(playerBox(tile), player)
+	return
+}
+
+/////////////////////////////////////////////////////////////
 // Observers
 
 // Does not handle death
@@ -544,10 +568,10 @@ func (player *Player) setIcon() string {
 	player.healthLock.Lock()
 	defer player.healthLock.Unlock()
 	if player.health <= 50 {
-		player.icon = "dim-" + player.team + " " + player.trim + " r0"
+		player.icon = "dim-" + player.team + " " + player.hatList.currentTrim() + " r0"
 		return player.icon
 	} else {
-		player.icon = player.team + " " + player.trim + " r0"
+		player.icon = player.team + " " + player.hatList.currentTrim() + " r0"
 		return player.icon
 	}
 }
@@ -654,10 +678,11 @@ func (player *Player) incrementDeathCount() {
 }
 
 // goals observer no direct set
-func (player *Player) incrementGoalsScored() {
+func (player *Player) incrementGoalsScored() int {
 	player.goalsScoredLock.Lock()
 	defer player.goalsScoredLock.Unlock()
 	player.goalsScored++
+	return player.goalsScored
 }
 
 func (player *Player) getGoalsScored() int {

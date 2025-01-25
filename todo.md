@@ -19,16 +19,18 @@
 - [-] relative border radius
 - [-] Score goal
 - [-] Minimum streak for most dangerous (Possibly just for award but possibly for inclusion in heap as well)
+  - [ ] Do not award new most dangerous on logout? - No Ties but legitmate person may get overlooked even with continued steeak
 - [-] Player zombies
   - [-] up to 1,000 concurrent player deaths
   - [-] Automated test
 - [-] Disable respawn from tutorial
-- [ ] Player still on stage with closed channel
-- [ ] Improved goal scoring
-- [ ] Improved bottom text 
-  - [ ] Tutorial text no longer viewable 
+- [-] Player still on stage with closed channel
+- [-] Improved goal scoring
+- [-] Improved bottom text 
+  - [-] Tutorial text no longer viewable 
   - [ ] color code most dangerous 
-  - [ ] Notify goal scores and team in lead 
+  - [-] Notify goal scores and team in lead 
+  - [ ] Goal shows score of each team
 
 ## Integration 
 - [ ] Bot AI
@@ -37,6 +39,14 @@
   - [ ] Open menus
   - [ ] Hallucinate
 - [-] All players in tutorial 
+- [ ] With DB Writes 
+
+## Stats 
+- [ ] Boosts 
+  - [ ] used
+  - [ ] collected
+- [ ] Total money 
+- [-] Goals scored 
 
 ## Performance 
 - [-] Performance from Ec2 is degraded vs localhost - 400 Websocket users / 8 stages very stable
@@ -176,10 +186,10 @@
   - [-] fix display of map
 
 ## Display 
-- [ ] Highlights
-  - [ ] Same stage teleport highlights
-    - [ ] Overlap excluded
-    - [ ] Sometimes entire highlight is removed at once shortly after displaying ?
+- [-] Highlights
+  - [-] Same stage teleport highlights
+    - [-] Overlap excluded
+    - [-] Sometimes entire highlight is removed at once shortly after displaying ?
 
 ## Bottom text
  - [-] Trigger
@@ -195,7 +205,7 @@
 - [ ] Test conconcurrency
 - [ ] Add trim reward
 
-## Stats / Metrics
+## Metrics
 
 ## World map
 - [-] Basic world maps
@@ -247,13 +257,24 @@ layerXCss : "static {transformationType:value} string"
 
 
 
+
+Interactable machine for teleporting across a boundary:
+
+ [ ] <-  push nil after to reset other side 
+ ---------
+ [ ]
+Enter here
+
+One way or two way.
+
+
 -goals:
 
 x - Expose endpoint that returns world player count and player count by team 
 
 x - Tidy Up sandy world 
 
-improve goal scoring experience 
+x - improve goal scoring experience 
 
 type []byte(update) 100 times
 

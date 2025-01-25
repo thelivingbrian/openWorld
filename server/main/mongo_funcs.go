@@ -29,24 +29,26 @@ type AuthorizedUser struct {
 }
 
 type PlayerRecord struct {
-	Username    string    `bson:"username"`
-	Team        string    `bson:"team"`
-	Trim        string    `bson:"trim"`
+	// ID
+	Username string `bson:"username"`
+	// Meta
 	LastLogin   time.Time `bson:"lastLogin,omitempty"`
 	LastLogout  time.Time `bson:"lastLogout,omitempty"`
 	LastRespawn time.Time `bson:"lastRespawn,omitempty"`
-	CSSClass    string    `bson:"cssClass,omitempty"`
-	Health      int       `bson:"health,omitempty"`
-	StageName   string    `bson:"stagename,omitempty"`
-	X           int       `bson:"x,omitempty"`
-	Y           int       `bson:"y,omitempty"`
-	Kills       []string  `bson:"kills,omitempty"` // This might make loading a user expensive consider a ref table
-	Deaths      []string  `bson:"deaths,omitempty"`
-	Experience  int       `bson:"experience,omitempty"`
-	Records     []string  `bson:"records,omitempty"`
-	Money       int       `bson:"money,omitempty"`
-	Inventory   []int     `bson:"inventory,omitempty"` // What is ID of an Item? string?
-	Bank        []int     `bson:"bank,omitempty"`
+	// World Location
+	StageName string `bson:"stagename"`
+	X         int    `bson:"x"`
+	Y         int    `bson:"y"`
+	// Stats
+	Team        string `bson:"team"`
+	Trim        string `bson:"trim,omitempty"`
+	Health      int    `bson:"health"`
+	Money       int    `bson:"money,omitempty"`
+	KillCount   int    `bson:"killCount,omitempty"`
+	DeathCount  int    `bson:"deathCount,omitempty"`
+	GoalsScored int    `bson:"goalsScored,omitempty"`
+	// Unlocks
+	HatList HatList `bson:"hatList,omitempty"`
 }
 
 type Event struct {
@@ -229,17 +231,38 @@ func (db *DB) updateRecordForPlayer(p *Player, pTile *Tile) error {
 		bson.M{"username": p.username},
 		bson.M{
 			"$set": bson.M{
-				"x":           pTile.x, // All of this feels dangerous tbh
-				"y":           pTile.y,
-				"health":      p.getHealthSync(),
-				"stagename":   pTile.stage.name, //p.getStageNameSync(), // feels risky
-				"money":       p.getMoneySync(),
-				"killCount":   p.getKillCountSync(),
-				"deathCount":  p.getDeathCountSync(),
-				"goalsScored": p.getGoalsScored(),
-				"trim":        p.trim,
+				"x":               pTile.x, // All of this feels dangerous tbh
+				"y":               pTile.y,
+				"health":          p.getHealthSync(),
+				"stagename":       pTile.stage.name, //p.getStageNameSync(), // feels risky
+				"money":           p.getMoneySync(),
+				"killCount":       p.getKillCountSync(),
+				"deathCount":      p.getDeathCountSync(),
+				"goalsScored":     p.getGoalsScored(),
+				"hatList.current": p.hatList.indexSync(),
 			},
 		},
 	)
 	return err //Is nil or err
 }
+
+func (db *DB) addHatToPlayer(username string, newHat Hat) error {
+	_, err := db.playerRecords.UpdateOne(
+		context.TODO(),
+		bson.M{"username": username},
+		bson.M{
+			"$push": bson.M{
+				"hatList.hats": newHat,
+			},
+		},
+	)
+	return err
+}
+
+/////////////////////////////////////////////////////////////
+// Utilities
+/*
+func (record PlayerRecord) HeartsFromRecord() string {
+	return getHeartsFromHealth(record.Health)
+}
+*/

@@ -105,7 +105,9 @@ func (c Context) createCSSFile(path string) {
 		if color.A != "" {
 			rgbstring = fmt.Sprintf("rgba(%d, %d, %d, %s)", color.R, color.G, color.B, color.A)
 		}
-		cssRule := fmt.Sprintf(".%s { background-color: %s; }\n\n.%s-b { border-color: %s; }\n\n", color.CssClassName, rgbstring, color.CssClassName, rgbstring)
+		cssRule := fmt.Sprintf(".%s { background-color: %s; }\n", color.CssClassName, rgbstring)
+		cssRule += fmt.Sprintf(".%s-b { border-color: %s; }\n", color.CssClassName, rgbstring)
+		cssRule += fmt.Sprintf(".%s-t { color: %s; }\n\n", color.CssClassName, rgbstring)
 		_, err := cssFile.WriteString(cssRule)
 		if err != nil {
 			panic(err)

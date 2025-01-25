@@ -24,6 +24,7 @@ type Tile struct {
 	money             int
 	moneyMutex        sync.Mutex
 	boosts            int
+	boostsMutex       sync.Mutex
 	htmlTemplate      string
 	bottomText        string
 }
@@ -149,7 +150,7 @@ func (tile *Tile) addLockedPlayertoTile(player *Player) {
 	if tile.teleport != nil {
 		if tile.teleport.confirmation {
 			player.menues["teleport"] = continueTeleporting(tile.teleport)
-			turnMenuOn(player, "teleport")
+			turnMenuOnByName(player, "teleport")
 		} else {
 			// new routine prevents deadlock // still needed ? test.
 			go player.applyTeleport(tile.teleport)
@@ -303,12 +304,21 @@ func destroyInteractable(tile *Tile, _ *Player) {
 	}
 }
 
-func halveMoneyOf(player *Player) int {
-	currentMoney := player.getMoneySync()
-	newValue := currentMoney / 2
-	player.setMoney(newValue)
-	return newValue
+func trySetInteractable(tile *Tile, i *Interactable) bool {
+	ownLock := tile.interactableMutex.TryLock()
+	if !ownLock {
+		return false
+	}
+	defer tile.interactableMutex.Unlock()
+	if tile.interactable != nil {
+		return false
+	}
+	tile.interactable = i
+	return true
 }
+
+/////////////////////////////////////////////////////////////
+// Utilities
 
 func walkable(tile *Tile) bool {
 	if tile == nil {
@@ -323,12 +333,10 @@ func walkable(tile *Tile) bool {
 	} else {
 		// pushable must (?) be walkable to prevent blocking of players and interactables in corners
 		// non-pushable may still be walkable
-		return tile.interactable.pushable || tile.interactable.walkable
+		//    except not really unless it blocks any other push?
+		return tile.interactable.pushable // || tile.interactable.walkable
 	}
 }
-
-/////////////////////////////////////////////////////////////
-// Utilities
 
 func validCoordinate(y int, x int, tiles [][]*Tile) bool {
 	if y < 0 || y >= len(tiles) {
