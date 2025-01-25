@@ -258,3 +258,11 @@ func (db *DB) addHatToPlayer(username string, newHat Hat) error {
 	)
 	return err
 }
+
+/////////////////////////////////////////////////////////////
+// Utilities
+/*
+func (record PlayerRecord) HeartsFromRecord() string {
+	return getHeartsFromHealth(record.Health)
+}
+*/

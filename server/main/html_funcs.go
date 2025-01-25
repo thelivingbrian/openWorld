@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"math/rand"
+	"regexp"
 	"text/template"
 )
 
@@ -50,122 +51,20 @@ func htmlFromTileGrid(tiles [][]*Tile, py, px int, highlights map[*Tile]bool) []
 	return output
 }
 
-func (record PlayerRecord) HeartsFromRecord() string {
-	return getHeartsFromHealth(record.Health)
+func htmlForTile(tile *Tile, highlight string) string {
+	svgtag := svgFromTile(tile)
+	// grab tile y and x only once here or in parent method?
+	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x), oobHighlightBox(tile, highlight))
 }
 
-func spaceHighlighter() string {
-	// constant instead.
-	return "half-trsp salmon"
-}
-
-func randomFieryColor() string {
-	randN := rand.Intn(4)
-	if randN < 1 {
-		return "yellow"
-	}
-	if randN < 2 {
-		return "orange"
-	}
-	return "red"
-}
-
-// Should be template ?
-func chooseYourColor() string {
-	return `
-	<div id="page" hx-swap-oob="true">
-	
-		<div id="main_view">
-			
-			<div id="info" hx-swap-oob="true">
-				 <form hx-post="/new" hx-target="#bottom_text">
-					<b>New Player</b>
-					
-					<div class="form-group color-selection">
-						<label id="color-window-0">
-							<input type="radio" name="player-team" value="fuchsia" checked />
-							<div id="exampleSquare-0">
-								<div class="grid-square-example fuchsia"></div>
-							</div>
-						</label>
-
-						<label id="color-window-1">
-							<input type="radio" name="player-team" value="sky-blue" />
-							<div id="exampleSquare-1">
-								<div class="grid-square-example sky-blue"></div>
-							</div>
-						</label>	
-					
-					</div>
-
-					<div class="form-group">
-						<label class="left-float">Username:</label>
-						<input type="text" name="player-name" />
-					</div>
-
-					<div class="form-group" style="justify-content: center;">
-						<input type="submit" value="Go">
-					</div>
-				</form>
-			</div>
-			<div id="bottom_text">
-			</div>
-		</div>
-	
-	</div>
-	`
-}
-
-func divBottomInvalid(s string) string {
-	return `
-	<div id="bottom_text" hx-swap-oob="true">
-		<p style='color:red'>	
-			` + s + `  
-		</p>
-	</div>`
-}
+////////////////////////////////////////////////////////////
+// Player Information
 
 func divPlayerInformation(player *Player) string {
 	return `
 	<div id="info" hx-swap-oob="true">
 		<b>` + playerInformation(player) + `</b>
 	</div>`
-}
-
-func divModalDisabled() string {
-	return `
-	<div id="modal_background">
-		
-	</div>
-	`
-}
-
-func divInput() string {
-	// uses htmx bypass to function
-	return `
-	<div id="x0-0" class="container">
-	</div>
-	<div id="x0-1" class="container hidden">
-	</div>
-`
-}
-
-func divInputShift() string {
-	// uses htmx bypass to function
-	return `
-	<div id="x0-0" class="container hidden">
-	</div>
-	<div id="x0-1" class="container">
-	</div>
-`
-}
-
-func divInputDisabled() string {
-	return `
-	<div id="input">
-
-	</div>
-`
 }
 
 func playerInformation(player *Player) string {
@@ -190,11 +89,37 @@ func getHeartsFromHealth(i int) string {
 	return fmt.Sprintf("❤️x%d", i)
 }
 
-func htmlForTile(tile *Tile, highlight string) string {
-	svgtag := svgFromTile(tile)
-	// grab tile y and x only once here or in parent method?
-	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x), oobHighlightBox(tile, highlight))
+/////////////////////////////////////////////
+// Bottom Text
+
+var (
+	// Regular expression for *[color]
+	wordRegex = regexp.MustCompile(`\*\[(.+?)\]`)
+
+	// Regular expression for @[phrase|color]
+	phraseColorRegex = regexp.MustCompile(`@\[(.+?)\|(.+?)\]`)
+
+	// Regular expression for @[phrase|---]
+	teamColorWildRegex = regexp.MustCompile(`@\[(.*?)\|---\]`)
+)
+
+func processStringForColors(input string) string {
+	input = wordRegex.ReplaceAllString(input, `<strong class="$1-t">$1</strong>`)
+	input = phraseColorRegex.ReplaceAllString(input, `<strong class="$2-t">$1</strong>`)
+	return input
 }
+
+func divBottomInvalid(s string) string {
+	return `
+	<div id="bottom_text" hx-swap-oob="true">
+		<p style='color:red'>	
+			` + s + `  
+		</p>
+	</div>`
+}
+
+/////////////////////////////////////////////////////
+// Boxes
 
 func playerBoxSpecifc(y, x int, icon string) string {
 	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, y, x, icon)
@@ -286,4 +211,108 @@ func svgFromTile(tile *Tile) string {
 	svgtag += "</div>"
 	sId := fmt.Sprintf("s%d-%d", tile.y, tile.x)
 	return fmt.Sprintf(svgtag, sId)
+}
+
+///////////////////////////////////////////
+// Colors
+
+func spaceHighlighter() string {
+	// constant instead.
+	return "half-trsp salmon"
+}
+
+func randomFieryColor() string {
+	randN := rand.Intn(4)
+	if randN < 1 {
+		return "yellow"
+	}
+	if randN < 2 {
+		return "orange"
+	}
+	return "red"
+}
+
+///////////////////////////////////////////////////////////
+// Divs
+
+// Should be template ?
+func chooseYourColor() string {
+	return `
+	<div id="page" hx-swap-oob="true">
+	
+		<div id="main_view">
+			
+			<div id="info" hx-swap-oob="true">
+				 <form hx-post="/new" hx-target="#bottom_text">
+					<b>New Player</b>
+					
+					<div class="form-group color-selection">
+						<label id="color-window-0">
+							<input type="radio" name="player-team" value="fuchsia" checked />
+							<div id="exampleSquare-0">
+								<div class="grid-square-example fuchsia"></div>
+							</div>
+						</label>
+
+						<label id="color-window-1">
+							<input type="radio" name="player-team" value="sky-blue" />
+							<div id="exampleSquare-1">
+								<div class="grid-square-example sky-blue"></div>
+							</div>
+						</label>	
+					
+					</div>
+
+					<div class="form-group">
+						<label class="left-float">Username:</label>
+						<input type="text" name="player-name" />
+					</div>
+
+					<div class="form-group" style="justify-content: center;">
+						<input type="submit" value="Go">
+					</div>
+				</form>
+			</div>
+			<div id="bottom_text">
+			</div>
+		</div>
+	
+	</div>
+	`
+}
+
+func divModalDisabled() string {
+	return `
+	<div id="modal_background">
+		
+	</div>
+	`
+}
+
+func divInput() string {
+	// uses htmx bypass to function
+	return `
+	<div id="x0-0" class="container">
+	</div>
+	<div id="x0-1" class="container hidden">
+	</div>
+`
+}
+
+func divInputShift() string {
+	// uses htmx bypass to function
+	return `
+	<div id="x0-0" class="container hidden">
+	</div>
+	<div id="x0-1" class="container">
+	</div>
+`
+}
+
+func divInputDisabled() string {
+	return `
+	<div id="input">
+
+	</div>
+`
 }
