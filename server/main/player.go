@@ -94,7 +94,9 @@ func (player *Player) moveWestBoost() {
 }
 
 func (player *Player) move(yOffset int, xOffset int) {
+	//player.pushUnder(yOffset, xOffset)
 	sourceTile := player.getTileSync()
+	player.push(sourceTile, nil, yOffset, xOffset)
 	destTile := getRelativeTile(sourceTile, yOffset, xOffset, player)
 	player.push(destTile, nil, yOffset, xOffset)
 	if walkable(destTile) {
@@ -104,7 +106,7 @@ func (player *Player) move(yOffset int, xOffset int) {
 
 func (player *Player) moveBoost(yOffset int, xOffset int) {
 	if player.useBoost() {
-		player.pushUnder(2*yOffset, 2*xOffset)
+		//player.pushUnder(2*yOffset, 2*xOffset)
 		player.move(2*yOffset, 2*xOffset)
 	} else {
 		// always push under ?
@@ -208,12 +210,15 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	return false
 }
 
+/*
 func (p *Player) pushUnder(yOffset int, xOffset int) {
 	currentTile := p.getTileSync()
+	// unlocked interactable
 	if currentTile != nil && currentTile.interactable != nil {
 		p.push(currentTile, nil, yOffset, xOffset)
 	}
 }
+*/
 
 func (p *Player) pushTeleport(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	if tile.teleport.rejectInteractable {
