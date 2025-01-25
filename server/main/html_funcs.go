@@ -235,54 +235,6 @@ func randomFieryColor() string {
 ///////////////////////////////////////////////////////////
 // Divs
 
-// Should be template ?
-/*
-func chooseYourColor() string {
-	return `
-	<div id="page" hx-swap-oob="true">
-
-		<div id="main_view">
-
-			<div id="info" hx-swap-oob="true">
-				 <form hx-post="/new" hx-target="#bottom_text">
-					<b>New Player</b>
-
-					<div class="form-group color-selection">
-						<label id="color-window-0">
-							<input type="radio" name="player-team" value="fuchsia" checked />
-							<div id="exampleSquare-0">
-								<div class="grid-square-example fuchsia"></div>
-							</div>
-						</label>
-
-						<label id="color-window-1">
-							<input type="radio" name="player-team" value="sky-blue" />
-							<div id="exampleSquare-1">
-								<div class="grid-square-example sky-blue"></div>
-							</div>
-						</label>
-
-					</div>
-
-					<div class="form-group">
-						<label class="left-float">Username:</label>
-						<input type="text" name="player-name" />
-					</div>
-
-					<div class="form-group" style="justify-content: center;">
-						<input type="submit" value="Go">
-					</div>
-				</form>
-			</div>
-			<div id="bottom_text">
-			</div>
-		</div>
-
-	</div>
-	`
-}
-*/
-
 func divModalDisabled() string {
 	return `
 	<div id="modal_background">
