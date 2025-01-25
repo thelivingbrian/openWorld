@@ -22,54 +22,8 @@ type MenuLink struct {
 	auth         func(*Player) bool
 }
 
-//menu left goes back.
-//color select as a menu
-// [] red
-// [] pink
-// etc
-
-/*
-var menuTemplate = `
-<div id="modal_background" class="modal_bg">
-	<div id="modal_menu" class="modal_content {{.CssClass}}">
-
-		<div id="modal_information">
-			{{.InfoHtml}}
-		</div>
-
-		<div id="modal_options">
-			{{$name := .Name}}
-			<input id="menu_name" type="hidden" name="menuName" value="{{$name}}" />
-			<input id="menu_click_indicator" type="hidden" name="eventname" value="menuClick" />
-			<input id="menu_selected_index" type="hidden" name="arg0" value="0" />
-
-			<input id="menuOff" type="hidden" ws-send hx-trigger="keydown[key=='m'||key=='M'||key=='Escape'] from:body" hx-include="#token" name="eventname" value="menuOff" />
-			<input id="menuUp" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='W'||key=='ArrowUp'] from:body" hx-include="#token, #menu_selected_index, #menu_name" name="eventname" value="menuUp" />
-			<input id="menuDown" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='S'||key=='ArrowDown'] from:body" hx-include="#token, #menu_selected_index, #menu_name" name="eventname" value="menuDown" />
-			<input id="menuKey" type="hidden" ws-send hx-trigger="keydown[key=='Enter'] from:body" hx-include="#token, #menu_selected_index, #menu_name" name="eventname" value="menuClick" />
-
-			{{range  $i, $link := .Links}}
-				<input id="menuClick_{{$name}}_{{$i}}" type="hidden" ws-send hx-trigger="click from:#menu_{{$name}}_{{$i}}" hx-include="#token, #menu_click_indicator, #menu_name" name="arg0" value="{{$i}}" />
-				<span id="menu_{{$name}}_{{$i}}">
-					<a id="menulink_{{$name}}_{{$i}}" {{if eq $i 0}} class="selected"{{end}} href="#"> {{$link.Text}} </a>
-				</span><br />
-			{{end}}
-		</div>
-
-		<div id="modal_script">
-			<script>
-				// Script for horizantal and vertical scrolling?
-				// Future state?
-					// This is inconvinient because a keydown listener may need to be on body and
-					// then removing the event listener requires some extra sauce when the menu closes
-			</script>
-		</div>
-	</div>
-</div>
-`
-*/
-
-//var menuTmpl = template.Must(template.New("menu").Parse(menuTemplate))
+/////////////////////////////////////////////////////
+// Default menus
 
 var pauseMenu = Menu{
 	Name:     "pause",
@@ -94,8 +48,7 @@ var mapMenu = Menu{
 var statsMenu = Menu{
 	Name:     "stats",
 	CssClass: "",
-	InfoHtml: `<h2>Stat population error.</h2>
-				`,
+	InfoHtml: `<h2>Stat population error.</h2>`,
 	Links: []MenuLink{
 		{Text: "Back", eventHandler: openPauseMenu, auth: nil},
 	},
@@ -111,6 +64,9 @@ var respawnMenu = Menu{
 	},
 }
 
+//////////////////////////////////////////////////////
+// Menu send
+
 func turnMenuOnByName(p *Player, menuName string) {
 	menu, ok := p.menues[menuName]
 	if ok {
@@ -125,10 +81,10 @@ func sendMenu(p *Player, menu Menu) {
 		fmt.Println(err)
 	}
 	buf.WriteString(divInputDisabled())
-	p.trySend(buf.Bytes())
-
+	p.updates <- buf.Bytes()
 }
 
+/////////////////////////////////////////////////////
 // Menu events
 
 func (m *Menu) attemptClick(p *Player, e PlayerSocketEvent) {
@@ -149,7 +105,7 @@ func (m *Menu) attemptClick(p *Player, e PlayerSocketEvent) {
 func menuUp(p *Player, event PlayerSocketEvent) {
 	menu, ok := p.menues[event.MenuName]
 	if ok {
-		p.trySend([]byte(menu.menuSelectUp(event.Arg0)))
+		updateOne(menu.menuSelectUp(event.Arg0), p)
 	}
 }
 
@@ -164,7 +120,7 @@ func (menu *Menu) menuSelectUp(index string) string {
 func menuDown(p *Player, event PlayerSocketEvent) {
 	menu, ok := p.menues[event.MenuName]
 	if ok {
-		p.trySend([]byte(menu.menuSelectDown(event.Arg0)))
+		updateOne(menu.menuSelectDown(event.Arg0), p)
 	}
 }
 
@@ -240,7 +196,8 @@ func openMapMenu(p *Player) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	p.trySend(buf.Bytes())
+	//p.trySend(buf.Bytes())
+	p.updates <- buf.Bytes()
 }
 
 func openPauseMenu(p *Player) {
@@ -256,10 +213,12 @@ func openStatsMenu(p *Player) {
 func createInfoHtmlForPlayer(p *Player) template.HTML {
 	htmlContent := fmt.Sprintf(
 		`<div class="player-stats">
-			<p><strong>Kills:</strong> %d</p>
-			<p><strong>Deaths:</strong> %d</p>
+			<p><strong>  Total  </strong></p>
+			<p>Goals: %d</p>
+			<p>Kills: %d</p>
+			<p>Deaths: %d</p>
 		</div>`,
-		p.getKillCountSync(), p.getDeathCountSync(),
+		p.getGoalsScored(), p.getKillCountSync(), p.getDeathCountSync(),
 	)
 
 	return template.HTML(htmlContent)
