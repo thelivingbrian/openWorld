@@ -35,7 +35,8 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 
 	if userRecord.Username == "" {
 		fmt.Println("no name")
-		io.WriteString(w, chooseYourColor())
+		tmpl.ExecuteTemplate(w, "choose-your-color", nil)
+		//io.WriteString(w, chooseYourColor())
 	} else {
 		record, err := world.db.getPlayerRecord(userRecord.Username)
 		if err != nil {
@@ -330,4 +331,11 @@ func invalidSignin() string {
 		</div>
 	</form>
 	`
+}
+
+////////////////////////////////////
+// Utilities for templates
+
+func (record PlayerRecord) HeartsFromRecord() string {
+	return getHeartsFromHealth(record.Health)
 }

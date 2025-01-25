@@ -236,16 +236,17 @@ func randomFieryColor() string {
 // Divs
 
 // Should be template ?
+/*
 func chooseYourColor() string {
 	return `
 	<div id="page" hx-swap-oob="true">
-	
+
 		<div id="main_view">
-			
+
 			<div id="info" hx-swap-oob="true">
 				 <form hx-post="/new" hx-target="#bottom_text">
 					<b>New Player</b>
-					
+
 					<div class="form-group color-selection">
 						<label id="color-window-0">
 							<input type="radio" name="player-team" value="fuchsia" checked />
@@ -259,8 +260,8 @@ func chooseYourColor() string {
 							<div id="exampleSquare-1">
 								<div class="grid-square-example sky-blue"></div>
 							</div>
-						</label>	
-					
+						</label>
+
 					</div>
 
 					<div class="form-group">
@@ -276,10 +277,11 @@ func chooseYourColor() string {
 			<div id="bottom_text">
 			</div>
 		</div>
-	
+
 	</div>
 	`
 }
+*/
 
 func divModalDisabled() string {
 	return `
