@@ -16,10 +16,9 @@ import (
 )
 
 type Player struct {
-	id       string
-	username string
-	team     string
-	//trim                     string
+	id                       string
+	username                 string
+	team                     string
 	icon                     string
 	viewLock                 sync.Mutex
 	world                    *World
@@ -52,140 +51,6 @@ type Player struct {
 	pStageMutex              sync.Mutex
 	hatList                  SyncHatList
 }
-
-type SyncHatList struct {
-	sync.Mutex
-	HatList
-}
-
-type HatList struct {
-	Hats    []Hat `bson:"hats"`
-	Current *int  `bson:"current"`
-}
-
-type Hat struct {
-	Name           string    `bson:"name"`
-	Trim           string    `bson:"trim"`
-	ToggleDisabled bool      `bson:"toggleDisabled"`
-	UnlockedAt     time.Time `bson:"unlockedAt"`
-}
-
-var EVERY_HAT_TO_TRIM map[string]string = map[string]string{
-	"score-1-goal":    "black-b med",
-	"score-1000-goal": "black-b thick",
-	"most-dangerous":  "red-b med",
-	"richest":         "green-b med",
-	"puzzle-solve-1":  "white-b med",
-	"contributor":     "gold-b thick",
-}
-
-func (hatList *SyncHatList) addByName(hatName string) *Hat {
-	hatList.Lock()
-	defer hatList.Unlock()
-	for i := range hatList.Hats {
-		if hatList.Hats[i].Name == hatName {
-			return nil
-		}
-	}
-	trim, ok := EVERY_HAT_TO_TRIM[hatName]
-	if !ok {
-		fmt.Println("INVALID HATNAME: ", hatName)
-		return nil
-	}
-	newHat := Hat{Name: hatName, Trim: trim, ToggleDisabled: false, UnlockedAt: time.Now()}
-	hatList.Hats = append(hatList.Hats, newHat)
-	hatCount := len(hatList.Hats) - 1
-	hatList.Current = &hatCount
-	return &hatList.Hats[hatCount]
-}
-
-func (hatList *SyncHatList) peek() *Hat {
-	hatList.Lock()
-	defer hatList.Unlock()
-	if hatList.Current == nil {
-		return nil
-	}
-	return &hatList.Hats[*hatList.Current]
-}
-
-func (hatList *SyncHatList) next() *Hat {
-	hatList.Lock()
-	defer hatList.Unlock()
-	hatCount := len(hatList.Hats)
-	if hatCount == 0 {
-		return nil
-	}
-	if hatList.Current == nil {
-		current := 0
-		hatList.Current = &current
-		return &hatList.Hats[0]
-	}
-	if *hatList.Current == hatCount-1 {
-		hatList.Current = nil
-		return nil
-	}
-	*hatList.Current++
-	return &hatList.Hats[*hatList.Current]
-}
-
-func (hatList *SyncHatList) nextValid() *Hat {
-	for {
-		hat := hatList.next()
-		if hat == nil {
-			return nil
-		}
-		if !hat.ToggleDisabled {
-			return hat
-		}
-	}
-}
-
-func (hatList *SyncHatList) indexSync() *int {
-	hatList.Lock()
-	defer hatList.Unlock()
-	return hatList.Current
-}
-
-func (hatList *SyncHatList) currentTrim() string {
-	hatList.Lock()
-	defer hatList.Unlock()
-	if hatList.Current == nil {
-		return ""
-	}
-	return hatList.Hats[*hatList.Current].Trim
-}
-
-// func (hatList *HatList) last() *Hat {
-// 	hatList.Lock()
-// 	defer hatList.Unlock()
-// 	hatCount := len(hatList.hats)
-// 	if hatCount == 0 {
-// 		return nil
-// 	}
-// 	hatCount--
-// 	hatList.current = &hatCount
-// 	return &hatList.hats[hatCount]
-// }
-
-func (player *Player) addHatByName(hatName string) {
-	hat := player.hatList.addByName(hatName)
-	if hat == nil {
-		return
-	}
-	player.world.db.addHatToPlayer(player.username, *hat)
-	player.updateInformation()
-	return
-}
-
-func (player *Player) cycleHats() {
-	player.hatList.nextValid()
-	player.updateInformation()
-	tile := player.getTileSync()
-	tile.stage.updateAllExcept(playerBox(tile), player)
-	return
-}
-
-// Save Hat and event seperately for potential to reconsile in event of error
 
 type WebsocketConnection interface {
 	WriteMessage(messageType int, data []byte) error
@@ -682,6 +547,27 @@ func (player *Player) fetchStageSync(stagename string) *Stage {
 	}
 
 	return stage
+}
+
+/////////////////////////////////////////////////////////////
+//  Hats
+
+func (player *Player) addHatByName(hatName string) {
+	hat := player.hatList.addByName(hatName)
+	if hat == nil {
+		return
+	}
+	player.world.db.addHatToPlayer(player.username, *hat)
+	player.updateInformation()
+	return
+}
+
+func (player *Player) cycleHats() {
+	player.hatList.nextValid()
+	player.updateInformation()
+	tile := player.getTileSync()
+	tile.stage.updateAllExcept(playerBox(tile), player)
+	return
 }
 
 /////////////////////////////////////////////////////////////
