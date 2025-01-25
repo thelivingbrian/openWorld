@@ -6,9 +6,8 @@ import (
 )
 
 type Interactable struct {
-	name     string
-	pushable bool
-	//walkable       bool // problematic, because push onto walkable is undefined?
+	name           string
+	pushable       bool
 	cssClass       string
 	fragile        bool
 	reactions      []InteractableReaction // Lowest index match wins
@@ -112,7 +111,6 @@ func playerTeamAndBallNameMatch(team string) func(*Interactable, *Player) bool {
 		if i == nil {
 			return false
 		}
-		//fmt.Println("HEYO", i.name, team, p.getTeamNameSync())
 		return i.name == "ball-"+team && team == p.getTeamNameSync()
 	}
 }

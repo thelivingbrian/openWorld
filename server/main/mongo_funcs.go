@@ -231,15 +231,14 @@ func (db *DB) updateRecordForPlayer(p *Player, pTile *Tile) error {
 		bson.M{"username": p.username},
 		bson.M{
 			"$set": bson.M{
-				"x":           pTile.x, // All of this feels dangerous tbh
-				"y":           pTile.y,
-				"health":      p.getHealthSync(),
-				"stagename":   pTile.stage.name, //p.getStageNameSync(), // feels risky
-				"money":       p.getMoneySync(),
-				"killCount":   p.getKillCountSync(),
-				"deathCount":  p.getDeathCountSync(),
-				"goalsScored": p.getGoalsScored(),
-				//"trim":            p.trim,
+				"x":               pTile.x, // All of this feels dangerous tbh
+				"y":               pTile.y,
+				"health":          p.getHealthSync(),
+				"stagename":       pTile.stage.name, //p.getStageNameSync(), // feels risky
+				"money":           p.getMoneySync(),
+				"killCount":       p.getKillCountSync(),
+				"deathCount":      p.getDeathCountSync(),
+				"goalsScored":     p.getGoalsScored(),
 				"hatList.current": p.hatList.indexSync(),
 			},
 		},
@@ -253,7 +252,7 @@ func (db *DB) addHatToPlayer(username string, newHat Hat) error {
 		bson.M{"username": username},
 		bson.M{
 			"$push": bson.M{
-				"hats.hatList": newHat,
+				"hatList.hats": newHat,
 			},
 		},
 	)

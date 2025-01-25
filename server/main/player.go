@@ -180,6 +180,8 @@ func (player *Player) addHatByName(hatName string) {
 func (player *Player) cycleHats() {
 	player.hatList.nextValid()
 	player.updateInformation()
+	tile := player.getTileSync()
+	tile.stage.updateAllExcept(playerBox(tile), player)
 	return
 }
 
