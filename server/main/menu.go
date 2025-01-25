@@ -28,6 +28,7 @@ type MenuLink struct {
 // [] pink
 // etc
 
+/*
 var menuTemplate = `
 <div id="modal_background" class="modal_bg">
 	<div id="modal_menu" class="modal_content {{.CssClass}}">
@@ -35,18 +36,18 @@ var menuTemplate = `
 		<div id="modal_information">
 			{{.InfoHtml}}
 		</div>
-		
+
 		<div id="modal_options">
 			{{$name := .Name}}
 			<input id="menu_name" type="hidden" name="menuName" value="{{$name}}" />
 			<input id="menu_click_indicator" type="hidden" name="eventname" value="menuClick" />
 			<input id="menu_selected_index" type="hidden" name="arg0" value="0" />
-			
+
 			<input id="menuOff" type="hidden" ws-send hx-trigger="keydown[key=='m'||key=='M'||key=='Escape'] from:body" hx-include="#token" name="eventname" value="menuOff" />
 			<input id="menuUp" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='W'||key=='ArrowUp'] from:body" hx-include="#token, #menu_selected_index, #menu_name" name="eventname" value="menuUp" />
 			<input id="menuDown" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='S'||key=='ArrowDown'] from:body" hx-include="#token, #menu_selected_index, #menu_name" name="eventname" value="menuDown" />
 			<input id="menuKey" type="hidden" ws-send hx-trigger="keydown[key=='Enter'] from:body" hx-include="#token, #menu_selected_index, #menu_name" name="eventname" value="menuClick" />
-			
+
 			{{range  $i, $link := .Links}}
 				<input id="menuClick_{{$name}}_{{$i}}" type="hidden" ws-send hx-trigger="click from:#menu_{{$name}}_{{$i}}" hx-include="#token, #menu_click_indicator, #menu_name" name="arg0" value="{{$i}}" />
 				<span id="menu_{{$name}}_{{$i}}">
@@ -58,16 +59,17 @@ var menuTemplate = `
 		<div id="modal_script">
 			<script>
 				// Script for horizantal and vertical scrolling?
-				// Future state? 
-					// This is inconvinient because a keydown listener may need to be on body and 
+				// Future state?
+					// This is inconvinient because a keydown listener may need to be on body and
 					// then removing the event listener requires some extra sauce when the menu closes
 			</script>
 		</div>
 	</div>
 </div>
 `
+*/
 
-var menuTmpl = template.Must(template.New("menu").Parse(menuTemplate))
+//var menuTmpl = template.Must(template.New("menu").Parse(menuTemplate))
 
 var pauseMenu = Menu{
 	Name:     "pause",
@@ -118,7 +120,7 @@ func turnMenuOnByName(p *Player, menuName string) {
 
 func sendMenu(p *Player, menu Menu) {
 	var buf bytes.Buffer
-	err := menuTmpl.Execute(&buf, menu)
+	err := tmpl.ExecuteTemplate(&buf, "menu", menu)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -234,7 +236,7 @@ func openMapMenu(p *Player) {
 		copy.InfoHtml = `<h2>unavailable</h2>`
 
 	}
-	err := menuTmpl.Execute(&buf, copy)
+	err := tmpl.ExecuteTemplate(&buf, "menu", copy)
 	if err != nil {
 		fmt.Println(err)
 	}
