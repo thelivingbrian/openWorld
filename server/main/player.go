@@ -461,12 +461,6 @@ func updateOne(update string, player *Player) {
 	player.updates <- []byte(update)
 }
 
-/*
-func (p *Player) trySend(msg []byte) {
-	p.updates <- msg
-}
-*/
-
 // Database update
 
 func (player *Player) updateRecord() {
