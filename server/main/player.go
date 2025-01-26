@@ -651,6 +651,7 @@ func (player *Player) getKillStreakSync() int {
 }
 
 func (player *Player) incrementKillStreak() {
+	// problem for traps
 	newStreak := player.getKillStreakSync() + 1
 	player.setKillStreakAndUpdate(newStreak)
 }
