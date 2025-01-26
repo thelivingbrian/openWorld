@@ -202,7 +202,7 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 		nextTile := getRelativeTile(tile, yOff, xOff, p)
 		if nextTile != nil {
 			if p.push(nextTile, tile.interactable, yOff, xOff) {
-				swapInteractableAndUpdate(tile, incoming)
+				setLockedInteractableAndUpdate(tile, incoming)
 				return true
 			}
 		}
@@ -235,23 +235,22 @@ func (p *Player) pushTeleport(tile *Tile, incoming *Interactable, yOff, xOff int
 }
 
 func replaceNilInteractable(tile *Tile, incoming *Interactable) bool {
-	if tile.interactable != nil {
-		return false
+	if incoming == nil {
+		return true
 	}
-	if !tile.material.Walkable { // Prevents lock contention from using Walkable()
-		return false
+	if tile.material.Walkable { // Prevents lock contention from using Walkable()
+		setLockedInteractableAndUpdate(tile, incoming)
+		return true
 	}
-	swapInteractableAndUpdate(tile, incoming)
 
-	return true
+	return false
 }
 
-func swapInteractableAndUpdate(tile *Tile, incoming *Interactable) {
-	experiencedChange := tile.interactable != incoming
+func setLockedInteractableAndUpdate(tile *Tile, incoming *Interactable) {
+	// if tile.interactable != incoming {
 	tile.interactable = incoming
-	if experiencedChange {
-		tile.stage.updateAll(interactableBox(tile))
-	}
+	tile.stage.updateAll(interactableBox(tile))
+	// }
 }
 
 func hasTeleport(tile *Tile) bool {

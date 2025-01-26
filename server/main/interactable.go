@@ -260,7 +260,7 @@ func hideByTeam(team string) func(*Interactable, *Player, *Tile) (*Interactable,
 // Tutorial
 func setTeamWildText(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	t.bottomText = teamColorWildRegex.ReplaceAllString(t.material.DisplayText, `@[$1|`+p.getTeamNameSync()+`]`)
-	swapInteractableAndUpdate(t, nil)
+	setLockedInteractableAndUpdate(t, nil)
 	return nil, true
 }
 
