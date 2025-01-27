@@ -56,6 +56,10 @@ func init() {
 		"set-team-wild-text-and-delete": []InteractableReaction{
 			InteractableReaction{ReactsWith: interactableIsNil, Reaction: setTeamWildText},
 		},
+		// machines :
+		"catapult-west": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: superBoostWest},
+		},
 	}
 
 }
@@ -256,6 +260,21 @@ func hideByTeam(team string) func(*Interactable, *Player, *Tile) (*Interactable,
 		return nil, false
 	}
 }
+
+////////////////////////////////////////////////////////////////
+// machines
+
+func moveInitiator(yOff, xOff int) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		p.move(yOff, xOff)
+		return i, true
+	}
+}
+
+var superBoostEast = moveInitiator(0, 3)
+var superBoostWest = moveInitiator(0, -10)
+var superBoostNorth = moveInitiator(-3, 0)
+var superBoostSouth = moveInitiator(3, 0)
 
 // Tutorial
 func setTeamWildText(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
