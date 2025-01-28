@@ -54,7 +54,7 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 func handleNewPlayer(player *Player) {
 	defer initiatelogout(player)
 	fmt.Println("New Connection from: " + player.username)
-	lastRead := time.Unix(0, 0)
+	previousReadTime := time.Unix(0, 0)
 	previousEventName := "-"
 	//ctx, cancel := context.WithCancel(context.Background())
 	autoEvents := make(chan *PlayerSocketEvent)
@@ -68,7 +68,7 @@ func handleNewPlayer(player *Player) {
 			//   fmt.Println("Conn Read Error: ", err)
 			break
 		}
-		currentRead := time.Now()
+		currentReadTime := time.Now()
 
 		event, success := getKeyPress(msg)
 		if !success {
@@ -83,16 +83,16 @@ func handleNewPlayer(player *Player) {
 
 		// Throttle input here?
 		if player.handlePressActive(event) {
-			lastRead = currentRead
+			previousReadTime = currentReadTime
 			time.Sleep(20 * time.Millisecond)
 			continue
 		}
 
-		elapsedTime := time.Since(lastRead)
+		elapsedTime := time.Since(previousReadTime)
 		if elapsedTime <= 20*time.Millisecond {
 			continue
 		}
-		lastRead = currentRead
+		previousReadTime = currentReadTime
 		fmt.Println("elapsed", elapsedTime.Milliseconds())
 
 		if elapsedTime <= 175*time.Millisecond && event.Name == previousEventName {
@@ -102,11 +102,10 @@ func handleNewPlayer(player *Player) {
 
 		// If autoclick agressive add event to channel unless its the anti-click
 		autoEvents <- nil
-		fmt.Println("handling press: ", event.Name)
-		player.handlePress(event, lastRead)
-		previousEventName = event.Name
-		//time.Sleep(50 * time.Millisecond)
 
+		//fmt.Println("handling press: ", event.Name)
+		player.handlePress(event, previousReadTime)
+		previousEventName = event.Name
 	}
 }
 
@@ -124,19 +123,23 @@ func autoClicker(player *Player, eventChan chan *PlayerSocketEvent) {
 				fmt.Println("Auto-clicker stopped")
 				return
 			}
-			// if incoming != nil
-			fmt.Println("setting event: ", incoming)
 			event = incoming
 		case <-ticker.C:
-			if event == nil {
-				continue
+			for event == nil {
+				ticker.Stop()
+				var ok bool
+				event, ok = <-eventChan
+				if !ok {
+					fmt.Println("Auto-clicker stopped")
+					return
+				}
+				ticker = time.NewTicker(60 * time.Millisecond)
+				defer ticker.Stop()
 			}
-			//fmt.Println("click")
-			if !player.handlePress(event, time.Unix(0, 0)) {
 
+			if !player.handlePress(event, time.Unix(0, 0)) {
 				fmt.Println("cancelling")
 				event = nil
-				//cancel()
 			}
 		}
 	}
