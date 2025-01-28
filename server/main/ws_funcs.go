@@ -55,6 +55,11 @@ func handleNewPlayer(player *Player) {
 	defer initiatelogout(player)
 	fmt.Println("New Connection from: " + player.username)
 	lastRead := time.Unix(0, 0)
+	previousEventName := "-"
+	//ctx, cancel := context.WithCancel(context.Background())
+	autoEvents := make(chan *PlayerSocketEvent)
+	defer close(autoEvents)
+	go autoClicker(player, autoEvents)
 	for {
 		_, msg, err := player.conn.ReadMessage()
 		if err != nil {
@@ -88,10 +93,52 @@ func handleNewPlayer(player *Player) {
 			continue
 		}
 		lastRead = currentRead
+		fmt.Println("elapsed", elapsedTime.Milliseconds())
 
+		if elapsedTime <= 175*time.Millisecond && event.Name == previousEventName {
+			autoEvents <- event
+			continue
+		}
+
+		// If autoclick agressive add event to channel unless its the anti-click
+		autoEvents <- nil
+		fmt.Println("handling press: ", event.Name)
 		player.handlePress(event, lastRead)
+		previousEventName = event.Name
 		//time.Sleep(50 * time.Millisecond)
 
+	}
+}
+
+func autoClicker(player *Player, eventChan chan *PlayerSocketEvent) {
+	fmt.Println("Auto-clicker started")
+
+	ticker := time.NewTicker(60 * time.Millisecond)
+	defer ticker.Stop()
+
+	var event *PlayerSocketEvent
+	for {
+		select {
+		case incoming, ok := <-eventChan:
+			if !ok {
+				fmt.Println("Auto-clicker stopped")
+				return
+			}
+			// if incoming != nil
+			fmt.Println("setting event: ", incoming)
+			event = incoming
+		case <-ticker.C:
+			if event == nil {
+				continue
+			}
+			//fmt.Println("click")
+			if !player.handlePress(event, time.Unix(0, 0)) {
+
+				fmt.Println("cancelling")
+				event = nil
+				//cancel()
+			}
+		}
 	}
 }
 
@@ -141,32 +188,32 @@ func (player *Player) handlePressActive(event *PlayerSocketEvent) bool {
 	return false
 }
 
-func (player *Player) handlePress(event *PlayerSocketEvent, lastRead time.Time) {
+func (player *Player) handlePress(event *PlayerSocketEvent, lastRead time.Time) bool {
 	if event.Name == "w" {
 		/*class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "twilight"</script> </div>`
 		updateOne(class, player)*/
-		player.moveNorth()
+		return player.moveNorth()
 	}
 	if event.Name == "a" {
-		player.moveWest()
+		return player.moveWest()
 	}
 	if event.Name == "s" {
-		player.moveSouth()
+		return player.moveSouth()
 	}
 	if event.Name == "d" {
-		player.moveEast()
+		return player.moveEast()
 	}
 	if event.Name == "W" {
-		player.moveNorthBoost()
+		return player.moveNorthBoost()
 	}
 	if event.Name == "A" {
-		player.moveWestBoost()
+		return player.moveWestBoost()
 	}
 	if event.Name == "S" {
-		player.moveSouthBoost()
+		return player.moveSouthBoost()
 	}
 	if event.Name == "D" {
-		player.moveEastBoost()
+		return player.moveEastBoost()
 	}
 	if event.Name == "f" {
 		updateScreenFromScratch(player)
@@ -242,6 +289,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent, lastRead time.Time) 
 			menu.attemptClick(player, *event)
 		}
 	}
+	return false
 }
 
 func generateDivs(frame int) string {

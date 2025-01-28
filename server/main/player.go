@@ -61,56 +61,55 @@ type WebsocketConnection interface {
 ////////////////////////////////////////////////////////////
 //   Movement
 
-func (player *Player) moveNorth() {
-	player.move(-1, 0)
+func (player *Player) moveNorth() bool {
+	return player.move(-1, 0)
 }
 
-func (player *Player) moveNorthBoost() {
-	player.moveBoost(-1, 0)
+func (player *Player) moveNorthBoost() bool {
+	return player.moveBoost(-1, 0)
 }
 
-func (player *Player) moveSouth() {
-	player.move(1, 0)
+func (player *Player) moveSouth() bool {
+	return player.move(1, 0)
 }
 
-func (player *Player) moveSouthBoost() {
-	player.moveBoost(1, 0)
+func (player *Player) moveSouthBoost() bool {
+	return player.moveBoost(1, 0)
 }
 
-func (player *Player) moveEast() {
-	player.move(0, 1)
+func (player *Player) moveEast() bool {
+	return player.move(0, 1)
 }
 
-func (player *Player) moveEastBoost() {
-	player.moveBoost(0, 1)
+func (player *Player) moveEastBoost() bool {
+	return player.moveBoost(0, 1)
 }
 
-func (player *Player) moveWest() {
-	player.move(0, -1)
+func (player *Player) moveWest() bool {
+	return player.move(0, -1)
 }
 
-func (player *Player) moveWestBoost() {
-	player.moveBoost(0, -1)
+func (player *Player) moveWestBoost() bool {
+	return player.moveBoost(0, -1)
 }
 
-func (player *Player) move(yOffset int, xOffset int) {
+func (player *Player) move(yOffset int, xOffset int) bool {
 	//player.pushUnder(yOffset, xOffset)
 	sourceTile := player.getTileSync()
 	player.push(sourceTile, nil, yOffset, xOffset)
 	destTile := getRelativeTile(sourceTile, yOffset, xOffset, player)
 	player.push(destTile, nil, yOffset, xOffset)
-	if walkable(destTile) {
-		transferPlayer(player, sourceTile, destTile)
+	if !walkable(destTile) {
+		return false
 	}
+	return transferPlayer(player, sourceTile, destTile)
 }
 
-func (player *Player) moveBoost(yOffset int, xOffset int) {
+func (player *Player) moveBoost(yOffset int, xOffset int) bool {
 	if player.useBoost() {
-		//player.pushUnder(2*yOffset, 2*xOffset)
-		player.move(2*yOffset, 2*xOffset)
+		return player.move(2*yOffset, 2*xOffset)
 	} else {
-		// always push under ?
-		player.move(yOffset, xOffset)
+		return player.move(yOffset, xOffset)
 	}
 }
 
@@ -124,19 +123,22 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 }
 
 // Atomic Transfers
-func transferPlayer(p *Player, source, dest *Tile) {
+func transferPlayer(p *Player, source, dest *Tile) bool {
 	if source.stage == dest.stage {
 		if transferPlayerWithinStage(p, source, dest) {
 			updateOthersAfterMovement(p, dest, source)
 			updatePlayerAfterMovement(p, dest, source)
+			return true
 		}
 	} else {
 		if transferPlayerAcrossStages(p, source, dest) {
 			spawnItemsFor(p, dest.stage)
 			updateOthersAfterMovement(p, dest, source)
 			updatePlayerAfterStageChange(p)
+			return true
 		}
 	}
+	return false
 }
 
 func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
