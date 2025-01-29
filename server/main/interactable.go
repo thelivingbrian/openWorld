@@ -60,6 +60,9 @@ func init() {
 		"catapult-west": []InteractableReaction{
 			InteractableReaction{ReactsWith: interactableIsNil, Reaction: superBoostWest},
 		},
+		"catapult-north": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: superBoostNorth},
+		},
 	}
 
 }
@@ -273,7 +276,7 @@ func moveInitiator(yOff, xOff int) func(*Interactable, *Player, *Tile) (*Interac
 
 var superBoostEast = moveInitiator(0, 3)
 var superBoostWest = moveInitiator(0, -10)
-var superBoostNorth = moveInitiator(-3, 0)
+var superBoostNorth = moveInitiator(-10, 0)
 var superBoostSouth = moveInitiator(3, 0)
 
 // Tutorial
