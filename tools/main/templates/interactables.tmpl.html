@@ -68,8 +68,12 @@
             <input hx-get="/interactable/example" hx-trigger="change" hx-target="#exampleSquare" type="text" name="CssClass" value="">
         </div>
         <div>
-            <label>Pushable:</label>
+            <label>Pushable: (Pushable gaurentees walkable)</label>
             <input type="checkbox" name="pushable">
+        </div>
+        <div>
+            <label>Walkable: (Overridden by pushable)</label>
+            <input type="checkbox" name="walkable">
         </div>
         <div>
             <label>Destroyable:</label>
@@ -105,6 +109,10 @@
         <div>
             <label>Pushable:</label>
             <input type="checkbox" name="pushable" {{if .Pushable}}checked{{end}} />
+        </div>
+        <div>
+            <label>Walkable:</label>
+            <input type="checkbox" name="pushable" {{if .Walkable}}checked{{end}} />
         </div>
         <div>
             <label>Destroyable:</label>

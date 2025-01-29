@@ -14,6 +14,7 @@ type InteractableDescription struct {
 	SetName   string `json:"setName"`
 	CssClass  string `json:"cssClass"`
 	Pushable  bool   `json:"pushable"`
+	Walkable  bool   `json:"walkable"`
 	Fragile   bool   `json:"fragile"`
 	Reactions string `json:"reactions"`
 }
@@ -176,6 +177,7 @@ func (c Context) putInteractable(w http.ResponseWriter, r *http.Request) {
 	name := properties["Name"]
 	cssClass := properties["CssClass"]
 	pushable := (properties["pushable"] == "on")
+	walkable := (properties["walkable"] == "on")
 	fragile := (properties["fragile"] == "on")
 	reactions := properties["reactions"]
 
@@ -189,6 +191,7 @@ func (c Context) putInteractable(w http.ResponseWriter, r *http.Request) {
 	interactable.Name = name
 	interactable.CssClass = cssClass
 	interactable.Pushable = pushable
+	interactable.Walkable = walkable
 	interactable.Fragile = fragile
 	interactable.Reactions = reactions
 
@@ -215,6 +218,7 @@ func (c *Context) postInteractable(w http.ResponseWriter, r *http.Request) {
 	name := properties["Name"]
 	cssClass := properties["CssClass"]
 	pushable := (properties["pushable"] == "on")
+	walkable := (properties["walkable"] == "on")
 	fragile := (properties["fragile"] == "on")
 	reactions := properties["reactions"]
 
@@ -229,6 +233,7 @@ func (c *Context) postInteractable(w http.ResponseWriter, r *http.Request) {
 			Name:      name,
 			CssClass:  cssClass,
 			Pushable:  pushable,
+			Walkable:  walkable,
 			Fragile:   fragile,
 			Reactions: reactions,
 		})

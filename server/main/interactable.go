@@ -8,6 +8,7 @@ import (
 type Interactable struct {
 	name           string
 	pushable       bool
+	walkable       bool
 	cssClass       string
 	fragile        bool
 	reactions      []InteractableReaction // Lowest index match wins
@@ -68,6 +69,10 @@ func init() {
 		},
 		"catapult-east": []InteractableReaction{
 			InteractableReaction{ReactsWith: interactableIsNil, Reaction: superBoostEast},
+		},
+		"lily-pad": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: eat},
+			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
 	}
 
