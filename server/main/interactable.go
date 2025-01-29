@@ -63,6 +63,12 @@ func init() {
 		"catapult-north": []InteractableReaction{
 			InteractableReaction{ReactsWith: interactableIsNil, Reaction: superBoostNorth},
 		},
+		"catapult-south": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: superBoostSouth},
+		},
+		"catapult-east": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: superBoostEast},
+		},
 	}
 
 }
@@ -222,15 +228,16 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 			return nil, false
 		}
 		p.world.leaderBoard.scoreboard.Increment(team)
-		score := p.world.leaderBoard.scoreboard.GetScore(team)
-		fmt.Println(score)
+		scoreSkyBlue := p.world.leaderBoard.scoreboard.GetScore("sky-blue")
+		scoreFuchsia := p.world.leaderBoard.scoreboard.GetScore("fuchsia")
+		//fmt.Println(scoreSkyBlue)
 
 		totalGoals := p.incrementGoalsScored()
 		if totalGoals == 1 {
 			p.addHatByName("score-1-goal")
 		}
 		p.updateRecord()
-		message := fmt.Sprintf("@[%s|%s] has scored a goal! @[Team %s|%s] now has @[%d|%s] points!", p.username, team, team, team, score, team)
+		message := fmt.Sprintf("@[%s|%s] scored a goal!<br /> The score is: @[Sky-blue %d|sky-blue] to @[Fuchsia %d|fuchsia]", p.username, team, scoreSkyBlue, scoreFuchsia)
 		broadcastBottomText(p.world, message)
 
 		return hideByTeam(team)(i, p, t)
@@ -274,10 +281,10 @@ func moveInitiator(yOff, xOff int) func(*Interactable, *Player, *Tile) (*Interac
 	}
 }
 
-var superBoostEast = moveInitiator(0, 3)
-var superBoostWest = moveInitiator(0, -10)
-var superBoostNorth = moveInitiator(-10, 0)
-var superBoostSouth = moveInitiator(3, 0)
+var superBoostEast = moveInitiator(0, 11)
+var superBoostWest = moveInitiator(0, -11)
+var superBoostNorth = moveInitiator(-11, 0)
+var superBoostSouth = moveInitiator(11, 0)
 
 // Tutorial
 func setTeamWildText(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
