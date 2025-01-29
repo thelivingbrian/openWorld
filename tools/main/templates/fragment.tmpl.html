@@ -42,7 +42,9 @@
 {{end}}
 
 {{define "fragment-edit"}}
-<div id="fragement-edit">
+<div id="fragment-edit">
+    <input type="hidden" name="fragment-set" value="{{.FragmentDetails.SetName}}" />
+    <input type="hidden" name="fragment" value="{{.FragmentDetails.Name}}" />
     {{template "fragment" .FragmentDetails}}
     {{template "grid-modify" .AvailableProtos}}
 </div>
@@ -50,10 +52,8 @@
 
 {{define "fragment"}}
 <div id="fragment-window">
-    <input type="hidden" name="fragment-set" value="{{.SetName}}" />
-    <input type="hidden" name="fragment" value="{{.Name}}" />
     <b>{{.Name}}: </b>
-    <a href="#" hx-put="/fragment" hx-target="#edit_tool" hx-include="#fragment-window [name='fragment-set'],#fragment-window [name='fragment'],[name='currentCollection']">Save (entire set)</a>
+    <a href="#" hx-put="/fragment" hx-target="#edit_tool" hx-include="#fragment-edit [name='fragment-set'],#fragment-edit [name='fragment'],[name='currentCollection']">Save (entire set)</a>
     <br />
     {{template "grid" .GridDetails}}
 </div>

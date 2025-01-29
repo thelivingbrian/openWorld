@@ -1,5 +1,5 @@
 {{define "grid-modify"}}
-    <select id="fixture_select" name="current-fixture" hx-get="/selectFixture" hx-target="#fixture-window" hx-include="[name='currentCollection'],[name='currentSpace'],[name='area-name']">
+    <select id="fixture_select" name="current-fixture" hx-get="/selectFixture" hx-target="#fixture-window" hx-include="[name='currentCollection'],[name='currentSpace'],[name='area-name'],#fragment-edit [name='fragment-set'],#fragment-edit [name='fragment']">
         <option value="prototype" selected>Prototypes</option>
         <option value="fragment">Fragments</option>
         <option value="transformation">Transformations</option>

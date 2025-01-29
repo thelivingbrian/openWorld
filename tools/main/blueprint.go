@@ -41,6 +41,22 @@ func (c *Context) getBlueprint(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// This is a problem for fragments
+	fragmentSet := queryValues.Get("fragment-set")
+	fragmentName := queryValues.Get("fragment")
+	if fragmentName != "" && fragmentSet != "" {
+		set, ok := collection.Fragments[fragmentSet]
+		if !ok {
+			io.WriteString(w, "<h2>no Fragment set</h2>")
+			return
+		}
+		fragment := getFragmentByName(set, fragmentName)
+		err := tmpl.ExecuteTemplate(w, "fragment-blueprint", fragment)
+		if err != nil {
+			fmt.Println(err)
+		}
+		return
+	}
+
 	name := queryValues.Get("area-name")
 	selectedArea := getAreaByName(space.Areas, name)
 	if selectedArea == nil {
@@ -79,20 +95,15 @@ func (c *Context) putInstruction(w http.ResponseWriter, r *http.Request) {
 		panic("invalid Rotation")
 	}
 
-	area := c.areaFromProperties(properties)
-	blueprint := area.Blueprint
+	area, fragment := c.areaOrFragmentFromProperties(properties)
+	blueprint := c.blueprintFromAreaOrFragment(area, fragment)
+
 	col := c.collectionFromProperties(properties)
 
 	for i := range blueprint.Instructions {
 		if blueprint.Instructions[i].ID == instructionId {
 			// Reset
-			currentRotations := blueprint.Instructions[i].ClockwiseRotations
-			grid := col.getTileGridByAssetId(blueprint.Instructions[i].GridAssetId)
-			if currentRotations%2 == 1 {
-				clearTiles(blueprint.Instructions[i].Y, blueprint.Instructions[i].X, len(grid[0]), len(grid), blueprint.Tiles)
-			} else {
-				clearTiles(blueprint.Instructions[i].Y, blueprint.Instructions[i].X, len(grid), len(grid[0]), blueprint.Tiles)
-			}
+			col.UndoInstruction(blueprint, i)
 			// update
 			blueprint.Instructions[i].Y = inputY
 			blueprint.Instructions[i].X = inputX
@@ -105,10 +116,31 @@ func (c *Context) putInstruction(w http.ResponseWriter, r *http.Request) {
 		col.applyInstruction(blueprint.Tiles, blueprint.Instructions[i])
 	}
 
-	// Instead of just blueprint can display whole area edit page
-	err = tmpl.ExecuteTemplate(w, "area-blueprint", area)
-	if err != nil {
-		fmt.Println(err)
+	executeBlueprintTemplate(w, fragment, area)
+}
+
+func (col *Collection) UndoInstruction(blueprint *Blueprint, i int) {
+	currentRotations := blueprint.Instructions[i].ClockwiseRotations
+	grid := col.getTileGridByAssetId(blueprint.Instructions[i].GridAssetId)
+	if currentRotations%2 == 1 {
+		clearTiles(blueprint.Instructions[i].Y, blueprint.Instructions[i].X, len(grid[0]), len(grid), blueprint.Tiles)
+	} else {
+		clearTiles(blueprint.Instructions[i].Y, blueprint.Instructions[i].X, len(grid), len(grid[0]), blueprint.Tiles)
+	}
+}
+
+func executeBlueprintTemplate(w http.ResponseWriter, fragment *Fragment, area *AreaDescription) {
+	if fragment == nil {
+		// Instead of just blueprint can display whole area edit page
+		err := tmpl.ExecuteTemplate(w, "area-blueprint", area)
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else {
+		err := tmpl.ExecuteTemplate(w, "fragment-blueprint", fragment)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
@@ -116,21 +148,20 @@ func (c *Context) deleteInstruction(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	instructionId := properties["instruction-id"]
 
-	area := c.areaFromProperties(properties)
-	blueprint := area.Blueprint
+	area, fragment := c.areaOrFragmentFromProperties(properties)
+	blueprint := c.blueprintFromAreaOrFragment(area, fragment)
+	col := c.collectionFromProperties(properties)
 
 	for i := range blueprint.Instructions {
 		if blueprint.Instructions[i].ID == instructionId {
+			col.UndoInstruction(blueprint, i)
 			blueprint.Instructions = append(blueprint.Instructions[:i], blueprint.Instructions[i+1:]...)
 			break
 		}
 	}
 
 	fmt.Printf("Removing %s \r\n", instructionId)
-	err := tmpl.ExecuteTemplate(w, "area-blueprint", area)
-	if err != nil {
-		fmt.Println(err)
-	}
+	executeBlueprintTemplate(w, fragment, area)
 }
 
 func (c *Context) blueprintInstructionHighlightHandler(w http.ResponseWriter, r *http.Request) {
@@ -151,20 +182,46 @@ func (c *Context) postInstructionHighlight(w http.ResponseWriter, r *http.Reques
 		panic("invalid collection")
 	}
 
-	area := c.areaFromProperties(properties)
-	if area == nil {
-		panic("invalid area")
+	area, fragment := c.areaOrFragmentFromProperties(properties)
+	blueprint := c.blueprintFromAreaOrFragment(area, fragment)
+	gridType, screenId := "fragment", "fragment"
+	defaultTileColor := ""
+	if fragment == nil {
+		gridType, screenId = "area", "screen"
+		defaultTileColor = area.DefaultTileColor
 	}
-
-	blueprint := area.Blueprint
 
 	for i := range blueprint.Instructions {
 		if blueprint.Instructions[i].ID == instructionId {
-			details := GridClickDetails{GridType: "area", ScreenID: "screen", X: blueprint.Instructions[i].X, Y: blueprint.Instructions[i].Y, DefaultTileColor: area.DefaultTileColor}
+			details := GridClickDetails{GridType: gridType, ScreenID: screenId, X: blueprint.Instructions[i].X, Y: blueprint.Instructions[i].Y, DefaultTileColor: defaultTileColor}
 			io.WriteString(w, col.gridSelect(details, blueprint.Tiles))
 		}
 	}
 
+}
+
+func (c *Context) blueprintFromAreaOrFragment(area *AreaDescription, fragment *Fragment) *Blueprint {
+	var blueprint *Blueprint
+	if area != nil {
+		blueprint = area.Blueprint
+	} else if fragment != nil {
+		blueprint = fragment.Blueprint
+	} else {
+		panic("Failed to retrieve blueprint from area or fragment.")
+	}
+	return blueprint
+}
+
+func (c *Context) areaOrFragmentFromProperties(properties map[string]string) (*AreaDescription, *Fragment) {
+	area := c.areaFromProperties(properties)
+	if area != nil {
+		return area, nil
+	}
+	fragment := c.fragmentFromProperties(properties)
+	if fragment != nil {
+		return nil, fragment
+	}
+	return nil, nil
 }
 
 func (c *Context) areaFromProperties(properties map[string]string) *AreaDescription {
@@ -181,11 +238,36 @@ func (c *Context) areaFromProperties(properties map[string]string) *AreaDescript
 		panic("invalid space name")
 	}
 	area := getAreaByName(space.Areas, name)
-	if area == nil {
+	// if area == nil {
+	// 	fmt.Println("Failed to find any area.")
+	// 	//panic("Invalid area")
+	// }
+
+	return area
+}
+
+func (c *Context) fragmentFromProperties(properties map[string]string) *Fragment {
+	collectionName := properties["currentCollection"]
+	fragmentSet := properties["fragment-set"]
+	name := properties["fragment"]
+	if fragmentSet == "" || name == "" {
+		return nil
+	}
+
+	collection, ok := c.Collections[collectionName]
+	if !ok {
+		panic("invalid collection")
+	}
+	fragments, ok := collection.Fragments[fragmentSet]
+	if !ok {
+		panic("invalid space name")
+	}
+	fragment := getFragmentByName(fragments, name)
+	if fragment == nil {
 		panic("Invalid area")
 	}
 
-	return area
+	return fragment
 }
 
 func (c *Context) instructionOrderHandler(w http.ResponseWriter, r *http.Request) {
@@ -198,8 +280,8 @@ func (c *Context) putInstructionOrder(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	instructionId := properties["instruction-id"]
 
-	area := c.areaFromProperties(properties)
-	blueprint := area.Blueprint
+	area, fragment := c.areaOrFragmentFromProperties(properties)
+	blueprint := c.blueprintFromAreaOrFragment(area, fragment)
 
 	// should clear everything and reapply new order
 	for i := range blueprint.Instructions {
@@ -211,10 +293,7 @@ func (c *Context) putInstructionOrder(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err := tmpl.ExecuteTemplate(w, "area-blueprint", area)
-	if err != nil {
-		fmt.Println(err)
-	}
+	executeBlueprintTemplate(w, fragment, area)
 }
 
 func rotateTimesN(input [][]TileData, n int) [][]TileData {

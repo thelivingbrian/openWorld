@@ -266,6 +266,7 @@ func clearTiles(y, x, height, width int, source [][]TileData) {
 				break
 			}
 			source[y+i][x+j].PrototypeId = ""
+			source[y+i][x+j].InteractableId = ""
 		}
 	}
 }
@@ -307,7 +308,7 @@ func (col *Collection) getFragmentFromAssetId(fragmentID string) Fragment {
 
 func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) string {
 	var buf bytes.Buffer
-	if haveSelection {
+	if haveSelection && selectedY < len(grid) && selectedX < len(grid[0]) {
 		selectedCell := grid[selectedY][selectedX]
 		var pageData = struct {
 			Material     Material
@@ -448,6 +449,7 @@ func (col *Collection) gridFillBetween(event GridClickDetails, modifications [][
 	output := ""
 	for i := lowy; i <= highy; i++ {
 		for j := lowx; j <= highx; j++ {
+			// unsafe out of bounds
 			newEvent := event
 			newEvent.Y = i
 			newEvent.X = j
