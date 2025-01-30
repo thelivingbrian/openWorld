@@ -360,7 +360,7 @@ func makeDangerousForOtherTeam(i *Interactable, p *Player, t *Tile) (*Interactab
 		InteractableReaction{ReactsWith: interactableIsNil, Reaction: eat},
 		InteractableReaction{ReactsWith: everything, Reaction: pass},
 	}
-	t.interactable.cssClass = initiatorTeam + "-b med r0"
+	t.interactable.cssClass = initiatorTeam + "-b thick r0"
 	t.interactable.reactions = newReactions
 	t.stage.updateAll(lockedInteractableBox(t))
 	addMoneyToStage(t.stage, 10)
