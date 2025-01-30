@@ -472,7 +472,7 @@ func (tile *Tile) addMoneyAndNotifyAll(amount int) {
 
 func (tile *Tile) addMoneyAndNotifyAllExcept(amount int, player *Player) {
 	tile.moneyMutex.Lock()
-	defer tile.moneyMutex.Unlock()
 	tile.money += amount
+	tile.moneyMutex.Unlock()
 	tile.stage.updateAllExcept(svgFromTile(tile), player)
 }
