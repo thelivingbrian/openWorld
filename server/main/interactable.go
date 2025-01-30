@@ -391,8 +391,9 @@ func createRing() *Interactable {
 	return &ring
 }
 
-func damageWithinRadius(t *Tile, world *World, radius, dmg int, ownerId string) {
-	tiles := getTilesInRadius(t, radius)
+// not a reaction;will lock tile
+func damageWithinRadius(tile *Tile, world *World, radius, dmg int, ownerId string) {
+	tiles := getTilesInRadius(tile, radius)
 	trapSetter := world.getPlayerByName(ownerId)
 	if trapSetter != nil {
 		trapSetter.tangibilityLock.Lock()
@@ -405,7 +406,7 @@ func damageWithinRadius(t *Tile, world *World, radius, dmg int, ownerId string) 
 
 func damageWithinRadiusAndReset(radius, dmg int, ownerId string) func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-		go damageWithinRadius(t, p.world, radius, dmg, ownerId)
+		go damageWithinRadius(t, p.world, radius, dmg, ownerId) // damage can take interactable lock that is held by reacting tile
 		placeInteractableOnStagePriorityCovered(t.stage, createRing())
 		t.interactable.cssClass = "white trsp20 r0"
 		t.interactable.reactions = interactableReactions["lily-pad"]

@@ -121,7 +121,6 @@ func (tile *Tile) addLockedPlayertoTile(player *Player) {
 	}
 
 	if tile.collectItemsForPlayer(player) {
-		// locks with transfer across stages ? not anymore
 		player.stage.updateAll(svgFromTile(tile))
 	}
 
