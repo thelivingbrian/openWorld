@@ -59,16 +59,20 @@ func init() {
 		},
 		// machines :
 		"catapult-west": []InteractableReaction{
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: superBoostWest},
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultWest},
+			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
 		"catapult-north": []InteractableReaction{
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: superBoostNorth},
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultNorth},
+			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
 		"catapult-south": []InteractableReaction{
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: superBoostSouth},
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultSouth},
+			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
 		"catapult-east": []InteractableReaction{
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: superBoostEast},
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultEast},
+			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
 		"lily-pad": []InteractableReaction{
 			InteractableReaction{ReactsWith: interactableIsNil, Reaction: eat},
@@ -290,6 +294,23 @@ var superBoostEast = moveInitiator(0, 11)
 var superBoostWest = moveInitiator(0, -11)
 var superBoostNorth = moveInitiator(-11, 0)
 var superBoostSouth = moveInitiator(11, 0)
+
+func moveInitiatorPushSurrounding(yOff, xOff int) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		fmt.Println("base", t.y, t.x)
+		for _, tile := range getVanNeumannNeighborsOfTile(t) {
+			fmt.Println("pushing", tile.y, tile.x)
+			p.push(tile, nil, yOff, xOff)
+		}
+		p.move(yOff, xOff)
+		return nil, false
+	}
+}
+
+var catapultEast = moveInitiatorPushSurrounding(0, 11)
+var catapultWest = moveInitiatorPushSurrounding(0, -11)
+var catapultNorth = moveInitiatorPushSurrounding(-11, 0)
+var catapultSouth = moveInitiatorPushSurrounding(11, 0)
 
 // Tutorial
 func setTeamWildText(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {

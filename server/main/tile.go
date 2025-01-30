@@ -395,6 +395,25 @@ func everyOtherTileOnStage(tile *Tile) []*Tile {
 	return out
 }
 
+func getVanNeumannNeighborsOfTile(tile *Tile) []*Tile {
+	out := make([]*Tile, 0)
+	for _, yOff := range []int{-1, 1} {
+		y := tile.y + yOff
+		x := tile.x
+		if y >= 0 && y < len(tile.stage.tiles) && x >= 0 && x < len(tile.stage.tiles[y]) {
+			out = append(out, tile.stage.tiles[y][x])
+		}
+	}
+	for _, xOff := range []int{-1, 1} {
+		y := tile.y
+		x := tile.x + xOff
+		if y >= 0 && y < len(tile.stage.tiles) && x >= 0 && x < len(tile.stage.tiles[y]) {
+			out = append(out, tile.stage.tiles[y][x])
+		}
+	}
+	return out
+}
+
 /////////////////////////////////////////////////////////////////
 // Observers / Item state
 
