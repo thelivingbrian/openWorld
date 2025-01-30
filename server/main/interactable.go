@@ -297,9 +297,7 @@ var superBoostSouth = moveInitiator(11, 0)
 
 func moveInitiatorPushSurrounding(yOff, xOff int) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-		fmt.Println("base", t.y, t.x)
 		for _, tile := range getVanNeumannNeighborsOfTile(t) {
-			fmt.Println("pushing", tile.y, tile.x)
 			p.push(tile, nil, yOff, xOff)
 		}
 		p.move(yOff, xOff)
