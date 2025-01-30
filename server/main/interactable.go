@@ -363,7 +363,7 @@ func makeDangerousForOtherTeam(i *Interactable, p *Player, t *Tile) (*Interactab
 	t.interactable.cssClass = initiatorTeam + "-b thick r0"
 	t.interactable.reactions = newReactions
 	t.stage.updateAll(lockedInteractableBox(t))
-	addMoneyToStage(t.stage, 10)
+	addMoneyToStage(t.stage, 10) // should be more money
 	return nil, false
 }
 

@@ -195,6 +195,12 @@ func weatherBox(tile *Tile, cssClass string) string {
 }
 
 func svgFromTile(tile *Tile) string {
+	tile.powerMutex.Lock()
+	defer tile.powerMutex.Unlock()
+	tile.moneyMutex.Lock()
+	defer tile.moneyMutex.Unlock()
+	tile.boostsMutex.Lock()
+	defer tile.boostsMutex.Unlock()
 	svgtag := `<div id="%s" class="box zs">`
 	if tile.powerUp != nil || tile.money != 0 || tile.boosts != 0 {
 		svgtag += `<svg width="22" height="22">`

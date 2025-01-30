@@ -119,11 +119,35 @@ func (tile *Tile) addLockedPlayertoTile(player *Player) {
 	if tile.bottomText != "" {
 		player.updateBottomText(tile.bottomText)
 	}
-	// new method
+
+	if tile.collectItemsForPlayer(player) {
+		// locks with transfer across stages ? not anymore
+		player.stage.updateAll(svgFromTile(tile))
+	}
+
+	// player's tile lock should be held
+	tile.playerMap[player.id] = player
+	player.tile = tile
+
+	if tile.teleport != nil {
+		if tile.teleport.confirmation {
+			player.menues["teleport"] = continueTeleporting(tile.teleport)
+			turnMenuOnByName(player, "teleport")
+		} else {
+			// new routine prevents deadlock
+			go player.applyTeleport(tile.teleport)
+		}
+	}
+}
+
+func (tile *Tile) collectItemsForPlayer(player *Player) bool {
 	itemChange := false
 	tile.powerMutex.Lock()
+	defer tile.powerMutex.Unlock()
 	tile.moneyMutex.Lock()
+	defer tile.moneyMutex.Unlock()
 	tile.boostsMutex.Lock()
+	defer tile.boostsMutex.Unlock()
 	if tile.powerUp != nil {
 		powerUp := tile.powerUp
 		tile.powerUp = nil
@@ -140,28 +164,7 @@ func (tile *Tile) addLockedPlayertoTile(player *Player) {
 		tile.boosts = 0
 		itemChange = true
 	}
-	tile.powerMutex.Unlock()
-	tile.moneyMutex.Unlock()
-	tile.boostsMutex.Unlock()
-
-	if itemChange {
-		// locks with transfer across stages
-		go player.stage.updateAll(svgFromTile(tile))
-	}
-
-	// players tile lock should be held
-	tile.playerMap[player.id] = player
-	player.tile = tile
-
-	if tile.teleport != nil {
-		if tile.teleport.confirmation {
-			player.menues["teleport"] = continueTeleporting(tile.teleport)
-			turnMenuOnByName(player, "teleport")
-		} else {
-			// new routine prevents deadlock // still needed ? test.
-			go player.applyTeleport(tile.teleport)
-		}
-	}
+	return itemChange
 }
 
 func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
