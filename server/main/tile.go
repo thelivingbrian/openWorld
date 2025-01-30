@@ -290,7 +290,7 @@ func destroyFragileInteractable(tile *Tile, _ *Player) {
 	defer tile.interactableMutex.Unlock()
 	if tile.interactable != nil && tile.interactable.fragile {
 		tile.interactable = nil
-		tile.stage.updateAll(interactableBox(tile))
+		tile.stage.updateAll(lockedInteractableBox(tile))
 	}
 }
 
@@ -300,7 +300,7 @@ func destroyInteractable(tile *Tile, _ *Player) {
 	defer tile.interactableMutex.Unlock()
 	if tile.interactable != nil {
 		tile.interactable = nil
-		tile.stage.updateAll(interactableBox(tile))
+		tile.stage.updateAll(lockedInteractableBox(tile))
 	}
 }
 
@@ -426,6 +426,18 @@ func getTilesInRadius(tile *Tile, r int) []*Tile {
 		}
 	}
 	return out
+}
+
+func damageAndIndicate(tiles []*Tile, initiator *Player, damage int) {
+	for _, tile := range tiles {
+		tile.damageAll(damage, initiator)
+		destroyFragileInteractable(tile, initiator)
+		tile.eventsInFlight.Add(1)
+
+		go tile.tryToNotifyAfter(100)
+	}
+	damageBoxes := sliceOfTileToWeatherBoxes(tiles, randomFieryColor())
+	initiator.stage.updateAll(damageBoxes)
 }
 
 /////////////////////////////////////////////////////////////////

@@ -249,7 +249,7 @@ func replaceNilInteractable(tile *Tile, incoming *Interactable) bool {
 func setLockedInteractableAndUpdate(tile *Tile, incoming *Interactable) {
 	// if tile.interactable != incoming {
 	tile.interactable = incoming
-	tile.stage.updateAll(interactableBox(tile))
+	tile.stage.updateAll(lockedInteractableBox(tile))
 	// }
 }
 

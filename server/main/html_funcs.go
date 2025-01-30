@@ -54,7 +54,8 @@ func htmlFromTileGrid(tiles [][]*Tile, py, px int, highlights map[*Tile]bool) []
 func htmlForTile(tile *Tile, highlight string) string {
 	svgtag := svgFromTile(tile)
 	// grab tile y and x only once here or in parent method?
-	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x), oobHighlightBox(tile, highlight))
+	// Lock interactable before getting box
+	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), lockedInteractableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x), oobHighlightBox(tile, highlight))
 }
 
 ////////////////////////////////////////////////////////////
@@ -133,7 +134,7 @@ func playerBox(tile *Tile) string {
 	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, tile.y, tile.x, playerIndicator)
 }
 
-func interactableBox(tile *Tile) string {
+func lockedInteractableBox(tile *Tile) string {
 	indicator := ""
 	//mutex
 	if tile.interactable != nil {

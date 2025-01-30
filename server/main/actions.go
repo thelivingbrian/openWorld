@@ -70,20 +70,21 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 }
 
 func (player *Player) activatePower() {
-	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
+	//tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
 
 	playerHighlights := highlightMapToSlice(player)
-	for _, tile := range playerHighlights {
-		tile.damageAll(50, player)
-		destroyFragileInteractable(tile, player)
-		tile.eventsInFlight.Add(1)
-		tilesToHighlight = append(tilesToHighlight, tile)
+	damageAndIndicate(playerHighlights, player, 50)
+	// for _, tile := range playerHighlights {
+	// 	tile.damageAll(50, player)
+	// 	destroyFragileInteractable(tile, player)
+	// 	tile.eventsInFlight.Add(1)
+	// 	tilesToHighlight = append(tilesToHighlight, tile)
 
-		go tile.tryToNotifyAfter(100)
-	}
-	damageBoxes := sliceOfTileToWeatherBoxes(tilesToHighlight, randomFieryColor())
-	player.stage.updateAll(damageBoxes)
-	updateOne(sliceOfTileToHighlightBoxes(tilesToHighlight, ""), player)
+	// 	go tile.tryToNotifyAfter(100)
+	// }
+	// damageBoxes := sliceOfTileToWeatherBoxes(tilesToHighlight, randomFieryColor())
+	// player.stage.updateAll(damageBoxes)
+	updateOne(sliceOfTileToHighlightBoxes(playerHighlights, ""), player)
 
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	if player.actions.spaceStack.hasPower() {

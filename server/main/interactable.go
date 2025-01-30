@@ -298,17 +298,21 @@ func hideByTeam(team string) func(*Interactable, *Player, *Tile) (*Interactable,
 		}
 		fmt.Println(stagename)
 		stage := p.fetchStageSync(stagename)
-		tiles, uncovered := sortWalkableTiles(stage.tiles)
-		if len(tiles) == 0 {
-			tiles = uncovered
-		}
-		placed := false
-		for !placed {
-			index := rand.Intn(len(tiles))
-			placed = trySetInteractable(tiles[index], i)
-		}
+		placeInteractableOnStagePriorityCovered(stage, i)
 
 		return nil, false
+	}
+}
+
+func placeInteractableOnStagePriorityCovered(stage *Stage, interactable *Interactable) {
+	tiles, uncovered := sortWalkableTiles(stage.tiles)
+	if len(tiles) == 0 {
+		tiles = uncovered
+	}
+	placed := false
+	for !placed {
+		index := rand.Intn(len(tiles))
+		placed = trySetInteractable(tiles[index], interactable)
 	}
 }
 
@@ -344,18 +348,70 @@ var catapultSouth = moveInitiatorPushSurrounding(11, 0)
 
 func makeDangerousForOtherTeam(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	initiatorTeam := p.getTeamNameSync()
+	dmg := 50
+	if i.name == "ring-big" {
+		dmg = 100
+	}
 	newReactions := []InteractableReaction{
-		InteractableReaction{ReactsWith: interactableIsNil, Reaction: eat},
 		InteractableReaction{
 			ReactsWith: playerHasTeam(oppositeTeamName(initiatorTeam)),
-			Reaction:   nil,
+			Reaction:   damageWithinRadiusAndReset(2, dmg, p.id),
 		},
+		InteractableReaction{ReactsWith: interactableIsNil, Reaction: eat},
 		InteractableReaction{ReactsWith: everything, Reaction: pass},
 	}
 	t.interactable.cssClass = initiatorTeam + "-b med r0"
 	t.interactable.reactions = newReactions
-	t.stage.updateAll(interactableBox(t))
+	t.stage.updateAll(lockedInteractableBox(t))
+	addMoneyToStage(t.stage, 10)
 	return nil, false
+}
+
+func addMoneyToStage(stage *Stage, amount int) {
+	walkableTiles := walkableTiles(stage.tiles)
+	n := rand.Intn(len(walkableTiles))
+	walkableTiles[n].addMoneyAndNotifyAll(amount)
+}
+
+func createRing() *Interactable {
+	n := rand.Intn(10)
+	if n == 0 {
+		bigring := Interactable{
+			name:     "ring-big",
+			cssClass: "gold-b thick r1",
+			pushable: true,
+		}
+		return &bigring
+	}
+	ring := Interactable{
+		name:     "ring-small",
+		cssClass: "gold-b med r1",
+		pushable: true,
+	}
+	return &ring
+}
+
+func damageWithinRadius(t *Tile, world *World, radius, dmg int, ownerId string) {
+	tiles := getTilesInRadius(t, radius)
+	trapSetter := world.getPlayerByName(ownerId)
+	if trapSetter != nil {
+		trapSetter.tangibilityLock.Lock()
+		defer trapSetter.tangibilityLock.Unlock()
+		if trapSetter.tangible {
+			damageAndIndicate(tiles, trapSetter, dmg)
+		}
+	}
+}
+
+func damageWithinRadiusAndReset(radius, dmg int, ownerId string) func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		go damageWithinRadius(t, p.world, radius, dmg, ownerId)
+		placeInteractableOnStagePriorityCovered(t.stage, createRing())
+		t.interactable.cssClass = "white trsp20 r0"
+		t.interactable.reactions = interactableReactions["lily-pad"]
+		t.stage.updateAll(lockedInteractableBox(t))
+		return nil, false
+	}
 }
 
 // Tutorial
@@ -387,9 +443,3 @@ func tutorial2HideAndNotify(i *Interactable, p *Player, t *Tile) (*Interactable,
 	p.updateBottomText("@[black holes|black] will absorb balls and spit them out elsewhere")
 	return nil, false
 }
-
-////////////////////////////////////////////////////////////
-// Reaction generators
-
-////////////////////////////////////////////////////////////////////////////
-// Rections
