@@ -414,6 +414,20 @@ func getVanNeumannNeighborsOfTile(tile *Tile) []*Tile {
 	return out
 }
 
+func getTilesInRadius(tile *Tile, r int) []*Tile {
+	out := make([]*Tile, 0)
+	for i := -r; i <= r; i++ {
+		for j := -r; j <= r; j++ {
+			y := tile.y + i
+			x := tile.x + j
+			if y >= 0 && y < len(tile.stage.tiles) && x >= 0 && x < len(tile.stage.tiles[y]) {
+				out = append(out, tile.stage.tiles[y][x])
+			}
+		}
+	}
+	return out
+}
+
 /////////////////////////////////////////////////////////////////
 // Observers / Item state
 

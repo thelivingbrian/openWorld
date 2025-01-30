@@ -76,6 +76,7 @@ func init() {
 		},
 		"lily-pad": []InteractableReaction{
 			InteractableReaction{ReactsWith: interactableIsNil, Reaction: eat},
+			InteractableReaction{ReactsWith: interactableIsARing, Reaction: makeDangerousForOtherTeam},
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
 	}
@@ -119,6 +120,15 @@ func matchesCssClass(cssClass string) func(*Interactable) bool {
 	}
 }
 
+func playerHasTeam(team string) func(*Interactable, *Player) bool {
+	return func(_ *Interactable, p *Player) bool {
+		if p == nil {
+			return false
+		}
+		return p.getTeamNameSync() == team
+	}
+}
+
 func interactableHasName(name string) func(*Interactable, *Player) bool {
 	return func(i *Interactable, _ *Player) bool {
 		if i == nil {
@@ -145,6 +155,27 @@ func interactableIsABall(i *Interactable, _ *Player) bool {
 		return false
 	}
 	return i.name[0:5] == "ball-"
+}
+
+func interactableIsARing(i *Interactable, _ *Player) bool {
+	if i == nil {
+		return false
+	}
+	if len(i.name) < 5 {
+		return false
+	}
+	fmt.Println("ring check", i.name)
+	return i.name[0:5] == "ring-"
+}
+
+func oppositeTeamName(team string) string {
+	if team == "sky-blue" {
+		return "fuchsia"
+	}
+	if team == "fuchsia" {
+		return "sky-blue"
+	}
+	return ""
 }
 
 func PlayerAndTeamMatchButDifferentBall(team string) func(*Interactable, *Player) bool {
@@ -237,8 +268,9 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 			return nil, false
 		}
 		p.world.leaderBoard.scoreboard.Increment(team)
-		scoreSkyBlue := p.world.leaderBoard.scoreboard.GetScore("sky-blue")
-		scoreFuchsia := p.world.leaderBoard.scoreboard.GetScore("fuchsia")
+		score := p.world.leaderBoard.scoreboard.GetScore(team)
+		oppositeTeamName := oppositeTeamName(team)
+		scoreOpposing := p.world.leaderBoard.scoreboard.GetScore(oppositeTeamName)
 		//fmt.Println(scoreSkyBlue)
 
 		totalGoals := p.incrementGoalsScored()
@@ -246,7 +278,7 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 			p.addHatByName("score-1-goal")
 		}
 		p.updateRecord()
-		message := fmt.Sprintf("@[%s|%s] scored a goal!<br /> The score is: @[Sky-blue %d|sky-blue] to @[Fuchsia %d|fuchsia]", p.username, team, scoreSkyBlue, scoreFuchsia)
+		message := fmt.Sprintf("@[%s|%s] scored a goal!<br /> The score is: @[%s %d|%s] to @[%s %d|%s]", p.username, team, team, score, team, oppositeTeamName, scoreOpposing, oppositeTeamName)
 		broadcastBottomText(p.world, message)
 
 		return hideByTeam(team)(i, p, t)
@@ -310,6 +342,22 @@ var catapultWest = moveInitiatorPushSurrounding(0, -11)
 var catapultNorth = moveInitiatorPushSurrounding(-11, 0)
 var catapultSouth = moveInitiatorPushSurrounding(11, 0)
 
+func makeDangerousForOtherTeam(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	initiatorTeam := p.getTeamNameSync()
+	newReactions := []InteractableReaction{
+		InteractableReaction{ReactsWith: interactableIsNil, Reaction: eat},
+		InteractableReaction{
+			ReactsWith: playerHasTeam(oppositeTeamName(initiatorTeam)),
+			Reaction:   nil,
+		},
+		InteractableReaction{ReactsWith: everything, Reaction: pass},
+	}
+	t.interactable.cssClass = initiatorTeam + "-b med r0"
+	t.interactable.reactions = newReactions
+	t.stage.updateAll(interactableBox(t))
+	return nil, false
+}
+
 // Tutorial
 func setTeamWildText(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	t.bottomText = teamColorWildRegex.ReplaceAllString(t.material.DisplayText, `@[$1|`+p.getTeamNameSync()+`]`)
@@ -339,3 +387,9 @@ func tutorial2HideAndNotify(i *Interactable, p *Player, t *Tile) (*Interactable,
 	p.updateBottomText("@[black holes|black] will absorb balls and spit them out elsewhere")
 	return nil, false
 }
+
+////////////////////////////////////////////////////////////
+// Reaction generators
+
+////////////////////////////////////////////////////////////////////////////
+// Rections
