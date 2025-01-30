@@ -115,29 +115,35 @@ func (tile *Tile) addLockedPlayertoTile(player *Player) {
 	tile.playerMutex.Lock()
 	defer tile.playerMutex.Unlock()
 
-	itemChange := false
+	// technically can race, e.g. with interactable reaction
 	if tile.bottomText != "" {
 		player.updateBottomText(tile.bottomText)
 	}
+	// new method
+	itemChange := false
+	tile.powerMutex.Lock()
+	tile.moneyMutex.Lock()
+	tile.boostsMutex.Lock()
 	if tile.powerUp != nil {
-		// This should be mutexed I think
 		powerUp := tile.powerUp
 		tile.powerUp = nil
 		player.actions.spaceStack.push(powerUp)
 		itemChange = true
 	}
 	if tile.money != 0 {
-		// I tex you tex
 		player.setMoney(player.money + tile.money)
 		tile.money = 0
 		itemChange = true
 	}
 	if tile.boosts > 0 {
-		// We all tex
 		player.addBoosts(tile.boosts)
 		tile.boosts = 0
 		itemChange = true
 	}
+	tile.powerMutex.Unlock()
+	tile.moneyMutex.Unlock()
+	tile.boostsMutex.Unlock()
+
 	if itemChange {
 		// locks with transfer across stages
 		go player.stage.updateAll(svgFromTile(tile))
@@ -445,12 +451,16 @@ func damageAndIndicate(tiles []*Tile, initiator *Player, damage int) {
 
 // / These need to get looked at (? mutex?)
 func (tile *Tile) addPowerUpAndNotifyAll(shape [][2]int) {
+	tile.powerMutex.Lock()
 	tile.powerUp = &PowerUp{shape}
+	tile.powerMutex.Unlock()
 	tile.stage.updateAll(svgFromTile(tile))
 }
 
 func (tile *Tile) addBoostsAndNotifyAll() {
+	tile.boostsMutex.Lock()
 	tile.boosts += 10
+	tile.boostsMutex.Unlock()
 	tile.stage.updateAll(svgFromTile(tile))
 }
 
