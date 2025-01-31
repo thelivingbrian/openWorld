@@ -82,7 +82,7 @@ func handleNewPlayer(player *Player) {
 		}
 
 		elapsedTime := time.Since(lastRead)
-		if elapsedTime <= 20*time.Millisecond {
+		if elapsedTime <= 40*time.Millisecond {
 			continue
 		}
 		lastRead = currentRead
