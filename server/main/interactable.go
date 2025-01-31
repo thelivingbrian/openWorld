@@ -401,7 +401,7 @@ func damageWithinRadiusAndReset(radius, dmg int, ownerId string) func(i *Interac
 	}
 }
 
-// not a reaction;will lock tile
+// not a reaction; will lock tile
 func damageWithinRadius(tile *Tile, world *World, radius, dmg int, ownerId string) {
 	tiles := getTilesInRadius(tile, radius)
 	trapSetter := world.getPlayerByName(ownerId)

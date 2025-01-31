@@ -159,7 +159,7 @@ func (tile *Tile) collectItemsForPlayer(player *Player) bool {
 		itemChange = true
 	}
 	if tile.boosts > 0 {
-		player.addBoosts(tile.boosts)
+		player.addBoostsAndUpdate(tile.boosts)
 		tile.boosts = 0
 		itemChange = true
 	}

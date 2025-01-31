@@ -126,12 +126,14 @@ func (stack *StackOfPowerUp) push(power *PowerUp) *StackOfPowerUp {
 
 //////////////////////////////////////////////////////
 // Boosts
-
 func (player *Player) addBoosts(n int) {
-	// new method
 	player.actions.boostMutex.Lock()
+	defer player.actions.boostMutex.Unlock()
 	player.actions.boostCounter += n
-	player.actions.boostMutex.Unlock()
+}
+
+func (player *Player) addBoostsAndUpdate(n int) {
+	player.addBoosts(n)
 	updateOne(divPlayerInformation(player), player)
 }
 

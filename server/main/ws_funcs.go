@@ -31,7 +31,7 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 	}
 	defer conn.Close()
 
-	token, success := getTokenFromFirstMessage(conn) // Pattern for input?
+	token, success := getTokenFromFirstMessage(conn)
 	if !success {
 		fmt.Println("Invalid Connection")
 		return
@@ -60,7 +60,6 @@ func handleNewPlayer(player *Player) {
 		if err != nil {
 			// After Exiting loop player is logged out
 			//   Add time delay to prevent rage quit ?
-			//   fmt.Println("Conn Read Error: ", err)
 			break
 		}
 		currentRead := time.Now()
@@ -76,7 +75,6 @@ func handleNewPlayer(player *Player) {
 			break
 		}
 
-		// Throttle input here?
 		if player.handlePressActive(event) {
 			lastRead = currentRead
 			time.Sleep(20 * time.Millisecond)
@@ -90,8 +88,6 @@ func handleNewPlayer(player *Player) {
 		lastRead = currentRead
 
 		player.handlePress(event, lastRead)
-		//time.Sleep(50 * time.Millisecond)
-
 	}
 }
 

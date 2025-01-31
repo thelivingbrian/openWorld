@@ -15,7 +15,7 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 	player.placeOnStage(testStage, 1, 4)
 
 	// Act
-	player.addBoosts(5)
+	player.addBoostsAndUpdate(5)
 	player.moveNorthBoost()
 
 	if player.stage.name != "hallway2" {
