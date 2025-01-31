@@ -94,7 +94,6 @@ func (player *Player) moveWestBoost() {
 }
 
 func (player *Player) move(yOffset int, xOffset int) {
-	//player.pushUnder(yOffset, xOffset)
 	sourceTile := player.getTileSync()
 	player.push(sourceTile, nil, yOffset, xOffset)
 	destTile := getRelativeTile(sourceTile, yOffset, xOffset, player)
@@ -106,10 +105,8 @@ func (player *Player) move(yOffset int, xOffset int) {
 
 func (player *Player) moveBoost(yOffset int, xOffset int) {
 	if player.useBoost() {
-		//player.pushUnder(2*yOffset, 2*xOffset)
 		player.move(2*yOffset, 2*xOffset)
 	} else {
-		// always push under ?
 		player.move(yOffset, xOffset)
 	}
 }
@@ -210,16 +207,6 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	return false
 }
 
-/*
-func (p *Player) pushUnder(yOffset int, xOffset int) {
-	currentTile := p.getTileSync()
-	// unlocked interactable
-	if currentTile != nil && currentTile.interactable != nil {
-		p.push(currentTile, nil, yOffset, xOffset)
-	}
-}
-*/
-
 func (p *Player) pushTeleport(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	if tile.teleport.rejectInteractable {
 		return false
@@ -247,10 +234,8 @@ func replaceNilInteractable(tile *Tile, incoming *Interactable) bool {
 }
 
 func setLockedInteractableAndUpdate(tile *Tile, incoming *Interactable) {
-	// if tile.interactable != incoming {
 	tile.interactable = incoming
 	tile.stage.updateAll(lockedInteractableBox(tile))
-	// }
 }
 
 func hasTeleport(tile *Tile) bool {
@@ -651,7 +636,7 @@ func (player *Player) getKillStreakSync() int {
 }
 
 func (player *Player) incrementKillStreak() {
-	// problem for traps
+	// could race with self ignoring an increment.
 	newStreak := player.getKillStreakSync() + 1
 	player.setKillStreakAndUpdate(newStreak)
 }

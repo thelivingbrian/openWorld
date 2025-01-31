@@ -40,7 +40,6 @@ func (c *Context) getBlueprint(w http.ResponseWriter, r *http.Request) {
 		panic("invalid space name")
 	}
 
-	// This is a problem for fragments
 	fragmentSet := queryValues.Get("fragment-set")
 	fragmentName := queryValues.Get("fragment")
 	if fragmentName != "" && fragmentSet != "" {
@@ -237,12 +236,8 @@ func (c *Context) areaFromProperties(properties map[string]string) *AreaDescript
 	if !ok {
 		panic("invalid space name")
 	}
-	area := getAreaByName(space.Areas, name)
-	// if area == nil {
-	// 	fmt.Println("Failed to find any area.")
-	// 	//panic("Invalid area")
-	// }
 
+	area := getAreaByName(space.Areas, name)
 	return area
 }
 

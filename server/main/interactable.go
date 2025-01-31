@@ -264,14 +264,13 @@ func destroyInRangeSkipingSelf(yMin, xMin, yMax, xMax int) func(*Interactable, *
 func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing *Interactable, ok bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 		if team != p.getTeamNameSync() {
-			fmt.Println("ERROR TEAM CHECK FAILED? ", p.getTeamNameSync(), team)
+			fmt.Println("ERROR TEAM CHECK FAILED - ", p.getTeamNameSync(), team)
 			return nil, false
 		}
 		p.world.leaderBoard.scoreboard.Increment(team)
 		score := p.world.leaderBoard.scoreboard.GetScore(team)
 		oppositeTeamName := oppositeTeamName(team)
 		scoreOpposing := p.world.leaderBoard.scoreboard.GetScore(oppositeTeamName)
-		//fmt.Println(scoreSkyBlue)
 
 		totalGoals := p.incrementGoalsScored()
 		if totalGoals == 1 {
@@ -391,6 +390,17 @@ func createRing() *Interactable {
 	return &ring
 }
 
+func damageWithinRadiusAndReset(radius, dmg int, ownerId string) func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		go damageWithinRadius(t, p.world, radius, dmg, ownerId) // damage can take interactable lock that is held by reacting tile
+		placeInteractableOnStagePriorityCovered(t.stage, createRing())
+		t.interactable.cssClass = "white trsp20 r0"
+		t.interactable.reactions = interactableReactions["lily-pad"]
+		t.stage.updateAll(lockedInteractableBox(t))
+		return nil, false
+	}
+}
+
 // not a reaction;will lock tile
 func damageWithinRadius(tile *Tile, world *World, radius, dmg int, ownerId string) {
 	tiles := getTilesInRadius(tile, radius)
@@ -401,17 +411,6 @@ func damageWithinRadius(tile *Tile, world *World, radius, dmg int, ownerId strin
 		if trapSetter.tangible {
 			damageAndIndicate(tiles, trapSetter, dmg)
 		}
-	}
-}
-
-func damageWithinRadiusAndReset(radius, dmg int, ownerId string) func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-		go damageWithinRadius(t, p.world, radius, dmg, ownerId) // damage can take interactable lock that is held by reacting tile
-		placeInteractableOnStagePriorityCovered(t.stage, createRing())
-		t.interactable.cssClass = "white trsp20 r0"
-		t.interactable.reactions = interactableReactions["lily-pad"]
-		t.stage.updateAll(lockedInteractableBox(t))
-		return nil, false
 	}
 }
 
