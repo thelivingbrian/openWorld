@@ -70,20 +70,9 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 }
 
 func (player *Player) activatePower() {
-	tilesToHighlight := make([]*Tile, 0, len(player.actions.spaceHighlights))
-
 	playerHighlights := highlightMapToSlice(player)
-	for _, tile := range playerHighlights {
-		tile.damageAll(50, player)
-		destroyFragileInteractable(tile, player)
-		tile.eventsInFlight.Add(1)
-		tilesToHighlight = append(tilesToHighlight, tile)
-
-		go tile.tryToNotifyAfter(100)
-	}
-	damageBoxes := sliceOfTileToWeatherBoxes(tilesToHighlight, randomFieryColor())
-	player.stage.updateAll(damageBoxes)
-	updateOne(sliceOfTileToHighlightBoxes(tilesToHighlight, ""), player)
+	damageAndIndicate(playerHighlights, player, 50)
+	updateOne(sliceOfTileToHighlightBoxes(playerHighlights, ""), player)
 
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	if player.actions.spaceStack.hasPower() {
@@ -108,7 +97,6 @@ func highlightMapToSlice(player *Player) []*Tile {
 }
 
 // Power up stack
-
 func (stack *StackOfPowerUp) pop() *PowerUp {
 	stack.powerMutex.Lock()
 	defer stack.powerMutex.Unlock()
@@ -138,10 +126,14 @@ func (stack *StackOfPowerUp) push(power *PowerUp) *StackOfPowerUp {
 
 //////////////////////////////////////////////////////
 // Boosts
-
 func (player *Player) addBoosts(n int) {
-	// not thread-safe
+	player.actions.boostMutex.Lock()
+	defer player.actions.boostMutex.Unlock()
 	player.actions.boostCounter += n
+}
+
+func (player *Player) addBoostsAndUpdate(n int) {
+	player.addBoosts(n)
 	updateOne(divPlayerInformation(player), player)
 }
 

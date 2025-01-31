@@ -115,35 +115,16 @@ func (tile *Tile) addLockedPlayertoTile(player *Player) {
 	tile.playerMutex.Lock()
 	defer tile.playerMutex.Unlock()
 
-	itemChange := false
+	// technically can race, e.g. with interactable reaction
 	if tile.bottomText != "" {
 		player.updateBottomText(tile.bottomText)
 	}
-	if tile.powerUp != nil {
-		// This should be mutexed I think
-		powerUp := tile.powerUp
-		tile.powerUp = nil
-		player.actions.spaceStack.push(powerUp)
-		itemChange = true
-	}
-	if tile.money != 0 {
-		// I tex you tex
-		player.setMoney(player.money + tile.money)
-		tile.money = 0
-		itemChange = true
-	}
-	if tile.boosts > 0 {
-		// We all tex
-		player.addBoosts(tile.boosts)
-		tile.boosts = 0
-		itemChange = true
-	}
-	if itemChange {
-		// locks with transfer across stages
-		go player.stage.updateAll(svgFromTile(tile))
+
+	if tile.collectItemsForPlayer(player) {
+		player.stage.updateAll(svgFromTile(tile))
 	}
 
-	// players tile lock should be held
+	// player's tile lock should be held
 	tile.playerMap[player.id] = player
 	player.tile = tile
 
@@ -152,10 +133,37 @@ func (tile *Tile) addLockedPlayertoTile(player *Player) {
 			player.menues["teleport"] = continueTeleporting(tile.teleport)
 			turnMenuOnByName(player, "teleport")
 		} else {
-			// new routine prevents deadlock // still needed ? test.
+			// new routine prevents deadlock
 			go player.applyTeleport(tile.teleport)
 		}
 	}
+}
+
+func (tile *Tile) collectItemsForPlayer(player *Player) bool {
+	itemChange := false
+	tile.powerMutex.Lock()
+	defer tile.powerMutex.Unlock()
+	tile.moneyMutex.Lock()
+	defer tile.moneyMutex.Unlock()
+	tile.boostsMutex.Lock()
+	defer tile.boostsMutex.Unlock()
+	if tile.powerUp != nil {
+		powerUp := tile.powerUp
+		tile.powerUp = nil
+		player.actions.spaceStack.push(powerUp)
+		itemChange = true
+	}
+	if tile.money != 0 {
+		player.setMoney(player.money + tile.money)
+		tile.money = 0
+		itemChange = true
+	}
+	if tile.boosts > 0 {
+		player.addBoostsAndUpdate(tile.boosts)
+		tile.boosts = 0
+		itemChange = true
+	}
+	return itemChange
 }
 
 func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
@@ -290,7 +298,7 @@ func destroyFragileInteractable(tile *Tile, _ *Player) {
 	defer tile.interactableMutex.Unlock()
 	if tile.interactable != nil && tile.interactable.fragile {
 		tile.interactable = nil
-		tile.stage.updateAll(interactableBox(tile))
+		tile.stage.updateAll(lockedInteractableBox(tile))
 	}
 }
 
@@ -300,7 +308,7 @@ func destroyInteractable(tile *Tile, _ *Player) {
 	defer tile.interactableMutex.Unlock()
 	if tile.interactable != nil {
 		tile.interactable = nil
-		tile.stage.updateAll(interactableBox(tile))
+		tile.stage.updateAll(lockedInteractableBox(tile))
 	}
 }
 
@@ -326,15 +334,10 @@ func walkable(tile *Tile) bool {
 	}
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
-
-	// why?
 	if tile.interactable == nil {
 		return tile.material.Walkable
 	} else {
-		// pushable must (?) be walkable to prevent blocking of players and interactables in corners
-		// non-pushable may still be walkable
-		//    except not really unless it blocks any other push?
-		return tile.interactable.pushable // || tile.interactable.walkable
+		return tile.interactable.pushable || tile.interactable.walkable
 	}
 }
 
@@ -395,17 +398,66 @@ func everyOtherTileOnStage(tile *Tile) []*Tile {
 	return out
 }
 
+func getVanNeumannNeighborsOfTile(tile *Tile) []*Tile {
+	out := make([]*Tile, 0)
+	for _, yOff := range []int{-1, 1} {
+		y := tile.y + yOff
+		x := tile.x
+		if y >= 0 && y < len(tile.stage.tiles) && x >= 0 && x < len(tile.stage.tiles[y]) {
+			out = append(out, tile.stage.tiles[y][x])
+		}
+	}
+	for _, xOff := range []int{-1, 1} {
+		y := tile.y
+		x := tile.x + xOff
+		if y >= 0 && y < len(tile.stage.tiles) && x >= 0 && x < len(tile.stage.tiles[y]) {
+			out = append(out, tile.stage.tiles[y][x])
+		}
+	}
+	return out
+}
+
+func getTilesInRadius(tile *Tile, r int) []*Tile {
+	out := make([]*Tile, 0)
+	for i := -r; i <= r; i++ {
+		for j := -r; j <= r; j++ {
+			y := tile.y + i
+			x := tile.x + j
+			if y >= 0 && y < len(tile.stage.tiles) && x >= 0 && x < len(tile.stage.tiles[y]) {
+				out = append(out, tile.stage.tiles[y][x])
+			}
+		}
+	}
+	return out
+}
+
+func damageAndIndicate(tiles []*Tile, initiator *Player, damage int) {
+	for _, tile := range tiles {
+		tile.damageAll(damage, initiator)
+		destroyFragileInteractable(tile, initiator)
+		tile.eventsInFlight.Add(1)
+
+		go tile.tryToNotifyAfter(100)
+	}
+	damageBoxes := sliceOfTileToWeatherBoxes(tiles, randomFieryColor())
+	initiator.stage.updateAll(damageBoxes)
+}
+
 /////////////////////////////////////////////////////////////////
 // Observers / Item state
 
 // / These need to get looked at (? mutex?)
 func (tile *Tile) addPowerUpAndNotifyAll(shape [][2]int) {
+	tile.powerMutex.Lock()
 	tile.powerUp = &PowerUp{shape}
+	tile.powerMutex.Unlock()
 	tile.stage.updateAll(svgFromTile(tile))
 }
 
 func (tile *Tile) addBoostsAndNotifyAll() {
+	tile.boostsMutex.Lock()
 	tile.boosts += 10
+	tile.boostsMutex.Unlock()
 	tile.stage.updateAll(svgFromTile(tile))
 }
 
@@ -415,7 +467,7 @@ func (tile *Tile) addMoneyAndNotifyAll(amount int) {
 
 func (tile *Tile) addMoneyAndNotifyAllExcept(amount int, player *Player) {
 	tile.moneyMutex.Lock()
-	defer tile.moneyMutex.Unlock()
 	tile.money += amount
+	tile.moneyMutex.Unlock()
 	tile.stage.updateAllExcept(svgFromTile(tile), player)
 }

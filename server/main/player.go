@@ -95,6 +95,7 @@ func (player *Player) moveWestBoost() {
 
 func (player *Player) move(yOffset int, xOffset int) {
 	sourceTile := player.getTileSync()
+	player.push(sourceTile, nil, yOffset, xOffset)
 	destTile := getRelativeTile(sourceTile, yOffset, xOffset, player)
 	player.push(destTile, nil, yOffset, xOffset)
 	if walkable(destTile) {
@@ -104,10 +105,8 @@ func (player *Player) move(yOffset int, xOffset int) {
 
 func (player *Player) moveBoost(yOffset int, xOffset int) {
 	if player.useBoost() {
-		player.pushUnder(2*yOffset, 2*xOffset)
 		player.move(2*yOffset, 2*xOffset)
 	} else {
-		// always push under ?
 		player.move(yOffset, xOffset)
 	}
 }
@@ -200,19 +199,12 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 		nextTile := getRelativeTile(tile, yOff, xOff, p)
 		if nextTile != nil {
 			if p.push(nextTile, tile.interactable, yOff, xOff) {
-				swapInteractableAndUpdate(tile, incoming)
+				setLockedInteractableAndUpdate(tile, incoming)
 				return true
 			}
 		}
 	}
 	return false
-}
-
-func (p *Player) pushUnder(yOffset int, xOffset int) {
-	currentTile := p.getTileSync()
-	if currentTile != nil && currentTile.interactable != nil {
-		p.push(currentTile, nil, yOffset, xOffset)
-	}
 }
 
 func (p *Player) pushTeleport(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
@@ -230,23 +222,20 @@ func (p *Player) pushTeleport(tile *Tile, incoming *Interactable, yOff, xOff int
 }
 
 func replaceNilInteractable(tile *Tile, incoming *Interactable) bool {
-	if tile.interactable != nil {
-		return false
+	if incoming == nil {
+		return true
 	}
-	if !tile.material.Walkable { // Prevents lock contention from using Walkable()
-		return false
+	if tile.material.Walkable { // Prevents lock contention from using Walkable()
+		setLockedInteractableAndUpdate(tile, incoming)
+		return true
 	}
-	swapInteractableAndUpdate(tile, incoming)
 
-	return true
+	return false
 }
 
-func swapInteractableAndUpdate(tile *Tile, incoming *Interactable) {
-	experiencedChange := tile.interactable != incoming
+func setLockedInteractableAndUpdate(tile *Tile, incoming *Interactable) {
 	tile.interactable = incoming
-	if experiencedChange {
-		tile.stage.updateAll(interactableBox(tile))
-	}
+	tile.stage.updateAll(lockedInteractableBox(tile))
 }
 
 func hasTeleport(tile *Tile) bool {
@@ -647,6 +636,7 @@ func (player *Player) getKillStreakSync() int {
 }
 
 func (player *Player) incrementKillStreak() {
+	// could race with self ignoring an increment.
 	newStreak := player.getKillStreakSync() + 1
 	player.setKillStreakAndUpdate(newStreak)
 }

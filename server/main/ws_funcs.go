@@ -31,7 +31,7 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 	}
 	defer conn.Close()
 
-	token, success := getTokenFromFirstMessage(conn) // Pattern for input?
+	token, success := getTokenFromFirstMessage(conn)
 	if !success {
 		fmt.Println("Invalid Connection")
 		return
@@ -54,14 +54,15 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 func handleNewPlayer(player *Player) {
 	defer initiatelogout(player)
 	fmt.Println("New Connection from: " + player.username)
+	lastRead := time.Unix(0, 0)
 	for {
 		_, msg, err := player.conn.ReadMessage()
 		if err != nil {
 			// After Exiting loop player is logged out
 			//   Add time delay to prevent rage quit ?
-			//   fmt.Println("Conn Read Error: ", err)
 			break
 		}
+		currentRead := time.Now()
 
 		event, success := getKeyPress(msg)
 		if !success {
@@ -74,12 +75,19 @@ func handleNewPlayer(player *Player) {
 			break
 		}
 
-		// Throttle input here?
-
-		player.handlePress(event)
-		if player.conn == nil {
-			return
+		if player.handlePressActive(event) {
+			lastRead = currentRead
+			time.Sleep(20 * time.Millisecond)
+			continue
 		}
+
+		elapsedTime := time.Since(lastRead)
+		if elapsedTime <= 20*time.Millisecond {
+			continue
+		}
+		lastRead = currentRead
+
+		player.handlePress(event, lastRead)
 	}
 }
 
@@ -119,7 +127,17 @@ func getKeyPress(input []byte) (event *PlayerSocketEvent, success bool) {
 	return event, true
 }
 
-func (player *Player) handlePress(event *PlayerSocketEvent) {
+func (player *Player) handlePressActive(event *PlayerSocketEvent) bool {
+	if event.Name == "Space-On" {
+		if player.actions.spaceStack.hasPower() {
+			player.activatePower()
+		}
+		return true
+	}
+	return false
+}
+
+func (player *Player) handlePress(event *PlayerSocketEvent, lastRead time.Time) {
 	if event.Name == "w" {
 		/*class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "twilight"</script> </div>`
 		updateOne(class, player)*/
@@ -195,11 +213,6 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 
 			}
 		*/
-	}
-	if event.Name == "Space-On" {
-		if player.actions.spaceStack.hasPower() {
-			player.activatePower()
-		}
 	}
 	if event.Name == "Shift-On" {
 		updateOne(divInputShift(), player)

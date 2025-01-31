@@ -17,6 +17,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var WAIT_DURATION = 100 * time.Millisecond
+
 func main() {
 	fmt.Println("Initializing...")
 	err := godotenv.Load()
@@ -72,6 +74,12 @@ func IntegrationClientBed(w http.ResponseWriter, r *http.Request) {
 	}
 	if action == "lr" {
 		socketAction = leftRight
+	}
+	if action == "movespace" {
+		socketAction = moveAndSpace
+	}
+	if action == "space" {
+		socketAction = spamSpace
 	}
 
 	tokens := requestTokens(stagename, count, team)
@@ -232,25 +240,25 @@ func moveRandomly(ts *TestingSocket, token string) {
 			if ts.tryWrite(createSocketEventMessage(token, "a")) != nil {
 				break
 			}
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(WAIT_DURATION)
 		}
 		if randn%4 == 1 {
 			if ts.tryWrite(createSocketEventMessage(token, "w")) != nil {
 				break
 			}
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(WAIT_DURATION)
 		}
 		if randn%4 == 2 {
 			if ts.tryWrite(createSocketEventMessage(token, "d")) != nil {
 				break
 			}
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(WAIT_DURATION)
 		}
 		if randn%4 == 3 {
 			if ts.tryWrite(createSocketEventMessage(token, "s")) != nil {
 				break
 			}
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(WAIT_DURATION)
 		}
 
 		if randn%250 == 0 {
@@ -261,27 +269,71 @@ func moveRandomly(ts *TestingSocket, token string) {
 	}
 }
 
+func moveAndSpace(ts *TestingSocket, token string) {
+	for {
+		randn := rand.Intn(5000)
+		if randn%4 == 0 {
+			if ts.tryWrite(createSocketEventMessage(token, "a")) != nil {
+				break
+			}
+			time.Sleep(WAIT_DURATION)
+		}
+		if randn%4 == 1 {
+			if ts.tryWrite(createSocketEventMessage(token, "w")) != nil {
+				break
+			}
+			time.Sleep(WAIT_DURATION)
+		}
+		if randn%4 == 2 {
+			if ts.tryWrite(createSocketEventMessage(token, "d")) != nil {
+				break
+			}
+			time.Sleep(WAIT_DURATION)
+		}
+		if randn%4 == 3 {
+			if ts.tryWrite(createSocketEventMessage(token, "s")) != nil {
+				break
+			}
+			time.Sleep(WAIT_DURATION)
+		}
+
+		if ts.tryWrite(createSocketEventMessage(token, "Space-On")) != nil {
+			break
+		}
+
+	}
+}
+
+func spamSpace(ts *TestingSocket, token string) {
+	for {
+		if ts.tryWrite(createSocketEventMessage(token, "Space-On")) != nil {
+			break
+		}
+		time.Sleep(WAIT_DURATION)
+	}
+}
+
 func moveInCircles(ts *TestingSocket, token string) {
 	for {
 		if ts.tryWrite(createSocketEventMessage(token, "w")) != nil {
 			break
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(WAIT_DURATION)
 
 		if ts.tryWrite(createSocketEventMessage(token, "a")) != nil {
 			break
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(WAIT_DURATION)
 
 		if ts.tryWrite(createSocketEventMessage(token, "s")) != nil {
 			break
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(WAIT_DURATION)
 
 		if ts.tryWrite(createSocketEventMessage(token, "d")) != nil {
 			break
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(WAIT_DURATION)
 	}
 }
 
@@ -290,31 +342,31 @@ func leftRight(ts *TestingSocket, token string) {
 		if ts.tryWrite(createSocketEventMessage(token, "d")) != nil {
 			break
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(WAIT_DURATION)
 
 		if ts.tryWrite(createSocketEventMessage(token, "d")) != nil {
 			break
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(WAIT_DURATION)
 
 		if ts.tryWrite(createSocketEventMessage(token, "d")) != nil {
 			break
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(WAIT_DURATION)
 
 		if ts.tryWrite(createSocketEventMessage(token, "a")) != nil {
 			break
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(WAIT_DURATION)
 
 		if ts.tryWrite(createSocketEventMessage(token, "a")) != nil {
 			break
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(WAIT_DURATION)
 
 		if ts.tryWrite(createSocketEventMessage(token, "a")) != nil {
 			break
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(WAIT_DURATION)
 	}
 }

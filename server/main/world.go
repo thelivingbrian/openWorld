@@ -60,6 +60,13 @@ func (world *World) removePlayer(p *Player) {
 	world.wPlayerMutex.Unlock()
 }
 
+func (world *World) getPlayerByName(id string) *Player {
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	player, _ := world.worldPlayers[id]
+	return player
+}
+
 //////////////////////////////////////////////////
 //  Log in
 

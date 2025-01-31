@@ -54,7 +54,8 @@ func htmlFromTileGrid(tiles [][]*Tile, py, px int, highlights map[*Tile]bool) []
 func htmlForTile(tile *Tile, highlight string) string {
 	svgtag := svgFromTile(tile)
 	// grab tile y and x only once here or in parent method?
-	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x), oobHighlightBox(tile, highlight))
+	// Lock interactable before getting box
+	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), lockedInteractableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x), oobHighlightBox(tile, highlight))
 }
 
 ////////////////////////////////////////////////////////////
@@ -67,6 +68,7 @@ func divPlayerInformation(player *Player) string {
 	</div>`
 }
 
+// needs improvement
 func playerInformation(player *Player) string {
 	hearts := getHeartsFromHealth(player.getHealthSync())
 	return fmt.Sprintf(`%s %s<br /><span class="red">Streak %d</span> | <span class="blue">^ %d</span>  | <span class="dark-green">$ %d</span>`, player.username, hearts, player.getKillStreakSync(), player.actions.boostCounter, player.money)
@@ -133,7 +135,7 @@ func playerBox(tile *Tile) string {
 	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, tile.y, tile.x, playerIndicator)
 }
 
-func interactableBox(tile *Tile) string {
+func lockedInteractableBox(tile *Tile) string {
 	indicator := ""
 	//mutex
 	if tile.interactable != nil {
@@ -194,6 +196,12 @@ func weatherBox(tile *Tile, cssClass string) string {
 }
 
 func svgFromTile(tile *Tile) string {
+	tile.powerMutex.Lock()
+	defer tile.powerMutex.Unlock()
+	tile.moneyMutex.Lock()
+	defer tile.moneyMutex.Unlock()
+	tile.boostsMutex.Lock()
+	defer tile.boostsMutex.Unlock()
 	svgtag := `<div id="%s" class="box zs">`
 	if tile.powerUp != nil || tile.money != 0 || tile.boosts != 0 {
 		svgtag += `<svg width="22" height="22">`

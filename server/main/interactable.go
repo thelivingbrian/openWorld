@@ -8,6 +8,7 @@ import (
 type Interactable struct {
 	name           string
 	pushable       bool
+	walkable       bool
 	cssClass       string
 	fragile        bool
 	reactions      []InteractableReaction // Lowest index match wins
@@ -56,6 +57,28 @@ func init() {
 		"set-team-wild-text-and-delete": []InteractableReaction{
 			InteractableReaction{ReactsWith: interactableIsNil, Reaction: setTeamWildText},
 		},
+		// machines :
+		"catapult-west": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultWest},
+			InteractableReaction{ReactsWith: everything, Reaction: pass},
+		},
+		"catapult-north": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultNorth},
+			InteractableReaction{ReactsWith: everything, Reaction: pass},
+		},
+		"catapult-south": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultSouth},
+			InteractableReaction{ReactsWith: everything, Reaction: pass},
+		},
+		"catapult-east": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultEast},
+			InteractableReaction{ReactsWith: everything, Reaction: pass},
+		},
+		"lily-pad": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: eat},
+			InteractableReaction{ReactsWith: interactableIsARing, Reaction: makeDangerousForOtherTeam},
+			InteractableReaction{ReactsWith: everything, Reaction: pass},
+		},
 	}
 
 }
@@ -97,6 +120,15 @@ func matchesCssClass(cssClass string) func(*Interactable) bool {
 	}
 }
 
+func playerHasTeam(team string) func(*Interactable, *Player) bool {
+	return func(_ *Interactable, p *Player) bool {
+		if p == nil {
+			return false
+		}
+		return p.getTeamNameSync() == team
+	}
+}
+
 func interactableHasName(name string) func(*Interactable, *Player) bool {
 	return func(i *Interactable, _ *Player) bool {
 		if i == nil {
@@ -123,6 +155,27 @@ func interactableIsABall(i *Interactable, _ *Player) bool {
 		return false
 	}
 	return i.name[0:5] == "ball-"
+}
+
+func interactableIsARing(i *Interactable, _ *Player) bool {
+	if i == nil {
+		return false
+	}
+	if len(i.name) < 5 {
+		return false
+	}
+	fmt.Println("ring check", i.name)
+	return i.name[0:5] == "ring-"
+}
+
+func oppositeTeamName(team string) string {
+	if team == "sky-blue" {
+		return "fuchsia"
+	}
+	if team == "fuchsia" {
+		return "sky-blue"
+	}
+	return ""
 }
 
 func PlayerAndTeamMatchButDifferentBall(team string) func(*Interactable, *Player) bool {
@@ -211,19 +264,20 @@ func destroyInRangeSkipingSelf(yMin, xMin, yMax, xMax int) func(*Interactable, *
 func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing *Interactable, ok bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 		if team != p.getTeamNameSync() {
-			fmt.Println("ERROR TEAM CHECK FAILED? ", p.getTeamNameSync(), team)
+			fmt.Println("ERROR TEAM CHECK FAILED - ", p.getTeamNameSync(), team)
 			return nil, false
 		}
 		p.world.leaderBoard.scoreboard.Increment(team)
 		score := p.world.leaderBoard.scoreboard.GetScore(team)
-		fmt.Println(score)
+		oppositeTeamName := oppositeTeamName(team)
+		scoreOpposing := p.world.leaderBoard.scoreboard.GetScore(oppositeTeamName)
 
 		totalGoals := p.incrementGoalsScored()
 		if totalGoals == 1 {
 			p.addHatByName("score-1-goal")
 		}
 		p.updateRecord()
-		message := fmt.Sprintf("@[%s|%s] has scored a goal! @[Team %s|%s] now has @[%d|%s] points!", p.username, team, team, team, score, team)
+		message := fmt.Sprintf("@[%s|%s] scored a goal!<br /> The score is: @[%s %d|%s] to @[%s %d|%s]", p.username, team, team, score, team, oppositeTeamName, scoreOpposing, oppositeTeamName)
 		broadcastBottomText(p.world, message)
 
 		return hideByTeam(team)(i, p, t)
@@ -243,24 +297,127 @@ func hideByTeam(team string) func(*Interactable, *Player, *Tile) (*Interactable,
 		}
 		fmt.Println(stagename)
 		stage := p.fetchStageSync(stagename)
-		tiles, uncovered := sortWalkableTiles(stage.tiles)
-		if len(tiles) == 0 {
-			tiles = uncovered
-		}
-		placed := false
-		for !placed {
-			index := rand.Intn(len(tiles))
-			placed = trySetInteractable(tiles[index], i)
-		}
+		placeInteractableOnStagePriorityCovered(stage, i)
 
 		return nil, false
+	}
+}
+
+func placeInteractableOnStagePriorityCovered(stage *Stage, interactable *Interactable) {
+	tiles, uncovered := sortWalkableTiles(stage.tiles)
+	if len(tiles) == 0 {
+		tiles = uncovered
+	}
+	placed := false
+	for !placed {
+		index := rand.Intn(len(tiles))
+		placed = trySetInteractable(tiles[index], interactable)
+	}
+}
+
+////////////////////////////////////////////////////////////////
+// machines
+
+func moveInitiator(yOff, xOff int) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		p.move(yOff, xOff)
+		return i, true
+	}
+}
+
+var superBoostEast = moveInitiator(0, 11)
+var superBoostWest = moveInitiator(0, -11)
+var superBoostNorth = moveInitiator(-11, 0)
+var superBoostSouth = moveInitiator(11, 0)
+
+func moveInitiatorPushSurrounding(yOff, xOff int) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		for _, tile := range getVanNeumannNeighborsOfTile(t) {
+			p.push(tile, nil, yOff, xOff)
+		}
+		p.move(yOff, xOff)
+		return nil, false
+	}
+}
+
+var catapultEast = moveInitiatorPushSurrounding(0, 11)
+var catapultWest = moveInitiatorPushSurrounding(0, -11)
+var catapultNorth = moveInitiatorPushSurrounding(-11, 0)
+var catapultSouth = moveInitiatorPushSurrounding(11, 0)
+
+func makeDangerousForOtherTeam(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	initiatorTeam := p.getTeamNameSync()
+	dmg := 50
+	if i.name == "ring-big" {
+		dmg = 100
+	}
+	newReactions := []InteractableReaction{
+		InteractableReaction{
+			ReactsWith: playerHasTeam(oppositeTeamName(initiatorTeam)),
+			Reaction:   damageWithinRadiusAndReset(2, dmg, p.id),
+		},
+		InteractableReaction{ReactsWith: interactableIsNil, Reaction: eat},
+		InteractableReaction{ReactsWith: everything, Reaction: pass},
+	}
+	t.interactable.cssClass = initiatorTeam + "-b thick r0"
+	t.interactable.reactions = newReactions
+	t.stage.updateAll(lockedInteractableBox(t))
+	addMoneyToStage(t.stage, 10) // should be more money
+	return nil, false
+}
+
+func addMoneyToStage(stage *Stage, amount int) {
+	walkableTiles := walkableTiles(stage.tiles)
+	n := rand.Intn(len(walkableTiles))
+	walkableTiles[n].addMoneyAndNotifyAll(amount)
+}
+
+func createRing() *Interactable {
+	n := rand.Intn(10)
+	if n == 0 {
+		bigring := Interactable{
+			name:     "ring-big",
+			cssClass: "gold-b thick r1",
+			pushable: true,
+		}
+		return &bigring
+	}
+	ring := Interactable{
+		name:     "ring-small",
+		cssClass: "gold-b med r1",
+		pushable: true,
+	}
+	return &ring
+}
+
+func damageWithinRadiusAndReset(radius, dmg int, ownerId string) func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		go damageWithinRadius(t, p.world, radius, dmg, ownerId) // damage can take interactable lock that is held by reacting tile
+		placeInteractableOnStagePriorityCovered(t.stage, createRing())
+		t.interactable.cssClass = "white trsp20 r0"
+		t.interactable.reactions = interactableReactions["lily-pad"]
+		t.stage.updateAll(lockedInteractableBox(t))
+		return nil, false
+	}
+}
+
+// not a reaction; will lock tile
+func damageWithinRadius(tile *Tile, world *World, radius, dmg int, ownerId string) {
+	tiles := getTilesInRadius(tile, radius)
+	trapSetter := world.getPlayerByName(ownerId)
+	if trapSetter != nil {
+		trapSetter.tangibilityLock.Lock()
+		defer trapSetter.tangibilityLock.Unlock()
+		if trapSetter.tangible {
+			damageAndIndicate(tiles, trapSetter, dmg)
+		}
 	}
 }
 
 // Tutorial
 func setTeamWildText(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	t.bottomText = teamColorWildRegex.ReplaceAllString(t.material.DisplayText, `@[$1|`+p.getTeamNameSync()+`]`)
-	swapInteractableAndUpdate(t, nil)
+	setLockedInteractableAndUpdate(t, nil)
 	return nil, true
 }
 

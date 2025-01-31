@@ -109,10 +109,10 @@ func TestSurroundedPushableSquare(t *testing.T) {
 
 	// Assert - Exact positions are known
 	if testStage.tiles[14][2].interactable == nil ||
+		testStage.tiles[2][7].interactable == nil ||
 		testStage.tiles[3][7].interactable == nil ||
-		testStage.tiles[4][9].interactable == nil ||
-		testStage.tiles[5][7].interactable == nil ||
-		testStage.tiles[5][8].interactable == nil {
+		testStage.tiles[3][8].interactable == nil ||
+		testStage.tiles[4][6].interactable == nil {
 		t.Error("Final state of test-walls-interactable does not have correct 5 interactables")
 	}
 }

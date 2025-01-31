@@ -270,11 +270,7 @@ One way or two way.
 
 -goals:
 
-x - Expose endpoint that returns world player count and player count by team 
-
-x - Tidy Up sandy world 
-
-x - improve goal scoring experience 
+- add sound fx
 
 type []byte(update) 100 times
 
