@@ -139,8 +139,10 @@ func (player *Player) handlePressActive(event *PlayerSocketEvent) bool {
 
 func (player *Player) handlePress(event *PlayerSocketEvent, lastRead time.Time) {
 	if event.Name == "w" {
-		/*class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "twilight"</script> </div>`
-		updateOne(class, player)*/
+		// class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "twilight"</script> </div>`
+		// updateOne(class, player)
+		// class2 := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "night"</script> </div>`
+		// updateOne(class2, player)
 		player.moveNorth()
 	}
 	if event.Name == "a" {

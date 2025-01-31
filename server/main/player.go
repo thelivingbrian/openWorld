@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"log"
@@ -319,12 +318,12 @@ func infirmaryStagenameForPlayer(player *Player) string {
 //   Updates
 
 func (player *Player) sendUpdates() {
-	var buffer bytes.Buffer
-	const maxBufferSize = 256 * 1024
+	// var buffer bytes.Buffer
+	// const maxBufferSize = 256 * 1024
 
 	shouldSendUpdates := true
-	ticker := time.NewTicker(25 * time.Millisecond)
-	defer ticker.Stop()
+	// ticker := time.NewTicker(25 * time.Millisecond)
+	// defer ticker.Stop()
 	for {
 		select {
 		case update, ok := <-player.updates:
@@ -335,30 +334,36 @@ func (player *Player) sendUpdates() {
 			if !shouldSendUpdates {
 				continue
 			}
-
-			if buffer.Len()+len(update) < maxBufferSize {
-				// Accumulate the update in the buffer.
-				buffer.Write(update)
-			} else {
-				// Has not occurred - nice to check anyway ?
-				fmt.Printf("Player: %s - buffer exceeded %d bytes, wiping buffer\n", player.username, maxBufferSize)
-				buffer.Reset()
-			}
-		case <-player.clearUpdateBuffer:
-			buffer.Reset()
-		case <-ticker.C:
-			if !shouldSendUpdates || buffer.Len() == 0 {
-				continue
-			}
-			// Every 25ms, if there's anything in the buffer, send it.
-			err := sendUpdate(player, buffer.Bytes())
+			err := sendUpdate(player, update)
 			if err != nil {
 				//fmt.Println("Error - Stopping furture sends: ", err)
 				shouldSendUpdates = false
 				player.closeConnectionSync()
 			}
 
-			buffer.Reset()
+			// if buffer.Len()+len(update) < maxBufferSize {
+			// 	// Accumulate the update in the buffer.
+			// 	buffer.Write(update)
+			// } else {
+			// 	// Has not occurred - nice to check anyway ?
+			// 	fmt.Printf("Player: %s - buffer exceeded %d bytes, wiping buffer\n", player.username, maxBufferSize)
+			// 	buffer.Reset()
+			// }
+			// case <-player.clearUpdateBuffer:
+			// 	buffer.Reset()
+			// case <-ticker.C:
+			// 	if !shouldSendUpdates || buffer.Len() == 0 {
+			// 		continue
+			// 	}
+			// 	// Every 25ms, if there's anything in the buffer, send it.
+			// 	err := sendUpdate(player, buffer.Bytes())
+			// 	if err != nil {
+			// 		//fmt.Println("Error - Stopping furture sends: ", err)
+			// 		shouldSendUpdates = false
+			// 		player.closeConnectionSync()
+			// 	}
+
+			// 	buffer.Reset()
 		}
 	}
 }
