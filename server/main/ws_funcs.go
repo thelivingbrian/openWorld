@@ -138,117 +138,58 @@ func (player *Player) handlePressActive(event *PlayerSocketEvent) bool {
 }
 
 func (player *Player) handlePress(event *PlayerSocketEvent, lastRead time.Time) {
-	if event.Name == "w" {
+	switch event.Name {
+	case "w":
 		// class := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "twilight"</script> </div>`
 		// updateOne(class, player)
 		// class2 := `<div id="script" hx-swap-oob="true"> <script>document.body.className = "night"</script> </div>`
 		// updateOne(class2, player)
 		player.moveNorth()
-	}
-	if event.Name == "a" {
+	case "a":
 		player.moveWest()
-	}
-	if event.Name == "s" {
+	case "s":
 		player.moveSouth()
-	}
-	if event.Name == "d" {
+	case "d":
 		player.moveEast()
-	}
-	if event.Name == "W" {
+	case "W":
 		player.moveNorthBoost()
-	}
-	if event.Name == "A" {
+	case "A":
 		player.moveWestBoost()
-	}
-	if event.Name == "S" {
+	case "S":
 		player.moveSouthBoost()
-	}
-	if event.Name == "D" {
+	case "D":
 		player.moveEastBoost()
-	}
-	if event.Name == "f" {
+	case "f":
 		updateScreenFromScratch(player)
-	}
-	if event.Name == "g" {
-
-		//panic("panic button")
-
+	case "g":
 		// go func() {
 		// 	for i := 0; i <= 80; i++ {
 		// 		time.Sleep(20 * time.Millisecond)
 		// 		updateOne(generateDivs(i), player)
 		// 	}
 		// }()
-
-		//stage := getStageFromStageName(player.world, "team-blue:3-3")
-		//stage.addPlayer(player)
-
-		//fmt.Println(len(player.stage.playerMap), len(player.tile.stage.playerMap))
-
-		// <div id="sound-trigger" hx-swap-oob="true">pop</div>
-
-		// script := `<div id="script" hx-swap-oob="true">
-		//  <script>
-		//     playSound('pop')
-		//  </script>
-		//  </div>`
 		script := `<div id="sound">pop</div>`
 		updateOne(script, player)
-
-		//player.cycleHats()
-		//spawnNewPlayerWithRandomMovement(player, 250)
-		//player.updateBottomText("clear")
-
-		//updateOne(generateWeatherSolid("blue trsp20"), player)
-		//player.updates <- generateWeatherSolidBytes("night trsp20")
-
-		/*
-			trsp := []string{"trsp20", "trsp40", "trsp60", "trsp80"}
-			for _, t := range trsp {
-				d := time.Duration(75)
-				player.updates <- generateWeatherDynamic(twoColorParity("red", "pink", t))
-				time.Sleep(d * time.Millisecond)
-				player.updates <- generateWeatherDynamic(twoColorParity("pink", "red", t))
-				time.Sleep(d * time.Millisecond)
-				player.updates <- generateWeatherDynamic(twoColorParity("green", "grass", t))
-				time.Sleep(d * time.Millisecond)
-				player.updates <- generateWeatherDynamic(twoColorParity("grass", "green", t))
-				time.Sleep(d * time.Millisecond)
-				player.updates <- generateWeatherDynamic(twoColorParity("blue", "ice", t))
-				time.Sleep(d * time.Millisecond)
-				player.updates <- generateWeatherDynamic(twoColorParity("ice", "blue", t))
-				time.Sleep(d * time.Millisecond)
-				player.updates <- generateWeatherDynamic(twoColorParity("black", "half-gray", t))
-				time.Sleep(d * time.Millisecond)
-				player.updates <- generateWeatherDynamic(twoColorParity("half-gray", "black", t))
-				time.Sleep(d * time.Millisecond)
-
-			}
-		*/
-	}
-	if event.Name == "Shift-On" {
+	case "h":
+		player.cycleHats()
+	case "Shift-On":
 		updateOne(divInputShift(), player)
-	}
-	if event.Name == "Shift-Off" {
+	case "Shift-Off":
 		updateOne(divInput(), player)
-	}
-	if event.Name == "menuOn" {
+	case "menuOn":
 		openPauseMenu(player)
-	}
-	if event.Name == "menuOff" {
+	case "menuOff":
 		turnMenuOff(player)
-	}
-	if event.Name == "menuDown" {
+	case "menuDown":
 		menuDown(player, *event)
-	}
-	if event.Name == "menuUp" {
+	case "menuUp":
 		menuUp(player, *event)
-	}
-	if event.Name == "menuClick" {
-		menu, ok := player.menues[event.MenuName]
-		if ok {
+	case "menuClick":
+		if menu, ok := player.menues[event.MenuName]; ok {
 			menu.attemptClick(player, *event)
 		}
+	default:
+		// Unrecognized input
 	}
 }
 
