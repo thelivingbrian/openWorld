@@ -24,6 +24,10 @@ html {
     visibility: hidden;
 }
 
+.invisible {
+    display: none;
+}
+
 body {
     /*
     Sunset: #ef693c;

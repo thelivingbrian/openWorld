@@ -185,7 +185,17 @@ func (player *Player) handlePress(event *PlayerSocketEvent, lastRead time.Time) 
 
 		//fmt.Println(len(player.stage.playerMap), len(player.tile.stage.playerMap))
 
-		player.cycleHats()
+		// <div id="sound-trigger" hx-swap-oob="true">pop</div>
+
+		// script := `<div id="script" hx-swap-oob="true">
+		//  <script>
+		//     playSound('pop')
+		//  </script>
+		//  </div>`
+		script := `<div id="sound">pop</div>`
+		updateOne(script, player)
+
+		//player.cycleHats()
 		//spawnNewPlayerWithRandomMovement(player, 250)
 		//player.updateBottomText("clear")
 
