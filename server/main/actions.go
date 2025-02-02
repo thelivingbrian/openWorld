@@ -72,7 +72,7 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 func (player *Player) activatePower() {
 	playerHighlights := highlightMapToSlice(player)
 	damageAndIndicate(playerHighlights, player, 50)
-	sendSoundToPlayer(player, "explosion")
+	player.getStageSync().updateAll(soundTriggerByName("explosion"))
 	updateOne(sliceOfTileToHighlightBoxes(playerHighlights, ""), player)
 
 	//player.actions.spaceHighlights = map[*Tile]bool{}

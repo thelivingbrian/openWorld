@@ -2,13 +2,16 @@
 // Sound
 
 const sounds = {
-    "pop": new Audio("/assets/sounds/pop-death.mp3"),
+    "pop-death": new Audio("/assets/sounds/pop-death.mp3"),
     "money": new Audio("/assets/sounds/money.mp3"),
     "power-up-boost": new Audio("/assets/sounds/power-up-boost.mp3"),
     "power-up-space": new Audio("/assets/sounds/power-up-space.mp3"),
     "teleport": new Audio("/assets/sounds/teleport.mp3"),
     "explosion": new Audio("/assets/sounds/explosion.mp3"),
     "huge-explosion": new Audio("/assets/sounds/huge-explosion.mp3"),
+    "wind-swoosh": new Audio("/assets/sounds/wind-swoosh.mp3"),
+    "woody-swoosh": new Audio("/assets/sounds/woody-swoosh.mp3"),
+    "water-splash": new Audio("/assets/sounds/water-splash.mp3"),
     //success: new Audio("/static/success.mp3"),
 };
 

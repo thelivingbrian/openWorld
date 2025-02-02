@@ -257,7 +257,11 @@ func canBeTeleported(interactable *Interactable) bool {
 // Death
 
 func handleDeath(player *Player) {
-	player.getTileSync().addMoneyAndNotifyAllExcept(max(halveMoneyOf(player), 10), player)
+	tile := player.getTileSync()
+	tile.addMoneyAndNotifyAllExcept(max(halveMoneyOf(player), 10), player)
+	pop := soundTriggerByName("pop-death")
+	tile.stage.updateAllExcept(pop, player)
+	sendSoundToPlayer(player, pop)
 	removeFromTileAndStage(player) // After this should be impossible for any transfer to succeed
 	player.incrementDeathCount()
 	player.setHealth(150)
@@ -471,8 +475,12 @@ func (player *Player) updatePlayerTile() {
 }
 
 func sendSoundToPlayer(player *Player, soundName string) {
-	trigger := fmt.Sprintf(`<div id="sound">%s</div>`, soundName)
-	updateOne(trigger, player)
+	updateOne(soundTriggerByName(soundName), player)
+}
+
+func soundTriggerByName(soundName string) string {
+	return fmt.Sprintf(`<div id="sound">%s</div>`, soundName)
+
 }
 
 // chan Update

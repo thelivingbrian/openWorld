@@ -75,7 +75,7 @@ func init() {
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
 		"lily-pad": []InteractableReaction{
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: eat},
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: playSoundForInitiator("water-splash")},
 			InteractableReaction{ReactsWith: interactableIsARing, Reaction: makeDangerousForOtherTeam},
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
@@ -195,6 +195,13 @@ func eat(*Interactable, *Player, *Tile) (*Interactable, bool) {
 
 func pass(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	return i, true
+}
+
+func playSoundForInitiator(soundName string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		sendSoundToPlayer(p, soundName)
+		return nil, false
+	}
 }
 
 // Spawn and destroy
@@ -336,6 +343,8 @@ func moveInitiatorPushSurrounding(yOff, xOff int) func(*Interactable, *Player, *
 			p.push(tile, nil, yOff, xOff)
 		}
 		p.move(yOff, xOff)
+		sendSoundToPlayer(p, "wind-swoosh")
+		t.stage.updateAllExcept(soundTriggerByName("woody-swoosh"), p)
 		return nil, false
 	}
 }
