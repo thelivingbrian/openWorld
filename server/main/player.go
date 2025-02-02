@@ -284,7 +284,7 @@ func respawnOnStage(player *Player, stage *Stage) {
 	}
 
 	placePlayerOnStageAt(player, stage, 2, 2)
-	player.updateInformation()
+	player.updatePlayerInformation()
 }
 
 func removeFromTileAndStage(player *Player) {
@@ -458,10 +458,15 @@ func (player *Player) updateBottomText(message string) {
 	updateOne(msg, player)
 }
 
-func (player *Player) updateInformation() {
+func (player *Player) updatePlayerInformation() {
 	icon := player.setIcon()
 	tile := player.getTileSync()
 	updateOne(divPlayerInformation(player)+playerBoxSpecifc(tile.y, tile.x, icon), player)
+}
+
+func sendSoundToPlayer(player *Player, soundName string) {
+	trigger := fmt.Sprintf(`<div id="sound">%d</div>`, soundName)
+	updateOne(trigger, player)
 }
 
 // chan Update
@@ -542,13 +547,13 @@ func (player *Player) addHatByName(hatName string) {
 		return
 	}
 	player.world.db.addHatToPlayer(player.username, *hat)
-	player.updateInformation()
+	player.updatePlayerInformation()
 	return
 }
 
 func (player *Player) cycleHats() {
 	player.hatList.nextValid()
-	player.updateInformation()
+	player.updatePlayerInformation()
 	tile := player.getTileSync()
 	tile.stage.updateAllExcept(playerBox(tile), player)
 	return

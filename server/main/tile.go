@@ -250,7 +250,7 @@ func damagePlayerAndHandleDeath(player *Player, dmg int) bool {
 	if fatal {
 		handleDeath(player)
 	} else {
-		player.updateInformation()
+		player.updatePlayerInformation()
 	}
 	return fatal
 }

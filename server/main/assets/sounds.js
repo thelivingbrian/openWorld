@@ -5,7 +5,6 @@ const sounds = {
 };
 
 function playSound(soundName) {
-    console.log("playing" + soundName);
     const sound = sounds[soundName]; // Look up the sound by name
     if (sound) {
         sound.currentTime = 0; // Reset if already playing

@@ -168,10 +168,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent, lastRead time.Time) 
 		// 		updateOne(generateDivs(i), player)
 		// 	}
 		// }()
-		script := `<div id="sound">pop</div>`
-		updateOne(script, player)
-		script2 := `<div id="sound">money</div>`
-		updateOne(script2, player)
+		sendSoundToPlayer(player, "pop")
 	case "h":
 		player.cycleHats()
 	case "Shift-On":
