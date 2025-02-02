@@ -465,8 +465,13 @@ func (player *Player) updatePlayerInformation() {
 }
 
 func sendSoundToPlayer(player *Player, soundName string) {
-	trigger := fmt.Sprintf(`<div id="sound">%d</div>`, soundName)
+	trigger := fmt.Sprintf(`<div id="sound">%s</div>`, soundName)
 	updateOne(trigger, player)
+}
+
+func updatePageBackgroundColor(player *Player, bgColor string) {
+	script := fmt.Sprintf(`<div id="script"><script>document.body.className="%s"</script></div>`, bgColor)
+	updateOne(script, player)
 }
 
 // chan Update
