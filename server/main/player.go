@@ -118,6 +118,7 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	}
 	// Is using getTileSync a risk with the menu teleport authorizer?
 	transferPlayer(player, player.getTileSync(), stage.tiles[teleport.destY][teleport.destX])
+	sendSoundToPlayer(player, "teleport")
 }
 
 // Atomic Transfers
@@ -272,7 +273,7 @@ func handleDeath(player *Player) {
 func halveMoneyOf(player *Player) int {
 	currentMoney := player.getMoneySync()
 	newValue := currentMoney / 2
-	player.setMoney(newValue)
+	player.setMoneyAndUpdate(newValue)
 	return newValue
 }
 
@@ -284,7 +285,7 @@ func respawnOnStage(player *Player, stage *Stage) {
 	}
 
 	placePlayerOnStageAt(player, stage, 2, 2)
-	player.updatePlayerInformation()
+	player.updatePlayerHud()
 }
 
 func removeFromTileAndStage(player *Player) {
@@ -458,10 +459,15 @@ func (player *Player) updateBottomText(message string) {
 	updateOne(msg, player)
 }
 
-func (player *Player) updatePlayerInformation() {
+func (player *Player) updatePlayerHud() {
+	player.updatePlayerTile()
+	updateOne(divPlayerInformation(player), player)
+}
+
+func (player *Player) updatePlayerTile() {
 	icon := player.setIcon()
 	tile := player.getTileSync()
-	updateOne(divPlayerInformation(player)+playerBoxSpecifc(tile.y, tile.x, icon), player)
+	updateOne(playerBoxSpecifc(tile.y, tile.x, icon), player)
 }
 
 func sendSoundToPlayer(player *Player, soundName string) {
@@ -547,13 +553,13 @@ func (player *Player) addHatByName(hatName string) {
 		return
 	}
 	player.world.db.addHatToPlayer(player.username, *hat)
-	player.updatePlayerInformation()
+	player.updatePlayerTile()
 	return
 }
 
 func (player *Player) cycleHats() {
 	player.hatList.nextValid()
-	player.updatePlayerInformation()
+	player.updatePlayerTile() // wasteful, just update all ?
 	tile := player.getTileSync()
 	tile.stage.updateAllExcept(playerBox(tile), player)
 	return
@@ -632,7 +638,11 @@ func (player *Player) setMoney(n int) {
 	player.moneyLock.Lock()
 	defer player.moneyLock.Unlock()
 	player.money = n
-	updateOne(divPlayerInformation(player), player)
+}
+
+func (player *Player) setMoneyAndUpdate(n int) {
+	player.setMoney(n)
+	updateOne(spanMoney(n), player)
 }
 
 func (player *Player) getMoneySync() int {
@@ -651,7 +661,7 @@ func (player *Player) setKillStreak(n int) {
 func (player *Player) setKillStreakAndUpdate(n int) {
 	player.setKillStreak(n)
 	player.world.leaderBoard.mostDangerous.Update(player)
-	updateOne(divPlayerInformation(player), player)
+	updateOne(spanStreak(n), player)
 }
 
 func (player *Player) getKillStreakSync() int {

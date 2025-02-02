@@ -71,7 +71,25 @@ func divPlayerInformation(player *Player) string {
 // needs improvement
 func playerInformation(player *Player) string {
 	hearts := getHeartsFromHealth(player.getHealthSync())
-	return fmt.Sprintf(`%s %s<br /><span class="red">Streak %d</span> | <span class="blue">^ %d</span>  | <span class="dark-green">$ %d</span>`, player.username, hearts, player.getKillStreakSync(), player.actions.boostCounter, player.money)
+	return fmt.Sprintf(`%s %s<br />%s | %s | %s %s`, player.username, hearts, spanStreak(player.getKillStreakSync()), spanBoosts(player.getBoostCountSync()), spanMoney(player.getMoneySync()), spanPower(player.actions.spaceStack.count()))
+}
+
+func spanPower(quantity int) string {
+	if quantity == 0 {
+		return `<span id="power"></span>`
+	} else {
+		return fmt.Sprintf(`<span id="power"> 🗡️x%d</span>`, quantity)
+	}
+}
+
+func spanStreak(quantity int) string {
+	return fmt.Sprintf(`<span id="streak" class="red">Streak %d</span>`, quantity)
+}
+func spanBoosts(quantity int) string {
+	return fmt.Sprintf(`<span id="boosts" class="blue">^ %d</span>`, quantity)
+}
+func spanMoney(quantity int) string {
+	return fmt.Sprintf(`<span id="money" class="dark-green">$ %d</span>`, quantity)
 }
 
 func getHeartsFromHealth(i int) string {

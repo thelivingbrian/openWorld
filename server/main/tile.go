@@ -121,6 +121,7 @@ func (tile *Tile) addLockedPlayertoTile(player *Player) {
 	}
 
 	if tile.collectItemsForPlayer(player) {
+		sendSoundToPlayer(player, "money")
 		player.stage.updateAll(svgFromTile(tile))
 	}
 
@@ -150,11 +151,11 @@ func (tile *Tile) collectItemsForPlayer(player *Player) bool {
 	if tile.powerUp != nil {
 		powerUp := tile.powerUp
 		tile.powerUp = nil
-		player.actions.spaceStack.push(powerUp)
+		addPowerToStack(player, powerUp)
 		itemChange = true
 	}
 	if tile.money != 0 {
-		player.setMoney(player.money + tile.money)
+		player.setMoneyAndUpdate(player.money + tile.money)
 		tile.money = 0
 		itemChange = true
 	}
@@ -250,7 +251,7 @@ func damagePlayerAndHandleDeath(player *Player, dmg int) bool {
 	if fatal {
 		handleDeath(player)
 	} else {
-		player.updatePlayerInformation()
+		player.updatePlayerHud()
 	}
 	return fatal
 }

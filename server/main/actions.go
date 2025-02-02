@@ -72,19 +72,25 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 func (player *Player) activatePower() {
 	playerHighlights := highlightMapToSlice(player)
 	damageAndIndicate(playerHighlights, player, 50)
+	sendSoundToPlayer(player, "explosion")
 	updateOne(sliceOfTileToHighlightBoxes(playerHighlights, ""), player)
 
-	player.actions.spaceHighlights = map[*Tile]bool{}
-	if player.actions.spaceStack.hasPower() {
-		player.nextPower()
+	//player.actions.spaceHighlights = map[*Tile]bool{}
+	_, powerCount := player.actions.spaceStack.pop()
+	if powerCount > 0 {
+		player.setSpaceHighlights()
+		updateOne(sliceOfTileToHighlightBoxes(highlightMapToSlice(player), spaceHighlighter()), player)
 	}
+	updateOne(spanPower(powerCount), player)
 }
 
+/*
 func (player *Player) nextPower() {
-	player.actions.spaceStack.pop() // Throw old power away
+	count := player.actions.spaceStack.pop() // Throw old power away
 	player.setSpaceHighlights()
-	updateOne(sliceOfTileToHighlightBoxes(highlightMapToSlice(player), spaceHighlighter()), player)
+	updateOne(sliceOfTileToHighlightBoxes(highlightMapToSlice(player), spaceHighlighter())+spanPower(count), player)
 }
+*/
 
 func highlightMapToSlice(player *Player) []*Tile {
 	out := make([]*Tile, 0)
@@ -97,15 +103,15 @@ func highlightMapToSlice(player *Player) []*Tile {
 }
 
 // Power up stack
-func (stack *StackOfPowerUp) pop() *PowerUp {
+func (stack *StackOfPowerUp) pop() (*PowerUp, int) {
 	stack.powerMutex.Lock()
 	defer stack.powerMutex.Unlock()
+	var power *PowerUp
 	if len(stack.powers) > 0 {
-		out := stack.powers[len(stack.powers)-1]
+		power = stack.powers[len(stack.powers)-1]
 		stack.powers = stack.powers[:len(stack.powers)-1]
-		return out
 	}
-	return nil // Should be impossible but return default power instead?
+	return power, len(stack.powers)
 }
 
 func (stack *StackOfPowerUp) peek() *PowerUp {
@@ -117,38 +123,68 @@ func (stack *StackOfPowerUp) peek() *PowerUp {
 	return nil
 }
 
-func (stack *StackOfPowerUp) push(power *PowerUp) *StackOfPowerUp {
+func (stack *StackOfPowerUp) push(power *PowerUp) int {
 	stack.powerMutex.Lock()
 	defer stack.powerMutex.Unlock()
 	stack.powers = append(stack.powers, power)
-	return stack
+	return len(stack.powers)
+}
+
+func addPowerToStack(player *Player, power *PowerUp) {
+	if power == nil {
+		return
+	}
+	powerCount := player.actions.spaceStack.push(power)
+	if powerCount == 1 {
+		sendSoundToPlayer(player, "power-up-space")
+	}
+	updateOne(spanPower(powerCount), player)
+}
+
+func (stack *StackOfPowerUp) count() int {
+	stack.powerMutex.Lock()
+	defer stack.powerMutex.Unlock()
+	return len(stack.powers)
+}
+
+// toctoa?
+func (stack *StackOfPowerUp) hasPower() bool {
+	stack.powerMutex.Lock()
+	defer stack.powerMutex.Unlock()
+	return len(stack.powers) > 0
 }
 
 //////////////////////////////////////////////////////
 // Boosts
-func (player *Player) addBoosts(n int) {
+func (player *Player) addBoosts(n int) int {
 	player.actions.boostMutex.Lock()
 	defer player.actions.boostMutex.Unlock()
 	player.actions.boostCounter += n
+	return player.actions.boostCounter
 }
 
 func (player *Player) addBoostsAndUpdate(n int) {
-	player.addBoosts(n)
-	updateOne(divPlayerInformation(player), player)
+	boostCount := player.addBoosts(n)
+	updateOne(spanBoosts(boostCount), player)
 }
 
-func (player *Player) useBoost() bool {
+func decrementBoost(player *Player) int {
 	player.actions.boostMutex.Lock()
 	defer player.actions.boostMutex.Unlock()
 	if player.actions.boostCounter > 0 {
 		player.actions.boostCounter--
 	}
-	updateOne(divPlayerInformation(player), player)
-	return player.actions.boostCounter > 0
+	return player.actions.boostCounter
 }
 
-func (stack *StackOfPowerUp) hasPower() bool {
-	stack.powerMutex.Lock()
-	defer stack.powerMutex.Unlock()
-	return len(stack.powers) > 0
+func (player *Player) getBoostCountSync() int {
+	player.actions.boostMutex.Lock()
+	defer player.actions.boostMutex.Unlock()
+	return player.actions.boostCounter
+}
+
+func (player *Player) useBoost() bool {
+	boostCount := decrementBoost(player)
+	updateOne(spanBoosts(boostCount), player)
+	return boostCount > 0
 }
