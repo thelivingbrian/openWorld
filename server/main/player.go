@@ -469,11 +469,6 @@ func sendSoundToPlayer(player *Player, soundName string) {
 	updateOne(trigger, player)
 }
 
-func updatePageBackgroundColor(player *Player, bgColor string) {
-	script := fmt.Sprintf(`<div id="script"><script>document.body.className="%s"</script></div>`, bgColor)
-	updateOne(script, player)
-}
-
 // chan Update
 
 func updateOne(update string, player *Player) {

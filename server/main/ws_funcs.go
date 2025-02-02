@@ -140,9 +140,6 @@ func (player *Player) handlePressActive(event *PlayerSocketEvent) bool {
 func (player *Player) handlePress(event *PlayerSocketEvent, lastRead time.Time) {
 	switch event.Name {
 	case "w":
-		updatePageBackgroundColor(player, "twilight")
-		time.Sleep(5 * time.Millisecond)
-		updatePageBackgroundColor(player, "night")
 		player.moveNorth()
 	case "a":
 		player.moveWest()
@@ -167,6 +164,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent, lastRead time.Time) 
 		// 		updateOne(generateDivs(i), player)
 		// 	}
 		// }()
+		flashBackgroundColor(player, "twilight")
 		sendSoundToPlayer(player, "pop")
 	case "h":
 		player.cycleHats()

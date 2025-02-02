@@ -1,3 +1,6 @@
+//////////////////////////////////////////////////////////////
+// Sound
+
 const sounds = {
     pop: new Audio("/assets/sounds/pop-death.mp3"),
     money: new Audio("/assets/sounds/money.mp3"),
@@ -5,7 +8,7 @@ const sounds = {
 };
 
 function playSound(soundName) {
-    const sound = sounds[soundName]; // Look up the sound by name
+    const sound = sounds[soundName];
     if (sound) {
         sound.currentTime = 0; // Reset if already playing
         sound.play().catch(err => console.log("Autoplay blocked:", err));
@@ -39,3 +42,18 @@ function observeSoundTrigger() {
 }
 
 observeSoundTrigger()
+
+
+////////////////////////////////////////////////////////////////
+//  Video 
+
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function flashBg(color){
+    document.body.className=color
+    await sleep(10)
+    document.body.className="night"
+}
