@@ -164,8 +164,6 @@ func (player *Player) handlePress(event *PlayerSocketEvent, lastRead time.Time) 
 		// 		updateOne(generateDivs(i), player)
 		// 	}
 		// }()
-		flashBackgroundColor(player, "twilight")
-		sendSoundToPlayer(player, "pop")
 	case "h":
 		player.cycleHats()
 	case "Shift-On":

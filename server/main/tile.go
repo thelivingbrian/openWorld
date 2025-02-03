@@ -205,6 +205,7 @@ func (tile *Tile) getAPlayer() *Player {
 func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	fatalities := false
 	for _, player := range tile.copyOfPlayers() {
+		fmt.Println(player.username)
 		fatalities = damageTargetOnBehalfOf(player, initiator, dmg) || fatalities
 	}
 	if fatalities {
@@ -223,12 +224,14 @@ func (tile *Tile) copyOfPlayers() []*Player {
 }
 
 func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
-	target.tangibilityLock.Lock()
-	if !target.tangible {
-		target.tangibilityLock.Unlock()
+	if target == initiator {
 		return false
 	}
-	target.tangibilityLock.Unlock()
+	target.tangibilityLock.Lock()
+	defer target.tangibilityLock.Unlock()
+	if !target.tangible {
+		return false
+	}
 	if isInClinicOrInfirmary(target) {
 		return false
 	}
@@ -247,6 +250,7 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 	return fatal
 }
 func damagePlayerAndHandleDeath(player *Player, dmg int) bool {
+	flashBackgroundColor(player, "twilight")
 	fatal := reduceHealthAndCheckFatal(player, dmg)
 	if fatal {
 		handleDeath(player)
@@ -432,16 +436,15 @@ func getTilesInRadius(tile *Tile, r int) []*Tile {
 	return out
 }
 
-func damageAndIndicate(tiles []*Tile, initiator *Player, damage int) {
+func damageAndIndicate(tiles []*Tile, initiator *Player, stage *Stage, damage int) {
 	for _, tile := range tiles {
 		tile.damageAll(damage, initiator)
 		destroyFragileInteractable(tile, initiator)
 		tile.eventsInFlight.Add(1)
-
 		go tile.tryToNotifyAfter(100)
 	}
 	damageBoxes := sliceOfTileToWeatherBoxes(tiles, randomFieryColor())
-	initiator.stage.updateAll(damageBoxes)
+	stage.updateAll(damageBoxes)
 }
 
 /////////////////////////////////////////////////////////////////

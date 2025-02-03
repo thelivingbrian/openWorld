@@ -71,8 +71,9 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 
 func (player *Player) activatePower() {
 	playerHighlights := highlightMapToSlice(player)
-	damageAndIndicate(playerHighlights, player, 50)
-	player.getStageSync().updateAll(soundTriggerByName("explosion"))
+	stage := player.getStageSync()
+	damageAndIndicate(playerHighlights, player, stage, 50)
+	stage.updateAll(soundTriggerByName("explosion"))
 	updateOne(sliceOfTileToHighlightBoxes(playerHighlights, ""), player)
 
 	//player.actions.spaceHighlights = map[*Tile]bool{}
@@ -168,13 +169,15 @@ func (player *Player) addBoostsAndUpdate(n int) {
 	updateOne(spanBoosts(boostCount), player)
 }
 
-func decrementBoost(player *Player) int {
+func decrementBoost(player *Player) (int, bool) {
 	player.actions.boostMutex.Lock()
 	defer player.actions.boostMutex.Unlock()
+	success := false
 	if player.actions.boostCounter > 0 {
 		player.actions.boostCounter--
+		success = true
 	}
-	return player.actions.boostCounter
+	return player.actions.boostCounter, success
 }
 
 func (player *Player) getBoostCountSync() int {
@@ -184,7 +187,7 @@ func (player *Player) getBoostCountSync() int {
 }
 
 func (player *Player) useBoost() bool {
-	boostCount := decrementBoost(player)
+	boostCount, success := decrementBoost(player)
 	updateOne(spanBoosts(boostCount), player)
-	return boostCount > 0
+	return success
 }

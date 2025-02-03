@@ -267,7 +267,7 @@ func handleDeath(player *Player) {
 	stage := player.fetchStageSync(infirmaryStagenameForPlayer(player))
 	player.setStage(stage)
 	player.updateRecordOnDeath(stage.tiles[2][2])
-	respawnOnStage(player, stage)
+	go respawnOnStage(player, stage)
 }
 
 func popAndDropMoney(player *Player) {
@@ -278,7 +278,6 @@ func popAndDropMoney(player *Player) {
 	tile.addMoneyAndNotifyAllExcept(moneyToAdd, player)
 
 	pop := soundTriggerByName("pop-death")
-	sendSoundToPlayer(player, pop)
 	tile.stage.updateAllExcept(pop, player)
 }
 
@@ -297,6 +296,7 @@ func respawnOnStage(player *Player, stage *Stage) {
 	}
 
 	placePlayerOnStageAt(player, stage, 2, 2)
+	sendSoundToPlayer(player, soundTriggerByName("pop-death"))
 	player.updatePlayerHud()
 }
 

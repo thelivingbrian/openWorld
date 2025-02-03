@@ -418,7 +418,7 @@ func damageWithinRadius(tile *Tile, world *World, radius, dmg int, ownerId strin
 		trapSetter.tangibilityLock.Lock()
 		defer trapSetter.tangibilityLock.Unlock()
 		if trapSetter.tangible {
-			damageAndIndicate(tiles, trapSetter, dmg)
+			damageAndIndicate(tiles, trapSetter, tile.stage, dmg)
 		}
 	}
 }
