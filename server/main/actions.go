@@ -33,7 +33,7 @@ func createDefaultActions() *Actions {
 /////////////////////////////////////////////////////////
 // Space Highlights
 
-func (player *Player) setSpaceHighlights() {
+func (player *Player) setSpaceHighlights() (map[*Tile]bool, bool) {
 	player.actions.spaceHighlightMutex.Lock()
 	defer player.actions.spaceHighlightMutex.Unlock()
 	player.actions.spaceHighlights = map[*Tile]bool{}
@@ -45,6 +45,7 @@ func (player *Player) setSpaceHighlights() {
 			player.actions.spaceHighlights[tile] = true
 		}
 	}
+	return player.actions.spaceHighlights, len(player.actions.spaceHighlights) > 0
 }
 
 func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highlights
@@ -70,28 +71,21 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 }
 
 func (player *Player) activatePower() {
-	playerHighlights := highlightMapToSlice(player)
 	stage := player.getStageSync()
-	damageAndIndicate(playerHighlights, player, stage, 50)
 	stage.updateAll(soundTriggerByName("explosion"))
+
+	playerHighlights := highlightMapToSlice(player)
+	damageAndIndicate(playerHighlights, player, stage, 50)
 	updateOne(sliceOfTileToHighlightBoxes(playerHighlights, ""), player)
 
-	//player.actions.spaceHighlights = map[*Tile]bool{}
 	_, powerCount := player.actions.spaceStack.pop()
-	if powerCount > 0 {
-		player.setSpaceHighlights()
+	updateOne(spanPower(powerCount), player)
+
+	_, haveHighlights := player.setSpaceHighlights()
+	if haveHighlights {
 		updateOne(sliceOfTileToHighlightBoxes(highlightMapToSlice(player), spaceHighlighter()), player)
 	}
-	updateOne(spanPower(powerCount), player)
 }
-
-/*
-func (player *Player) nextPower() {
-	count := player.actions.spaceStack.pop() // Throw old power away
-	player.setSpaceHighlights()
-	updateOne(sliceOfTileToHighlightBoxes(highlightMapToSlice(player), spaceHighlighter())+spanPower(count), player)
-}
-*/
 
 func highlightMapToSlice(player *Player) []*Tile {
 	out := make([]*Tile, 0)

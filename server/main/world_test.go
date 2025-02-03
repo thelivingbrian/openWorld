@@ -29,15 +29,12 @@ func TestSocketJoinAndMove(t *testing.T) {
 	defer testingSocket.ws.Close()
 
 	testingSocket.writeOrFatal(createInitialTokenMessage(req.Token))
-	//_ = testingSocket.readOrFatal()
 
 	testingSocket.writeOrFatal(createSocketEventMessage(req.Token, "d"))
-	//_ = testingSocket.readOrFatal()
 
 	testingSocket.writeOrFatal(createSocketEventMessage(req.Token, "d"))
-	//_ = testingSocket.readOrFatal()
 
-	_ = testingSocket.readOrFatal() // lock risk?
+	_ = testingSocket.readOrFatal() // reading more than once is a lock risk.
 
 	// Assert
 	if len(world.worldPlayers) != 1 {
