@@ -205,7 +205,6 @@ func (tile *Tile) getAPlayer() *Player {
 func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	fatalities := false
 	for _, player := range tile.copyOfPlayers() {
-		fmt.Println(player.username)
 		fatalities = damageTargetOnBehalfOf(player, initiator, dmg) || fatalities
 	}
 	if fatalities {

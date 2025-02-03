@@ -164,7 +164,6 @@ func interactableIsARing(i *Interactable, _ *Player) bool {
 	if len(i.name) < 5 {
 		return false
 	}
-	fmt.Println("ring check", i.name)
 	return i.name[0:5] == "ring-"
 }
 
@@ -412,7 +411,7 @@ func damageWithinRadiusAndReset(radius, dmg int, ownerId string) func(i *Interac
 		placeInteractableOnStagePriorityCovered(t.stage, createRing())
 		t.interactable.cssClass = "white trsp20 r0"
 		t.interactable.reactions = interactableReactions["lily-pad"]
-		t.stage.updateAll(lockedInteractableBox(t))
+		t.stage.updateAll(lockedInteractableBox(t) + soundTriggerByName("explosion"))
 		return nil, false
 	}
 }
