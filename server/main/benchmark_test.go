@@ -79,6 +79,23 @@ func BenchmarkDivByte(b *testing.B) {
 		})
 	}
 }
+
+func BenchmarkDivByteBuffer(b *testing.B) {
+	colors := []string{"black", "", "blue trsp20"}
+	for _, color := range colors {
+		b.Run(fmt.Sprintf("stage:%s Cores", color), func(b *testing.B) {
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				generateWeatherSolidByteBuffer(color)
+			}
+
+			b.StopTimer()
+
+		})
+	}
+}
+
 func BenchmarkDivString(b *testing.B) {
 	colors := []string{"black", "", "blue trsp20"}
 	for _, color := range colors {
