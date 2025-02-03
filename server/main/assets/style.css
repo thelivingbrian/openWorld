@@ -28,6 +28,10 @@ html {
     display: none;
 }
 
+span {
+    line-height: 1;
+}
+
 body {
     /*
     Sunset: #ef693c;
