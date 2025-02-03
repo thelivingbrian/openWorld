@@ -75,7 +75,7 @@ func init() {
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
 		"lily-pad": []InteractableReaction{
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: playSoundForInitiator("water-splash")},
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: playSoundForAll("water-splash")},
 			InteractableReaction{ReactsWith: interactableIsARing, Reaction: makeDangerousForOtherTeam},
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
@@ -200,6 +200,13 @@ func pass(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 func playSoundForInitiator(soundName string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 		sendSoundToPlayer(p, soundName)
+		return nil, false
+	}
+}
+
+func playSoundForAll(soundName string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		t.stage.updateAll(soundTriggerByName(soundName))
 		return nil, false
 	}
 }
@@ -365,7 +372,7 @@ func makeDangerousForOtherTeam(i *Interactable, p *Player, t *Tile) (*Interactab
 			ReactsWith: playerHasTeam(oppositeTeamName(initiatorTeam)),
 			Reaction:   damageWithinRadiusAndReset(2, dmg, p.id),
 		},
-		InteractableReaction{ReactsWith: interactableIsNil, Reaction: eat},
+		InteractableReaction{ReactsWith: interactableIsNil, Reaction: playSoundForAll("water-splash")},
 		InteractableReaction{ReactsWith: everything, Reaction: pass},
 	}
 	t.interactable.cssClass = initiatorTeam + "-b thick r0"
