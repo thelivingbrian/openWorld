@@ -68,7 +68,6 @@ func divPlayerInformation(player *Player) string {
 	</div>`
 }
 
-// needs improvement
 func playerInformation(player *Player) string {
 	hearts := getHeartsFromHealth(player.getHealthSync())
 	return fmt.Sprintf(`%s %s<br />%s | %s | %s %s`, player.username, hearts, spanStreak(player.getKillStreakSync()), spanBoosts(player.getBoostCountSync()), spanMoney(player.getMoneySync()), spanPower(player.actions.spaceStack.count()))

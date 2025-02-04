@@ -70,6 +70,7 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 	return append(impactedTiles, mapOfTileToArray(previous)...)
 }
 
+// rewrite as tryActivate for atomicity.
 func (player *Player) activatePower() {
 	stage := player.getStageSync()
 	stage.updateAll(soundTriggerByName("explosion"))
@@ -142,7 +143,7 @@ func (stack *StackOfPowerUp) count() int {
 	return len(stack.powers)
 }
 
-// toctoa?
+// toctoa
 func (stack *StackOfPowerUp) hasPower() bool {
 	stack.powerMutex.Lock()
 	defer stack.powerMutex.Unlock()
