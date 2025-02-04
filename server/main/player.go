@@ -118,6 +118,7 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 	}
 	// Is using getTileSync a risk with the menu teleport authorizer?
 	transferPlayer(player, player.getTileSync(), stage.tiles[teleport.destY][teleport.destX])
+	sendSoundToPlayer(player, "teleport")
 }
 
 // Atomic Transfers
@@ -172,7 +173,7 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool { // Returns if given interacable successfully pushed
 	// Do not nil check incoming interactable here.
 	// incoming = nil is valid and will continue a push chain
-	// e.g. by taking this tiles interactable and pushing it forward
+	// e.g. by taking this tile's interactable and pushing it forward
 	if tile == nil {
 		return false
 	}
@@ -256,7 +257,7 @@ func canBeTeleported(interactable *Interactable) bool {
 // Death
 
 func handleDeath(player *Player) {
-	player.getTileSync().addMoneyAndNotifyAllExcept(max(halveMoneyOf(player), 10), player)
+	popAndDropMoney(player)
 	removeFromTileAndStage(player) // After this should be impossible for any transfer to succeed
 	player.incrementDeathCount()
 	player.setHealth(150)
@@ -266,13 +267,24 @@ func handleDeath(player *Player) {
 	stage := player.fetchStageSync(infirmaryStagenameForPlayer(player))
 	player.setStage(stage)
 	player.updateRecordOnDeath(stage.tiles[2][2])
-	respawnOnStage(player, stage)
+	go respawnOnStage(player, stage)
+}
+
+func popAndDropMoney(player *Player) {
+	tile := player.getTileSync()
+
+	playerLostMoney := halveMoneyOf(player)
+	moneyToAdd := max(playerLostMoney, 10)
+	tile.addMoneyAndNotifyAllExcept(moneyToAdd, player)
+
+	pop := soundTriggerByName("pop-death")
+	tile.stage.updateAllExcept(pop, player)
 }
 
 func halveMoneyOf(player *Player) int {
 	currentMoney := player.getMoneySync()
 	newValue := currentMoney / 2
-	player.setMoney(newValue)
+	player.setMoneyAndUpdate(newValue)
 	return newValue
 }
 
@@ -284,7 +296,8 @@ func respawnOnStage(player *Player, stage *Stage) {
 	}
 
 	placePlayerOnStageAt(player, stage, 2, 2)
-	player.updateInformation()
+	sendSoundToPlayer(player, soundTriggerByName("pop-death"))
+	player.updatePlayerHud()
 }
 
 func removeFromTileAndStage(player *Player) {
@@ -316,9 +329,30 @@ func infirmaryStagenameForPlayer(player *Player) string {
 }
 
 ////////////////////////////////////////////////////////////
-//   Updates
+//	Updates
 
 func (player *Player) sendUpdates() {
+	shouldSendUpdates := true
+	for {
+		select {
+		case update, ok := <-player.updates:
+			if !ok {
+				fmt.Println("Player:", player.username, "- update channel closed")
+				return
+			}
+			if !shouldSendUpdates {
+				continue
+			}
+			err := sendUpdate(player, update)
+			if err != nil {
+				shouldSendUpdates = false
+				player.closeConnectionSync()
+			}
+		}
+	}
+}
+
+func (player *Player) sendUpdatesBuffered() {
 	var buffer bytes.Buffer
 	const maxBufferSize = 256 * 1024
 
@@ -340,7 +374,6 @@ func (player *Player) sendUpdates() {
 				// Accumulate the update in the buffer.
 				buffer.Write(update)
 			} else {
-				// Has not occurred - nice to check anyway ?
 				fmt.Printf("Player: %s - buffer exceeded %d bytes, wiping buffer\n", player.username, maxBufferSize)
 				buffer.Reset()
 			}
@@ -438,10 +471,24 @@ func (player *Player) updateBottomText(message string) {
 	updateOne(msg, player)
 }
 
-func (player *Player) updateInformation() {
+func (player *Player) updatePlayerHud() {
+	player.updatePlayerTile()
+	updateOne(divPlayerInformation(player), player)
+}
+
+func (player *Player) updatePlayerTile() {
 	icon := player.setIcon()
 	tile := player.getTileSync()
-	updateOne(divPlayerInformation(player)+playerBoxSpecifc(tile.y, tile.x, icon), player)
+	updateOne(playerBoxSpecifc(tile.y, tile.x, icon), player)
+}
+
+func sendSoundToPlayer(player *Player, soundName string) {
+	updateOne(soundTriggerByName(soundName), player)
+}
+
+func soundTriggerByName(soundName string) string {
+	return fmt.Sprintf(`<div id="sound">%s</div>`, soundName)
+
 }
 
 // chan Update
@@ -522,13 +569,13 @@ func (player *Player) addHatByName(hatName string) {
 		return
 	}
 	player.world.db.addHatToPlayer(player.username, *hat)
-	player.updateInformation()
+	player.updatePlayerTile()
 	return
 }
 
 func (player *Player) cycleHats() {
 	player.hatList.nextValid()
-	player.updateInformation()
+	player.updatePlayerTile() // wasteful, just update all ?
 	tile := player.getTileSync()
 	tile.stage.updateAllExcept(playerBox(tile), player)
 	return
@@ -607,7 +654,11 @@ func (player *Player) setMoney(n int) {
 	player.moneyLock.Lock()
 	defer player.moneyLock.Unlock()
 	player.money = n
-	updateOne(divPlayerInformation(player), player)
+}
+
+func (player *Player) setMoneyAndUpdate(n int) {
+	player.setMoney(n)
+	updateOne(spanMoney(n), player)
 }
 
 func (player *Player) getMoneySync() int {
@@ -626,7 +677,7 @@ func (player *Player) setKillStreak(n int) {
 func (player *Player) setKillStreakAndUpdate(n int) {
 	player.setKillStreak(n)
 	player.world.leaderBoard.mostDangerous.Update(player)
-	updateOne(divPlayerInformation(player), player)
+	updateOne(spanStreak(n), player)
 }
 
 func (player *Player) getKillStreakSync() int {

@@ -3,8 +3,8 @@
     <div id="main_view">
         <div id="info" hx-swap-oob="true">
             <b>
-                {{.Record.Username}} {{.Record.HeartsFromRecord}} <br />
-                <span class="red">Streak 0</span> | <span class="blue">^ 0</span>  | <span class="dark-green">$ {{.Record.Money}}</span>
+                {{.Record.Username}} <span id="hearts">{{.Record.HeartsFromRecord}}</span> <br />
+                <span id="streak" class="red">Streak 0</span> | <span id="boosts" class="blue">^ 0</span>  | <span id="money" class="dark-green">$ {{.Record.Money}}</span><span id="power"></span>
             </b>
         </div>
         <div id="screen" class="grid">
@@ -40,6 +40,7 @@
         <input id="dShift" type="hidden" ws-send hx-trigger="keydown[key=='D'] from:body" hx-include="#token" name="eventname" value="D" />
         <input id="fKey" type="hidden" ws-send hx-trigger="keydown[key=='f'] from:body" hx-include="#token" name="eventname" value="f" />
         <input id="gKey" type="hidden" ws-send hx-trigger="keydown[key=='g'] from:body" hx-include="#token" name="eventname" value="g" />
+        <input id="hKey" type="hidden" ws-send hx-trigger="keydown[key=='h'||key=='H'] from:body" hx-include="#token" name="eventname" value="h" />
         <input id="menuOnKey" type="hidden" ws-send hx-trigger="keydown[key=='m'||key=='M'||key=='Escape'] from:body" hx-include="#token" name="eventname" value="menuOn" />
         <input id="space-onKey" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body" hx-include="#token" name="eventname" value="Space-On" />
     </div>

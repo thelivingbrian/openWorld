@@ -75,7 +75,7 @@ func init() {
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
 		"lily-pad": []InteractableReaction{
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: eat},
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: playSoundForAll("water-splash")},
 			InteractableReaction{ReactsWith: interactableIsARing, Reaction: makeDangerousForOtherTeam},
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
@@ -164,7 +164,6 @@ func interactableIsARing(i *Interactable, _ *Player) bool {
 	if len(i.name) < 5 {
 		return false
 	}
-	fmt.Println("ring check", i.name)
 	return i.name[0:5] == "ring-"
 }
 
@@ -195,6 +194,20 @@ func eat(*Interactable, *Player, *Tile) (*Interactable, bool) {
 
 func pass(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	return i, true
+}
+
+func playSoundForInitiator(soundName string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		sendSoundToPlayer(p, soundName)
+		return nil, false
+	}
+}
+
+func playSoundForAll(soundName string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		t.stage.updateAll(soundTriggerByName(soundName))
+		return nil, false
+	}
 }
 
 // Spawn and destroy
@@ -336,6 +349,8 @@ func moveInitiatorPushSurrounding(yOff, xOff int) func(*Interactable, *Player, *
 			p.push(tile, nil, yOff, xOff)
 		}
 		p.move(yOff, xOff)
+		sendSoundToPlayer(p, "wind-swoosh")
+		t.stage.updateAllExcept(soundTriggerByName("woody-swoosh"), p)
 		return nil, false
 	}
 }
@@ -356,7 +371,7 @@ func makeDangerousForOtherTeam(i *Interactable, p *Player, t *Tile) (*Interactab
 			ReactsWith: playerHasTeam(oppositeTeamName(initiatorTeam)),
 			Reaction:   damageWithinRadiusAndReset(2, dmg, p.id),
 		},
-		InteractableReaction{ReactsWith: interactableIsNil, Reaction: eat},
+		InteractableReaction{ReactsWith: interactableIsNil, Reaction: playSoundForAll("water-splash")},
 		InteractableReaction{ReactsWith: everything, Reaction: pass},
 	}
 	t.interactable.cssClass = initiatorTeam + "-b thick r0"
@@ -396,7 +411,7 @@ func damageWithinRadiusAndReset(radius, dmg int, ownerId string) func(i *Interac
 		placeInteractableOnStagePriorityCovered(t.stage, createRing())
 		t.interactable.cssClass = "white trsp20 r0"
 		t.interactable.reactions = interactableReactions["lily-pad"]
-		t.stage.updateAll(lockedInteractableBox(t))
+		t.stage.updateAll(lockedInteractableBox(t) + soundTriggerByName("explosion"))
 		return nil, false
 	}
 }
@@ -409,7 +424,7 @@ func damageWithinRadius(tile *Tile, world *World, radius, dmg int, ownerId strin
 		trapSetter.tangibilityLock.Lock()
 		defer trapSetter.tangibilityLock.Unlock()
 		if trapSetter.tangible {
-			damageAndIndicate(tiles, trapSetter, dmg)
+			damageAndIndicate(tiles, trapSetter, tile.stage, dmg)
 		}
 	}
 }

@@ -121,6 +121,7 @@ func (tile *Tile) addLockedPlayertoTile(player *Player) {
 	}
 
 	if tile.collectItemsForPlayer(player) {
+		sendSoundToPlayer(player, "money")
 		player.stage.updateAll(svgFromTile(tile))
 	}
 
@@ -150,11 +151,11 @@ func (tile *Tile) collectItemsForPlayer(player *Player) bool {
 	if tile.powerUp != nil {
 		powerUp := tile.powerUp
 		tile.powerUp = nil
-		player.actions.spaceStack.push(powerUp)
+		addPowerToStack(player, powerUp)
 		itemChange = true
 	}
 	if tile.money != 0 {
-		player.setMoney(player.money + tile.money)
+		player.setMoneyAndUpdate(player.money + tile.money)
 		tile.money = 0
 		itemChange = true
 	}
@@ -222,12 +223,14 @@ func (tile *Tile) copyOfPlayers() []*Player {
 }
 
 func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
-	target.tangibilityLock.Lock()
-	if !target.tangible {
-		target.tangibilityLock.Unlock()
+	if target == initiator {
 		return false
 	}
-	target.tangibilityLock.Unlock()
+	target.tangibilityLock.Lock()
+	defer target.tangibilityLock.Unlock()
+	if !target.tangible {
+		return false
+	}
 	if isInClinicOrInfirmary(target) {
 		return false
 	}
@@ -246,11 +249,12 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 	return fatal
 }
 func damagePlayerAndHandleDeath(player *Player, dmg int) bool {
+	flashBackgroundColor(player, "twilight")
 	fatal := reduceHealthAndCheckFatal(player, dmg)
 	if fatal {
 		handleDeath(player)
 	} else {
-		player.updateInformation()
+		player.updatePlayerHud()
 	}
 	return fatal
 }
@@ -431,16 +435,15 @@ func getTilesInRadius(tile *Tile, r int) []*Tile {
 	return out
 }
 
-func damageAndIndicate(tiles []*Tile, initiator *Player, damage int) {
+func damageAndIndicate(tiles []*Tile, initiator *Player, stage *Stage, damage int) {
 	for _, tile := range tiles {
 		tile.damageAll(damage, initiator)
 		destroyFragileInteractable(tile, initiator)
 		tile.eventsInFlight.Add(1)
-
 		go tile.tryToNotifyAfter(100)
 	}
 	damageBoxes := sliceOfTileToWeatherBoxes(tiles, randomFieryColor())
-	initiator.stage.updateAll(damageBoxes)
+	stage.updateAll(damageBoxes)
 }
 
 /////////////////////////////////////////////////////////////////

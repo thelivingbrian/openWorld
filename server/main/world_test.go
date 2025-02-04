@@ -14,6 +14,7 @@ import (
 )
 
 func TestSocketJoinAndMove(t *testing.T) {
+	loadFromJson()
 	world := createGameWorld(testdb())
 
 	req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
@@ -28,13 +29,12 @@ func TestSocketJoinAndMove(t *testing.T) {
 	defer testingSocket.ws.Close()
 
 	testingSocket.writeOrFatal(createInitialTokenMessage(req.Token))
-	_ = testingSocket.readOrFatal()
 
 	testingSocket.writeOrFatal(createSocketEventMessage(req.Token, "d"))
-	_ = testingSocket.readOrFatal()
 
 	testingSocket.writeOrFatal(createSocketEventMessage(req.Token, "d"))
-	_ = testingSocket.readOrFatal()
+
+	_ = testingSocket.readOrFatal() // reading more than once is a lock risk.
 
 	// Assert
 	if len(world.worldPlayers) != 1 {
