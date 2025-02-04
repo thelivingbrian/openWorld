@@ -12,7 +12,6 @@ const sounds = {
     "wind-swoosh": new Audio("/assets/sounds/wind-swoosh.mp3"),
     "woody-swoosh": new Audio("/assets/sounds/woody-swoosh.mp3"),
     "water-splash": new Audio("/assets/sounds/water-splash.mp3"),
-    //success: new Audio("/static/success.mp3"),
 };
 
 function playSound(soundName) {
