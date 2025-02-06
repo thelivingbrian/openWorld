@@ -79,6 +79,10 @@ func init() {
 			InteractableReaction{ReactsWith: interactableIsARing, Reaction: makeDangerousForOtherTeam},
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
+		"death-trap": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: killInstantly},
+			InteractableReaction{ReactsWith: everything, Reaction: pass},
+		},
 	}
 
 }
@@ -336,6 +340,11 @@ func moveInitiator(yOff, xOff int) func(*Interactable, *Player, *Tile) (*Interac
 		p.move(yOff, xOff)
 		return i, true
 	}
+}
+
+func killInstantly(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	handleDeath(p)
+	return nil, false
 }
 
 var superBoostEast = moveInitiator(0, 11)
