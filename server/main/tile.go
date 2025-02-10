@@ -336,13 +336,16 @@ func walkable(tile *Tile) bool {
 	if tile == nil {
 		return false
 	}
+	if !tile.material.Walkable {
+		return false
+	}
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
-	if tile.interactable == nil {
-		return tile.material.Walkable
-	} else {
+	if tile.interactable != nil {
 		return tile.interactable.pushable || tile.interactable.walkable
+
 	}
+	return true
 }
 
 func validCoordinate(y int, x int, tiles [][]*Tile) bool {
