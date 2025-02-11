@@ -83,6 +83,11 @@ func init() {
 			InteractableReaction{ReactsWith: interactableIsNil, Reaction: killInstantly},
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
+		// Puzzles:
+		"target-lavender": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableHasName("ball-lavender"), Reaction: checkSolveAndRemoveInteractable},
+			InteractableReaction{ReactsWith: everything, Reaction: pass},
+		},
 	}
 
 }
@@ -436,6 +441,23 @@ func damageWithinRadius(tile *Tile, world *World, radius, dmg int, ownerId strin
 			damageAndIndicate(tiles, trapSetter, tile.stage, dmg)
 		}
 	}
+}
+
+///////////////////////////////////////////////////////////////
+// Puzzles
+
+func checkSolveAndRemoveInteractable(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	setLockedInteractableAndUpdate(t, nil)
+	stage := t.stage
+	tileA := stage.tiles[3][3]
+	tileB := stage.tiles[12][12]
+	interactableA := tryGetInteractable(tileA)
+	interactableB := tryGetInteractable(tileB)
+	if interactableA != nil && interactableA.name == "fragile-push" && interactableB != nil && interactableB.name == "basic-push" {
+		reward := Interactable{name: "ball-dark-lavender", cssClass: "dark-lavender r1 lavender-b thick", pushable: true, fragile: true}
+		p.push(stage.tiles[7][7], &reward, 0, 1)
+	}
+	return nil, false
 }
 
 // Tutorial

@@ -158,7 +158,8 @@
     - [-] clean up collection logic
     - [-] add cli  
   - [-] get rid of proc folder?
-- [ ] level player? 
+- [ ] level player (e.g. live stage demo) 
+- [ ] Bug: New color will output to local file but deploying requires application restart.
 
 
 ## Mobile

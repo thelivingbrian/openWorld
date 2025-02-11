@@ -329,6 +329,15 @@ func trySetInteractable(tile *Tile, i *Interactable) bool {
 	return true
 }
 
+func tryGetInteractable(tile *Tile) *Interactable {
+	ownLock := tile.interactableMutex.TryLock()
+	if !ownLock {
+		return nil
+	}
+	defer tile.interactableMutex.Unlock()
+	return tile.interactable
+}
+
 /////////////////////////////////////////////////////////////
 // Utilities
 
