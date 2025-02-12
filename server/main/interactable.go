@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 )
 
 type Interactable struct {
@@ -82,6 +83,9 @@ func init() {
 		"death-trap": []InteractableReaction{
 			InteractableReaction{ReactsWith: interactableIsNil, Reaction: killInstantly},
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
+		},
+		"exchange-ring": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableIsARing, Reaction: damageAndSpawn},
 		},
 		// Puzzles:
 		"target-lavender": []InteractableReaction{
@@ -399,6 +403,29 @@ func makeDangerousForOtherTeam(i *Interactable, p *Player, t *Tile) (*Interactab
 	t.interactable.reactions = newReactions
 	t.stage.updateAll(lockedInteractableBox(t))
 	addMoneyToStage(t.stage, 10) // should be more money
+	return nil, false
+}
+
+func damageAndSpawn(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	y := rand.Intn(len(t.stage.tiles))
+	x := rand.Intn(len(t.stage.tiles[y]))
+	epicenter := t.stage.tiles[y][x]
+	dmg := 50
+	if i.name == "ring-big" {
+		dmg = 100
+	}
+	go damageWithinRadius(epicenter, p.world, 4, dmg, p.id)
+	t.stage.updateAll(soundTriggerByName("explosion"))
+	addMoneyToStage(t.stage, dmg/5)
+	if strings.Contains(t.stage.name, ":") {
+		spacename := strings.Split(t.stage.name, ":")[0]
+		lat := rand.Intn(8)
+		long := rand.Intn(8)
+		stagename := fmt.Sprintf("%s:%d-%d", spacename, lat, long)
+		fmt.Println(stagename)
+		stage := p.fetchStageSync(stagename)
+		placeInteractableOnStagePriorityCovered(stage, i)
+	}
 	return nil, false
 }
 
