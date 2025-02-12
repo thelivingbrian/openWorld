@@ -282,6 +282,7 @@ func popAndDropMoney(player *Player) {
 }
 
 func halveMoneyOf(player *Player) int {
+	// racey
 	currentMoney := player.getMoneySync()
 	newValue := currentMoney / 2
 	player.setMoneyAndUpdate(newValue)
@@ -656,9 +657,24 @@ func (player *Player) setMoney(n int) {
 	player.money = n
 }
 
+func (player *Player) addMoney(n int) int {
+	player.moneyLock.Lock()
+	defer player.moneyLock.Unlock()
+	player.money += n
+	return player.money
+}
+
 func (player *Player) setMoneyAndUpdate(n int) {
 	player.setMoney(n)
 	updateOne(spanMoney(n), player)
+}
+
+func (player *Player) addMoneyAndUpdate(n int) {
+	totalMoney := player.addMoney(n)
+	if totalMoney > 100*1000 {
+		player.addHatByName("made-of-money")
+	}
+	updateOne(spanMoney(totalMoney), player)
 }
 
 func (player *Player) getMoneySync() int {

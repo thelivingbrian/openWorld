@@ -142,6 +142,7 @@ func (tile *Tile) addLockedPlayertoTile(player *Player) {
 
 func (tile *Tile) collectItemsForPlayer(player *Player) bool {
 	itemChange := false
+	// Single item mutex?
 	tile.powerMutex.Lock()
 	defer tile.powerMutex.Unlock()
 	tile.moneyMutex.Lock()
@@ -155,7 +156,7 @@ func (tile *Tile) collectItemsForPlayer(player *Player) bool {
 		itemChange = true
 	}
 	if tile.money != 0 {
-		player.setMoneyAndUpdate(player.money + tile.money)
+		player.addMoneyAndUpdate(tile.money)
 		tile.money = 0
 		itemChange = true
 	}

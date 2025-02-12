@@ -430,6 +430,7 @@ func (h *MaxStreakHeap) Update(player *Player) {
 
 	currentMostDangerous := h.Peek()
 	if currentMostDangerous != previousMostDangerous {
+		currentMostDangerous.addHatByName("most-dangerous")
 		notifyChangeInMostDangerous(currentMostDangerous)
 	}
 }

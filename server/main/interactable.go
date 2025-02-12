@@ -302,6 +302,9 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 		if totalGoals == 1 {
 			p.addHatByName("score-1-goal")
 		}
+		if totalGoals == 1000 {
+			p.addHatByName("score-1000-goal")
+		}
 		p.updateRecord()
 		message := fmt.Sprintf("@[%s|%s] scored a goal!<br /> The score is: @[%s %d|%s] to @[%s %d|%s]", p.username, team, team, score, team, oppositeTeamName, scoreOpposing, oppositeTeamName)
 		broadcastBottomText(p.world, message)
