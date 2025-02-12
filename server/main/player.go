@@ -299,6 +299,7 @@ func respawnOnStage(player *Player, stage *Stage) {
 	placePlayerOnStageAt(player, stage, 2, 2)
 	sendSoundToPlayer(player, soundTriggerByName("pop-death"))
 	player.updatePlayerHud()
+	player.updateBottomText("You have died.")
 }
 
 func removeFromTileAndStage(player *Player) {
