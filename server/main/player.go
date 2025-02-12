@@ -472,11 +472,11 @@ func (player *Player) updateBottomText(message string) {
 }
 
 func (player *Player) updatePlayerHud() {
-	player.updatePlayerTile()
+	player.updatePlayerBox()
 	updateOne(divPlayerInformation(player), player)
 }
 
-func (player *Player) updatePlayerTile() {
+func (player *Player) updatePlayerBox() {
 	icon := player.setIcon()
 	tile := player.getTileSync()
 	updateOne(playerBoxSpecifc(tile.y, tile.x, icon), player)
@@ -569,13 +569,13 @@ func (player *Player) addHatByName(hatName string) {
 		return
 	}
 	player.world.db.addHatToPlayer(player.username, *hat)
-	player.updatePlayerTile()
+	player.updatePlayerBox()
 	return
 }
 
 func (player *Player) cycleHats() {
 	player.hatList.nextValid()
-	player.updatePlayerTile() // wasteful, just update all ?
+	player.updatePlayerBox() // wasteful, just update all ?
 	tile := player.getTileSync()
 	tile.stage.updateAllExcept(playerBox(tile), player)
 	return

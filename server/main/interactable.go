@@ -88,6 +88,10 @@ func init() {
 			InteractableReaction{ReactsWith: interactableHasName("ball-lavender"), Reaction: checkSolveAndRemoveInteractable},
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
+		"target-dark-lavender": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableHasName("ball-dark-lavender"), Reaction: awardPuzzleHat},
+			InteractableReaction{ReactsWith: everything, Reaction: pass},
+		},
 	}
 
 }
@@ -457,6 +461,12 @@ func checkSolveAndRemoveInteractable(i *Interactable, p *Player, t *Tile) (*Inte
 		reward := Interactable{name: "ball-dark-lavender", cssClass: "dark-lavender r1 lavender-b thick", pushable: true, fragile: true}
 		p.push(stage.tiles[7][7], &reward, 0, 1)
 	}
+	return nil, false
+}
+
+func awardPuzzleHat(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	p.addHatByName("puzzle-solve-1")
+	// spawn escape lily
 	return nil, false
 }
 
