@@ -52,6 +52,7 @@ func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set CORS header for actual requests
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Origin", "https://bloopworld.co")
 
 	_, ok := getUserIdFromSession(r)
