@@ -79,6 +79,20 @@ func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
+	allowedHeaders := "Content-Type, hx-current-url, HX-Request, HX-Target, HX-Trigger"
+	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Origin", "https://bloopworld.co")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", allowedHeaders)
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	// Set CORS header for actual requests
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.Header().Set("Access-Control-Allow-Origin", "https://bloopworld.co")
+
 	id, ok := getUserIdFromSession(r)
 	if !ok {
 		tmpl.ExecuteTemplate(w, "homepage", false)
