@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"strings"
 
@@ -123,14 +122,6 @@ func (config *Configuration) createCookieStore() *sessions.CookieStore {
 		panic("Invalid key lengths")
 	}
 	store := sessions.NewCookieStore(config.hashKey, config.blockKey)
-	store.Options = &sessions.Options{
-		Domain:   ".bloopworld.co", // Leading dot allows subdomains
-		Path:     "/",
-		MaxAge:   86400,
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteNoneMode,
-	}
 	return store
 }
 

@@ -29,7 +29,12 @@ func main() {
 	fmt.Println("Configuring session storage...")
 	store = config.createCookieStore()
 	store.Options = &sessions.Options{
-		MaxAge: 60 * 60 * 24,
+		Domain:   ".bloopworld.co", // Leading dot allows subdomains
+		Path:     "/",
+		MaxAge:   86400,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
 	}
 	gothic.Store = store
 	goth.UseProviders(google.New(config.googleClientId, config.googleClientSecret, config.googleCallbackUrl))
