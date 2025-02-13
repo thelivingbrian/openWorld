@@ -30,7 +30,7 @@
     </div>
     <div id="landing">   
         {{range  $i, $domain := .}}
-        <div id="world-display" hx-get="{{$domain}}/status" hx-trigger="load">
+        <div id="world-display" hx-get="{{$domain}}/status" hx-trigger="load" hx-request='{"credentials": true}'>
 
         </div>
         {{end}}
