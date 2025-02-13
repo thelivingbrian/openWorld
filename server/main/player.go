@@ -282,7 +282,7 @@ func popAndDropMoney(player *Player) {
 }
 
 func halveMoneyOf(player *Player) int {
-	// racey
+	// race risk
 	currentMoney := player.getMoneySync()
 	newValue := currentMoney / 2
 	player.setMoneyAndUpdate(newValue)
