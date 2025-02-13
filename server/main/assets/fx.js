@@ -64,3 +64,8 @@ async function flashBg(color){
     await sleep(10)
     document.body.className="night"
 }
+
+/////////////////////////////////////////////////////////////////
+// CORS
+
+htmx.config.xhrWithCredentials = true;
