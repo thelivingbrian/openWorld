@@ -41,6 +41,17 @@ func getWorlds(w http.ResponseWriter, r *http.Request) {
 */
 
 func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Origin", "https://bloopworld.co")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	// Set CORS header for actual requests
+	w.Header().Set("Access-Control-Allow-Origin", "https://bloopworld.co")
+
 	_, ok := getUserIdFromSession(r)
 	if !ok {
 		tmpl.ExecuteTemplate(w, "homepage", false)
