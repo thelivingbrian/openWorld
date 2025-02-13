@@ -216,6 +216,10 @@ func getUserIdFromSession(r *http.Request) (string, bool) {
 		fmt.Println(err)
 		return "", false
 	}
+	if session == nil {
+		fmt.Println("Session is nil")
+	}
+	fmt.Println(session)
 
 	id, ok := session.Values["identifier"].(string)
 	if !ok {
