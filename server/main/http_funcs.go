@@ -41,7 +41,7 @@ func getWorlds(w http.ResponseWriter, r *http.Request) {
 */
 
 func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
-	allowedHeaders := "Content-Type, HX-Request, HX-Target, HX-Trigger"
+	allowedHeaders := "Content-Type, hx-current-url, HX-Request, HX-Target, HX-Trigger"
 	if r.Method == http.MethodOptions {
 		w.Header().Set("Access-Control-Allow-Origin", "https://bloopworld.co")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
