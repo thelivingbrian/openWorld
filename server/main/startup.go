@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 
@@ -121,7 +122,16 @@ func (config *Configuration) createCookieStore() *sessions.CookieStore {
 	if len(config.hashKey) != 32 || len(config.blockKey) != 32 {
 		panic("Invalid key lengths")
 	}
-	return sessions.NewCookieStore(config.hashKey, config.blockKey)
+	store := sessions.NewCookieStore(config.hashKey, config.blockKey)
+	store.Options = &sessions.Options{
+		Domain:   ".bloopworld.co", // Leading dot allows subdomains
+		Path:     "/",
+		MaxAge:   86400,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+	}
+	return store
 }
 
 func (config *Configuration) isServer() bool {

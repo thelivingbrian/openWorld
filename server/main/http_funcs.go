@@ -45,6 +45,7 @@ func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "https://bloopworld.co")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		w.WriteHeader(http.StatusOK)
 		return
 	}
@@ -54,7 +55,7 @@ func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
 
 	_, ok := getUserIdFromSession(r)
 	if !ok {
-		tmpl.ExecuteTemplate(w, "homepage", false)
+		io.WriteString(w, "<div>Invalid Sign in</div>")
 		return
 	}
 	world.wPlayerMutex.Lock()
