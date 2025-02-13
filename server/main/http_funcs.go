@@ -16,7 +16,21 @@ import (
 
 // ///////////////////////////////////////////
 // User Signin and Creation
-func (world *World) getWorlds(w http.ResponseWriter, r *http.Request) {
+func createWorldSelectHandler() func(w http.ResponseWriter, r *http.Request) {
+	domainEnv := os.Getenv("DOMAINS")
+	domains := strings.Split(domainEnv, ",")
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, ok := getUserIdFromSession(r)
+		if !ok {
+			tmpl.ExecuteTemplate(w, "homepage", false)
+			return
+		}
+		tmpl.ExecuteTemplate(w, "world-select", domains)
+	}
+}
+
+/*
+func getWorlds(w http.ResponseWriter, r *http.Request) {
 	_, ok := getUserIdFromSession(r)
 	if !ok {
 		tmpl.ExecuteTemplate(w, "homepage", false)
@@ -24,6 +38,7 @@ func (world *World) getWorlds(w http.ResponseWriter, r *http.Request) {
 	}
 	tmpl.ExecuteTemplate(w, "world-select", domains)
 }
+*/
 
 func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
 	_, ok := getUserIdFromSession(r)
@@ -36,9 +51,13 @@ func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
 	fuchsiaPlayers := world.teamQuantities["fushsia"]
 	skyBluePlayers := world.teamQuantities["sky-blue"]
 	s := struct {
+		ServerName   string
+		DomainName   string
 		FuchsiaCount int
 		SkyBlueCount int
 	}{
+		ServerName:   world.serverName,
+		DomainName:   world.domainName,
 		FuchsiaCount: fuchsiaPlayers,
 		SkyBlueCount: skyBluePlayers,
 	}
@@ -63,8 +82,8 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 
 	if userRecord.Username == "" {
 		fmt.Println("no name")
-		tmpl.ExecuteTemplate(w, "choose-your-color", nil)
-		//io.WriteString(w, chooseYourColor())
+		// Pass desired server ?
+		tmpl.ExecuteTemplate(w, "choose-your-color", world.domainName)
 	} else {
 		record, err := world.db.getPlayerRecord(userRecord.Username)
 		if err != nil {
@@ -73,18 +92,26 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 		loginRequest := createLoginRequest(record)
 		world.addIncoming(loginRequest)
 
+		s := struct {
+			LoginRequest *LoginRequest
+			DomainName   string
+		}{
+			LoginRequest: loginRequest,
+			DomainName:   world.domainName,
+		}
+
 		fmt.Println("loginRequest for: " + loginRequest.Record.Username)
-		tmpl.ExecuteTemplate(w, "player-page", loginRequest)
+		tmpl.ExecuteTemplate(w, "player-page", s)
 	}
 }
 
-func (world *World) postNew(w http.ResponseWriter, r *http.Request) {
+func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 	id, ok := getUserIdFromSession(r)
 	if !ok {
 		tmpl.ExecuteTemplate(w, "homepage", false)
 		return
 	}
-	userRecord := world.db.getAuthorizedUserById(id)
+	userRecord := db.getAuthorizedUserById(id)
 	if userRecord == nil {
 		// deeply confusing
 		// Could imply hacked cookie?
@@ -102,16 +129,24 @@ func (world *World) postNew(w http.ResponseWriter, r *http.Request) {
 
 	team := props["player-team"]
 	username := props["player-name"]
+	desiredHost := props["desired-host"]
+	decoded, err := url.QueryUnescape(desiredHost)
+	if err != nil {
+		fmt.Println("Error decoding host:", err)
+		return
+	}
+	fmt.Println(decoded)
 
 	fmt.Println(team)
 	fmt.Println(username)
+	//fmt.Println(desiredHost)
 
 	if !validTeam(team) {
 		io.WriteString(w, divBottomInvalid("Invalid Player Color"))
 		return
 	}
 
-	if world.db.foundUsername(username) {
+	if db.foundUsername(username) {
 		io.WriteString(w, divBottomInvalid("Username unavailable. Try again."))
 		return
 	}
@@ -128,21 +163,25 @@ func (world *World) postNew(w http.ResponseWriter, r *http.Request) {
 		Money:     80,
 	}
 
-	err := world.db.InsertPlayerRecord(record)
+	err = db.InsertPlayerRecord(record)
 	if err != nil {
 		io.WriteString(w, divBottomInvalid("Error saving new player"))
 		return
 	}
-	ok = world.db.updateUsernameForUserWithId(id, username)
+	ok = db.updateUsernameForUserWithId(id, username)
 	if !ok {
 		io.WriteString(w, divBottomInvalid("Error, username not updated"))
 		return
 	}
 
-	loginRequest := createLoginRequest(record)
-	world.addIncoming(loginRequest)
+	// send a div that on load calls /play with desired server
+	/*
+		loginRequest := createLoginRequest(record)
+		world.addIncoming(loginRequest)
 
-	tmpl.ExecuteTemplate(w, "player-page", loginRequest)
+		tmpl.ExecuteTemplate(w, "player-page", loginRequest)
+	*/
+	tmpl.ExecuteTemplate(w, "load-play", decoded)
 }
 
 func validTeam(team string) bool {
@@ -215,7 +254,7 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 	userRecord := db.getAuthorizedUserById(identifier)
 	if userRecord == nil {
 		fmt.Println("Creating new user with identifier: " + identifier)
-		newUser := AuthorizedUser{Identifier: identifier, Username: "", Created: time.Now(), LastLogin: time.Now()}
+		newUser := AuthorizedUser{Identifier: identifier, Username: "", CreationEmail: user.Email, Created: time.Now(), LastLogin: time.Now()}
 		err := db.insertAuthorizedUser(newUser)
 		if err != nil {
 			fmt.Println("New User creation in mongo failed")
@@ -323,7 +362,17 @@ func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 		loginRequest := createLoginRequest(record)
 		world.addIncoming(loginRequest)
 
-		tmpl.ExecuteTemplate(w, "player-page", loginRequest)
+		s := struct {
+			LoginRequest *LoginRequest
+			DomainName   string
+		}{
+			LoginRequest: loginRequest,
+			DomainName:   world.domainName,
+		}
+		err = tmpl.ExecuteTemplate(w, "player-page", s)
+		if err != nil {
+			fmt.Println(err)
+		}
 	} else {
 		io.WriteString(w, invalidSignin())
 		return

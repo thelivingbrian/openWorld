@@ -526,6 +526,6 @@ func tutorial2HideAndNotify(i *Interactable, p *Player, t *Tile) (*Interactable,
 		index = rand.Intn(len(tiles))
 		placed = trySetInteractable(tiles[index], i)
 	}
-	p.updateBottomText("@[black holes|black] will absorb balls and spit them out elsewhere")
+	p.updateBottomText("black holes will absorb balls and spit them out elsewhere")
 	return nil, false
 }

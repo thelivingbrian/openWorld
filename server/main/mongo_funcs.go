@@ -22,10 +22,11 @@ type User struct {
 }
 
 type AuthorizedUser struct {
-	Identifier string    `bson:"identifier"`
-	Username   string    `bson:"username"`
-	Created    time.Time `bson:"created,omitempty"`
-	LastLogin  time.Time `bson:"lastLogin,omitempty"`
+	Identifier    string    `bson:"identifier"`
+	Username      string    `bson:"username"`
+	CreationEmail string    `bson:"creationEmail"`
+	Created       time.Time `bson:"created,omitempty"`
+	LastLogin     time.Time `bson:"lastLogin,omitempty"`
 }
 
 type PlayerRecord struct {

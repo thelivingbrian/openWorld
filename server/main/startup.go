@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/gorilla/sessions"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -60,7 +61,8 @@ type Configuration struct {
 	googleClientId     string
 	googleClientSecret string
 	googleCallbackUrl  string
-	isServer           bool
+	isHub              bool
+	serverName         string
 	domainName         string
 }
 
@@ -83,7 +85,8 @@ func getConfiguration() *Configuration {
 		googleClientId:     os.Getenv("GOOGLE_CLIENT_ID"),
 		googleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 		googleCallbackUrl:  os.Getenv("GOOGLE_CALLBACK_URL"),
-		isServer:           os.Getenv("IS_SERVER") == "true",
+		isHub:              strings.ToUpper(os.Getenv("IS_HUB")) == "TRUE",
+		serverName:         os.Getenv("SERVER_NAME"),
 		domainName:         os.Getenv("DOMAIN_NAME"),
 	}
 
@@ -116,6 +119,10 @@ func (config *Configuration) createCookieStore() *sessions.CookieStore {
 		panic("Invalid key lengths")
 	}
 	return sessions.NewCookieStore(config.hashKey, config.blockKey)
+}
+
+func (config *Configuration) isServer() bool {
+	return config.serverName != "" && config.domainName != ""
 }
 
 func retrieveKeys() (hashKey, blockKey []byte) {

@@ -41,12 +41,12 @@
 {{define "world-status"}}
 <div class="rounded-cyan-border center-horizontally">
     <span>
-        Server : <strong>indigo</strong><br />
+        Server : <strong>{{.ServerName}}</strong><br />
         Players <br />
         <strong class="fuchsia-t">Fuchsia: </strong> <strong>{{.FuchsiaCount}}</strong> |
         <strong class="sky-blue-t">SKy-Blue: </strong> <strong>{{.SkyBlueCount}}</strong><br />
         <br />
-        <strong><a class="large-font" href="#" hx-post="http://localhost:9090/play" hx-target="#page">Play</a><br /></strong>
+        <strong><a class="large-font" href="#" hx-post="{{.DomainName}}/play" hx-target="#page">Play</a><br /></strong>
     </span>
 
 </div>

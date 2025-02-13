@@ -7,7 +7,7 @@ import (
 
 func TestActivateHighlightWithMovement_NoConcurrentWrite(t *testing.T) {
 	loadFromJson()
-	world := createGameWorld(testdb(), "")
+	world := createGameWorld(testdb(), "", "")
 	testStage := createStageByName("hallway")
 	updatesForPlayer := make(chan []byte)
 	go drainChannel(updatesForPlayer)

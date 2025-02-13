@@ -34,13 +34,8 @@ func main() {
 	gothic.Store = store
 	goth.UseProviders(google.New(config.googleClientId, config.googleClientSecret, config.googleCallbackUrl))
 
-	fmt.Println("Starting game world...")
+	fmt.Println("Initializing database connection..")
 	db := createDbConnection(config)
-	world := createGameWorld(db, config.domainName)
-	loadFromJson()
-
-	// Process Loggouts, should remove global ?
-	go processLogouts(playersToLogout)
 
 	// start pprof
 	if pProfEnabled() {
@@ -54,28 +49,47 @@ func main() {
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
 	mux.HandleFunc("/images/", imageHandler)
 
-	// home
-	mux.HandleFunc("/{$}", homeHandler)
+	if config.isHub {
+		// home
+		fmt.Println("Setting up hub...")
+		mux.HandleFunc("/{$}", homeHandler)
 
-	// Account creation and sign in
-	mux.HandleFunc("/homesignin", getSignIn)
-	mux.HandleFunc("/signin", world.postSignin)
-	mux.HandleFunc("/worlds", world.getWorlds)
-	mux.HandleFunc("/status", world.getStatus)
-	mux.HandleFunc("/play", world.postPlay)
-	mux.HandleFunc("/new", world.postNew)
+		// Oauth
+		mux.HandleFunc("/auth", auth)
+		mux.HandleFunc("/callback", db.callback)
 
-	// Oauth
-	mux.HandleFunc("/auth", auth)
-	mux.HandleFunc("/callback", db.callback)
+		// Select World
+		mux.HandleFunc("/worlds", createWorldSelectHandler())
 
-	fmt.Println("Preparing for interactions...")
-	mux.HandleFunc("/clear", clearScreen)
-	mux.HandleFunc("/insert", world.postHorribleBypass)
-	mux.HandleFunc("/stats", world.getStats)
+		//New Account
+		mux.HandleFunc("/new", db.postNew)
+	}
 
-	fmt.Println("Initiating Websockets...")
-	mux.HandleFunc("/screen", world.NewSocketConnection)
+	if config.isServer() {
+		fmt.Println("Starting game world...")
+		world := createGameWorld(db, config.serverName, config.domainName)
+		loadFromJson()
+
+		// Process Logouts, should remove global.
+		go processLogouts(playersToLogout)
+
+		// World status and play
+		mux.HandleFunc("/status", world.getStatus)
+		mux.HandleFunc("/play", world.postPlay)
+
+		// Historical
+		mux.HandleFunc("/homesignin", getSignIn)
+		mux.HandleFunc("/signin", world.postSignin)
+		//fmt.Println(hashPassword("password"))
+
+		fmt.Println("Preparing for interactions...")
+		mux.HandleFunc("/clear", clearScreen)
+		mux.HandleFunc("/insert", world.postHorribleBypass)
+		mux.HandleFunc("/stats", world.getStats)
+
+		fmt.Println("Initiating Websockets...")
+		mux.HandleFunc("/screen", world.NewSocketConnection)
+	}
 
 	fmt.Println("Starting server, listening on port " + config.port)
 	if config.usesTLS {
@@ -88,8 +102,6 @@ func main() {
 		return
 	}
 }
-
-var domains = []string{"http://localhost:9090"}
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Home page accessed.")

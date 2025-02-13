@@ -15,7 +15,7 @@ import (
 
 func TestSocketJoinAndMove(t *testing.T) {
 	loadFromJson()
-	world := createGameWorld(testdb(), "")
+	world := createGameWorld(testdb(), "", "")
 
 	req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
 	world.addIncoming(req)
@@ -182,7 +182,7 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 
 func TestMostDangerous(t *testing.T) {
 	loadFromJson()
-	world := createGameWorld(testdb(), "")
+	world := createGameWorld(testdb(), "", "")
 	stage := loadStageByName(world, "test-large")
 
 	req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: stage.name})
@@ -232,7 +232,7 @@ func TestMostDangerous(t *testing.T) {
 
 func createWorldForTesting() (*World, context.CancelFunc) {
 	loadFromJson()
-	world := createGameWorld(testdb(), "")
+	world := createGameWorld(testdb(), "", "")
 
 	ctx, cancel := context.WithCancel(context.Background())
 
