@@ -54,6 +54,7 @@ type Configuration struct {
 	tlsKeyPath         string
 	mongoHost          string
 	mongoPort          string
+	mongoPrefix        string
 	mongoUser          string
 	mongoPass          string
 	hashKey            []byte
@@ -76,10 +77,11 @@ func getConfiguration() *Configuration {
 		usesTLS:            true,
 		tlsCertPath:        os.Getenv("BLOOP_TLS_CERT_PATH"),
 		tlsKeyPath:         os.Getenv("BLOOP_TLS_KEY_PATH"),
-		mongoHost:          "localhost",
-		mongoPort:          ":27017",
-		mongoUser:          "",
-		mongoPass:          "",
+		mongoHost:          os.Getenv("MONGO_HOST"),
+		mongoPort:          os.Getenv("MONGO_PORT"),
+		mongoPrefix:        os.Getenv("MONGO_PREFIX"),
+		mongoUser:          os.Getenv("MONGO_USER"),
+		mongoPass:          os.Getenv("MONGO_PASS"),
 		hashKey:            hashKey,
 		blockKey:           blockKey,
 		googleClientId:     os.Getenv("GOOGLE_CLIENT_ID"),
@@ -111,7 +113,8 @@ func (config *Configuration) getMongoCredentialString() string {
 }
 
 func (config *Configuration) getMongoURI() string {
-	return "mongodb://" + config.getMongoCredentialString() + config.mongoHost + config.mongoPort
+	// add config .mongoPrefix
+	return "mongodb" + config.mongoPrefix + "://" + config.getMongoCredentialString() + config.mongoHost + config.mongoPort
 }
 
 func (config *Configuration) createCookieStore() *sessions.CookieStore {

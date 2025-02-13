@@ -75,6 +75,7 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 		// deeply confusing
 		// Could imply hacked cookie?
 		// Has happened when db record is lost/destroyed
+		// Is confusing if this happens because you get a blank page with no explanation
 		return
 	}
 
