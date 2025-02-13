@@ -5,6 +5,20 @@
     font-style: normal;
 }
 
+.rounded-cyan-border {
+    border: 2px solid cyan;
+    border-radius: 8px;
+    padding: 10px;
+    width: 66%;
+  }
+
+.center-horizontally {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%; 
+  }
+
 .retro-input {
     background-color: #120500;
     caret-color: cyan;

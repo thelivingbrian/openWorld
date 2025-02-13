@@ -11,6 +11,7 @@ import (
 )
 
 type World struct {
+	domainName          string
 	db                  *DB
 	worldPlayers        map[string]*Player
 	wPlayerMutex        sync.Mutex
@@ -28,10 +29,11 @@ type LoginRequest struct {
 	timestamp time.Time
 }
 
-func createGameWorld(db *DB) *World {
+func createGameWorld(db *DB, domainName string) *World {
 	minimumKillstreak := Player{id: "HS-only", killstreak: 0} // Do somewhere else?
 	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: []*Player{&minimumKillstreak}, index: make(map[*Player]int)}}
 	return &World{
+		domainName:          domainName,
 		db:                  db,
 		worldPlayers:        make(map[string]*Player),
 		wPlayerMutex:        sync.Mutex{},

@@ -36,7 +36,7 @@ func main() {
 
 	fmt.Println("Starting game world...")
 	db := createDbConnection(config)
-	world := createGameWorld(db)
+	world := createGameWorld(db, config.domainName)
 	loadFromJson()
 
 	// Process Loggouts, should remove global ?
@@ -60,6 +60,8 @@ func main() {
 	// Account creation and sign in
 	mux.HandleFunc("/homesignin", getSignIn)
 	mux.HandleFunc("/signin", world.postSignin)
+	mux.HandleFunc("/worlds", world.getWorlds)
+	mux.HandleFunc("/status", world.getStatus)
 	mux.HandleFunc("/play", world.postPlay)
 	mux.HandleFunc("/new", world.postNew)
 
@@ -86,6 +88,8 @@ func main() {
 		return
 	}
 }
+
+var domains = []string{"http://localhost:9090"}
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Home page accessed.")

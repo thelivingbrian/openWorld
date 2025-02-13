@@ -60,6 +60,8 @@ type Configuration struct {
 	googleClientId     string
 	googleClientSecret string
 	googleCallbackUrl  string
+	isServer           bool
+	domainName         string
 }
 
 func getConfiguration() *Configuration {
@@ -81,6 +83,8 @@ func getConfiguration() *Configuration {
 		googleClientId:     os.Getenv("GOOGLE_CLIENT_ID"),
 		googleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 		googleCallbackUrl:  os.Getenv("GOOGLE_CALLBACK_URL"),
+		isServer:           os.Getenv("IS_SERVER") == "true",
+		domainName:         os.Getenv("DOMAIN_NAME"),
 	}
 
 	if environmentName == "prod" {

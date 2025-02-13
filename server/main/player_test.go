@@ -6,7 +6,7 @@ import (
 
 func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 	loadFromJson()
-	world := createGameWorld(testdb())
+	world := createGameWorld(testdb(), "")
 	player := createTestingPlayer(world, "")
 	defer close(player.updates)
 	defer close(player.clearUpdateBuffer)

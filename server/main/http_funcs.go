@@ -14,8 +14,36 @@ import (
 	"github.com/markbates/goth/gothic"
 )
 
-/////////////////////////////////////////////
+// ///////////////////////////////////////////
 // User Signin and Creation
+func (world *World) getWorlds(w http.ResponseWriter, r *http.Request) {
+	_, ok := getUserIdFromSession(r)
+	if !ok {
+		tmpl.ExecuteTemplate(w, "homepage", false)
+		return
+	}
+	tmpl.ExecuteTemplate(w, "world-select", domains)
+}
+
+func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
+	_, ok := getUserIdFromSession(r)
+	if !ok {
+		tmpl.ExecuteTemplate(w, "homepage", false)
+		return
+	}
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	fuchsiaPlayers := world.teamQuantities["fushsia"]
+	skyBluePlayers := world.teamQuantities["sky-blue"]
+	s := struct {
+		FuchsiaCount int
+		SkyBlueCount int
+	}{
+		FuchsiaCount: fuchsiaPlayers,
+		SkyBlueCount: skyBluePlayers,
+	}
+	tmpl.ExecuteTemplate(w, "world-status", s)
+}
 
 func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 	id, ok := getUserIdFromSession(r)
