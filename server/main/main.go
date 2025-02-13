@@ -109,9 +109,12 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 
 	session, err := store.Get(r, "user-session")
 	if err != nil {
+		fmt.Println("user session does not exist")
 		tmpl.ExecuteTemplate(w, "homepage", false)
 		return
 	}
+	fmt.Println(session)
+
 	_, ok := session.Values["identifier"].(string)
 	if !ok {
 		fmt.Println("No Identifier")
