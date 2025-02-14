@@ -78,6 +78,9 @@ function notifyUnvailable(elementId) {
       const element = document.getElementById(elementId);
       if (element) {
         element.innerHTML = `Server unavailable :( <a href="#" hx-get="/worlds" hx-target="#page">Try again</a>`;
+        if (window.htmx) {
+            htmx.process(element);
+        }
       } else {
         console.error("Element not found: " + elementId);
       }
