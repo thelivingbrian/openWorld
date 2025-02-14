@@ -69,3 +69,17 @@ async function flashBg(color){
 // CORS
 
 htmx.config.xhrWithCredentials = true;
+
+/////////////////////////////////////////////////////////////////
+//  World Status
+
+function notifyUnvailable(elementId) {
+    setTimeout(function() {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.textContent = "Server unavailable :( Try again later";
+      } else {
+        console.error("Element not found: " + elementId);
+      }
+    }, 2000);
+  }
