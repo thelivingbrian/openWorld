@@ -32,8 +32,11 @@
     </div>
     <div id="landing">   
         {{range  $i, $domain := .}}
-        <div id="world-display" hx-get="{{$domain}}/status" hx-trigger="load" hx-on:htmx:responseError="this.innerHTML='Error: Status unavailable'">
-            <span>Loading . . .</span>
+        <div id="world-display" hx-get="{{$domain}}/status" hx-trigger="load">
+            <span id="status-{{$i}}">Loading . . .</span>
+            <script>
+                notifyUnvailable("status-{{$i}}")
+            </script>
         </div>
         {{end}}
     </div>
