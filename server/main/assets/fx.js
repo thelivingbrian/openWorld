@@ -14,6 +14,10 @@ const sounds = {
     "water-splash": new Audio("/assets/sounds/water-splash.mp3"),
 };
 
+// Mixing
+sounds["power-up-space"].volume = 0.4;
+sounds["water-splash"].volume = 0.7;
+
 function playSound(soundName) {
     const sound = sounds[soundName];
     if (sound) {
@@ -44,7 +48,7 @@ function observeSoundTrigger() {
             });
         });
     });
-    console.log("Observing for changes to #sound-trigger");
+    console.log("Listening to #sound-trigger");
     observer.observe(soundTrigger, { childList: true, subtree: true });
 }
 
@@ -53,7 +57,6 @@ observeSoundTrigger()
 
 ////////////////////////////////////////////////////////////////
 //  Video 
-
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -81,8 +84,6 @@ function notifyUnvailable(elementId) {
         if (window.htmx) {
             htmx.process(element);
         }
-      } else {
-        console.error("Element not found: " + elementId);
       }
     }, 2000);
   }
