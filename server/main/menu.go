@@ -186,7 +186,7 @@ func openMapMenu(p *Player) {
 	var buf bytes.Buffer
 	copy := mapMenu
 	if p.stage.mapId != "" {
-		mapPath := "/images/" + p.stage.mapId
+		mapPath := p.world.domainName + "/images/" + p.stage.mapId
 		copy.InfoHtml = template.HTML(`<img src="` + mapPath + `" width="100%" alt="map of space" />`)
 	} else {
 		copy.InfoHtml = `<h2>unavailable</h2>`
