@@ -23,6 +23,8 @@
 </body>
 {{ end }}
 
+<!--   hx-on:htmx:responseError="this.innerHTML='Error: Status unavailable'"> -->
+
 {{define "world-select"}}
 <div id="page" hx-swap-oob="true">
     <div id="logo">
@@ -30,8 +32,8 @@
     </div>
     <div id="landing">   
         {{range  $i, $domain := .}}
-        <div id="world-display" hx-get="{{$domain}}/status" hx-trigger="load">
-
+        <div id="world-display" hx-get="{{$domain}}/status" hx-trigger="load" hx-on:htmx:responseError="this.innerHTML='Error: Status unavailable'">
+            <span>Loading . . .</span>
         </div>
         {{end}}
     </div>

@@ -174,7 +174,7 @@ func Quit(p *Player) {
 	      </div>
 	      <div id="landing">   
 		  	  <span>Log out success!</span><br />
-	          <a class="large-font" href="#" hx-post="/play" hx-target="#page">Resume</a><br />
+	          <a class="large-font" href="#" hx-post="` + p.world.domainName + `/play" hx-target="#page">Resume</a><br />
 	      </div>
 	  </div>`
 
