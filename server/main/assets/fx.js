@@ -77,7 +77,7 @@ function notifyUnvailable(elementId) {
     setTimeout(function() {
       const element = document.getElementById(elementId);
       if (element) {
-        element.textContent = "Server unavailable :( Try again later";
+        element.textContent = `Server unavailable :( <a href="#" hx-get="/worlds" hx-target="#page">Try again</a>`;
       } else {
         console.error("Element not found: " + elementId);
       }
