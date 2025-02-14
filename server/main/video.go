@@ -24,6 +24,11 @@ func changePageBackgroundColor(player *Player, bgColor string) {
 
 func makeHallucinate(player *Player) {
 	go func() {
+		player.tangibilityLock.Lock()
+		defer player.tangibilityLock.Unlock()
+		if !player.tangible {
+			return
+		}
 		for i := 0; i <= 80; i++ {
 			time.Sleep(20 * time.Millisecond)
 			updateOne(generateDivs(i), player)
