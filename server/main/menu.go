@@ -174,7 +174,7 @@ func Quit(p *Player) {
 	      </div>
 	      <div id="landing">   
 		  	  <span>Log out success!</span><br />
-	          <a class="large-font" href="#" hx-post="` + p.world.domainName + `/play" hx-target="#page">Resume</a><br />
+	          <a class="large-font" href="#" hx-post="` + p.world.config.domainName + `/play" hx-target="#page">Resume</a><br />
 	      </div>
 	  </div>`
 
@@ -186,7 +186,7 @@ func openMapMenu(p *Player) {
 	var buf bytes.Buffer
 	copy := mapMenu
 	if p.stage.mapId != "" {
-		mapPath := p.world.domainName + "/images/" + p.stage.mapId
+		mapPath := p.world.config.domainName + "/images/" + p.stage.mapId
 		copy.InfoHtml = template.HTML(`<img src="` + mapPath + `" width="100%" alt="map of space" />`)
 	} else {
 		copy.InfoHtml = `<h2>unavailable</h2>`

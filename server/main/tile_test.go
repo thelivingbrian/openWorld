@@ -14,7 +14,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 
 	// Arrange
 	loadFromJson()
-	world := createGameWorld(testdb(), "", "")
+	world := createGameWorld(testdb(), nil)
 
 	testStage := loadStageByName(world, "test-walls-interactable")
 	testStage.spawn = []SpawnAction{SpawnAction{always, addBoostsAt(11, 13)}}

@@ -31,7 +31,7 @@ func createWorldSelectHandler(config *Configuration) func(w http.ResponseWriter,
 }
 
 func (world *World) statusHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", world.domainName)
+	w.Header().Set("Access-Control-Allow-Origin", world.config.rootDomain)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	if r.Method == http.MethodOptions {
@@ -62,8 +62,8 @@ func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
 		FuchsiaCount int
 		SkyBlueCount int
 	}{
-		ServerName:   world.serverName,
-		DomainName:   world.domainName,
+		ServerName:   world.config.serverName,
+		DomainName:   world.config.domainName,
 		FuchsiaCount: fuchsiaPlayers,
 		SkyBlueCount: skyBluePlayers,
 	}
@@ -77,7 +77,7 @@ func unavailable(w http.ResponseWriter, r *http.Request) {
 }
 
 func (world *World) playHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", world.domainName)
+	w.Header().Set("Access-Control-Allow-Origin", world.config.rootDomain)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	if r.Method == http.MethodOptions {
@@ -113,7 +113,7 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 
 	if userRecord.Username == "" {
 		fmt.Println("no username")
-		tmpl.ExecuteTemplate(w, "choose-your-color", world.domainName)
+		tmpl.ExecuteTemplate(w, "choose-your-color", world.config.domainName)
 	} else {
 		record, err := world.db.getPlayerRecord(userRecord.Username)
 		if err != nil {
@@ -127,7 +127,7 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 			DomainName   string
 		}{
 			LoginRequest: loginRequest,
-			DomainName:   world.domainName,
+			DomainName:   world.config.domainName,
 		}
 
 		fmt.Println("loginRequest for: " + loginRequest.Record.Username)
@@ -369,7 +369,7 @@ func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 			DomainName   string
 		}{
 			LoginRequest: loginRequest,
-			DomainName:   world.domainName,
+			DomainName:   world.config.domainName,
 		}
 		err = tmpl.ExecuteTemplate(w, "player-page", s)
 		if err != nil {

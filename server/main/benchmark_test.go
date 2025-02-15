@@ -152,7 +152,7 @@ func BenchmarkCreateStage(b *testing.B) {
 
 func BenchmarkFetchStage(b *testing.B) {
 	loadFromJson()
-	world := createGameWorld(testdb(), "", "")
+	world := createGameWorld(testdb(), nil)
 	for _, stagename := range stageNames {
 
 		stage := loadStageByName(world, stagename)

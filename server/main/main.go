@@ -58,7 +58,7 @@ func main() {
 
 	if config.isServer() {
 		fmt.Println("Starting game world...")
-		world := createGameWorld(db, config.serverName, config.domainName)
+		world := createGameWorld(db, config)
 		loadFromJson()
 
 		// Process Logouts, should remove global.
