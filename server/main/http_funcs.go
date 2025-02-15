@@ -31,7 +31,7 @@ func createWorldSelectHandler(config *Configuration) func(w http.ResponseWriter,
 }
 
 func (world *World) statusHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "https://"+world.config.rootDomain)
+	w.Header().Set("Access-Control-Allow-Origin", world.config.originForCORS())
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	if r.Method == http.MethodOptions {
@@ -77,7 +77,7 @@ func unavailable(w http.ResponseWriter, r *http.Request) {
 }
 
 func (world *World) playHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "https://"+world.config.rootDomain)
+	w.Header().Set("Access-Control-Allow-Origin", world.config.originForCORS())
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	if r.Method == http.MethodOptions {

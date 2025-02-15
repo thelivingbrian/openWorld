@@ -148,6 +148,14 @@ func (config *Configuration) isServer() bool {
 	return config.serverName != "" && config.domainName != ""
 }
 
+func (config *Configuration) originForCORS() string {
+	prefix := "http://"
+	if config.usesTLS {
+		prefix = "https://"
+	}
+	return prefix + config.rootDomain
+}
+
 func retrieveKeys() (hashKey, blockKey []byte) {
 	hashKeyBase64 := os.Getenv("COOKIE_HASH_KEY")
 	hashKey, err := base64.StdEncoding.DecodeString(hashKeyBase64)
