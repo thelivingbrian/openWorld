@@ -67,23 +67,3 @@ async function flashBg(color){
     await sleep(10)
     document.body.className="night"
 }
-
-/////////////////////////////////////////////////////////////////
-// CORS
-
-htmx.config.xhrWithCredentials = true;
-
-/////////////////////////////////////////////////////////////////
-//  World Status
-
-function notifyUnvailable(elementId) {
-    setTimeout(function() {
-      const element = document.getElementById(elementId);
-      if (element) {
-        element.innerHTML = `Server unavailable :( <a href="#" hx-get="/worlds" hx-target="#page">Try again</a>`;
-        if (window.htmx) {
-            htmx.process(element);
-        }
-      }
-    }, 2000);
-  }

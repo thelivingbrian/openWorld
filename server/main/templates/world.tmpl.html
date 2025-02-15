@@ -1,0 +1,27 @@
+{{define "world-select"}}
+<div id="page" hx-swap-oob="true">
+    <div id="logo">
+        <img src="/assets/blooplogo2.webp" width="33%" alt="Welcome to bloopworld"><br />
+    </div>
+    <div id="landing">   
+        {{range  $i, $domain := .}}
+        <div id="world-display" class="rounded-cyan-border center-horizontally" hx-get="{{$domain}}/status" hx-trigger="load">
+            <span id="status-{{$i}}" hx-get="/unavailable" hx-trigger="load delay:2s">Loading . . .</span>
+        </div>
+        {{end}}
+    </div>
+</div>
+{{end}}
+
+{{define "world-status"}}
+<div>
+    <span>
+        Server : <strong>{{.ServerName}}</strong><br />
+        Players <br />
+        <strong class="fuchsia-t">Fuchsia: </strong> <strong>{{.FuchsiaCount}}</strong> |
+        <strong class="sky-blue-t">SKy-Blue: </strong> <strong>{{.SkyBlueCount}}</strong><br />
+        <br />
+        <strong><a class="large-font" href="#" hx-post="{{.DomainName}}/play" hx-target="#page">Play</a><br /></strong>
+    </span>
+</div>
+{{end}}

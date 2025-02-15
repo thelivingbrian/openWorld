@@ -74,6 +74,8 @@ func (world *World) getPlayerByName(id string) *Player {
 //////////////////////////////////////////////////
 //  Log in
 
+const ACCEPTABLE_LOG_IN_DELAY_SECONDS = 15
+
 func createLoginRequest(record PlayerRecord) *LoginRequest {
 	return &LoginRequest{
 		Token:     createRandomToken(),
@@ -91,24 +93,23 @@ func (world *World) addIncoming(loginRequest *LoginRequest) {
 func (world *World) retreiveIncoming(token string) *LoginRequest {
 	world.incomingPlayerMutex.Lock()
 	defer world.incomingPlayerMutex.Unlock()
-	// Can leak spammed unattempted tokens
-	// Use list and iterate fully instead?
-	request, ok := world.incomingPlayers[token]
-	if ok {
-		delete(world.incomingPlayers, token)
-		if isLessThan15SecondsAgo(request.timestamp) {
+
+	for key, request := range world.incomingPlayers {
+		if isOverNSecondsAgo(request.timestamp, ACCEPTABLE_LOG_IN_DELAY_SECONDS) {
+			delete(world.incomingPlayers, key)
+			continue
+		}
+		if key == token {
+			delete(world.incomingPlayers, key)
 			return request
 		}
+
 	}
 	return nil
 }
 
-func isLessThan15SecondsAgo(t time.Time) bool {
-	if time.Since(t) < 0 {
-		// t is in the future
-		return false
-	}
-	return time.Since(t) < 450*time.Second
+func isOverNSecondsAgo(t time.Time, n int) bool {
+	return time.Since(t) > time.Duration(n)*time.Second
 }
 
 func createRandomToken() string {
@@ -165,13 +166,12 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		menues:                   map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu}, // terrifying
 		playerStages:             make(map[string]*Stage),
 		team:                     record.Team,
-		//trim:                     record.Trim,
-		health:      record.Health,
-		money:       record.Money,
-		killCount:   record.KillCount,
-		deathCount:  record.DeathCount,
-		goalsScored: record.GoalsScored,
-		hatList:     SyncHatList{HatList: record.HatList},
+		health:                   record.Health,
+		money:                    record.Money,
+		killCount:                record.KillCount,
+		deathCount:               record.DeathCount,
+		goalsScored:              record.GoalsScored,
+		hatList:                  SyncHatList{HatList: record.HatList},
 	}
 
 	newPlayer.setIcon()

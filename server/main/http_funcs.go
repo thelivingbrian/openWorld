@@ -199,7 +199,7 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl.ExecuteTemplate(w, "load-play", desiredHost)
+	tmpl.ExecuteTemplate(w, "post-play-on-load", desiredHost)
 }
 
 func validTeam(team string) bool {
