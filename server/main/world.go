@@ -8,7 +8,11 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
+
+var CAPACITY_PER_TEAM = 128
 
 type World struct {
 	db                  *DB
@@ -16,11 +20,27 @@ type World struct {
 	worldPlayers        map[string]*Player
 	wPlayerMutex        sync.Mutex
 	teamQuantities      map[string]int
+	status              WorldStatus
 	incomingPlayers     map[string]*LoginRequest
 	incomingPlayerMutex sync.Mutex
 	worldStages         map[string]*Stage
 	wStageMutex         sync.Mutex
 	leaderBoard         *LeaderBoard
+}
+
+type WorldStatus struct {
+	sync.Mutex
+	lastStatusCheck    time.Time
+	fuchsiaPlayerCount int
+	skyBluePlayerCount int
+}
+
+type WorldStatusDiv struct {
+	ServerName   string
+	DomainName   string
+	FuchsiaCount int
+	SkyBlueCount int
+	Vacancy      bool
 }
 
 type LoginRequest struct {
@@ -125,11 +145,18 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	//fmt.Println("Token: " + token)
 
 	if world.isLoggedInAlready(incoming.Record.Username) {
+		errorMessage := fmt.Sprintf(unableToJoin, "You are already logged in.")
+		conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
 		fmt.Println("User attempting to log in but is logged in already: " + incoming.Record.Username)
 		return nil
 	}
 
 	newPlayer := world.newPlayerFromRecord(incoming.Record, incoming.Token)
+	if world.teamAtCapacity(newPlayer.getTeamNameSync()) {
+		errorMessage := fmt.Sprintf(unableToJoin, "Your team is at capacity.")
+		conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
+		return nil
+	}
 	world.addPlayer(newPlayer)
 
 	world.leaderBoard.mostDangerous.Lock()
@@ -142,6 +169,25 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
 
 	return newPlayer
+}
+
+var unableToJoin = `
+<div id="main_view" hx-swap-oob="true">
+	<b>
+		<span>Unable to join.<br />
+		%s</span><br />
+		<a href="#" hx-get="/worlds" hx-target="#page"> Try again</a>
+	</b>
+</div>`
+
+func (world *World) teamAtCapacity(teamName string) bool {
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	count, _ := world.teamQuantities[teamName]
+	if count >= CAPACITY_PER_TEAM {
+		return true
+	}
+	return false
 }
 
 func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player {

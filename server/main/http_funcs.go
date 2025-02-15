@@ -15,6 +15,7 @@ import (
 )
 
 const ALLOWED_HEADERS = "Content-Type, hx-current-url, HX-Request, HX-Target, HX-Trigger"
+const STATUS_CHECK_INTERVAL_IN_SECONDS = 60
 
 // ///////////////////////////////////////////
 // World Select and Status
@@ -52,22 +53,28 @@ func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "<div>Invalid Sign in</div>")
 		return
 	}
-	world.wPlayerMutex.Lock()
-	defer world.wPlayerMutex.Unlock()
-	fuchsiaPlayers := world.teamQuantities["fushsia"]
-	skyBluePlayers := world.teamQuantities["sky-blue"]
-	s := struct {
-		ServerName   string
-		DomainName   string
-		FuchsiaCount int
-		SkyBlueCount int
-	}{
+	world.status.Lock()
+	defer world.status.Unlock()
+	if isOverNSecondsAgo(world.status.lastStatusCheck, STATUS_CHECK_INTERVAL_IN_SECONDS) {
+		fmt.Println("over")
+		world.wPlayerMutex.Lock()
+		defer world.wPlayerMutex.Unlock()
+		world.status.fuchsiaPlayerCount = world.teamQuantities["fuchsia"]
+		world.status.skyBluePlayerCount = world.teamQuantities["sky-blue"]
+		world.status.lastStatusCheck = time.Now()
+	}
+	s := WorldStatusDiv{
 		ServerName:   world.config.serverName,
 		DomainName:   world.config.domainName,
-		FuchsiaCount: fuchsiaPlayers,
-		SkyBlueCount: skyBluePlayers,
+		FuchsiaCount: world.status.fuchsiaPlayerCount,
+		SkyBlueCount: world.status.skyBluePlayerCount,
+		Vacancy:      vacancyOfLockedWorldStatus(&world.status),
 	}
 	tmpl.ExecuteTemplate(w, "world-status", s)
+}
+
+func vacancyOfLockedWorldStatus(status *WorldStatus) bool {
+	return status.fuchsiaPlayerCount < CAPACITY_PER_TEAM && status.skyBluePlayerCount < CAPACITY_PER_TEAM
 }
 
 var unavailableMessage = `Server unavailable :( <a href="#" hx-get="/worlds" hx-target="#page"> Try again</a>`

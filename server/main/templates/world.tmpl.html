@@ -21,7 +21,11 @@
         <strong class="fuchsia-t">Fuchsia: </strong> <strong>{{.FuchsiaCount}}</strong> |
         <strong class="sky-blue-t">SKy-Blue: </strong> <strong>{{.SkyBlueCount}}</strong><br />
         <br />
-        <strong><a class="large-font" href="#" hx-post="{{.DomainName}}/play" hx-target="#page">Play</a><br /></strong>
+        {{if .Vacancy}}
+            <strong><a class="large-font" href="#" hx-post="{{.DomainName}}/play" hx-target="#page">Play</a></strong><br />
+        {{else}}
+            <strong>At capacity!</strong><br />
+        {{end}}
     </span>
 </div>
 {{end}}
