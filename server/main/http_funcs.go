@@ -76,6 +76,9 @@ func unavailable(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, unavailableMessage)
 }
 
+// ///////////////////////////////////////////
+// Player Sign-in and Create
+
 func (world *World) playHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", world.config.originForCORS())
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
@@ -91,9 +94,6 @@ func (world *World) playHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
-// ///////////////////////////////////////////
-// Player Sign-in and Create
 
 func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 	id, ok := getUserIdFromSession(r)
