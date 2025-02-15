@@ -14,47 +14,39 @@ import (
 	"github.com/markbates/goth/gothic"
 )
 
+const ALLOWED_HEADERS = "Content-Type, hx-current-url, HX-Request, HX-Target, HX-Trigger"
+
 // ///////////////////////////////////////////
-// User Signin and Creation
-func createWorldSelectHandler() func(w http.ResponseWriter, r *http.Request) {
-	domainEnv := os.Getenv("DOMAINS")
-	domains := strings.Split(domainEnv, ",")
+// World Select and Status
+
+func createWorldSelectHandler(config *Configuration) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, ok := getUserIdFromSession(r)
 		if !ok {
 			tmpl.ExecuteTemplate(w, "homepage", false)
 			return
 		}
-		tmpl.ExecuteTemplate(w, "world-select", domains)
+		tmpl.ExecuteTemplate(w, "world-select", config.domains)
 	}
 }
 
-/*
-func getWorlds(w http.ResponseWriter, r *http.Request) {
-	_, ok := getUserIdFromSession(r)
-	if !ok {
-		tmpl.ExecuteTemplate(w, "homepage", false)
-		return
-	}
-	tmpl.ExecuteTemplate(w, "world-select", domains)
-}
-*/
+func (world *World) statusHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", world.domainName)
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
-func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
-	allowedHeaders := "Content-Type, hx-current-url, HX-Request, HX-Target, HX-Trigger"
 	if r.Method == http.MethodOptions {
-		w.Header().Set("Access-Control-Allow-Origin", "https://bloopworld.co")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", allowedHeaders)
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Access-Control-Allow-Headers", ALLOWED_HEADERS)
 		w.WriteHeader(http.StatusOK)
 		return
 	}
+	if r.Method == http.MethodGet {
+		world.getStatus(w, r)
+		return
+	}
+}
 
-	// Set CORS header for actual requests
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	w.Header().Set("Access-Control-Allow-Origin", "https://bloopworld.co")
-
+func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
 	_, ok := getUserIdFromSession(r)
 	if !ok {
 		io.WriteString(w, "<div>Invalid Sign in</div>")
@@ -78,21 +70,32 @@ func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
 	tmpl.ExecuteTemplate(w, "world-status", s)
 }
 
-func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
-	allowedHeaders := "Content-Type, hx-current-url, HX-Request, HX-Target, HX-Trigger"
+var unavailableMessage = `Server unavailable :( <a href="#" hx-get="/worlds" hx-target="#page"> Try again</a>`
+
+func unavailable(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, unavailableMessage)
+}
+
+func (world *World) playHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", world.domainName)
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
 	if r.Method == http.MethodOptions {
-		w.Header().Set("Access-Control-Allow-Origin", "https://bloopworld.co")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", allowedHeaders)
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Access-Control-Allow-Headers", ALLOWED_HEADERS)
 		w.WriteHeader(http.StatusOK)
 		return
 	}
+	if r.Method == http.MethodPost {
+		world.postPlay(w, r)
+		return
+	}
+}
 
-	// Set CORS header for actual requests
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	w.Header().Set("Access-Control-Allow-Origin", "https://bloopworld.co")
+// ///////////////////////////////////////////
+// Player Sign-in and Create
 
+func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 	id, ok := getUserIdFromSession(r)
 	if !ok {
 		tmpl.ExecuteTemplate(w, "homepage", false)
@@ -100,7 +103,6 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 	}
 	userRecord := world.db.getAuthorizedUserById(id)
 	if userRecord == nil {
-		// deeply confusing
 		// Could imply hacked cookie?
 		// Has happened when db record is lost/destroyed
 		// Is confusing if this happens because you get a blank page with no explanation
@@ -110,8 +112,7 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("have user")
 
 	if userRecord.Username == "" {
-		fmt.Println("no name")
-		// Pass desired server ?
+		fmt.Println("no username")
 		tmpl.ExecuteTemplate(w, "choose-your-color", world.domainName)
 	} else {
 		record, err := world.db.getPlayerRecord(userRecord.Username)
@@ -147,7 +148,7 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("have user")
+	fmt.Println("New player request from: " + userRecord.Username)
 
 	props, ok := requestToProperties(r)
 	if !ok {
@@ -158,17 +159,12 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 
 	team := props["player-team"]
 	username := props["player-name"]
-	desiredHost := props["desired-host"]
-	decoded, err := url.QueryUnescape(desiredHost)
+	desiredHostUrlEncoded := props["desired-host"]
+	desiredHost, err := url.QueryUnescape(desiredHostUrlEncoded)
 	if err != nil {
 		fmt.Println("Error decoding host:", err)
 		return
 	}
-	fmt.Println(decoded)
-
-	fmt.Println(team)
-	fmt.Println(username)
-	//fmt.Println(desiredHost)
 
 	if !validTeam(team) {
 		io.WriteString(w, divBottomInvalid("Invalid Player Color"))
@@ -203,14 +199,7 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// send a div that on load calls /play with desired server
-	/*
-		loginRequest := createLoginRequest(record)
-		world.addIncoming(loginRequest)
-
-		tmpl.ExecuteTemplate(w, "player-page", loginRequest)
-	*/
-	tmpl.ExecuteTemplate(w, "load-play", decoded)
+	tmpl.ExecuteTemplate(w, "load-play", desiredHost)
 }
 
 func validTeam(team string) bool {
@@ -221,25 +210,6 @@ func validTeam(team string) bool {
 		}
 	}
 	return false
-}
-
-func getUserIdFromSession(r *http.Request) (string, bool) {
-	session, err := store.Get(r, "user-session")
-	if err != nil {
-		fmt.Println("Error with session: ")
-		fmt.Println(err)
-		return "", false
-	}
-	if session == nil {
-		fmt.Println("Session is nil")
-	}
-	fmt.Println(session)
-
-	id, ok := session.Values["identifier"].(string)
-	if !ok {
-		return "", false
-	}
-	return id, true
 }
 
 /////////////////////////////////////////////
@@ -271,8 +241,6 @@ func auth(w http.ResponseWriter, r *http.Request) {
 func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 	user, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
-		// This should fail for random additional requests,
-		// other routes will be able to grab a pre-existing session
 		fmt.Println("Callback error: " + err.Error())
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
@@ -352,7 +320,8 @@ func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 // Game Controls
 
 func clearScreen(w http.ResponseWriter, r *http.Request) {
-	output := `<div id="screen" class="grid">
+	output := `
+	<div id="screen" class="grid">
 				
 	</div>`
 	io.WriteString(w, output)

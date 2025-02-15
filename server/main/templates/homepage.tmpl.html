@@ -23,8 +23,6 @@
 </body>
 {{ end }}
 
-<!--   hx-on:htmx:responseError="this.innerHTML='Error: Status unavailable'"> -->
-
 {{define "world-select"}}
 <div id="page" hx-swap-oob="true">
     <div id="logo">
@@ -32,11 +30,8 @@
     </div>
     <div id="landing">   
         {{range  $i, $domain := .}}
-        <div id="world-display" hx-get="{{$domain}}/status" hx-trigger="load">
-            <span id="status-{{$i}}">Loading . . .</span>
-            <script>
-                notifyUnvailable("status-{{$i}}")
-            </script>
+        <div id="world-display" class="rounded-cyan-border center-horizontally" hx-get="{{$domain}}/status" hx-trigger="load">
+            <span id="status-{{$i}}" hx-get="/unavailable" hx-trigger="load delay:2s">Loading . . .</span>
         </div>
         {{end}}
     </div>
@@ -44,7 +39,7 @@
 {{end}}
 
 {{define "world-status"}}
-<div class="rounded-cyan-border center-horizontally">
+<div>
     <span>
         Server : <strong>{{.ServerName}}</strong><br />
         Players <br />

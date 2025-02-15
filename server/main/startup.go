@@ -6,10 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 
 	"github.com/gorilla/sessions"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -62,12 +64,19 @@ type Configuration struct {
 	googleClientId     string
 	googleClientSecret string
 	googleCallbackUrl  string
+	rootDomain         string // root domain is used for cookie and CORS
 	isHub              bool
+	domains            []string
 	serverName         string
 	domainName         string
 }
 
 func getConfiguration() *Configuration {
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
+
 	environmentName := os.Getenv("BLOOP_ENV")
 	hashKey, blockKey := retrieveKeys()
 
@@ -88,6 +97,8 @@ func getConfiguration() *Configuration {
 		googleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 		googleCallbackUrl:  os.Getenv("GOOGLE_CALLBACK_URL"),
 		isHub:              strings.ToUpper(os.Getenv("IS_HUB")) == "TRUE",
+		rootDomain:         os.Getenv("ROOT_DOMAIN"),
+		domains:            strings.Split(os.Getenv("DOMAINS"), ","),
 		serverName:         os.Getenv("SERVER_NAME"),
 		domainName:         os.Getenv("DOMAIN_NAME"),
 	}
@@ -122,6 +133,14 @@ func (config *Configuration) createCookieStore() *sessions.CookieStore {
 		panic("Invalid key lengths")
 	}
 	store := sessions.NewCookieStore(config.hashKey, config.blockKey)
+	store.Options = &sessions.Options{
+		Domain:   "." + config.rootDomain, //bloopworld.co", // Leading dot allows subdomains
+		Path:     "/",
+		MaxAge:   86400,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+	}
 	return store
 }
 
