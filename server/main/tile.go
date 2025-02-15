@@ -142,6 +142,7 @@ func (tile *Tile) addLockedPlayertoTile(player *Player) {
 
 func (tile *Tile) collectItemsForPlayer(player *Player) bool {
 	itemChange := false
+	// Single item mutex?
 	tile.powerMutex.Lock()
 	defer tile.powerMutex.Unlock()
 	tile.moneyMutex.Lock()
@@ -155,7 +156,7 @@ func (tile *Tile) collectItemsForPlayer(player *Player) bool {
 		itemChange = true
 	}
 	if tile.money != 0 {
-		player.setMoneyAndUpdate(player.money + tile.money)
+		player.addMoneyAndUpdate(tile.money)
 		tile.money = 0
 		itemChange = true
 	}
@@ -329,6 +330,15 @@ func trySetInteractable(tile *Tile, i *Interactable) bool {
 	return true
 }
 
+func tryGetInteractable(tile *Tile) *Interactable {
+	ownLock := tile.interactableMutex.TryLock()
+	if !ownLock {
+		return nil
+	}
+	defer tile.interactableMutex.Unlock()
+	return tile.interactable
+}
+
 /////////////////////////////////////////////////////////////
 // Utilities
 
@@ -336,13 +346,16 @@ func walkable(tile *Tile) bool {
 	if tile == nil {
 		return false
 	}
+	if !tile.material.Walkable {
+		return false
+	}
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
-	if tile.interactable == nil {
-		return tile.material.Walkable
-	} else {
+	if tile.interactable != nil {
 		return tile.interactable.pushable || tile.interactable.walkable
+
 	}
+	return true
 }
 
 func validCoordinate(y int, x int, tiles [][]*Tile) bool {

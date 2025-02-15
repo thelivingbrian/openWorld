@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 )
 
 type Interactable struct {
@@ -77,6 +78,22 @@ func init() {
 		"lily-pad": []InteractableReaction{
 			InteractableReaction{ReactsWith: interactableIsNil, Reaction: playSoundForAll("water-splash")},
 			InteractableReaction{ReactsWith: interactableIsARing, Reaction: makeDangerousForOtherTeam},
+			InteractableReaction{ReactsWith: everything, Reaction: pass},
+		},
+		"death-trap": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: killInstantly},
+			InteractableReaction{ReactsWith: everything, Reaction: pass},
+		},
+		"exchange-ring": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableIsARing, Reaction: damageAndSpawn},
+		},
+		// Puzzles:
+		"target-lavender": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableHasName("ball-lavender"), Reaction: checkSolveAndRemoveInteractable},
+			InteractableReaction{ReactsWith: everything, Reaction: pass},
+		},
+		"target-dark-lavender": []InteractableReaction{
+			InteractableReaction{ReactsWith: interactableHasName("ball-dark-lavender"), Reaction: awardPuzzleHat},
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
 	}
@@ -289,6 +306,9 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 		if totalGoals == 1 {
 			p.addHatByName("score-1-goal")
 		}
+		if totalGoals == 1000 {
+			p.addHatByName("score-1000-goal")
+		}
 		p.updateRecord()
 		message := fmt.Sprintf("@[%s|%s] scored a goal!<br /> The score is: @[%s %d|%s] to @[%s %d|%s]", p.username, team, team, score, team, oppositeTeamName, scoreOpposing, oppositeTeamName)
 		broadcastBottomText(p.world, message)
@@ -338,6 +358,11 @@ func moveInitiator(yOff, xOff int) func(*Interactable, *Player, *Tile) (*Interac
 	}
 }
 
+func killInstantly(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	handleDeath(p)
+	return nil, false
+}
+
 var superBoostEast = moveInitiator(0, 11)
 var superBoostWest = moveInitiator(0, -11)
 var superBoostNorth = moveInitiator(-11, 0)
@@ -378,6 +403,29 @@ func makeDangerousForOtherTeam(i *Interactable, p *Player, t *Tile) (*Interactab
 	t.interactable.reactions = newReactions
 	t.stage.updateAll(lockedInteractableBox(t))
 	addMoneyToStage(t.stage, 10) // should be more money
+	return nil, false
+}
+
+func damageAndSpawn(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	y := rand.Intn(len(t.stage.tiles))
+	x := rand.Intn(len(t.stage.tiles[y]))
+	epicenter := t.stage.tiles[y][x]
+	dmg := 50
+	if i.name == "ring-big" {
+		dmg = 100
+	}
+	go damageWithinRadius(epicenter, p.world, 4, dmg, p.id)
+	t.stage.updateAll(soundTriggerByName("explosion"))
+	addMoneyToStage(t.stage, dmg/5)
+	if strings.Contains(t.stage.name, ":") {
+		spacename := strings.Split(t.stage.name, ":")[0]
+		lat := rand.Intn(8)
+		long := rand.Intn(8)
+		stagename := fmt.Sprintf("%s:%d-%d", spacename, lat, long)
+		fmt.Println(stagename)
+		stage := p.fetchStageSync(stagename)
+		placeInteractableOnStagePriorityCovered(stage, i)
+	}
 	return nil, false
 }
 
@@ -427,6 +475,29 @@ func damageWithinRadius(tile *Tile, world *World, radius, dmg int, ownerId strin
 			damageAndIndicate(tiles, trapSetter, tile.stage, dmg)
 		}
 	}
+}
+
+///////////////////////////////////////////////////////////////
+// Puzzles
+
+func checkSolveAndRemoveInteractable(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	setLockedInteractableAndUpdate(t, nil)
+	stage := t.stage
+	tileA := stage.tiles[3][3]
+	tileB := stage.tiles[12][12]
+	interactableA := tryGetInteractable(tileA)
+	interactableB := tryGetInteractable(tileB)
+	if interactableA != nil && interactableA.name == "fragile-push" && interactableB != nil && interactableB.name == "basic-push" {
+		reward := Interactable{name: "ball-dark-lavender", cssClass: "dark-lavender r1 lavender-b thick", pushable: true, fragile: true}
+		p.push(stage.tiles[7][7], &reward, 0, 1)
+	}
+	return nil, false
+}
+
+func awardPuzzleHat(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	p.addHatByName("puzzle-solve-1")
+	// spawn escape lily
+	return nil, false
 }
 
 // Tutorial

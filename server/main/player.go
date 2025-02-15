@@ -282,6 +282,7 @@ func popAndDropMoney(player *Player) {
 }
 
 func halveMoneyOf(player *Player) int {
+	// race risk
 	currentMoney := player.getMoneySync()
 	newValue := currentMoney / 2
 	player.setMoneyAndUpdate(newValue)
@@ -298,6 +299,7 @@ func respawnOnStage(player *Player, stage *Stage) {
 	placePlayerOnStageAt(player, stage, 2, 2)
 	sendSoundToPlayer(player, soundTriggerByName("pop-death"))
 	player.updatePlayerHud()
+	player.updateBottomText("You have died.")
 }
 
 func removeFromTileAndStage(player *Player) {
@@ -472,11 +474,11 @@ func (player *Player) updateBottomText(message string) {
 }
 
 func (player *Player) updatePlayerHud() {
-	player.updatePlayerTile()
+	player.updatePlayerBox()
 	updateOne(divPlayerInformation(player), player)
 }
 
-func (player *Player) updatePlayerTile() {
+func (player *Player) updatePlayerBox() {
 	icon := player.setIcon()
 	tile := player.getTileSync()
 	updateOne(playerBoxSpecifc(tile.y, tile.x, icon), player)
@@ -569,13 +571,13 @@ func (player *Player) addHatByName(hatName string) {
 		return
 	}
 	player.world.db.addHatToPlayer(player.username, *hat)
-	player.updatePlayerTile()
+	player.updatePlayerBox()
 	return
 }
 
 func (player *Player) cycleHats() {
 	player.hatList.nextValid()
-	player.updatePlayerTile() // wasteful, just update all ?
+	player.updatePlayerBox() // wasteful, just update all ?
 	tile := player.getTileSync()
 	tile.stage.updateAllExcept(playerBox(tile), player)
 	return
@@ -656,9 +658,24 @@ func (player *Player) setMoney(n int) {
 	player.money = n
 }
 
+func (player *Player) addMoney(n int) int {
+	player.moneyLock.Lock()
+	defer player.moneyLock.Unlock()
+	player.money += n
+	return player.money
+}
+
 func (player *Player) setMoneyAndUpdate(n int) {
 	player.setMoney(n)
 	updateOne(spanMoney(n), player)
+}
+
+func (player *Player) addMoneyAndUpdate(n int) {
+	totalMoney := player.addMoney(n)
+	if totalMoney > 100*1000 {
+		player.addHatByName("made-of-money")
+	}
+	updateOne(spanMoney(totalMoney), player)
 }
 
 func (player *Player) getMoneySync() int {
