@@ -15,7 +15,7 @@ import (
 )
 
 const ALLOWED_HEADERS = "Content-Type, hx-current-url, HX-Request, HX-Target, HX-Trigger"
-const STATUS_CHECK_INTERVAL_IN_SECONDS = 60
+const STATUS_CHECK_INTERVAL_IN_SECONDS = 5
 
 // ///////////////////////////////////////////
 // World Select and Status
