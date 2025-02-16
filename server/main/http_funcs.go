@@ -14,8 +14,92 @@ import (
 	"github.com/markbates/goth/gothic"
 )
 
-/////////////////////////////////////////////
-// User Signin and Creation
+const ALLOWED_HEADERS = "Content-Type, hx-current-url, hx-request, hx-target, hx-trigger"
+const STATUS_CHECK_INTERVAL_IN_SECONDS = 5
+
+// ///////////////////////////////////////////
+// World Select and Status
+
+func createWorldSelectHandler(config *Configuration) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, ok := getUserIdFromSession(r)
+		if !ok {
+			tmpl.ExecuteTemplate(w, "homepage", false)
+			return
+		}
+		tmpl.ExecuteTemplate(w, "world-select", config.domains)
+	}
+}
+
+func (world *World) statusHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", world.config.originForCORS())
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", ALLOWED_HEADERS)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	if r.Method == http.MethodGet {
+		world.getStatus(w, r)
+		return
+	}
+}
+
+func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
+	_, ok := getUserIdFromSession(r)
+	if !ok {
+		io.WriteString(w, "<div>Invalid Sign in</div>")
+		return
+	}
+	world.status.Lock()
+	defer world.status.Unlock()
+	if isOverNSecondsAgo(world.status.lastStatusCheck, STATUS_CHECK_INTERVAL_IN_SECONDS) {
+		world.wPlayerMutex.Lock()
+		defer world.wPlayerMutex.Unlock()
+		world.status.fuchsiaPlayerCount = world.teamQuantities["fuchsia"]
+		world.status.skyBluePlayerCount = world.teamQuantities["sky-blue"]
+		world.status.lastStatusCheck = time.Now()
+	}
+	statusDiv := WorldStatusDiv{
+		ServerName:   world.config.serverName,
+		DomainName:   world.config.domainName,
+		FuchsiaCount: world.status.fuchsiaPlayerCount,
+		SkyBlueCount: world.status.skyBluePlayerCount,
+		Vacancy:      vacancyOfLockedWorldStatus(&world.status),
+	}
+	tmpl.ExecuteTemplate(w, "world-status", statusDiv)
+}
+
+func vacancyOfLockedWorldStatus(status *WorldStatus) bool {
+	return status.fuchsiaPlayerCount < CAPACITY_PER_TEAM && status.skyBluePlayerCount < CAPACITY_PER_TEAM
+}
+
+var unavailableMessage = `Server unavailable :( <a href="#" hx-get="/worlds" hx-target="#page"> Try again</a>`
+
+func unavailable(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, unavailableMessage)
+}
+
+// ///////////////////////////////////////////
+// Player Sign-in and Create
+
+func (world *World) playHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", world.config.originForCORS())
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", ALLOWED_HEADERS)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	if r.Method == http.MethodPost {
+		world.postPlay(w, r)
+		return
+	}
+}
 
 func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 	id, ok := getUserIdFromSession(r)
@@ -25,18 +109,17 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 	}
 	userRecord := world.db.getAuthorizedUserById(id)
 	if userRecord == nil {
-		// deeply confusing
 		// Could imply hacked cookie?
 		// Has happened when db record is lost/destroyed
+		// Is confusing if this happens because you get a blank page with no explanation
 		return
 	}
 
 	fmt.Println("have user")
 
 	if userRecord.Username == "" {
-		fmt.Println("no name")
-		tmpl.ExecuteTemplate(w, "choose-your-color", nil)
-		//io.WriteString(w, chooseYourColor())
+		fmt.Println("no username")
+		tmpl.ExecuteTemplate(w, "choose-your-color", world.config.domainName)
 	} else {
 		record, err := world.db.getPlayerRecord(userRecord.Username)
 		if err != nil {
@@ -45,25 +128,33 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 		loginRequest := createLoginRequest(record)
 		world.addIncoming(loginRequest)
 
+		s := struct {
+			LoginRequest *LoginRequest
+			DomainName   string
+		}{
+			LoginRequest: loginRequest,
+			DomainName:   world.config.domainName,
+		}
+
 		fmt.Println("loginRequest for: " + loginRequest.Record.Username)
-		tmpl.ExecuteTemplate(w, "player-page", loginRequest)
+		tmpl.ExecuteTemplate(w, "player-page", s)
 	}
 }
 
-func (world *World) postNew(w http.ResponseWriter, r *http.Request) {
+func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 	id, ok := getUserIdFromSession(r)
 	if !ok {
 		tmpl.ExecuteTemplate(w, "homepage", false)
 		return
 	}
-	userRecord := world.db.getAuthorizedUserById(id)
+	userRecord := db.getAuthorizedUserById(id)
 	if userRecord == nil {
 		// deeply confusing
 		// Could imply hacked cookie?
 		return
 	}
 
-	fmt.Println("have user")
+	fmt.Println("New player request from: " + userRecord.Username)
 
 	props, ok := requestToProperties(r)
 	if !ok {
@@ -74,16 +165,19 @@ func (world *World) postNew(w http.ResponseWriter, r *http.Request) {
 
 	team := props["player-team"]
 	username := props["player-name"]
-
-	fmt.Println(team)
-	fmt.Println(username)
+	desiredHostUrlEncoded := props["desired-host"]
+	desiredHost, err := url.QueryUnescape(desiredHostUrlEncoded)
+	if err != nil {
+		fmt.Println("Error decoding host:", err)
+		return
+	}
 
 	if !validTeam(team) {
 		io.WriteString(w, divBottomInvalid("Invalid Player Color"))
 		return
 	}
 
-	if world.db.foundUsername(username) {
+	if db.foundUsername(username) {
 		io.WriteString(w, divBottomInvalid("Username unavailable. Try again."))
 		return
 	}
@@ -100,21 +194,18 @@ func (world *World) postNew(w http.ResponseWriter, r *http.Request) {
 		Money:     80,
 	}
 
-	err := world.db.InsertPlayerRecord(record)
+	err = db.InsertPlayerRecord(record)
 	if err != nil {
 		io.WriteString(w, divBottomInvalid("Error saving new player"))
 		return
 	}
-	ok = world.db.updateUsernameForUserWithId(id, username)
+	ok = db.updateUsernameForUserWithId(id, username)
 	if !ok {
 		io.WriteString(w, divBottomInvalid("Error, username not updated"))
 		return
 	}
 
-	loginRequest := createLoginRequest(record)
-	world.addIncoming(loginRequest)
-
-	tmpl.ExecuteTemplate(w, "player-page", loginRequest)
+	tmpl.ExecuteTemplate(w, "post-play-on-load", desiredHost)
 }
 
 func validTeam(team string) bool {
@@ -125,21 +216,6 @@ func validTeam(team string) bool {
 		}
 	}
 	return false
-}
-
-func getUserIdFromSession(r *http.Request) (string, bool) {
-	session, err := store.Get(r, "user-session")
-	if err != nil {
-		fmt.Println("Error with session: ")
-		fmt.Println(err)
-		return "", false
-	}
-
-	id, ok := session.Values["identifier"].(string)
-	if !ok {
-		return "", false
-	}
-	return id, true
 }
 
 /////////////////////////////////////////////
@@ -171,8 +247,6 @@ func auth(w http.ResponseWriter, r *http.Request) {
 func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 	user, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
-		// This should fail for random additional requests,
-		// other routes will be able to grab a pre-existing session
 		fmt.Println("Callback error: " + err.Error())
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
@@ -187,7 +261,7 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 	userRecord := db.getAuthorizedUserById(identifier)
 	if userRecord == nil {
 		fmt.Println("Creating new user with identifier: " + identifier)
-		newUser := AuthorizedUser{Identifier: identifier, Username: "", Created: time.Now(), LastLogin: time.Now()}
+		newUser := AuthorizedUser{Identifier: identifier, Username: "", CreationEmail: user.Email, Created: time.Now(), LastLogin: time.Now()}
 		err := db.insertAuthorizedUser(newUser)
 		if err != nil {
 			fmt.Println("New User creation in mongo failed")
@@ -252,7 +326,8 @@ func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 // Game Controls
 
 func clearScreen(w http.ResponseWriter, r *http.Request) {
-	output := `<div id="screen" class="grid">
+	output := `
+	<div id="screen" class="grid">
 				
 	</div>`
 	io.WriteString(w, output)
@@ -295,7 +370,17 @@ func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 		loginRequest := createLoginRequest(record)
 		world.addIncoming(loginRequest)
 
-		tmpl.ExecuteTemplate(w, "player-page", loginRequest)
+		s := struct {
+			LoginRequest *LoginRequest
+			DomainName   string
+		}{
+			LoginRequest: loginRequest,
+			DomainName:   world.config.domainName,
+		}
+		err = tmpl.ExecuteTemplate(w, "player-page", s)
+		if err != nil {
+			fmt.Println(err)
+		}
 	} else {
 		io.WriteString(w, invalidSignin())
 		return

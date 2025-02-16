@@ -14,6 +14,10 @@ const sounds = {
     "water-splash": new Audio("/assets/sounds/water-splash.mp3"),
 };
 
+// Mixing
+sounds["power-up-space"].volume = 0.4;
+sounds["water-splash"].volume = 0.7;
+
 function playSound(soundName) {
     const sound = sounds[soundName];
     if (sound) {
@@ -27,7 +31,6 @@ function playSound(soundName) {
 function observeSoundTrigger() {
     const soundTrigger = document.getElementById("sound-trigger");
     if (!soundTrigger) {
-        console.log("Waiting for #sound-trigger to be added...");
         setTimeout(observeSoundTrigger, 500);
         return;
     }
@@ -44,7 +47,6 @@ function observeSoundTrigger() {
             });
         });
     });
-    console.log("Observing for changes to #sound-trigger");
     observer.observe(soundTrigger, { childList: true, subtree: true });
 }
 
@@ -53,7 +55,6 @@ observeSoundTrigger()
 
 ////////////////////////////////////////////////////////////////
 //  Video 
-
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));

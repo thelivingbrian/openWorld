@@ -63,7 +63,7 @@ return (function () {
                 allowScriptTags:true,
                 inlineScriptNonce:'',
                 attributesToSettle:["class", "style", "width", "height"],
-                withCredentials:false,
+                withCredentials:true,
                 timeout:0,
                 wsReconnectDelay: 'full-jitter',
                 wsBinaryType: 'blob',

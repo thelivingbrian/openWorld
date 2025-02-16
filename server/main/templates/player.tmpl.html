@@ -3,8 +3,8 @@
     <div id="main_view">
         <div id="info" hx-swap-oob="true">
             <b>
-                {{.Record.Username}} <span id="hearts">{{.Record.HeartsFromRecord}}</span> <br />
-                <span id="streak" class="red">Streak 0</span> | <span id="boosts" class="blue">^ 0</span>  | <span id="money" class="dark-green">$ {{.Record.Money}}</span><span id="power"></span>
+                {{.LoginRequest.Record.Username}} <span id="hearts">{{.LoginRequest.Record.HeartsFromRecord}}</span> <br />
+                <span id="streak" class="red">Streak 0</span> | <span id="boosts" class="blue">^ 0</span>  | <span id="money" class="dark-green">$ {{.LoginRequest.Record.Money}}</span><span id="power"></span>
             </b>
         </div>
         <div id="screen" class="grid">
@@ -14,8 +14,8 @@
             &nbsp;&nbsp;&gt; Press 'm' for Menu.
         </div>
     </div>
-    <div id="controls" hx-ext="ws" ws-connect="/screen">
-        <input id="token" ws-send hx-trigger="load once" type="hidden" name="token" value="{{.Token}}" />
+    <div id="controls" hx-ext="ws" ws-connect="{{.DomainName}}/screen">
+        <input id="token" ws-send hx-trigger="load once" type="hidden" name="token" value="{{.LoginRequest.Token}}" />
         <input hx-post="/clear" hx-target="#screen" hx-swap="outerHTML" hx-trigger="keydown[key=='0'] from:body" type="hidden" />
 
         <div id="modal_background">

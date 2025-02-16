@@ -29,7 +29,7 @@ func init() {
 		"black-hole": []InteractableReaction{
 			InteractableReaction{ReactsWith: interactableHasName("ball-fuchsia"), Reaction: hideByTeam("fuchsia")},
 			InteractableReaction{ReactsWith: interactableHasName("ball-sky-blue"), Reaction: hideByTeam("sky-blue")},
-			InteractableReaction{ReactsWith: everything, Reaction: eat},
+			InteractableReaction{ReactsWith: everything, Reaction: eat}, // reduces number of rings
 		},
 		"goal-sky-blue": []InteractableReaction{
 			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: scoreGoalForTeam("sky-blue")},
@@ -526,6 +526,6 @@ func tutorial2HideAndNotify(i *Interactable, p *Player, t *Tile) (*Interactable,
 		index = rand.Intn(len(tiles))
 		placed = trySetInteractable(tiles[index], i)
 	}
-	p.updateBottomText("@[black holes|black] will absorb balls and spit them out elsewhere")
+	p.updateBottomText("black holes will absorb balls and spit them out elsewhere")
 	return nil, false
 }

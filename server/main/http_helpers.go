@@ -7,6 +7,9 @@ import (
 	"strings"
 )
 
+//////////////////////////////////////////////////////////
+// Forms
+
 func requestToProperties(r *http.Request) (map[string]string, bool) {
 	// Works on standard htmx form post
 	body, err := io.ReadAll(r.Body)
@@ -29,4 +32,25 @@ func bodyStringToProperties(body string) map[string]string {
 		}
 	}
 	return propMap
+}
+
+/////////////////////////////////////////////////////////
+// OAuth
+
+func getUserIdFromSession(r *http.Request) (string, bool) {
+	session, err := store.Get(r, "user-session")
+	if err != nil {
+		fmt.Println("Error with session: ")
+		fmt.Println(err)
+		return "", false
+	}
+	if session == nil {
+		fmt.Println("Session is nil")
+	}
+
+	id, ok := session.Values["identifier"].(string)
+	if !ok {
+		return "", false
+	}
+	return id, true
 }

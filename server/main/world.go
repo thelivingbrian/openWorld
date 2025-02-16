@@ -8,18 +8,39 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
+
+var CAPACITY_PER_TEAM = 128
 
 type World struct {
 	db                  *DB
+	config              *Configuration
 	worldPlayers        map[string]*Player
 	wPlayerMutex        sync.Mutex
 	teamQuantities      map[string]int
+	status              WorldStatus
 	incomingPlayers     map[string]*LoginRequest
 	incomingPlayerMutex sync.Mutex
 	worldStages         map[string]*Stage
 	wStageMutex         sync.Mutex
 	leaderBoard         *LeaderBoard
+}
+
+type WorldStatus struct {
+	sync.Mutex
+	lastStatusCheck    time.Time
+	fuchsiaPlayerCount int
+	skyBluePlayerCount int
+}
+
+type WorldStatusDiv struct {
+	ServerName   string
+	DomainName   string
+	FuchsiaCount int
+	SkyBlueCount int
+	Vacancy      bool
 }
 
 type LoginRequest struct {
@@ -28,11 +49,12 @@ type LoginRequest struct {
 	timestamp time.Time
 }
 
-func createGameWorld(db *DB) *World {
+func createGameWorld(db *DB, config *Configuration) *World {
 	minimumKillstreak := Player{id: "HS-only", killstreak: 0} // Do somewhere else?
 	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: []*Player{&minimumKillstreak}, index: make(map[*Player]int)}}
 	return &World{
 		db:                  db,
+		config:              config,
 		worldPlayers:        make(map[string]*Player),
 		wPlayerMutex:        sync.Mutex{},
 		teamQuantities:      map[string]int{},
@@ -70,6 +92,8 @@ func (world *World) getPlayerByName(id string) *Player {
 //////////////////////////////////////////////////
 //  Log in
 
+const ACCEPTABLE_LOG_IN_DELAY_SECONDS = 15
+
 func createLoginRequest(record PlayerRecord) *LoginRequest {
 	return &LoginRequest{
 		Token:     createRandomToken(),
@@ -87,24 +111,23 @@ func (world *World) addIncoming(loginRequest *LoginRequest) {
 func (world *World) retreiveIncoming(token string) *LoginRequest {
 	world.incomingPlayerMutex.Lock()
 	defer world.incomingPlayerMutex.Unlock()
-	// Can leak spammed unattempted tokens
-	// Use list and iterate fully instead?
-	request, ok := world.incomingPlayers[token]
-	if ok {
-		delete(world.incomingPlayers, token)
-		if isLessThan15SecondsAgo(request.timestamp) {
+
+	for key, request := range world.incomingPlayers {
+		if isOverNSecondsAgo(request.timestamp, ACCEPTABLE_LOG_IN_DELAY_SECONDS) {
+			delete(world.incomingPlayers, key)
+			continue
+		}
+		if key == token {
+			delete(world.incomingPlayers, key)
 			return request
 		}
+
 	}
 	return nil
 }
 
-func isLessThan15SecondsAgo(t time.Time) bool {
-	if time.Since(t) < 0 {
-		// t is in the future
-		return false
-	}
-	return time.Since(t) < 450*time.Second
+func isOverNSecondsAgo(t time.Time, n int) bool {
+	return time.Since(t) > time.Duration(n)*time.Second
 }
 
 func createRandomToken() string {
@@ -122,11 +145,18 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	//fmt.Println("Token: " + token)
 
 	if world.isLoggedInAlready(incoming.Record.Username) {
+		errorMessage := fmt.Sprintf(unableToJoin, "You are already logged in.")
+		conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
 		fmt.Println("User attempting to log in but is logged in already: " + incoming.Record.Username)
 		return nil
 	}
 
 	newPlayer := world.newPlayerFromRecord(incoming.Record, incoming.Token)
+	if world.teamAtCapacity(newPlayer.getTeamNameSync()) {
+		errorMessage := fmt.Sprintf(unableToJoin, "Your team is at capacity.")
+		conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
+		return nil
+	}
 	world.addPlayer(newPlayer)
 
 	world.leaderBoard.mostDangerous.Lock()
@@ -139,6 +169,25 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
 
 	return newPlayer
+}
+
+var unableToJoin = `
+<div id="main_view" hx-swap-oob="true">
+	<b>
+		<span>Unable to join.<br />
+		%s</span><br />
+		<a href="#" hx-get="/worlds" hx-target="#page"> Try again</a>
+	</b>
+</div>`
+
+func (world *World) teamAtCapacity(teamName string) bool {
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	count, _ := world.teamQuantities[teamName]
+	if count >= CAPACITY_PER_TEAM {
+		return true
+	}
+	return false
 }
 
 func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player {
@@ -161,13 +210,12 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		menues:                   map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu}, // terrifying
 		playerStages:             make(map[string]*Stage),
 		team:                     record.Team,
-		//trim:                     record.Trim,
-		health:      record.Health,
-		money:       record.Money,
-		killCount:   record.KillCount,
-		deathCount:  record.DeathCount,
-		goalsScored: record.GoalsScored,
-		hatList:     SyncHatList{HatList: record.HatList},
+		health:                   record.Health,
+		money:                    record.Money,
+		killCount:                record.KillCount,
+		deathCount:               record.DeathCount,
+		goalsScored:              record.GoalsScored,
+		hatList:                  SyncHatList{HatList: record.HatList},
 	}
 
 	newPlayer.setIcon()
@@ -445,7 +493,7 @@ func notifyChangeInMostDangerous(currentMostDangerous *Player) {
 		if p == currentMostDangerous {
 			p.updateBottomText("You are the most dangerous bloop!")
 		} else {
-			update := fmt.Sprintf("@[%s|%s] has become the most dangerous bloop! (Kills: @[%d|red])", currentMostDangerous.username, currentMostDangerous.getTeamNameSync(), currentMostDangerous.getKillStreakSync())
+			update := fmt.Sprintf("@[%s|%s] has become the most dangerous bloop! (Streak: @[%d|red])", currentMostDangerous.username, currentMostDangerous.getTeamNameSync(), currentMostDangerous.getKillStreakSync())
 			p.updateBottomText(update)
 		}
 	}

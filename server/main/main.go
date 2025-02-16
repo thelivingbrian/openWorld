@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	"github.com/gorilla/sessions"
-	"github.com/joho/godotenv"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
@@ -20,29 +19,16 @@ var tmpl = template.Must(template.ParseGlob("templates/*.tmpl.html"))
 
 func main() {
 	fmt.Println("Initializing...")
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
-	}
 	config := getConfiguration()
 
 	fmt.Println("Configuring session storage...")
 	store = config.createCookieStore()
-	store.Options = &sessions.Options{
-		MaxAge: 60 * 60 * 24,
-	}
 	gothic.Store = store
 	goth.UseProviders(google.New(config.googleClientId, config.googleClientSecret, config.googleCallbackUrl))
 
-	fmt.Println("Starting game world...")
+	fmt.Println("Initializing database connection..")
 	db := createDbConnection(config)
-	world := createGameWorld(db)
-	loadFromJson()
 
-	// Process Loggouts, should remove global ?
-	go processLogouts(playersToLogout)
-
-	// start pprof
 	if pProfEnabled() {
 		go initiatePProf()
 	}
@@ -50,32 +36,53 @@ func main() {
 	fmt.Println("Establishing Routes...")
 	mux := http.NewServeMux()
 
-	// Serve assets
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
 	mux.HandleFunc("/images/", imageHandler)
 
-	// home
-	mux.HandleFunc("/{$}", homeHandler)
+	if config.isHub {
+		// Home
+		fmt.Println("Setting up hub...")
+		mux.HandleFunc("/{$}", homeHandler)
 
-	// Account creation and sign in
-	mux.HandleFunc("/homesignin", getSignIn)
-	mux.HandleFunc("/signin", world.postSignin)
-	mux.HandleFunc("/play", world.postPlay)
-	mux.HandleFunc("/new", world.postNew)
+		// Oauth
+		mux.HandleFunc("/auth", auth)
+		mux.HandleFunc("/callback", db.callback)
 
-	// Oauth
-	mux.HandleFunc("/auth", auth)
-	mux.HandleFunc("/callback", db.callback)
+		// Select World
+		mux.HandleFunc("/worlds", createWorldSelectHandler(config))
+		mux.HandleFunc("/unavailable", unavailable)
 
-	fmt.Println("Preparing for interactions...")
-	mux.HandleFunc("/clear", clearScreen)
-	mux.HandleFunc("/insert", world.postHorribleBypass)
-	mux.HandleFunc("/stats", world.getStats)
+		// New Account
+		mux.HandleFunc("/new", db.postNew)
+	}
 
-	fmt.Println("Initiating Websockets...")
-	mux.HandleFunc("/screen", world.NewSocketConnection)
+	if config.isServer() {
+		fmt.Println("Starting game world...")
+		world := createGameWorld(db, config)
+		loadFromJson()
+
+		// Process Logouts, should remove global.
+		go processLogouts(playersToLogout)
+
+		// World status and play
+		mux.HandleFunc("/status", world.statusHandler)
+		mux.HandleFunc("/play", world.playHandler)
+
+		// Historical
+		mux.HandleFunc("/homesignin", getSignIn)
+		mux.HandleFunc("/signin", world.postSignin)
+
+		fmt.Println("Preparing for interactions...")
+		mux.HandleFunc("/clear", clearScreen)
+		mux.HandleFunc("/insert", world.postHorribleBypass)
+		mux.HandleFunc("/stats", world.getStats)
+
+		fmt.Println("Initiating Websockets...")
+		mux.HandleFunc("/screen", world.NewSocketConnection)
+	}
 
 	fmt.Println("Starting server, listening on port " + config.port)
+	var err error
 	if config.usesTLS {
 		err = http.ListenAndServeTLS(config.port, config.tlsCertPath, config.tlsKeyPath, mux)
 	} else {
@@ -87,29 +94,8 @@ func main() {
 	}
 }
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Home page accessed.")
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	session, err := store.Get(r, "user-session")
-	if err != nil {
-		tmpl.ExecuteTemplate(w, "homepage", false)
-		return
-	}
-	_, ok := session.Values["identifier"].(string)
-	if !ok {
-		fmt.Println("No Identifier")
-		tmpl.ExecuteTemplate(w, "homepage", false)
-		return
-	}
-
-	tmpl.ExecuteTemplate(w, "homepage", true)
-}
-
-func initiatePProf() {
-	fmt.Println("Starting pprof HTTP server on :6060")
-	fmt.Println(http.ListenAndServe("localhost:6060", nil))
-}
+///////////////////////////////////////////////////////
+// Pprof
 
 func pProfEnabled() bool {
 	rawValue := os.Getenv("PPROF_ENABLED")
@@ -119,4 +105,20 @@ func pProfEnabled() bool {
 		return false
 	}
 	return featureEnabled
+}
+
+func initiatePProf() {
+	fmt.Println("Starting pprof HTTP server on :6060")
+	fmt.Println(http.ListenAndServe("localhost:6060", nil))
+}
+
+////////////////////////////////////////////////////////
+// Homepage
+
+func homeHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Home page accessed.")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	_, identifierFound := getUserIdFromSession(r)
+	tmpl.ExecuteTemplate(w, "homepage", identifierFound)
 }

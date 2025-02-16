@@ -5,6 +5,7 @@
         
         <div id="info" hx-swap-oob="true">
              <form hx-post="/new" hx-target="#bottom_text">
+                <input type="hidden" name="desired-host" value="{{.}}">
                 <b>New Player</b>
                 
                 <div class="form-group color-selection">
@@ -38,5 +39,14 @@
         </div>
     </div>
 
+</div>
+{{end}}
+
+
+{{define "post-play-on-load" }}
+<div id="info" hx-swap-oob="true" hx-post="{{.}}/play" hx-trigger="load">
+    <span>Successful!</span> <br />
+    <br />
+    <span>Loading... please wait.</span> 
 </div>
 {{end}}

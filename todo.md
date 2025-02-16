@@ -28,9 +28,10 @@
 - [-] Improved goal scoring
 - [-] Improved bottom text 
   - [-] Tutorial text no longer viewable 
-  - [ ] color code most dangerous 
+  - [-] color code most dangerous 
   - [-] Notify goal scores and team in lead 
-  - [ ] Goal shows score of each team
+  - [-] Goal shows score of each team
+- [-] Seperate homepage from game server
 
 ## Integration 
 - [ ] Bot AI
@@ -64,6 +65,7 @@
 - [-] Highlight code broken for overlapping after teleport
 - [-] Result of removing buffer with the new timeout deadlines (Should still get overwhelmed)
   - [-] Not as good
+- [ ] Load test database cluster
 
 ## Design Workspace
 - [-] Rotations
@@ -204,7 +206,7 @@
    - [ ] Highest Streak
    - [ ] Time alive/In Danger ?
 - [ ] Test conconcurrency
-- [ ] Add trim reward
+- [-] Add trim reward
 
 ## Metrics
 
