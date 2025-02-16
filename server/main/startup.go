@@ -124,7 +124,6 @@ func (config *Configuration) getMongoCredentialString() string {
 }
 
 func (config *Configuration) getMongoURI() string {
-	// add config .mongoPrefix
 	return "mongodb" + config.mongoPrefix + "://" + config.getMongoCredentialString() + config.mongoHost + config.mongoPort
 }
 
@@ -134,7 +133,7 @@ func (config *Configuration) createCookieStore() *sessions.CookieStore {
 	}
 	store := sessions.NewCookieStore(config.hashKey, config.blockKey)
 	store.Options = &sessions.Options{
-		Domain:   "." + config.rootDomain, //bloopworld.co", // Leading dot allows subdomains
+		Domain:   "." + config.rootDomain, // Leading dot allows subdomains
 		Path:     "/",
 		MaxAge:   86400,
 		HttpOnly: true,

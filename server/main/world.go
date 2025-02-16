@@ -493,7 +493,7 @@ func notifyChangeInMostDangerous(currentMostDangerous *Player) {
 		if p == currentMostDangerous {
 			p.updateBottomText("You are the most dangerous bloop!")
 		} else {
-			update := fmt.Sprintf("@[%s|%s] has become the most dangerous bloop! (Kills: @[%d|red])", currentMostDangerous.username, currentMostDangerous.getTeamNameSync(), currentMostDangerous.getKillStreakSync())
+			update := fmt.Sprintf("@[%s|%s] has become the most dangerous bloop! (Streak: @[%d|red])", currentMostDangerous.username, currentMostDangerous.getTeamNameSync(), currentMostDangerous.getKillStreakSync())
 			p.updateBottomText(update)
 		}
 	}

@@ -56,21 +56,20 @@ func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
 	world.status.Lock()
 	defer world.status.Unlock()
 	if isOverNSecondsAgo(world.status.lastStatusCheck, STATUS_CHECK_INTERVAL_IN_SECONDS) {
-		fmt.Println("over")
 		world.wPlayerMutex.Lock()
 		defer world.wPlayerMutex.Unlock()
 		world.status.fuchsiaPlayerCount = world.teamQuantities["fuchsia"]
 		world.status.skyBluePlayerCount = world.teamQuantities["sky-blue"]
 		world.status.lastStatusCheck = time.Now()
 	}
-	s := WorldStatusDiv{
+	statusDiv := WorldStatusDiv{
 		ServerName:   world.config.serverName,
 		DomainName:   world.config.domainName,
 		FuchsiaCount: world.status.fuchsiaPlayerCount,
 		SkyBlueCount: world.status.skyBluePlayerCount,
 		Vacancy:      vacancyOfLockedWorldStatus(&world.status),
 	}
-	tmpl.ExecuteTemplate(w, "world-status", s)
+	tmpl.ExecuteTemplate(w, "world-status", statusDiv)
 }
 
 func vacancyOfLockedWorldStatus(status *WorldStatus) bool {

@@ -15,7 +15,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	// Arrange
 	loadFromJson()
 	world := createGameWorld(testdb(), nil)
-	CAPACITY_PER_TEAM = playerCount // Prevent world.Join player cap per team
+	CAPACITY_PER_TEAM = playerCount // Prevent player cap from preventing world.Join()
 
 	testStage := loadStageByName(world, "test-walls-interactable")
 	testStage.spawn = []SpawnAction{SpawnAction{always, addBoostsAt(11, 13)}}

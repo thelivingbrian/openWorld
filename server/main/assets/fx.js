@@ -31,7 +31,6 @@ function playSound(soundName) {
 function observeSoundTrigger() {
     const soundTrigger = document.getElementById("sound-trigger");
     if (!soundTrigger) {
-        console.log("Waiting for #sound-trigger to be added...");
         setTimeout(observeSoundTrigger, 500);
         return;
     }
@@ -48,7 +47,6 @@ function observeSoundTrigger() {
             });
         });
     });
-    console.log("Listening to #sound-trigger");
     observer.observe(soundTrigger, { childList: true, subtree: true });
 }
 
