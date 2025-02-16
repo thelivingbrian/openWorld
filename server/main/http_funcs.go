@@ -14,7 +14,7 @@ import (
 	"github.com/markbates/goth/gothic"
 )
 
-const ALLOWED_HEADERS = "Content-Type, hx-current-url, HX-Request, HX-Target, HX-Trigger"
+const ALLOWED_HEADERS = "Content-Type, hx-current-url, hx-request, hx-target, hx-trigger"
 const STATUS_CHECK_INTERVAL_IN_SECONDS = 5
 
 // ///////////////////////////////////////////
