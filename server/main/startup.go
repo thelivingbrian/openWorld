@@ -76,7 +76,7 @@ type Configuration struct {
 func getConfiguration() *Configuration {
 	err := godotenv.Load()
 	if err != nil {
-		fmt.Println("Error loading .env file")
+		logger.Error().Err(err).Msg("Error loading .env file")
 	}
 
 	environmentName := os.Getenv("BLOOP_ENV")

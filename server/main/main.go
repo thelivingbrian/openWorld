@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
 	"net/http"
 	_ "net/http/pprof"
@@ -20,7 +19,7 @@ var logger = zerolog.New(os.Stdout).With().Timestamp().Logger()
 var store *sessions.CookieStore
 
 func main() {
-	fmt.Println("Initializing...")
+	logger.Info().Msg("Initializing...")
 	config := getConfiguration()
 	setGlobalLogLevel(config.logLevel)
 

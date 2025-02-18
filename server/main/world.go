@@ -283,6 +283,7 @@ func completeLogout(player *Player) {
 
 }
 
+/*
 func fullyRemovePlayer_do(player *Player) {
 	removeFromTileAndStage(player)
 }
@@ -307,6 +308,7 @@ func fullyRemovePlayer(player *Player) bool {
 
 	return found && ok
 }
+*/
 
 ///////////////////////////////////////////////////////////////
 // References / Lookup

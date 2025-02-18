@@ -388,7 +388,7 @@ func (player *Player) sendUpdatesBuffered() {
 			// Every 25ms, if there's anything in the buffer, send it.
 			err := sendUpdate(player, buffer.Bytes())
 			if err != nil {
-				//fmt.Println("Error - Stopping furture sends: ", err)
+				//logger.Warn().Err(err).Msg("Error - Stopping furture sends: ")
 				shouldSendUpdates = false
 				player.closeConnectionSync()
 			}
@@ -514,7 +514,7 @@ func (player *Player) updateRecordOnDeath(respawnTile *Tile) {
 func getStageFromStageName(player *Player, stagename string) *Stage {
 	stage := player.fetchStageSync(stagename)
 	if stage == nil {
-		fmt.Println("WARNING: Fetching default stage instead of: " + stagename)
+		logger.Warn().Msg("WARNING: Fetching default stage instead of: " + stagename)
 		stage = player.fetchStageSync("clinic")
 		if stage == nil {
 			panic("Default stage not found")

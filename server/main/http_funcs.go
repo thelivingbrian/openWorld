@@ -165,7 +165,7 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 	desiredHostUrlEncoded := props["desired-host"]
 	desiredHost, err := url.QueryUnescape(desiredHostUrlEncoded)
 	if err != nil {
-		fmt.Println("Error decoding host:", err)
+		logger.Error().Err(err).Msg("Error decoding host:")
 		return
 	}
 

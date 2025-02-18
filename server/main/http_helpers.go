@@ -40,12 +40,12 @@ func bodyStringToProperties(body string) map[string]string {
 func getUserIdFromSession(r *http.Request) (string, bool) {
 	session, err := store.Get(r, "user-session")
 	if err != nil {
-		fmt.Println("Error with session: ")
-		fmt.Println(err)
+		logger.Error().Err(err).Msg("Error with session: ")
 		return "", false
 	}
 	if session == nil {
-		fmt.Println("Session is nil")
+		logger.Error().Msg("Session is nil")
+		return "", false
 	}
 
 	id, ok := session.Values["identifier"].(string)
