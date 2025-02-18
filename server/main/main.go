@@ -12,14 +12,22 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
+	"github.com/rs/zerolog"
 )
 
-var store *sessions.CookieStore
 var tmpl = template.Must(template.ParseGlob("templates/*.tmpl.html"))
+var logger = zerolog.New(os.Stdout).With().Timestamp().Logger()
+var store *sessions.CookieStore
 
 func main() {
 	fmt.Println("Initializing...")
 	config := getConfiguration()
+	setGlobalLogLevel(config.logLevel)
+
+	logger.Debug().Msg("Debug info for test")
+	logger.Info().Msg("Debug info for test")
+	logger.Warn().Msg("Debug info for test")
+	logger.Error().Msg("Debug info for test")
 
 	fmt.Println("Configuring session storage...")
 	store = config.createCookieStore()
