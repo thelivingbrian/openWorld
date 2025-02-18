@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -106,7 +105,7 @@ func (db *DB) getUserByEmail(email string) (*User, error) {
 	err := collection.FindOne(context.TODO(), bson.M{"email": email}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			fmt.Println("No document was found with the given email")
+			logger.Error().Err(err).Msg("No document was found with the given email") // logger.Error().Err(err).Msg(
 			return nil, err
 		} else {
 			log.Fatal(err)
@@ -124,7 +123,7 @@ func (db *DB) getAuthorizedUserById(identifier string) *AuthorizedUser {
 	err := collection.FindOne(context.TODO(), bson.M{"identifier": identifier}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			fmt.Println("No document was found with the given identifier")
+			logger.Error().Err(err).Msg("No document was found with the given identifier")
 			return nil
 		} else {
 			log.Fatal(err)
@@ -144,21 +143,21 @@ func (db *DB) updateUsernameForUserWithId(identifier, username string) bool {
 
 	result, err := db.users.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
-		fmt.Println("Error updating document:", err)
+		logger.Error().Err(err).Msg("Error updating document:")
 		return false
 	}
 
 	if result.MatchedCount == 0 {
-		fmt.Println("No document matched the identifier with an empty username.")
+		logger.Error().Msg("No document matched the identifier with an empty username.")
 		return false
 	}
 
 	if result.ModifiedCount == 0 {
-		fmt.Println("Document was matched, but username was not empty.")
+		logger.Error().Msg("Document was matched, but username was not empty.")
 		return false
 	}
 
-	fmt.Println("Document updated successfully.")
+	logger.Info().Msg("Document updated successfully.")
 	return true
 }
 
@@ -169,7 +168,7 @@ func (db *DB) getPlayerRecord(username string) (PlayerRecord, error) {
 	err := collection.FindOne(context.TODO(), bson.M{"username": username}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			fmt.Println("No document was found with the given email")
+			logger.Error().Err(err).Msg("No document was found with the given email")
 			return PlayerRecord{Username: "invalild"}, err
 		} else {
 			log.Fatal(err)
@@ -259,11 +258,3 @@ func (db *DB) addHatToPlayer(username string, newHat Hat) error {
 	)
 	return err
 }
-
-/////////////////////////////////////////////////////////////
-// Utilities
-/*
-func (record PlayerRecord) HeartsFromRecord() string {
-	return getHeartsFromHealth(record.Health)
-}
-*/

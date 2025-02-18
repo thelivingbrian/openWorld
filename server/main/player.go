@@ -376,7 +376,7 @@ func (player *Player) sendUpdatesBuffered() {
 				// Accumulate the update in the buffer.
 				buffer.Write(update)
 			} else {
-				fmt.Printf("Player: %s - buffer exceeded %d bytes, wiping buffer\n", player.username, maxBufferSize)
+				logger.Warn().Msg(fmt.Sprintf("Player: %s - buffer exceeded %d bytes, wiping buffer\n", player.username, maxBufferSize))
 				buffer.Reset()
 			}
 		case <-player.clearUpdateBuffer:
@@ -542,7 +542,6 @@ func (player *Player) fetchStageSync(stagename string) *Stage {
 
 	area, success := areaFromName(stagename)
 	if !success {
-		//panic("ERROR! invalid stage with no area: " + stagename)
 		return nil
 	}
 
@@ -568,17 +567,19 @@ func (player *Player) addHatByName(hatName string) {
 	if hat == nil {
 		return
 	}
+	logger.Debug().Msg("Adding Hat" + hat.Name)
 	player.world.db.addHatToPlayer(player.username, *hat)
-	player.updatePlayerBox()
-	return
+	// New method displayHat(player)
+	player.setIcon()
+	tile := player.getTileSync()
+	tile.stage.updateAll(playerBox(tile))
 }
 
 func (player *Player) cycleHats() {
 	player.hatList.nextValid()
-	player.updatePlayerBox() // wasteful, just update all ?
+	player.setIcon()
 	tile := player.getTileSync()
-	tile.stage.updateAllExcept(playerBox(tile), player)
-	return
+	tile.stage.updateAll(playerBox(tile))
 }
 
 /////////////////////////////////////////////////////////////
