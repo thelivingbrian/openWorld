@@ -116,7 +116,6 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if userRecord.Username == "" {
-		fmt.Println("no username")
 		tmpl.ExecuteTemplate(w, "choose-your-color", world.config.domainName)
 	} else {
 		record, err := world.db.getPlayerRecord(userRecord.Username)
@@ -134,7 +133,7 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 			DomainName:   world.config.domainName,
 		}
 
-		fmt.Println("loginRequest for: " + loginRequest.Record.Username)
+		logger.Info().Msg("loginRequest for: " + loginRequest.Record.Username)
 		tmpl.ExecuteTemplate(w, "player-page", s)
 	}
 }
@@ -152,11 +151,11 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("New player request from: " + userRecord.Username)
+	logger.Info().Msg("New player request from: " + userRecord.Username)
 
 	props, ok := requestToProperties(r)
 	if !ok {
-		fmt.Println("Invalid properties")
+		logger.Debug().Msg("invalid props")
 		tmpl.ExecuteTemplate(w, "homepage", false)
 		return
 	}
@@ -245,12 +244,12 @@ func auth(w http.ResponseWriter, r *http.Request) {
 func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 	user, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
-		fmt.Println("Callback error: " + err.Error())
+		logger.Error().Err(err).Msg("Callback error: ")
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 
-	fmt.Println("New Sign in from: " + user.Email)
+	logger.Info().Msg("New Sign in from: " + user.Email)
 	if user.UserID == "" || user.Provider == "" {
 		fmt.Printf("Invalid id: %s or provider %s ", user.UserID, user.Provider)
 	}
@@ -258,11 +257,11 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 
 	userRecord := db.getAuthorizedUserById(identifier)
 	if userRecord == nil {
-		fmt.Println("Creating new user with identifier: " + identifier)
+		logger.Info().Msg("Creating new user with identifier: " + identifier)
 		newUser := AuthorizedUser{Identifier: identifier, Username: "", CreationEmail: user.Email, Created: time.Now(), LastLogin: time.Now()}
 		err := db.insertAuthorizedUser(newUser)
 		if err != nil {
-			fmt.Println("New User creation in mongo failed")
+			logger.Warn().Msg("New User creation in mongo failed")
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
@@ -270,7 +269,7 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 
 	session, err := store.Get(r, "user-session")
 	if err != nil {
-		fmt.Println("Error getting new session?")
+		logger.Warn().Msg("Error getting new session?")
 	}
 	session.Values["identifier"] = identifier
 	err = session.Save(r, w)
@@ -288,21 +287,22 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 	secret := os.Getenv("AUTO_PLAYER_PASSWORD")
 	if secret == "" {
-		fmt.Println("Bypass is disabled - but has been requested.")
+		logger.Warn().Msg("Bypass is disabled - but has been requested.")
 		return
 	}
 	props, ok := requestToProperties(r)
 	if !ok {
-		fmt.Println("invalid props")
+		logger.Debug().Msg("invalid props")
+		return
 	}
 	if props["secret"] != secret {
-		fmt.Println("Bypass is disabled - but has been requested.")
+		logger.Warn().Msg("Bypass is disabled - but has been requested.")
 		return
 	}
 	countString := props["count"]
 	count, err := strconv.Atoi(countString)
 	if err != nil {
-		fmt.Println("Invalid count")
+		logger.Warn().Msg("Invalid count for player bypass")
 		return
 	}
 	username := props["username"]
@@ -314,7 +314,7 @@ func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 		record := PlayerRecord{Username: username + iStr, Health: 50, Y: 6, X: 15, StageName: stage, Team: team, Trim: "white-b thick"}
 		loginRequest := createLoginRequest(record)
 		world.addIncoming(loginRequest)
-		fmt.Println(loginRequest.Token)
+		logger.Info().Msg(loginRequest.Token) // Debug?
 		tokens = append(tokens, loginRequest.Token)
 	}
 	io.WriteString(w, "[\""+strings.Join(tokens, "\",\"")+"\"]")
@@ -341,15 +341,18 @@ func getSignIn(w http.ResponseWriter, r *http.Request) {
 func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 	props, success := requestToProperties(r)
 	if !success {
-		log.Fatal("Failed to retreive properties")
+		logger.Debug().Msg("invalid properties for signin")
+		return
 	}
 	email, err := url.QueryUnescape(props["email"])
 	if err != nil {
-		log.Fatal("Query unescape failed")
+		logger.Debug().Msg("Unable to unescape sign in")
+		return
 	}
 	password, err := url.QueryUnescape(props["password"])
 	if err != nil {
-		log.Fatal("Password unescape failed")
+		logger.Debug().Msg("Password unescape failed.")
+		return
 	}
 
 	user, err := world.db.getUserByEmail(strings.ToLower(email))
@@ -357,13 +360,14 @@ func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, invalidSignin())
 		return
 	}
-	fmt.Printf("Found a user: %+v\n", user.Username)
+	logger.Debug().Msg("Found a user: " + user.Username)
 
 	worked := checkPasswordHash(password, user.Hashword)
 	if worked {
 		record, err := world.db.getPlayerRecord(user.Username)
 		if err != nil {
-			log.Fatal("No player found for user") // Too extreme.
+			logger.Debug().Msg("No Player for user.")
+			return
 		}
 		loginRequest := createLoginRequest(record)
 		world.addIncoming(loginRequest)
@@ -377,7 +381,7 @@ func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
 		}
 		err = tmpl.ExecuteTemplate(w, "player-page", s)
 		if err != nil {
-			fmt.Println(err)
+			logger.Error().Err(err).Msg("Error executing player page template")
 		}
 	} else {
 		io.WriteString(w, invalidSignin())

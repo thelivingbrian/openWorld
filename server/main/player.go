@@ -339,7 +339,7 @@ func (player *Player) sendUpdates() {
 		select {
 		case update, ok := <-player.updates:
 			if !ok {
-				fmt.Println("Player:", player.username, "- update channel closed")
+				logger.Info().Msg("Player:" + player.username + "- update channel closed")
 				return
 			}
 			if !shouldSendUpdates {
@@ -365,7 +365,7 @@ func (player *Player) sendUpdatesBuffered() {
 		select {
 		case update, ok := <-player.updates:
 			if !ok {
-				fmt.Println("Player:", player.username, "- update channel closed")
+				logger.Info().Msg("Player:" + player.username + "- update channel closed")
 				return
 			}
 			if !shouldSendUpdates {
@@ -402,19 +402,17 @@ func sendUpdate(player *Player, update []byte) error {
 	player.connLock.Lock()
 	defer player.connLock.Unlock()
 	if player.conn == nil {
-		//   fmt.Println("WARN: Attempted to serve update to expired connection.")
-		return errors.New("connection is expired")
+		return errors.New("Connection is expired for: " + player.username)
 	}
 
 	err := player.conn.SetWriteDeadline(time.Now().Add(500 * time.Millisecond))
 	if err != nil {
-		fmt.Println("Failed to set write deadline:", err)
+		logger.Error().Err(err).Msg("Failed to set write deadline:")
 		return err
 	}
 	err = player.conn.WriteMessage(websocket.TextMessage, update)
 	if err != nil {
-		//fmt.Printf("WARN: WriteMessage failed for player %s: %v\n", player.username, err)
-		fmt.Println("Incrementing websocket session timeout violations for: " + player.username)
+		logger.Warn().Msg("Incrementing websocket session timeout violations for: " + player.username)
 		if player.sessionTimeOutViolations.Add(1) >= 1 {
 			return err
 		}
