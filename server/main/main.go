@@ -24,24 +24,19 @@ func main() {
 	config := getConfiguration()
 	setGlobalLogLevel(config.logLevel)
 
-	logger.Debug().Msg("Debug info for test")
-	logger.Info().Msg("Debug info for test")
-	logger.Warn().Msg("Debug info for test")
-	logger.Error().Msg("Debug info for test")
-
-	fmt.Println("Configuring session storage...")
+	logger.Info().Msg("Configuring session storage...")
 	store = config.createCookieStore()
 	gothic.Store = store
 	goth.UseProviders(google.New(config.googleClientId, config.googleClientSecret, config.googleCallbackUrl))
 
-	fmt.Println("Initializing database connection..")
+	logger.Info().Msg("Initializing database connection..")
 	db := createDbConnection(config)
 
 	if pProfEnabled() {
 		go initiatePProf()
 	}
 
-	fmt.Println("Establishing Routes...")
+	logger.Info().Msg("Establishing Routes...")
 	mux := http.NewServeMux()
 
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
@@ -49,7 +44,7 @@ func main() {
 
 	if config.isHub {
 		// Home
-		fmt.Println("Setting up hub...")
+		logger.Info().Msg("Setting up hub...")
 		mux.HandleFunc("/{$}", homeHandler)
 
 		// Oauth
@@ -65,7 +60,7 @@ func main() {
 	}
 
 	if config.isServer() {
-		fmt.Println("Starting game world...")
+		logger.Info().Msg("Starting game world...")
 		world := createGameWorld(db, config)
 		loadFromJson()
 
@@ -80,16 +75,16 @@ func main() {
 		mux.HandleFunc("/homesignin", getSignIn)
 		mux.HandleFunc("/signin", world.postSignin)
 
-		fmt.Println("Preparing for interactions...")
+		logger.Info().Msg("Preparing for interactions...")
 		mux.HandleFunc("/clear", clearScreen)
 		mux.HandleFunc("/insert", world.postHorribleBypass)
 		mux.HandleFunc("/stats", world.getStats)
 
-		fmt.Println("Initiating Websockets...")
+		logger.Info().Msg("Initiating Websockets...")
 		mux.HandleFunc("/screen", world.NewSocketConnection)
 	}
 
-	fmt.Println("Starting server, listening on port " + config.port)
+	logger.Info().Msg("Starting server, listening on port " + config.port)
 	var err error
 	if config.usesTLS {
 		err = http.ListenAndServeTLS(config.port, config.tlsCertPath, config.tlsKeyPath, mux)
@@ -97,7 +92,7 @@ func main() {
 		err = http.ListenAndServe(config.port, mux)
 	}
 	if err != nil {
-		fmt.Println("Failed to start server", err)
+		logger.Error().Err(err).Msg("Failed to start server")
 		return
 	}
 }
