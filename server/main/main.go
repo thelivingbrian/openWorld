@@ -104,22 +104,22 @@ func pProfEnabled() bool {
 	rawValue := os.Getenv("PPROF_ENABLED")
 	featureEnabled, err := strconv.ParseBool(rawValue)
 	if err != nil {
-		fmt.Printf("Error parsing PPROF_ENABLED: %v. Defaulting to false.\n", err)
+		logger.Error().Err(err).Msg("Error parsing PPROF_ENABLED: %v. Defaulting to false.")
 		return false
 	}
 	return featureEnabled
 }
 
 func initiatePProf() {
-	fmt.Println("Starting pprof HTTP server on :6060")
-	fmt.Println(http.ListenAndServe("localhost:6060", nil))
+	logger.Info().Msg("Starting pprof HTTP server on :6060")
+	logger.Error().Err(http.ListenAndServe("localhost:6060", nil)).Msg("Failed to start Pprof")
 }
 
 ////////////////////////////////////////////////////////
 // Homepage
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Home page accessed.")
+	logger.Info().Msg("Home page accessed.")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	_, identifierFound := getUserIdFromSession(r)
