@@ -115,8 +115,6 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("have user")
-
 	if userRecord.Username == "" {
 		fmt.Println("no username")
 		tmpl.ExecuteTemplate(w, "choose-your-color", world.config.domainName)

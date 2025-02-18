@@ -414,7 +414,7 @@ func sendUpdate(player *Player, update []byte) error {
 	err = player.conn.WriteMessage(websocket.TextMessage, update)
 	if err != nil {
 		//fmt.Printf("WARN: WriteMessage failed for player %s: %v\n", player.username, err)
-		fmt.Println("Incrementing websocket session timeout violations.")
+		fmt.Println("Incrementing websocket session timeout violations for: " + player.username)
 		if player.sessionTimeOutViolations.Add(1) >= 1 {
 			return err
 		}

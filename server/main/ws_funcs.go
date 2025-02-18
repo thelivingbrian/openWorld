@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"time"
@@ -30,25 +29,25 @@ var (
 func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error().Err(err).Msg("Error:")
 		return
 	}
 	defer conn.Close()
 
 	token, success := getTokenFromFirstMessage(conn)
 	if !success {
-		fmt.Println("Invalid Connection")
+		logger.Info().Msg("Invalid Connection")
 		return
 	}
 
 	incoming := world.retreiveIncoming(token)
 	if incoming == nil {
-		fmt.Println("player not found with token: " + token)
+		logger.Info().Msg("player not found with token: " + token)
 		return
 	}
 	player := world.join(incoming, conn)
 	if player == nil {
-		fmt.Println("Failed to join player with token: " + token)
+		logger.Info().Msg("Failed to join player with token: " + token)
 		return
 	}
 
@@ -57,7 +56,7 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 
 func handleNewPlayer(player *Player) {
 	defer initiatelogout(player)
-	fmt.Println("New Connection from: " + player.username)
+	logger.Info().Msg("New Connection from: " + player.username)
 	lastRead := time.Unix(0, 0)
 	for {
 		_, msg, err := player.conn.ReadMessage()
@@ -70,12 +69,12 @@ func handleNewPlayer(player *Player) {
 
 		event, success := getKeyPress(msg)
 		if !success {
-			fmt.Println("Invalid input")
+			logger.Info().Msg("Invalid input")
 			continue
 		}
 		if event.Token != player.id {
 			// check mildly irrelevant?
-			fmt.Println("Cheating")
+			logger.Info().Msg("Cheating")
 			break
 		}
 
@@ -98,7 +97,7 @@ func handleNewPlayer(player *Player) {
 func getTokenFromFirstMessage(conn *websocket.Conn) (token string, success bool) {
 	_, bytes, err := conn.ReadMessage()
 	if err != nil {
-		fmt.Println(err)
+		logger.Error().Err(err).Msg("Error reading message from Connection: ")
 		return "", false
 	}
 
@@ -107,7 +106,7 @@ func getTokenFromFirstMessage(conn *websocket.Conn) (token string, success bool)
 	}
 	err = json.Unmarshal(bytes, &msg)
 	if err != nil {
-		fmt.Println("Error parsing JSON:", err)
+		logger.Error().Err(err).Msg("Error parsing JSON:")
 		return "", false
 	}
 
@@ -118,7 +117,7 @@ func getKeyPress(input []byte) (event *PlayerSocketEvent, success bool) {
 	event = &PlayerSocketEvent{}
 	err := json.Unmarshal(input, event)
 	if err != nil {
-		fmt.Println("Error parsing JSON:", err)
+		logger.Error().Err(err).Msg("Error parsing JSON:")
 		return nil, false
 	}
 	return event, true

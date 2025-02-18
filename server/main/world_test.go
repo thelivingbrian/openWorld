@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/rs/zerolog"
 )
 
 func TestSocketJoinAndMove(t *testing.T) {
@@ -48,6 +49,8 @@ func TestSocketJoinAndMove(t *testing.T) {
 
 func TestLogoutAndDeath(t *testing.T) {
 	PLAYER_COUNT := 10
+	zerolog.SetGlobalLevel(zerolog.WarnLevel) // prevent log spam
+	defer zerolog.SetGlobalLevel(zerolog.InfoLevel)
 
 	world, shutDown := createWorldForTesting()
 	defer shutDown()
@@ -84,6 +87,8 @@ func TestLogoutAndDeath(t *testing.T) {
 		t.Error("Should have players")
 	}
 
+	fmt.Println("about to start interacting")
+
 	player.moveEast()
 	player.activatePower()
 	player.activatePower()
@@ -97,10 +102,11 @@ func TestLogoutAndDeath(t *testing.T) {
 
 	}
 	if len(world.worldPlayers) != PLAYER_COUNT+1 {
-		t.Error("All 100 should be logged in")
+		t.Error("All should be logged in")
 
 	}
 
+	fmt.Println("about to start canceling")
 	for index := range cancelers {
 		// Log everyone out
 		cancelers[index]()
@@ -120,6 +126,9 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 	PLAYER_COUNT2 := 15
 	world, shutDown := createWorldForTesting()
 	defer shutDown()
+
+	zerolog.SetGlobalLevel(zerolog.WarnLevel) // prevent log spam
+	defer zerolog.SetGlobalLevel(zerolog.InfoLevel)
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		world.NewSocketConnection(w, r)
@@ -294,6 +303,7 @@ func socketsCancelsTokensWaiter(world *World, serverURL string, PLAYER_COUNT int
 		wg.Add(1)
 		cancelers = append(cancelers, cancel)
 		testingSocket.writeOrFatal(createInitialTokenMessage(req.Token))
+		// go testingSocket.readUntilClose() // No need, handled by handleNewUser?
 
 		sockets = append(sockets, testingSocket)
 	}
@@ -369,4 +379,13 @@ func (ts *TestingSocket) readOrFatal() []byte {
 		panic(fmt.Sprintf("could not read message - Error: %v", err))
 	}
 	return msg
+}
+
+func (ts *TestingSocket) readUntilClose() {
+	for {
+		_, _, err := ts.ws.ReadMessage()
+		if err != nil {
+			return
+		}
+	}
 }
