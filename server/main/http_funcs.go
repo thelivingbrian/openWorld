@@ -315,6 +315,7 @@ func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < count; i++ {
 		iStr := strconv.Itoa(i)
 		record := PlayerRecord{Username: username + iStr, Health: 50, Y: 6, X: 15, StageName: stage, Team: team, Trim: "white-b thick"}
+		world.db.InsertPlayerRecord(record)
 		loginRequest := createLoginRequest(record)
 		world.addIncoming(loginRequest)
 		logger.Info().Msg(loginRequest.Token) // Debug?
