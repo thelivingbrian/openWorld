@@ -269,9 +269,9 @@ func areaFromName(s string) (area Area, success bool) {
 func setGlobalLogLevel(logLevel string) {
 	level, err := zerolog.ParseLevel(logLevel)
 	if err != nil {
-		// Fallback to a default level :
+		// in Absence of a default, NoLevel is choosen.
+		//    "" is a valid logLevel, it also produces NoLevel
 		level = zerolog.InfoLevel
 	}
-
 	zerolog.SetGlobalLevel(level)
 }

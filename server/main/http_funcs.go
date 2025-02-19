@@ -252,7 +252,7 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Info().Msg("New Sign in from: " + user.Email)
+	logger.Info().Msg("New callback from: " + user.UserID)
 	if user.UserID == "" || user.Provider == "" {
 		fmt.Printf("Invalid id: %s or provider %s ", user.UserID, user.Provider)
 	}
