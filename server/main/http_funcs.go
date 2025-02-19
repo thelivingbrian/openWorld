@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -73,7 +72,7 @@ func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func vacancyOfLockedWorldStatus(status *WorldStatus) bool {
-	return status.fuchsiaPlayerCount < CAPACITY_PER_TEAM && status.skyBluePlayerCount < CAPACITY_PER_TEAM
+	return status.fuchsiaPlayerCount < CAPACITY_PER_TEAM || status.skyBluePlayerCount < CAPACITY_PER_TEAM
 }
 
 var unavailableMessage = `Server unavailable :( <a href="#" hx-get="/worlds" hx-target="#page"> Try again</a>`
@@ -120,7 +119,9 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 	} else {
 		record, err := world.db.getPlayerRecord(userRecord.Username)
 		if err != nil {
-			log.Fatal("No player found for user") // Too extreme.
+			logger.Warn().Msg("User: " + id + " found but not corresponding Player with username: " + userRecord.Username)
+			io.WriteString(w, "Unable to sign in")
+			return
 		}
 		loginRequest := createLoginRequest(record)
 		world.addIncoming(loginRequest)
@@ -179,18 +180,7 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// new method
-	record := PlayerRecord{
-		Username:  username,
-		Team:      team,
-		Trim:      "",
-		Health:    100,
-		StageName: "tutorial:0-0",
-		X:         4,
-		Y:         4,
-		Money:     80,
-	}
-
+	record := createNewPlayerRecord(username, team)
 	err = db.InsertPlayerRecord(record)
 	if err != nil {
 		io.WriteString(w, divBottomInvalid("Error saving new player"))
@@ -203,6 +193,19 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl.ExecuteTemplate(w, "post-play-on-load", desiredHost)
+}
+func createNewPlayerRecord(username, team string) PlayerRecord {
+	return PlayerRecord{
+		Username:  username,
+		Team:      team,
+		Trim:      "",
+		Health:    100,
+		StageName: "tutorial:0-0",
+		X:         4,
+		Y:         4,
+		Money:     80,
+		HatList:   HatList{Current: nil, Hats: make([]Hat, 0)},
+	}
 }
 
 func validTeam(team string) bool {

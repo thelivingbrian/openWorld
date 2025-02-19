@@ -8,8 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-
-	"github.com/google/uuid"
 )
 
 type User struct {
@@ -52,15 +50,15 @@ type PlayerRecord struct {
 }
 
 type Event struct {
-	ID        string    `bson:"eventid"`
+	ID        string    `bson:"eventid"` // Pointless
 	Owner     string    `bson:"owner"`
 	Secondary string    `bson:"secondary"`
 	Type      string    `bson:"eventtype"`
 	Created   time.Time `bson:"created"`
-	StageName string    `bson:"stagename,omitempty"`
+	StageName string    `bson:"stagename,omitempty"` // Not being set?
 	X         int       `bson:"x,omitempty"`
 	Y         int       `bson:"y,omitempty"`
-	Details   string    `bson:"details,omitempty"`
+	Details   string    `bson:"details,omitempty"` // Could be interface
 }
 
 func (db *DB) newAccount(user User) error {
@@ -209,11 +207,12 @@ func (db *DB) updatePlayerRecord(username string, updates map[string]any) (*Play
 func (db *DB) saveKillEvent(tile *Tile, initiator *Player, defeated *Player) error {
 	eventCollection := db.events
 	event := Event{
-		ID:        uuid.New().String(),
+		//ID:        uuid.New().String(),
 		Owner:     initiator.username,
 		Secondary: defeated.username,
 		Type:      "Kill",
 		Created:   time.Now(),
+		StageName: tile.stage.name,
 		X:         tile.x,
 		Y:         tile.y,
 	}
@@ -231,10 +230,10 @@ func (db *DB) updateRecordForPlayer(p *Player, pTile *Tile) error {
 		bson.M{"username": p.username},
 		bson.M{
 			"$set": bson.M{
-				"x":               pTile.x, // All of this feels dangerous tbh
+				"x":               pTile.x,
 				"y":               pTile.y,
 				"health":          p.getHealthSync(),
-				"stagename":       pTile.stage.name, //p.getStageNameSync(), // feels risky
+				"stagename":       pTile.stage.name,
 				"money":           p.getMoneySync(),
 				"killCount":       p.getKillCountSync(),
 				"deathCount":      p.getDeathCountSync(),
