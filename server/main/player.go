@@ -482,6 +482,12 @@ func (player *Player) updatePlayerBox() {
 	updateOne(playerBoxSpecifc(tile.y, tile.x, icon), player)
 }
 
+func updateIconForAll(player *Player) {
+	player.setIcon()
+	tile := player.getTileSync()
+	tile.stage.updateAll(playerBox(tile))
+}
+
 func sendSoundToPlayer(player *Player, soundName string) {
 	updateOne(soundTriggerByName(soundName), player)
 }
@@ -569,17 +575,12 @@ func (player *Player) addHatByName(hatName string) {
 	}
 	logger.Debug().Msg("Adding Hat" + hat.Name)
 	player.world.db.addHatToPlayer(player.username, *hat)
-	// New method displayHat(player)
-	player.setIcon()
-	tile := player.getTileSync()
-	tile.stage.updateAll(playerBox(tile))
+	updateIconForAll(player)
 }
 
 func (player *Player) cycleHats() {
 	player.hatList.nextValid()
-	player.setIcon()
-	tile := player.getTileSync()
-	tile.stage.updateAll(playerBox(tile))
+	updateIconForAll(player)
 }
 
 /////////////////////////////////////////////////////////////
