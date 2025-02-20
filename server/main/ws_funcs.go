@@ -26,6 +26,8 @@ var (
 	}
 )
 
+const MAX_IDLE_IN_SECONDS = 600 * time.Second
+
 func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -55,14 +57,16 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 }
 
 func handleNewPlayer(player *Player) {
-	defer initiatelogout(player)
+	defer initiateLogout(player)
 	logger.Info().Msg("New Connection from: " + player.username)
 	lastRead := time.Unix(0, 0)
 	for {
+		player.conn.SetReadDeadline(time.Now().Add(MAX_IDLE_IN_SECONDS))
 		_, msg, err := player.conn.ReadMessage()
 		if err != nil {
-			// After Exiting loop player is logged out
-			//   Add time delay to prevent rage quit ?
+			logger.Error().Err(err).Msg("starting loggout: ")
+			// break will initiate logout:
+			sendUpdate(player, loggedOutResumeMessage("Inactive. Logging out", player.world.config.domainName))
 			break
 		}
 		currentRead := time.Now()
@@ -197,6 +201,10 @@ func (m *MockConn) Close() error {
 }
 
 func (m *MockConn) SetWriteDeadline(t time.Time) error {
+	return nil
+}
+
+func (m *MockConn) SetReadDeadline(t time.Time) error {
 	return nil
 }
 

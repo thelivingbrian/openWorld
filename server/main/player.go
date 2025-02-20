@@ -56,6 +56,7 @@ type WebsocketConnection interface {
 	ReadMessage() (messageType int, p []byte, err error)
 	Close() error
 	SetWriteDeadline(t time.Time) error
+	SetReadDeadline(t time.Time) error
 }
 
 ////////////////////////////////////////////////////////////
@@ -339,7 +340,7 @@ func (player *Player) sendUpdates() {
 		select {
 		case update, ok := <-player.updates:
 			if !ok {
-				logger.Info().Msg("Player:" + player.username + "- update channel closed")
+				logger.Info().Msg("Player: " + player.username + " update channel closed")
 				return
 			}
 			if !shouldSendUpdates {
@@ -412,6 +413,7 @@ func sendUpdate(player *Player, update []byte) error {
 	}
 	err = player.conn.WriteMessage(websocket.TextMessage, update)
 	if err != nil {
+		fmt.Println(err)
 		logger.Warn().Msg("Incrementing websocket session timeout violations for: " + player.username)
 		if player.sessionTimeOutViolations.Add(1) >= 1 {
 			return err
@@ -511,6 +513,7 @@ func (player *Player) updateRecord() {
 }
 
 func (player *Player) updateRecordOnDeath(respawnTile *Tile) {
+	// vs just incrementing death count?
 	go player.world.db.updateRecordForPlayer(player, respawnTile)
 }
 

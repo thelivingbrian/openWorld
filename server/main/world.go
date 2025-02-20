@@ -155,9 +155,10 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	}
 	world.addPlayer(newPlayer)
 
-	world.leaderBoard.mostDangerous.Lock()
-	world.leaderBoard.mostDangerous.Push(newPlayer)
-	world.leaderBoard.mostDangerous.Unlock()
+	world.leaderBoard.mostDangerous.LockThenPush(newPlayer)
+	// world.leaderBoard.mostDangerous.Lock()
+	// world.leaderBoard.mostDangerous.Push(newPlayer)
+	// world.leaderBoard.mostDangerous.Unlock()
 
 	newPlayer.conn = conn
 	go newPlayer.sendUpdates()
@@ -245,12 +246,13 @@ func processLogouts(players chan *Player) {
 		completeLogout(player)
 	}
 }
-func initiatelogout(player *Player) {
+func initiateLogout(player *Player) {
 	player.tangibilityLock.Lock()
 	defer player.tangibilityLock.Unlock()
 	player.tangible = false
 
 	logger.Info().Msg("initate logout: " + player.username)
+	//   Add time delay to prevent rage quit ?
 	removeFromTileAndStage(player)
 
 	playersToLogout <- player
@@ -261,7 +263,9 @@ func completeLogout(player *Player) {
 	player.updateRecord() // Should return error
 
 	// new method
-	player.setKillStreakAndUpdate(0) // Don't update
+	// player.setKillStreakAndUpdate(0) // Don't update
+	player.setKillStreak(0)
+	player.world.leaderBoard.mostDangerous.Update(player)
 	player.world.leaderBoard.mostDangerous.Lock()
 	index, exists := player.world.leaderBoard.mostDangerous.index[player]
 	if exists {
@@ -271,10 +275,10 @@ func completeLogout(player *Player) {
 
 	player.world.removePlayer(player)
 
-	player.closeConnectionSync() // uneeded but harmless?
-	player.connLock.Lock()
-	player.conn = nil
-	player.connLock.Unlock()
+	player.closeConnectionSync() // If Read deadline is missed conn may still be open
+	// player.connLock.Lock()
+	// player.conn = nil
+	// player.connLock.Unlock()
 
 	close(player.updates)
 	// close(player.clearUpdateBuffer)
@@ -387,39 +391,29 @@ type MaxStreakHeap struct {
 	sync.Mutex
 }
 
-// must hold lock before calling
-// have concerns here...
+// Must hold locks before calling :
+
 func (h *MaxStreakHeap) Len() int {
-	//h.Lock()
-	//defer h.Unlock()
 	return len(h.items)
 }
 
 func (h *MaxStreakHeap) Less(i, j int) bool {
-	//h.Lock()
-	//defer h.Unlock()
 	return h.items[i].getKillStreakSync() > h.items[j].getKillStreakSync()
 }
 
 func (h *MaxStreakHeap) Swap(i, j int) {
-	//h.Lock()
 	h.items[i], h.items[j] = h.items[j], h.items[i]
 	h.index[h.items[i]], h.index[h.items[j]] = i, j
-	//h.Unlock()
 }
 
 func (h *MaxStreakHeap) Push(x interface{}) {
-	//h.Lock()
 	n := len(h.items)
 	item := x.(*Player)
 	h.items = append(h.items, item)
 	h.index[h.items[n]] = n // would need fix if not at bottom. (e.g. richest)
-	//h.Unlock()
 }
 
 func (h *MaxStreakHeap) Pop() interface{} {
-	// h.Lock()
-	// defer h.Unlock()
 	old := h.items
 	n := len(old)
 	item := old[n-1]
@@ -429,13 +423,18 @@ func (h *MaxStreakHeap) Pop() interface{} {
 }
 
 func (h *MaxStreakHeap) Peek() *Player {
-	// h.Lock()
-	// defer h.Unlock()
 	if len(h.items) == 0 {
 		return nil
-		//panic("Heap Underflow")
 	}
 	return h.items[0]
+}
+
+// Higher level interfaces:
+
+func (h *MaxStreakHeap) LockThenPush(player *Player) {
+	h.Lock()
+	defer h.Unlock()
+	h.Push(player)
 }
 
 // Update fixes the heap after player has a change in killstreak, notiying any change in most dangerous
@@ -449,8 +448,26 @@ func (h *MaxStreakHeap) Update(player *Player) {
 
 	currentMostDangerous := h.Peek()
 	if currentMostDangerous != previousMostDangerous {
-		currentMostDangerous.addHatByName("most-dangerous")
-		notifyChangeInMostDangerous(currentMostDangerous)
+		crownMostDangerous(currentMostDangerous)
+	}
+}
+
+func crownMostDangerous(player *Player) {
+	player.addHatByName("most-dangerous")
+	notifyChangeInMostDangerous(player)
+}
+
+func (h *MaxStreakHeap) RemoveAndNotifyChange(player *Player) {
+	h.Lock()
+	defer h.Unlock()
+	index, exists := player.world.leaderBoard.mostDangerous.index[player]
+	if !exists {
+		logger.Warn().Msg("Trying to remove player from mostDangerous but player does not exist!")
+		return
+	}
+	heap.Remove(&player.world.leaderBoard.mostDangerous, index)
+	if index == 0 {
+		crownMostDangerous(h.Peek())
 	}
 }
 
