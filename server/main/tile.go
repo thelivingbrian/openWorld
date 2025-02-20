@@ -173,7 +173,8 @@ func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
 	if success {
 		tile.stage.updateAllExcept(playerBox(tile), player)
 	} else {
-		fmt.Println("WARN : FAILED TO REMOVE PLAYER :(")
+		// Possible under what circumstance ?
+		logger.Warn().Msg("WARN : FAILED TO REMOVE PLAYER :(")
 	}
 	return success
 }

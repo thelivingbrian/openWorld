@@ -339,7 +339,7 @@ func (player *Player) sendUpdates() {
 		select {
 		case update, ok := <-player.updates:
 			if !ok {
-				fmt.Println("Player:", player.username, "- update channel closed")
+				logger.Info().Msg("Player:" + player.username + "- update channel closed")
 				return
 			}
 			if !shouldSendUpdates {
@@ -365,7 +365,7 @@ func (player *Player) sendUpdatesBuffered() {
 		select {
 		case update, ok := <-player.updates:
 			if !ok {
-				fmt.Println("Player:", player.username, "- update channel closed")
+				logger.Info().Msg("Player:" + player.username + "- update channel closed")
 				return
 			}
 			if !shouldSendUpdates {
@@ -376,7 +376,7 @@ func (player *Player) sendUpdatesBuffered() {
 				// Accumulate the update in the buffer.
 				buffer.Write(update)
 			} else {
-				fmt.Printf("Player: %s - buffer exceeded %d bytes, wiping buffer\n", player.username, maxBufferSize)
+				logger.Warn().Msg(fmt.Sprintf("Player: %s - buffer exceeded %d bytes, wiping buffer\n", player.username, maxBufferSize))
 				buffer.Reset()
 			}
 		case <-player.clearUpdateBuffer:
@@ -388,7 +388,7 @@ func (player *Player) sendUpdatesBuffered() {
 			// Every 25ms, if there's anything in the buffer, send it.
 			err := sendUpdate(player, buffer.Bytes())
 			if err != nil {
-				//fmt.Println("Error - Stopping furture sends: ", err)
+				//logger.Warn().Err(err).Msg("Error - Stopping furture sends: ")
 				shouldSendUpdates = false
 				player.closeConnectionSync()
 			}
@@ -402,19 +402,17 @@ func sendUpdate(player *Player, update []byte) error {
 	player.connLock.Lock()
 	defer player.connLock.Unlock()
 	if player.conn == nil {
-		//   fmt.Println("WARN: Attempted to serve update to expired connection.")
-		return errors.New("connection is expired")
+		return errors.New("Connection is expired for: " + player.username)
 	}
 
 	err := player.conn.SetWriteDeadline(time.Now().Add(500 * time.Millisecond))
 	if err != nil {
-		fmt.Println("Failed to set write deadline:", err)
+		logger.Error().Err(err).Msg("Failed to set write deadline:")
 		return err
 	}
 	err = player.conn.WriteMessage(websocket.TextMessage, update)
 	if err != nil {
-		//fmt.Printf("WARN: WriteMessage failed for player %s: %v\n", player.username, err)
-		fmt.Println("Incrementing websocket session timeout violations.")
+		logger.Warn().Msg("Incrementing websocket session timeout violations for: " + player.username)
 		if player.sessionTimeOutViolations.Add(1) >= 1 {
 			return err
 		}
@@ -484,6 +482,12 @@ func (player *Player) updatePlayerBox() {
 	updateOne(playerBoxSpecifc(tile.y, tile.x, icon), player)
 }
 
+func updateIconForAll(player *Player) {
+	player.setIcon()
+	tile := player.getTileSync()
+	tile.stage.updateAll(playerBox(tile))
+}
+
 func sendSoundToPlayer(player *Player, soundName string) {
 	updateOne(soundTriggerByName(soundName), player)
 }
@@ -516,7 +520,7 @@ func (player *Player) updateRecordOnDeath(respawnTile *Tile) {
 func getStageFromStageName(player *Player, stagename string) *Stage {
 	stage := player.fetchStageSync(stagename)
 	if stage == nil {
-		fmt.Println("WARNING: Fetching default stage instead of: " + stagename)
+		logger.Warn().Msg("WARNING: Fetching default stage instead of: " + stagename)
 		stage = player.fetchStageSync("clinic")
 		if stage == nil {
 			panic("Default stage not found")
@@ -544,7 +548,6 @@ func (player *Player) fetchStageSync(stagename string) *Stage {
 
 	area, success := areaFromName(stagename)
 	if !success {
-		//panic("ERROR! invalid stage with no area: " + stagename)
 		return nil
 	}
 
@@ -570,17 +573,14 @@ func (player *Player) addHatByName(hatName string) {
 	if hat == nil {
 		return
 	}
+	logger.Debug().Msg("Adding Hat" + hat.Name)
 	player.world.db.addHatToPlayer(player.username, *hat)
-	player.updatePlayerBox()
-	return
+	updateIconForAll(player)
 }
 
 func (player *Player) cycleHats() {
 	player.hatList.nextValid()
-	player.updatePlayerBox() // wasteful, just update all ?
-	tile := player.getTileSync()
-	tile.stage.updateAllExcept(playerBox(tile), player)
-	return
+	updateIconForAll(player)
 }
 
 /////////////////////////////////////////////////////////////

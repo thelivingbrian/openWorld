@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
 	"net/http"
 	_ "net/http/pprof"
@@ -12,28 +11,31 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
+	"github.com/rs/zerolog"
 )
 
-var store *sessions.CookieStore
 var tmpl = template.Must(template.ParseGlob("templates/*.tmpl.html"))
+var logger = zerolog.New(os.Stdout).With().Timestamp().Logger()
+var store *sessions.CookieStore
 
 func main() {
-	fmt.Println("Initializing...")
+	logger.Info().Msg("Initializing...")
 	config := getConfiguration()
+	setGlobalLogLevel(config.logLevel)
 
-	fmt.Println("Configuring session storage...")
+	logger.Info().Msg("Configuring session storage...")
 	store = config.createCookieStore()
 	gothic.Store = store
 	goth.UseProviders(google.New(config.googleClientId, config.googleClientSecret, config.googleCallbackUrl))
 
-	fmt.Println("Initializing database connection..")
+	logger.Info().Msg("Initializing database connection..")
 	db := createDbConnection(config)
 
 	if pProfEnabled() {
 		go initiatePProf()
 	}
 
-	fmt.Println("Establishing Routes...")
+	logger.Info().Msg("Establishing Routes...")
 	mux := http.NewServeMux()
 
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
@@ -41,7 +43,7 @@ func main() {
 
 	if config.isHub {
 		// Home
-		fmt.Println("Setting up hub...")
+		logger.Info().Msg("Setting up hub...")
 		mux.HandleFunc("/{$}", homeHandler)
 
 		// Oauth
@@ -57,7 +59,7 @@ func main() {
 	}
 
 	if config.isServer() {
-		fmt.Println("Starting game world...")
+		logger.Info().Msg("Starting game world...")
 		world := createGameWorld(db, config)
 		loadFromJson()
 
@@ -72,16 +74,16 @@ func main() {
 		mux.HandleFunc("/homesignin", getSignIn)
 		mux.HandleFunc("/signin", world.postSignin)
 
-		fmt.Println("Preparing for interactions...")
+		logger.Info().Msg("Preparing for interactions...")
 		mux.HandleFunc("/clear", clearScreen)
 		mux.HandleFunc("/insert", world.postHorribleBypass)
 		mux.HandleFunc("/stats", world.getStats)
 
-		fmt.Println("Initiating Websockets...")
+		logger.Info().Msg("Initiating Websockets...")
 		mux.HandleFunc("/screen", world.NewSocketConnection)
 	}
 
-	fmt.Println("Starting server, listening on port " + config.port)
+	logger.Info().Msg("Starting server, listening on port " + config.port)
 	var err error
 	if config.usesTLS {
 		err = http.ListenAndServeTLS(config.port, config.tlsCertPath, config.tlsKeyPath, mux)
@@ -89,7 +91,7 @@ func main() {
 		err = http.ListenAndServe(config.port, mux)
 	}
 	if err != nil {
-		fmt.Println("Failed to start server", err)
+		logger.Error().Err(err).Msg("Failed to start server")
 		return
 	}
 }
@@ -101,22 +103,22 @@ func pProfEnabled() bool {
 	rawValue := os.Getenv("PPROF_ENABLED")
 	featureEnabled, err := strconv.ParseBool(rawValue)
 	if err != nil {
-		fmt.Printf("Error parsing PPROF_ENABLED: %v. Defaulting to false.\n", err)
+		logger.Error().Err(err).Msg("Error parsing PPROF_ENABLED: %v. Defaulting to false.")
 		return false
 	}
 	return featureEnabled
 }
 
 func initiatePProf() {
-	fmt.Println("Starting pprof HTTP server on :6060")
-	fmt.Println(http.ListenAndServe("localhost:6060", nil))
+	logger.Info().Msg("Starting pprof HTTP server on :6060")
+	logger.Error().Err(http.ListenAndServe("localhost:6060", nil)).Msg("Failed to start Pprof")
 }
 
 ////////////////////////////////////////////////////////
 // Homepage
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Home page accessed.")
+	logger.Info().Msg("Home page accessed.")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	_, identifierFound := getUserIdFromSession(r)

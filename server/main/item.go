@@ -190,7 +190,6 @@ func basicSpawn(stage *Stage) {
 			uncoveredTiles[randomIndex].addBoostsAndNotifyAll()
 		}
 	}
-	//fmt.Println(randn)
 }
 
 func sortWalkableTiles(tiles [][]*Tile) (covered []*Tile, uncovered []*Tile) {

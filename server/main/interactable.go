@@ -294,7 +294,7 @@ func destroyInRangeSkipingSelf(yMin, xMin, yMax, xMax int) func(*Interactable, *
 func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing *Interactable, ok bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 		if team != p.getTeamNameSync() {
-			fmt.Println("ERROR TEAM CHECK FAILED - ", p.getTeamNameSync(), team)
+			logger.Error().Msg("ERROR TEAM CHECK FAILED - " + p.getTeamNameSync() + " is not equal to: " + team)
 			return nil, false
 		}
 		p.world.leaderBoard.scoreboard.Increment(team)
@@ -328,7 +328,7 @@ func hideByTeam(team string) func(*Interactable, *Player, *Tile) (*Interactable,
 		if team == "fuchsia" {
 			stagename = fmt.Sprintf("team-blue:%d-%d", lat, long)
 		}
-		fmt.Println(stagename)
+		logger.Info().Msg("Ball is hidden on: " + stagename)
 		stage := p.fetchStageSync(stagename)
 		placeInteractableOnStagePriorityCovered(stage, i)
 
@@ -422,7 +422,7 @@ func damageAndSpawn(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 		lat := rand.Intn(8)
 		long := rand.Intn(8)
 		stagename := fmt.Sprintf("%s:%d-%d", spacename, lat, long)
-		fmt.Println(stagename)
+		logger.Info().Msg(stagename)
 		stage := p.fetchStageSync(stagename)
 		placeInteractableOnStagePriorityCovered(stage, i)
 	}

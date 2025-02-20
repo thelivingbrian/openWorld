@@ -78,7 +78,7 @@ func sendMenu(p *Player, menu Menu) {
 	var buf bytes.Buffer
 	err := tmpl.ExecuteTemplate(&buf, "menu", menu)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error().Err(err).Msg("sendMenu Error")
 	}
 	buf.WriteString(divInputDisabled())
 	p.updates <- buf.Bytes()
@@ -90,10 +90,12 @@ func sendMenu(p *Player, menu Menu) {
 func (m *Menu) attemptClick(p *Player, e PlayerSocketEvent) {
 	i, err := strconv.Atoi(e.Arg0)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error().Err(err).Msg("attemptClick Error")
+		return
 	}
 	if i < 0 || i > len(m.Links) {
-		fmt.Println("Invalid index")
+		logger.Warn().Msg("Invalid index")
+		return
 	}
 	auth := m.Links[i].auth
 	handler := m.Links[i].eventHandler
@@ -194,9 +196,9 @@ func openMapMenu(p *Player) {
 	}
 	err := tmpl.ExecuteTemplate(&buf, "menu", copy)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error().Err(err).Msg("Map Menu Error")
 	}
-	//p.trySend(buf.Bytes())
+
 	p.updates <- buf.Bytes()
 }
 
@@ -244,11 +246,11 @@ func continueTeleporting(teleport *Teleport) Menu {
 
 func teleportEventHandler(teleport *Teleport) func(*Player) {
 	return func(player *Player) {
+		turnMenuOff(player) // menu off beefore teleport
 		// No need for new routine?
 		go func() {
 			player.applyTeleport(teleport)
 		}()
-		turnMenuOff(player) // try other order
 	}
 }
 

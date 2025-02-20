@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sync"
 	"time"
 )
@@ -108,7 +107,7 @@ func (hatList *SyncHatList) currentTrim() string {
 	hatName := hat.Name
 	trim, ok := EVERY_HAT_NAME_TO_TRIM[hatName]
 	if !ok {
-		fmt.Println("INVALID HATNAME: ", hatName)
+		logger.Warn().Msg("INVALID HATNAME: " + hatName)
 		return ""
 	}
 	return trim

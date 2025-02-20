@@ -12,6 +12,7 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -50,6 +51,7 @@ func mongoClient(config *Configuration) *mongo.Client {
 
 type Configuration struct {
 	envName            string
+	logLevel           string
 	port               string
 	usesTLS            bool
 	tlsCertPath        string
@@ -74,7 +76,7 @@ type Configuration struct {
 func getConfiguration() *Configuration {
 	err := godotenv.Load()
 	if err != nil {
-		fmt.Println("Error loading .env file")
+		logger.Error().Err(err).Msg("Error loading .env file")
 	}
 
 	environmentName := os.Getenv("BLOOP_ENV")
@@ -82,6 +84,7 @@ func getConfiguration() *Configuration {
 
 	config := Configuration{
 		envName:            environmentName,
+		logLevel:           os.Getenv("LOG_LEVEL"),
 		port:               os.Getenv("BLOOP_PORT"),
 		usesTLS:            true,
 		tlsCertPath:        os.Getenv("BLOOP_TLS_CERT_PATH"),
@@ -258,4 +261,17 @@ func areaFromName(s string) (area Area, success bool) {
 		}
 	}
 	return Area{}, false
+}
+
+///////////////////////////////////////////////////////////////
+// Set global log level
+
+func setGlobalLogLevel(logLevel string) {
+	level, err := zerolog.ParseLevel(logLevel)
+	if err != nil {
+		// in Absence of a default, NoLevel is choosen.
+		//    "" is a valid logLevel, it also produces NoLevel
+		level = zerolog.InfoLevel
+	}
+	zerolog.SetGlobalLevel(level)
 }

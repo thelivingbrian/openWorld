@@ -140,14 +140,10 @@ func createRandomToken() string {
 }
 
 func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Player {
-	// need log levels
-	//fmt.Println("New Player: " + record.Username)
-	//fmt.Println("Token: " + token)
-
 	if world.isLoggedInAlready(incoming.Record.Username) {
 		errorMessage := fmt.Sprintf(unableToJoin, "You are already logged in.")
 		conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
-		fmt.Println("User attempting to log in but is logged in already: " + incoming.Record.Username)
+		logger.Warn().Msg("User attempting to log in but is logged in already: " + incoming.Record.Username)
 		return nil
 	}
 
@@ -254,7 +250,7 @@ func initiatelogout(player *Player) {
 	defer player.tangibilityLock.Unlock()
 	player.tangible = false
 
-	fmt.Println("initate logout: " + player.username)
+	logger.Info().Msg("initate logout: " + player.username)
 	removeFromTileAndStage(player)
 
 	playersToLogout <- player
@@ -283,10 +279,11 @@ func completeLogout(player *Player) {
 	close(player.updates)
 	// close(player.clearUpdateBuffer)
 
-	fmt.Println("Logout complete: " + player.username)
+	logger.Info().Msg("Logout complete: " + player.username)
 
 }
 
+/*
 func fullyRemovePlayer_do(player *Player) {
 	removeFromTileAndStage(player)
 }
@@ -301,7 +298,7 @@ func fullyRemovePlayer(player *Player) bool {
 	}
 
 	if !found {
-		fmt.Println("Never removed player from tile successfully")
+		logger.Info().Msg("Never removed player from tile successfully")
 	}
 
 	player.stage.playerMutex.Lock()
@@ -311,6 +308,7 @@ func fullyRemovePlayer(player *Player) bool {
 
 	return found && ok
 }
+*/
 
 ///////////////////////////////////////////////////////////////
 // References / Lookup

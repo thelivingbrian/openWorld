@@ -172,7 +172,6 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 	playerHighlightCopy := duplicateMapOfHighlights(player)
 	for _, tile := range tiles {
 		if tile == nil {
-			fmt.Println(".") // seems to match number of actual highlights to add
 			continue
 		}
 		if tile.stage != player.stage {
