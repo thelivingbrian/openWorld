@@ -92,8 +92,6 @@ func TestLogoutAndDeath(t *testing.T) {
 		t.Error("Should have players")
 	}
 
-	fmt.Println("about to start interacting")
-
 	player.moveEast()
 	player.activatePower()
 	player.activatePower()
@@ -111,7 +109,6 @@ func TestLogoutAndDeath(t *testing.T) {
 
 	}
 
-	fmt.Println("about to start canceling")
 	for index := range cancelers {
 		// Log everyone out
 		cancelers[index]()
