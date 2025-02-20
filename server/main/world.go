@@ -283,33 +283,6 @@ func completeLogout(player *Player) {
 
 }
 
-/*
-func fullyRemovePlayer_do(player *Player) {
-	removeFromTileAndStage(player)
-}
-
-func fullyRemovePlayer(player *Player) bool {
-	found := false
-	for i := 0; i < 5; i++ {
-		if player.tile.removePlayerAndNotifyOthers(player) {
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		logger.Info().Msg("Never removed player from tile successfully")
-	}
-
-	player.stage.playerMutex.Lock()
-	_, ok := player.stage.playerMap[player.id]
-	delete(player.stage.playerMap, player.id)
-	player.stage.playerMutex.Unlock()
-
-	return found && ok
-}
-*/
-
 ///////////////////////////////////////////////////////////////
 // References / Lookup
 
