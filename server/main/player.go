@@ -413,7 +413,7 @@ func sendUpdate(player *Player, update []byte) error {
 	}
 	err = player.conn.WriteMessage(websocket.TextMessage, update)
 	if err != nil {
-		fmt.Println(err)
+		// Technically can be any write error
 		logger.Warn().Msg("Incrementing websocket session timeout violations for: " + player.username)
 		if player.sessionTimeOutViolations.Add(1) >= 1 {
 			return err
@@ -576,7 +576,7 @@ func (player *Player) addHatByName(hatName string) {
 	if hat == nil {
 		return
 	}
-	logger.Debug().Msg("Adding Hat" + hat.Name)
+	logger.Debug().Msg("Adding Hat: " + hat.Name)
 	player.world.db.addHatToPlayer(player.username, *hat)
 	updateIconForAll(player)
 }
