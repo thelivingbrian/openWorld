@@ -13,6 +13,7 @@ import (
 )
 
 var CAPACITY_PER_TEAM = 128
+var MIN_KILLSTREAK_MOST_DANGEROUS = 0
 
 type World struct {
 	db                  *DB
@@ -50,8 +51,6 @@ type LoginRequest struct {
 }
 
 func createGameWorld(db *DB, config *Configuration) *World {
-	minimumKillstreak := Player{id: "HS-only", killstreak: 0} // Do somewhere else?
-	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: []*Player{&minimumKillstreak}, index: make(map[*Player]int)}}
 	return &World{
 		db:                  db,
 		config:              config,
@@ -62,8 +61,15 @@ func createGameWorld(db *DB, config *Configuration) *World {
 		incomingPlayerMutex: sync.Mutex{},
 		worldStages:         make(map[string]*Stage),
 		wStageMutex:         sync.Mutex{},
-		leaderBoard:         lb,
+		leaderBoard:         createLeaderBoard(),
 	}
+}
+
+func createLeaderBoard() *LeaderBoard {
+	minimumKillstreak := Player{id: "HIGHSCORE-only", killstreak: MIN_KILLSTREAK_MOST_DANGEROUS} // Do somewhere else?
+	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: make([]*Player, 0), index: make(map[*Player]int)}}
+	lb.mostDangerous.Push(&minimumKillstreak)
+	return lb
 }
 
 func (world *World) addPlayer(p *Player) {
@@ -264,15 +270,15 @@ func completeLogout(player *Player) {
 
 	// new method
 	// player.setKillStreakAndUpdate(0) // Don't update
-	player.setKillStreak(0)
-	player.world.leaderBoard.mostDangerous.Update(player)
-	player.world.leaderBoard.mostDangerous.Lock()
-	index, exists := player.world.leaderBoard.mostDangerous.index[player]
-	if exists {
-		heap.Remove(&player.world.leaderBoard.mostDangerous, index)
-	}
-	player.world.leaderBoard.mostDangerous.Unlock()
-
+	// player.setKillStreak(0)
+	// player.world.leaderBoard.mostDangerous.Update(player)
+	// player.world.leaderBoard.mostDangerous.Lock()
+	// index, exists := player.world.leaderBoard.mostDangerous.index[player]
+	// if exists {
+	// 	heap.Remove(&player.world.leaderBoard.mostDangerous, index)
+	// }
+	// player.world.leaderBoard.mostDangerous.Unlock()
+	player.world.leaderBoard.mostDangerous.RemoveAndNotifyChange(player)
 	player.world.removePlayer(player)
 
 	player.closeConnectionSync() // If Read deadline is missed conn may still be open
@@ -450,9 +456,13 @@ func (h *MaxStreakHeap) Update(player *Player) {
 	if currentMostDangerous != previousMostDangerous {
 		crownMostDangerous(currentMostDangerous)
 	}
+	// if current = player -> broadcast streak
 }
 
 func crownMostDangerous(player *Player) {
+	if player.id == "HIGHSCORE-only" {
+		return
+	}
 	player.addHatByName("most-dangerous")
 	notifyChangeInMostDangerous(player)
 }
@@ -472,9 +482,7 @@ func (h *MaxStreakHeap) RemoveAndNotifyChange(player *Player) {
 }
 
 func notifyChangeInMostDangerous(currentMostDangerous *Player) {
-	if currentMostDangerous.id == "HS-only" {
-		return
-	}
+
 	currentMostDangerous.world.wPlayerMutex.Lock()
 	defer currentMostDangerous.world.wPlayerMutex.Unlock()
 	for _, p := range currentMostDangerous.world.worldPlayers {

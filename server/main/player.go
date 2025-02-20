@@ -414,7 +414,7 @@ func sendUpdate(player *Player, update []byte) error {
 	err = player.conn.WriteMessage(websocket.TextMessage, update)
 	if err != nil {
 		// Technically can be any write error
-		logger.Warn().Msg("Incrementing websocket session timeout violations for: " + player.username)
+		logger.Debug().Msg("Incrementing websocket session timeout violations for: " + player.username)
 		if player.sessionTimeOutViolations.Add(1) >= 1 {
 			return err
 		}
@@ -695,6 +695,7 @@ func (player *Player) setKillStreak(n int) {
 }
 
 func (player *Player) setKillStreakAndUpdate(n int) {
+	// Should lock most dangerous before changing kill streak?
 	player.setKillStreak(n)
 	player.world.leaderBoard.mostDangerous.Update(player)
 	updateOne(spanStreak(n), player)
