@@ -443,7 +443,7 @@ func updatePlayerAfterMovement(player *Player, current, previous *Tile) {
 func updatePlayerAfterStageChange(p *Player) {
 	p.setSpaceHighlights()
 	updateScreenFromScratch(p)
-	p.updateRecord() // too much?
+	//p.updateRecord() // too much?
 }
 
 func updateScreenFromScratch(player *Player) {

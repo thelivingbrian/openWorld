@@ -318,7 +318,7 @@ func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 		world.db.InsertPlayerRecord(record)
 		loginRequest := createLoginRequest(record)
 		world.addIncoming(loginRequest)
-		logger.Info().Msg(loginRequest.Token) // Debug?
+		logger.Debug().Msg("New bypass request for: " + loginRequest.Token)
 		tokens = append(tokens, loginRequest.Token)
 	}
 	io.WriteString(w, "[\""+strings.Join(tokens, "\",\"")+"\"]")
