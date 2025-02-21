@@ -222,9 +222,7 @@ func validTeam(team string) bool {
 // Stats
 
 func (world *World) getStats(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Locking world players")
 	world.wPlayerMutex.Lock()
-	fmt.Println("Locked")
 	defer world.wPlayerMutex.Unlock()
 	out := fmt.Sprintf("World Player Count: %d\n", len(world.worldPlayers))
 	for key, val := range world.teamQuantities {

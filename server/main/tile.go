@@ -241,7 +241,7 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 	}
 
 	location := target.getTileSync()
-	fatal := damagePlayerAndHandleDeath(target, dmg) // Death can't handle until return to rangibility
+	fatal := damagePlayerAndHandleDeath(target, dmg) // Death can't handle until return to tangibility
 	if fatal {
 		initiator.incrementKillCount()
 		initiator.incrementKillStreak()

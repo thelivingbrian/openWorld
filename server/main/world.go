@@ -12,7 +12,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var CAPACITY_PER_TEAM = 628
+var CAPACITY_PER_TEAM = 128
 var MIN_KILLSTREAK_MOST_DANGEROUS = 0
 
 type World struct {
@@ -266,23 +266,10 @@ func initiateLogout(player *Player) {
 func completeLogout(player *Player) {
 	player.updateRecord() // Should return error
 
-	// new method
-	// player.setKillStreakAndUpdate(0) // Don't update
-	// player.setKillStreak(0)
-	// player.world.leaderBoard.mostDangerous.Update(player)
-	// player.world.leaderBoard.mostDangerous.Lock()
-	// index, exists := player.world.leaderBoard.mostDangerous.index[player]
-	// if exists {
-	// 	heap.Remove(&player.world.leaderBoard.mostDangerous, index)
-	// }
-	// player.world.leaderBoard.mostDangerous.Unlock()
 	player.world.leaderBoard.mostDangerous.RemoveAndNotifyChange(player)
 	player.world.removePlayer(player)
 
 	player.closeConnectionSync() // If Read deadline is missed conn may still be open
-	// player.connLock.Lock()
-	// player.conn = nil
-	// player.connLock.Unlock()
 
 	close(player.updates)
 	// close(player.clearUpdateBuffer)
@@ -452,7 +439,6 @@ func (h *MaxStreakHeap) Update(player *Player) {
 
 	currentMostDangerous := h.Peek()
 	if currentMostDangerous != previousMostDangerous {
-		// no routine - can cyclically lock with Update ?
 		crownMostDangerous(currentMostDangerous)
 	}
 	// if current = player -> broadcast streak
@@ -467,7 +453,6 @@ func crownMostDangerous(player *Player) {
 }
 
 func (h *MaxStreakHeap) RemoveAndNotifyChange(player *Player) {
-	// log here
 	h.Lock()
 	defer h.Unlock()
 	index, exists := player.world.leaderBoard.mostDangerous.index[player]
