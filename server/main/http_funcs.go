@@ -231,6 +231,7 @@ func (world *World) getStats(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, out)
 }
 
+/*
 func (world *World) getHeap(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Locking most dangerous")
 	world.leaderBoard.mostDangerous.Lock()
@@ -242,6 +243,7 @@ func (world *World) getHeap(w http.ResponseWriter, r *http.Request) {
 	}
 	io.WriteString(w, out)
 }
+*/
 
 /////////////////////////////////////////////
 //  Oauth

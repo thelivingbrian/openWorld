@@ -688,29 +688,51 @@ func (player *Player) getMoneySync() int {
 }
 
 // Streak observer, All streak changes should go through here
-func (player *Player) setKillStreak(n int) {
-	player.streakLock.Lock()
-	defer player.streakLock.Unlock()
-	player.killstreak = n
-}
 
-func (player *Player) setKillStreakAndUpdate(n int) {
-	// Should lock most dangerous before changing kill streak?
-	player.setKillStreak(n)
-	player.world.leaderBoard.mostDangerous.Update(player)
-	updateOne(spanStreak(n), player)
-}
+/*
+	func (player *Player) setKillStreak2(n int) {
+		player.streakLock.Lock()
+		defer player.streakLock.Unlock()
+		player.killstreak = n
+	}
 
+	func (player *Player) setKillStreakAndUpdate(n int) {
+		// Should lock most dangerous before changing kill streak?
+		player.setKillStreak(n)
+		player.world.leaderBoard.mostDangerous.Update(player)
+		updateOne(spanStreak(n), player)
+	}
+*/
 func (player *Player) getKillStreakSync() int {
 	player.streakLock.Lock()
 	defer player.streakLock.Unlock()
 	return player.killstreak
 }
 
-func (player *Player) incrementKillStreak() {
+/*
+func (player *Player) incrementKillStreak2() {
 	// could race with self ignoring an increment.
 	newStreak := player.getKillStreakSync() + 1
 	player.setKillStreakAndUpdate(newStreak)
+}
+
+*/
+//
+
+func (player *Player) setKillStreak(n int) int {
+	player.streakLock.Lock()
+	defer player.streakLock.Unlock()
+	player.killstreak = n
+	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: n, team: player.getTeamNameSync()}
+	return player.killstreak
+}
+
+func (player *Player) incrementKillStreak() int {
+	player.streakLock.Lock()
+	defer player.streakLock.Unlock()
+	player.killstreak++
+	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: player.killstreak, team: player.getTeamNameSync()}
+	return player.killstreak
 }
 
 func (player *Player) getKillCountSync() int {

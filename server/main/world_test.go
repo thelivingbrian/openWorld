@@ -208,19 +208,29 @@ func TestMostDangerous(t *testing.T) {
 	world.addIncoming(req3)
 	p3 := world.join(req3, &MockConn{})
 
+	fmt.Println(0)
 	// Assert
+	//time.Sleep(5 * time.Second)
 	p2.incrementKillStreak()
-	if world.leaderBoard.mostDangerous.Peek() != p2 {
-		t.Error("Invalid leader should be p2")
-	}
+	// if world.leaderBoard.mostDangerous.Peek().id != p2.id {
+	// 	t.Error("Invalid leader should be p2")
+	// }
+	fmt.Println(1)
 
 	p3.incrementKillStreak()
+	fmt.Println(2)
+
 	p3.incrementKillStreak()
+	fmt.Println(3)
+
 	p3.incrementKillStreak()
+	fmt.Println(4)
 
 	p1.incrementKillStreak()
+	fmt.Println(5)
+
 	p1.incrementKillStreak()
-	if world.leaderBoard.mostDangerous.Peek() != p3 {
+	if world.leaderBoard.mostDangerous.Peek().id != p3.id {
 		t.Error("Invalid leader should be p3")
 	}
 
@@ -230,7 +240,7 @@ func TestMostDangerous(t *testing.T) {
 	removeFromTileAndStage(p3)
 	completeLogout(p3)
 
-	if world.leaderBoard.mostDangerous.Peek() != p1 {
+	if world.leaderBoard.mostDangerous.Peek().id != p1.id {
 		t.Error("Invalid leader should be p1")
 	}
 

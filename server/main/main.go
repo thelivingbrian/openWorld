@@ -78,7 +78,7 @@ func main() {
 		mux.HandleFunc("/clear", clearScreen)
 		mux.HandleFunc("/insert", world.postHorribleBypass)
 		mux.HandleFunc("/stats", world.getStats)
-		mux.HandleFunc("/heap", world.getHeap)
+		//mux.HandleFunc("/heap", world.getHeap)
 
 		logger.Info().Msg("Initiating Websockets...")
 		mux.HandleFunc("/screen", world.NewSocketConnection)
