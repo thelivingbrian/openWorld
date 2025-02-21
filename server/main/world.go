@@ -160,15 +160,12 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 		return nil
 	}
 
-	world.addPlayer(newPlayer) // Player can now get updates enqued by the world
-	// One of those updates may be a change in most dangerous
-	// Until that update is sent the worldPlayerMutex and the mostDangerousHeap Mutex will remain locked
-	// But the new player will not start fielding updates until it is added to the mostDangerous list
-	// deadlock ensues
-	world.leaderBoard.mostDangerous.LockThenPush(newPlayer)
-
 	newPlayer.conn = conn
 	go newPlayer.sendUpdates()
+
+	world.addPlayer(newPlayer) // Player can now get updates enqued by the world
+	world.leaderBoard.mostDangerous.LockThenPush(newPlayer)
+
 	stage := getStageFromStageName(newPlayer, incoming.Record.StageName)
 	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
 
