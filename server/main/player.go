@@ -262,7 +262,7 @@ func handleDeath(player *Player) {
 	removeFromTileAndStage(player) // After this should be impossible for any transfer to succeed
 	player.incrementDeathCount()
 	player.setHealth(150)
-	player.setKillStreak(0)
+	player.setKillStreak(0)                 // not fixing position in heap
 	player.actions = createDefaultActions() // problematic
 
 	stage := player.fetchStageSync(infirmaryStagenameForPlayer(player))

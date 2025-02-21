@@ -222,11 +222,25 @@ func validTeam(team string) bool {
 // Stats
 
 func (world *World) getStats(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Locking world players")
 	world.wPlayerMutex.Lock()
+	fmt.Println("Locked")
 	defer world.wPlayerMutex.Unlock()
 	out := fmt.Sprintf("World Player Count: %d\n", len(world.worldPlayers))
 	for key, val := range world.teamQuantities {
 		out += fmt.Sprintf("%s: %d\n", key, val)
+	}
+	io.WriteString(w, out)
+}
+
+func (world *World) getHeap(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Locking most dangerous")
+	world.leaderBoard.mostDangerous.Lock()
+	fmt.Println("Locked world players")
+	defer world.leaderBoard.mostDangerous.Unlock()
+	out := fmt.Sprintf("World Player Count: %d\n", len(world.worldPlayers))
+	for key, val := range world.leaderBoard.mostDangerous.index {
+		out += fmt.Sprintf("%s: %d\n", key.username, val)
 	}
 	io.WriteString(w, out)
 }
@@ -314,7 +328,7 @@ func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 	tokens := make([]string, 0, count)
 	for i := 0; i < count; i++ {
 		iStr := strconv.Itoa(i)
-		record := PlayerRecord{Username: username + iStr, Health: 50, Y: 6, X: 15, StageName: stage, Team: team, Trim: "white-b thick"}
+		record := PlayerRecord{Username: username + iStr, Health: 50, Y: 12, X: 5, StageName: stage, Team: team, Trim: "white-b thick"}
 		world.db.InsertPlayerRecord(record)
 		loginRequest := createLoginRequest(record)
 		world.addIncoming(loginRequest)

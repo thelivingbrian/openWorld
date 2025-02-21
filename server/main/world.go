@@ -12,7 +12,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var CAPACITY_PER_TEAM = 128
+var CAPACITY_PER_TEAM = 628
 var MIN_KILLSTREAK_MOST_DANGEROUS = 0
 
 type World struct {
@@ -454,6 +454,7 @@ func (h *MaxStreakHeap) Update(player *Player) {
 
 	currentMostDangerous := h.Peek()
 	if currentMostDangerous != previousMostDangerous {
+		// no routine - can cyclically lock with Update ?
 		crownMostDangerous(currentMostDangerous)
 	}
 	// if current = player -> broadcast streak
@@ -468,6 +469,7 @@ func crownMostDangerous(player *Player) {
 }
 
 func (h *MaxStreakHeap) RemoveAndNotifyChange(player *Player) {
+	// log here
 	h.Lock()
 	defer h.Unlock()
 	index, exists := player.world.leaderBoard.mostDangerous.index[player]
@@ -482,7 +484,6 @@ func (h *MaxStreakHeap) RemoveAndNotifyChange(player *Player) {
 }
 
 func notifyChangeInMostDangerous(currentMostDangerous *Player) {
-
 	currentMostDangerous.world.wPlayerMutex.Lock()
 	defer currentMostDangerous.world.wPlayerMutex.Unlock()
 	for _, p := range currentMostDangerous.world.worldPlayers {
