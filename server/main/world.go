@@ -159,12 +159,13 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 		conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
 		return nil
 	}
-	world.addPlayer(newPlayer)
 
+	world.addPlayer(newPlayer) // Player can now get updates enqued by the world
+	// One of those updates may be a change in most dangerous
+	// Until that update is sent the worldPlayerMutex and the mostDangerousHeap Mutex will remain locked
+	// But the new player will not start fielding updates until it is added to the mostDangerous list
+	// deadlock ensues
 	world.leaderBoard.mostDangerous.LockThenPush(newPlayer)
-	// world.leaderBoard.mostDangerous.Lock()
-	// world.leaderBoard.mostDangerous.Push(newPlayer)
-	// world.leaderBoard.mostDangerous.Unlock()
 
 	newPlayer.conn = conn
 	go newPlayer.sendUpdates()
