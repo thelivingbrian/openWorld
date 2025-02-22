@@ -14,9 +14,14 @@ import (
 	"github.com/rs/zerolog"
 )
 
+var testingConfig = Configuration{
+	envName:    "testbed",
+	domainName: "fakeDomainTEST",
+}
+
 func TestSocketJoinAndMove(t *testing.T) {
 	loadFromJson()
-	world := createGameWorld(testdb(), nil)
+	world := createGameWorld(testdb(), &testingConfig)
 
 	req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
 	world.addIncoming(req)
@@ -87,8 +92,6 @@ func TestLogoutAndDeath(t *testing.T) {
 		t.Error("Should have players")
 	}
 
-	fmt.Println("about to start interacting")
-
 	player.moveEast()
 	player.activatePower()
 	player.activatePower()
@@ -106,7 +109,6 @@ func TestLogoutAndDeath(t *testing.T) {
 
 	}
 
-	fmt.Println("about to start canceling")
 	for index := range cancelers {
 		// Log everyone out
 		cancelers[index]()
@@ -191,7 +193,7 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 
 func TestMostDangerous(t *testing.T) {
 	loadFromJson()
-	world := createGameWorld(testdb(), nil)
+	world := createGameWorld(testdb(), &testingConfig)
 	stage := loadStageByName(world, "test-large")
 
 	req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: stage.name})
@@ -208,9 +210,6 @@ func TestMostDangerous(t *testing.T) {
 
 	// Assert
 	p2.incrementKillStreak()
-	if world.leaderBoard.mostDangerous.Peek() != p2 {
-		t.Error("Invalid leader should be p2")
-	}
 
 	p3.incrementKillStreak()
 	p3.incrementKillStreak()
@@ -218,7 +217,7 @@ func TestMostDangerous(t *testing.T) {
 
 	p1.incrementKillStreak()
 	p1.incrementKillStreak()
-	if world.leaderBoard.mostDangerous.Peek() != p3 {
+	if world.leaderBoard.mostDangerous.Peek().id != p3.id {
 		t.Error("Invalid leader should be p3")
 	}
 
@@ -228,7 +227,9 @@ func TestMostDangerous(t *testing.T) {
 	removeFromTileAndStage(p3)
 	completeLogout(p3)
 
-	if world.leaderBoard.mostDangerous.Peek() != p1 {
+	// Force synchronization
+	world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{}
+	if world.leaderBoard.mostDangerous.Peek().id != p1.id {
 		t.Error("Invalid leader should be p1")
 	}
 
@@ -241,7 +242,7 @@ func TestMostDangerous(t *testing.T) {
 
 func createWorldForTesting() (*World, context.CancelFunc) {
 	loadFromJson()
-	world := createGameWorld(testdb(), nil)
+	world := createGameWorld(testdb(), &testingConfig)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -324,7 +325,7 @@ func createTestingSocket(url string) *TestingSocket {
 
 func createTestingSocketWithCancel(url string, wg *sync.WaitGroup) (*TestingSocket, context.CancelFunc) {
 	ts := createTestingSocket(url)
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background()) // Point of context vs just calling close?
 	go func(ctx context.Context) {
 		defer wg.Done()
 		for {

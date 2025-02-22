@@ -241,10 +241,11 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 	}
 
 	location := target.getTileSync()
-	fatal := damagePlayerAndHandleDeath(target, dmg)
+	fatal := damagePlayerAndHandleDeath(target, dmg) // Death can't handle until return to tangibility
 	if fatal {
 		initiator.incrementKillCount()
-		initiator.incrementKillStreak()
+		updateOne(spanStreak(initiator.incrementKillStreak()), initiator)
+
 		initiator.updateRecord()
 		go initiator.world.db.saveKillEvent(location, initiator, target)
 	}

@@ -56,6 +56,7 @@ type WebsocketConnection interface {
 	ReadMessage() (messageType int, p []byte, err error)
 	Close() error
 	SetWriteDeadline(t time.Time) error
+	SetReadDeadline(t time.Time) error
 }
 
 ////////////////////////////////////////////////////////////
@@ -339,7 +340,7 @@ func (player *Player) sendUpdates() {
 		select {
 		case update, ok := <-player.updates:
 			if !ok {
-				logger.Info().Msg("Player:" + player.username + "- update channel closed")
+				logger.Info().Msg("Player: " + player.username + " update channel closed")
 				return
 			}
 			if !shouldSendUpdates {
@@ -412,7 +413,8 @@ func sendUpdate(player *Player, update []byte) error {
 	}
 	err = player.conn.WriteMessage(websocket.TextMessage, update)
 	if err != nil {
-		logger.Warn().Msg("Incrementing websocket session timeout violations for: " + player.username)
+		// Technically can be any write error
+		logger.Debug().Msg("Incrementing websocket session timeout violations for: " + player.username)
 		if player.sessionTimeOutViolations.Add(1) >= 1 {
 			return err
 		}
@@ -443,7 +445,6 @@ func updatePlayerAfterMovement(player *Player, current, previous *Tile) {
 func updatePlayerAfterStageChange(p *Player) {
 	p.setSpaceHighlights()
 	updateScreenFromScratch(p)
-	p.updateRecord() // too much?
 }
 
 func updateScreenFromScratch(player *Player) {
@@ -511,6 +512,7 @@ func (player *Player) updateRecord() {
 }
 
 func (player *Player) updateRecordOnDeath(respawnTile *Tile) {
+	// vs just incrementing death count?
 	go player.world.db.updateRecordForPlayer(player, respawnTile)
 }
 
@@ -573,7 +575,7 @@ func (player *Player) addHatByName(hatName string) {
 	if hat == nil {
 		return
 	}
-	logger.Debug().Msg("Adding Hat" + hat.Name)
+	logger.Debug().Msg("Adding Hat: " + hat.Name)
 	player.world.db.addHatToPlayer(player.username, *hat)
 	updateIconForAll(player)
 }
@@ -684,29 +686,26 @@ func (player *Player) getMoneySync() int {
 	return player.money
 }
 
-// Streak observer, All streak changes should go through here
-func (player *Player) setKillStreak(n int) {
-	player.streakLock.Lock()
-	defer player.streakLock.Unlock()
-	player.killstreak = n
-}
-
-func (player *Player) setKillStreakAndUpdate(n int) {
-	player.setKillStreak(n)
-	player.world.leaderBoard.mostDangerous.Update(player)
-	updateOne(spanStreak(n), player)
-}
-
 func (player *Player) getKillStreakSync() int {
 	player.streakLock.Lock()
 	defer player.streakLock.Unlock()
 	return player.killstreak
 }
 
-func (player *Player) incrementKillStreak() {
-	// could race with self ignoring an increment.
-	newStreak := player.getKillStreakSync() + 1
-	player.setKillStreakAndUpdate(newStreak)
+func (player *Player) setKillStreak(n int) int {
+	player.streakLock.Lock()
+	defer player.streakLock.Unlock()
+	player.killstreak = n
+	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: n, team: player.getTeamNameSync()}
+	return player.killstreak
+}
+
+func (player *Player) incrementKillStreak() int {
+	player.streakLock.Lock()
+	defer player.streakLock.Unlock()
+	player.killstreak++
+	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: player.killstreak, team: player.getTeamNameSync()}
+	return player.killstreak
 }
 
 func (player *Player) getKillCountSync() int {

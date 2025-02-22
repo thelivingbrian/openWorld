@@ -297,8 +297,7 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 			logger.Error().Msg("ERROR TEAM CHECK FAILED - " + p.getTeamNameSync() + " is not equal to: " + team)
 			return nil, false
 		}
-		p.world.leaderBoard.scoreboard.Increment(team)
-		score := p.world.leaderBoard.scoreboard.GetScore(team)
+		score := p.world.leaderBoard.scoreboard.Increment(team)
 		oppositeTeamName := oppositeTeamName(team)
 		scoreOpposing := p.world.leaderBoard.scoreboard.GetScore(oppositeTeamName)
 
@@ -467,7 +466,7 @@ func damageWithinRadiusAndReset(radius, dmg int, ownerId string) func(i *Interac
 // not a reaction; will lock tile
 func damageWithinRadius(tile *Tile, world *World, radius, dmg int, ownerId string) {
 	tiles := getTilesInRadius(tile, radius)
-	trapSetter := world.getPlayerByName(ownerId)
+	trapSetter := world.getPlayerById(ownerId)
 	if trapSetter != nil {
 		trapSetter.tangibilityLock.Lock()
 		defer trapSetter.tangibilityLock.Unlock()

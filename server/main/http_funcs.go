@@ -314,10 +314,11 @@ func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 	tokens := make([]string, 0, count)
 	for i := 0; i < count; i++ {
 		iStr := strconv.Itoa(i)
-		record := PlayerRecord{Username: username + iStr, Health: 50, Y: 6, X: 15, StageName: stage, Team: team, Trim: "white-b thick"}
+		record := PlayerRecord{Username: username + iStr, Health: 50, Y: 12, X: 5, StageName: stage, Team: team, Trim: "white-b thick"}
+		world.db.InsertPlayerRecord(record)
 		loginRequest := createLoginRequest(record)
 		world.addIncoming(loginRequest)
-		logger.Info().Msg(loginRequest.Token) // Debug?
+		logger.Debug().Msg("New bypass request for: " + loginRequest.Token)
 		tokens = append(tokens, loginRequest.Token)
 	}
 	io.WriteString(w, "[\""+strings.Join(tokens, "\",\"")+"\"]")

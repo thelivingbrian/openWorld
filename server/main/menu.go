@@ -169,18 +169,7 @@ func turnMenuOffAnd(f func(*Player)) func(*Player) {
 }
 
 func Quit(p *Player) {
-	logOutSuccess := `
-	  <div id="page">
-	      <div id="logo">
-	          <img src="/assets/blooplogo2.webp" width="400" height="400" alt="Welcome to bloopworld"><br />
-	      </div>
-	      <div id="landing">   
-		  	  <span>Log out success!</span><br />
-	          <a class="large-font" href="#" hx-post="` + p.world.config.domainName + `/play" hx-target="#page">Resume</a><br />
-	      </div>
-	  </div>`
-
-	sendUpdate(p, []byte(logOutSuccess))
+	sendUpdate(p, divLogOutResume("Log out success!", p.world.config.domainName))
 	p.closeConnectionSync() // This will initiate log out
 }
 

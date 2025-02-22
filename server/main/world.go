@@ -50,9 +50,7 @@ type LoginRequest struct {
 }
 
 func createGameWorld(db *DB, config *Configuration) *World {
-	minimumKillstreak := Player{id: "HS-only", killstreak: 0} // Do somewhere else?
-	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: []*Player{&minimumKillstreak}, index: make(map[*Player]int)}}
-	return &World{
+	out := &World{
 		db:                  db,
 		config:              config,
 		worldPlayers:        make(map[string]*Player),
@@ -62,8 +60,15 @@ func createGameWorld(db *DB, config *Configuration) *World {
 		incomingPlayerMutex: sync.Mutex{},
 		worldStages:         make(map[string]*Stage),
 		wStageMutex:         sync.Mutex{},
-		leaderBoard:         lb,
+		leaderBoard:         createLeaderBoard(),
 	}
+	go Process(out, &out.leaderBoard.mostDangerous)
+	return out
+}
+
+func createLeaderBoard() *LeaderBoard {
+	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: make([]PlayerStreakRecord, 0), index: make(map[string]int), incoming: make(chan PlayerStreakRecord)}}
+	return lb
 }
 
 func (world *World) addPlayer(p *Player) {
@@ -82,7 +87,7 @@ func (world *World) removePlayer(p *Player) {
 	world.wPlayerMutex.Unlock()
 }
 
-func (world *World) getPlayerByName(id string) *Player {
+func (world *World) getPlayerById(id string) *Player {
 	world.wPlayerMutex.Lock()
 	defer world.wPlayerMutex.Unlock()
 	player, _ := world.worldPlayers[id]
@@ -153,17 +158,14 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 		conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
 		return nil
 	}
-	world.addPlayer(newPlayer)
-
-	world.leaderBoard.mostDangerous.Lock()
-	world.leaderBoard.mostDangerous.Push(newPlayer)
-	world.leaderBoard.mostDangerous.Unlock()
 
 	newPlayer.conn = conn
 	go newPlayer.sendUpdates()
+
+	world.addPlayer(newPlayer)
+
 	stage := getStageFromStageName(newPlayer, incoming.Record.StageName)
 	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
-
 	return newPlayer
 }
 
@@ -245,12 +247,13 @@ func processLogouts(players chan *Player) {
 		completeLogout(player)
 	}
 }
-func initiatelogout(player *Player) {
+func initiateLogout(player *Player) {
 	player.tangibilityLock.Lock()
 	defer player.tangibilityLock.Unlock()
 	player.tangible = false
 
 	logger.Info().Msg("initate logout: " + player.username)
+	//   Add time delay to prevent rage quit ?
 	removeFromTileAndStage(player)
 
 	playersToLogout <- player
@@ -260,21 +263,10 @@ func initiatelogout(player *Player) {
 func completeLogout(player *Player) {
 	player.updateRecord() // Should return error
 
-	// new method
-	player.setKillStreakAndUpdate(0) // Don't update
-	player.world.leaderBoard.mostDangerous.Lock()
-	index, exists := player.world.leaderBoard.mostDangerous.index[player]
-	if exists {
-		heap.Remove(&player.world.leaderBoard.mostDangerous, index)
-	}
-	player.world.leaderBoard.mostDangerous.Unlock()
-
+	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: 0, team: ""}
 	player.world.removePlayer(player)
 
-	player.closeConnectionSync() // uneeded but harmless?
-	player.connLock.Lock()
-	player.conn = nil
-	player.connLock.Unlock()
+	player.closeConnectionSync() // If Read deadline is missed conn may still be open
 
 	close(player.updates)
 	// close(player.clearUpdateBuffer)
@@ -282,33 +274,6 @@ func completeLogout(player *Player) {
 	logger.Info().Msg("Logout complete: " + player.username)
 
 }
-
-/*
-func fullyRemovePlayer_do(player *Player) {
-	removeFromTileAndStage(player)
-}
-
-func fullyRemovePlayer(player *Player) bool {
-	found := false
-	for i := 0; i < 5; i++ {
-		if player.tile.removePlayerAndNotifyOthers(player) {
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		logger.Info().Msg("Never removed player from tile successfully")
-	}
-
-	player.stage.playerMutex.Lock()
-	_, ok := player.stage.playerMap[player.id]
-	delete(player.stage.playerMap, player.id)
-	player.stage.playerMutex.Unlock()
-
-	return found && ok
-}
-*/
 
 ///////////////////////////////////////////////////////////////
 // References / Lookup
@@ -367,30 +332,20 @@ func getRelativeTile(source *Tile, yOff, xOff int, player *Player) *Tile {
 // LeaderBoards
 
 type LeaderBoard struct {
-	//richest *Player
 	mostDangerous MaxStreakHeap
-	//oldest        *Player
-	scoreboard Scoreboard
-}
-
-// Team Scoreboards
-type TeamScore struct {
-	sync.Mutex
-	score int
+	scoreboard    Scoreboard
 }
 
 type Scoreboard struct {
 	data sync.Map
 }
 
-// Increment updates the score for a team atomically
-func (s *Scoreboard) Increment(team string) {
-	val, _ := s.data.LoadOrStore(team, &TeamScore{})
-	teamScore := val.(*TeamScore)
+func (s *Scoreboard) Increment(team string) int {
+	val, _ := s.data.LoadOrStore(team, &atomic.Int64{})
+	score := val.(*atomic.Int64)
 
-	teamScore.Lock()
-	teamScore.score += 1
-	teamScore.Unlock()
+	score.Add(1)
+	return int(score.Load())
 }
 
 func (s *Scoreboard) GetScore(team string) int {
@@ -399,99 +354,131 @@ func (s *Scoreboard) GetScore(team string) int {
 		return 0 // Team does not exist
 	}
 
-	teamScore := val.(*TeamScore)
+	score := val.(*atomic.Int64)
+	return int(score.Load())
+}
 
-	teamScore.Lock()
-	defer teamScore.Unlock()
-	return teamScore.score
+//////////////////////////////////////////////////////////////////////////
+// Most Dangerous Heap
+
+type MaxStreakHeap struct {
+	items    []PlayerStreakRecord
+	index    map[string]int // Keep track of indices of record by id
+	incoming chan PlayerStreakRecord
+}
+
+type PlayerStreakRecord struct {
+	id         string
+	killstreak int
+	username   string
+	team       string
+}
+
+func (heap *MaxStreakHeap) Len() int {
+	return len(heap.items)
+}
+
+func (heap *MaxStreakHeap) Less(i, j int) bool {
+	return heap.items[i].killstreak > heap.items[j].killstreak
+}
+
+func (heap *MaxStreakHeap) Swap(i, j int) {
+	heap.items[i], heap.items[j] = heap.items[j], heap.items[i]
+	heap.index[heap.items[i].id], heap.index[heap.items[j].id] = i, j
+}
+
+func (h *MaxStreakHeap) Push(x interface{}) {
+	n := len(h.items)
+	item := x.(PlayerStreakRecord)
+	h.items = append(h.items, item)
+	h.index[h.items[n].id] = n
+	heap.Fix(h, n)
+}
+
+func (heap *MaxStreakHeap) Pop() interface{} {
+	old := heap.items
+	n := len(old)
+	item := old[n-1]
+	heap.items = old[0 : n-1]
+	delete(heap.index, item.id)
+	return item
+}
+
+func (heap *MaxStreakHeap) Peek() PlayerStreakRecord {
+	if len(heap.items) == 0 {
+		return PlayerStreakRecord{}
+	}
+	return heap.items[0]
 }
 
 //
 
-type MaxStreakHeap struct {
-	items []*Player
-	index map[*Player]int // Keep track of item indices
-	sync.Mutex
-}
+func Process(world *World, h *MaxStreakHeap) {
+	for {
+		previousMostDangerous := h.Peek()
+		event, ok := <-h.incoming
+		if !ok {
+			logger.Warn().Msg("Stopping Processing for High-KillStreak Heap - incoming closed")
+			break
+		}
+		position, found := h.index[event.id]
+		if !found {
+			if event.killstreak != 0 {
+				heap.Push(h, event)
+			}
+		} else {
+			if event.killstreak != 0 {
+				h.items[position] = event
+				heap.Fix(h, position)
+			} else {
+				heap.Remove(h, position)
+			}
+		}
+		currentMostDangerous := h.Peek()
 
-// must hold lock before calling
-// have concerns here...
-func (h *MaxStreakHeap) Len() int {
-	//h.Lock()
-	//defer h.Unlock()
-	return len(h.items)
-}
-
-func (h *MaxStreakHeap) Less(i, j int) bool {
-	//h.Lock()
-	//defer h.Unlock()
-	return h.items[i].getKillStreakSync() > h.items[j].getKillStreakSync()
-}
-
-func (h *MaxStreakHeap) Swap(i, j int) {
-	//h.Lock()
-	h.items[i], h.items[j] = h.items[j], h.items[i]
-	h.index[h.items[i]], h.index[h.items[j]] = i, j
-	//h.Unlock()
-}
-
-func (h *MaxStreakHeap) Push(x interface{}) {
-	//h.Lock()
-	n := len(h.items)
-	item := x.(*Player)
-	h.items = append(h.items, item)
-	h.index[h.items[n]] = n // would need fix if not at bottom. (e.g. richest)
-	//h.Unlock()
-}
-
-func (h *MaxStreakHeap) Pop() interface{} {
-	// h.Lock()
-	// defer h.Unlock()
-	old := h.items
-	n := len(old)
-	item := old[n-1]
-	h.items = old[0 : n-1]
-	delete(h.index, item)
-	return item
-}
-
-func (h *MaxStreakHeap) Peek() *Player {
-	// h.Lock()
-	// defer h.Unlock()
-	if len(h.items) == 0 {
-		return nil
-		//panic("Heap Underflow")
-	}
-	return h.items[0]
-}
-
-// Update fixes the heap after player has a change in killstreak, notiying any change in most dangerous
-func (h *MaxStreakHeap) Update(player *Player) {
-	h.Lock()
-	defer h.Unlock()
-	previousMostDangerous := h.Peek()
-
-	index := h.index[player]
-	heap.Fix(h, index)
-
-	currentMostDangerous := h.Peek()
-	if currentMostDangerous != previousMostDangerous {
-		currentMostDangerous.addHatByName("most-dangerous")
-		notifyChangeInMostDangerous(currentMostDangerous)
+		func(currentMostDangerous, previousMostDangerous PlayerStreakRecord) {
+			if currentMostDangerous.id != previousMostDangerous.id {
+				crownMostDangerousById(world, currentMostDangerous)
+				return
+			}
+			// current and previous are the same
+			if currentMostDangerous.killstreak != previousMostDangerous.killstreak {
+				update := fmt.Sprintf("@[%s|%s] is still the most dangerous bloop! (Streak: @[%d|red])", currentMostDangerous.username, currentMostDangerous.team, currentMostDangerous.killstreak)
+				broadcastBottomText(world, update)
+			}
+		}(currentMostDangerous, previousMostDangerous)
 	}
 }
 
-func notifyChangeInMostDangerous(currentMostDangerous *Player) {
-	if currentMostDangerous.id == "HS-only" {
+func crownMostDangerousById(world *World, streakEvent PlayerStreakRecord) {
+	if streakEvent.id == "" {
 		return
 	}
-	currentMostDangerous.world.wPlayerMutex.Lock()
-	defer currentMostDangerous.world.wPlayerMutex.Unlock()
-	for _, p := range currentMostDangerous.world.worldPlayers {
-		if p == currentMostDangerous {
+	player := world.getPlayerById(streakEvent.id)
+	if player == nil {
+		return
+	}
+	player.tangibilityLock.Lock()
+	defer player.tangibilityLock.Unlock()
+	if !player.tangible {
+		return
+	}
+	player.addHatByName("most-dangerous")
+	player.world.notifyChangeInMostDangerous(streakEvent)
+}
+
+////////////////////////////////////////////////////////////
+// World Player bottom text updates
+
+func (world *World) notifyChangeInMostDangerous(streakEvent PlayerStreakRecord) {
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	for _, p := range world.worldPlayers {
+		if p.id == streakEvent.id {
 			p.updateBottomText("You are the most dangerous bloop!")
 		} else {
-			update := fmt.Sprintf("@[%s|%s] has become the most dangerous bloop! (Streak: @[%d|red])", currentMostDangerous.username, currentMostDangerous.getTeamNameSync(), currentMostDangerous.getKillStreakSync())
+			template := "@[%s|%s] has become the most dangerous bloop! (Streak: @[%d|red])"
+			update := fmt.Sprintf(template, streakEvent.username, streakEvent.team, streakEvent.killstreak)
 			p.updateBottomText(update)
 		}
 	}
