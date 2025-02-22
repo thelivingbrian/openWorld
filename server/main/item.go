@@ -23,8 +23,7 @@ func (s *SpawnAction) activateFor(player *Player, stage *Stage) {
 var spawnActions = map[string][]SpawnAction{
 	"none": []SpawnAction{}, // Same as Should: Always, Action: doNothing
 	"": []SpawnAction{
-		//SpawnAction{Should: checkDistanceFromEdge(8, 8), Action: basicSpawn},
-		SpawnAction{Should: excludeInfirmary, Action: basicSpawn},
+		SpawnAction{Should: excludeInfirmary, Action: basicSpawnWithRing},
 	},
 	"tutorial-boost":   []SpawnAction{SpawnAction{Should: always, Action: tutorialBoost()}},
 	"tutorial-power":   []SpawnAction{SpawnAction{Should: always, Action: tutorialPower}},
@@ -152,13 +151,22 @@ func tutorial2Boost() func(stage *Stage) {
 func tutorialPower(stage *Stage) {
 	stage.tiles[12][12].addPowerUpAndNotifyAll(grid5x5)
 }
+
 func spawnBoosts(stage *Stage) {
 	_, uncoveredTiles := sortWalkableTiles(stage.tiles)
 	tile := uncoveredTiles[rand.Intn(len(uncoveredTiles))]
 	tile.addBoostsAndNotifyAll()
 }
+func spawnPowerup(stage *Stage) {
+	shapes := [][][2]int{grid3x3, grid3x3, grid5x5, grid5x5, grid5x5, grid7x7, grid7x7, grid9x9, jumpCross(), longCross(5), longCross(3), longCross(3), cross(), x()}
+	index := rand.Intn(len(shapes))
+	tiles, uncoveredTiles := sortWalkableTiles(stage.tiles)
+	tiles = append(tiles, uncoveredTiles...)
+	tile := tiles[rand.Intn(len(tiles))]
+	tile.addPowerUpAndNotifyAll(shapes[index])
+}
 
-func basicSpawn(stage *Stage) {
+func basicSpawnOld(stage *Stage) {
 	// Very basic spawn algorithm
 	// Will spawn on convered tiles with higher freq. than uncovered
 	// Will spawn boost and powers with equal probability
@@ -189,6 +197,30 @@ func basicSpawn(stage *Stage) {
 		} else {
 			uncoveredTiles[randomIndex].addBoostsAndNotifyAll()
 		}
+	}
+}
+
+func basicSpawnWithRing(stage *Stage) {
+	determination := rand.Intn(1000)
+	if determination < 200 {
+		// Do nothing
+	} else if determination < 550 {
+		spawnBoosts(stage)
+	} else if determination < 700 {
+		placeInteractableOnStage(stage, createRing())
+	} else {
+		spawnPowerup(stage)
+	}
+}
+
+func basicSpawnNoRing(stage *Stage) {
+	determination := rand.Intn(1000)
+	if determination < 250 {
+		// Do nothing
+	} else if determination < 700 {
+		spawnBoosts(stage)
+	} else {
+		spawnPowerup(stage)
 	}
 }
 

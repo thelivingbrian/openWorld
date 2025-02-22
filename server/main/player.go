@@ -682,8 +682,11 @@ func (player *Player) setMoneyAndUpdate(n int) {
 
 func (player *Player) addMoneyAndUpdate(n int) {
 	totalMoney := player.addMoney(n)
-	if totalMoney > 100*1000 {
+	if totalMoney > 2*1000 {
 		player.addHatByName("made-of-money")
+	}
+	if totalMoney > 100*1000 {
+		player.addHatByName("made-of-money-2")
 	}
 	updateOne(spanMoney(totalMoney), player)
 }

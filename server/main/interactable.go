@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"strings"
 )
 
 type Interactable struct {
@@ -337,9 +336,19 @@ func hideByTeam(team string) func(*Interactable, *Player, *Tile) (*Interactable,
 
 func placeInteractableOnStagePriorityCovered(stage *Stage, interactable *Interactable) {
 	tiles, uncovered := sortWalkableTiles(stage.tiles)
-	if len(tiles) == 0 {
+	if len(tiles) < 0 {
 		tiles = uncovered
 	}
+	placed := false
+	for !placed {
+		index := rand.Intn(len(tiles))
+		placed = trySetInteractable(tiles[index], interactable)
+	}
+}
+
+func placeInteractableOnStage(stage *Stage, interactable *Interactable) {
+	tiles, uncovered := sortWalkableTiles(stage.tiles)
+	tiles = append(tiles, uncovered...)
 	placed := false
 	for !placed {
 		index := rand.Intn(len(tiles))
@@ -410,20 +419,16 @@ func damageAndSpawn(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	x := rand.Intn(len(t.stage.tiles[y]))
 	epicenter := t.stage.tiles[y][x]
 	dmg := 50
+	powerToSpawn := 3
 	if i.name == "ring-big" {
 		dmg = 100
+		powerToSpawn = 5
 	}
 	go damageWithinRadius(epicenter, p.world, 4, dmg, p.id)
 	t.stage.updateAll(soundTriggerByName("explosion"))
 	addMoneyToStage(t.stage, dmg/5)
-	if strings.Contains(t.stage.name, ":") {
-		spacename := strings.Split(t.stage.name, ":")[0]
-		lat := rand.Intn(8)
-		long := rand.Intn(8)
-		stagename := fmt.Sprintf("%s:%d-%d", spacename, lat, long)
-		logger.Info().Msg(stagename)
-		stage := p.fetchStageSync(stagename)
-		placeInteractableOnStagePriorityCovered(stage, i)
+	for i := 0; i < powerToSpawn; i++ {
+		spawnPowerup(t.stage)
 	}
 	return nil, false
 }
