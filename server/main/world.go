@@ -13,7 +13,6 @@ import (
 )
 
 var CAPACITY_PER_TEAM = 128
-var MIN_KILLSTREAK_MOST_DANGEROUS = 0
 
 type World struct {
 	db                  *DB
