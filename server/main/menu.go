@@ -168,24 +168,8 @@ func turnMenuOffAnd(f func(*Player)) func(*Player) {
 	}
 }
 
-func loggedOutResumeMessage(text, domain string) []byte {
-	var buf bytes.Buffer
-	logOutSuccess := `
-	  <div id="page">
-	      <div id="logo">
-	          <img src="/assets/blooplogo2.webp" width="400" height="400" alt="Welcome to bloopworld"><br />
-	      </div>
-	      <div id="landing">   
-		  	  <span>%s</span><br />
-	          <a class="large-font" href="#" hx-post="%s/play" hx-target="#page">Resume</a><br />
-	      </div>
-	  </div>`
-	fmt.Fprintf(&buf, logOutSuccess, text, domain)
-	return buf.Bytes()
-}
-
 func Quit(p *Player) {
-	sendUpdate(p, loggedOutResumeMessage("Log out success!", p.world.config.domainName))
+	sendUpdate(p, divLogOutResume("Log out success!", p.world.config.domainName))
 	p.closeConnectionSync() // This will initiate log out
 }
 

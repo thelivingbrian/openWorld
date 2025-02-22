@@ -65,7 +65,7 @@ func handleNewPlayer(player *Player) {
 		_, msg, err := player.conn.ReadMessage()
 		if err != nil {
 			// break will initiate logout:
-			sendUpdate(player, loggedOutResumeMessage("Inactive. Logging out", player.world.config.domainName))
+			sendUpdate(player, divLogOutResume("Inactive. Logging out", player.world.config.domainName))
 			break
 		}
 		currentRead := time.Now()

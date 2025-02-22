@@ -445,7 +445,6 @@ func updatePlayerAfterMovement(player *Player, current, previous *Tile) {
 func updatePlayerAfterStageChange(p *Player) {
 	p.setSpaceHighlights()
 	updateScreenFromScratch(p)
-	//p.updateRecord() // too much?
 }
 
 func updateScreenFromScratch(player *Player) {
@@ -687,37 +686,11 @@ func (player *Player) getMoneySync() int {
 	return player.money
 }
 
-// Streak observer, All streak changes should go through here
-
-/*
-	func (player *Player) setKillStreak2(n int) {
-		player.streakLock.Lock()
-		defer player.streakLock.Unlock()
-		player.killstreak = n
-	}
-
-	func (player *Player) setKillStreakAndUpdate(n int) {
-		// Should lock most dangerous before changing kill streak?
-		player.setKillStreak(n)
-		player.world.leaderBoard.mostDangerous.Update(player)
-		updateOne(spanStreak(n), player)
-	}
-*/
 func (player *Player) getKillStreakSync() int {
 	player.streakLock.Lock()
 	defer player.streakLock.Unlock()
 	return player.killstreak
 }
-
-/*
-func (player *Player) incrementKillStreak2() {
-	// could race with self ignoring an increment.
-	newStreak := player.getKillStreakSync() + 1
-	player.setKillStreakAndUpdate(newStreak)
-}
-
-*/
-//
 
 func (player *Player) setKillStreak(n int) int {
 	player.streakLock.Lock()

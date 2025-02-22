@@ -68,9 +68,7 @@ func createGameWorld(db *DB, config *Configuration) *World {
 }
 
 func createLeaderBoard() *LeaderBoard {
-	//minimumKillstreak := Player{id: "HIGHSCORE-only", killstreak: MIN_KILLSTREAK_MOST_DANGEROUS} // Do somewhere else?
-	lb := &LeaderBoard{mostDangerous: HighStreakHeap{items: make([]PlayerStreakRecord, 0), index: make(map[string]int), incoming: make(chan PlayerStreakRecord)}}
-	//lb.mostDangerous.Push(&minimumKillstreak)
+	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: make([]PlayerStreakRecord, 0), index: make(map[string]int), incoming: make(chan PlayerStreakRecord)}}
 	return lb
 }
 
@@ -165,12 +163,10 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	newPlayer.conn = conn
 	go newPlayer.sendUpdates()
 
-	world.addPlayer(newPlayer) // Player can now get updates enqued by the world
-	//world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: newPlayer.id, username: newPlayer.username, team: newPlayer.getTeamNameSync(), killstreak: 0}
+	world.addPlayer(newPlayer)
 
 	stage := getStageFromStageName(newPlayer, incoming.Record.StageName)
 	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
-
 	return newPlayer
 }
 
@@ -337,16 +333,14 @@ func getRelativeTile(source *Tile, yOff, xOff int, player *Player) *Tile {
 // LeaderBoards
 
 type LeaderBoard struct {
-	//richest *Player
-	mostDangerous HighStreakHeap
-	//oldest        *Player
-	scoreboard Scoreboard
+	mostDangerous MaxStreakHeap
+	scoreboard    Scoreboard
 }
 
 // Team Scoreboards
 type TeamScore struct {
 	sync.Mutex
-	score int
+	score int // Atomic Int64 instead - faster and less complex
 }
 
 type Scoreboard struct {
@@ -376,13 +370,14 @@ func (s *Scoreboard) GetScore(team string) int {
 	return teamScore.score
 }
 
-/**
+//////////////////////////////////////////////////////////////////////////
+// Most Dangerous Heap
 
-Rewrite this heap so that it is a heap of {username, killcount}
-Instead of locking on update / push / remove ; have a channel of killstreak changes and
-resolve them individually awarding mostDangerous as it changes
-
-*/
+type MaxStreakHeap struct {
+	items    []PlayerStreakRecord
+	index    map[string]int // Keep track of indices of record by id
+	incoming chan PlayerStreakRecord
+}
 
 type PlayerStreakRecord struct {
 	id         string
@@ -391,26 +386,20 @@ type PlayerStreakRecord struct {
 	team       string
 }
 
-type HighStreakHeap struct {
-	items    []PlayerStreakRecord
-	index    map[string]int // Keep track of indices of record by id
-	incoming chan PlayerStreakRecord
-}
-
-func (heap *HighStreakHeap) Len() int {
+func (heap *MaxStreakHeap) Len() int {
 	return len(heap.items)
 }
 
-func (heap *HighStreakHeap) Less(i, j int) bool {
+func (heap *MaxStreakHeap) Less(i, j int) bool {
 	return heap.items[i].killstreak > heap.items[j].killstreak
 }
 
-func (heap *HighStreakHeap) Swap(i, j int) {
+func (heap *MaxStreakHeap) Swap(i, j int) {
 	heap.items[i], heap.items[j] = heap.items[j], heap.items[i]
 	heap.index[heap.items[i].id], heap.index[heap.items[j].id] = i, j
 }
 
-func (h *HighStreakHeap) Push(x interface{}) {
+func (h *MaxStreakHeap) Push(x interface{}) {
 	n := len(h.items)
 	item := x.(PlayerStreakRecord)
 	h.items = append(h.items, item)
@@ -418,7 +407,7 @@ func (h *HighStreakHeap) Push(x interface{}) {
 	heap.Fix(h, n)
 }
 
-func (heap *HighStreakHeap) Pop() interface{} {
+func (heap *MaxStreakHeap) Pop() interface{} {
 	old := heap.items
 	n := len(old)
 	item := old[n-1]
@@ -427,7 +416,7 @@ func (heap *HighStreakHeap) Pop() interface{} {
 	return item
 }
 
-func (heap *HighStreakHeap) Peek() PlayerStreakRecord {
+func (heap *MaxStreakHeap) Peek() PlayerStreakRecord {
 	if len(heap.items) == 0 {
 		return PlayerStreakRecord{}
 	}
@@ -436,7 +425,7 @@ func (heap *HighStreakHeap) Peek() PlayerStreakRecord {
 
 //
 
-func Process(world *World, h *HighStreakHeap) {
+func Process(world *World, h *MaxStreakHeap) {
 	for {
 		previousMostDangerous := h.Peek()
 		event, ok := <-h.incoming
@@ -490,99 +479,8 @@ func crownMostDangerousById(world *World, streakEvent PlayerStreakRecord) {
 	player.world.notifyChangeInMostDangerous(streakEvent)
 }
 
-//
-
-//
-
-type MaxStreakHeap struct {
-	items []*Player
-	index map[*Player]int // Keep track of item indices
-	sync.Mutex
-}
-
-// Must hold locks before calling :
-
-func (h *MaxStreakHeap) Len() int {
-	return len(h.items)
-}
-
-func (h *MaxStreakHeap) Less(i, j int) bool {
-	return h.items[i].getKillStreakSync() > h.items[j].getKillStreakSync()
-}
-
-func (h *MaxStreakHeap) Swap(i, j int) {
-	h.items[i], h.items[j] = h.items[j], h.items[i]
-	h.index[h.items[i]], h.index[h.items[j]] = i, j
-}
-
-func (h *MaxStreakHeap) Push(x interface{}) {
-	n := len(h.items)
-	item := x.(*Player)
-	h.items = append(h.items, item)
-	h.index[h.items[n]] = n // would need fix if not at bottom. (e.g. richest)
-}
-
-func (h *MaxStreakHeap) Pop() interface{} {
-	old := h.items
-	n := len(old)
-	item := old[n-1]
-	h.items = old[0 : n-1]
-	delete(h.index, item)
-	return item
-}
-
-func (h *MaxStreakHeap) Peek() *Player {
-	if len(h.items) == 0 {
-		return nil
-	}
-	return h.items[0]
-}
-
-// Higher level interfaces:
-
-func (h *MaxStreakHeap) LockThenPush(player *Player) {
-	h.Lock()
-	defer h.Unlock()
-	h.Push(player)
-}
-
-// Update fixes the heap after player has a change in killstreak, notiying any change in most dangerous
-// func (h *MaxStreakHeap) Update(player *Player) {
-// 	h.Lock()
-// 	defer h.Unlock()
-// 	previousMostDangerous := h.Peek()
-
-// 	index := h.index[player]
-// 	heap.Fix(h, index)
-
-// 	currentMostDangerous := h.Peek()
-// 	if currentMostDangerous != previousMostDangerous {
-// 		crownMostDangerous(currentMostDangerous)
-// 	}
-// 	if current = player -> broadcast streak
-// }
-
-// func crownMostDangerous(player *Player) {
-// 	if player.id == "HIGHSCORE-only" {
-// 		return
-// 	}
-// 	player.addHatByName("most-dangerous")
-// 	notifyChangeInMostDangerous(player)
-// }
-
-// func (h *MaxStreakHeap) RemoveAndNotifyChange(player *Player) {
-// 	h.Lock()
-// 	defer h.Unlock()
-// 	index, exists := player.world.leaderBoard.mostDangerous.index[player]
-// 	if !exists {
-// 		logger.Warn().Msg("Trying to remove player from mostDangerous but player does not exist!")
-// 		return
-// 	}
-// 	heap.Remove(&player.world.leaderBoard.mostDangerous, index)
-// 	if index == 0 {
-// 		crownMostDangerous(h.Peek())
-// 	}
-// }
+////////////////////////////////////////////////////////////
+// World Player bottom text updates
 
 func (world *World) notifyChangeInMostDangerous(streakEvent PlayerStreakRecord) {
 	world.wPlayerMutex.Lock()

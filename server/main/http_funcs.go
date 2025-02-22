@@ -231,20 +231,6 @@ func (world *World) getStats(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, out)
 }
 
-/*
-func (world *World) getHeap(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Locking most dangerous")
-	world.leaderBoard.mostDangerous.Lock()
-	fmt.Println("Locked world players")
-	defer world.leaderBoard.mostDangerous.Unlock()
-	out := fmt.Sprintf("World Player Count: %d\n", len(world.worldPlayers))
-	for key, val := range world.leaderBoard.mostDangerous.index {
-		out += fmt.Sprintf("%s: %d\n", key.username, val)
-	}
-	io.WriteString(w, out)
-}
-*/
-
 /////////////////////////////////////////////
 //  Oauth
 
