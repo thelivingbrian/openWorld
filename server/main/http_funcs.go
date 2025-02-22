@@ -115,7 +115,14 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if userRecord.Username == "" {
-		tmpl.ExecuteTemplate(w, "choose-your-color", world.config.domainName)
+		colorPage := struct {
+			DomainName        string
+			SuggestedUsername string
+		}{
+			DomainName:        world.config.domainName,
+			SuggestedUsername: world.db.UniqueName(),
+		}
+		tmpl.ExecuteTemplate(w, "choose-your-color", colorPage)
 	} else {
 		record, err := world.db.getPlayerRecord(userRecord.Username)
 		if err != nil {
