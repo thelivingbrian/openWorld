@@ -227,6 +227,8 @@ func TestMostDangerous(t *testing.T) {
 	removeFromTileAndStage(p3)
 	completeLogout(p3)
 
+	// Force synchronization
+	world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{}
 	if world.leaderBoard.mostDangerous.Peek().id != p1.id {
 		t.Error("Invalid leader should be p1")
 	}
