@@ -23,7 +23,10 @@ func (s *SpawnAction) activateFor(player *Player, stage *Stage) {
 var spawnActions = map[string][]SpawnAction{
 	"none": []SpawnAction{}, // Same as Should: Always, Action: doNothing
 	"": []SpawnAction{
-		SpawnAction{Should: excludeInfirmary, Action: basicSpawnWithRing},
+		SpawnAction{Should: always, Action: basicSpawnNoRing},
+	},
+	"basic-ring": []SpawnAction{
+		SpawnAction{Should: always, Action: basicSpawnWithRing},
 	},
 	"tutorial-boost":   []SpawnAction{SpawnAction{Should: always, Action: tutorialBoost()}},
 	"tutorial-power":   []SpawnAction{SpawnAction{Should: always, Action: tutorialPower}},
