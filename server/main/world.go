@@ -163,6 +163,7 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	go newPlayer.sendUpdates()
 
 	world.addPlayer(newPlayer)
+	newPlayer.updateRecordOnLogin()
 
 	stage := getStageFromStageName(newPlayer, incoming.Record.StageName)
 	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
@@ -261,7 +262,7 @@ func initiateLogout(player *Player) {
 }
 
 func completeLogout(player *Player) {
-	player.updateRecord() // Should return error
+	player.updateRecordOnLogout() // Should return error
 
 	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: 0, team: ""}
 	player.world.removePlayer(player)

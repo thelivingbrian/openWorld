@@ -516,6 +516,14 @@ func (player *Player) updateRecordOnDeath(respawnTile *Tile) {
 	go player.world.db.updateRecordForPlayer(player, respawnTile)
 }
 
+func (player *Player) updateRecordOnLogin() {
+	go player.world.db.updateLoginForPlayer(player)
+}
+func (player *Player) updateRecordOnLogout() {
+	currentTile := player.getTileSync()
+	go player.world.db.updatePlayerRecordOnLogout(player, currentTile)
+}
+
 /////////////////////////////////////////////////////////////
 // Stages
 

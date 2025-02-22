@@ -31,9 +31,8 @@ type PlayerRecord struct {
 	// ID
 	Username string `bson:"username"`
 	// Meta
-	LastLogin   time.Time `bson:"lastLogin,omitempty"`
-	LastLogout  time.Time `bson:"lastLogout,omitempty"`
-	LastRespawn time.Time `bson:"lastRespawn,omitempty"`
+	LastLogin  time.Time `bson:"lastLogin,omitempty"`
+	LastLogout time.Time `bson:"lastLogout,omitempty"`
 	// World Location
 	StageName string `bson:"stagename"`
 	X         int    `bson:"x"`
@@ -210,20 +209,36 @@ func (db *DB) updateRecordForPlayer(p *Player, pTile *Tile) error {
 		context.TODO(),
 		bson.M{"username": bson.M{"$eq": p.username}},
 		bson.M{
+			"$set": createPlayerSnapShot(p, pTile),
+		},
+	)
+	return err
+}
+
+func (db *DB) updateLoginForPlayer(p *Player) error {
+	_, err := db.playerRecords.UpdateOne(
+		context.TODO(),
+		bson.M{"username": bson.M{"$eq": p.username}},
+		bson.M{
 			"$set": bson.M{
-				"x":               pTile.x,
-				"y":               pTile.y,
-				"health":          p.getHealthSync(),
-				"stagename":       pTile.stage.name,
-				"money":           p.getMoneySync(),
-				"killCount":       p.getKillCountSync(),
-				"deathCount":      p.getDeathCountSync(),
-				"goalsScored":     p.getGoalsScored(),
-				"hatList.current": p.hatList.indexSync(),
+				"lastLogin": time.Now(),
 			},
 		},
 	)
-	return err //Is nil or err
+	return err
+}
+
+func (db *DB) updatePlayerRecordOnLogout(p *Player, pTile *Tile) error {
+	snapshot := createPlayerSnapShot(p, pTile)
+	snapshot["lastLogout"] = time.Now()
+	_, err := db.playerRecords.UpdateOne(
+		context.TODO(),
+		bson.M{"username": bson.M{"$eq": p.username}},
+		bson.M{
+			"$set": snapshot,
+		},
+	)
+	return err
 }
 
 func (db *DB) addHatToPlayer(username string, newHat Hat) error {
@@ -237,4 +252,18 @@ func (db *DB) addHatToPlayer(username string, newHat Hat) error {
 		},
 	)
 	return err
+}
+
+func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
+	return bson.M{
+		"x":               pTile.x,
+		"y":               pTile.y,
+		"health":          p.getHealthSync(),
+		"stagename":       pTile.stage.name,
+		"money":           p.getMoneySync(),
+		"killCount":       p.getKillCountSync(),
+		"deathCount":      p.getDeathCountSync(),
+		"goalsScored":     p.getGoalsScored(),
+		"hatList.current": p.hatList.indexSync(),
+	}
 }
