@@ -162,7 +162,18 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 	}
 
 	team := props["player-team"]
-	username := props["player-name"]
+	usernameEncoded := props["player-name"]
+	username, err := url.QueryUnescape(usernameEncoded)
+	if err != nil {
+		logger.Error().Err(err).Msg("Error decoding username:" + username)
+		return
+	}
+
+	if !validUsername(username) {
+		io.WriteString(w, divBottomInvalid("Invalid Username"))
+		return
+	}
+
 	desiredHostUrlEncoded := props["desired-host"]
 	desiredHost, err := url.QueryUnescape(desiredHostUrlEncoded)
 	if err != nil {
@@ -206,6 +217,16 @@ func createNewPlayerRecord(username, team string) PlayerRecord {
 		Money:     80,
 		HatList:   HatList{Current: nil, Hats: make([]Hat, 0)},
 	}
+}
+
+func validUsername(username string) bool {
+	if len(username) == 0 || len(username) >= 32 {
+		return false
+	}
+
+	// regex logic or something?
+
+	return true
 }
 
 func validTeam(team string) bool {
