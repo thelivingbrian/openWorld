@@ -15,7 +15,7 @@ var EVERY_HAT_NAME_TO_TRIM map[string]string = map[string]string{
 }
 
 type HatList struct {
-	Hats    []Hat `bson:"hats,omitempty""`
+	Hats    []Hat `bson:"hats"`
 	Current *int  `bson:"current"`
 }
 

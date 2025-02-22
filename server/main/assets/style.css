@@ -64,6 +64,15 @@ body {
     margin-top: 6;
 }
 
+a {
+    color: #00ffff;
+}
+
+.selected {
+    background-color: #00ffff;
+    color:#120500
+}
+
 .day {
     background-color: #aaffff;
 }
@@ -104,13 +113,19 @@ body {
     text-align: center;
 }
 
-a {
-    color: #00ffff;
+#social {
+    text-align: center;
+    text-decoration: none;
+    padding-top: 16px;
 }
 
-.selected {
-    background-color: #00ffff;
-    color:#120500
+#social a {
+    text-decoration: none;
+}
+
+#about p {
+    width: 50%;
+    margin: 0 auto;
 }
 
 /* color select */

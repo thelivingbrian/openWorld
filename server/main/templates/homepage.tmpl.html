@@ -6,6 +6,7 @@
 <script src="/assets/fx.js"></script>
 <link rel="stylesheet" href="/assets/style.css">
 <link rel="stylesheet" href="/assets/colors.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTTXRMc5qXk7+4Ofl0I1V3E6tW5Xb5d+zY69Y7bJwLQjYQ+ZrL7+J4LL8R4QYF2z5fV0Cp1Xng==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <body>
     <div id="page">
         <div id="logo">
@@ -15,10 +16,60 @@
             {{ if . }}
                 <a class="large-font" href="#" hx-get="/worlds" hx-target="#landing">Select World</a><br />
             {{ else }}
-                <a class="large-font" href="/auth?provider=google"> Sign in with Google </a>
+                <a class="large-font" href="/auth?provider=google"> Sign in with Google </a><br />
             {{ end }}
+            <a class="large-font" href="#" hx-get="/about" hx-target="#page"> About </a><br />
         </div>
+        {{ template "social" }}
     </div>
     <div id="sound-trigger" class="invisible"><div id="sound"></div></div>
 </body>
 {{ end }}
+
+{{define "about"}}
+<div id="about">
+    <div id="logo">
+        <img src="/assets/blooplogo2.webp" width="33%" alt="Welcome to bloopworld"><br />
+    </div>
+    <div id="about">   
+        <p>
+            I started buiding the bloopworld engine in December of 2023.
+        </p><br />
+        <p>
+            Currently the world is set up so two teams can compete in a game of capture the flag.
+        </p><br />
+        <p>
+            I'm not a game developer - and this game is just a demo.
+        </p><br />
+        <p> 
+            In the future I'd like to focus on building out the world, story, and gameplay; which I plan to document in the <a href="https://bloopworldgame.blogspot.com/">Blog</a>.
+        </p><br />
+        <p>
+            <strong>Thanks anyone who is kind enough to play / contribute / provide feedback!</strong>
+        </p> <br />
+        <p>
+            <span style='color:red'>Disclaimers:</span> <br />
+            Bloopworld is game and has flashing lights. <br />
+            Bloopworld uses cookies as needed for authentication <br />
+            By creating an account you are sharing your email with bloopworld <br />  
+            <br />
+            <a href="/">Back</a>
+        </p>
+    </div>
+    {{ template "social" }}
+</div>
+{{end}}
+
+{{define "social"}}
+<div id="social">
+    <a href="https://www.instagram.com/bloopworldgame/" target="_blank" aria-label="Instagram">
+        <img src="/assets/insta-logo.svg" alt="Instagram" width="32" height="32">
+    </a>
+    <a href="https://bloopworldgame.blogspot.com/" target="_blank" aria-label="Blogger">
+        <img src="/assets/blogger-logo.svg" alt="Blogger" width="32" height="32">
+    </a>
+    <a href="https://x.com/BloopWorld" target="_blank" aria-label="XTwitter">
+        <img src="/assets/x-twitter-logo.svg" alt="XTwitter" width="32" height="32">
+    </a>
+</div>
+{{end}}

@@ -45,6 +45,7 @@ func main() {
 		// Home
 		logger.Info().Msg("Setting up hub...")
 		mux.HandleFunc("/{$}", homeHandler)
+		mux.HandleFunc("/about", aboutHandler)
 
 		// Oauth
 		mux.HandleFunc("/auth", auth)
@@ -123,4 +124,11 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, identifierFound := getUserIdFromSession(r)
 	tmpl.ExecuteTemplate(w, "homepage", identifierFound)
+}
+
+func aboutHandler(w http.ResponseWriter, r *http.Request) {
+	logger.Info().Msg("Home page accessed.")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	tmpl.ExecuteTemplate(w, "about", nil)
 }
