@@ -112,6 +112,7 @@ func BenchmarkMongoInsert(b *testing.B) {
 	b.StopTimer()
 }
 
+// Rewrite to use real func
 func BenchmarkMongoUpdate(b *testing.B) {
 	testUsers := setupUsers()
 	defer cleanUp()
@@ -128,4 +129,28 @@ func BenchmarkMongoUpdate(b *testing.B) {
 
 	}
 	b.StopTimer()
+}
+
+// This is only being used by a test
+func (db *DB) updatePlayerRecord(username string, updates map[string]any) (*PlayerRecord, error) {
+	collection := db.playerRecords
+
+	filter := bson.M{"username": bson.M{"$eq": username}}
+	updateBson := bson.M{}
+	for key, value := range updates {
+		updateBson[key] = value
+	}
+	setBson := bson.M{
+		"$set": updateBson,
+	}
+	ctx := context.Background()
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After) // Testing shows very small differnce 12ms vs 12.5ms differnce returning vs not
+
+	var updatedRecord PlayerRecord
+	err := collection.FindOneAndUpdate(ctx, filter, setBson, opts).Decode(&updatedRecord)
+	if err != nil {
+		return nil, err
+	}
+
+	return &updatedRecord, nil
 }

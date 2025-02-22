@@ -115,7 +115,14 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if userRecord.Username == "" {
-		tmpl.ExecuteTemplate(w, "choose-your-color", world.config.domainName)
+		colorPage := struct {
+			DomainName        string
+			SuggestedUsername string
+		}{
+			DomainName:        world.config.domainName,
+			SuggestedUsername: world.db.UniqueName(),
+		}
+		tmpl.ExecuteTemplate(w, "choose-your-color", colorPage)
 	} else {
 		record, err := world.db.getPlayerRecord(userRecord.Username)
 		if err != nil {
@@ -162,7 +169,18 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 	}
 
 	team := props["player-team"]
-	username := props["player-name"]
+	usernameEncoded := props["player-name"]
+	username, err := url.QueryUnescape(usernameEncoded)
+	if err != nil {
+		logger.Error().Err(err).Msg("Error decoding username:" + username)
+		return
+	}
+
+	if !validUsername(username) {
+		io.WriteString(w, divBottomInvalid("Invalid Username"))
+		return
+	}
+
 	desiredHostUrlEncoded := props["desired-host"]
 	desiredHost, err := url.QueryUnescape(desiredHostUrlEncoded)
 	if err != nil {
@@ -206,6 +224,21 @@ func createNewPlayerRecord(username, team string) PlayerRecord {
 		Money:     80,
 		HatList:   HatList{Current: nil, Hats: make([]Hat, 0)},
 	}
+}
+
+func validUsername(username string) bool {
+	if len(username) == 0 || len(username) >= 32 {
+		return false
+	}
+
+	var invalidChars = []string{"{", "}", "\"", "'", "`", "/", "\\", "\n", "\t"}
+	for _, char := range invalidChars {
+		if strings.Contains(username, char) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func validTeam(team string) bool {
