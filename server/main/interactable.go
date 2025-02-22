@@ -297,8 +297,7 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 			logger.Error().Msg("ERROR TEAM CHECK FAILED - " + p.getTeamNameSync() + " is not equal to: " + team)
 			return nil, false
 		}
-		p.world.leaderBoard.scoreboard.Increment(team) // should return result ?
-		score := p.world.leaderBoard.scoreboard.GetScore(team)
+		score := p.world.leaderBoard.scoreboard.Increment(team)
 		oppositeTeamName := oppositeTeamName(team)
 		scoreOpposing := p.world.leaderBoard.scoreboard.GetScore(oppositeTeamName)
 

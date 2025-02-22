@@ -336,24 +336,16 @@ type LeaderBoard struct {
 	scoreboard    Scoreboard
 }
 
-// Team Scoreboards
-type TeamScore struct {
-	sync.Mutex
-	score int // Atomic Int64 instead - faster and less complex
-}
-
 type Scoreboard struct {
 	data sync.Map
 }
 
-// Increment updates the score for a team atomically
-func (s *Scoreboard) Increment(team string) {
-	val, _ := s.data.LoadOrStore(team, &TeamScore{})
-	teamScore := val.(*TeamScore)
+func (s *Scoreboard) Increment(team string) int {
+	val, _ := s.data.LoadOrStore(team, &atomic.Int64{})
+	score := val.(*atomic.Int64)
 
-	teamScore.Lock()
-	teamScore.score += 1
-	teamScore.Unlock()
+	score.Add(1)
+	return int(score.Load())
 }
 
 func (s *Scoreboard) GetScore(team string) int {
@@ -362,11 +354,8 @@ func (s *Scoreboard) GetScore(team string) int {
 		return 0 // Team does not exist
 	}
 
-	teamScore := val.(*TeamScore)
-
-	teamScore.Lock()
-	defer teamScore.Unlock()
-	return teamScore.score
+	score := val.(*atomic.Int64)
+	return int(score.Load())
 }
 
 //////////////////////////////////////////////////////////////////////////
