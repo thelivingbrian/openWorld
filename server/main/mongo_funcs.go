@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type User struct {
@@ -50,15 +51,14 @@ type PlayerRecord struct {
 }
 
 type Event struct {
-	ID        string    `bson:"eventid"` // Pointless
 	Owner     string    `bson:"owner"`
 	Secondary string    `bson:"secondary"`
 	Type      string    `bson:"eventtype"`
 	Created   time.Time `bson:"created"`
-	StageName string    `bson:"stagename,omitempty"` // Not being set?
+	StageName string    `bson:"stagename,omitempty"`
 	X         int       `bson:"x,omitempty"`
 	Y         int       `bson:"y,omitempty"`
-	Details   string    `bson:"details,omitempty"` // Could be interface
+	Details   string    `bson:"details,omitempty"` // Could be interface, no purpose
 }
 
 func (db *DB) newAccount(user User) error {
@@ -100,7 +100,13 @@ func (db *DB) InsertPlayerRecord(player PlayerRecord) error {
 func (db *DB) getUserByEmail(email string) (*User, error) {
 	var result User
 	collection := db.users
-	err := collection.FindOne(context.TODO(), bson.M{"email": email}).Decode(&result)
+	var invalidChars = []string{"{", "}", "\"", "'", "`", "/", "\\", "\n", "\t", "$"}
+	for _, char := range invalidChars {
+		if strings.Contains(email, char) {
+			return nil, errors.New("Email is not valid")
+		}
+	}
+	err := collection.FindOne(context.TODO(), bson.M{"email": bson.M{"$eq": email}}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			logger.Error().Err(err).Msg("No document was found with the given email") // logger.Error().Err(err).Msg(
@@ -118,7 +124,7 @@ func (db *DB) getUserByEmail(email string) (*User, error) {
 func (db *DB) getAuthorizedUserById(identifier string) *AuthorizedUser {
 	var result AuthorizedUser
 	collection := db.users
-	err := collection.FindOne(context.TODO(), bson.M{"identifier": identifier}).Decode(&result)
+	err := collection.FindOne(context.TODO(), bson.M{"identifier": bson.M{"$eq": identifier}}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			logger.Error().Err(err).Msg("No document was found with the given identifier")
@@ -136,7 +142,7 @@ func (db *DB) insertAuthorizedUser(user AuthorizedUser) error {
 }
 
 func (db *DB) updateUsernameForUserWithId(identifier, username string) bool {
-	filter := bson.M{"identifier": identifier, "username": ""}
+	filter := bson.M{"identifier": bson.M{"$eq": identifier}, "username": ""}
 	update := bson.M{"$set": bson.M{"username": username}}
 
 	result, err := db.users.UpdateOne(context.TODO(), filter, update)
@@ -163,7 +169,7 @@ func (db *DB) updateUsernameForUserWithId(identifier, username string) bool {
 func (db *DB) getPlayerRecord(username string) (PlayerRecord, error) {
 	collection := db.playerRecords
 	var result PlayerRecord
-	err := collection.FindOne(context.TODO(), bson.M{"username": username}).Decode(&result)
+	err := collection.FindOne(context.TODO(), bson.M{"username": bson.M{"$eq": username}}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			logger.Error().Err(err).Msg("No document was found with the given email")
@@ -180,34 +186,9 @@ func (db *DB) foundUsername(username string) bool {
 	return err == nil
 }
 
-// This is only being used by a test
-func (db *DB) updatePlayerRecord(username string, updates map[string]any) (*PlayerRecord, error) {
-	collection := db.playerRecords
-
-	filter := bson.M{"username": username}
-	updateBson := bson.M{}
-	for key, value := range updates {
-		updateBson[key] = value
-	}
-	setBson := bson.M{
-		"$set": updateBson,
-	}
-	ctx := context.Background()
-	opts := options.FindOneAndUpdate().SetReturnDocument(options.After) // Testing shows very small differnce 12ms vs 12.5ms differnce returning vs not
-
-	var updatedRecord PlayerRecord
-	err := collection.FindOneAndUpdate(ctx, filter, setBson, opts).Decode(&updatedRecord)
-	if err != nil {
-		return nil, err
-	}
-
-	return &updatedRecord, nil
-}
-
 func (db *DB) saveKillEvent(tile *Tile, initiator *Player, defeated *Player) error {
 	eventCollection := db.events
 	event := Event{
-		//ID:        uuid.New().String(),
 		Owner:     initiator.username,
 		Secondary: defeated.username,
 		Type:      "Kill",
@@ -227,7 +208,7 @@ func (db *DB) saveKillEvent(tile *Tile, initiator *Player, defeated *Player) err
 func (db *DB) updateRecordForPlayer(p *Player, pTile *Tile) error {
 	_, err := db.playerRecords.UpdateOne(
 		context.TODO(),
-		bson.M{"username": p.username},
+		bson.M{"username": bson.M{"$eq": p.username}},
 		bson.M{
 			"$set": bson.M{
 				"x":               pTile.x,

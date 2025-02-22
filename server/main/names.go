@@ -38,6 +38,7 @@ var honorifics = []string{
 	"Just ",
 	"Old ",
 	"Once ",
+	"Still ",
 	"Another ",
 	"Big ",
 	"Bold ",
@@ -49,6 +50,12 @@ var honorifics = []string{
 	"Overly ",
 	"Esteemed ",
 	"Cryptic ",
+	"Crazy ",
+	"Cpt ",
+	"Major ",
+	"General ",
+	"Dr ",
+	"Judge ",
 }
 
 var adjectives = []string{
@@ -62,6 +69,7 @@ var adjectives = []string{
 	"Cursed-",
 	"Cute-",
 	"Dark-",
+	"Drama-",
 	"Eager-",
 	"Faint-",
 	"Fair-",
@@ -82,10 +90,12 @@ var adjectives = []string{
 	"Mild-",
 	"Neat-",
 	"Old-",
+	"OK-",
 	"Pious-",
 	"Proud-",
 	"Pretty-",
 	"Quick-",
+	"Rare-",
 	"Rich-",
 	"Rude-",
 	"Salty-",
@@ -114,6 +124,7 @@ var numerals = []string{
 	" X",
 	" XI",
 	" XII",
+	" PHD",
 }
 
 func generateRandomName() string {

@@ -231,7 +231,12 @@ func validUsername(username string) bool {
 		return false
 	}
 
-	// regex logic or something?
+	var invalidChars = []string{"{", "}", "\"", "'", "`", "/", "\\", "\n", "\t"}
+	for _, char := range invalidChars {
+		if strings.Contains(username, char) {
+			return false
+		}
+	}
 
 	return true
 }
