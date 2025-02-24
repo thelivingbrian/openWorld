@@ -349,6 +349,15 @@ func (s *Scoreboard) Increment(team string) int {
 	return int(score.Load())
 }
 
+func (s *Scoreboard) ResetAll() {
+	s.data.Range(func(key, value interface{}) bool {
+		if score, ok := value.(*atomic.Int64); ok {
+			score.Store(0)
+		}
+		return true
+	})
+}
+
 func (s *Scoreboard) GetScore(team string) int {
 	val, ok := s.data.Load(team)
 	if !ok {
@@ -490,5 +499,23 @@ func broadcastBottomText(world *World, message string) {
 	defer world.wPlayerMutex.Unlock()
 	for _, p := range world.worldPlayers {
 		p.updateBottomText(message)
+	}
+}
+
+func broadcastUpdate(world *World, message string) {
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	for _, p := range world.worldPlayers {
+		updateOne(message, p)
+	}
+}
+
+func awardHatByTeam(world *World, team, hat string) {
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	for _, p := range world.worldPlayers {
+		if p.getTeamNameSync() == team {
+			p.addHatByName(hat)
+		}
 	}
 }

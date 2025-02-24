@@ -7,7 +7,7 @@ import (
 
 var EVERY_HAT_NAME_TO_TRIM map[string]string = map[string]string{
 	"score-1-goal":    "black-b med",
-	"score-1000-goal": "black-b thick",
+	"winning-team":    "black-b thick",
 	"most-dangerous":  "red-b thick",
 	"made-of-money":   "green-b med",
 	"made-of-money-2": "green-b med",

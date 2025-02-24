@@ -204,6 +204,26 @@ func (db *DB) saveKillEvent(tile *Tile, initiator *Player, defeated *Player) err
 	return nil
 }
 
+func (db *DB) saveScoreEvent(tile *Tile, initiator *Player, message string) error {
+	eventCollection := db.events
+	event := Event{
+		Owner:     initiator.username,
+		Secondary: "",
+		Type:      "Score",
+		Created:   time.Now(),
+		StageName: tile.stage.name,
+		X:         tile.x,
+		Y:         tile.y,
+		Details:   message,
+	}
+	_, err := eventCollection.InsertOne(context.TODO(), event)
+	if err != nil {
+		log.Fatal("Event Insert Failed")
+	}
+
+	return nil
+}
+
 func (db *DB) updateRecordForPlayer(p *Player, pTile *Tile) error {
 	_, err := db.playerRecords.UpdateOne(
 		context.TODO(),

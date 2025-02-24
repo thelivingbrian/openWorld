@@ -290,16 +290,21 @@ func destroyInRangeSkipingSelf(yMin, xMin, yMax, xMax int) func(*Interactable, *
 }
 
 // Capture the flag
+var SCORE_TO_WIN = 100
+
 func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing *Interactable, ok bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 		if team != p.getTeamNameSync() {
 			logger.Error().Msg("ERROR TEAM CHECK FAILED - " + p.getTeamNameSync() + " is not equal to: " + team)
 			return nil, false
 		}
+
+		// Scoreboard
 		score := p.world.leaderBoard.scoreboard.Increment(team)
 		oppositeTeamName := oppositeTeamName(team)
 		scoreOpposing := p.world.leaderBoard.scoreboard.GetScore(oppositeTeamName)
 
+		// Award hat
 		totalGoals := p.incrementGoalsScored()
 		if totalGoals == 1 {
 			p.addHatByName("score-1-goal")
@@ -307,9 +312,22 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 		if totalGoals == 1000 {
 			p.addHatByName("score-1000-goal")
 		}
+
+		// Database
 		p.updateRecord()
-		message := fmt.Sprintf("@[%s|%s] scored a goal!<br /> The score is: @[%s %d|%s] to @[%s %d|%s]", p.username, team, team, score, team, oppositeTeamName, scoreOpposing, oppositeTeamName)
-		broadcastBottomText(p.world, message)
+		p.world.db.saveScoreEvent(p.getTileSync(), p, fmt.Sprintf("Notes - Team: %s, Score %d", team, score))
+
+		// World Updates
+		broadcastUpdate(p.world, soundTriggerByName("huge-explosion"))
+		if score < SCORE_TO_WIN {
+			message := fmt.Sprintf("@[%s|%s] scored a goal!<br /> The score is: @[%s %d|%s] to @[%s %d|%s]", p.username, team, team, score, team, oppositeTeamName, scoreOpposing, oppositeTeamName)
+			broadcastBottomText(p.world, message)
+		} else {
+			p.world.leaderBoard.scoreboard.ResetAll()
+			awardHatByTeam(p.world, team, "winning-team")
+			message := fmt.Sprintf("@[%s|%s] won the game for @[%s|%s]!", p.username, team, team, team)
+			broadcastBottomText(p.world, message)
+		}
 
 		return hideByTeam(team)(i, p, t)
 	}
@@ -446,6 +464,7 @@ func createRing() *Interactable {
 			name:     "ring-big",
 			cssClass: "gold-b thick r1",
 			pushable: true,
+			fragile:  true,
 		}
 		return &bigring
 	}
@@ -453,6 +472,7 @@ func createRing() *Interactable {
 		name:     "ring-small",
 		cssClass: "gold-b med r1",
 		pushable: true,
+		fragile:  true,
 	}
 	return &ring
 }
