@@ -10,6 +10,17 @@ func cross() [][2]int {
 	return [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
 }
 
+func longCross(n int) [][2]int {
+	var points [][2]int
+	for i := 1; i <= n; i++ {
+		points = append(points, [2]int{i, 0})  // right
+		points = append(points, [2]int{-i, 0}) // left
+		points = append(points, [2]int{0, i})  // up
+		points = append(points, [2]int{0, -i}) // down
+	}
+	return points
+}
+
 func x() [][2]int {
 	return [][2]int{{1, 1}, {-1, 1}, {1, -1}, {-1, -1}}
 }

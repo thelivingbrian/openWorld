@@ -516,6 +516,14 @@ func (player *Player) updateRecordOnDeath(respawnTile *Tile) {
 	go player.world.db.updateRecordForPlayer(player, respawnTile)
 }
 
+func (player *Player) updateRecordOnLogin() {
+	go player.world.db.updateLoginForPlayer(player)
+}
+func (player *Player) updateRecordOnLogout() {
+	currentTile := player.getTileSync()
+	go player.world.db.updatePlayerRecordOnLogout(player, currentTile)
+}
+
 /////////////////////////////////////////////////////////////
 // Stages
 
@@ -674,8 +682,11 @@ func (player *Player) setMoneyAndUpdate(n int) {
 
 func (player *Player) addMoneyAndUpdate(n int) {
 	totalMoney := player.addMoney(n)
-	if totalMoney > 100*1000 {
+	if totalMoney > 2*1000 {
 		player.addHatByName("made-of-money")
+	}
+	if totalMoney > 100*1000 {
+		player.addHatByName("made-of-money-2")
 	}
 	updateOne(spanMoney(totalMoney), player)
 }

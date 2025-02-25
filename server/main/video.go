@@ -24,7 +24,10 @@ func changePageBackgroundColor(player *Player, bgColor string) {
 
 func makeHallucinate(player *Player) {
 	go func() {
-		player.tangibilityLock.Lock()
+		ownLock := player.tangibilityLock.TryLock()
+		if !ownLock {
+			return
+		}
 		defer player.tangibilityLock.Unlock()
 		if !player.tangible {
 			return

@@ -163,6 +163,7 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	go newPlayer.sendUpdates()
 
 	world.addPlayer(newPlayer)
+	newPlayer.updateRecordOnLogin()
 
 	stage := getStageFromStageName(newPlayer, incoming.Record.StageName)
 	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
@@ -261,7 +262,7 @@ func initiateLogout(player *Player) {
 }
 
 func completeLogout(player *Player) {
-	player.updateRecord() // Should return error
+	player.updateRecordOnLogout() // Should return error
 
 	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: 0, team: ""}
 	player.world.removePlayer(player)
@@ -346,6 +347,15 @@ func (s *Scoreboard) Increment(team string) int {
 
 	score.Add(1)
 	return int(score.Load())
+}
+
+func (s *Scoreboard) ResetAll() {
+	s.data.Range(func(key, value interface{}) bool {
+		if score, ok := value.(*atomic.Int64); ok {
+			score.Store(0)
+		}
+		return true
+	})
 }
 
 func (s *Scoreboard) GetScore(team string) int {
@@ -489,5 +499,23 @@ func broadcastBottomText(world *World, message string) {
 	defer world.wPlayerMutex.Unlock()
 	for _, p := range world.worldPlayers {
 		p.updateBottomText(message)
+	}
+}
+
+func broadcastUpdate(world *World, message string) {
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	for _, p := range world.worldPlayers {
+		updateOne(message, p)
+	}
+}
+
+func awardHatByTeam(world *World, team, hat string) {
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	for _, p := range world.worldPlayers {
+		if p.getTeamNameSync() == team {
+			p.addHatByName(hat)
+		}
 	}
 }

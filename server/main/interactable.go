@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"strings"
 )
 
 type Interactable struct {
@@ -291,16 +290,21 @@ func destroyInRangeSkipingSelf(yMin, xMin, yMax, xMax int) func(*Interactable, *
 }
 
 // Capture the flag
+var SCORE_TO_WIN = 100
+
 func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing *Interactable, ok bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 		if team != p.getTeamNameSync() {
 			logger.Error().Msg("ERROR TEAM CHECK FAILED - " + p.getTeamNameSync() + " is not equal to: " + team)
 			return nil, false
 		}
+
+		// Scoreboard
 		score := p.world.leaderBoard.scoreboard.Increment(team)
 		oppositeTeamName := oppositeTeamName(team)
 		scoreOpposing := p.world.leaderBoard.scoreboard.GetScore(oppositeTeamName)
 
+		// Award hat
 		totalGoals := p.incrementGoalsScored()
 		if totalGoals == 1 {
 			p.addHatByName("score-1-goal")
@@ -308,9 +312,22 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 		if totalGoals == 1000 {
 			p.addHatByName("score-1000-goal")
 		}
+
+		// Database
 		p.updateRecord()
-		message := fmt.Sprintf("@[%s|%s] scored a goal!<br /> The score is: @[%s %d|%s] to @[%s %d|%s]", p.username, team, team, score, team, oppositeTeamName, scoreOpposing, oppositeTeamName)
-		broadcastBottomText(p.world, message)
+		p.world.db.saveScoreEvent(p.getTileSync(), p, fmt.Sprintf("Notes - Team: %s, Score %d", team, score))
+
+		// World Updates
+		broadcastUpdate(p.world, soundTriggerByName("huge-explosion"))
+		if score < SCORE_TO_WIN {
+			message := fmt.Sprintf("@[%s|%s] scored a goal!<br /> The score is: @[%s %d|%s] to @[%s %d|%s]", p.username, team, team, score, team, oppositeTeamName, scoreOpposing, oppositeTeamName)
+			broadcastBottomText(p.world, message)
+		} else {
+			p.world.leaderBoard.scoreboard.ResetAll()
+			awardHatByTeam(p.world, team, "winning-team")
+			message := fmt.Sprintf("@[%s|%s] won the game for @[%s|%s]!", p.username, team, team, team)
+			broadcastBottomText(p.world, message)
+		}
 
 		return hideByTeam(team)(i, p, t)
 	}
@@ -337,9 +354,19 @@ func hideByTeam(team string) func(*Interactable, *Player, *Tile) (*Interactable,
 
 func placeInteractableOnStagePriorityCovered(stage *Stage, interactable *Interactable) {
 	tiles, uncovered := sortWalkableTiles(stage.tiles)
-	if len(tiles) == 0 {
+	if len(tiles) < 0 {
 		tiles = uncovered
 	}
+	placed := false
+	for !placed {
+		index := rand.Intn(len(tiles))
+		placed = trySetInteractable(tiles[index], interactable)
+	}
+}
+
+func placeInteractableOnStage(stage *Stage, interactable *Interactable) {
+	tiles, uncovered := sortWalkableTiles(stage.tiles)
+	tiles = append(tiles, uncovered...)
 	placed := false
 	for !placed {
 		index := rand.Intn(len(tiles))
@@ -410,20 +437,16 @@ func damageAndSpawn(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	x := rand.Intn(len(t.stage.tiles[y]))
 	epicenter := t.stage.tiles[y][x]
 	dmg := 50
+	powerToSpawn := 3
 	if i.name == "ring-big" {
 		dmg = 100
+		powerToSpawn = 5
 	}
 	go damageWithinRadius(epicenter, p.world, 4, dmg, p.id)
 	t.stage.updateAll(soundTriggerByName("explosion"))
 	addMoneyToStage(t.stage, dmg/5)
-	if strings.Contains(t.stage.name, ":") {
-		spacename := strings.Split(t.stage.name, ":")[0]
-		lat := rand.Intn(8)
-		long := rand.Intn(8)
-		stagename := fmt.Sprintf("%s:%d-%d", spacename, lat, long)
-		logger.Info().Msg(stagename)
-		stage := p.fetchStageSync(stagename)
-		placeInteractableOnStagePriorityCovered(stage, i)
+	for i := 0; i < powerToSpawn; i++ {
+		spawnPowerup(t.stage)
 	}
 	return nil, false
 }
@@ -441,6 +464,7 @@ func createRing() *Interactable {
 			name:     "ring-big",
 			cssClass: "gold-b thick r1",
 			pushable: true,
+			fragile:  true,
 		}
 		return &bigring
 	}
@@ -448,6 +472,7 @@ func createRing() *Interactable {
 		name:     "ring-small",
 		cssClass: "gold-b med r1",
 		pushable: true,
+		fragile:  true,
 	}
 	return &ring
 }
