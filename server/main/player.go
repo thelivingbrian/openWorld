@@ -453,12 +453,12 @@ func updateEntireExistingScreen(player *Player) {
 	player.updates <- htmlFromPlayer(player)
 }
 
-func updateScreenFromScratch(player *Player) {
-	// player.clearUpdateBuffer <- struct{}{}
-	// clearChannel(player.updates)
-	player.updates <- screenForPlayer(player)
-	player.updates <- htmlFromPlayer(player)
-}
+// func updateScreenFromScratch(player *Player) {
+// 	// player.clearUpdateBuffer <- struct{}{}
+// 	// clearChannel(player.updates)
+// 	player.updates <- screenForStage(player)
+// 	player.updates <- htmlFromPlayer(player)
+// }
 
 func clearChannel(ch chan []byte) {
 	for {

@@ -80,14 +80,10 @@ func defaultHtmlForScreen(height, width int) [][]string {
 	return grid
 }
 
-func screenForPlayer(player *Player) []byte {
+func screenForStage(stage *Stage) []byte {
 	var buf bytes.Buffer
-
-	currentTile := player.getTileSync()
-	//tileHtml := htmlFromTileGrid(player.getStageSync().tiles, currentTile.y, currentTile.x, duplicateMapOfHighlights(player))
-	tileHtml := defaultHtmlForScreen(len(currentTile.stage.tiles), len(currentTile.stage.tiles[0]))
-
-	err := parsedScreenTemplate.Execute(&buf, tileHtml)
+	tiles := defaultHtmlForScreen(len(stage.tiles), len(stage.tiles[0]))
+	err := parsedScreenTemplate.Execute(&buf, tiles)
 	if err != nil {
 		panic(err)
 	}

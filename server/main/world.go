@@ -159,13 +159,16 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 		return nil
 	}
 
+	newPlayer.updateRecordOnLogin()
+	stage := getStageFromStageName(newPlayer, incoming.Record.StageName)
+
 	newPlayer.conn = conn
+	emptyScreen := screenForStage(stage)
+	sendUpdate(newPlayer, emptyScreen)
 	go newPlayer.sendUpdates()
 
 	world.addPlayer(newPlayer)
-	newPlayer.updateRecordOnLogin()
 
-	stage := getStageFromStageName(newPlayer, incoming.Record.StageName)
 	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
 	return newPlayer
 }

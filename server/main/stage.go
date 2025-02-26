@@ -79,7 +79,7 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 	stage.addLockedPlayer(p)
 	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
 	p.setSpaceHighlights()
-	updateScreenFromScratch(p)
+	updateEntireExistingScreen(p)
 }
 
 ///////////////////////////////////////////////////
