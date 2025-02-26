@@ -107,15 +107,15 @@ func makeTileTemplateNew(mat Material, y, x int) string {
 	placeHold := "%s" // later becomes player, interactable, svg, weather, and highlight boxes
 
 	out := ""
-	out += individualBoxHtml(y, x, "Lg1", "g1", mat.CssColor)
-	out += individualBoxHtml(y, x, "Lg2", "g2", "")
-	out += individualBoxHtml(y, x, "Lf1", "f1", mat.Floor1Css)
-	out += individualBoxHtml(y, x, "Lf2", "f2", mat.Floor2Css)
+	out += divSwapCode(y, x, "Lg1", "g1", mat.CssColor)
+	out += divSwapCode(y, x, "Lg2", "g2", "")
+	out += divSwapCode(y, x, "Lf1", "f1", mat.Floor1Css)
+	out += divSwapCode(y, x, "Lf2", "f2", mat.Floor2Css)
 	out += placeHold
 	out += placeHold
 	out += placeHold
-	out += individualBoxHtml(y, x, "Lc1", "c1", mat.Ceiling1Css)
-	out += individualBoxHtml(y, x, "Lc2", "c2", mat.Ceiling2Css)
+	out += divSwapCode(y, x, "Lc1", "c1", mat.Ceiling1Css)
+	out += divSwapCode(y, x, "Lc2", "c2", mat.Ceiling2Css)
 	out += placeHold
 	out += placeHold
 
@@ -126,7 +126,7 @@ func individualBoxHtml(y, x int, prefix, zIndex, color string) string {
 	return fmt.Sprintf(`<div id="%s-%d-%d" class="box %s %s"> </div>`, prefix, y, x, zIndex, color)
 }
 
-func individualDivSwapCode(y, x int, prefix, zIndex, color string) string {
+func divSwapCode(y, x int, prefix, zIndex, color string) string {
 	return fmt.Sprintf(`[swap id="%s-%d-%d" class="box %s %s"],`, prefix, y, x, zIndex, color)
 }
 
