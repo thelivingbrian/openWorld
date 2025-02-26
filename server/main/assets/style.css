@@ -295,11 +295,19 @@ img {
     Box z-Indices
 */
 
-.floor1 {
+.g1 {
+    z-index: 5;
+} 
+
+.g2 {
+    z-index: 6;
+} 
+
+.f1 {
     z-index: 10;
 } 
 
-.floor2 {
+.f2 {
     z-index: 11;
 } 
 
@@ -315,11 +323,11 @@ img {
     z-index: 26;
 }
 
-.ceiling1 {
+.c1 {
     z-index: 30;
 }
 
-.ceiling2 {
+.c2 {
     z-index: 31;
 }
   

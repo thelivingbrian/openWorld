@@ -102,6 +102,7 @@ return (function () {
             getAttributeValue: getAttributeValue,
             getClosestAttributeValue: getClosestAttributeValue,
             getClosestMatch: getClosestMatch,
+            getDocument: getDocument,
             getExpressionVars: getExpressionVars,
             getHeaders: getHeaders,
             getInputValues: getInputValues,
@@ -783,7 +784,8 @@ return (function () {
             const id = getRawAttribute(oobElement, "id")
 
             // Override htmx in this instance to prevent DOM rewrites for boxes
-            const regex = /^[piwtx]\d+-\d+$/;
+            const regex = /^L[a-zA-Z]\d+-\d+-\d+$/;
+            //const regex = /^[piwtx]\d+-\d+$/;
             if (regex.test(id)) {
                 var target = getDocument().getElementById(getRawAttribute(oobElement, "id"))
                 target.classList = oobElement.classList

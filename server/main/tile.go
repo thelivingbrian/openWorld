@@ -54,7 +54,7 @@ func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 		powerUp:        nil,
 		powerMutex:     sync.Mutex{},
 		money:          0,
-		htmlTemplate:   makeTileTemplate(mat, y, x),
+		htmlTemplate:   makeTileTemplateNew(mat, y, x),
 		bottomText:     mat.DisplayText, // Pre-process needed *String to have option of null?
 	}
 }
@@ -99,6 +99,35 @@ func makeTileTemplate(mat Material, y, x int) string {
 					%s
 				</div>`
 	return fmt.Sprintf(template, cId, mat.CssColor, floor1css, floor2css, placeHold, placeHold, placeHold, ceil1css, ceil2css, placeHold, placeHold)
+}
+
+func makeTileTemplateNew(mat Material, y, x int) string {
+	//tileCoord := fmt.Sprintf("%d-%d", y, x)
+	//cId := "c" + tileCoord // This is used to identify the entire square
+	placeHold := "%s" // later becomes player, interactable, svg, weather, and highlight boxes
+
+	out := ""
+	out += individualBoxHtml(y, x, "Lg1", "g1", mat.CssColor)
+	out += individualBoxHtml(y, x, "Lg2", "g2", "")
+	out += individualBoxHtml(y, x, "Lf1", "f1", mat.Floor1Css)
+	out += individualBoxHtml(y, x, "Lf2", "f2", mat.Floor2Css)
+	out += placeHold
+	out += placeHold
+	out += placeHold
+	out += individualBoxHtml(y, x, "Lc1", "c1", mat.Ceiling1Css)
+	out += individualBoxHtml(y, x, "Lc2", "c2", mat.Ceiling2Css)
+	out += placeHold
+	out += placeHold
+
+	return out
+}
+
+func individualBoxHtml(y, x int, prefix, zIndex, color string) string {
+	return fmt.Sprintf(`<div id="%s-%d-%d" class="box %s %s"> </div>`, prefix, y, x, zIndex, color)
+}
+
+func individualDivSwapCode(y, x int, prefix, zIndex, color string) string {
+	return fmt.Sprintf(`[swap id="%s-%d-%d" class="box %s %s"],`, prefix, y, x, zIndex, color)
 }
 
 ////////////////////////////////////////////////////////////

@@ -27,6 +27,66 @@ func htmlFromPlayer(player *Player) []byte {
 	currentTile := player.getTileSync()
 	tileHtml := htmlFromTileGrid(player.getStageSync().tiles, currentTile.y, currentTile.x, duplicateMapOfHighlights(player))
 
+	// write all to buffer instead
+	for i := 0; i < len(tileHtml); i++ {
+		for j := 0; j < len(tileHtml[i]); j++ {
+			fmt.Fprintf(&buf, tileHtml[i][j])
+		}
+	}
+
+	// err := parsedScreenTemplate.Execute(&buf, tileHtml)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	return buf.Bytes()
+}
+
+func defaultHtmlForScreen(height, width int) [][]string {
+	grid := make([][]string, height)
+	// HTML template with 24 placeholders (each %d gets replaced by i or j)
+	const cellTemplate = `<div id="c%d-%d" class="grid-square">
+    <div id="Lg1-%d-%d" class="box ground1"></div>
+    <div id="Lg2-%d-%d" class="box ground2"></div>
+    <div id="Lf1-%d-%d" class="box floor1"></div>
+    <div id="Lf2-%d-%d" class="box floor2"></div>
+    <div id="Lp1-%d-%d" class="box zp"></div>
+    <div id="Li1-%d-%d" class="box zi"></div>
+    <div id="Ls1-%d-%d" class="box zs"></div>
+    <div id="Lc1-%d-%d" class="box ceiling1"></div>
+    <div id="Lc2-%d-%d" class="box ceiling2"></div>
+    <div id="Lw1-%d-%d" class="box zw"></div>
+    <div id="Lt1-%d-%d" class="box top"></div>
+</div>`
+	for i := 0; i < height; i++ {
+		grid[i] = make([]string, width)
+		for j := 0; j < width; j++ {
+			grid[i][j] = fmt.Sprintf(cellTemplate,
+				i, j, // for <div id="c%d-%d">
+				i, j, // for <div id="Lg1-%d-%d">
+				i, j, // for <div id="Lg2-%d-%d">
+				i, j, // for <div id="Lf1-%d-%d">
+				i, j, // for <div id="Lf2-%d-%d">
+				i, j, // for <div id="Lp1-%d-%d">
+				i, j, // for <div id="Li1-%d-%d">
+				i, j, // for <div id="Ls1-%d-%d">
+				i, j, // for <div id="Lc1-%d-%d">
+				i, j, // for <div id="Lc2-%d-%d">
+				i, j, // for <div id="Lw1-%d-%d">
+				i, j, // for <div id="Lt1-%d-%d">
+			)
+		}
+	}
+	return grid
+}
+
+func screenForPlayer(player *Player) []byte {
+	var buf bytes.Buffer
+
+	currentTile := player.getTileSync()
+	//tileHtml := htmlFromTileGrid(player.getStageSync().tiles, currentTile.y, currentTile.x, duplicateMapOfHighlights(player))
+	tileHtml := defaultHtmlForScreen(len(currentTile.stage.tiles), len(currentTile.stage.tiles[0]))
+
 	err := parsedScreenTemplate.Execute(&buf, tileHtml)
 	if err != nil {
 		panic(err)
@@ -141,7 +201,7 @@ func divBottomInvalid(s string) string {
 // Boxes
 
 func playerBoxSpecifc(y, x int, icon string) string {
-	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, y, x, icon)
+	return fmt.Sprintf(`<div id="Lp1-%d-%d" class="box zp %s"></div>`, y, x, icon)
 }
 
 func playerBox(tile *Tile) string {
@@ -149,7 +209,7 @@ func playerBox(tile *Tile) string {
 	if p := tile.getAPlayer(); p != nil {
 		playerIndicator = p.getIconSync()
 	}
-	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, tile.y, tile.x, playerIndicator)
+	return playerBoxSpecifc(tile.y, tile.x, playerIndicator)
 }
 
 func lockedInteractableBox(tile *Tile) string {
@@ -158,12 +218,12 @@ func lockedInteractableBox(tile *Tile) string {
 	if tile.interactable != nil {
 		indicator = tile.interactable.cssClass
 	}
-	return fmt.Sprintf(`<div id="i%d-%d" class="box zi %s"></div>`, tile.y, tile.x, indicator)
+	return fmt.Sprintf(`<div id="Li1-%d-%d" class="box zi %s"></div>`, tile.y, tile.x, indicator)
 }
 
 func emptyWeatherBox(y, x int) string {
 	//  blue trsp20 for gloom
-	return fmt.Sprintf(`<div id="w%d-%d" class="box zw"></div>`, y, x)
+	return fmt.Sprintf(`<div id="Lw1-%d-%d" class="box zw"></div>`, y, x)
 }
 
 func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
@@ -202,12 +262,12 @@ func duplicateMapOfHighlights(player *Player) map[*Tile]bool {
 }
 
 func oobHighlightBox(tile *Tile, cssClass string) string {
-	template := `<div id="t%d-%d" class="box top %s"></div>`
+	template := `<div id="Lt1-%d-%d" class="box top %s"></div>`
 	return fmt.Sprintf(template, tile.y, tile.x, cssClass)
 }
 
 func weatherBox(tile *Tile, cssClass string) string {
-	template := `<div id="w%d-%d" class="box zw %s"></div>`
+	template := `<div id="Lw1-%d-%d" class="box zw %s"></div>`
 	return fmt.Sprintf(template, tile.y, tile.x, cssClass)
 }
 
@@ -233,7 +293,7 @@ func svgFromTile(tile *Tile) string {
 		svgtag += `</svg>`
 	}
 	svgtag += "</div>"
-	sId := fmt.Sprintf("s%d-%d", tile.y, tile.x)
+	sId := fmt.Sprintf("Ls1-%d-%d", tile.y, tile.x)
 	return fmt.Sprintf(svgtag, sId)
 }
 
@@ -270,9 +330,9 @@ func divModalDisabled() string {
 func divInput() string {
 	// uses htmx bypass to function
 	return `
-	<div id="x0-0" class="container">
+	<div id="Lx1-0-0" class="container">
 	</div>
-	<div id="x0-1" class="container hidden">
+	<div id="Lx1-0-1" class="container hidden">
 	</div>
 `
 }
@@ -280,9 +340,9 @@ func divInput() string {
 func divInputShift() string {
 	// uses htmx bypass to function
 	return `
-	<div id="x0-0" class="container hidden">
+	<div id="Lx1-0-0" class="container hidden">
 	</div>
-	<div id="x0-1" class="container">
+	<div id="Lx1-0-1" class="container">
 	</div>
 `
 }

@@ -334,7 +334,7 @@ func infirmaryStagenameForPlayer(player *Player) string {
 ////////////////////////////////////////////////////////////
 //	Updates
 
-func (player *Player) sendUpdates() {
+func (player *Player) sendUpdatesA() {
 	shouldSendUpdates := true
 	for {
 		select {
@@ -355,9 +355,9 @@ func (player *Player) sendUpdates() {
 	}
 }
 
-func (player *Player) sendUpdatesBuffered() {
+func (player *Player) sendUpdates() {
 	var buffer bytes.Buffer
-	const maxBufferSize = 256 * 1024
+	const maxBufferSize = 10 * 256 * 1024
 
 	shouldSendUpdates := true
 	ticker := time.NewTicker(25 * time.Millisecond)
@@ -444,12 +444,19 @@ func updatePlayerAfterMovement(player *Player, current, previous *Tile) {
 
 func updatePlayerAfterStageChange(p *Player) {
 	p.setSpaceHighlights()
-	updateScreenFromScratch(p)
+	updateEntireExistingScreen(p)
+}
+
+func updateEntireExistingScreen(player *Player) {
+	// player.clearUpdateBuffer <- struct{}{}
+	// clearChannel(player.updates)
+	player.updates <- htmlFromPlayer(player)
 }
 
 func updateScreenFromScratch(player *Player) {
 	// player.clearUpdateBuffer <- struct{}{}
 	// clearChannel(player.updates)
+	player.updates <- screenForPlayer(player)
 	player.updates <- htmlFromPlayer(player)
 }
 

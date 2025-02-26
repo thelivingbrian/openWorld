@@ -155,7 +155,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 	case "D":
 		player.moveEastBoost()
 	case "f":
-		updateScreenFromScratch(player)
+		updateEntireExistingScreen(player)
 	case "g":
 		makeHallucinate(player)
 	case "h":

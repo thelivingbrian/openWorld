@@ -141,6 +141,32 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 				response = extension.transformResponse(response, null, socketElt);
 			});
 
+			//console.log("have response")
+			if (response.slice(0,5) == '[swap') {
+				//console.log("have swap(s)")
+				quickSwaps = response.split(",")
+				// for each swap I want to:
+				const regex = /\[swap\s+id="([^"]+)"\s+class="([^"]+)"\]/;
+				
+				for (let i = 0; i < quickSwaps.length; i++) {
+					const match = regex.exec(quickSwaps[i]);
+
+					if (match) {
+						
+						//console.log("have match")
+						// match[1] holds the id, match[2] holds the class attribute.
+						const id = match[1];
+						const classes = match[2];
+						//console.log("ID:", id);        // "hyphenated-id-7"
+						//console.log("Classes:", classes); // "multiple classes here"
+						target = document.getElementById(id)
+						target.className = classes
+					}
+					// Process each swap as needed
+				  }
+
+			}
+
 			var settleInfo = api.makeSettleInfo(socketElt);
 			var fragment = api.makeFragment(response);
 

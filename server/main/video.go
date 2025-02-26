@@ -82,7 +82,7 @@ func generateDivs(frame int) string {
 				color = col2
 			}
 
-			sb.WriteString(fmt.Sprintf(`<div id="w%d-%d" class="box zw %s"></div>`+"\n", i, j, color))
+			sb.WriteString(fmt.Sprintf(`<div id="Lw1-%d-%d" class="box zw %s"></div>`+"\n", i, j, color))
 		}
 	}
 
