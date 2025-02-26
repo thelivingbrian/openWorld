@@ -122,12 +122,14 @@ func makeTileTemplateNew(mat Material, y, x int) string {
 	return out
 }
 
+/*
 func individualBoxHtml(y, x int, prefix, zIndex, color string) string {
 	return fmt.Sprintf(`<div id="%s-%d-%d" class="box %s %s"> </div>`, prefix, y, x, zIndex, color)
 }
+*/
 
 func divSwapCode(y, x int, prefix, zIndex, color string) string {
-	return fmt.Sprintf(`[swap id="%s-%d-%d" class="box %s %s"],`, prefix, y, x, zIndex, color)
+	return fmt.Sprintf(`[~ id="%s-%d-%d" class="box %s %s"]`, prefix, y, x, zIndex, color)
 }
 
 ////////////////////////////////////////////////////////////

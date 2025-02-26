@@ -123,7 +123,24 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 		});
 
 		
-		const quickSwapRegex = /\[swap\s+id="([^"]+)"\s+class="([^"]+)"\]/;
+					
+		function processAsFragmentToSwap(response){
+			var settleInfo = api.makeSettleInfo(socketElt);
+			var fragment = api.makeFragment(response);
+	
+			if (fragment.children.length) {
+				var children = Array.from(fragment.children);
+				for (var i = 0; i < children.length; i++) {
+					api.oobSwap(api.getAttributeValue(children[i], "hx-swap-oob") || "true", children[i], settleInfo);
+				}
+			}
+			api.settleImmediately(settleInfo.tasks);
+			api.triggerEvent(socketElt, "htmx:wsAfterMessage", { message: response, socketWrapper: socketWrapper.publicInterface })
+		}
+
+		const quickSwapRegex = /\[~\s+id="([^"]+)"\s+class="([^"]+)"/;
+		//[a-zA-Z]
+		// const quickSwapRegex = /\[swap\s+id="([^"]+)"\s+(class|html)="([^"]+)"\]/;
 		socketWrapper.addEventListener('message', function (event) {
 			//console.log("hello from ws")
             
@@ -143,36 +160,104 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 				response = extension.transformResponse(response, null, socketElt);
 			});
 
-			if (response.slice(0,5) == '[swap') {
-				quickSwaps = response.split(",")
-				for (let i = 0; i < quickSwaps.length; i++) {
-					const match = quickSwapRegex.exec(quickSwaps[i]);
-					if (match) {
-						const id = match[1];
-						const classes = match[2];
-						target = document.getElementById(id) // target should always exist? 
-						target.className = classes
+			
+
+			let pos = 0;
+			let cont = true;
+			while (cont) {
+				if (pos >= response.length) break;
+				check = response[pos]
+				//console.log(check)
+				switch (check){
+				case '[':
+					var next = response.indexOf('<', pos);
+					quickSubString = response.slice(pos, next)
+					//console.log("have: " + quickSubString + " of " + response )
+					quickSwaps = quickSubString.split("]")
+					for (let i = 0; i < quickSwaps.length; i++) {
+						const match = quickSwapRegex.exec(quickSwaps[i]);
+						if (match) {
+							const id = match[1];
+							//console.log("match + " + id)
+							const classes = match[2];
+							target = document.getElementById(id);
+							target.className = classes;
+						}
 					}
-				  }
-
-			}
-
-			var settleInfo = api.makeSettleInfo(socketElt);
-			var fragment = api.makeFragment(response);
-
-			if (fragment.children.length) {
-				var children = Array.from(fragment.children);
-				for (var i = 0; i < children.length; i++) {
-					api.oobSwap(api.getAttributeValue(children[i], "hx-swap-oob") || "true", children[i], settleInfo);
+					if (next === -1) cont = false;
+					pos = next
+					break;
+				case '<':
+					var next = response.indexOf('[~', pos);
+					if (next === -1) {
+						//processAsFragmentToSwap(response.substring(pos, response.length), socketElt);
+						next = response.length
+						cont = false;
+					} 
+					htmlResp = response.substring(pos, next)
+					//console.log(htmlResp)
+					processAsFragmentToSwap(htmlResp);
+					pos = next
+					break;
+				default: 
+					//console.log("")
+					//cont = false
+					pos++
+					break;
 				}
 			}
+			// console.log(response)
+			// processAsFragmentToSwap(response);
 
-			api.settleImmediately(settleInfo.tasks);
-			api.triggerEvent(socketElt, "htmx:wsAfterMessage", { message: response, socketWrapper: socketWrapper.publicInterface })
+			// if (response.slice(0,1) == '[') {
+			// 	quickSwaps = response.split(",")
+			// 	for (let i = 0; i < quickSwaps.length; i++) {
+			// 		const match = quickSwapRegex.exec(quickSwaps[i]);
+			// 		if (match) {
+			// 			const id = match[1];
+			// 			const type = match[2]
+			// 			const val = match[3];
+			// 			target = document.getElementById(id); // target should always exist? 
+			// 			switch (type) {
+			// 				case 'class': target.className = val; break;
+			// 				case 'html': target.innerHTML = val; break;
+			// 			}
+			// 		}
+			// 	  }
+
+			// }
+			
+			
+			// var settleInfo = api.makeSettleInfo(socketElt);
+			// var fragment = api.makeFragment(response);
+
+			// if (fragment.children.length) {
+			// 	var children = Array.from(fragment.children);
+			// 	for (var i = 0; i < children.length; i++) {
+			// 		api.oobSwap(api.getAttributeValue(children[i], "hx-swap-oob") || "true", children[i], settleInfo);
+			// 	}
+			// }
+
+			// api.settleImmediately(settleInfo.tasks);
+			// api.triggerEvent(socketElt, "htmx:wsAfterMessage", { message: response, socketWrapper: socketWrapper.publicInterface })
 		});
 
 		// Put the WebSocket into the HTML Element's custom data.
 		api.getInternalData(socketElt).webSocket = socketWrapper;
+	}
+
+	function processAsFragmentToSwap(response, socketElt){
+		var settleInfo = api.makeSettleInfo(socketElt);
+		var fragment = api.makeFragment(response);
+
+		if (fragment.children.length) {
+			var children = Array.from(fragment.children);
+			for (var i = 0; i < children.length; i++) {
+				api.oobSwap(api.getAttributeValue(children[i], "hx-swap-oob") || "true", children[i], settleInfo);
+			}
+		}
+		api.settleImmediately(settleInfo.tasks);
+		api.triggerEvent(socketElt, "htmx:wsAfterMessage", { message: response, socketWrapper: socketWrapper.publicInterface })
 	}
 
 	/**

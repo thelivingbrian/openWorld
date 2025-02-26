@@ -46,15 +46,15 @@ func defaultHtmlForScreen(height, width int) [][]string {
 	grid := make([][]string, height)
 	// HTML template with 24 placeholders (each %d gets replaced by i or j)
 	const cellTemplate = `<div id="c%d-%d" class="grid-square">
-    <div id="Lg1-%d-%d" class="box ground1"></div>
-    <div id="Lg2-%d-%d" class="box ground2"></div>
-    <div id="Lf1-%d-%d" class="box floor1"></div>
-    <div id="Lf2-%d-%d" class="box floor2"></div>
+    <div id="Lg1-%d-%d" class="box g1"></div>
+    <div id="Lg2-%d-%d" class="box g2"></div>
+    <div id="Lf1-%d-%d" class="box f1"></div>
+    <div id="Lf2-%d-%d" class="box f2"></div>
     <div id="Lp1-%d-%d" class="box zp"></div>
     <div id="Li1-%d-%d" class="box zi"></div>
     <div id="Ls1-%d-%d" class="box zs"></div>
-    <div id="Lc1-%d-%d" class="box ceiling1"></div>
-    <div id="Lc2-%d-%d" class="box ceiling2"></div>
+    <div id="Lc1-%d-%d" class="box c1"></div>
+    <div id="Lc2-%d-%d" class="box c2"></div>
     <div id="Lw1-%d-%d" class="box zw"></div>
     <div id="Lt1-%d-%d" class="box top"></div>
 </div>`
@@ -184,6 +184,7 @@ func processStringForColors(input string) string {
 	return input
 }
 
+// use through socket can prevent swap bypass
 func divBottomInvalid(s string) string {
 	return `
 	<div id="bottom_text" hx-swap-oob="true">
@@ -197,7 +198,7 @@ func divBottomInvalid(s string) string {
 // Boxes
 
 func playerBoxSpecifc(y, x int, icon string) string {
-	return fmt.Sprintf(`<div id="Lp1-%d-%d" class="box zp %s"></div>`, y, x, icon)
+	return fmt.Sprintf(`[~ id="Lp1-%d-%d" class="box zp %s"]`, y, x, icon)
 }
 
 func playerBox(tile *Tile) string {
@@ -214,12 +215,12 @@ func lockedInteractableBox(tile *Tile) string {
 	if tile.interactable != nil {
 		indicator = tile.interactable.cssClass
 	}
-	return fmt.Sprintf(`<div id="Li1-%d-%d" class="box zi %s"></div>`, tile.y, tile.x, indicator)
+	return fmt.Sprintf(`[~ id="Li1-%d-%d" class="box zi %s"]`, tile.y, tile.x, indicator)
 }
 
 func emptyWeatherBox(y, x int) string {
 	//  blue trsp20 for gloom
-	return fmt.Sprintf(`<div id="Lw1-%d-%d" class="box zw"></div>`, y, x)
+	return fmt.Sprintf(`[~ id="Lw1-%d-%d" class="box zw"]`, y, x)
 }
 
 func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
@@ -258,12 +259,12 @@ func duplicateMapOfHighlights(player *Player) map[*Tile]bool {
 }
 
 func oobHighlightBox(tile *Tile, cssClass string) string {
-	template := `<div id="Lt1-%d-%d" class="box top %s"></div>`
+	template := `[~ id="Lt1-%d-%d" class="box top %s"]`
 	return fmt.Sprintf(template, tile.y, tile.x, cssClass)
 }
 
 func weatherBox(tile *Tile, cssClass string) string {
-	template := `<div id="Lw1-%d-%d" class="box zw %s"></div>`
+	template := `[~ id="Lw1-%d-%d" class="box zw %s"]`
 	return fmt.Sprintf(template, tile.y, tile.x, cssClass)
 }
 
