@@ -52,7 +52,13 @@ func defaultHtmlForScreen(height, width int) [][]string {
     <div id="Lf2-%d-%d" class="box f2"></div>
     <div id="Lp1-%d-%d" class="box zp"></div>
     <div id="Li1-%d-%d" class="box zi"></div>
-    <div id="Ls1-%d-%d" class="box zs"></div>
+    <div id="Ls1-%d-%d" class="box zs">
+		<svg width="22" height="22">
+		<circle class="svgRed" cx="7" cy="7" r="7"> </circle>
+		<circle class="svgGreen" cx="7" cy="14" r="7"> </circle>
+		<circle class="svgBlue" cx="14" cy="14" r="7"> </circle>
+		<svg width="22" height="22">
+	</div>
     <div id="Lc1-%d-%d" class="box c1"></div>
     <div id="Lc2-%d-%d" class="box c2"></div>
     <div id="Lw1-%d-%d" class="box zw"></div>
@@ -275,23 +281,37 @@ func svgFromTile(tile *Tile) string {
 	defer tile.moneyMutex.Unlock()
 	tile.boostsMutex.Lock()
 	defer tile.boostsMutex.Unlock()
-	svgtag := `<div id="%s" class="box zs">`
-	if tile.powerUp != nil || tile.money != 0 || tile.boosts != 0 {
-		svgtag += `<svg width="22" height="22">`
-		if tile.powerUp != nil {
-			svgtag += `<circle class="svgRed" cx="7" cy="7" r="7" />`
-		}
-		if tile.money != 0 {
-			svgtag += `<circle class="svgGreen" cx="7" cy="14" r="7" />`
-		}
-		if tile.boosts != 0 {
-			svgtag += `<circle class="svgBlue" cx="14" cy="14" r="7" />`
-		}
-		svgtag += `</svg>`
-	}
-	svgtag += "</div>"
+	svgtag := `<div id="%s" class="%s">
+	</div>
+	`
+
 	sId := fmt.Sprintf("Ls1-%d-%d", tile.y, tile.x)
-	return fmt.Sprintf(svgtag, sId)
+
+	classes := "box zs "
+	if tile.powerUp != nil {
+		classes += "svgRed"
+	}
+	if tile.money != 0 {
+		classes += "svgGreen"
+	}
+	if tile.boosts != 0 {
+		classes += "svgBlue"
+	}
+	// if tile.powerUp != nil || tile.money != 0 || tile.boosts != 0 {
+	// 	svgtag += `<svg width="22" height="22">`
+	// 	if tile.powerUp != nil {
+	// 		svgtag += `<circle class="svgRed" cx="7" cy="7" r="7" />`
+	// 	}
+	// 	if tile.money != 0 {
+	// 		svgtag += `<circle class="svgGreen" cx="7" cy="14" r="7" />`
+	// 	}
+	// 	if tile.boosts != 0 {
+	// 		svgtag += `<circle class="svgBlue" cx="14" cy="14" r="7" />`
+	// 	}
+	// 	svgtag += `</svg>`
+	// }
+	//svgtag += "</div>"
+	return fmt.Sprintf(svgtag, sId, classes)
 }
 
 ///////////////////////////////////////////

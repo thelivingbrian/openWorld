@@ -125,17 +125,9 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 		
 					
 		function processAsFragmentToSwap(response){
-			var settleInfo = api.makeSettleInfo(socketElt);
-			var fragment = api.makeFragment(response);
-	
-			if (fragment.children.length) {
-				var children = Array.from(fragment.children);
-				for (var i = 0; i < children.length; i++) {
-					api.oobSwap(api.getAttributeValue(children[i], "hx-swap-oob") || "true", children[i], settleInfo);
-				}
-			}
-			api.settleImmediately(settleInfo.tasks);
-			api.triggerEvent(socketElt, "htmx:wsAfterMessage", { message: response, socketWrapper: socketWrapper.publicInterface })
+			
+
+
 		}
 
 		const quickSwapRegex = /\[~\s+id="([^"]+)"\s+class="([^"]+)"/;
@@ -160,12 +152,14 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 				response = extension.transformResponse(response, null, socketElt);
 			});
 
-			
+			var settleInfo = api.makeSettleInfo(socketElt);
 
 			let pos = 0;
-			let cont = true;
-			while (cont) {
-				if (pos >= response.length) break;
+			htmlPart = "";
+			swaps = [];
+			//let cont = true;
+			while (pos < response.length) {
+				//if (pos >= response.length) break;
 				check = response[pos]
 				//console.log(check)
 				switch (check){
@@ -173,18 +167,9 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 					var next = response.indexOf('<', pos);
 					quickSubString = response.slice(pos, next)
 					//console.log("have: " + quickSubString + " of " + response )
-					quickSwaps = quickSubString.split("]")
-					for (let i = 0; i < quickSwaps.length; i++) {
-						const match = quickSwapRegex.exec(quickSwaps[i]);
-						if (match) {
-							const id = match[1];
-							//console.log("match + " + id)
-							const classes = match[2];
-							target = document.getElementById(id);
-							target.className = classes;
-						}
-					}
-					if (next === -1) cont = false;
+					swaps.push(...quickSubString.split("]"))
+
+					if (next === -1) next=response.length;
 					pos = next
 					break;
 				case '<':
@@ -192,11 +177,10 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 					if (next === -1) {
 						//processAsFragmentToSwap(response.substring(pos, response.length), socketElt);
 						next = response.length
-						cont = false;
+						//cont = false;
 					} 
-					htmlResp = response.substring(pos, next)
+					htmlPart += response.substring(pos, next)
 					//console.log(htmlResp)
-					processAsFragmentToSwap(htmlResp);
 					pos = next
 					break;
 				default: 
@@ -206,6 +190,30 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 					break;
 				}
 			}
+
+			for (let i = 0; i < swaps.length; i++) {
+				const match = quickSwapRegex.exec(swaps[i]);
+				if (match) {
+					const id = match[1];
+					//console.log("match + " + id)
+					const classes = match[2];
+					target = document.getElementById(id);
+					target.className = classes;
+				}
+			}
+
+			//console.log(htmlPart)
+
+			var fragment = api.makeFragment(htmlPart);
+			if (fragment.children.length) {
+				var children = Array.from(fragment.children);
+				for (var i = 0; i < children.length; i++) {
+					api.oobSwap(api.getAttributeValue(children[i], "hx-swap-oob") || "true", children[i], settleInfo);
+				}
+			}
+
+			api.settleImmediately(settleInfo.tasks);
+			api.triggerEvent(socketElt, "htmx:wsAfterMessage", { message: response, socketWrapper: socketWrapper.publicInterface })
 			// console.log(response)
 			// processAsFragmentToSwap(response);
 
