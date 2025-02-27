@@ -192,7 +192,7 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, divBottomInvalid("Invalid Player Color"))
 		return
 	}
-
+	// not atomic
 	if db.foundUsername(username) {
 		io.WriteString(w, divBottomInvalid("Username unavailable. Try again."))
 		return

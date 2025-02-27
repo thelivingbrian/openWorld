@@ -276,9 +276,7 @@ func svgFromTile(tile *Tile) string {
 	defer tile.moneyMutex.Unlock()
 	tile.boostsMutex.Lock()
 	defer tile.boostsMutex.Unlock()
-	svgtag := `<div id="%s" class="%s">
-	</div>
-	`
+	svgtag := `[~ id="%s" class="%s"]`
 
 	sId := fmt.Sprintf("Ls1-%d-%d", tile.y, tile.x)
 
