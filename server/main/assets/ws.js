@@ -156,7 +156,7 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 
 
 			// Scan the incoming message: 
-			//   [~ swap id="" class=""] will bypass htmx
+			//   swap [~ id="" class=""] will bypass htmx
 			//   html <elements> are saved for htmx
 			let position = 0;
 			let htmlPart = "";
@@ -166,8 +166,8 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 				switch (check) {
 				case '[':
 					var next = response.indexOf('<', position);
-					var quickSubString = response.slice(position, next);
-					swaps.push(...quickSubString.split("]"));
+					var quickSwapString = response.slice(position, next);
+					swaps.push(...quickSwapString.split("]"));
 					if (next === -1) {
 						next = response.length;
 					}
