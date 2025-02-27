@@ -34,11 +34,6 @@ func htmlFromPlayer(player *Player) []byte {
 		}
 	}
 
-	// err := parsedScreenTemplate.Execute(&buf, tileHtml)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
 	return buf.Bytes()
 }
 

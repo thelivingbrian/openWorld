@@ -157,35 +157,26 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 			let pos = 0;
 			htmlPart = "";
 			swaps = [];
-			//let cont = true;
+			// Scan the incoming message and collect any html, sending [~ swap codes] to bypass htmx
 			while (pos < response.length) {
-				//if (pos >= response.length) break;
 				check = response[pos]
-				//console.log(check)
 				switch (check){
 				case '[':
 					var next = response.indexOf('<', pos);
 					quickSubString = response.slice(pos, next)
-					//console.log("have: " + quickSubString + " of " + response )
 					swaps.push(...quickSubString.split("]"))
-
 					if (next === -1) next=response.length;
 					pos = next
 					break;
 				case '<':
 					var next = response.indexOf('[~', pos);
 					if (next === -1) {
-						//processAsFragmentToSwap(response.substring(pos, response.length), socketElt);
 						next = response.length
-						//cont = false;
 					} 
 					htmlPart += response.substring(pos, next)
-					//console.log(htmlResp)
 					pos = next
 					break;
 				default: 
-					//console.log("")
-					//cont = false
 					pos++
 					break;
 				}
@@ -195,14 +186,11 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 				const match = quickSwapRegex.exec(swaps[i]);
 				if (match) {
 					const id = match[1];
-					//console.log("match + " + id)
 					const classes = match[2];
 					target = document.getElementById(id);
 					target.className = classes;
 				}
 			}
-
-			//console.log(htmlPart)
 
 			var fragment = api.makeFragment(htmlPart);
 			if (fragment.children.length) {
@@ -214,40 +202,6 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 
 			api.settleImmediately(settleInfo.tasks);
 			api.triggerEvent(socketElt, "htmx:wsAfterMessage", { message: response, socketWrapper: socketWrapper.publicInterface })
-			// console.log(response)
-			// processAsFragmentToSwap(response);
-
-			// if (response.slice(0,1) == '[') {
-			// 	quickSwaps = response.split(",")
-			// 	for (let i = 0; i < quickSwaps.length; i++) {
-			// 		const match = quickSwapRegex.exec(quickSwaps[i]);
-			// 		if (match) {
-			// 			const id = match[1];
-			// 			const type = match[2]
-			// 			const val = match[3];
-			// 			target = document.getElementById(id); // target should always exist? 
-			// 			switch (type) {
-			// 				case 'class': target.className = val; break;
-			// 				case 'html': target.innerHTML = val; break;
-			// 			}
-			// 		}
-			// 	  }
-
-			// }
-			
-			
-			// var settleInfo = api.makeSettleInfo(socketElt);
-			// var fragment = api.makeFragment(response);
-
-			// if (fragment.children.length) {
-			// 	var children = Array.from(fragment.children);
-			// 	for (var i = 0; i < children.length; i++) {
-			// 		api.oobSwap(api.getAttributeValue(children[i], "hx-swap-oob") || "true", children[i], settleInfo);
-			// 	}
-			// }
-
-			// api.settleImmediately(settleInfo.tasks);
-			// api.triggerEvent(socketElt, "htmx:wsAfterMessage", { message: response, socketWrapper: socketWrapper.publicInterface })
 		});
 
 		// Put the WebSocket into the HTML Element's custom data.
