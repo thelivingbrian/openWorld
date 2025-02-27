@@ -284,13 +284,13 @@ func svgFromTile(tile *Tile) string {
 
 	classes := "box zs "
 	if tile.powerUp != nil {
-		classes += "svgRed"
+		classes += "svgRed "
 	}
 	if tile.money != 0 {
-		classes += "svgGreen"
+		classes += "svgGreen "
 	}
 	if tile.boosts != 0 {
-		classes += "svgBlue"
+		classes += "svgBlue "
 	}
 	// if tile.powerUp != nil || tile.money != 0 || tile.boosts != 0 {
 	// 	svgtag += `<svg width="22" height="22">`

@@ -453,21 +453,23 @@ circle {
     display: none;
 }
 
-  div.svgGreen circle.svgGreen {
-    display: inline;
-    fill: rgb(105, 255, 100);
-    fill-opacity: 0.6;
-  } 
-   div.svgRed circle.svgRed {
-    display: inline;
-    fill: rgb(255, 105, 100);
-    fill-opacity: 0.6;
-  }  
-  div.svgBlue circle.svgBlue {
-    display: inline;
-    fill: rgb(15, 100, 255);
-    fill-opacity: 0.6;
-  }
+div.svgGreen circle.svgGreen {
+display: inline;
+fill: rgb(105, 255, 100);
+fill-opacity: 0.6;
+} 
+
+div.svgRed circle.svgRed {
+display: inline;
+fill: rgb(255, 105, 100);
+fill-opacity: 0.6;
+}  
+
+div.svgBlue circle.svgBlue {
+display: inline;
+fill: rgb(15, 100, 255);
+fill-opacity: 0.6;
+}
   
 
 /*

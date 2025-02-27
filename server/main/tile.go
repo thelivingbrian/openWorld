@@ -102,8 +102,6 @@ func makeTileTemplate(mat Material, y, x int) string {
 }
 
 func makeTileTemplateNew(mat Material, y, x int) string {
-	//tileCoord := fmt.Sprintf("%d-%d", y, x)
-	//cId := "c" + tileCoord // This is used to identify the entire square
 	placeHold := "%s" // later becomes player, interactable, svg, weather, and highlight boxes
 
 	out := ""
@@ -121,12 +119,6 @@ func makeTileTemplateNew(mat Material, y, x int) string {
 
 	return out
 }
-
-/*
-func individualBoxHtml(y, x int, prefix, zIndex, color string) string {
-	return fmt.Sprintf(`<div id="%s-%d-%d" class="box %s %s"> </div>`, prefix, y, x, zIndex, color)
-}
-*/
 
 func divSwapCode(y, x int, prefix, zIndex, color string) string {
 	return fmt.Sprintf(`[~ id="%s-%d-%d" class="box %s %s"]`, prefix, y, x, zIndex, color)
