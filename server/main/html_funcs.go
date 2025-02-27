@@ -276,9 +276,10 @@ func svgFromTile(tile *Tile) string {
 	defer tile.moneyMutex.Unlock()
 	tile.boostsMutex.Lock()
 	defer tile.boostsMutex.Unlock()
-	svgtag := `[~ id="%s" class="%s"]`
 
-	sId := fmt.Sprintf("Ls1-%d-%d", tile.y, tile.x)
+	template := `[~ id="%s" class="%s"]`
+
+	svgId := fmt.Sprintf("Ls1-%d-%d", tile.y, tile.x)
 
 	classes := "box zs "
 	if tile.powerUp != nil {
@@ -290,21 +291,8 @@ func svgFromTile(tile *Tile) string {
 	if tile.boosts != 0 {
 		classes += "svgBlue "
 	}
-	// if tile.powerUp != nil || tile.money != 0 || tile.boosts != 0 {
-	// 	svgtag += `<svg width="22" height="22">`
-	// 	if tile.powerUp != nil {
-	// 		svgtag += `<circle class="svgRed" cx="7" cy="7" r="7" />`
-	// 	}
-	// 	if tile.money != 0 {
-	// 		svgtag += `<circle class="svgGreen" cx="7" cy="14" r="7" />`
-	// 	}
-	// 	if tile.boosts != 0 {
-	// 		svgtag += `<circle class="svgBlue" cx="14" cy="14" r="7" />`
-	// 	}
-	// 	svgtag += `</svg>`
-	// }
-	//svgtag += "</div>"
-	return fmt.Sprintf(svgtag, sId, classes)
+
+	return fmt.Sprintf(template, svgId, classes)
 }
 
 ///////////////////////////////////////////
