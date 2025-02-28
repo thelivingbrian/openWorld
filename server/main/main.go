@@ -76,7 +76,7 @@ func main() {
 		mux.HandleFunc("/signin", world.postSignin)
 
 		logger.Info().Msg("Preparing for interactions...")
-		mux.HandleFunc("/clear", clearScreen)
+		mux.HandleFunc("/clear", clearScreen) // would need to be in hub ?
 		mux.HandleFunc("/insert", world.postHorribleBypass)
 		mux.HandleFunc("/stats", world.getStats)
 
