@@ -163,7 +163,7 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	stage := getStageFromStageName(newPlayer, incoming.Record.StageName)
 
 	newPlayer.conn = conn
-	emptyScreen := screenForStage(stage)
+	emptyScreen := emptyScreenForStage(stage)
 	sendUpdate(newPlayer, emptyScreen)
 	go newPlayer.sendUpdates()
 

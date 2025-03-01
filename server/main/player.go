@@ -450,7 +450,7 @@ func updatePlayerAfterStageChange(p *Player) {
 func updateEntireExistingScreen(player *Player) {
 	// player.clearUpdateBuffer <- struct{}{}
 	// clearChannel(player.updates)
-	player.updates <- htmlFromPlayer(player)
+	player.updates <- swapsForPlayer(player)
 }
 
 func clearChannel(ch chan []byte) {

@@ -21,48 +21,9 @@ const screenTemplate = `
 
 var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(screenTemplate))
 
-func htmlFromPlayer(player *Player) []byte {
+func emptyScreenForStage(stage *Stage) []byte {
 	var buf bytes.Buffer
-
-	currentTile := player.getTileSync()
-	tileHtml := htmlFromTileGrid(player.getStageSync().tiles, currentTile.y, currentTile.x, duplicateMapOfHighlights(player))
-
-	// write all to buffer instead
-	for i := 0; i < len(tileHtml); i++ {
-		for j := 0; j < len(tileHtml[i]); j++ {
-			fmt.Fprintf(&buf, tileHtml[i][j])
-		}
-	}
-
-	return buf.Bytes()
-}
-
-func htmlFromTileGrid(tiles [][]*Tile, py, px int, highlights map[*Tile]bool) [][]string {
-	output := make([][]string, len(tiles))
-	for y := range output {
-		output[y] = make([]string, len(tiles[y]))
-		for x := range output[y] {
-			highlightColor := ""
-			_, found := highlights[tiles[y][x]]
-			if found {
-				highlightColor = spaceHighlighter()
-			}
-			output[y][x] = htmlForTile(tiles[y][x], highlightColor)
-		}
-	}
-	return output
-}
-
-func htmlForTile(tile *Tile, highlight string) string {
-	svgtag := svgFromTile(tile)
-	// grab tile y and x only once here or in parent method?
-	// Lock interactable before getting box
-	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), lockedInteractableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x), oobHighlightBox(tile, highlight))
-}
-
-func screenForStage(stage *Stage) []byte {
-	var buf bytes.Buffer
-	tiles := defaultHtmlForScreen(len(stage.tiles), len(stage.tiles[0]))
+	tiles := htmlForEmptyTileGrid(len(stage.tiles), len(stage.tiles[0]))
 	err := parsedScreenTemplate.Execute(&buf, tiles)
 	if err != nil {
 		panic(err)
@@ -71,7 +32,7 @@ func screenForStage(stage *Stage) []byte {
 	return buf.Bytes()
 }
 
-func defaultHtmlForScreen(height, width int) [][]string {
+func htmlForEmptyTileGrid(height, width int) [][]string {
 	grid := make([][]string, height)
 	const cellTemplate = `
 	<div id="c%d-%d" class="grid-square">
@@ -113,6 +74,47 @@ func defaultHtmlForScreen(height, width int) [][]string {
 		}
 	}
 	return grid
+}
+
+////////////////////////////////////////////////////////////
+// Quickswaps / screen
+
+func swapsForPlayer(player *Player) []byte {
+	var buf bytes.Buffer
+
+	currentTile := player.getTileSync()
+	tileHtml := swapsForTileGrid(currentTile.stage.tiles, currentTile.y, currentTile.x, duplicateMapOfHighlights(player))
+
+	// write all to buffer instead
+	for i := 0; i < len(tileHtml); i++ {
+		for j := 0; j < len(tileHtml[i]); j++ {
+			fmt.Fprintf(&buf, tileHtml[i][j])
+		}
+	}
+
+	return buf.Bytes()
+}
+
+// no need, return []byte
+func swapsForTileGrid(tiles [][]*Tile, py, px int, highlights map[*Tile]bool) [][]string {
+	output := make([][]string, len(tiles))
+	for y := range output {
+		output[y] = make([]string, len(tiles[y]))
+		for x := range output[y] {
+			highlightColor := ""
+			_, found := highlights[tiles[y][x]]
+			if found {
+				highlightColor = spaceHighlighter()
+			}
+			output[y][x] = swapsForTile(tiles[y][x], highlightColor)
+		}
+	}
+	return output
+}
+
+func swapsForTile(tile *Tile, highlight string) string {
+	svgtag := svgFromTile(tile)
+	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x), oobHighlightBox(tile, highlight))
 }
 
 ////////////////////////////////////////////////////////////
@@ -211,10 +213,18 @@ func playerBox(tile *Tile) string {
 }
 
 // Interactable box
+func interactableBox(tile *Tile) string {
+	tile.interactableMutex.Lock()
+	defer tile.interactableMutex.Unlock()
+	indicator := ""
+	if tile.interactable != nil {
+		indicator = tile.interactable.cssClass
+	}
+	return fmt.Sprintf(`[~ id="Li1-%d-%d" class="box zi %s"]`, tile.y, tile.x, indicator)
+}
 
 func lockedInteractableBox(tile *Tile) string {
 	indicator := ""
-	//mutex
 	if tile.interactable != nil {
 		indicator = tile.interactable.cssClass
 	}
