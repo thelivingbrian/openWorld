@@ -62,47 +62,6 @@ func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 ////////////////////////////////////////////////
 // HTML
 
-/*
-func makeTileTemplate(mat Material, y, x int) string {
-	tileCoord := fmt.Sprintf("%d-%d", y, x)
-	cId := "c" + tileCoord // This is used to identify the entire square
-	placeHold := "%s"      // later becomes player, interactable, svg, weather, and highlight boxes
-
-	floor1css := ""
-	if mat.Floor1Css != "" {
-		floor1css = fmt.Sprintf(`<div class="box floor1 %s"></div>`, mat.Floor1Css)
-	}
-
-	floor2css := ""
-	if mat.Floor2Css != "" {
-		floor2css = fmt.Sprintf(`<div class="box floor2 %s"></div>`, mat.Floor2Css)
-	}
-
-	ceil1css := ""
-	if mat.Ceiling1Css != "" {
-		ceil1css = fmt.Sprintf(`<div class="box ceiling1 %s"></div>`, mat.Ceiling1Css)
-	}
-
-	ceil2css := ""
-	if mat.Ceiling2Css != "" {
-		ceil2css = fmt.Sprintf(`<div class="box ceiling2 %s"></div>`, mat.Ceiling2Css)
-	}
-
-	template := `<div id="%s" class="grid-square %s">
-					%s
-					%s
-					%s
-					%s
-					%s
-					%s
-					%s
-					%s
-					%s
-				</div>`
-	return fmt.Sprintf(template, cId, mat.CssColor, floor1css, floor2css, placeHold, placeHold, placeHold, ceil1css, ceil2css, placeHold, placeHold)
-}
-*/
-
 func makeTileTemplateNew(mat Material, y, x int) string {
 	placeHold := "%s" // later becomes player, interactable, svg, weather, and highlight boxes
 

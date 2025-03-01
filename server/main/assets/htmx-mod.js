@@ -102,7 +102,6 @@ return (function () {
             getAttributeValue: getAttributeValue,
             getClosestAttributeValue: getClosestAttributeValue,
             getClosestMatch: getClosestMatch,
-            getDocument: getDocument, // remove
             getExpressionVars: getExpressionVars,
             getHeaders: getHeaders,
             getInputValues: getInputValues,

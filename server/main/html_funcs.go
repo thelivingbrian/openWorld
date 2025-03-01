@@ -210,6 +210,8 @@ func playerBox(tile *Tile) string {
 	return playerBoxSpecifc(tile.y, tile.x, playerIndicator)
 }
 
+// Interactable box
+
 func lockedInteractableBox(tile *Tile) string {
 	indicator := ""
 	//mutex
