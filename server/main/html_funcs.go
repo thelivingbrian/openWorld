@@ -37,61 +37,6 @@ func htmlFromPlayer(player *Player) []byte {
 	return buf.Bytes()
 }
 
-func defaultHtmlForScreen(height, width int) [][]string {
-	grid := make([][]string, height)
-	// HTML template with 24 placeholders (each %d gets replaced by i or j)
-	const cellTemplate = `<div id="c%d-%d" class="grid-square">
-    <div id="Lg1-%d-%d" class="box g1"></div>
-    <div id="Lg2-%d-%d" class="box g2"></div>
-    <div id="Lf1-%d-%d" class="box f1"></div>
-    <div id="Lf2-%d-%d" class="box f2"></div>
-    <div id="Lp1-%d-%d" class="box zp"></div>
-    <div id="Li1-%d-%d" class="box zi"></div>
-    <div id="Ls1-%d-%d" class="box zs">
-		<svg width="22" height="22">
-		<circle class="svgRed" cx="7" cy="7" r="7"> </circle>
-		<circle class="svgGreen" cx="7" cy="14" r="7"> </circle>
-		<circle class="svgBlue" cx="14" cy="14" r="7"> </circle>
-		<svg width="22" height="22">
-	</div>
-    <div id="Lc1-%d-%d" class="box c1"></div>
-    <div id="Lc2-%d-%d" class="box c2"></div>
-    <div id="Lw1-%d-%d" class="box zw"></div>
-    <div id="Lt1-%d-%d" class="box top"></div>
-</div>`
-	for i := 0; i < height; i++ {
-		grid[i] = make([]string, width)
-		for j := 0; j < width; j++ {
-			grid[i][j] = fmt.Sprintf(cellTemplate,
-				i, j, // for <div id="c%d-%d">
-				i, j, // for <div id="Lg1-%d-%d">
-				i, j, // for <div id="Lg2-%d-%d">
-				i, j, // for <div id="Lf1-%d-%d">
-				i, j, // for <div id="Lf2-%d-%d">
-				i, j, // for <div id="Lp1-%d-%d">
-				i, j, // for <div id="Li1-%d-%d">
-				i, j, // for <div id="Ls1-%d-%d">
-				i, j, // for <div id="Lc1-%d-%d">
-				i, j, // for <div id="Lc2-%d-%d">
-				i, j, // for <div id="Lw1-%d-%d">
-				i, j, // for <div id="Lt1-%d-%d">
-			)
-		}
-	}
-	return grid
-}
-
-func screenForStage(stage *Stage) []byte {
-	var buf bytes.Buffer
-	tiles := defaultHtmlForScreen(len(stage.tiles), len(stage.tiles[0]))
-	err := parsedScreenTemplate.Execute(&buf, tiles)
-	if err != nil {
-		panic(err)
-	}
-
-	return buf.Bytes()
-}
-
 func htmlFromTileGrid(tiles [][]*Tile, py, px int, highlights map[*Tile]bool) [][]string {
 	output := make([][]string, len(tiles))
 	for y := range output {
@@ -113,6 +58,61 @@ func htmlForTile(tile *Tile, highlight string) string {
 	// grab tile y and x only once here or in parent method?
 	// Lock interactable before getting box
 	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), lockedInteractableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x), oobHighlightBox(tile, highlight))
+}
+
+func screenForStage(stage *Stage) []byte {
+	var buf bytes.Buffer
+	tiles := defaultHtmlForScreen(len(stage.tiles), len(stage.tiles[0]))
+	err := parsedScreenTemplate.Execute(&buf, tiles)
+	if err != nil {
+		panic(err)
+	}
+
+	return buf.Bytes()
+}
+
+func defaultHtmlForScreen(height, width int) [][]string {
+	grid := make([][]string, height)
+	const cellTemplate = `
+	<div id="c%d-%d" class="grid-square">
+		<div id="Lg1-%d-%d" class="box g1"></div>
+		<div id="Lg2-%d-%d" class="box g2"></div>
+		<div id="Lf1-%d-%d" class="box f1"></div>
+		<div id="Lf2-%d-%d" class="box f2"></div>
+		<div id="Lp1-%d-%d" class="box zp"></div>
+		<div id="Li1-%d-%d" class="box zi"></div>
+		<div id="Ls1-%d-%d" class="box zs">
+			<svg width="22" height="22">
+			<circle class="svgRed" cx="7" cy="7" r="7"> </circle>
+			<circle class="svgGreen" cx="7" cy="14" r="7"> </circle>
+			<circle class="svgBlue" cx="14" cy="14" r="7"> </circle>
+			<svg width="22" height="22">
+		</div>
+		<div id="Lc1-%d-%d" class="box c1"></div>
+		<div id="Lc2-%d-%d" class="box c2"></div>
+		<div id="Lw1-%d-%d" class="box zw"></div>
+		<div id="Lt1-%d-%d" class="box top"></div>
+	</div>`
+	for i := 0; i < height; i++ {
+		grid[i] = make([]string, width)
+		for j := 0; j < width; j++ {
+			grid[i][j] = fmt.Sprintf(cellTemplate,
+				i, j, // for <div id="c%d-%d">
+				i, j, // for <div id="Lg1-%d-%d">
+				i, j, // for <div id="Lg2-%d-%d">
+				i, j, // for <div id="Lf1-%d-%d">
+				i, j, // for <div id="Lf2-%d-%d">
+				i, j, // for <div id="Lp1-%d-%d">
+				i, j, // for <div id="Li1-%d-%d">
+				i, j, // for <div id="Ls1-%d-%d">
+				i, j, // for <div id="Lc1-%d-%d">
+				i, j, // for <div id="Lc2-%d-%d">
+				i, j, // for <div id="Lw1-%d-%d">
+				i, j, // for <div id="Lt1-%d-%d">
+			)
+		}
+	}
+	return grid
 }
 
 ////////////////////////////////////////////////////////////
@@ -325,25 +325,14 @@ func divModalDisabled() string {
 	`
 }
 
-// broken
 func divInput() string {
-	// uses htmx bypass to function
-	return `
-	<div id="Lx1-0-0" class="container">
-	</div>
-	<div id="Lx1-0-1" class="container hidden">
-	</div>
-`
+	// uses ws bypass to function
+	return `[~ id="Lx1-0-0" class="container"][~ id="Lx1-0-1" class="container hidden"]`
 }
 
 func divInputShift() string {
-	// uses htmx bypass to function
-	return `
-	<div id="Lx1-0-0" class="container hidden">
-	</div>
-	<div id="Lx1-0-1" class="container">
-	</div>
-`
+	// uses ws bypass to function
+	return `[~ id="Lx1-0-0" class="container hidden"][~ id="Lx1-0-1" class="container"]`
 }
 
 func divInputDisabled() string {

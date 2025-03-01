@@ -782,18 +782,7 @@ return (function () {
          */
         function oobSwap(oobValue, oobElement, settleInfo) {
             const id = getRawAttribute(oobElement, "id")
-
-            // Override htmx in this instance to prevent DOM rewrites for class swap
-            // No need ? done in websocket now? 
-            // const regex = /^L[a-zA-Z]\d+-\d+-\d+$/;
-            // if (regex.test(id)) {
-            //     var target = getDocument().getElementById(getRawAttribute(oobElement, "id"))
-            //     target.classList = oobElement.classList
-            //     return "true"
-            // }
-
             var selector = "#" + id;
-
             var swapStyle = "outerHTML";
             if (oobValue === "true") {
                 // do nothing

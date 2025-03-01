@@ -122,20 +122,11 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 			return htmx.createWebSocket(wssSource)
 		});
 
-		
-					
-		function processAsFragmentToSwap(response){
-			
-
-
-		}
-
+		// Massages that match not are not sent to htmx
 		const quickSwapRegex = /\[~\s+id="([^"]+)"\s+class="([^"]+)"/;
-		//[a-zA-Z]
-		// const quickSwapRegex = /\[swap\s+id="([^"]+)"\s+(class|html)="([^"]+)"\]/;
+		
 		socketWrapper.addEventListener('message', function (event) {
-			//console.log("hello from ws")
-            
+
             if (maybeCloseWebSocketSource(socketElt)) {
 				return;
 			}
