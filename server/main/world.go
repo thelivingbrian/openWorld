@@ -203,7 +203,6 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		username:                 record.Username,
 		stage:                    nil,
 		updates:                  updatesForPlayer,
-		clearUpdateBuffer:        make(chan struct{}, 0),
 		sessionTimeOutViolations: atomic.Int32{},
 		tangible:                 true,
 		tangibilityLock:          sync.Mutex{},

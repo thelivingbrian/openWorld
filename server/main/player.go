@@ -26,7 +26,6 @@ type Player struct {
 	tile                     *Tile
 	tileLock                 sync.Mutex
 	updates                  chan []byte
-	clearUpdateBuffer        chan struct{}
 	sessionTimeOutViolations atomic.Int32
 	conn                     WebsocketConnection
 	connLock                 sync.RWMutex
@@ -380,8 +379,6 @@ func (player *Player) sendUpdates() {
 				logger.Warn().Msg(fmt.Sprintf("Player: %s - buffer exceeded %d bytes, wiping buffer\n", player.username, maxBufferSize))
 				buffer.Reset()
 			}
-		case <-player.clearUpdateBuffer:
-			buffer.Reset()
 		case <-ticker.C:
 			if !shouldSendUpdates || buffer.Len() == 0 {
 				continue
@@ -448,8 +445,6 @@ func updatePlayerAfterStageChange(p *Player) {
 }
 
 func updateEntireExistingScreen(player *Player) {
-	// player.clearUpdateBuffer <- struct{}{}
-	// clearChannel(player.updates)
 	player.updates <- entireScreenAsSwaps(player)
 }
 

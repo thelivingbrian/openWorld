@@ -231,16 +231,6 @@ func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, conte
 			case <-ctx.Done():
 				return
 			default:
-				<-newPlayer.clearUpdateBuffer
-			}
-		}
-	}(ctx)
-	go func(ctx context.Context) {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			default:
 				time.Sleep(time.Duration(interval) * time.Millisecond)
 				randn := rand.Intn(5000)
 
