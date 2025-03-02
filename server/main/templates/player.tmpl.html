@@ -27,6 +27,38 @@
 </div>
 {{end}}
 
+
+{{ define "player-screen"}}
+<div id="screen" class="grid">
+	{{range $y, $row := .}}
+	<div class="grid-row">
+		{{range $x, $cell := $row}}
+		<div id="c{{$y}}-{{$x}}" class="grid-square">
+			<div id="Lg1-{{$y}}-{{$x}}" class="box g1"></div>
+			<div id="Lg2-{{$y}}-{{$x}}" class="box g2"></div>
+			<div id="Lf1-{{$y}}-{{$x}}" class="box f1"></div>
+			<div id="Lf2-{{$y}}-{{$x}}" class="box f2"></div>
+			<div id="Lp1-{{$y}}-{{$x}}" class="box zp"></div>
+			<div id="Li1-{{$y}}-{{$x}}" class="box zi"></div>
+			<div id="Ls1-{{$y}}-{{$x}}" class="box zs">
+				<svg width="22" height="22">
+					<circle class="svgRed" cx="7" cy="7" r="7"></circle>
+					<circle class="svgGreen" cx="7" cy="14" r="7"></circle>
+					<circle class="svgBlue" cx="14" cy="14" r="7"></circle>
+				</svg>
+			</div>
+			<div id="Lc1-{{$y}}-{{$x}}" class="box c1"></div>
+			<div id="Lc2-{{$y}}-{{$x}}" class="box c2"></div>
+			<div id="Lw1-{{$y}}-{{$x}}" class="box zw"></div>
+			<div id="Lt1-{{$y}}-{{$x}}" class="box top"></div>
+		</div>
+		{{end}}
+	</div>
+	{{end}}
+</div>
+{{ end }}
+
+
 {{ define "input" }}
 <div id="input">
     <div id="input-desktop">

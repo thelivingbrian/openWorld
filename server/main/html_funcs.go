@@ -5,26 +5,22 @@ import (
 	"fmt"
 	"math/rand"
 	"regexp"
-	"text/template"
 )
 
-const screenTemplate = `
-<div id="screen" class="grid">
-	{{range $y, $row := .}}
-	<div class="grid-row">
-		{{range $x, $html := $row}}
-		{{$html}}
-		{{end}}
-	</div>
-	{{end}}
-</div>`
+// const screenTemplate = `
 
-var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(screenTemplate))
+// `
+
+// var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(screenTemplate))
 
 func emptyScreenForStage(stage *Stage) []byte {
 	var buf bytes.Buffer
-	tiles := htmlForEmptyTileGrid(len(stage.tiles), len(stage.tiles[0]))
-	err := parsedScreenTemplate.Execute(&buf, tiles)
+	// tiles := make([][]struct{}, len(stage.tiles))
+	// for y := 0; y < len(stage.tiles); y++ {
+	// 	tiles[y] = make([]struct{}, len(stage.tiles[y]))
+	// }
+	err := tmpl.ExecuteTemplate(&buf, "player-screen", stage.tiles)
+	//err := parsedScreenTemplate.Execute(&buf, tiles)
 	if err != nil {
 		panic(err)
 	}
@@ -32,6 +28,7 @@ func emptyScreenForStage(stage *Stage) []byte {
 	return buf.Bytes()
 }
 
+/*
 func htmlForEmptyTileGrid(height, width int) [][]string {
 	grid := make([][]string, height)
 	const cellTemplate = `
@@ -75,6 +72,7 @@ func htmlForEmptyTileGrid(height, width int) [][]string {
 	}
 	return grid
 }
+*/
 
 ////////////////////////////////////////////////////////////
 // Quickswaps / screen

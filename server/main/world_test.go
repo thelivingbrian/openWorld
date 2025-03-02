@@ -304,7 +304,7 @@ func socketsCancelsTokensWaiter(world *World, serverURL string, PLAYER_COUNT int
 		wg.Add(1)
 		cancelers = append(cancelers, cancel)
 		testingSocket.writeOrFatal(createInitialTokenMessage(req.Token))
-		// go testingSocket.readUntilClose() // No need, handled by handleNewUser?
+		go testingSocket.readUntilClose()
 
 		sockets = append(sockets, testingSocket)
 	}
@@ -333,9 +333,6 @@ func createTestingSocketWithCancel(url string, wg *sync.WaitGroup) (*TestingSock
 			case <-ctx.Done():
 				ts.ws.Close()
 				return
-				//default:
-				// just usee ts.ws.ReadMessage() ?
-				//ts.readOrFatal()
 			}
 		}
 	}(ctx)
@@ -346,7 +343,7 @@ func createInitialTokenMessage(token string) []byte {
 	var msg = struct {
 		Token string
 	}{
-		Token: token, //"TestToke",
+		Token: token,
 	}
 	initialTokenMessage, err := json.Marshal(msg)
 	if err != nil {
