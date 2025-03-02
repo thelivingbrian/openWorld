@@ -9,7 +9,6 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 	world := createGameWorld(testdb(), nil)
 	player := createTestingPlayer(world, "")
 	defer close(player.updates)
-	//defer close(player.clearUpdateBuffer)
 
 	testStage := createStageByName("hallway")
 	player.placeOnStage(testStage, 1, 4)
@@ -40,12 +39,11 @@ func createTestingPlayer(world *World, user string) *Player {
 	go drainChannel(bufferClearChannel)
 	id := "tp" + user
 	tp := &Player{
-		id:       id,
-		username: user,
-		actions:  createDefaultActions(),
-		health:   100,
-		updates:  updatesForPlayer,
-		//clearUpdateBuffer: bufferClearChannel,
+		id:           id,
+		username:     user,
+		actions:      createDefaultActions(),
+		health:       100,
+		updates:      updatesForPlayer,
 		tangible:     true,
 		playerStages: map[string]*Stage{},
 		world:        world,

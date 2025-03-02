@@ -36,9 +36,9 @@ func TestSocketJoinAndMove(t *testing.T) {
 
 	testingSocket.writeOrFatal(createInitialTokenMessage(req.Token))
 
-	testingSocket.writeOrFatal(createSocketEventMessage(req.Token, "d"))
+	testingSocket.writeOrFatal(createSocketEventMessage("d"))
 
-	testingSocket.writeOrFatal(createSocketEventMessage(req.Token, "d"))
+	testingSocket.writeOrFatal(createSocketEventMessage("d"))
 
 	_ = testingSocket.readOrFatal() // reading more than once is a lock risk.
 
@@ -352,10 +352,9 @@ func createInitialTokenMessage(token string) []byte {
 	return initialTokenMessage
 }
 
-func createSocketEventMessage(token, name string) []byte {
+func createSocketEventMessage(name string) []byte {
 	var msg = PlayerSocketEvent{
-		Token: token,
-		Name:  name,
+		Name: name,
 	}
 	socketMsg, err := json.Marshal(msg)
 	if err != nil {

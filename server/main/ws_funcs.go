@@ -75,11 +75,6 @@ func handleNewPlayer(player *Player) {
 			logger.Info().Msg("Invalid input")
 			continue
 		}
-		// if event.Token != player.id {
-		// 	// check mildly irrelevant?
-		// 	logger.Info().Msg("Cheating")
-		// 	break
-		// }
 
 		if player.handlePressActive(event) {
 			lastRead = currentRead
