@@ -7,20 +7,12 @@ import (
 	"regexp"
 )
 
-// const screenTemplate = `
-
-// `
-
-// var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(screenTemplate))
+////////////////////////////////////////////////////////////
+// Quickswaps / screen
 
 func emptyScreenForStage(stage *Stage) []byte {
 	var buf bytes.Buffer
-	// tiles := make([][]struct{}, len(stage.tiles))
-	// for y := 0; y < len(stage.tiles); y++ {
-	// 	tiles[y] = make([]struct{}, len(stage.tiles[y]))
-	// }
 	err := tmpl.ExecuteTemplate(&buf, "player-screen", stage.tiles)
-	//err := parsedScreenTemplate.Execute(&buf, tiles)
 	if err != nil {
 		panic(err)
 	}
@@ -28,91 +20,30 @@ func emptyScreenForStage(stage *Stage) []byte {
 	return buf.Bytes()
 }
 
-/*
-func htmlForEmptyTileGrid(height, width int) [][]string {
-	grid := make([][]string, height)
-	const cellTemplate = `
-	<div id="c%d-%d" class="grid-square">
-		<div id="Lg1-%d-%d" class="box g1"></div>
-		<div id="Lg2-%d-%d" class="box g2"></div>
-		<div id="Lf1-%d-%d" class="box f1"></div>
-		<div id="Lf2-%d-%d" class="box f2"></div>
-		<div id="Lp1-%d-%d" class="box zp"></div>
-		<div id="Li1-%d-%d" class="box zi"></div>
-		<div id="Ls1-%d-%d" class="box zs">
-			<svg width="22" height="22">
-			<circle class="svgRed" cx="7" cy="7" r="7"> </circle>
-			<circle class="svgGreen" cx="7" cy="14" r="7"> </circle>
-			<circle class="svgBlue" cx="14" cy="14" r="7"> </circle>
-			<svg width="22" height="22">
-		</div>
-		<div id="Lc1-%d-%d" class="box c1"></div>
-		<div id="Lc2-%d-%d" class="box c2"></div>
-		<div id="Lw1-%d-%d" class="box zw"></div>
-		<div id="Lt1-%d-%d" class="box top"></div>
-	</div>`
-	for i := 0; i < height; i++ {
-		grid[i] = make([]string, width)
-		for j := 0; j < width; j++ {
-			grid[i][j] = fmt.Sprintf(cellTemplate,
-				i, j, // for <div id="c%d-%d">
-				i, j, // for <div id="Lg1-%d-%d">
-				i, j, // for <div id="Lg2-%d-%d">
-				i, j, // for <div id="Lf1-%d-%d">
-				i, j, // for <div id="Lf2-%d-%d">
-				i, j, // for <div id="Lp1-%d-%d">
-				i, j, // for <div id="Li1-%d-%d">
-				i, j, // for <div id="Ls1-%d-%d">
-				i, j, // for <div id="Lc1-%d-%d">
-				i, j, // for <div id="Lc2-%d-%d">
-				i, j, // for <div id="Lw1-%d-%d">
-				i, j, // for <div id="Lt1-%d-%d">
-			)
-		}
-	}
-	return grid
-}
-*/
-
-////////////////////////////////////////////////////////////
-// Quickswaps / screen
-
-func swapsForPlayer(player *Player) []byte {
-	var buf bytes.Buffer
-
+func entireScreenAsSwaps(player *Player) []byte {
 	currentTile := player.getTileSync()
-	tileHtml := swapsForTileGrid(currentTile.stage.tiles, currentTile.y, currentTile.x, duplicateMapOfHighlights(player))
-
-	// write all to buffer instead
-	for i := 0; i < len(tileHtml); i++ {
-		for j := 0; j < len(tileHtml[i]); j++ {
-			fmt.Fprintf(&buf, tileHtml[i][j])
-		}
-	}
-
-	return buf.Bytes()
+	return swapsForTilesWithHighlights(currentTile.stage.tiles, duplicateMapOfHighlights(player))
 }
 
-// no need, return []byte
-func swapsForTileGrid(tiles [][]*Tile, py, px int, highlights map[*Tile]bool) [][]string {
-	output := make([][]string, len(tiles))
-	for y := range output {
-		output[y] = make([]string, len(tiles[y]))
-		for x := range output[y] {
+func swapsForTilesWithHighlights(tiles [][]*Tile, highlights map[*Tile]bool) []byte {
+	var buf bytes.Buffer
+	for y := range tiles {
+		for x := range tiles[y] {
 			highlightColor := ""
 			_, found := highlights[tiles[y][x]]
 			if found {
 				highlightColor = spaceHighlighter()
 			}
-			output[y][x] = swapsForTile(tiles[y][x], highlightColor)
+			tileSwaps := swapsForTile(tiles[y][x], highlightColor)
+			fmt.Fprintf(&buf, tileSwaps)
 		}
 	}
-	return output
+	return buf.Bytes()
 }
 
 func swapsForTile(tile *Tile, highlight string) string {
 	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x), oobHighlightBox(tile, highlight))
+	return fmt.Sprintf(tile.quickSwapTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x), oobHighlightBox(tile, highlight))
 }
 
 ////////////////////////////////////////////////////////////

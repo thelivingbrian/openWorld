@@ -25,7 +25,7 @@ type Tile struct {
 	moneyMutex        sync.Mutex
 	boosts            int
 	boostsMutex       sync.Mutex
-	htmlTemplate      string
+	quickSwapTemplate string
 	bottomText        string
 }
 
@@ -43,45 +43,46 @@ func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 		mat.CssColor = defaultTileColor
 	}
 	return &Tile{
-		material:       mat,
-		playerMap:      make(map[string]*Player),
-		playerMutex:    sync.Mutex{},
-		stage:          nil,
-		teleport:       nil,
-		y:              y,
-		x:              x,
-		eventsInFlight: atomic.Int32{},
-		powerUp:        nil,
-		powerMutex:     sync.Mutex{},
-		money:          0,
-		htmlTemplate:   makeTileTemplateNew(mat, y, x),
-		bottomText:     mat.DisplayText, // Pre-process needed *String to have option of null?
+		material:          mat,
+		playerMap:         make(map[string]*Player),
+		playerMutex:       sync.Mutex{},
+		stage:             nil,
+		teleport:          nil,
+		y:                 y,
+		x:                 x,
+		eventsInFlight:    atomic.Int32{},
+		powerUp:           nil,
+		powerMutex:        sync.Mutex{},
+		money:             0,
+		quickSwapTemplate: makeQuickSwapTemplate(mat, y, x),
+		bottomText:        mat.DisplayText, // Pre-process needed *String to have option of null?
 	}
 }
 
 ////////////////////////////////////////////////
-// HTML
+// Quickswaps
 
-func makeTileTemplateNew(mat Material, y, x int) string {
+func makeQuickSwapTemplate(mat Material, y, x int) string {
+	// weird pattern here
 	placeHold := "%s" // later becomes player, interactable, svg, weather, and highlight boxes
 
 	out := ""
-	out += divSwapCode(y, x, "Lg1", "g1", mat.CssColor)
-	out += divSwapCode(y, x, "Lg2", "g2", "")
-	out += divSwapCode(y, x, "Lf1", "f1", mat.Floor1Css)
-	out += divSwapCode(y, x, "Lf2", "f2", mat.Floor2Css)
+	out += swapToken(y, x, "Lg1", "g1", mat.CssColor)
+	out += swapToken(y, x, "Lg2", "g2", "")
+	out += swapToken(y, x, "Lf1", "f1", mat.Floor1Css)
+	out += swapToken(y, x, "Lf2", "f2", mat.Floor2Css)
 	out += placeHold
 	out += placeHold
 	out += placeHold
-	out += divSwapCode(y, x, "Lc1", "c1", mat.Ceiling1Css)
-	out += divSwapCode(y, x, "Lc2", "c2", mat.Ceiling2Css)
+	out += swapToken(y, x, "Lc1", "c1", mat.Ceiling1Css)
+	out += swapToken(y, x, "Lc2", "c2", mat.Ceiling2Css)
 	out += placeHold
 	out += placeHold
 
 	return out
 }
 
-func divSwapCode(y, x int, prefix, zIndex, color string) string {
+func swapToken(y, x int, prefix, zIndex, color string) string {
 	return fmt.Sprintf(`[~ id="%s-%d-%d" class="box %s %s"]`, prefix, y, x, zIndex, color)
 }
 

@@ -450,7 +450,7 @@ func updatePlayerAfterStageChange(p *Player) {
 func updateEntireExistingScreen(player *Player) {
 	// player.clearUpdateBuffer <- struct{}{}
 	// clearChannel(player.updates)
-	player.updates <- swapsForPlayer(player)
+	player.updates <- entireScreenAsSwaps(player)
 }
 
 func clearChannel(ch chan []byte) {
