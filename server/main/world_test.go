@@ -70,6 +70,8 @@ func TestLogoutAndDeath(t *testing.T) {
 
 	_, cancelers, _, wg := socketsCancelsTokensWaiter(world, server.URL, PLAYER_COUNT, "test-blue")
 
+	time.Sleep(500 * time.Millisecond) // give time for all to join
+
 	// Assert
 	player, ok := world.worldPlayers[firstToken]
 	if !ok || player == nil {
@@ -88,8 +90,10 @@ func TestLogoutAndDeath(t *testing.T) {
 		t.Error("Player Should have power ")
 	}
 
-	if len(world.worldPlayers) == 0 {
-		t.Error("Should have players")
+	playerCount := len(world.worldPlayers)
+	if playerCount != PLAYER_COUNT+1 {
+		fmt.Println("Expected players: ", PLAYER_COUNT+1, " - Actual: ", playerCount)
+		t.Error("All should be logged in - pre-activation")
 	}
 
 	player.moveEast()
@@ -104,13 +108,12 @@ func TestLogoutAndDeath(t *testing.T) {
 	if ks != PLAYER_COUNT {
 		fmt.Println("Expected KS: ", PLAYER_COUNT, " - Actual: ", ks)
 		t.Error("Player should have killed all others")
-
 	}
-	pCount := len(world.worldPlayers)
-	if pCount != PLAYER_COUNT+1 {
-		fmt.Println("Expected players: ", PLAYER_COUNT+1, " - Actual: ", pCount)
-		t.Error("All should be logged in")
 
+	playerCount = len(world.worldPlayers)
+	if playerCount != PLAYER_COUNT+1 {
+		fmt.Println("Expected players: ", PLAYER_COUNT+1, " - Actual: ", playerCount)
+		t.Error("All should be logged in - post-activation")
 	}
 
 	for index := range cancelers {
@@ -149,6 +152,8 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 
 	_, cancelers, _, wg := socketsCancelsTokensWaiter(world, server.URL, PLAYER_COUNT2, "test-blue")
 
+	time.Sleep(500 * time.Millisecond) // give time for all to join
+
 	// Assert
 	player, ok := world.worldPlayers[firstToken]
 	if !ok || player == nil {
@@ -182,9 +187,10 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 	wg.Wait()
 	time.Sleep(1000 * time.Millisecond)
 	// Investigate why this sometimes fails.
-	// if player.getKillStreakSync() == 0 {
-	// 	t.Error("Player should have killed at least one")
-	// }
+	//    best guess because the old lack of reader was causing timeout logouts of other players first
+	if player.getKillStreakSync() == 0 {
+		t.Error("Player should have killed at least one")
+	}
 	fmt.Println("players after logout:", len(world.worldPlayers))
 	if len(world.worldPlayers) != PLAYER_COUNT1 {
 		t.Error("Players from first group should be logged in")
