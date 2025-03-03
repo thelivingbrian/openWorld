@@ -116,7 +116,6 @@ func processStringForColors(input string) string {
 	return input
 }
 
-// use through socket can prevent swap bypass
 func divBottomInvalid(s string) string {
 	return `
 	<div id="bottom_text" hx-swap-oob="true">
@@ -141,7 +140,6 @@ func playerBox(tile *Tile) string {
 	return playerBoxSpecifc(tile.y, tile.x, playerIndicator)
 }
 
-// Interactable box
 func interactableBox(tile *Tile) string {
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
@@ -152,6 +150,7 @@ func interactableBox(tile *Tile) string {
 	return fmt.Sprintf(`[~ id="Li1-%d-%d" class="box zi %s"]`, tile.y, tile.x, indicator)
 }
 
+// Take interactable instead of tile to prevent infered lock status requirement
 func lockedInteractableBox(tile *Tile) string {
 	indicator := ""
 	if tile.interactable != nil {

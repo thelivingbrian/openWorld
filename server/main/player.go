@@ -333,7 +333,7 @@ func infirmaryStagenameForPlayer(player *Player) string {
 ////////////////////////////////////////////////////////////
 //	Updates
 
-func (player *Player) sendUpdatesA() {
+func (player *Player) sendUpdatesUnbuffered() {
 	shouldSendUpdates := true
 	for {
 		select {
