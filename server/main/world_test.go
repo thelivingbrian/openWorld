@@ -100,11 +100,15 @@ func TestLogoutAndDeath(t *testing.T) {
 
 	}
 
-	if player.getKillStreakSync() != PLAYER_COUNT {
+	ks := player.getKillStreakSync()
+	if ks != PLAYER_COUNT {
+		fmt.Println("Expected KS: ", PLAYER_COUNT, " - Actual: ", ks)
 		t.Error("Player should have killed all others")
 
 	}
-	if len(world.worldPlayers) != PLAYER_COUNT+1 {
+	pCount := len(world.worldPlayers)
+	if pCount != PLAYER_COUNT+1 {
+		fmt.Println("Expected players: ", PLAYER_COUNT+1, " - Actual: ", pCount)
 		t.Error("All should be logged in")
 
 	}
