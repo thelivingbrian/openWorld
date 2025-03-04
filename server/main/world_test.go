@@ -187,7 +187,7 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 	wg.Wait()
 	time.Sleep(1000 * time.Millisecond)
 	// Investigate why this sometimes fails.
-	//    best guess because the old lack of reader was causing timeout logouts of other players first
+	//    best guess because testing sockets were not being read; causing timeout logouts of all players
 	if player.getKillStreakSync() == 0 {
 		t.Error("Player should have killed at least one")
 	}

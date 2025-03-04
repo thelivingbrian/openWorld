@@ -140,18 +140,17 @@ func playerBox(tile *Tile) string {
 	return playerBoxSpecifc(tile.y, tile.x, playerIndicator)
 }
 
+func interactableBoxSpecific(y, x int, interactable *Interactable) string {
+	indicator := ""
+	if interactable != nil {
+		indicator = interactable.cssClass
+	}
+	return fmt.Sprintf(`[~ id="Li1-%d-%d" class="box zi %s"]`, y, x, indicator)
+}
+
 func interactableBox(tile *Tile) string {
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
-	indicator := ""
-	if tile.interactable != nil {
-		indicator = tile.interactable.cssClass
-	}
-	return fmt.Sprintf(`[~ id="Li1-%d-%d" class="box zi %s"]`, tile.y, tile.x, indicator)
-}
-
-// Take interactable instead of tile to prevent infered lock status requirement
-func lockedInteractableBox(tile *Tile) string {
 	indicator := ""
 	if tile.interactable != nil {
 		indicator = tile.interactable.cssClass

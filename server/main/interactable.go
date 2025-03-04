@@ -427,7 +427,7 @@ func makeDangerousForOtherTeam(i *Interactable, p *Player, t *Tile) (*Interactab
 	}
 	t.interactable.cssClass = initiatorTeam + "-b thick r0"
 	t.interactable.reactions = newReactions
-	t.stage.updateAll(lockedInteractableBox(t))
+	t.stage.updateAll(interactableBoxSpecific(t.y, t.x, t.interactable))
 	addMoneyToStage(t.stage, 10) // should be more money
 	return nil, false
 }
@@ -483,7 +483,7 @@ func damageWithinRadiusAndReset(radius, dmg int, ownerId string) func(i *Interac
 		placeInteractableOnStagePriorityCovered(t.stage, createRing())
 		t.interactable.cssClass = "white trsp20 r0"
 		t.interactable.reactions = interactableReactions["lily-pad"]
-		t.stage.updateAll(lockedInteractableBox(t) + soundTriggerByName("explosion"))
+		t.stage.updateAll(interactableBoxSpecific(t.y, t.x, t.interactable) + soundTriggerByName("explosion"))
 		return nil, false
 	}
 }

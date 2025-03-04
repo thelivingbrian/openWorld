@@ -284,23 +284,23 @@ func (tile *Tile) tryToNotifyAfter(delay int) {
 //////////////////////////////////////////////////////////////////////
 // Interactables
 
-func destroyFragileInteractable(tile *Tile, _ *Player) {
-	// *Player is a placeholder for initiator/destroyer in future
-	tile.interactableMutex.Lock()
-	defer tile.interactableMutex.Unlock()
-	if tile.interactable != nil && tile.interactable.fragile {
-		tile.interactable = nil
-		tile.stage.updateAll(lockedInteractableBox(tile))
-	}
-}
-
 func destroyInteractable(tile *Tile, _ *Player) {
 	// *Player is a placeholder for initiator/destroyer in future
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
 	if tile.interactable != nil {
 		tile.interactable = nil
-		tile.stage.updateAll(lockedInteractableBox(tile))
+		tile.stage.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
+	}
+}
+
+func destroyFragileInteractable(tile *Tile, _ *Player) {
+	// *Player is a placeholder for initiator/destroyer in future
+	tile.interactableMutex.Lock()
+	defer tile.interactableMutex.Unlock()
+	if tile.interactable != nil && tile.interactable.fragile {
+		tile.interactable = nil
+		tile.stage.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
 	}
 }
 

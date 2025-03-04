@@ -236,7 +236,7 @@ func replaceNilInteractable(tile *Tile, incoming *Interactable) bool {
 
 func setLockedInteractableAndUpdate(tile *Tile, incoming *Interactable) {
 	tile.interactable = incoming
-	tile.stage.updateAll(lockedInteractableBox(tile))
+	tile.stage.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
 }
 
 func hasTeleport(tile *Tile) bool {
