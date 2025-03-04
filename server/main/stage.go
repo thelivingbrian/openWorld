@@ -47,7 +47,7 @@ func createStageFromArea(area Area) *Stage {
 		mat.CssColor = "pink"
 		mat.Floor1Css = ""
 		mat.Floor2Css = ""
-		outputStage.tiles[transport.SourceY][transport.SourceX].htmlTemplate = makeTileTemplate(mat, transport.SourceY, transport.SourceX)
+		outputStage.tiles[transport.SourceY][transport.SourceX].quickSwapTemplate = makeQuickSwapTemplate(mat, transport.SourceY, transport.SourceX)
 
 	}
 
@@ -79,7 +79,7 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 	stage.addLockedPlayer(p)
 	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
 	p.setSpaceHighlights()
-	updateScreenFromScratch(p)
+	updateEntireExistingScreen(p)
 }
 
 ///////////////////////////////////////////////////

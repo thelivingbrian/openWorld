@@ -75,11 +75,6 @@ func handleNewPlayer(player *Player) {
 			logger.Info().Msg("Invalid input")
 			continue
 		}
-		if event.Token != player.id {
-			// check mildly irrelevant?
-			logger.Info().Msg("Cheating")
-			break
-		}
 
 		if player.handlePressActive(event) {
 			lastRead = currentRead
@@ -155,7 +150,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 	case "D":
 		player.moveEastBoost()
 	case "f":
-		updateScreenFromScratch(player)
+		updateEntireExistingScreen(player)
 	case "g":
 		makeHallucinate(player)
 	case "h":
@@ -222,16 +217,6 @@ func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, conte
 				return
 			default:
 				<-newPlayer.updates
-			}
-		}
-	}(ctx)
-	go func(ctx context.Context) {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				<-newPlayer.clearUpdateBuffer
 			}
 		}
 	}(ctx)

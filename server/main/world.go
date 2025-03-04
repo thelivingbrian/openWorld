@@ -159,13 +159,16 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 		return nil
 	}
 
+	newPlayer.updateRecordOnLogin()
+	stage := getStageFromStageName(newPlayer, incoming.Record.StageName)
+
 	newPlayer.conn = conn
+	emptyScreen := emptyScreenForStage(stage)
+	sendUpdate(newPlayer, emptyScreen)
 	go newPlayer.sendUpdates()
 
 	world.addPlayer(newPlayer)
-	newPlayer.updateRecordOnLogin()
 
-	stage := getStageFromStageName(newPlayer, incoming.Record.StageName)
 	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
 	return newPlayer
 }
@@ -200,7 +203,6 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		username:                 record.Username,
 		stage:                    nil,
 		updates:                  updatesForPlayer,
-		clearUpdateBuffer:        make(chan struct{}, 0),
 		sessionTimeOutViolations: atomic.Int32{},
 		tangible:                 true,
 		tangibilityLock:          sync.Mutex{},

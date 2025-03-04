@@ -781,17 +781,7 @@ return (function () {
          */
         function oobSwap(oobValue, oobElement, settleInfo) {
             const id = getRawAttribute(oobElement, "id")
-
-            // Override htmx in this instance to prevent DOM rewrites for boxes
-            const regex = /^[piwtx]\d+-\d+$/;
-            if (regex.test(id)) {
-                var target = getDocument().getElementById(getRawAttribute(oobElement, "id"))
-                target.classList = oobElement.classList
-                return "true"
-            }
-
             var selector = "#" + id;
-
             var swapStyle = "outerHTML";
             if (oobValue === "true") {
                 // do nothing
@@ -811,23 +801,28 @@ return (function () {
                         var oobElementClone = oobElement.cloneNode(true);
                         fragment = getDocument().createDocumentFragment();
                         fragment.appendChild(oobElementClone);
-                        //console.log("B")
-                        //if (!isInlineSwap(swapStyle, target)) {
-                        //    console.log("A")
+                        //  //  leave following htmx features unused:
+                        //
+                        //  //  inline swap 
+                        //  if (!isInlineSwap(swapStyle, target)) {
                         //    fragment = oobElementClone; // if this is not an inline swap, we use the content of the node, not the node itself
-                        //}
-
-                        //var beforeSwapDetails = {shouldSwap: true, target: target, fragment:fragment };
-                        //if (!triggerEvent(target, 'htmx:oobBeforeSwap', beforeSwapDetails)) return;
-
-                        //target = beforeSwapDetails.target; // allow re-targeting
-                        //if (beforeSwapDetails['shouldSwap']){
-                        //    
-                        //}
-                        swap(swapStyle, target, target, fragment, settleInfo);
-                        //forEach(settleInfo.elts, function (elt) {
+                        //  }
+                        //
+                        //  // beforeSwap event 
+                        //  var beforeSwapDetails = {shouldSwap: true, target: target, fragment:fragment };
+                        //  if (!triggerEvent(target, 'htmx:oobBeforeSwap', beforeSwapDetails)) return;
+                        //
+                        //  // shouldSwap check
+                        //  target = beforeSwapDetails.target; // allow re-targeting
+                        //  if (beforeSwapDetails['shouldSwap']) { 
+                        //    swap(swapStyle, target, target, fragment, settleInfo) 
+                        //  }
+                        //
+                        //  // afterSwap event
+                        //  forEach(settleInfo.elts, function (elt) {
                         //    triggerEvent(elt, 'htmx:oobAfterSwap', beforeSwapDetails);
-                        //});
+                        //  });
+                        swap(swapStyle, target, target, fragment, settleInfo);
                     }
                 );
                 oobElement.parentNode.removeChild(oobElement);

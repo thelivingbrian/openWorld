@@ -192,7 +192,7 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, divBottomInvalid("Invalid Player Color"))
 		return
 	}
-
+	// not atomic
 	if db.foundUsername(username) {
 		io.WriteString(w, divBottomInvalid("Username unavailable. Try again."))
 		return
@@ -231,7 +231,7 @@ func validUsername(username string) bool {
 		return false
 	}
 
-	var invalidChars = []string{"{", "}", "\"", "'", "`", "/", "\\", "\n", "\t"}
+	var invalidChars = []string{"{", "}", "\"", "'", "`", "/", "[", "]", "<", ">", "\\", "\n", "\t"}
 	for _, char := range invalidChars {
 		if strings.Contains(username, char) {
 			return false

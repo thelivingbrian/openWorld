@@ -26,7 +26,6 @@ type Player struct {
 	tile                     *Tile
 	tileLock                 sync.Mutex
 	updates                  chan []byte
-	clearUpdateBuffer        chan struct{}
 	sessionTimeOutViolations atomic.Int32
 	conn                     WebsocketConnection
 	connLock                 sync.RWMutex
@@ -237,7 +236,7 @@ func replaceNilInteractable(tile *Tile, incoming *Interactable) bool {
 
 func setLockedInteractableAndUpdate(tile *Tile, incoming *Interactable) {
 	tile.interactable = incoming
-	tile.stage.updateAll(lockedInteractableBox(tile))
+	tile.stage.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
 }
 
 func hasTeleport(tile *Tile) bool {
@@ -334,7 +333,7 @@ func infirmaryStagenameForPlayer(player *Player) string {
 ////////////////////////////////////////////////////////////
 //	Updates
 
-func (player *Player) sendUpdates() {
+func (player *Player) sendUpdatesUnbuffered() {
 	shouldSendUpdates := true
 	for {
 		select {
@@ -355,9 +354,9 @@ func (player *Player) sendUpdates() {
 	}
 }
 
-func (player *Player) sendUpdatesBuffered() {
+func (player *Player) sendUpdates() {
 	var buffer bytes.Buffer
-	const maxBufferSize = 256 * 1024
+	const maxBufferSize = 10 * 256 * 1024
 
 	shouldSendUpdates := true
 	ticker := time.NewTicker(25 * time.Millisecond)
@@ -380,8 +379,6 @@ func (player *Player) sendUpdatesBuffered() {
 				logger.Warn().Msg(fmt.Sprintf("Player: %s - buffer exceeded %d bytes, wiping buffer\n", player.username, maxBufferSize))
 				buffer.Reset()
 			}
-		case <-player.clearUpdateBuffer:
-			buffer.Reset()
 		case <-ticker.C:
 			if !shouldSendUpdates || buffer.Len() == 0 {
 				continue
@@ -444,13 +441,11 @@ func updatePlayerAfterMovement(player *Player, current, previous *Tile) {
 
 func updatePlayerAfterStageChange(p *Player) {
 	p.setSpaceHighlights()
-	updateScreenFromScratch(p)
+	updateEntireExistingScreen(p)
 }
 
-func updateScreenFromScratch(player *Player) {
-	// player.clearUpdateBuffer <- struct{}{}
-	// clearChannel(player.updates)
-	player.updates <- htmlFromPlayer(player)
+func updateEntireExistingScreen(player *Player) {
+	player.updates <- entireScreenAsSwaps(player)
 }
 
 func clearChannel(ch chan []byte) {

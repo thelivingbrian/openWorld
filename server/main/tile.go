@@ -25,7 +25,7 @@ type Tile struct {
 	moneyMutex        sync.Mutex
 	boosts            int
 	boostsMutex       sync.Mutex
-	htmlTemplate      string
+	quickSwapTemplate string
 	bottomText        string
 }
 
@@ -43,62 +43,47 @@ func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 		mat.CssColor = defaultTileColor
 	}
 	return &Tile{
-		material:       mat,
-		playerMap:      make(map[string]*Player),
-		playerMutex:    sync.Mutex{},
-		stage:          nil,
-		teleport:       nil,
-		y:              y,
-		x:              x,
-		eventsInFlight: atomic.Int32{},
-		powerUp:        nil,
-		powerMutex:     sync.Mutex{},
-		money:          0,
-		htmlTemplate:   makeTileTemplate(mat, y, x),
-		bottomText:     mat.DisplayText, // Pre-process needed *String to have option of null?
+		material:          mat,
+		playerMap:         make(map[string]*Player),
+		playerMutex:       sync.Mutex{},
+		stage:             nil,
+		teleport:          nil,
+		y:                 y,
+		x:                 x,
+		eventsInFlight:    atomic.Int32{},
+		powerUp:           nil,
+		powerMutex:        sync.Mutex{},
+		money:             0,
+		quickSwapTemplate: makeQuickSwapTemplate(mat, y, x),
+		bottomText:        mat.DisplayText, // Pre-process needed *String to have option of null?
 	}
 }
 
 ////////////////////////////////////////////////
-// HTML
+// Quickswaps
 
-func makeTileTemplate(mat Material, y, x int) string {
-	tileCoord := fmt.Sprintf("%d-%d", y, x)
-	cId := "c" + tileCoord // This is used to identify the entire square
-	placeHold := "%s"      // later becomes player, interactable, svg, weather, and highlight boxes
+func makeQuickSwapTemplate(mat Material, y, x int) string {
+	// weird pattern here
+	placeHold := "%s" // later becomes player, interactable, svg, weather, and highlight boxes
 
-	floor1css := ""
-	if mat.Floor1Css != "" {
-		floor1css = fmt.Sprintf(`<div class="box floor1 %s"></div>`, mat.Floor1Css)
-	}
+	out := ""
+	out += swapToken(y, x, "Lg1", "g1", mat.CssColor)
+	out += swapToken(y, x, "Lg2", "g2", "")
+	out += swapToken(y, x, "Lf1", "f1", mat.Floor1Css)
+	out += swapToken(y, x, "Lf2", "f2", mat.Floor2Css)
+	out += placeHold
+	out += placeHold
+	out += placeHold
+	out += swapToken(y, x, "Lc1", "c1", mat.Ceiling1Css)
+	out += swapToken(y, x, "Lc2", "c2", mat.Ceiling2Css)
+	out += placeHold
+	out += placeHold
 
-	floor2css := ""
-	if mat.Floor2Css != "" {
-		floor2css = fmt.Sprintf(`<div class="box floor2 %s"></div>`, mat.Floor2Css)
-	}
+	return out
+}
 
-	ceil1css := ""
-	if mat.Ceiling1Css != "" {
-		ceil1css = fmt.Sprintf(`<div class="box ceiling1 %s"></div>`, mat.Ceiling1Css)
-	}
-
-	ceil2css := ""
-	if mat.Ceiling2Css != "" {
-		ceil2css = fmt.Sprintf(`<div class="box ceiling2 %s"></div>`, mat.Ceiling2Css)
-	}
-
-	template := `<div id="%s" class="grid-square %s">				
-					%s
-					%s
-					%s
-					%s
-					%s
-					%s
-					%s
-					%s
-					%s
-				</div>`
-	return fmt.Sprintf(template, cId, mat.CssColor, floor1css, floor2css, placeHold, placeHold, placeHold, ceil1css, ceil2css, placeHold, placeHold)
+func swapToken(y, x int, prefix, zIndex, color string) string {
+	return fmt.Sprintf(`[~ id="%s-%d-%d" class="box %s %s"]`, prefix, y, x, zIndex, color)
 }
 
 ////////////////////////////////////////////////////////////
@@ -299,23 +284,23 @@ func (tile *Tile) tryToNotifyAfter(delay int) {
 //////////////////////////////////////////////////////////////////////
 // Interactables
 
-func destroyFragileInteractable(tile *Tile, _ *Player) {
-	// *Player is a placeholder for initiator/destroyer in future
-	tile.interactableMutex.Lock()
-	defer tile.interactableMutex.Unlock()
-	if tile.interactable != nil && tile.interactable.fragile {
-		tile.interactable = nil
-		tile.stage.updateAll(lockedInteractableBox(tile))
-	}
-}
-
 func destroyInteractable(tile *Tile, _ *Player) {
 	// *Player is a placeholder for initiator/destroyer in future
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
 	if tile.interactable != nil {
 		tile.interactable = nil
-		tile.stage.updateAll(lockedInteractableBox(tile))
+		tile.stage.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
+	}
+}
+
+func destroyFragileInteractable(tile *Tile, _ *Player) {
+	// *Player is a placeholder for initiator/destroyer in future
+	tile.interactableMutex.Lock()
+	defer tile.interactableMutex.Unlock()
+	if tile.interactable != nil && tile.interactable.fragile {
+		tile.interactable = nil
+		tile.stage.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
 	}
 }
 

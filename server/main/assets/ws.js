@@ -122,9 +122,11 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 			return htmx.createWebSocket(wssSource)
 		});
 
+		// Massages that match not are not sent to htmx
+		const quickSwapRegex = /\[~\s+id="([^"]+)"\s+class="([^"]+)"/;
+		
 		socketWrapper.addEventListener('message', function (event) {
-			//console.log("hello from ws")
-            
+
             if (maybeCloseWebSocketSource(socketElt)) {
 				return;
 			}
@@ -142,8 +144,53 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 			});
 
 			var settleInfo = api.makeSettleInfo(socketElt);
-			var fragment = api.makeFragment(response);
 
+
+			// Scan the incoming message: 
+			//   swap [~ id="" class=""] will bypass htmx
+			//   html <elements> are saved for htmx
+			let position = 0;
+			let htmlPart = "";
+			let swaps = [];
+			while (position < response.length) {
+				check = response[position];
+				switch (check) {
+				case '[':
+					var next = response.indexOf('<', position);
+					var quickSwapString = response.slice(position, next);
+					swaps.push(...quickSwapString.split("]"));
+					if (next === -1) {
+						next = response.length;
+					}
+					position = next;
+					break;
+				case '<':
+					var next = response.indexOf('[~', position);
+					if (next === -1) {
+						next = response.length;
+					}
+					htmlPart += response.substring(position, next);
+					position = next;
+					break;
+				default: 
+					position++
+					break;
+				}
+			}
+
+			// Change CSS class w/o DOM rewrite or HTML parse 
+			for (let i = 0; i < swaps.length; i++) {
+				const match = quickSwapRegex.exec(swaps[i]);
+				if (match) {
+					const id = match[1];
+					const classes = match[2];
+					target = document.getElementById(id);
+					target.className = classes;
+				}
+			}
+
+			// Any HTML in the websocket message is sent to htmx as normal 
+			var fragment = api.makeFragment(htmlPart);
 			if (fragment.children.length) {
 				var children = Array.from(fragment.children);
 				for (var i = 0; i < children.length; i++) {
@@ -157,6 +204,20 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 
 		// Put the WebSocket into the HTML Element's custom data.
 		api.getInternalData(socketElt).webSocket = socketWrapper;
+	}
+
+	function processAsFragmentToSwap(response, socketElt){
+		var settleInfo = api.makeSettleInfo(socketElt);
+		var fragment = api.makeFragment(response);
+
+		if (fragment.children.length) {
+			var children = Array.from(fragment.children);
+			for (var i = 0; i < children.length; i++) {
+				api.oobSwap(api.getAttributeValue(children[i], "hx-swap-oob") || "true", children[i], settleInfo);
+			}
+		}
+		api.settleImmediately(settleInfo.tasks);
+		api.triggerEvent(socketElt, "htmx:wsAfterMessage", { message: response, socketWrapper: socketWrapper.publicInterface })
 	}
 
 	/**

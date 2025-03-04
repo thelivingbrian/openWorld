@@ -36,9 +36,9 @@ func TestSocketJoinAndMove(t *testing.T) {
 
 	testingSocket.writeOrFatal(createInitialTokenMessage(req.Token))
 
-	testingSocket.writeOrFatal(createSocketEventMessage(req.Token, "d"))
+	testingSocket.writeOrFatal(createSocketEventMessage("d"))
 
-	testingSocket.writeOrFatal(createSocketEventMessage(req.Token, "d"))
+	testingSocket.writeOrFatal(createSocketEventMessage("d"))
 
 	_ = testingSocket.readOrFatal() // reading more than once is a lock risk.
 
@@ -70,6 +70,8 @@ func TestLogoutAndDeath(t *testing.T) {
 
 	_, cancelers, _, wg := socketsCancelsTokensWaiter(world, server.URL, PLAYER_COUNT, "test-blue")
 
+	time.Sleep(500 * time.Millisecond) // give time for all to join
+
 	// Assert
 	player, ok := world.worldPlayers[firstToken]
 	if !ok || player == nil {
@@ -88,8 +90,10 @@ func TestLogoutAndDeath(t *testing.T) {
 		t.Error("Player Should have power ")
 	}
 
-	if len(world.worldPlayers) == 0 {
-		t.Error("Should have players")
+	playerCount := len(world.worldPlayers)
+	if playerCount != PLAYER_COUNT+1 {
+		fmt.Println("Expected players: ", PLAYER_COUNT+1, " - Actual: ", playerCount)
+		t.Error("All should be logged in - pre-activation")
 	}
 
 	player.moveEast()
@@ -100,13 +104,16 @@ func TestLogoutAndDeath(t *testing.T) {
 
 	}
 
-	if player.getKillStreakSync() != PLAYER_COUNT {
+	ks := player.getKillStreakSync()
+	if ks != PLAYER_COUNT {
+		fmt.Println("Expected KS: ", PLAYER_COUNT, " - Actual: ", ks)
 		t.Error("Player should have killed all others")
-
 	}
-	if len(world.worldPlayers) != PLAYER_COUNT+1 {
-		t.Error("All should be logged in")
 
+	playerCount = len(world.worldPlayers)
+	if playerCount != PLAYER_COUNT+1 {
+		fmt.Println("Expected players: ", PLAYER_COUNT+1, " - Actual: ", playerCount)
+		t.Error("All should be logged in - post-activation")
 	}
 
 	for index := range cancelers {
@@ -145,6 +152,8 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 
 	_, cancelers, _, wg := socketsCancelsTokensWaiter(world, server.URL, PLAYER_COUNT2, "test-blue")
 
+	time.Sleep(500 * time.Millisecond) // give time for all to join
+
 	// Assert
 	player, ok := world.worldPlayers[firstToken]
 	if !ok || player == nil {
@@ -178,9 +187,10 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 	wg.Wait()
 	time.Sleep(1000 * time.Millisecond)
 	// Investigate why this sometimes fails.
-	// if player.getKillStreakSync() == 0 {
-	// 	t.Error("Player should have killed at least one")
-	// }
+	//    best guess because testing sockets were not being read; causing timeout logouts of all players
+	if player.getKillStreakSync() == 0 {
+		t.Error("Player should have killed at least one")
+	}
 	fmt.Println("players after logout:", len(world.worldPlayers))
 	if len(world.worldPlayers) != PLAYER_COUNT1 {
 		t.Error("Players from first group should be logged in")
@@ -304,7 +314,7 @@ func socketsCancelsTokensWaiter(world *World, serverURL string, PLAYER_COUNT int
 		wg.Add(1)
 		cancelers = append(cancelers, cancel)
 		testingSocket.writeOrFatal(createInitialTokenMessage(req.Token))
-		// go testingSocket.readUntilClose() // No need, handled by handleNewUser?
+		go testingSocket.readUntilClose()
 
 		sockets = append(sockets, testingSocket)
 	}
@@ -333,9 +343,6 @@ func createTestingSocketWithCancel(url string, wg *sync.WaitGroup) (*TestingSock
 			case <-ctx.Done():
 				ts.ws.Close()
 				return
-				//default:
-				// just usee ts.ws.ReadMessage() ?
-				//ts.readOrFatal()
 			}
 		}
 	}(ctx)
@@ -346,7 +353,7 @@ func createInitialTokenMessage(token string) []byte {
 	var msg = struct {
 		Token string
 	}{
-		Token: token, //"TestToke",
+		Token: token,
 	}
 	initialTokenMessage, err := json.Marshal(msg)
 	if err != nil {
@@ -355,10 +362,9 @@ func createInitialTokenMessage(token string) []byte {
 	return initialTokenMessage
 }
 
-func createSocketEventMessage(token, name string) []byte {
+func createSocketEventMessage(name string) []byte {
 	var msg = PlayerSocketEvent{
-		Token: token,
-		Name:  name,
+		Name: name,
 	}
 	socketMsg, err := json.Marshal(msg)
 	if err != nil {

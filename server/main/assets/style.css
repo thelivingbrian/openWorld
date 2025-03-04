@@ -10,14 +10,14 @@
     border-radius: 8px;
     padding: 10px;
     width: 66%;
-  }
+}
 
 .center-horizontally {
     display: block;
     margin-left: auto;
     margin-right: auto;
     width: 50%; 
-  }
+}
 
 .retro-input {
     background-color: #120500;
@@ -28,7 +28,7 @@
 
 html, body {
     overflow-x: hidden;
-  }
+}
 
 html {
     min-height:100%;
@@ -47,10 +47,6 @@ span {
 }
 
 body {
-    /*
-    Sunset: #ef693c;
-    Day : Light cyan? #7aeeff
-    background-color: #120500;*/
     background-color: #120500;
     font-family: 'BloopRetro', sans-serif;
     width:100%;
@@ -60,7 +56,6 @@ body {
     font-size: 28px;
     overflow: none;
     margin: 0;
-    /*margin-left: 8;*/
     margin-top: 6;
 }
 
@@ -128,8 +123,8 @@ a {
     margin: 0 auto;
 }
 
-/* color select */
 
+/* color select */
 
 .left-float {
     float: left;
@@ -205,31 +200,14 @@ img {
 .grid-square {
     aspect-ratio: 1;
     border: 0px solid rgba(172, 152, 219,0);
-    /*background-color: rgb(172, 152, 219);*/
     cursor: pointer;
     position: relative;
   }
   
 /* these colors are needed by the game itself */
 
-  .green {
-    background-color: rgb(32, 255, 60);
-  }
-
   .dark-green {
     background-color: rgb(32, 155, 60);
-  }
-
-  .lime {
-    background-color: rgb(150, 255, 60);
-  }
-
-  .yellow {
-    background-color: rgb(255, 255, 60);
-  }
-
-  .orange {
-    background-color: rgb(255, 150, 60);
   }
 
   .red {
@@ -260,22 +238,6 @@ img {
     background-color: rgb(17, 53, 84); /* 60% darker */
   }
 
-  .pink {
-    background-color: rgb(253, 182, 215);
-  }
-
-  .salmon {
-    background-color: rgb(255, 165, 145);
-  }
-  
-  .half-gray {
-    background-color: rgb(120, 120, 129);
-  }
-  
-  .dark-blue {
-    background-color: rgb(32, 32, 65);
-  }
-
 /* Overlays */
 * {
     box-sizing: border-box;
@@ -295,40 +257,48 @@ img {
     Box z-Indices
 */
 
-.floor1 {
+.g1 {
     z-index: 10;
 } 
 
-.floor2 {
-    z-index: 11;
+.g2 {
+    z-index: 15;
+} 
+
+.f1 {
+    z-index: 20;
+} 
+
+.f2 {
+    z-index: 25;
 } 
 
 .zp {
-    z-index: 20;
+    z-index: 30;
 }
   
 .zi {
-    z-index: 25;
-}
-  
-.zs {
-    z-index: 26;
-}
-
-.ceiling1 {
-    z-index: 30;
-}
-
-.ceiling2 {
-    z-index: 31;
-}
-  
-.zw {
     z-index: 35;
 }
   
-.top {
+.zs {
     z-index: 40;
+}
+
+.c1 {
+    z-index: 50;
+}
+
+.c2 {
+    z-index: 55;
+}
+  
+.zw {
+    z-index: 60;
+}
+  
+.top {
+    z-index: 70;
 }
 
 /* Transparency */
@@ -441,25 +411,26 @@ img {
 }
 
 /* SVG  */
-
-.svgGreen {  
-    fill: rgb(105, 255, 100);
-    fill-opacity: .6;
+circle {
+    display: none;
 }
 
-.svgRed {
-    fill: rgb(255, 105, 100);
-    fill-opacity: .8;
-}
+div.svgGreen circle.svgGreen {
+display: inline;
+fill: rgb(105, 255, 100);
+fill-opacity: 0.6;
+} 
 
-.svgBlue {
-    fill: rgb(15, 100, 255);
-    fill-opacity: .8;
-}
+div.svgRed circle.svgRed {
+display: inline;
+fill: rgb(255, 105, 100);
+fill-opacity: 0.6;
+}  
 
-.svgYellow {
-    fill: rgb(255, 255, 100);
-    fill-opacity: .8;
+div.svgBlue circle.svgBlue {
+display: inline;
+fill: rgb(15, 100, 255);
+fill-opacity: 0.6;
 }
 
 /* Buttons */
@@ -596,14 +567,6 @@ input[type="radio"] {
 p {
     margin: 0;
 }
-
-/*
-.grid-row {
-    display: flex;
-    justify-content: center;
-}
-    */
-
 
 #color-window-0,
 #color-window-1 {

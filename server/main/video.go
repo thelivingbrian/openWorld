@@ -82,7 +82,7 @@ func generateDivs(frame int) string {
 				color = col2
 			}
 
-			sb.WriteString(fmt.Sprintf(`<div id="w%d-%d" class="box zw %s"></div>`+"\n", i, j, color))
+			sb.WriteString(fmt.Sprintf(`[~ id="Lw1-%d-%d" class="box zw %s"]`+"\n", i, j, color))
 		}
 	}
 
@@ -94,7 +94,7 @@ func generateWeatherSolid(color string) string {
 
 	for i := 0; i < 16; i++ {
 		for j := 0; j < 16; j++ {
-			sb.WriteString(fmt.Sprintf(`<div id="w%d-%d" class="box zw %s"></div>`+"\n", i, j, color))
+			sb.WriteString(fmt.Sprintf(`[~ id="w%d-%d" class="box zw %s"]`+"\n", i, j, color))
 		}
 	}
 
@@ -106,7 +106,7 @@ func generateWeatherSolidByteBuffer(color string) []byte {
 
 	for i := 0; i < 16; i++ {
 		for j := 0; j < 16; j++ {
-			fmt.Fprintf(buf, `<div id="w%d-%d" class="box zw %s"></div>`+"\n", i, j, color)
+			fmt.Fprintf(buf, `[~ id="w%d-%d" class="box zw %s"]`, i, j, color)
 		}
 	}
 
@@ -118,7 +118,7 @@ func generateWeatherDumb(color string) string {
 
 	for i := 0; i < 16; i++ {
 		for j := 0; j < 16; j++ {
-			out += fmt.Sprintf(`<div id="w%d-%d" class="box zw %s"></div>`+"\n", i, j, color)
+			out += fmt.Sprintf(`[~ id="w%d-%d" class="box zw %s"]`, i, j, color)
 		}
 	}
 
@@ -134,26 +134,23 @@ func generateWeatherSolidBytes(color string) []byte {
 	// <div id="w{i}-{j}" class="box zw {color}"></div>\n
 	//
 	// Breakdown of constant parts:
-	// "<div id=\"w"      = 10 bytes (including the quote)
-	// "-"                = 1 byte
-	// "\" class=\"box zw " = 15 bytes (including the leading quote)
-	// "\"></div>"       = 8 bytes (including quotes and newline)
-	// Total constant overhead per line = 10 + 1 + 15 + 9 = 34 bytes
+	// `[~ id="Lw1-`      = 11 bytes (including the quote)
+	// `-`                = 1 byte
+	// `" class="box zw ` = 16 bytes (including the leading quote)
+	// `"]`       = 2 bytes
+	// Total constant overhead per line = 30 bytes
 	//
-	// Now add the length for i and j (up to "15") and "w":
-	// "w" + i + "-" + j: "w" (1 byte), max i=2 digits, "-" (1 byte), max j=2 digits
-	// Max i and j length = 2 digits each = 4 bytes + "w" + "-" = 6 bytes max
-	// So worst: 34 (constant) + 6 (id part) = 40 bytes + len(color) per line
+	// Plus length of i and j = worst case of 34 bytes? + color
 	//
 	// We have 256 lines (16x16):
-	// capacity ~ 256 * (40 + len(color))
+	// capacity ~ 256 * (34 + len(color))
 	estCap := 256 * (40 + len(color))
 	b := make([]byte, 0, estCap)
 
-	prefix := []byte(`<div id="w`)
+	prefix := []byte(`[~ id="Lw1-`)
 	sep := []byte(`-`)
 	cls := []byte(`" class="box zw `)
-	suffix := []byte(`"></div>`)
+	suffix := []byte(`"]`)
 
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {

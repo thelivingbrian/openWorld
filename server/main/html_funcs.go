@@ -5,29 +5,14 @@ import (
 	"fmt"
 	"math/rand"
 	"regexp"
-	"text/template"
 )
 
-const screenTemplate = `
-<div id="screen" class="grid">
-	{{range $y, $row := .}}
-	<div class="grid-row">
-		{{range $x, $html := $row}}
-		{{$html}}
-		{{end}}
-	</div>
-	{{end}}
-</div>`
+////////////////////////////////////////////////////////////
+// Quickswaps / screen
 
-var parsedScreenTemplate = template.Must(template.New("playerScreen").Parse(screenTemplate))
-
-func htmlFromPlayer(player *Player) []byte {
+func emptyScreenForStage(stage *Stage) []byte {
 	var buf bytes.Buffer
-
-	currentTile := player.getTileSync()
-	tileHtml := htmlFromTileGrid(player.getStageSync().tiles, currentTile.y, currentTile.x, duplicateMapOfHighlights(player))
-
-	err := parsedScreenTemplate.Execute(&buf, tileHtml)
+	err := tmpl.ExecuteTemplate(&buf, "player-screen", stage.tiles)
 	if err != nil {
 		panic(err)
 	}
@@ -35,27 +20,30 @@ func htmlFromPlayer(player *Player) []byte {
 	return buf.Bytes()
 }
 
-func htmlFromTileGrid(tiles [][]*Tile, py, px int, highlights map[*Tile]bool) [][]string {
-	output := make([][]string, len(tiles))
-	for y := range output {
-		output[y] = make([]string, len(tiles[y]))
-		for x := range output[y] {
+func entireScreenAsSwaps(player *Player) []byte {
+	currentTile := player.getTileSync()
+	return swapsForTilesWithHighlights(currentTile.stage.tiles, duplicateMapOfHighlights(player))
+}
+
+func swapsForTilesWithHighlights(tiles [][]*Tile, highlights map[*Tile]bool) []byte {
+	var buf bytes.Buffer
+	for y := range tiles {
+		for x := range tiles[y] {
 			highlightColor := ""
 			_, found := highlights[tiles[y][x]]
 			if found {
 				highlightColor = spaceHighlighter()
 			}
-			output[y][x] = htmlForTile(tiles[y][x], highlightColor)
+			tileSwaps := swapsForTile(tiles[y][x], highlightColor)
+			fmt.Fprintf(&buf, tileSwaps)
 		}
 	}
-	return output
+	return buf.Bytes()
 }
 
-func htmlForTile(tile *Tile, highlight string) string {
+func swapsForTile(tile *Tile, highlight string) string {
 	svgtag := svgFromTile(tile)
-	// grab tile y and x only once here or in parent method?
-	// Lock interactable before getting box
-	return fmt.Sprintf(tile.htmlTemplate, playerBox(tile), lockedInteractableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x), oobHighlightBox(tile, highlight))
+	return fmt.Sprintf(tile.quickSwapTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x), oobHighlightBox(tile, highlight))
 }
 
 ////////////////////////////////////////////////////////////
@@ -141,7 +129,7 @@ func divBottomInvalid(s string) string {
 // Boxes
 
 func playerBoxSpecifc(y, x int, icon string) string {
-	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, y, x, icon)
+	return fmt.Sprintf(`[~ id="Lp1-%d-%d" class="box zp %s"]`, y, x, icon)
 }
 
 func playerBox(tile *Tile) string {
@@ -149,21 +137,30 @@ func playerBox(tile *Tile) string {
 	if p := tile.getAPlayer(); p != nil {
 		playerIndicator = p.getIconSync()
 	}
-	return fmt.Sprintf(`<div id="p%d-%d" class="box zp %s"></div>`, tile.y, tile.x, playerIndicator)
+	return playerBoxSpecifc(tile.y, tile.x, playerIndicator)
 }
 
-func lockedInteractableBox(tile *Tile) string {
+func interactableBoxSpecific(y, x int, interactable *Interactable) string {
 	indicator := ""
-	//mutex
+	if interactable != nil {
+		indicator = interactable.cssClass
+	}
+	return fmt.Sprintf(`[~ id="Li1-%d-%d" class="box zi %s"]`, y, x, indicator)
+}
+
+func interactableBox(tile *Tile) string {
+	tile.interactableMutex.Lock()
+	defer tile.interactableMutex.Unlock()
+	indicator := ""
 	if tile.interactable != nil {
 		indicator = tile.interactable.cssClass
 	}
-	return fmt.Sprintf(`<div id="i%d-%d" class="box zi %s"></div>`, tile.y, tile.x, indicator)
+	return fmt.Sprintf(`[~ id="Li1-%d-%d" class="box zi %s"]`, tile.y, tile.x, indicator)
 }
 
 func emptyWeatherBox(y, x int) string {
 	//  blue trsp20 for gloom
-	return fmt.Sprintf(`<div id="w%d-%d" class="box zw"></div>`, y, x)
+	return fmt.Sprintf(`[~ id="Lw1-%d-%d" class="box zw"]`, y, x)
 }
 
 func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
@@ -202,12 +199,12 @@ func duplicateMapOfHighlights(player *Player) map[*Tile]bool {
 }
 
 func oobHighlightBox(tile *Tile, cssClass string) string {
-	template := `<div id="t%d-%d" class="box top %s"></div>`
+	template := `[~ id="Lt1-%d-%d" class="box top %s"]`
 	return fmt.Sprintf(template, tile.y, tile.x, cssClass)
 }
 
 func weatherBox(tile *Tile, cssClass string) string {
-	template := `<div id="w%d-%d" class="box zw %s"></div>`
+	template := `[~ id="Lw1-%d-%d" class="box zw %s"]`
 	return fmt.Sprintf(template, tile.y, tile.x, cssClass)
 }
 
@@ -218,23 +215,23 @@ func svgFromTile(tile *Tile) string {
 	defer tile.moneyMutex.Unlock()
 	tile.boostsMutex.Lock()
 	defer tile.boostsMutex.Unlock()
-	svgtag := `<div id="%s" class="box zs">`
-	if tile.powerUp != nil || tile.money != 0 || tile.boosts != 0 {
-		svgtag += `<svg width="22" height="22">`
-		if tile.powerUp != nil {
-			svgtag += `<circle class="svgRed" cx="7" cy="7" r="7" />`
-		}
-		if tile.money != 0 {
-			svgtag += `<circle class="svgGreen" cx="7" cy="14" r="7" />`
-		}
-		if tile.boosts != 0 {
-			svgtag += `<circle class="svgBlue" cx="14" cy="14" r="7" />`
-		}
-		svgtag += `</svg>`
+
+	template := `[~ id="%s" class="%s"]`
+
+	svgId := fmt.Sprintf("Ls1-%d-%d", tile.y, tile.x)
+
+	classes := "box zs "
+	if tile.powerUp != nil {
+		classes += "svgRed "
 	}
-	svgtag += "</div>"
-	sId := fmt.Sprintf("s%d-%d", tile.y, tile.x)
-	return fmt.Sprintf(svgtag, sId)
+	if tile.money != 0 {
+		classes += "svgGreen "
+	}
+	if tile.boosts != 0 {
+		classes += "svgBlue "
+	}
+
+	return fmt.Sprintf(template, svgId, classes)
 }
 
 ///////////////////////////////////////////
@@ -268,23 +265,13 @@ func divModalDisabled() string {
 }
 
 func divInput() string {
-	// uses htmx bypass to function
-	return `
-	<div id="x0-0" class="container">
-	</div>
-	<div id="x0-1" class="container hidden">
-	</div>
-`
+	// uses ws bypass to function
+	return `[~ id="Lx1-0-0" class="container"][~ id="Lx1-0-1" class="container hidden"]`
 }
 
 func divInputShift() string {
-	// uses htmx bypass to function
-	return `
-	<div id="x0-0" class="container hidden">
-	</div>
-	<div id="x0-1" class="container">
-	</div>
-`
+	// uses ws bypass to function
+	return `[~ id="Lx1-0-0" class="container hidden"][~ id="Lx1-0-1" class="container"]`
 }
 
 func divInputDisabled() string {

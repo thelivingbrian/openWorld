@@ -27,39 +27,71 @@
 </div>
 {{end}}
 
+
+{{ define "player-screen"}}
+<div id="screen" class="grid">
+	{{range $y, $row := .}}
+	<div class="grid-row">
+		{{range $x, $cell := $row}}
+		<div id="c{{$y}}-{{$x}}" class="grid-square">
+			<div id="Lg1-{{$y}}-{{$x}}" class="box g1"></div>
+			<div id="Lg2-{{$y}}-{{$x}}" class="box g2"></div>
+			<div id="Lf1-{{$y}}-{{$x}}" class="box f1"></div>
+			<div id="Lf2-{{$y}}-{{$x}}" class="box f2"></div>
+			<div id="Lp1-{{$y}}-{{$x}}" class="box zp"></div>
+			<div id="Li1-{{$y}}-{{$x}}" class="box zi"></div>
+			<div id="Ls1-{{$y}}-{{$x}}" class="box zs">
+				<svg width="22" height="22">
+					<circle class="svgRed" cx="7" cy="7" r="7"></circle>
+					<circle class="svgGreen" cx="7" cy="14" r="7"></circle>
+					<circle class="svgBlue" cx="14" cy="14" r="7"></circle>
+				</svg>
+			</div>
+			<div id="Lc1-{{$y}}-{{$x}}" class="box c1"></div>
+			<div id="Lc2-{{$y}}-{{$x}}" class="box c2"></div>
+			<div id="Lw1-{{$y}}-{{$x}}" class="box zw"></div>
+			<div id="Lt1-{{$y}}-{{$x}}" class="box top"></div>
+		</div>
+		{{end}}
+	</div>
+	{{end}}
+</div>
+{{ end }}
+
+
 {{ define "input" }}
 <div id="input">
     <div id="input-desktop">
-        <input id="wKey" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='ArrowUp'] from:body" hx-include="#token" name="eventname" value="w" />
-        <input id="aKey" type="hidden" ws-send hx-trigger="keydown[key=='a'||key=='ArrowLeft'] from:body" hx-include="#token" name="eventname" value="a" />
-        <input id="sKey" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='ArrowDown'] from:body" hx-include="#token" name="eventname" value="s" />
-        <input id="dKey" type="hidden" ws-send hx-trigger="keydown[key=='d'||key=='ArrowRight'] from:body" hx-include="#token" name="eventname" value="d" />
-        <input id="wShift" type="hidden" ws-send hx-trigger="keydown[key=='W'] from:body" hx-include="#token" name="eventname" value="W" />
-        <input id="aShift" type="hidden" ws-send hx-trigger="keydown[key=='A'] from:body" hx-include="#token" name="eventname" value="A" />
-        <input id="sShift" type="hidden" ws-send hx-trigger="keydown[key=='S'] from:body" hx-include="#token" name="eventname" value="S" />
-        <input id="dShift" type="hidden" ws-send hx-trigger="keydown[key=='D'] from:body" hx-include="#token" name="eventname" value="D" />
-        <input id="fKey" type="hidden" ws-send hx-trigger="keydown[key=='f'] from:body" hx-include="#token" name="eventname" value="f" />
-        <input id="gKey" type="hidden" ws-send hx-trigger="keydown[key=='g'] from:body" hx-include="#token" name="eventname" value="g" />
-        <input id="hKey" type="hidden" ws-send hx-trigger="keydown[key=='h'||key=='H'] from:body" hx-include="#token" name="eventname" value="h" />
-        <input id="menuOnKey" type="hidden" ws-send hx-trigger="keydown[key=='m'||key=='M'||key=='Escape'] from:body" hx-include="#token" name="eventname" value="menuOn" />
-        <input id="space-onKey" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body" hx-include="#token" name="eventname" value="Space-On" />
+        <input id="wKey" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='ArrowUp'] from:body" name="eventname" value="w" />
+        <input id="aKey" type="hidden" ws-send hx-trigger="keydown[key=='a'||key=='ArrowLeft'] from:body" name="eventname" value="a" />
+        <input id="sKey" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='ArrowDown'] from:body" name="eventname" value="s" />
+        <input id="dKey" type="hidden" ws-send hx-trigger="keydown[key=='d'||key=='ArrowRight'] from:body" name="eventname" value="d" />
+        <input id="wShift" type="hidden" ws-send hx-trigger="keydown[key=='W'] from:body" name="eventname" value="W" />
+        <input id="aShift" type="hidden" ws-send hx-trigger="keydown[key=='A'] from:body" name="eventname" value="A" />
+        <input id="sShift" type="hidden" ws-send hx-trigger="keydown[key=='S'] from:body" name="eventname" value="S" />
+        <input id="dShift" type="hidden" ws-send hx-trigger="keydown[key=='D'] from:body" name="eventname" value="D" />
+        <input id="fKey" type="hidden" ws-send hx-trigger="keydown[key=='f'] from:body" name="eventname" value="f" />
+        <input id="gKey" type="hidden" ws-send hx-trigger="keydown[key=='g'] from:body" name="eventname" value="g" />
+        <input id="hKey" type="hidden" ws-send hx-trigger="keydown[key=='h'||key=='H'] from:body" name="eventname" value="h" />
+        <input id="menuOnKey" type="hidden" ws-send hx-trigger="keydown[key=='m'||key=='M'||key=='Escape'] from:body" name="eventname" value="menuOn" />
+        <input id="space-onKey" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body" name="eventname" value="Space-On" />
     </div>
 
-    <input id="w" type="hidden" ws-send hx-trigger="click from:#but-w" hx-include="#token" name="eventname" value="w" />
-    <input id="a" type="hidden" ws-send hx-trigger="click from:#but-a" hx-include="#token" name="eventname" value="a" />
-    <input id="s" type="hidden" ws-send hx-trigger="click from:#but-s" hx-include="#token" name="eventname" value="s" />
-    <input id="d" type="hidden" ws-send hx-trigger="click from:#but-d" hx-include="#token" name="eventname" value="d" />
-    <input id="wShift" type="hidden" ws-send hx-trigger="click from:#but-wShift" hx-include="#token" name="eventname" value="W" />
-    <input id="aShift" type="hidden" ws-send hx-trigger="click from:#but-aShift" hx-include="#token" name="eventname" value="A" />
-    <input id="sShift" type="hidden" ws-send hx-trigger="click from:#but-sShift" hx-include="#token" name="eventname" value="S" />
-    <input id="dShift" type="hidden" ws-send hx-trigger="click from:#but-dShift" hx-include="#token" name="eventname" value="D" />
+    <input id="w" type="hidden" ws-send hx-trigger="click from:#but-w" name="eventname" value="w" />
+    <input id="a" type="hidden" ws-send hx-trigger="click from:#but-a" name="eventname" value="a" />
+    <input id="s" type="hidden" ws-send hx-trigger="click from:#but-s" name="eventname" value="s" />
+    <input id="d" type="hidden" ws-send hx-trigger="click from:#but-d" name="eventname" value="d" />
+    <input id="wShift" type="hidden" ws-send hx-trigger="click from:#but-wShift" name="eventname" value="W" />
+    <input id="aShift" type="hidden" ws-send hx-trigger="click from:#but-aShift" name="eventname" value="A" />
+    <input id="sShift" type="hidden" ws-send hx-trigger="click from:#but-sShift" name="eventname" value="S" />
+    <input id="dShift" type="hidden" ws-send hx-trigger="click from:#but-dShift" name="eventname" value="D" />
 
-    <input id="menuOn" type="hidden" ws-send hx-trigger="click from:#but-m" hx-include="#token" name="eventname" value="menuOn" />
-    <input id="space-on" type="hidden" ws-send hx-trigger="click from:#but-space" hx-include="#token" name="eventname" value="Space-On" />
-    <input id="shift-on" type="hidden" ws-send hx-trigger="click from:#but-shift-on" hx-include="#token" name="eventname" value="Shift-On" />
-    <input id="shift-off" type="hidden" ws-send hx-trigger="click from:#but-shift-off" hx-include="#token" name="eventname" value="Shift-Off" />
+    <input id="menuOn" type="hidden" ws-send hx-trigger="click from:#but-m" name="eventname" value="menuOn" />
+    <input id="space-on" type="hidden" ws-send hx-trigger="click from:#but-space" name="eventname" value="Space-On" />
+    <input id="shift-on" type="hidden" ws-send hx-trigger="click from:#but-shift-on" name="eventname" value="Shift-On" />
+    <input id="shift-off" type="hidden" ws-send hx-trigger="click from:#but-shift-off" name="eventname" value="Shift-Off" />
 
-    <div id="x0-0" class="container">
+    <div id="Lx1-0-0" class="container">
         <div id="dpad" class="dpad-container">
             <button id="but-w" class="button up">Up</button>
             <button id="but-a" class="button left">Left</button>
@@ -75,7 +107,7 @@
             <button id="but-shift-on" class="button B">Shift</button>
         </div>
     </div>
-    <div id="x0-1" class="container hidden">
+    <div id="Lx1-0-1" class="container hidden">
         <div id="dpad" class="dpad-container">
             <button id="but-wShift" class="button up">UP</button>
             <button id="but-aShift" class="button left">LEFT</button>
