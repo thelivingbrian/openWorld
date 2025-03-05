@@ -145,7 +145,7 @@ func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
 		return false
 	}
 
-	dest.addLockedPlayertoTile(p)
+	dest.addLockedPlayerToTile(p)
 	return true
 }
 
@@ -163,7 +163,7 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 	p.stage = dest.stage
 
 	dest.stage.addLockedPlayer(p)
-	dest.addLockedPlayertoTile(p)
+	dest.addLockedPlayerToTile(p)
 	return true
 }
 

@@ -92,11 +92,11 @@ func swapToken(y, x int, prefix, zIndex, color string) string {
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	player.tileLock.Lock()
 	defer player.tileLock.Unlock()
-	tile.addLockedPlayertoTile(player)
+	tile.addLockedPlayerToTile(player)
 	tile.stage.updateAllExcept(playerBox(tile), player)
 }
 
-func (tile *Tile) addLockedPlayertoTile(player *Player) {
+func (tile *Tile) addLockedPlayerToTile(player *Player) {
 	tile.playerMutex.Lock()
 	defer tile.playerMutex.Unlock()
 
@@ -213,6 +213,7 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 	if target == initiator {
 		return false
 	}
+	// Inherent deadlock risk?
 	target.tangibilityLock.Lock()
 	defer target.tangibilityLock.Unlock()
 	if !target.tangible {

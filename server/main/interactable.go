@@ -493,6 +493,8 @@ func damageWithinRadius(tile *Tile, world *World, radius, dmg int, ownerId strin
 	tiles := getTilesInRadius(tile, radius)
 	trapSetter := world.getPlayerById(ownerId)
 	if trapSetter != nil {
+		// tryLock - trapSetter may currently be target or their target's damage -> classic deadlock
+		//   does not explain players frozen in arcade
 		trapSetter.tangibilityLock.Lock()
 		defer trapSetter.tangibilityLock.Unlock()
 		if trapSetter.tangible {
