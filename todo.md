@@ -129,7 +129,8 @@
     - [ ] Maps for non-simple tilings?
       - [ ] Relative to current area
   - [ ] Test Play 
-    - [ ] Package executable in with tools? soft-deploy and run?
+    - [ ] Package executable in with tools? soft-deploy and run
+    - [ ] level player (e.g. live stage demo) ^ same as above
   - [ ] Save All/Everything button 
     - [ ] Cannot compile without save
     - [-] Save space 
@@ -160,7 +161,6 @@
     - [-] clean up collection logic
     - [-] add cli  
   - [-] get rid of proc folder?
-- [ ] level player (e.g. live stage demo) 
 - [ ] Bug: New color will output to local file but deploying requires application restart.
 
 
@@ -277,4 +277,13 @@ One way or two way.
 
 type []byte(update) 100 times
 
- 
+ - test remove damage tangibility check
+ - prevent infitine interactable spawn bug 
+
+ - Broadcast group for area descriptions
+ - Weather type for area descriptions
+ - Ground pattern for area description
+   - Grid for editing ground pattern
+     - toggle / toggle between / toggle fill 
+   - Area Description color1 and color2 
+ - remove global variables 

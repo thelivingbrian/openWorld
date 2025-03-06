@@ -262,12 +262,12 @@ func handleDeath(player *Player) {
 	player.incrementDeathCount()
 	player.setHealth(150)
 	player.setKillStreak(0)
-	player.actions = createDefaultActions() // problematic
+	player.actions = createDefaultActions() // problematic, -> setDefaultActions(player)
 
 	stage := player.fetchStageSync(infirmaryStagenameForPlayer(player))
 	player.setStage(stage)
 	player.updateRecordOnDeath(stage.tiles[2][2])
-	go respawnOnStage(player, stage)
+	respawnOnStage(player, stage) // don't need new routine?
 }
 
 func popAndDropMoney(player *Player) {

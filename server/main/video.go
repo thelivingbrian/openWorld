@@ -12,6 +12,15 @@ import (
 ////////////////////////////////////////////////////////
 // Visual Fx
 
+func flashBackgroundColorIfTangible(player *Player, color string) {
+	ownLock := player.tangibilityLock.TryLock() // Try because what if this player is currently intangible due to event damaging the initiator of this flash
+	if !ownLock || !player.tangible {
+		return
+	}
+	defer player.tangibilityLock.Unlock()
+	flashBackgroundColor(player, color)
+}
+
 func flashBackgroundColor(player *Player, color string) {
 	script := fmt.Sprintf(`<div id="script"><script>flashBg("%s")</script></div>`, color)
 	updateOne(script, player)
