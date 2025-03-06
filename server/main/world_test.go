@@ -179,8 +179,10 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 	player.moveEast()
 	go player.activatePower()
 	go player.activatePower()
-	time.Sleep(200 * time.Millisecond)
+
+	time.Sleep(500 * time.Millisecond)
 	for index := range cancelers {
+		// Test has deadlocked with: WARN : FAILED TO REMOVE PLAYER
 		go cancelers[index]()
 	}
 

@@ -205,14 +205,14 @@ func basicSpawnOld(stage *Stage) {
 
 func basicSpawnWithRing(stage *Stage) {
 	determination := rand.Intn(1000)
-	if determination < 300 {
+	if determination < 400 {
 		// Do nothing
-	} else if determination < 650 {
+	} else if determination < 750 {
 		spawnBoosts(stage)
-	} else if determination < 950 {
+	} else if determination < 990 {
 		spawnPowerup(stage)
 	} else {
-		placeInteractableOnStage(stage, createRing())
+		tryPlaceInteractableOnStage(stage, createRing())
 	}
 }
 
