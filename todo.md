@@ -32,6 +32,7 @@
   - [-] Notify goal scores and team in lead 
   - [-] Goal shows score of each team
 - [-] Seperate homepage from game server
+- [-] Add sound fx
 
 ## Integration 
 - [ ] Bot AI
@@ -276,9 +277,6 @@ One way or two way.
 
 
 -goals:
-
-- add sound fx
-
 
  - Broadcast group for area descriptions
  - Weather type for area descriptions

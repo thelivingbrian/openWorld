@@ -6,16 +6,17 @@ import (
 )
 
 type Stage struct {
-	tiles       [][]*Tile          // [][]**Tile would be weird and open up FP over mutation (also lookup is less fragile)
-	playerMap   map[string]*Player // Player Map to Bson map to save whole stage in one command
-	playerMutex sync.RWMutex
-	name        string
-	north       string
-	south       string
-	east        string
-	west        string
-	mapId       string
-	spawn       []SpawnAction
+	tiles              [][]*Tile          // [][]**Tile would be weird and open up FP over mutation (also lookup is less fragile)
+	playerMap          map[string]*Player // Player Map to Bson map to save whole stage in one command
+	playerMutex        sync.RWMutex
+	name               string
+	north              string
+	south              string
+	east               string
+	west               string
+	mapId              string
+	spawn              []SpawnAction
+	broadcastGroupName string
 }
 
 ////////////////////////////////////////////////////
@@ -23,7 +24,19 @@ type Stage struct {
 
 func createStageFromArea(area Area) *Stage {
 	spawnAction := spawnActions[area.SpawnStrategy]
-	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.RWMutex{}, area.Name, area.North, area.South, area.East, area.West, area.MapId, spawnAction}
+	outputStage := Stage{
+		tiles:              make([][]*Tile, len(area.Tiles)),
+		playerMap:          make(map[string]*Player),
+		playerMutex:        sync.RWMutex{},
+		name:               area.Name,
+		north:              area.North,
+		south:              area.South,
+		east:               area.East,
+		west:               area.West,
+		mapId:              area.MapId,
+		spawn:              spawnAction,
+		broadcastGroupName: "GROUP_NAME_HERE",
+	}
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
 		for x := range outputStage.tiles[y] {
