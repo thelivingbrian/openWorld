@@ -255,6 +255,10 @@
     - [-] introduced via commit 90a3043177f78f90fb651c2cc1e427031c888e33
 
 
+## Bugs
+ - [-] test remove damage tangibility check
+ - [-] prevent infitine interactable spawn bug (technically still possible for game balls)
+
 ## Transformation syntax:
 layerXCss : "static {transformationType:value} string"
 
@@ -275,10 +279,6 @@ One way or two way.
 
 - add sound fx
 
-type []byte(update) 100 times
-
- - test remove damage tangibility check
- - prevent infitine interactable spawn bug 
 
  - Broadcast group for area descriptions
  - Weather type for area descriptions
@@ -287,3 +287,12 @@ type []byte(update) 100 times
      - toggle / toggle between / toggle fill 
    - Area Description color1 and color2 
  - remove global variables 
+
+type []byte(update) 100 times
+
+[]byte(update)
+I will type []byte(update) 79 more times
+I will type []byte(update) 78 more times 
+I will type []byte(update) 77 more times 
+I will type []byte(update) 76 more times
+
