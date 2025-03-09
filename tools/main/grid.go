@@ -459,18 +459,18 @@ func (col *Collection) gridFillBetween(event GridClickDetails, modifications [][
 		col.gridSelect(event, modifications)
 	}
 	var lowx, lowy, highx, highy int
-	if event.Y <= selectedY {
+	if event.Y <= event.selectedY {
 		lowy = event.Y
-		highy = selectedY
+		highy = event.selectedY
 	} else {
-		lowy = selectedY
+		lowy = event.selectedY
 		highy = event.Y
 	}
-	if event.X <= selectedX {
+	if event.X <= event.selectedX {
 		lowx = event.X
-		highx = selectedX
+		highx = event.selectedX
 	} else {
-		lowx = selectedX
+		lowx = event.selectedX
 		highx = event.X
 	}
 	output := ""

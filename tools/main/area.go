@@ -64,8 +64,8 @@ type AreaWithGrid struct {
 // Globals (fix)
 
 // var haveSelection bool = false
-var selectedX int
-var selectedY int
+//var selectedX int
+//var selectedY int
 
 // ///////////////////////////////////////////////////////////
 // Areas
