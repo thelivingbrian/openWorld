@@ -25,6 +25,8 @@
                                 #{{$screenId}} [name='sid'],
                                 #{{$screenId}} [name='location'],
                                 #{{$screenId}} [name='default-tile-color'],
+                                #{{$screenId}} [name='grid-selected-x'],
+                                #{{$screenId}} [name='grid-selected-y'],
                                 #{{$screenId}}c{{$y}}-{{$x}} [name='x'],
                                 #{{$screenId}}c{{$y}}-{{$x}} [name='y']           
                                 ">
@@ -65,6 +67,8 @@
     #{{.ClickEvent.ScreenID}} [name='sid'],
     #{{.ClickEvent.ScreenID}} [name='location'],
     #{{.ClickEvent.ScreenID}} [name='default-tile-color'],
+    #{{.ClickEvent.ScreenID}} [name='grid-selected-x'],
+    #{{.ClickEvent.ScreenID}} [name='grid-selected-y'],
     #{{.ClickEvent.ScreenID}}c{{.ClickEvent.Y}}-{{.ClickEvent.X}} [name='x'],
     #{{.ClickEvent.ScreenID}}c{{.ClickEvent.Y}}-{{.ClickEvent.X}} [name='y']"
     hx-swap-oob="true">
@@ -78,5 +82,10 @@
     <div class="box top {{if .ClickEvent.Selected}} red-b med {{end}}"></div>
     <input name="x" type="hidden" value="{{.ClickEvent.X}}" />
     <input name="y" type="hidden" value="{{.ClickEvent.Y}}" />
+
+    {{if .ClickEvent.Selected}}
+    <input id="{{.ClickEvent.ScreenID}}-selected-x" name="grid-selected-x" type="hidden" value="{{.ClickEvent.X}}" />
+    <input id="{{.ClickEvent.ScreenID}}-selected-y" name="grid-selected-y" type="hidden" value="{{.ClickEvent.Y}}" />
+    {{end}}
 </div>
 {{end}}

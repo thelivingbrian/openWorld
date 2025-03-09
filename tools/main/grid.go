@@ -23,6 +23,9 @@ type GridClickDetails struct {
 	Selected         bool
 	Tool             string
 	SelectedAssetId  string // used for identifying multiple non-interactive grids? is a click detail not square detail
+	haveASelection   bool
+	selectedX        int
+	selectedY        int
 }
 
 var CONNECTING_CHAR = "."
@@ -57,7 +60,7 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	properties, _ := requestToProperties(r)
-	details := createGridSquareDetails(properties, "area")
+	details := createClickDetailsFromProps(properties, "area")
 	collectionName := properties["currentCollection"]
 	collection, ok := c.Collections[collectionName]
 	if !ok {
@@ -99,7 +102,7 @@ func (c Context) gridClickFragmentHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	properties, _ := requestToProperties(r)
-	details := createGridSquareDetails(properties, "fragment")
+	details := createClickDetailsFromProps(properties, "fragment")
 
 	setName := details.Location[0]
 	fragmentName := details.Location[1]
@@ -133,7 +136,7 @@ func (c Context) gridClickFragmentHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func createGridSquareDetails(properties map[string]string, gridType string) GridClickDetails {
+func createClickDetailsFromProps(properties map[string]string, gridType string) GridClickDetails {
 	currentCollection, ok := properties["currentCollection"]
 	if !ok {
 		panic("No Collection")
@@ -176,7 +179,25 @@ func createGridSquareDetails(properties map[string]string, gridType string) Grid
 	}
 	protoId := properties["selected-asset-id"]
 
-	return GridClickDetails{CollectionName: currentCollection, Location: parts, GridType: gridType, ScreenID: sid, Y: yInt, X: xInt, DefaultTileColor: defaultTileColor, Tool: tool, SelectedAssetId: protoId}
+	gridSelectedX, okX := properties["grid-selected-x"]
+	selectedX := 0
+	if okX && gridSelectedX != "" {
+		selectedX, err = strconv.Atoi(gridSelectedX)
+		if err != nil {
+			panic("invalid selected x")
+		}
+	}
+	gridSelectedY, okY := properties["grid-selected-y"]
+	selectedY := 0
+	if okY && gridSelectedY != "" {
+		selectedY, err = strconv.Atoi(gridSelectedY)
+		if err != nil {
+			panic("invalid selected Y")
+		}
+	}
+	haveASelection := okX && okY
+
+	return GridClickDetails{CollectionName: currentCollection, Location: parts, GridType: gridType, ScreenID: sid, Y: yInt, X: xInt, DefaultTileColor: defaultTileColor, Tool: tool, SelectedAssetId: protoId, haveASelection: haveASelection, selectedX: selectedX, selectedY: selectedY}
 }
 
 // / Tools
@@ -290,7 +311,7 @@ func gridPlaceFragment(details GridClickDetails, modifications [][]TileData, sel
 	for i := range selectedFragment.Blueprint.Tiles {
 		if details.Y+i < len(modifications) {
 			for j := range selectedFragment.Blueprint.Tiles[i] {
-				if details.X+j < len(modifications[i]) { // Think this should be mod[y+i] technically
+				if details.X+j < len(modifications[details.Y+i]) { // Think this should be mod[y+i] technically
 					modifications[details.Y+i][details.X+j] = selectedFragment.Blueprint.Tiles[i][j]
 				}
 			}
@@ -308,8 +329,8 @@ func (col *Collection) getFragmentFromAssetId(fragmentID string) Fragment {
 
 func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) string {
 	var buf bytes.Buffer
-	if haveSelection && selectedY < len(grid) && selectedX < len(grid[0]) {
-		selectedCell := grid[selectedY][selectedX]
+	if event.haveASelection && event.selectedY < len(grid) && event.selectedX < len(grid[0]) {
+		selectedCell := grid[event.selectedY][event.selectedX]
 		var pageData = struct {
 			Material     Material
 			ClickEvent   GridClickDetails
@@ -317,8 +338,8 @@ func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) str
 		}{
 			Material: col.findPrototypeById(selectedCell.PrototypeId).applyTransform(selectedCell.Transformation),
 			ClickEvent: GridClickDetails{
-				Y:                selectedY,
-				X:                selectedX,
+				Y:                event.selectedY,
+				X:                event.selectedX,
 				GridType:         event.GridType,
 				DefaultTileColor: event.DefaultTileColor,
 				Location:         event.Location,
@@ -330,10 +351,15 @@ func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) str
 			fmt.Println(err)
 		}
 	}
-	haveSelection = true // Probably should be a hidden input
-	selectedY = event.Y
-	selectedX = event.X
-	selectedCell := grid[selectedY][selectedX]
+	//haveSelection = true // Probably should be a hidden input
+	//selectedY = event.Y
+	//selectedX = event.X
+	// newSelection := `
+	// <input id="%s-selected-x" name="grid-selected-x" type="hidden" value="%d" />
+	// <input id="%s-selected-y" name="grid-selected-y" type="hidden" value="%d" />`
+	// fmt.Fprintf(&buf, newSelection, event.ScreenID, event.selectedX, event.ScreenID, event.selectedY)
+
+	selectedCell := grid[event.Y][event.X]
 	event.Selected = true
 	var pageData = struct {
 		Material     Material
@@ -427,8 +453,9 @@ func fill(event GridClickDetails, modifications [][]TileData, selectedPrototype 
 	}
 }
 
+// include selection in gridClickDetails
 func (col *Collection) gridFillBetween(event GridClickDetails, modifications [][]TileData, selectedPrototype Prototype) string {
-	if !haveSelection {
+	if !event.haveASelection {
 		col.gridSelect(event, modifications)
 	}
 	var lowx, lowy, highx, highy int
