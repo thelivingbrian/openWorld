@@ -284,7 +284,7 @@ One way or two way.
    - Grid for editing ground pattern
      - toggle / toggle between / toggle fill 
    - Area Description color1 and color2 
- - remove global variables 
+ - [-] remove global variables 
 
 type []byte(update) 100 times
 
@@ -293,4 +293,4 @@ I will type []byte(update) 79 more times
 I will type []byte(update) 78 more times 
 I will type []byte(update) 77 more times 
 I will type []byte(update) 76 more times
-
+I will type []byte(update) 75 more times 
