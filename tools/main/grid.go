@@ -311,7 +311,7 @@ func gridPlaceFragment(details GridClickDetails, modifications [][]TileData, sel
 	for i := range selectedFragment.Blueprint.Tiles {
 		if details.Y+i < len(modifications) {
 			for j := range selectedFragment.Blueprint.Tiles[i] {
-				if details.X+j < len(modifications[details.Y+i]) { // Think this should be mod[y+i] technically
+				if details.X+j < len(modifications[details.Y+i]) {
 					modifications[details.Y+i][details.X+j] = selectedFragment.Blueprint.Tiles[i][j]
 				}
 			}
@@ -351,13 +351,6 @@ func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) str
 			fmt.Println(err)
 		}
 	}
-	//haveSelection = true // Probably should be a hidden input
-	//selectedY = event.Y
-	//selectedX = event.X
-	// newSelection := `
-	// <input id="%s-selected-x" name="grid-selected-x" type="hidden" value="%d" />
-	// <input id="%s-selected-y" name="grid-selected-y" type="hidden" value="%d" />`
-	// fmt.Fprintf(&buf, newSelection, event.ScreenID, event.selectedX, event.ScreenID, event.selectedY)
 
 	selectedCell := grid[event.Y][event.X]
 	event.Selected = true
@@ -378,7 +371,6 @@ func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) str
 }
 
 func (col *Collection) gridReplace(event GridClickDetails, modifications [][]TileData, selectedProto Prototype) string {
-	//fmt.Println("Replacing with: " + selectedProto.ID)
 	modifications[event.Y][event.X].PrototypeId = selectedProto.ID
 	var buf bytes.Buffer
 	var pageData = struct {

@@ -64,6 +64,8 @@ func (c Context) postStructure(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "New ground generation initiated with the following details: Name: %s, Grid Size: %d, Colors: %s and %s, Fuzz: %f, Strategy: %s", structureName, spanI, color1, color2, fuzzF, strategy)
 		config := GroundConfig{Name: structureName, Span: spanI, Color1: color1, Color2: color2, Fuzz: fuzzF, Strategy: strategy}
 		col.generateAndSaveGroundPattern(config) // Two methods?
+	} else if structureType == "pattern" {
+
 	} else {
 		fmt.Fprintf(w, "Invalid structure type (%s) ", structureType)
 	}

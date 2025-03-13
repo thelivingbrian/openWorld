@@ -166,6 +166,7 @@ func createBaseArea(height, width int, tileColor string) AreaDescription {
 	for i := range tiles {
 		tiles[i] = make([]TileData, width)
 	}
+	// default Tile Color to blueprint?
 	blueprint := Blueprint{Tiles: tiles, Instructions: make([]Instruction, 0)}
 	return AreaDescription{Name: "", Safe: true, Blueprint: &blueprint, Transports: make([]Transport, 0), DefaultTileColor: tileColor}
 }

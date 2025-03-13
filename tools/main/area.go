@@ -103,7 +103,7 @@ func (c Context) postAreas(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	name := properties["new-area-name"]
 	safe := (properties["safe"] == "on")
-	defaultTileColor := properties["default-tile-color"]
+	defaultTileColor := properties["default-tile-color"] // Move to blueprint? impact to space?
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
 	panicIfAnyEmpty("POST to /area", collectionName, spaceName, name)

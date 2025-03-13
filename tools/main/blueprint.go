@@ -10,6 +10,13 @@ import (
 type Blueprint struct {
 	Tiles        [][]TileData `json:"tiles"`
 	Instructions []Instruction
+	Ground       [][]Cell
+}
+
+type Ground struct {
+	Pattern           [][]Cell
+	DefaultTileColor  string
+	DefaultTileColor1 string
 }
 
 type Instruction struct {
@@ -315,4 +322,46 @@ func rotateClockwise[T any](input [][]T) [][]T {
 		}
 	}
 	return out
+}
+
+// ///////////////////////////////////////////////////////////
+// Ground
+
+func (c *Context) blueprintGroundHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		c.getGroundEdit(w, r)
+	}
+}
+
+func (c *Context) getGroundEdit(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	space := c.spaceFromGET(r)
+	name := queryValues.Get("area-name")
+	selectedArea := getAreaByName(space.Areas, name)
+	if selectedArea == nil {
+		io.WriteString(w, "<h2>no Area</h2>")
+		return
+	}
+
+	collection := c.collectionFromGet(r)
+	modifications := collection.generateMaterials(selectedArea.Blueprint.Tiles)
+
+	var pageData = AreaEditPageData{
+		AreaWithGrid: AreaWithGrid{
+			GridDetails: GridDetails{
+				MaterialGrid:     modifications,
+				InteractableGrid: collection.generateInteractables(selectedArea.Blueprint.Tiles),
+				DefaultTileColor: selectedArea.DefaultTileColor,
+				Location:         locationStringFromArea(selectedArea, space.Name),
+				GridType:         "ground",
+				ScreenID:         "screen",
+			},
+			SelectedArea:   *selectedArea,
+			NavHasHadClick: false,
+		},
+	}
+	err := tmpl.ExecuteTemplate(w, "ground-edit", pageData)
+	if err != nil {
+		fmt.Println(err)
+	}
 }

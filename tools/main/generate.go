@@ -9,6 +9,11 @@ import (
 	"math/rand"
 )
 
+type Cell struct {
+	status                                     int
+	bottomRight, bottomLeft, topRight, topLeft bool
+}
+
 func (col *Collection) generateAndSaveGroundPattern(config GroundConfig) {
 	cells := GenerateCircle(config.Span, config.Strategy, config.Fuzz)
 	prototypes, fragments, structure := makeAssetsForGround(cells, config)
@@ -91,11 +96,6 @@ func IdsMatchStructure(s1, s2 Structure) bool {
 
 ///////////////////////////////////////////////////////
 // Ground Pattern Generation
-
-type Cell struct {
-	status                                     int
-	bottomRight, bottomLeft, topRight, topLeft bool
-}
 
 type Corner struct {
 	a, b, c, d *Cell

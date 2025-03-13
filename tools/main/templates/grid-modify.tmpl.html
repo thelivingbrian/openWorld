@@ -84,3 +84,16 @@
     <label for="rt-interactable-delete">Delete</label>
 </div>
 {{end}}
+
+{{define "available-tools-ground"}}
+<div id="tool_select"> 
+    <input type="radio" id="rt-select" name="radio-tool" value="select" checked>
+    <label for="rt-select">Select</label>
+    <input type="radio" id="rt-toggle" name="radio-tool" value="replace">
+    <label for="rt-replace">Toggle</label>
+    <input type="radio" id="rt-fill" name="radio-tool" value="fill">
+    <label for="rt-fill">Toggle Fill</label>
+    <input type="radio" id="rt-right" name="radio-tool" value="between">
+    <label for="rt-right">Toggle between selected</label>
+</div>
+{{end}}

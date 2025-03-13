@@ -36,6 +36,7 @@ func main() {
 	http.HandleFunc("/blueprint/instruction", c.blueprintInstructionHandler)
 	http.HandleFunc("/blueprint/instruction/highlight", c.blueprintInstructionHighlightHandler)
 	http.HandleFunc("/blueprint/instructions/order", c.instructionOrderHandler)
+	http.HandleFunc("/blueprint/ground", c.blueprintGroundHandler)
 	http.HandleFunc("/fragments", c.fragmentsHandler)
 	http.HandleFunc("/fragments/new", c.fragmentsNewHandler)
 	http.HandleFunc("/fragment", c.fragmentHandler)
