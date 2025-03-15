@@ -344,7 +344,7 @@ func (c *Context) getGroundEdit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	collection := c.collectionFromGet(r)
-	modifications := collection.generateMaterials(selectedArea.Blueprint.Tiles)
+	modifications := collection.generateMaterialsForGround(selectedArea.Blueprint)
 
 	var pageData = AreaEditPageData{
 		AreaWithGrid: AreaWithGrid{
@@ -354,7 +354,7 @@ func (c *Context) getGroundEdit(w http.ResponseWriter, r *http.Request) {
 				DefaultTileColor: selectedArea.DefaultTileColor,
 				Location:         locationStringFromArea(selectedArea, space.Name),
 				GridType:         "ground",
-				ScreenID:         "screen",
+				ScreenID:         "screen-g",
 			},
 			SelectedArea:   *selectedArea,
 			NavHasHadClick: false,
@@ -363,5 +363,36 @@ func (c *Context) getGroundEdit(w http.ResponseWriter, r *http.Request) {
 	err := tmpl.ExecuteTemplate(w, "ground-edit", pageData)
 	if err != nil {
 		fmt.Println(err)
+	}
+}
+
+func (col *Collection) generateMaterialsForGround(bp *Blueprint) [][]Material {
+	if bp.Ground == nil {
+		bp.Ground = make([][]Cell, len(bp.Tiles))
+		for n := range bp.Ground {
+			bp.Ground[n] = make([]Cell, len(bp.Tiles[n]))
+		}
+	}
+	out := make([][]Material, len(bp.Ground))
+	for i := range bp.Ground {
+		out[i] = make([]Material, len(bp.Ground[i]))
+		for j := range bp.Ground[i] {
+			out[i][j] = col.createMaterialForGround(bp.Ground[i][j])
+		}
+	}
+	return out
+}
+
+func (col *Collection) createMaterialForGround(cell Cell) Material {
+	return Material{
+		ID:          9922661,
+		CommonName:  "sample-ground",
+		Walkable:    true,
+		CssColor:    "",
+		Floor1Css:   "", // build based on cell
+		Floor2Css:   "", // build based on cell
+		Ceiling1Css: "",
+		Ceiling2Css: "",
+		DisplayText: "",
 	}
 }

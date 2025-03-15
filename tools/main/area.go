@@ -152,7 +152,7 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 		setOptions = append(setOptions, key)
 	}
 
-	modifications := collection.generateMaterials(selectedArea.Blueprint.Tiles)
+	modifications := collection.generateMaterials(selectedArea.Blueprint)
 
 	var pageData = AreaEditPageData{
 		AreaWithGrid: AreaWithGrid{
@@ -198,7 +198,7 @@ func (c *Context) getAreaGrid(w http.ResponseWriter, r *http.Request) {
 
 	collection := c.collectionFromGet(r)
 
-	modifications := collection.generateMaterials(selectedArea.Blueprint.Tiles)
+	modifications := collection.generateMaterials(selectedArea.Blueprint)
 
 	areaWithGrid := AreaWithGrid{
 		GridDetails: GridDetails{

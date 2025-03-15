@@ -89,7 +89,7 @@ func (c *Collection) DetailsFromFragment(fragment *Fragment, clickable bool) *Fr
 		Name:    fragment.Name,
 		SetName: fragment.SetName,
 		GridDetails: GridDetails{
-			MaterialGrid:     c.generateMaterials(fragment.Blueprint.Tiles),
+			MaterialGrid:     c.generateMaterials(fragment.Blueprint),
 			InteractableGrid: c.generateInteractables(fragment.Blueprint.Tiles),
 			DefaultTileColor: "",
 			Location:         fragment.SetName + "." + fragment.Name,
@@ -98,7 +98,8 @@ func (c *Collection) DetailsFromFragment(fragment *Fragment, clickable bool) *Fr
 	}
 }
 
-func (col *Collection) generateMaterials(tiles [][]TileData) [][]Material {
+func (col *Collection) generateMaterials(bp *Blueprint) [][]Material {
+	tiles := bp.Tiles
 	out := make([][]Material, len(tiles))
 	for i := range tiles {
 		out[i] = make([]Material, len(tiles[i]))

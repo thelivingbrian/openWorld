@@ -80,7 +80,7 @@ func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, result)
 	if result == "" {
 		var pageData = GridDetails{
-			MaterialGrid:     collection.generateMaterials(area.Blueprint.Tiles),
+			MaterialGrid:     collection.generateMaterials(area.Blueprint),
 			InteractableGrid: collection.generateInteractables(area.Blueprint.Tiles),
 			DefaultTileColor: details.DefaultTileColor,
 			Location:         details.stringifyLocation(),
@@ -120,7 +120,7 @@ func (c Context) gridClickFragmentHandler(w http.ResponseWriter, r *http.Request
 	io.WriteString(w, result)
 	if result == "" {
 		var pageData = GridDetails{
-			MaterialGrid:     col.generateMaterials(fragment.Blueprint.Tiles),
+			MaterialGrid:     col.generateMaterials(fragment.Blueprint),
 			InteractableGrid: col.generateInteractables(fragment.Blueprint.Tiles),
 			DefaultTileColor: details.DefaultTileColor,
 			Location:         details.stringifyLocation(),
