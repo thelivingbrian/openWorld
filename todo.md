@@ -286,6 +286,9 @@ One way or two way.
    - Area Description color1 and color2 
  - [-] remove global variables 
 
+stage loading / designer compiling strategy?
+Material includes ground? 
+
 type []byte(update) 100 times
 
 []byte(update)
