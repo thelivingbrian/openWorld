@@ -8,13 +8,9 @@ import (
 )
 
 type Blueprint struct {
-	Tiles        [][]TileData `json:"tiles"`
-	Instructions []Instruction
-	Ground       [][]Cell
-}
-
-type Ground struct {
-	Pattern           [][]Cell
+	Tiles             [][]TileData `json:"tiles"`
+	Instructions      []Instruction
+	Ground            [][]Cell
 	DefaultTileColor  string
 	DefaultTileColor1 string
 }
@@ -377,22 +373,39 @@ func (col *Collection) generateMaterialsForGround(bp *Blueprint) [][]Material {
 	for i := range bp.Ground {
 		out[i] = make([]Material, len(bp.Ground[i]))
 		for j := range bp.Ground[i] {
-			out[i][j] = col.createMaterialForGround(bp.Ground[i][j])
+			out[i][j] = col.createMaterialForGround(bp.Ground[i][j], bp.DefaultTileColor, bp.DefaultTileColor1)
 		}
 	}
 	return out
 }
 
-func (col *Collection) createMaterialForGround(cell Cell) Material {
-	return Material{
-		ID:          9922661,
-		CommonName:  "sample-ground",
-		Walkable:    true,
-		CssColor:    "",
-		Floor1Css:   "", // build based on cell
-		Floor2Css:   "", // build based on cell
-		Ceiling1Css: "",
-		Ceiling2Css: "",
-		DisplayText: "",
+func (col *Collection) createMaterialForGround(cell Cell, color0, color1 string) Material {
+	primary, secondary := color0, color1
+	if cell.status != 0 {
+		primary, secondary = color1, color0
 	}
+	material := Material{
+		ID:         9922661,
+		CommonName: "sample-ground",
+		Walkable:   true,
+		//CssColor:    "",
+		Ground1Css: "",
+		Ground2Css: primary,
+	}
+	if cell.topLeft || cell.topRight || cell.bottomLeft || cell.bottomRight {
+		material.Ground1Css = secondary
+	}
+	if cell.topLeft {
+		material.Ground2Css += " r0-tl"
+	}
+	if cell.topRight {
+		material.Ground2Css += " r0-tr"
+	}
+	if cell.bottomLeft {
+		material.Ground2Css += " r0-bl"
+	}
+	if cell.bottomRight {
+		material.Ground2Css += " r0-br"
+	}
+	return material
 }
