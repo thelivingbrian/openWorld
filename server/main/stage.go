@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"log" 
 	"sync"
 )
 
@@ -47,7 +47,6 @@ func createStageFromArea(area Area) *Stage {
 				if description != nil {
 					reaction := interactableReactions[description.Reactions]
 					outputStage.tiles[y][x].interactable = &Interactable{name: description.Name, cssClass: description.CssClass, pushable: description.Pushable, walkable: description.Walkable, fragile: description.Fragile, reactions: reaction}
-
 				}
 			}
 		}

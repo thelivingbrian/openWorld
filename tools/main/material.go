@@ -12,6 +12,8 @@ type Material struct {
 	CommonName  string `json:"commonName"`
 	CssColor    string `json:"cssColor"`
 	Walkable    bool   `json:"walkable"`
+	Ground1Css  string `json:"ground1css"`
+	Ground2Css  string `json:"ground2css"`
 	Floor1Css   string `json:"layer1css"`
 	Floor2Css   string `json:"layer2css"`
 	Ceiling1Css string `json:"ceiling1css"`

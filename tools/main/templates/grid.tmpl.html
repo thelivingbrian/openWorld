@@ -30,6 +30,8 @@
                                 #{{$screenId}}c{{$y}}-{{$x}} [name='x'],
                                 #{{$screenId}}c{{$y}}-{{$x}} [name='y']           
                                 ">
+                <div class="box ground1 {{$mat.Ground1Css}}"></div>
+                <div class="box ground2 {{$mat.Ground2Css}}"></div>
                 <div class="box floor1 {{$mat.Floor1Css}}"></div>
                 <div class="box floor2 {{$mat.Floor2Css}}"></div>
                 {{with index $.InteractableGrid $y $x}}
@@ -72,6 +74,8 @@
     #{{.ClickEvent.ScreenID}}c{{.ClickEvent.Y}}-{{.ClickEvent.X}} [name='x'],
     #{{.ClickEvent.ScreenID}}c{{.ClickEvent.Y}}-{{.ClickEvent.X}} [name='y']"
     hx-swap-oob="true">
+    <div class="box ground1 {{.Material.Ground1Css}}"></div>
+    <div class="box ground2 {{.Material.Ground2Css}}"></div>
     <div class="box floor1 {{.Material.Floor1Css}}"></div>
     <div class="box floor2 {{.Material.Floor2Css}}"></div>
     {{- if .Interactable }}
