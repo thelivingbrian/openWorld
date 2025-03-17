@@ -77,11 +77,15 @@ img {
   
 .zP {
     z-index: 20;
-  }
-  
-.top {
-    z-index: 40;
-  }
+}
+
+.ground1 {
+    z-index: 5;
+} 
+
+.ground2 {
+    z-index: 6;
+} 
 
 .floor1 {
     z-index: 10;
@@ -97,6 +101,10 @@ img {
 
 .ceiling2 {
     z-index: 31;
+}  
+
+.top {
+    z-index: 40;
 }
 
 .trsp {
