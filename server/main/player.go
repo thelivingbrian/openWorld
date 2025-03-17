@@ -448,6 +448,7 @@ func updateEntireExistingScreen(player *Player) {
 	player.updates <- entireScreenAsSwaps(player)
 }
 
+/*
 func clearChannel(ch chan []byte) {
 	for {
 		select {
@@ -458,6 +459,7 @@ func clearChannel(ch chan []byte) {
 		}
 	}
 }
+*/
 
 func (player *Player) updateBottomText(message string) {
 	msg := fmt.Sprintf(`
