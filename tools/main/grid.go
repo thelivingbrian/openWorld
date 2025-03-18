@@ -244,47 +244,49 @@ func createClickDetailsFromProps(properties map[string]string, gridType string) 
 
 // / Tools
 func (col *Collection) gridClickAction(details GridClickDetails, blueprint *Blueprint) string {
-	fmt.Println(details.Tool)
-	if details.Tool == "select" {
-		// should oob update hiddens
+	switch details.Tool {
+	case "select":
 		return col.gridSelect(details, blueprint.Tiles)
-	} else if details.Tool == "replace" {
+
+	case "replace":
 		selectedPrototype := col.getPrototypeOrCreateInvalid(details.SelectedAssetId)
 		return col.gridReplace(details, blueprint.Tiles, selectedPrototype)
-	} else if details.Tool == "fill" {
+
+	case "fill":
 		selectedPrototype := col.getPrototypeOrCreateInvalid(details.SelectedAssetId)
 		gridFill(details, blueprint.Tiles, selectedPrototype)
 		return ""
-	} else if details.Tool == "between" {
+
+	case "between":
 		selectedPrototype := col.getPrototypeOrCreateInvalid(details.SelectedAssetId)
 		return col.gridFillBetween(details, blueprint.Tiles, selectedPrototype)
-	} else if details.Tool == "place" {
-		// Pull isSelected & location (selectedLocation) into hidden field
+
+	case "place":
 		fragment := col.getFragmentFromAssetId(details.SelectedAssetId)
 		gridPlaceFragment(details, blueprint.Tiles, fragment)
-	} else if details.Tool == "rotate" {
-		gridRotate(details, blueprint.Tiles)
-	} else if details.Tool == "place-blueprint" {
-		if details.SelectedAssetId != "" {
-			blueprint.Instructions = append(blueprint.Instructions, Instruction{
-				ID:                 uuid.New().String(),
-				X:                  details.X,
-				Y:                  details.Y,
-				GridAssetId:        details.SelectedAssetId,
-				ClockwiseRotations: 0,
-			})
-		}
-		for _, instruction := range blueprint.Instructions {
-			col.applyInstruction(blueprint.Tiles, instruction)
-		}
+		return ""
 
-	} else if details.Tool == "interactable-replace" {
+	case "rotate":
+		gridRotate(details, blueprint.Tiles)
+		return ""
+
+	case "place-blueprint":
+		col.gridPlaceOnBlueprint(details, blueprint)
+		return ""
+
+	case "interactable-replace":
 		interactable := col.findInteractableById(details.SelectedAssetId)
 		return col.interactableReplace(details, blueprint.Tiles, interactable)
-	} else if details.Tool == "interactable-delete" {
+
+	case "interactable-delete":
 		return col.interactableReplace(details, blueprint.Tiles, nil)
+
+	case "toggle-select", "toggle", "toggle-fill", "toggle-between":
+		return ""
+
+	default:
+		return ""
 	}
-	return ""
 }
 
 func (col *Collection) getTileGridByAssetId(assetId string) [][]TileData {
@@ -525,6 +527,21 @@ func (col *Collection) gridFillBetween(event GridClickDetails, modifications [][
 func gridRotate(event GridClickDetails, modifications [][]TileData) {
 	transformation := &modifications[event.Y][event.X].Transformation
 	transformation.ClockwiseRotations = mod(transformation.ClockwiseRotations+1, 4)
+}
+
+func (col *Collection) gridPlaceOnBlueprint(event GridClickDetails, blueprint *Blueprint) {
+	if event.SelectedAssetId != "" {
+		blueprint.Instructions = append(blueprint.Instructions, Instruction{
+			ID:                 uuid.New().String(),
+			X:                  event.X,
+			Y:                  event.Y,
+			GridAssetId:        event.SelectedAssetId,
+			ClockwiseRotations: 0,
+		})
+	}
+	for _, instruction := range blueprint.Instructions {
+		col.applyInstruction(blueprint.Tiles, instruction)
+	}
 }
 
 ///
