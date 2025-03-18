@@ -283,8 +283,13 @@ One way or two way.
  - Ground pattern for area description
    - Grid for editing ground pattern
      - toggle / toggle between / toggle fill 
-   - Area Description color1 and color2 
- - [-] remove global variables 
+   - Blueprint color1 and color2 
+ - [-] remove global variables
+ - [ ] update Area output to have materials by value
+   - [ ] remove material output?  
+
+ - Toroidal Woods - 12x12
+ - static weather initially
 
 stage loading / designer compiling strategy?
 Material includes ground? 
@@ -292,8 +297,6 @@ Material includes ground?
 type []byte(update) 100 times
 
 []byte(update)
-I will type []byte(update) 79 more times
-I will type []byte(update) 78 more times 
-I will type []byte(update) 77 more times 
-I will type []byte(update) 76 more times
 I will type []byte(update) 75 more times 
+I will type []byte(update) 74 more times
+
