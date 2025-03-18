@@ -49,6 +49,7 @@ func main() {
 	http.HandleFunc("/grid/edit", c.gridEditHandler)
 	http.HandleFunc("/grid/click/area", c.gridClickAreaHandler)
 	http.HandleFunc("/grid/click/fragment", c.gridClickFragmentHandler)
+	http.HandleFunc("/grid/click/ground", c.gridClickGroundHandler)
 	http.HandleFunc("/images/", c.imageHandler)
 	http.HandleFunc("/interactables", c.interactablesHandler)
 	http.HandleFunc("/interactables/new", c.interactablesNewHandler)

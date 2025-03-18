@@ -136,6 +136,48 @@ func (c Context) gridClickFragmentHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+func (c Context) gridClickGroundHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		return
+	}
+
+	properties, _ := requestToProperties(r)
+	details := createClickDetailsFromProps(properties, "ground")
+	collectionName := properties["currentCollection"]
+	collection, ok := c.Collections[collectionName]
+	if !ok {
+		panic("No Collection")
+	}
+
+	// new func
+	spaceName := details.Location[0]
+	areaName := details.Location[1]
+	space := c.spaceFromNames(details.CollectionName, spaceName)
+	if space == nil {
+		panic("No Space")
+	}
+	area := getAreaByName(space.Areas, areaName)
+
+	result := collection.gridClickAction(details, area.Blueprint)
+	io.WriteString(w, result)
+	if result == "" {
+		var pageData = GridDetails{
+			MaterialGrid:     collection.generateMaterialsForGround(area.Blueprint),
+			InteractableGrid: nil,
+			DefaultTileColor: details.DefaultTileColor,
+			Location:         details.stringifyLocation(),
+			ScreenID:         details.ScreenID,
+			GridType:         details.GridType,
+			Oob:              true,
+		}
+
+		err := tmpl.ExecuteTemplate(w, "grid", pageData)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
 func createClickDetailsFromProps(properties map[string]string, gridType string) GridClickDetails {
 	currentCollection, ok := properties["currentCollection"]
 	if !ok {
@@ -202,6 +244,7 @@ func createClickDetailsFromProps(properties map[string]string, gridType string) 
 
 // / Tools
 func (col *Collection) gridClickAction(details GridClickDetails, blueprint *Blueprint) string {
+	fmt.Println(details.Tool)
 	if details.Tool == "select" {
 		// should oob update hiddens
 		return col.gridSelect(details, blueprint.Tiles)

@@ -346,7 +346,7 @@ func (c *Context) getGroundEdit(w http.ResponseWriter, r *http.Request) {
 		AreaWithGrid: AreaWithGrid{
 			GridDetails: GridDetails{
 				MaterialGrid:     modifications,
-				InteractableGrid: collection.generateInteractables(selectedArea.Blueprint.Tiles),
+				InteractableGrid: nil,
 				DefaultTileColor: selectedArea.DefaultTileColor,
 				Location:         locationStringFromArea(selectedArea, space.Name),
 				GridType:         "ground",
