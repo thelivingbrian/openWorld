@@ -373,21 +373,21 @@ func (col *Collection) getFragmentFromAssetId(fragmentID string) Fragment {
 func (col *Collection) gridSelect(event GridClickDetails, grid [][]TileData) string {
 	var buf bytes.Buffer
 	if event.haveASelection && event.selectedY < len(grid) && event.selectedX < len(grid[0]) {
-		selectedCell := grid[event.selectedY][event.selectedX]
+		previousSelected := grid[event.selectedY][event.selectedX]
 		var pageData = struct {
 			Material     Material
 			ClickEvent   GridClickDetails
 			Interactable *InteractableDescription
 		}{
-			Material: col.findPrototypeById(selectedCell.PrototypeId).applyTransform(selectedCell.Transformation),
+			Material: col.findPrototypeById(previousSelected.PrototypeId).applyTransform(previousSelected.Transformation),
 			ClickEvent: GridClickDetails{
-				Y:                event.selectedY,
+				Y:                event.selectedY, // Previous selected is being overwriten
 				X:                event.selectedX,
 				GridType:         event.GridType,
 				DefaultTileColor: event.DefaultTileColor,
 				Location:         event.Location,
 				ScreenID:         event.ScreenID},
-			Interactable: col.findInteractableById(selectedCell.InteractableId),
+			Interactable: col.findInteractableById(previousSelected.InteractableId),
 		}
 		err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)
 		if err != nil {
