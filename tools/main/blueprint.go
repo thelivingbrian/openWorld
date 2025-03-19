@@ -208,7 +208,7 @@ func (c *Context) postInstructionHighlight(w http.ResponseWriter, r *http.Reques
 				Selected:         true,
 				Location:         location,
 			}
-			col.gridSelect(&details)
+			gridSelect(&details)
 			executeGridTemplate(w, col.generateMaterials(blueprint), col.generateInteractables(blueprint.Tiles), details)
 		}
 	}

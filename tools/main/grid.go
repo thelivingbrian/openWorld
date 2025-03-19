@@ -240,11 +240,11 @@ func CreateSelectionFromClickDetails(details GridClickDetails) *Coordinate {
 func (col *Collection) gridClickAction(details *GridClickDetails, blueprint *Blueprint) {
 	switch details.Tool {
 	case "select":
-		col.gridSelect(details)
+		gridSelect(details) // Move select into TileData ?
 
 	case "replace":
 		selectedPrototype := col.getPrototypeOrCreateInvalid(details.SelectedAssetId)
-		col.gridReplace(details, blueprint.Tiles, selectedPrototype)
+		gridReplace(details, blueprint.Tiles, selectedPrototype)
 
 	case "fill":
 		selectedPrototype := col.getPrototypeOrCreateInvalid(details.SelectedAssetId)
@@ -252,7 +252,7 @@ func (col *Collection) gridClickAction(details *GridClickDetails, blueprint *Blu
 
 	case "between":
 		selectedPrototype := col.getPrototypeOrCreateInvalid(details.SelectedAssetId)
-		col.gridFillBetween(details, blueprint.Tiles, selectedPrototype)
+		gridFillBetween(details, blueprint.Tiles, selectedPrototype)
 
 	case "place":
 		fragment := col.getFragmentFromAssetId(details.SelectedAssetId)
@@ -262,14 +262,15 @@ func (col *Collection) gridClickAction(details *GridClickDetails, blueprint *Blu
 		gridRotate(details, blueprint.Tiles)
 
 	case "place-blueprint":
-		col.gridPlaceOnBlueprint(details, blueprint)
+		gridPlaceOnBlueprint(details, blueprint)
+		col.applyEveryInstruction(blueprint)
 
 	case "interactable-replace":
 		interactable := col.findInteractableById(details.SelectedAssetId)
-		col.interactableReplace(details, blueprint.Tiles, interactable)
+		interactableReplace(details, blueprint.Tiles, interactable)
 
 	case "interactable-delete":
-		col.interactableReplace(details, blueprint.Tiles, nil)
+		interactableReplace(details, blueprint.Tiles, nil)
 
 	case "toggle":
 
@@ -326,6 +327,12 @@ func clearTiles(y, x, height, width int, source [][]TileData) {
 	}
 }
 
+func (col *Collection) applyEveryInstruction(blueprint *Blueprint) {
+	for _, instruction := range blueprint.Instructions {
+		col.applyInstruction(blueprint.Tiles, instruction)
+	}
+}
+
 func (col *Collection) applyInstruction(source [][]TileData, instruction Instruction) {
 	gridToApply := rotateTimesN(col.getTileGridByAssetId(instruction.GridAssetId), instruction.ClockwiseRotations)
 	pasteTiles(instruction.Y, instruction.X, source, gridToApply)
@@ -361,16 +368,16 @@ func (col *Collection) getFragmentFromAssetId(fragmentID string) Fragment {
 	return *fragment
 }
 
-func (col *Collection) gridSelect(event *GridClickDetails) {
+func gridSelect(event *GridClickDetails) {
 	event.haveASelection = true
 	event.selectedY, event.selectedX = event.Y, event.X
 }
 
-func (col *Collection) gridReplace(event *GridClickDetails, modifications [][]TileData, selectedProto Prototype) {
+func gridReplace(event *GridClickDetails, modifications [][]TileData, selectedProto Prototype) {
 	modifications[event.Y][event.X].PrototypeId = selectedProto.ID
 }
 
-func (col *Collection) interactableReplace(event *GridClickDetails, modifications [][]TileData, selectedInteractable *InteractableDescription) {
+func interactableReplace(event *GridClickDetails, modifications [][]TileData, selectedInteractable *InteractableDescription) {
 	modifications[event.Y][event.X].InteractableId = ""
 	if selectedInteractable != nil {
 		modifications[event.Y][event.X].InteractableId = selectedInteractable.ID
@@ -410,9 +417,9 @@ func fill(event *GridClickDetails, modifications [][]TileData, selectedPrototype
 	}
 }
 
-func (col *Collection) gridFillBetween(event *GridClickDetails, modifications [][]TileData, selectedPrototype Prototype) {
+func gridFillBetween(event *GridClickDetails, modifications [][]TileData, selectedPrototype Prototype) {
 	if !event.haveASelection {
-		col.gridSelect(event)
+		gridSelect(event)
 	}
 
 	var lowx, lowy, highx, highy int
@@ -437,10 +444,10 @@ func (col *Collection) gridFillBetween(event *GridClickDetails, modifications []
 			newEvent := *event
 			newEvent.Y = i
 			newEvent.X = j
-			col.gridReplace(&newEvent, modifications, selectedPrototype)
+			gridReplace(&newEvent, modifications, selectedPrototype)
 		}
 	}
-	col.gridSelect(event)
+	gridSelect(event)
 }
 
 func gridRotate(event *GridClickDetails, modifications [][]TileData) {
@@ -448,7 +455,7 @@ func gridRotate(event *GridClickDetails, modifications [][]TileData) {
 	transformation.ClockwiseRotations = mod(transformation.ClockwiseRotations+1, 4)
 }
 
-func (col *Collection) gridPlaceOnBlueprint(event *GridClickDetails, blueprint *Blueprint) {
+func gridPlaceOnBlueprint(event *GridClickDetails, blueprint *Blueprint) {
 	if event.SelectedAssetId != "" {
 		blueprint.Instructions = append(blueprint.Instructions, Instruction{
 			ID:                 uuid.New().String(),
@@ -457,9 +464,6 @@ func (col *Collection) gridPlaceOnBlueprint(event *GridClickDetails, blueprint *
 			GridAssetId:        event.SelectedAssetId,
 			ClockwiseRotations: 0,
 		})
-	}
-	for _, instruction := range blueprint.Instructions {
-		col.applyInstruction(blueprint.Tiles, instruction)
 	}
 }
 
