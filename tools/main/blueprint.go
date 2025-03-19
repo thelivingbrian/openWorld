@@ -186,17 +186,34 @@ func (c *Context) postInstructionHighlight(w http.ResponseWriter, r *http.Reques
 
 	area, fragment := c.areaOrFragmentFromProperties(properties)
 	blueprint := c.blueprintFromAreaOrFragment(area, fragment)
-	gridType, screenId := "fragment", "fragment"
-	defaultTileColor := ""
-	if fragment == nil {
-		gridType, screenId = "area", "screen"
-		defaultTileColor = area.DefaultTileColor
+	gridType, screenId, defaultTileColor := "", "", ""
+	location := []string{}
+	if area != nil {
+		gridType, screenId, defaultTileColor = "area", "screen", area.DefaultTileColor
+		location = []string{properties["currentSpace"], area.Name}
+	}
+	if fragment != nil {
+		gridType, screenId = "fragment", "fragment"
+		location = []string{fragment.SetName, fragment.Name}
 	}
 
 	for i := range blueprint.Instructions {
 		if blueprint.Instructions[i].ID == instructionId {
-			details := GridClickDetails{GridType: gridType, ScreenID: screenId, X: blueprint.Instructions[i].X, Y: blueprint.Instructions[i].Y, DefaultTileColor: defaultTileColor}
-			io.WriteString(w, col.gridSelect(details, blueprint.Tiles))
+			details := GridClickDetails{
+				GridType:         gridType,
+				ScreenID:         screenId,
+				X:                blueprint.Instructions[i].X,
+				Y:                blueprint.Instructions[i].Y,
+				DefaultTileColor: defaultTileColor,
+				Selected:         true,
+				Location:         location,
+			}
+			col.gridSelect(&details, blueprint.Tiles)
+			executeGridTemplate(w, col.generateMaterials(blueprint), col.generateInteractables(blueprint.Tiles), details)
+			//tile := blueprint.Tiles[blueprint.Instructions[i].Y][blueprint.Instructions[i].X]
+			//col.executeGridSquareTemplate(w, details, tile)
+			//io.WriteString(w, col.gridSelect(&details, blueprint.Tiles))
+			// need new select square func
 		}
 	}
 

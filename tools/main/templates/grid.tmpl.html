@@ -12,6 +12,14 @@
             {{if eq $cssColor ""}}
                 {{$cssColor = $.DefaultTileColor}}
             {{end}}
+            {{$isSelected := false}}
+            {{if $.Selection}}
+                {{if eq $.Selection.Y $y}}
+                    {{if eq $.Selection.X $x}}
+                        {{$isSelected = true}}
+                    {{end}}
+                {{end}}
+            {{end}}
             <div id="{{$screenId}}c{{$y}}-{{$x}}" 
                     class="grid-square {{$cssColor}}" 
                     hx-post="/grid/click/{{$gridtype}}"
@@ -43,9 +51,13 @@
                 {{end}}
                 <div class="box ceiling1 {{$mat.Ceiling1Css}}"></div>
                 <div class="box ceiling2 {{$mat.Ceiling2Css}}"></div>
-                <div class="box top"></div>
+                <div class="box top  {{if $isSelected}} red-b med {{end}}"></div>
                 <input name="x" type="hidden" value="{{$x}}" />
                 <input name="y" type="hidden" value="{{$y}}" />
+                {{if $isSelected}}
+                <input id="{{$screenId}}-selected-x" name="grid-selected-x" type="hidden" value="{{$x}}" />
+                <input id="{{$screenId}}-selected-y" name="grid-selected-y" type="hidden" value="{{$y}}" />
+                {{end}}
             </div>
         {{end}}
     </div>
@@ -85,13 +97,8 @@
     {{end}}
     <div class="box ceiling1 {{.Material.Ceiling1Css}}"></div>
     <div class="box ceiling2 {{.Material.Ceiling2Css}}"></div>
-    <div class="box top {{if .ClickEvent.Selected}} red-b med {{end}}"></div>
+    <div class="box top {{if .ClickEvent.Selected}} blue-b med {{end}}"></div>
     <input name="x" type="hidden" value="{{.ClickEvent.X}}" />
     <input name="y" type="hidden" value="{{.ClickEvent.Y}}" />
-
-    {{if .ClickEvent.Selected}}
-    <input id="{{.ClickEvent.ScreenID}}-selected-x" name="grid-selected-x" type="hidden" value="{{.ClickEvent.X}}" />
-    <input id="{{.ClickEvent.ScreenID}}-selected-y" name="grid-selected-y" type="hidden" value="{{.ClickEvent.Y}}" />
-    {{end}}
 </div>
 {{end}}

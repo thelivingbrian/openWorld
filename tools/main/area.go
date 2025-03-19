@@ -39,16 +39,6 @@ type AreaOutput struct {
 	SpawnStrategy    string                       `json:"spawnStrategy"`
 }
 
-type GridDetails struct {
-	MaterialGrid     [][]Material
-	InteractableGrid [][]*InteractableDescription
-	DefaultTileColor string
-	Location         string
-	ScreenID         string
-	GridType         string
-	Oob              bool
-}
-
 type AreaEditPageData struct {
 	AreaWithGrid
 	PrototypeSelect PrototypeSelectPage
@@ -59,13 +49,6 @@ type AreaWithGrid struct {
 	SelectedArea   AreaDescription
 	NavHasHadClick bool
 }
-
-// //////////////////////////////////////////////////////////
-// Globals (fix)
-
-// var haveSelection bool = false
-//var selectedX int
-//var selectedY int
 
 // ///////////////////////////////////////////////////////////
 // Areas

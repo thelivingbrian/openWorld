@@ -150,32 +150,36 @@ func (c Context) deleteTransport(w http.ResponseWriter, r *http.Request) {
 }
 
 func (col *Collection) transportsAsOob(area AreaDescription, spacename string) string {
-	output := ``
+	var buf bytes.Buffer
 	for _, transport := range area.Transports {
-		fmt.Println(transport)
+		//fmt.Println(transport)
 		tile := area.Blueprint.Tiles[transport.SourceY][transport.SourceX]
-		var buf bytes.Buffer
-		var pageData = struct {
-			Material     Material
-			ClickEvent   GridClickDetails
-			Interactable *InteractableDescription
-		}{
-			Material:     col.findPrototypeById(tile.PrototypeId).applyTransform(tile.Transformation),
-			Interactable: col.findInteractableById(tile.InteractableId),
-			ClickEvent: GridClickDetails{
-				Y:                transport.SourceY,
-				X:                transport.SourceX,
-				GridType:         "area",
-				ScreenID:         "screen",
-				DefaultTileColor: area.DefaultTileColor,
-				Selected:         true,
-				Location:         []string{spacename, area.Name}},
+		event := GridClickDetails{
+			Y:                transport.SourceY,
+			X:                transport.SourceX,
+			GridType:         "area",
+			ScreenID:         "screen",
+			DefaultTileColor: area.DefaultTileColor,
+			Selected:         true,
+			Location:         []string{spacename, area.Name},
 		}
-		err := tmpl.ExecuteTemplate(&buf, "grid-square", pageData)
-		if err != nil {
-			fmt.Println(err)
-		}
-		output += buf.String()
+		col.executeGridSquareTemplate(&buf, event, tile)
 	}
-	return output
+	return buf.String()
+}
+
+func (col *Collection) executeGridSquareTemplate(w io.Writer, event GridClickDetails, tile TileData) {
+	var pageData = struct {
+		Material     Material
+		ClickEvent   GridClickDetails
+		Interactable *InteractableDescription
+	}{
+		Material:     col.findPrototypeById(tile.PrototypeId).applyTransform(tile.Transformation),
+		Interactable: col.findInteractableById(tile.InteractableId),
+		ClickEvent:   event,
+	}
+	err := tmpl.ExecuteTemplate(w, "grid-square", pageData)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
