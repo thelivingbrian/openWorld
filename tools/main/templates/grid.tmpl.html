@@ -13,12 +13,8 @@
                 {{$cssColor = $.DefaultTileColor}}
             {{end}}
             {{$isSelected := false}}
-            {{if $.Selection}}
-                {{if eq $.Selection.Y $y}}
-                    {{if eq $.Selection.X $x}}
-                        {{$isSelected = true}}
-                    {{end}}
-                {{end}}
+            {{if and $.Selection (eq $.Selection.Y $y) (eq $.Selection.X $x)}}
+                {{$isSelected = true}}
             {{end}}
             <div id="{{$screenId}}c{{$y}}-{{$x}}" 
                     class="grid-square {{$cssColor}}" 
