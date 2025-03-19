@@ -208,12 +208,8 @@ func (c *Context) postInstructionHighlight(w http.ResponseWriter, r *http.Reques
 				Selected:         true,
 				Location:         location,
 			}
-			col.gridSelect(&details, blueprint.Tiles)
+			col.gridSelect(&details)
 			executeGridTemplate(w, col.generateMaterials(blueprint), col.generateInteractables(blueprint.Tiles), details)
-			//tile := blueprint.Tiles[blueprint.Instructions[i].Y][blueprint.Instructions[i].X]
-			//col.executeGridSquareTemplate(w, details, tile)
-			//io.WriteString(w, col.gridSelect(&details, blueprint.Tiles))
-			// need new select square func
 		}
 	}
 

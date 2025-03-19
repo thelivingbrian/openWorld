@@ -240,7 +240,7 @@ func CreateSelectionFromClickDetails(details GridClickDetails) *Coordinate {
 func (col *Collection) gridClickAction(details *GridClickDetails, blueprint *Blueprint) {
 	switch details.Tool {
 	case "select":
-		col.gridSelect(details, blueprint.Tiles)
+		col.gridSelect(details)
 
 	case "replace":
 		selectedPrototype := col.getPrototypeOrCreateInvalid(details.SelectedAssetId)
@@ -361,7 +361,7 @@ func (col *Collection) getFragmentFromAssetId(fragmentID string) Fragment {
 	return *fragment
 }
 
-func (col *Collection) gridSelect(event *GridClickDetails, grid [][]TileData) {
+func (col *Collection) gridSelect(event *GridClickDetails) {
 	event.haveASelection = true
 	event.selectedY, event.selectedX = event.Y, event.X
 }
@@ -410,10 +410,9 @@ func fill(event *GridClickDetails, modifications [][]TileData, selectedPrototype
 	}
 }
 
-// include selection in gridClickDetails
 func (col *Collection) gridFillBetween(event *GridClickDetails, modifications [][]TileData, selectedPrototype Prototype) {
 	if !event.haveASelection {
-		col.gridSelect(event, modifications)
+		col.gridSelect(event)
 	}
 
 	var lowx, lowy, highx, highy int
@@ -441,7 +440,7 @@ func (col *Collection) gridFillBetween(event *GridClickDetails, modifications []
 			col.gridReplace(&newEvent, modifications, selectedPrototype)
 		}
 	}
-	col.gridSelect(event, modifications)
+	col.gridSelect(event)
 }
 
 func gridRotate(event *GridClickDetails, modifications [][]TileData) {
