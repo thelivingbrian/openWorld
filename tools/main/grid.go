@@ -281,7 +281,10 @@ func (col *Collection) gridClickAction(details GridClickDetails, blueprint *Blue
 	case "interactable-delete":
 		return col.interactableReplace(details, blueprint.Tiles, nil)
 
-	case "toggle-select", "toggle", "toggle-fill", "toggle-between":
+	case "toggle":
+		return ""
+
+	case "toggle-select", "toggle-fill", "toggle-between":
 		return ""
 
 	default:
