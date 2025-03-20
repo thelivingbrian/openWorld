@@ -274,7 +274,8 @@ func (col *Collection) gridClickAction(details *GridClickDetails, blueprint *Blu
 
 	case "toggle":
 		gridToggleGroundStatus(details, blueprint.Ground)
-		smoothCorners(blueprint.Ground)
+		impactedCells := SubGrid(blueprint.Ground, details.Y-1, details.X-1, 3, 3)
+		smoothCorners(impactedCells)
 
 	case "toggle-select", "toggle-fill", "toggle-between":
 

@@ -422,3 +422,17 @@ func (col *Collection) createMaterialForGround(cell Cell, color0, color1 string)
 	}
 	return material
 }
+
+func SubGrid(grid [][]Cell, y, x, height, width int) [][]Cell {
+	rowStart := max(0, y)
+	rowEnd := min(y+height, len(grid))
+	colStart := max(0, x)
+	colEnd := min(x+width, len(grid[0]))
+
+	sub := make([][]Cell, 0, rowEnd-rowStart)
+	for r := rowStart; r < rowEnd; r++ {
+		rowSlice := grid[r][colStart:colEnd]
+		sub = append(sub, rowSlice)
+	}
+	return sub
+}
