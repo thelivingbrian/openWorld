@@ -273,6 +273,8 @@ func (col *Collection) gridClickAction(details *GridClickDetails, blueprint *Blu
 		interactableReplace(details, blueprint.Tiles, nil)
 
 	case "toggle":
+		gridToggleGroundStatus(details, blueprint.Ground)
+		smoothCorners(blueprint.Ground)
 
 	case "toggle-select", "toggle-fill", "toggle-between":
 
@@ -465,6 +467,11 @@ func gridPlaceOnBlueprint(event *GridClickDetails, blueprint *Blueprint) {
 			ClockwiseRotations: 0,
 		})
 	}
+}
+
+func gridToggleGroundStatus(event *GridClickDetails, modifications [][]Cell) {
+	currentStatus := modifications[event.Y][event.X].Status
+	modifications[event.Y][event.X].Status = (currentStatus + 1) % 2
 }
 
 ///

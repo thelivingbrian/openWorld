@@ -394,7 +394,7 @@ func (col *Collection) generateMaterialsForGround(bp *Blueprint) [][]Material {
 
 func (col *Collection) createMaterialForGround(cell Cell, color0, color1 string) Material {
 	primary, secondary := color0, color1
-	if cell.status != 0 {
+	if cell.Status != 0 {
 		primary, secondary = color1, color0
 	}
 	material := Material{
@@ -405,19 +405,19 @@ func (col *Collection) createMaterialForGround(cell Cell, color0, color1 string)
 		Ground1Css: "",
 		Ground2Css: primary,
 	}
-	if cell.topLeft || cell.topRight || cell.bottomLeft || cell.bottomRight {
+	if cell.TopLeft || cell.TopRight || cell.BottomLeft || cell.BottomRight {
 		material.Ground1Css = secondary
 	}
-	if cell.topLeft {
+	if cell.TopLeft {
 		material.Ground2Css += " r0-tl"
 	}
-	if cell.topRight {
+	if cell.TopRight {
 		material.Ground2Css += " r0-tr"
 	}
-	if cell.bottomLeft {
+	if cell.BottomLeft {
 		material.Ground2Css += " r0-bl"
 	}
-	if cell.bottomRight {
+	if cell.BottomRight {
 		material.Ground2Css += " r0-br"
 	}
 	return material
