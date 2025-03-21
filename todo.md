@@ -281,12 +281,19 @@ One way or two way.
  - Broadcast group for area descriptions
  - Weather type for area descriptions
  - Ground pattern for area description
-   - Grid for editing ground pattern
-     - toggle / toggle between / toggle fill 
-   - Blueprint color1 and color2 
+  - Grid for editing ground pattern
+    - [-] toggle 
+    - [ ]toggle between / toggle fill 
+  - [ ] Blueprint color1 and color2 
+    - [ ] When creating space
+    - [ ] Update for area
+  - [ ] Add ground pattern using structure window 
+  - [ ] Add additional states for Cell ? 
+    - [ ] would need to extend smoothness algorithm 
  - [-] remove global variables
  - [ ] update Area output to have materials by value
    - [ ] remove material output?  
+   - [ ] compile / load successfully w/ ground
 
  - Toroidal Woods - 12x12
  - static weather initially
