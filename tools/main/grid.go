@@ -277,7 +277,11 @@ func (col *Collection) gridClickAction(details *GridClickDetails, blueprint *Blu
 		impactedCells := SubGrid(blueprint.Ground, details.Y-1, details.X-1, 3, 3)
 		smoothCorners(impactedCells)
 
-	case "toggle-select", "toggle-fill", "toggle-between":
+	case "toggle-between":
+		gridToggleBetween(details, blueprint.Ground)
+
+	case "toggle-fill":
+		break
 
 	}
 }
@@ -450,6 +454,41 @@ func gridFillBetween(event *GridClickDetails, modifications [][]TileData, select
 			gridReplace(&newEvent, modifications, selectedPrototype)
 		}
 	}
+	gridSelect(event)
+}
+
+func gridToggleBetween(event *GridClickDetails, modifications [][]Cell) {
+	if !event.haveASelection {
+		gridSelect(event)
+	}
+
+	var lowx, lowy, highx, highy int
+	if event.Y <= event.selectedY {
+		lowy = event.Y
+		highy = event.selectedY
+	} else {
+		lowy = event.selectedY
+		highy = event.Y
+	}
+	if event.X <= event.selectedX {
+		lowx = event.X
+		highx = event.selectedX
+	} else {
+		lowx = event.selectedX
+		highx = event.X
+	}
+
+	for i := lowy; i <= highy; i++ {
+		for j := lowx; j <= highx; j++ {
+			// unsafe out of bounds
+			newEvent := *event
+			newEvent.Y = i
+			newEvent.X = j
+			gridToggleGroundStatus(&newEvent, modifications)
+		}
+	}
+	impactedCells := SubGrid(modifications, lowy-1, lowx-1, highy-lowy+3, highx-lowx+3)
+	smoothCorners(impactedCells)
 	gridSelect(event)
 }
 
