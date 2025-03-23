@@ -281,8 +281,8 @@ func (col *Collection) gridClickAction(details *GridClickDetails, blueprint *Blu
 		gridToggleBetween(details, blueprint.Ground)
 
 	case "toggle-fill":
-		break
-
+		gridToggleFill(details, blueprint.Ground, nil, -1)
+		smoothCorners(blueprint.Ground)
 	}
 }
 
@@ -424,6 +424,39 @@ func fill(event *GridClickDetails, modifications [][]TileData, selectedPrototype
 	}
 }
 
+func gridToggleFill(event *GridClickDetails, modifications [][]Cell, seen [][]bool, selectedStatus int) {
+	if seen == nil {
+		selectedStatus = modifications[event.Y][event.X].Status
+		seen = make([][]bool, len(modifications))
+		for row := range seen {
+			seen[row] = make([]bool, len(modifications[row]))
+		}
+	}
+
+	seen[event.Y][event.X] = true
+	toggleCellStatus(&modifications[event.Y][event.X])
+
+	deltas := []int{-1, 1}
+	for _, i := range deltas {
+		if event.Y+i >= 0 && event.Y+i < len(modifications) {
+			shouldfill := !seen[event.Y+i][event.X] && modifications[event.Y+i][event.X].Status == selectedStatus
+			if shouldfill {
+				newEvent := *event
+				newEvent.Y += i
+				gridToggleFill(&newEvent, modifications, seen, selectedStatus)
+			}
+		}
+		if event.X+i >= 0 && event.X+i < len(modifications[event.Y]) {
+			shouldfill := !seen[event.Y][event.X+i] && modifications[event.Y][event.X+i].Status == selectedStatus
+			if shouldfill {
+				newEvent := *event
+				newEvent.X += i
+				gridToggleFill(&newEvent, modifications, seen, selectedStatus)
+			}
+		}
+	}
+}
+
 func gridFillBetween(event *GridClickDetails, modifications [][]TileData, selectedPrototype Prototype) {
 	if !event.haveASelection {
 		gridSelect(event)
@@ -512,6 +545,11 @@ func gridPlaceOnBlueprint(event *GridClickDetails, blueprint *Blueprint) {
 func gridToggleGroundStatus(event *GridClickDetails, modifications [][]Cell) {
 	currentStatus := modifications[event.Y][event.X].Status
 	modifications[event.Y][event.X].Status = (currentStatus + 1) % 2
+}
+
+func toggleCellStatus(cell *Cell) {
+	currentStatus := cell.Status
+	cell.Status = (currentStatus + 1) % 2
 }
 
 ///
