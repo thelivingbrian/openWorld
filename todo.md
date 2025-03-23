@@ -283,7 +283,8 @@ One way or two way.
  - Ground pattern for area description
   - Grid for editing ground pattern
     - [-] toggle 
-    - [ ]toggle between / toggle fill 
+    - [-] toggle between / toggle fill 
+    - [ ] view ground from area edit
   - [ ] Blueprint color1 and color2 
     - [ ] When creating space
     - [ ] Update for area
