@@ -140,12 +140,14 @@ func gridWithCircle(gridSize int, strategy string, fuzz float64, seed int64) [][
 }
 
 func smoothCorners(cells [][]Cell) [][]Cell {
-	gridSize := len(cells)
+	fmt.Println(len(cells), len(cells[0]))
+	gridHeight := len(cells)
 	// Create the Corner array
-	corners := make([][]*Corner, gridSize-1)
-	for i := 0; i < gridSize-1; i++ {
-		corners[i] = make([]*Corner, gridSize-1)
-		for j := 0; j < gridSize-1; j++ {
+	corners := make([][]*Corner, gridHeight-1)
+	for i := 0; i < gridHeight-1; i++ {
+		gridWidth := len(cells[i])
+		corners[i] = make([]*Corner, gridWidth-1)
+		for j := 0; j < gridWidth-1; j++ {
 			corners[i][j] = &Corner{
 				a: &cells[i][j],
 				b: &cells[i][j+1],
@@ -153,11 +155,11 @@ func smoothCorners(cells [][]Cell) [][]Cell {
 				d: &cells[i+1][j+1]}
 		}
 	}
-
+	fmt.Println(len(corners), len(corners[0]))
 	// gl future me
 	// Find the roundness of each cell's corners
-	for i := 0; i < gridSize-1; i++ {
-		for j := 0; j < gridSize-1; j++ {
+	for i := 0; i < len(corners); i++ {
+		for j := 0; j < len(corners[i]); j++ {
 			corner := corners[i][j]
 			count := corner.a.Status + corner.b.Status + corner.c.Status + corner.d.Status
 			if count == 4 || count == 0 {
