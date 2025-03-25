@@ -572,20 +572,30 @@ func (c Context) generateImageFromSpace(space *Space) *image.RGBA {
 func (c Context) generateImgFromArea(area *AreaDescription, col Collection) *image.RGBA {
 	img := image.NewRGBA(image.Rect(0, 0, len(area.Blueprint.Tiles[0]), len(area.Blueprint.Tiles)))
 
-	areaColor := c.findColorByName(area.DefaultTileColor)
+	defaultColor := c.findColorByName(area.Blueprint.DefaultTileColor)
+	defaultColor1 := c.findColorByName(area.Blueprint.DefaultTileColor1)
 	for row := range area.Blueprint.Tiles {
 		for column, tile := range area.Blueprint.Tiles[row] {
-			proto := col.findPrototypeById(tile.PrototypeId)
-			if proto == nil {
-				fmt.Println("WARN: PROTOTYPE MISSING: " + tile.PrototypeId)
-				proto = &Prototype{MapColor: "red"}
+			outputColor := defaultColor
+			ground := groundCellByCoord(area.Blueprint, row, column)
+			if ground != nil && ground.Status == 1 {
+				outputColor = defaultColor1
 			}
-			mapColor := c.getMapColorFromProto(*proto)
-			protoColor := c.findColorByName(mapColor) // will be invalid if proto has CommonName == empty
-			if protoColor.CssClassName == "invalid" {
-				protoColor = areaColor // get ground color
+
+			if tile.PrototypeId != "" {
+				proto := col.findPrototypeById(tile.PrototypeId)
+				if proto == nil {
+					fmt.Println("WARN: PROTOTYPE MISSING: " + tile.PrototypeId)
+					proto = &Prototype{MapColor: "red"}
+				}
+				colorString := c.getMapColorFromProto(*proto)
+				protoColor := c.findColorByName(colorString) // will be invalid if proto has CommonName == empty
+				if protoColor.CssClassName != "NONE" {
+					outputColor = protoColor
+				}
+
 			}
-			img.Set(column, row, color.RGBA{R: uint8(protoColor.R), G: uint8(protoColor.G), B: uint8(protoColor.B), A: 255})
+			img.Set(column, row, color.RGBA{R: uint8(outputColor.R), G: uint8(outputColor.G), B: uint8(outputColor.B), A: 255})
 		}
 	}
 
@@ -637,7 +647,7 @@ func (c Context) findColorByName(s string) Color {
 			return color
 		}
 	}
-	return Color{CssClassName: "invalid"}
+	return Color{CssClassName: "NONE", R: 0, G: 0, B: 0}
 }
 
 func saveImageAsPNG(filename string, img image.Image) error {
