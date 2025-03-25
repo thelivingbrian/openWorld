@@ -312,6 +312,7 @@ func examplePrototype(w http.ResponseWriter, r *http.Request) {
 // Utilities
 
 func (proto *Prototype) applyTransform(transformation Transformation) Material {
+	// how to get ground colors?
 	baseColor := proto.EditorColor
 	if baseColor == "" {
 		baseColor = proto.CssColor

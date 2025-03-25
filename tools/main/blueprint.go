@@ -352,8 +352,8 @@ func (c *Context) getGroundEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection := c.collectionFromGet(r)
-	modifications := collection.generateMaterialsForGround(selectedArea.Blueprint)
+	//collection := c.collectionFromGet(r)
+	modifications := generateMaterialsForGround(selectedArea.Blueprint)
 
 	var pageData = AreaEditPageData{
 		AreaWithGrid: AreaWithGrid{
@@ -375,7 +375,7 @@ func (c *Context) getGroundEdit(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (col *Collection) generateMaterialsForGround(bp *Blueprint) [][]Material {
+func generateMaterialsForGround(bp *Blueprint) [][]Material {
 	if bp.Ground == nil {
 		bp.Ground = make([][]Cell, len(bp.Tiles))
 		for n := range bp.Ground {
@@ -386,25 +386,31 @@ func (col *Collection) generateMaterialsForGround(bp *Blueprint) [][]Material {
 	for i := range bp.Ground {
 		out[i] = make([]Material, len(bp.Ground[i]))
 		for j := range bp.Ground[i] {
-			out[i][j] = col.createMaterialForGround(bp.Ground[i][j], bp.DefaultTileColor, bp.DefaultTileColor1)
+			out[i][j] = createMaterialForGround(bp.Ground[i][j], bp.DefaultTileColor, bp.DefaultTileColor1)
 		}
 	}
 	return out
 }
 
-func (col *Collection) createMaterialForGround(cell Cell, color0, color1 string) Material {
-	primary, secondary := color0, color1
-	if cell.Status != 0 {
-		primary, secondary = color1, color0
-	}
+func createMaterialForGround(cell Cell, color0, color1 string) Material {
 	material := Material{
 		ID:         9922661,
 		CommonName: "sample-ground",
 		Walkable:   true,
 		//CssColor:    "",
 		Ground1Css: "",
-		Ground2Css: primary,
+		Ground2Css: "",
 	}
+
+	return addGroundToMaterial(material, cell, color0, color1)
+}
+
+func addGroundToMaterial(material Material, cell Cell, color0, color1 string) Material {
+	primary, secondary := color0, color1
+	if cell.Status != 0 {
+		primary, secondary = color1, color0
+	}
+	material.Ground2Css = primary
 	if cell.TopLeft || cell.TopRight || cell.BottomLeft || cell.BottomRight {
 		material.Ground1Css = secondary
 	}

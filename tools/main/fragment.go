@@ -104,10 +104,21 @@ func (col *Collection) generateMaterials(bp *Blueprint) [][]Material {
 	for i := range tiles {
 		out[i] = make([]Material, len(tiles[i]))
 		for j := range tiles[i] {
-			out[i][j] = col.createMaterial(tiles[i][j])
+
+			out[i][j] = col.createMaterial(bp, i, j)
 		}
 	}
 	return out
+}
+
+func groundCellByCoord(bp *Blueprint, y, x int) *Cell {
+	if bp == nil || bp.Ground == nil {
+		return nil
+	}
+	if y < 0 || x < 0 || y >= len(bp.Ground) || x >= len(bp.Ground[y]) {
+		return nil
+	}
+	return &bp.Ground[y][x]
 }
 
 func (col *Collection) generateInteractables(tiles [][]TileData) [][]*InteractableDescription {
@@ -121,13 +132,29 @@ func (col *Collection) generateInteractables(tiles [][]TileData) [][]*Interactab
 	return out
 }
 
-func (col *Collection) createMaterial(data TileData) Material {
+func (col *Collection) createMaterial(bp *Blueprint, y, x int) Material {
+	data := bp.Tiles[y][x]
+	proto := col.findPrototypeById(data.PrototypeId)
+	if proto == nil {
+		proto = &Prototype{ID: "INVALID-", CssColor: "blue", Floor1Css: "green red-b thick"}
+	}
+	mat := proto.applyTransform(data.Transformation)
+	ground := groundCellByCoord(bp, y, x)
+	if ground != nil {
+		return addGroundToMaterial(mat, *ground, bp.DefaultTileColor, bp.DefaultTileColor1)
+	}
+	return mat
+}
+
+/*
+func (col *Collection) createMaterial(data TileData, cell *Cell) Material {
 	proto := col.findPrototypeById(data.PrototypeId)
 	if proto == nil {
 		proto = &Prototype{ID: "INVALID-", CssColor: "blue", Floor1Css: "green red-b thick"}
 	}
 	return proto.applyTransform(data.Transformation)
 }
+*/
 
 func transformCss(input string, transformation Transformation) string {
 	// We are looking for {key:value} : key, value are strings

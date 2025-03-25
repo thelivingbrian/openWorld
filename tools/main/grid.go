@@ -144,7 +144,7 @@ func (c Context) gridClickGroundHandler(w http.ResponseWriter, r *http.Request) 
 	area := getAreaByName(space.Areas, areaName)
 	col.gridClickAction(&details, area.Blueprint)
 
-	executeGridTemplate(w, col.generateMaterialsForGround(area.Blueprint), nil, details)
+	executeGridTemplate(w, generateMaterialsForGround(area.Blueprint), nil, details)
 }
 
 func executeGridTemplate(w http.ResponseWriter, materials [][]Material, interactables [][]*InteractableDescription, details GridClickDetails) {
