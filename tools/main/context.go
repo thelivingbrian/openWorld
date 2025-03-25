@@ -342,6 +342,8 @@ func (collection *Collection) compileTileDataAndAccumulateMaterials(desc AreaDes
 			}
 
 			// Is added step worth it or should server areas have materials by value?
+
+			// getProto -> transform -> add ground -> description includes [][]Material
 			outputTiles[y][x] = id
 		}
 	}

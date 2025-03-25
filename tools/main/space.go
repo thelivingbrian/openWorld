@@ -581,9 +581,9 @@ func (c Context) generateImgFromArea(area *AreaDescription, col Collection) *ima
 				proto = &Prototype{MapColor: "red"}
 			}
 			mapColor := c.getMapColorFromProto(*proto)
-			protoColor := c.findColorByName(mapColor)
+			protoColor := c.findColorByName(mapColor) // will be invalid if proto has CommonName == empty
 			if protoColor.CssClassName == "invalid" {
-				protoColor = areaColor
+				protoColor = areaColor // get ground color
 			}
 			img.Set(column, row, color.RGBA{R: uint8(protoColor.R), G: uint8(protoColor.G), B: uint8(protoColor.B), A: 255})
 		}
