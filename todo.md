@@ -162,7 +162,9 @@
     - [-] clean up collection logic
     - [-] add cli  
   - [-] get rid of proc folder?
-- [ ] Bug: New color will output to local file but deploying requires application restart.
+- [ ] Bugs: 
+  - [ ]New color will output to local file but deploying requires application restart.
+  - [ ] New areas are always "safe"
 
 
 ## Mobile
