@@ -285,12 +285,12 @@ One way or two way.
     - [-] toggle 
     - [-] toggle between / toggle fill 
     - [-] view ground from area edit
-    - [ ] return to area edit not working
+    - [-] return to area edit not working
   - [-] Ground is visible from map
   - [ ] Blueprint color1 and color2 
     - [ ] When creating space
     - [-] Update for area
-    - [ ] update for space 
+    - [-] update for space 
   - [ ] Add ground pattern using structure window 
   - [ ] Add additional states for Cell ? 
     - [ ] would need to extend smoothness algorithm 

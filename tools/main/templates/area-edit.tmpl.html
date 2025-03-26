@@ -42,7 +42,8 @@
 
 <div id="edit_sidebar" class="left">
     <div id="edit_options">
-        <a hx-get="/area/details" hx-target="#edit_window" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Back to Area</a> |
+        <input name="area-name-selected" type="hidden" value="{{.AreaWithGrid.SelectedArea.Name}}" />
+        <a hx-get="/area" hx-target="#edit_window" hx-include="#edit_options [name='area-name-selected'],[name='currentCollection'],[name='currentSpace']" href="#">Back to Area</a> |
         <a hx-get="/blueprint" hx-target="#edit_window" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Recalculate</a> |
     </div>
     <div id="edit_tool">

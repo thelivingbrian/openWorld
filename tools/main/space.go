@@ -386,6 +386,7 @@ func (c Context) postSpaceModify(w http.ResponseWriter, r *http.Request) {
 			space.Areas[i].Safe = safe
 		}
 	}
+	io.WriteString(w, "<h2>done</h2>")
 }
 
 func (c Context) getSpaceModify(w http.ResponseWriter, _ *http.Request) {
