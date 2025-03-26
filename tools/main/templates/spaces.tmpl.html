@@ -175,7 +175,8 @@
 	<form hx-include="[name='currentCollection'],[name='currentSpace']" hx-post="/space/modify" hx-target="#save_notice">    
         <label>Safe:</label>
         <input type="checkbox" name="safe" ><br />
-        <input type="submit" />
+        <input type="hidden" name="safe-update" value="true" >
+		<input type="submit" />
     </form>
 </div>
 {{end}}

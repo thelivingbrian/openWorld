@@ -166,8 +166,9 @@ func createBaseArea(height, width int, tileColor string) AreaDescription {
 	for i := range tiles {
 		tiles[i] = make([]TileData, width)
 	}
-	// default Tile Color to blueprint?
+
 	blueprint := Blueprint{Tiles: tiles, DefaultTileColor: tileColor, Instructions: make([]Instruction, 0)}
+	// safe is always true?
 	return AreaDescription{Name: "", Safe: true, Blueprint: &blueprint, Transports: make([]Transport, 0)}
 }
 
@@ -358,7 +359,32 @@ func (c Context) spaceModifyHandler(w http.ResponseWriter, r *http.Request) {
 		c.getSpaceModify(w, r)
 	}
 	if r.Method == "POST" {
-		// todo implement
+		c.postSpaceModify(w, r)
+	}
+}
+
+func (c Context) postSpaceModify(w http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	collectionName := properties["currentCollection"]
+	spaceName := properties["currentSpace"]
+	space := c.spaceFromNames(collectionName, spaceName)
+	if space == nil {
+		panic("invalid space")
+	}
+	defaultColor, haveDefault := properties["default-tile-color"]
+	defaultColor1, haveDefault1 := properties["default-tile-color1"]
+	_, haveSafe := properties["safe-update"]
+	safe := properties["safe"] == "on"
+	for i := range space.Areas {
+		if haveDefault {
+			space.Areas[i].Blueprint.DefaultTileColor = defaultColor
+		}
+		if haveDefault1 {
+			space.Areas[i].Blueprint.DefaultTileColor1 = defaultColor1
+		}
+		if haveSafe {
+			space.Areas[i].Safe = safe
+		}
 	}
 }
 

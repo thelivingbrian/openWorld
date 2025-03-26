@@ -143,6 +143,7 @@ func (col *Collection) createMaterial(bp *Blueprint, y, x int) Material {
 	if ground != nil {
 		return addGroundToMaterial(mat, *ground, bp.DefaultTileColor, bp.DefaultTileColor1)
 	}
+	mat.Ground1Css = bp.DefaultTileColor
 	return mat
 }
 
