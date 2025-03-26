@@ -4,20 +4,15 @@
 <div id="{{$screenId}}" class="grid" {{if .Oob}} hx-swap-oob="true" {{end}}>
     <input name="sid" type="hidden" value="{{$screenId}}" />
     <input name="location" type="hidden" value="{{.Location}}" />
-    <input name="default-tile-color" type="hidden" value="{{.DefaultTileColor}}" />
     {{range $y, $row := .MaterialGrid}}
     <div class="grid-row">
         {{range $x, $mat := $row}}
-            {{$cssColor := $mat.CssColor}}
-            {{if eq $cssColor ""}}
-                {{$cssColor = $.DefaultTileColor}}
-            {{end}}
             {{$isSelected := false}}
             {{if and $.Selection (eq $.Selection.Y $y) (eq $.Selection.X $x)}}
                 {{$isSelected = true}}
             {{end}}
             <div id="{{$screenId}}c{{$y}}-{{$x}}" 
-                    class="grid-square {{$cssColor}}" 
+                    class="grid-square {{$mat.CssColor}}" 
                     hx-post="/grid/click/{{$gridtype}}"
                     hx-trigger="click" 
                     hx-include="[name='currentCollection'],
@@ -25,7 +20,6 @@
                                 [name='selected-asset-id'],
                                 [name='selected-fragment-name'],
                                 #fragment-set,
-                                [name='defaultTileColor'],
                                 #{{$screenId}} [name='sid'],
                                 #{{$screenId}} [name='location'],
                                 #{{$screenId}} [name='default-tile-color'],
@@ -78,7 +72,6 @@
     #fragment-set,
     #{{.ClickEvent.ScreenID}} [name='sid'],
     #{{.ClickEvent.ScreenID}} [name='location'],
-    #{{.ClickEvent.ScreenID}} [name='default-tile-color'],
     #{{.ClickEvent.ScreenID}} [name='grid-selected-x'],
     #{{.ClickEvent.ScreenID}} [name='grid-selected-y'],
     #{{.ClickEvent.ScreenID}}c{{.ClickEvent.Y}}-{{.ClickEvent.X}} [name='x'],

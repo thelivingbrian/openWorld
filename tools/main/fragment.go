@@ -91,10 +91,10 @@ func (c *Collection) DetailsFromFragment(fragment *Fragment, clickable bool) *Fr
 		GridDetails: GridDetails{
 			MaterialGrid:     c.generateMaterials(fragment.Blueprint),
 			InteractableGrid: c.generateInteractables(fragment.Blueprint.Tiles),
-			DefaultTileColor: "",
-			Location:         fragment.SetName + "." + fragment.Name,
-			ScreenID:         "fragment",
-			GridType:         gridtype},
+			//DefaultTileColor: "",
+			Location: fragment.SetName + "." + fragment.Name,
+			ScreenID: "fragment",
+			GridType: gridtype},
 	}
 }
 

@@ -278,7 +278,7 @@ func (c Context) compileCollection(collection *Collection) {
 				Tiles:            outputTiles,
 				Interactables:    collection.generateInteractables(desc.Blueprint.Tiles),
 				Transports:       desc.Transports,
-				DefaultTileColor: desc.DefaultTileColor,
+				DefaultTileColor: desc.Blueprint.DefaultTileColor, // used?
 				North:            desc.North,
 				South:            desc.South,
 				East:             desc.East,

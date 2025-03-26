@@ -189,7 +189,7 @@ func (c *Context) postInstructionHighlight(w http.ResponseWriter, r *http.Reques
 	gridType, screenId, defaultTileColor := "", "", ""
 	location := []string{}
 	if area != nil {
-		gridType, screenId, defaultTileColor = "area", "screen", area.DefaultTileColor
+		gridType, screenId, defaultTileColor = "area", "screen", area.Blueprint.DefaultTileColor
 		location = []string{properties["currentSpace"], area.Name}
 	}
 	if fragment != nil {
@@ -204,7 +204,7 @@ func (c *Context) postInstructionHighlight(w http.ResponseWriter, r *http.Reques
 				ScreenID:         screenId,
 				X:                blueprint.Instructions[i].X,
 				Y:                blueprint.Instructions[i].Y,
-				DefaultTileColor: defaultTileColor,
+				DefaultTileColor: defaultTileColor, // could be influenced by ground
 				Selected:         true,
 				Location:         location,
 			}
@@ -360,10 +360,10 @@ func (c *Context) getGroundEdit(w http.ResponseWriter, r *http.Request) {
 			GridDetails: GridDetails{
 				MaterialGrid:     modifications,
 				InteractableGrid: nil,
-				DefaultTileColor: selectedArea.DefaultTileColor,
-				Location:         locationStringFromArea(selectedArea, space.Name),
-				GridType:         "ground",
-				ScreenID:         "screen-g",
+				//DefaultTileColor: selectedArea.DefaultTileColor,
+				Location: locationStringFromArea(selectedArea, space.Name),
+				GridType: "ground",
+				ScreenID: "screen-g",
 			},
 			SelectedArea:   *selectedArea,
 			NavHasHadClick: false,

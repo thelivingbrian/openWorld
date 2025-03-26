@@ -159,7 +159,7 @@ func (col *Collection) transportsAsOob(area AreaDescription, spacename string) s
 			X:                transport.SourceX,
 			GridType:         "area",
 			ScreenID:         "screen",
-			DefaultTileColor: area.DefaultTileColor,
+			DefaultTileColor: area.Blueprint.DefaultTileColor, // ground (defaultBasedOnGroundCell func)
 			Selected:         true,
 			Location:         []string{spacename, area.Name},
 		}

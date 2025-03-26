@@ -12,12 +12,12 @@ import (
 type GridDetails struct {
 	MaterialGrid     [][]Material
 	InteractableGrid [][]*InteractableDescription
-	DefaultTileColor string
-	Location         string
-	ScreenID         string
-	GridType         string
-	Oob              bool
-	Selection        *Coordinate
+	//DefaultTileColor string
+	Location  string
+	ScreenID  string
+	GridType  string
+	Oob       bool
+	Selection *Coordinate
 }
 
 type Coordinate struct {
@@ -32,8 +32,8 @@ type GridClickDetails struct {
 	ScreenID         string // known if editing bp, either "screen" or "fragment"
 	Y                int
 	X                int
-	DefaultTileColor string
-	Selected         bool // This is meaningless for a click, but for an oob square it indicates if it should have a border
+	DefaultTileColor string // only relevant for oob squares
+	Selected         bool   // This is meaningless for a click, but for an oob square it indicates if it should have a border
 	Tool             string
 	SelectedAssetId  string // used for identifying multiple non-interactive grids? is a click detail not square detail
 	haveASelection   bool
@@ -151,12 +151,12 @@ func executeGridTemplate(w http.ResponseWriter, materials [][]Material, interact
 	var pageData = GridDetails{
 		MaterialGrid:     materials,
 		InteractableGrid: interactables,
-		DefaultTileColor: details.DefaultTileColor,
-		Location:         details.stringifyLocation(),
-		ScreenID:         details.ScreenID,
-		GridType:         details.GridType,
-		Oob:              true,
-		Selection:        CreateSelectionFromClickDetails(details),
+		//DefaultTileColor: details.DefaultTileColor,
+		Location:  details.stringifyLocation(),
+		ScreenID:  details.ScreenID,
+		GridType:  details.GridType,
+		Oob:       true,
+		Selection: CreateSelectionFromClickDetails(details),
 	}
 
 	err := tmpl.ExecuteTemplate(w, "grid", pageData)
@@ -190,7 +190,7 @@ func createClickDetailsFromProps(properties map[string]string, gridType string) 
 	if !ok {
 		panic("No sid")
 	}
-	defaultTileColor, ok := properties["default-tile-color"]
+	//defaultTileColor, ok := properties["default-tile-color"] // Always ""
 	if !ok {
 		panic("location")
 	}
@@ -226,7 +226,7 @@ func createClickDetailsFromProps(properties map[string]string, gridType string) 
 	}
 	haveASelection := okX && okY
 
-	return GridClickDetails{CollectionName: currentCollection, Location: parts, GridType: gridType, ScreenID: sid, Y: yInt, X: xInt, DefaultTileColor: defaultTileColor, Tool: tool, SelectedAssetId: protoId, haveASelection: haveASelection, selectedX: selectedX, selectedY: selectedY}
+	return GridClickDetails{CollectionName: currentCollection, Location: parts, GridType: gridType, ScreenID: sid, Y: yInt, X: xInt, Tool: tool, SelectedAssetId: protoId, haveASelection: haveASelection, selectedX: selectedX, selectedY: selectedY}
 }
 
 func CreateSelectionFromClickDetails(details GridClickDetails) *Coordinate {
