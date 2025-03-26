@@ -115,7 +115,7 @@
         <div id="edit_options">
             <a hx-get="/space/details" hx-target="#edit_tool_space" hx-include="[name='currentCollection'],[name='currentSpace']" href="#">Details</a> |
 			<a hx-get="/space/structures" hx-target="#edit_tool_space" href="#">Structures</a> |
-            <span>Modify Areas</span> |
+            <a hx-get="/space/modify" hx-target="#edit_tool_space" href="#">Modify Areas</a> |
             <span>All Transports</a> 
         </div>
         <div id="edit_tool_space">
@@ -159,6 +159,26 @@
 </div>
 {{end}}
 
+{{define "space-modify-areas"}}
+<div id="space-modify-areas">
+    <div id="save_notice"></div>
+	<form hx-include="[name='currentCollection'],[name='currentSpace']" hx-post="/space/modify" hx-target="#save_notice">
+        <label>Default Tile Color:</label>
+        <input type="text" name="default-tile-color" value="" />   
+        <input type="submit" />
+    </form>
+	<form hx-include="[name='currentCollection'],[name='currentSpace']" hx-post="/space/modify" hx-target="#save_notice">
+        <label>Default Tile Color1:</label>
+        <input type="text" name="default-tile-color1" value="" />       
+        <input type="submit" />
+    </form>
+	<form hx-include="[name='currentCollection'],[name='currentSpace']" hx-post="/space/modify" hx-target="#save_notice">    
+        <label>Safe:</label>
+        <input type="checkbox" name="safe" ><br />
+        <input type="submit" />
+    </form>
+</div>
+{{end}}
 
 {{define "structure-select"}}
 <div id="structure-select">

@@ -353,6 +353,22 @@ func (c Context) spaceStructureHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (c Context) spaceModifyHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		c.getSpaceModify(w, r)
+	}
+	if r.Method == "POST" {
+		// todo implement
+	}
+}
+
+func (c Context) getSpaceModify(w http.ResponseWriter, _ *http.Request) {
+	err := tmpl.ExecuteTemplate(w, "space-modify-areas", nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
 func (c Context) getSpaceStructure(w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 	collectionName := queryValues.Get("currentCollection")

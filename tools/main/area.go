@@ -86,7 +86,8 @@ func (c Context) postAreas(w http.ResponseWriter, r *http.Request) {
 	properties, _ := requestToProperties(r)
 	name := properties["new-area-name"]
 	safe := (properties["safe"] == "on")
-	defaultTileColor := properties["default-tile-color"] // Move to blueprint? impact to space?
+	defaultTileColor := properties["default-tile-color"]
+	defaultTileColor1 := properties["default-tile-color1"]
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
 	panicIfAnyEmpty("POST to /area", collectionName, spaceName, name)
@@ -99,7 +100,7 @@ func (c Context) postAreas(w http.ResponseWriter, r *http.Request) {
 		tiles[i] = make([]TileData, width)
 	}
 
-	blueprint := &Blueprint{Tiles: tiles, DefaultTileColor: defaultTileColor, Instructions: make([]Instruction, 0)}
+	blueprint := &Blueprint{Tiles: tiles, DefaultTileColor: defaultTileColor, DefaultTileColor1: defaultTileColor1, Instructions: make([]Instruction, 0)}
 
 	space := c.spaceFromNames(collectionName, spaceName)
 	space.Areas = append(space.Areas, AreaDescription{Name: name, Safe: safe, Blueprint: blueprint, Transports: make([]Transport, 0)})
