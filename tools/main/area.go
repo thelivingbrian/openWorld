@@ -208,6 +208,7 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	newName := properties["areaName"]
 	safe := (properties["safe"] == "on")
 	defaultTileColor := properties["defaultTileColor"]
+	defaultTileColor1 := properties["defaultTileColor1"]
 	loadStrategy := properties["loadStrategy"]
 	spawnStrategy := properties["spawnStrategy"]
 	collectionName := properties["currentCollection"]
@@ -222,8 +223,10 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if newName == name {
+		// These changes will get lost if concurrent with name change
 		selectedArea.Safe = safe
 		selectedArea.Blueprint.DefaultTileColor = defaultTileColor
+		selectedArea.Blueprint.DefaultTileColor1 = defaultTileColor1
 		selectedArea.LoadStrategy = loadStrategy
 		selectedArea.SpawnStrategy = spawnStrategy
 	} else {
