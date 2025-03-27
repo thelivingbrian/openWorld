@@ -12,7 +12,7 @@
                 {{$isSelected = true}}
             {{end}}
             <div id="{{$screenId}}c{{$y}}-{{$x}}" 
-                    class="grid-square {{$mat.CssColor}}" 
+                    class="grid-square" 
                     hx-post="/grid/click/{{$gridtype}}"
                     hx-trigger="click" 
                     hx-include="[name='currentCollection'],
