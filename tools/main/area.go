@@ -26,7 +26,7 @@ type AreaDescription struct {
 type AreaOutput struct {
 	Name             string                       `json:"name"`
 	Safe             bool                         `json:"safe"`
-	Tiles            [][]int                      `json:"tiles"`
+	Tiles            [][]Material                 `json:"tiles"`
 	Interactables    [][]*InteractableDescription `json:"interactables"`
 	Transports       []Transport                  `json:"transports"`
 	DefaultTileColor string                       `json:"defaultTileColor"`

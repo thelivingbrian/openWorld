@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log" 
+	"log"
 	"sync"
 )
 
@@ -40,7 +40,7 @@ func createStageFromArea(area Area) *Stage {
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
 		for x := range outputStage.tiles[y] {
-			outputStage.tiles[y][x] = newTile(materials[area.Tiles[y][x]], y, x, area.DefaultTileColor)
+			outputStage.tiles[y][x] = newTile(area.Tiles[y][x], y, x, area.DefaultTileColor)
 			outputStage.tiles[y][x].stage = &outputStage
 			if area.Interactables != nil && y < len(area.Interactables) && x < len(area.Interactables[y]) {
 				description := area.Interactables[y][x]
@@ -56,8 +56,8 @@ func createStageFromArea(area Area) *Stage {
 
 		// Change this
 		mat := outputStage.tiles[transport.SourceY][transport.SourceX].material
-		mat.CssColor = "pink"
-		mat.Floor1Css = ""
+		//mat.CssColor = "pink"
+		mat.Floor1Css = "pink"
 		mat.Floor2Css = ""
 		outputStage.tiles[transport.SourceY][transport.SourceX].quickSwapTemplate = makeQuickSwapTemplate(mat, transport.SourceY, transport.SourceX)
 

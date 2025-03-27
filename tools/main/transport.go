@@ -174,7 +174,7 @@ func (col *Collection) executeGridSquareTemplate(w io.Writer, event GridClickDet
 		ClickEvent   GridClickDetails
 		Interactable *InteractableDescription
 	}{
-		Material:     col.findPrototypeById(tile.PrototypeId).applyTransform(tile.Transformation),
+		Material:     col.findPrototypeById(tile.PrototypeId).applyTransformForEditor(tile.Transformation),
 		Interactable: col.findInteractableById(tile.InteractableId),
 		ClickEvent:   event,
 	}

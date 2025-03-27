@@ -394,7 +394,7 @@ func generateMaterialsForGround(bp *Blueprint) [][]Material {
 
 func createMaterialForGround(cell Cell, color0, color1 string) Material {
 	material := Material{
-		ID:         9922661,
+		//ID:         9922661,
 		CommonName: "sample-ground",
 		Walkable:   true,
 		//CssColor:    "",
@@ -402,10 +402,18 @@ func createMaterialForGround(cell Cell, color0, color1 string) Material {
 		Ground2Css: "",
 	}
 
-	return addGroundToMaterial(material, cell, color0, color1)
+	return addGroundToMaterial(material, &cell, color0, color1)
 }
 
-func addGroundToMaterial(material Material, cell Cell, color0, color1 string) Material {
+func addGroundToMaterial(material Material, cell *Cell, color0, color1 string) Material {
+	if cell == nil {
+		material.Ground1Css = color0
+		return material
+	}
+	if material.Ground2Css != "" {
+		// Material has preset Ground - leave the same
+		return material
+	}
 	primary, secondary := color0, color1
 	if cell.Status != 0 {
 		primary, secondary = color1, color0

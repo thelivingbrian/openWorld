@@ -181,6 +181,7 @@ func getAreaByName(areas []AreaDescription, name string) *AreaDescription {
 	return nil
 }
 
+/*
 // Could also have getAreaByCoord
 func (s *Space) getAreaByName(name string) *AreaDescription {
 	return getAreaByName(s.Areas, name)
@@ -189,6 +190,7 @@ func (s *Space) getAreaByName(name string) *AreaDescription {
 func (s *Space) coordToName(y, x int) string {
 	return fmt.Sprintf("%s:%d-%d", s.Name, y, x)
 }
+*/
 
 func getFragmentByName(fragments []Fragment, name string) *Fragment {
 	for i, fragment := range fragments {

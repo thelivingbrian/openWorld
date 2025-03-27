@@ -133,17 +133,25 @@ func (col *Collection) generateInteractables(tiles [][]TileData) [][]*Interactab
 }
 
 func (col *Collection) createMaterial(bp *Blueprint, y, x int) Material {
+	// Get prototype
 	data := bp.Tiles[y][x]
 	proto := col.findPrototypeById(data.PrototypeId)
 	if proto == nil {
 		proto = &Prototype{ID: "INVALID-", CssColor: "blue", Floor1Css: "green red-b thick"}
 	}
-	mat := proto.applyTransform(data.Transformation)
+
+	// Apply transform
+	mat := proto.applyTransformForEditor(data.Transformation)
+
+	// Apply ground
 	ground := groundCellByCoord(bp, y, x)
-	if ground != nil {
-		return addGroundToMaterial(mat, *ground, bp.DefaultTileColor, bp.DefaultTileColor1)
-	}
-	mat.Ground1Css = bp.DefaultTileColor
+	mat = addGroundToMaterial(mat, ground, bp.DefaultTileColor, bp.DefaultTileColor1)
+
+	// // Css Overrides
+	// if proto.CssColor != "" {
+	// 	mat.Ground2Css = proto.CssColor
+	// }
+
 	return mat
 }
 

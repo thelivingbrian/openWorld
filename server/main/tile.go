@@ -39,9 +39,9 @@ type Teleport struct {
 }
 
 func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
-	if mat.CssColor == "" {
-		mat.CssColor = defaultTileColor
-	}
+	// if mat.CssColor == "" {
+	// 	mat.CssColor = defaultTileColor
+	// }
 	return &Tile{
 		material:          mat,
 		playerMap:         make(map[string]*Player),
@@ -67,8 +67,8 @@ func makeQuickSwapTemplate(mat Material, y, x int) string {
 	placeHold := "%s" // later becomes player, interactable, svg, weather, and highlight boxes
 
 	out := ""
-	out += swapToken(y, x, "Lg1", "g1", mat.CssColor)
-	out += swapToken(y, x, "Lg2", "g2", "")
+	out += swapToken(y, x, "Lg1", "g1", mat.Ground1Css)
+	out += swapToken(y, x, "Lg2", "g2", mat.Ground2Css)
 	out += swapToken(y, x, "Lf1", "f1", mat.Floor1Css)
 	out += swapToken(y, x, "Lf2", "f2", mat.Floor2Css)
 	out += placeHold

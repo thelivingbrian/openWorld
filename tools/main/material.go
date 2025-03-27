@@ -8,9 +8,9 @@ import (
 )
 
 type Material struct {
-	ID          int    `json:"id"`
-	CommonName  string `json:"commonName"`
-	CssColor    string `json:"cssColor"`
+	//ID          int    `json:"id"`
+	CommonName string `json:"commonName"`
+	// CssColor    string `json:"cssColor"` // Lily - implies must override ground somehoww
 	Walkable    bool   `json:"walkable"`
 	Ground1Css  string `json:"ground1css"`
 	Ground2Css  string `json:"ground2css"`
