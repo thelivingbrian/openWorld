@@ -83,6 +83,9 @@ func (c Context) postSpaces(w http.ResponseWriter, r *http.Request) {
 
 		tileColor, ok := props["tileColor"]
 		valid = valid && ok
+
+		tileColor1, ok := props["tileColor1"]
+		valid = valid && ok
 		if !valid {
 			fmt.Println("Invalid, failed to get properties by name.")
 			io.WriteString(w, `<h3> Properties are invalid.</h3>`)
@@ -109,7 +112,7 @@ func (c Context) postSpaces(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Printf("%s %s %s %s %s %d %d", name, topology, areaWidth, areaHeight, tileColor, latitude, longitude)
 
-		space := createSpace(cName, name, latitude, longitude, topology, height, width, tileColor)
+		space := createSpace(cName, name, latitude, longitude, topology, height, width, tileColor, tileColor1)
 		col.Spaces[name] = &space
 		io.WriteString(w, `<h3>Success</h3>`)
 		return
@@ -117,11 +120,11 @@ func (c Context) postSpaces(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, `<h3>Invalid collection Name.</h3>`)
 }
 
-func createSpace(cName, name string, latitude, longitude int, topology string, height, width int, tileColor string) Space {
+func createSpace(cName, name string, latitude, longitude int, topology string, height, width int, tileColor, tileColor1 string) Space {
 	areas := make([][]AreaDescription, latitude)
 	for y := 0; y < latitude; y++ {
 		for x := 0; x < longitude; x++ {
-			area := createBaseArea(height, width, tileColor)
+			area := createBaseArea(height, width, tileColor, tileColor1)
 
 			if topology != "disconnected" {
 				// This is consistent with Tiles
@@ -161,13 +164,13 @@ func mod(i, n int) int {
 	return ((i % n) + n) % n
 }
 
-func createBaseArea(height, width int, tileColor string) AreaDescription {
+func createBaseArea(height, width int, tileColor, tileColor1 string) AreaDescription {
 	tiles := make([][]TileData, height)
 	for i := range tiles {
 		tiles[i] = make([]TileData, width)
 	}
 
-	blueprint := Blueprint{Tiles: tiles, DefaultTileColor: tileColor, Instructions: make([]Instruction, 0)}
+	blueprint := Blueprint{Tiles: tiles, DefaultTileColor: tileColor, DefaultTileColor1: tileColor1, Instructions: make([]Instruction, 0)}
 	// safe is always true?
 	return AreaDescription{Name: "", Safe: true, Blueprint: &blueprint, Transports: make([]Transport, 0)}
 }
