@@ -339,8 +339,8 @@ func (proto *Prototype) applyTransformForEditor(transformation Transformation) M
 func (proto *Prototype) applyTransform(transformation Transformation) Material {
 	return Material{
 		//ID:          id,
-		CommonName: proto.CommonName,
-		Walkable:   proto.Walkable,
+		//CommonName: proto.CommonName,
+		Walkable: proto.Walkable,
 		//CssColor:    proto.CssColor,
 		Ground2Css:  proto.CssColor,
 		Floor1Css:   transformCss(proto.Floor1Css, transformation),

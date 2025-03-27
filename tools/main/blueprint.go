@@ -395,8 +395,8 @@ func generateMaterialsForGround(bp *Blueprint) [][]Material {
 func createMaterialForGround(cell Cell, color0, color1 string) Material {
 	material := Material{
 		//ID:         9922661,
-		CommonName: "sample-ground",
-		Walkable:   true,
+		//CommonName: "sample-ground",
+		Walkable: true,
 		//CssColor:    "",
 		Ground1Css: "",
 		Ground2Css: "",
