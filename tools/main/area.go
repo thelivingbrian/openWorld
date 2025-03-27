@@ -13,13 +13,15 @@ type AreaDescription struct {
 	Blueprint  *Blueprint  `json:"blueprint"`
 	Transports []Transport `json:"transports"`
 	//DefaultTileColor string      `json:"defaultTileColor"`
-	North         string `json:"north,omitempty"`
-	South         string `json:"south,omitempty"`
-	East          string `json:"east,omitempty"`
-	West          string `json:"west,omitempty"`
-	MapId         string `json:"mapId"`
-	LoadStrategy  string `json:"loadStrategy"`
-	SpawnStrategy string `json:"spawnStrategy"`
+	North          string `json:"north,omitempty"`
+	South          string `json:"south,omitempty"`
+	East           string `json:"east,omitempty"`
+	West           string `json:"west,omitempty"`
+	MapId          string `json:"mapId"`
+	LoadStrategy   string `json:"loadStrategy"`
+	SpawnStrategy  string `json:"spawnStrategy"`
+	Weather        string `json:"weather,omitempty"`
+	BroadcastGroup string `json:"broadcastGroup,omitempty"`
 }
 
 // Import from the other project instead? Or import from here. Transport too
@@ -210,7 +212,9 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	safe := (properties["safe"] == "on")
 	defaultTileColor := properties["defaultTileColor"]
 	defaultTileColor1 := properties["defaultTileColor1"]
+	weather := properties["weather"]
 	loadStrategy := properties["loadStrategy"]
+	broadcastGroup := properties["broadcastGroup"]
 	spawnStrategy := properties["spawnStrategy"]
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
@@ -228,8 +232,10 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 		selectedArea.Safe = safe
 		selectedArea.Blueprint.DefaultTileColor = defaultTileColor
 		selectedArea.Blueprint.DefaultTileColor1 = defaultTileColor1
+		selectedArea.Weather = weather
 		selectedArea.LoadStrategy = loadStrategy
 		selectedArea.SpawnStrategy = spawnStrategy
+		selectedArea.BroadcastGroup = broadcastGroup
 	} else {
 		if getAreaByName(space.Areas, newName) != nil {
 			panic("Invalid name") // This check doesn't look at other spaces

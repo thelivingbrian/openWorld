@@ -11,12 +11,16 @@
         <input type="text" name="defaultTileColor" value="{{.Area.Blueprint.DefaultTileColor}}">
         <label>Default Tile Color1:</label>
         <input type="text" name="defaultTileColor1" value="{{.Area.Blueprint.DefaultTileColor1}}">
+        <label>Weather:</label>
+        <input type="text" name="weather" value="{{.Area.Weather}}">
         <label>Safe:</label>
         <input type="checkbox" name="safe" {{.Checked}}><br />
         <label>Load Strategy:</label>
         <input type="text" name="loadStrategy" value="{{.Area.LoadStrategy}}">
         <label>Spawn Strategy:</label>
         <input type="text" name="spawnStrategy" value="{{.Area.SpawnStrategy}}">
+        <label>Broadcast Group:</label>
+        <input type="text" name="broadcastGroup" value="{{.Area.BroadcastGroup}}">
         <button>Save</button><br />
     </form>
 </div>
