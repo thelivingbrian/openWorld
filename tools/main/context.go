@@ -244,6 +244,7 @@ func (c Context) compile(w http.ResponseWriter, r *http.Request) {
 	collectionName := queryValues.Get("currentCollection")
 	c.createCSSFile(CSS_PATH)
 	c.compileCollectionByName(collectionName)
+	fmt.Println("Done.")
 }
 
 func (c Context) compileCollectionByName(collectionName string) {
@@ -286,6 +287,8 @@ func (c Context) compileCollection(collection *Collection) {
 				MapId:            mapid,
 				LoadStrategy:     desc.LoadStrategy,
 				SpawnStrategy:    desc.SpawnStrategy,
+				Weather:          desc.Weather,
+				BroadcastGroup:   desc.BroadcastGroup,
 			})
 		}
 	}
