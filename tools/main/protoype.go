@@ -22,13 +22,11 @@ type Prototype struct {
 	MapColor    string `json:"mapColor"`
 	EditorColor string `json:"editorColor"`
 	DisplayText string `json:"displayText"`
-	//default map color bool?
 }
 
 type Transformation struct {
 	ClockwiseRotations int    `json:"clockwiseRotations,omitempty"`
 	ColorPalette       string `json:"colorPalette,omitempty"`
-	// checkNeighbors
 }
 
 type TileData struct {
@@ -312,24 +310,6 @@ func examplePrototype(w http.ResponseWriter, r *http.Request) {
 // Utilities
 
 func (proto *Prototype) applyTransformForEditor(transformation Transformation) Material {
-	/*
-		// how to get ground colors?
-		baseColor := proto.EditorColor
-		if baseColor == "" {
-			baseColor = proto.CssColor
-		}
-		return Material{
-			//ID:          15793,
-			CommonName:  proto.CommonName,
-			Walkable:    proto.Walkable,
-			CssColor:    baseColor,
-			Floor1Css:   transformCss(proto.Floor1Css, transformation),
-			Floor2Css:   transformCss(proto.Floor2Css, transformation),
-			Ceiling1Css: transformCss(proto.Ceiling1Css, transformation),
-			Ceiling2Css: transformCss(proto.Ceiling2Css, transformation),
-			DisplayText: proto.DisplayText,
-		}
-	*/
 	copy := *proto
 	if copy.EditorColor != "" {
 		copy.CssColor = copy.EditorColor
@@ -338,10 +318,7 @@ func (proto *Prototype) applyTransformForEditor(transformation Transformation) M
 }
 func (proto *Prototype) applyTransform(transformation Transformation) Material {
 	return Material{
-		//ID:          id,
-		//CommonName: proto.CommonName,
-		Walkable: proto.Walkable,
-		//CssColor:    proto.CssColor,
+		Walkable:    proto.Walkable,
 		Ground2Css:  proto.CssColor,
 		Floor1Css:   transformCss(proto.Floor1Css, transformation),
 		Floor2Css:   transformCss(proto.Floor2Css, transformation),

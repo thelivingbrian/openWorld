@@ -43,7 +43,6 @@ func swapsForTilesWithHighlights(tiles [][]*Tile, highlights map[*Tile]bool) []b
 
 func swapsForTile(tile *Tile, highlight string) string {
 	svgtag := svgFromTile(tile)
-	// weatherFromTile
 	return fmt.Sprintf(tile.quickSwapTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x, tile.stage.weather), oobHighlightBox(tile, highlight))
 }
 

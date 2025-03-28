@@ -19,7 +19,7 @@ type Fragment struct {
 
 // For templates
 type FragmentDetails struct {
-	ID          string `json:"id"` // json not needed?
+	ID          string
 	Name        string
 	SetName     string
 	GridDetails GridDetails
@@ -91,10 +91,9 @@ func (c *Collection) DetailsFromFragment(fragment *Fragment, clickable bool) *Fr
 		GridDetails: GridDetails{
 			MaterialGrid:     c.generateMaterials(fragment.Blueprint),
 			InteractableGrid: c.generateInteractables(fragment.Blueprint.Tiles),
-			//DefaultTileColor: "",
-			Location: fragment.SetName + "." + fragment.Name,
-			ScreenID: "fragment",
-			GridType: gridtype},
+			Location:         fragment.SetName + "." + fragment.Name,
+			ScreenID:         "fragment",
+			GridType:         gridtype},
 	}
 }
 
@@ -133,7 +132,7 @@ func (col *Collection) generateInteractables(tiles [][]TileData) [][]*Interactab
 }
 
 func (col *Collection) createMaterial(bp *Blueprint, y, x int) Material {
-	// Get prototype
+	// Find prototype
 	data := bp.Tiles[y][x]
 	proto := col.findPrototypeById(data.PrototypeId)
 	if proto == nil {
@@ -147,23 +146,8 @@ func (col *Collection) createMaterial(bp *Blueprint, y, x int) Material {
 	ground := groundCellByCoord(bp, y, x)
 	mat = addGroundToMaterial(mat, ground, bp.DefaultTileColor, bp.DefaultTileColor1)
 
-	// // Css Overrides
-	// if proto.CssColor != "" {
-	// 	mat.Ground2Css = proto.CssColor
-	// }
-
 	return mat
 }
-
-/*
-func (col *Collection) createMaterial(data TileData, cell *Cell) Material {
-	proto := col.findPrototypeById(data.PrototypeId)
-	if proto == nil {
-		proto = &Prototype{ID: "INVALID-", CssColor: "blue", Floor1Css: "green red-b thick"}
-	}
-	return proto.applyTransform(data.Transformation)
-}
-*/
 
 func transformCss(input string, transformation Transformation) string {
 	// We are looking for {key:value} : key, value are strings

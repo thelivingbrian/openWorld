@@ -12,12 +12,11 @@ import (
 type GridDetails struct {
 	MaterialGrid     [][]Material
 	InteractableGrid [][]*InteractableDescription
-	//DefaultTileColor string
-	Location  string
-	ScreenID  string
-	GridType  string
-	Oob       bool
-	Selection *Coordinate
+	Location         string
+	ScreenID         string
+	GridType         string
+	Oob              bool
+	Selection        *Coordinate
 }
 
 type Coordinate struct {
@@ -151,12 +150,11 @@ func executeGridTemplate(w http.ResponseWriter, materials [][]Material, interact
 	var pageData = GridDetails{
 		MaterialGrid:     materials,
 		InteractableGrid: interactables,
-		//DefaultTileColor: details.DefaultTileColor,
-		Location:  details.stringifyLocation(),
-		ScreenID:  details.ScreenID,
-		GridType:  details.GridType,
-		Oob:       true,
-		Selection: CreateSelectionFromClickDetails(details),
+		Location:         details.stringifyLocation(),
+		ScreenID:         details.ScreenID,
+		GridType:         details.GridType,
+		Oob:              true,
+		Selection:        CreateSelectionFromClickDetails(details),
 	}
 
 	err := tmpl.ExecuteTemplate(w, "grid", pageData)
@@ -190,7 +188,6 @@ func createClickDetailsFromProps(properties map[string]string, gridType string) 
 	if !ok {
 		panic("No sid")
 	}
-	//defaultTileColor, ok := properties["default-tile-color"] // Always ""
 	if !ok {
 		panic("location")
 	}
@@ -240,7 +237,7 @@ func CreateSelectionFromClickDetails(details GridClickDetails) *Coordinate {
 func (col *Collection) gridClickAction(details *GridClickDetails, blueprint *Blueprint) {
 	switch details.Tool {
 	case "select":
-		gridSelect(details) // Move select into TileData ?
+		gridSelect(details)
 
 	case "replace":
 		selectedPrototype := col.getPrototypeOrCreateInvalid(details.SelectedAssetId)
@@ -480,7 +477,7 @@ func gridFillBetween(event *GridClickDetails, modifications [][]TileData, select
 
 	for i := lowy; i <= highy; i++ {
 		for j := lowx; j <= highx; j++ {
-			// unsafe out of bounds
+			// unsafe - out of bounds
 			newEvent := *event
 			newEvent.Y = i
 			newEvent.X = j
@@ -513,7 +510,7 @@ func gridToggleBetween(event *GridClickDetails, modifications [][]Cell) {
 
 	for i := lowy; i <= highy; i++ {
 		for j := lowx; j <= highx; j++ {
-			// unsafe out of bounds
+			// unsafe - out of bounds
 			newEvent := *event
 			newEvent.Y = i
 			newEvent.X = j
@@ -588,7 +585,7 @@ func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
 		tmpl.ExecuteTemplate(w, "fixture-transformation", nil)
 	}
 	if fixtureType == "blueprint" {
-		c.getBlueprint(w, r) // only gets blueprint for area
+		c.getBlueprint(w, r)
 	}
 	if fixtureType == "interactable" {
 		collectionName := queryValues.Get("currentCollection")

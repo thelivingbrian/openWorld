@@ -8,20 +8,19 @@ import (
 )
 
 type AreaDescription struct {
-	Name       string      `json:"name"`
-	Safe       bool        `json:"safe"`
-	Blueprint  *Blueprint  `json:"blueprint"`
-	Transports []Transport `json:"transports"`
-	//DefaultTileColor string      `json:"defaultTileColor"`
-	North          string `json:"north,omitempty"`
-	South          string `json:"south,omitempty"`
-	East           string `json:"east,omitempty"`
-	West           string `json:"west,omitempty"`
-	MapId          string `json:"mapId"`
-	LoadStrategy   string `json:"loadStrategy"`
-	SpawnStrategy  string `json:"spawnStrategy"`
-	BroadcastGroup string `json:"broadcastGroup,omitempty"`
-	Weather        string `json:"weather,omitempty"`
+	Name           string      `json:"name"`
+	Safe           bool        `json:"safe"`
+	Blueprint      *Blueprint  `json:"blueprint"`
+	Transports     []Transport `json:"transports"`
+	North          string      `json:"north,omitempty"`
+	South          string      `json:"south,omitempty"`
+	East           string      `json:"east,omitempty"`
+	West           string      `json:"west,omitempty"`
+	MapId          string      `json:"mapId"`
+	LoadStrategy   string      `json:"loadStrategy"`
+	SpawnStrategy  string      `json:"spawnStrategy"`
+	BroadcastGroup string      `json:"broadcastGroup,omitempty"`
+	Weather        string      `json:"weather,omitempty"`
 }
 
 // Import from the other project instead? Or import from here. Transport too
@@ -147,10 +146,9 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 			GridDetails: GridDetails{
 				MaterialGrid:     modifications,
 				InteractableGrid: collection.generateInteractables(selectedArea.Blueprint.Tiles),
-				//DefaultTileColor: selectedArea.DefaultTileColor,
-				Location: locationStringFromArea(selectedArea, space.Name),
-				GridType: "area",
-				ScreenID: "screen",
+				Location:         locationStringFromArea(selectedArea, space.Name),
+				GridType:         "area",
+				ScreenID:         "screen",
 			},
 			SelectedArea:   *selectedArea,
 			NavHasHadClick: false,
@@ -192,10 +190,9 @@ func (c *Context) getAreaGrid(w http.ResponseWriter, r *http.Request) {
 		GridDetails: GridDetails{
 			MaterialGrid:     modifications,
 			InteractableGrid: collection.generateInteractables(selectedArea.Blueprint.Tiles),
-			//DefaultTileColor: selectedArea.DefaultTileColor,
-			Location: locationStringFromArea(selectedArea, space.Name),
-			GridType: "area",
-			ScreenID: "screen",
+			Location:         locationStringFromArea(selectedArea, space.Name),
+			GridType:         "area",
+			ScreenID:         "screen",
 		},
 		SelectedArea:   *selectedArea,
 		NavHasHadClick: true,

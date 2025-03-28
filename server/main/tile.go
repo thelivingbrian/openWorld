@@ -39,9 +39,6 @@ type Teleport struct {
 }
 
 func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
-	// if mat.CssColor == "" {
-	// 	mat.CssColor = defaultTileColor
-	// }
 	return &Tile{
 		material:          mat,
 		playerMap:         make(map[string]*Player),
@@ -224,12 +221,6 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 	if target == initiator {
 		return false
 	}
-	// Inherent deadlock risk?
-	// target.tangibilityLock.Lock()
-	// defer target.tangibilityLock.Unlock()
-	// if !target.tangible {
-	// 	return false
-	// }
 	location := target.getTileSync()
 	if safeFromDamage(location) {
 		return false

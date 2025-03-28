@@ -152,14 +152,13 @@ func (c Context) deleteTransport(w http.ResponseWriter, r *http.Request) {
 func (col *Collection) transportsAsOob(area AreaDescription, spacename string) string {
 	var buf bytes.Buffer
 	for _, transport := range area.Transports {
-		//fmt.Println(transport)
 		tile := area.Blueprint.Tiles[transport.SourceY][transport.SourceX]
 		event := GridClickDetails{
 			Y:                transport.SourceY,
 			X:                transport.SourceX,
 			GridType:         "area",
 			ScreenID:         "screen",
-			DefaultTileColor: area.Blueprint.DefaultTileColor, // ground (defaultBasedOnGroundCell func)
+			DefaultTileColor: area.Blueprint.DefaultTileColor, // needs ground e.g (defaultBasedOnGroundCell func)
 			Selected:         true,
 			Location:         []string{spacename, area.Name},
 		}

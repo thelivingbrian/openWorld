@@ -352,7 +352,6 @@ func (c *Context) getGroundEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//collection := c.collectionFromGet(r)
 	modifications := generateMaterialsForGround(selectedArea.Blueprint)
 
 	var pageData = AreaEditPageData{
@@ -360,10 +359,9 @@ func (c *Context) getGroundEdit(w http.ResponseWriter, r *http.Request) {
 			GridDetails: GridDetails{
 				MaterialGrid:     modifications,
 				InteractableGrid: nil,
-				//DefaultTileColor: selectedArea.DefaultTileColor,
-				Location: locationStringFromArea(selectedArea, space.Name),
-				GridType: "ground",
-				ScreenID: "screen-g",
+				Location:         locationStringFromArea(selectedArea, space.Name),
+				GridType:         "ground",
+				ScreenID:         "screen-g",
 			},
 			SelectedArea:   *selectedArea,
 			NavHasHadClick: false,
@@ -394,10 +392,6 @@ func generateMaterialsForGround(bp *Blueprint) [][]Material {
 
 func createMaterialForGround(cell Cell, color0, color1 string) Material {
 	material := Material{
-		//ID:         9922661,
-		//CommonName: "sample-ground",
-		Walkable: true,
-		//CssColor:    "",
 		Ground1Css: "",
 		Ground2Css: "",
 	}

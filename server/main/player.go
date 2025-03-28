@@ -267,7 +267,7 @@ func handleDeath(player *Player) {
 	stage := player.fetchStageSync(infirmaryStagenameForPlayer(player))
 	player.setStage(stage)
 	player.updateRecordOnDeath(stage.tiles[2][2])
-	respawnOnStage(player, stage) // don't need new routine?
+	respawnOnStage(player, stage)
 }
 
 func popAndDropMoney(player *Player) {
@@ -447,19 +447,6 @@ func updatePlayerAfterStageChange(p *Player) {
 func updateEntireExistingScreen(player *Player) {
 	player.updates <- entireScreenAsSwaps(player)
 }
-
-/*
-func clearChannel(ch chan []byte) {
-	for {
-		select {
-		case <-ch: // Read from the channel
-			// Do nothing, just drain
-		default: // Exit when the channel is empty
-			return
-		}
-	}
-}
-*/
 
 func (player *Player) updateBottomText(message string) {
 	msg := fmt.Sprintf(`

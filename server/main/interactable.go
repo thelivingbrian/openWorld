@@ -504,17 +504,6 @@ func damageWithinRadius(tile *Tile, world *World, radius, dmg int, ownerId strin
 	tiles := getTilesInRadius(tile, radius)
 	trapSetter := world.getPlayerById(ownerId)
 	if trapSetter != nil {
-		// tryLock - trapSetter may currently be target of their target's damage -> classic deadlock
-		//   does not explain players frozen in arcade
-		//   players frozen in arcade probably had this in new routine after pushing a ring
-		//   what it doesn't explain is the stages that became perma-locked
-
-		// Too early for this, can limit exposure to lock
-		// ownLock := trapSetter.tangibilityLock.TryLock()
-		// if !ownLock || !trapSetter.tangible {
-		// 	return
-		// }
-		// defer trapSetter.tangibilityLock.Unlock()
 		damageAndIndicate(tiles, trapSetter, tile.stage, dmg)
 	}
 }

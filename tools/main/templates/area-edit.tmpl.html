@@ -34,35 +34,3 @@
     
 </div>
 {{end}}
-
-{{define "ground-edit"}}
-<div id="edit_grid" class="left">
-    {{template "ground-grid" .AreaWithGrid}}
-</div>
-
-<div id="edit_sidebar" class="left">
-    <div id="edit_options">
-        <input name="area-name-selected" type="hidden" value="{{.AreaWithGrid.SelectedArea.Name}}" />
-        <a hx-get="/area" hx-target="#edit_window" hx-include="#edit_options [name='area-name-selected'],[name='currentCollection'],[name='currentSpace']" href="#">Back to Area</a> |
-        <a hx-get="/blueprint" hx-target="#edit_window" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Recalculate</a> |
-    </div>
-    <div id="edit_tool">
-        {{template "available-tools-ground" }}
-    </div>
-</div>
-{{end}}
-
-{{define "ground-grid"}}
-<div id="ground-grid">
-    <input id="area-name" type="hidden" name="area-name" value="{{.SelectedArea.Name}}"/>
-    <div id="top_window" class="{{if .NavHasHadClick}}notify-click{{end}}">
-        <!-- {{template "neighbors-tiny-ground" .SelectedArea}} -->
-    </div>
-    
-    {{template "grid" .GridDetails}}
-
-    <div id="bottom_window">
-    </div>
-    
-</div>
-{{end}}
