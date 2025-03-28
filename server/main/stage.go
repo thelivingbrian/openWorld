@@ -17,6 +17,7 @@ type Stage struct {
 	mapId              string
 	spawn              []SpawnAction
 	broadcastGroupName string
+	weather            string
 }
 
 ////////////////////////////////////////////////////
@@ -35,7 +36,8 @@ func createStageFromArea(area Area) *Stage {
 		west:               area.West,
 		mapId:              area.MapId,
 		spawn:              spawnAction,
-		broadcastGroupName: "GROUP_NAME_HERE",
+		broadcastGroupName: area.BroadcastGroup,
+		weather:            area.Weather,
 	}
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
@@ -56,7 +58,6 @@ func createStageFromArea(area Area) *Stage {
 
 		// Change this
 		mat := outputStage.tiles[transport.SourceY][transport.SourceX].material
-		//mat.CssColor = "pink"
 		mat.Floor1Css = "pink"
 		mat.Floor2Css = ""
 		outputStage.tiles[transport.SourceY][transport.SourceX].quickSwapTemplate = makeQuickSwapTemplate(mat, transport.SourceY, transport.SourceX)

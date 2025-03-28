@@ -44,7 +44,7 @@ func swapsForTilesWithHighlights(tiles [][]*Tile, highlights map[*Tile]bool) []b
 func swapsForTile(tile *Tile, highlight string) string {
 	svgtag := svgFromTile(tile)
 	// weatherFromTile
-	return fmt.Sprintf(tile.quickSwapTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x), oobHighlightBox(tile, highlight))
+	return fmt.Sprintf(tile.quickSwapTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x, tile.stage.weather), oobHighlightBox(tile, highlight))
 }
 
 ////////////////////////////////////////////////////////////
@@ -159,9 +159,9 @@ func interactableBox(tile *Tile) string {
 	return fmt.Sprintf(`[~ id="Li1-%d-%d" class="box zi %s"]`, tile.y, tile.x, indicator)
 }
 
-func emptyWeatherBox(y, x int) string {
+func emptyWeatherBox(y, x int, weather string) string {
 	//  blue trsp20 for gloom
-	return fmt.Sprintf(`[~ id="Lw1-%d-%d" class="box zw"]`, y, x)
+	return fmt.Sprintf(`[~ id="Lw1-%d-%d" class="box zw %s"]`, y, x, weather)
 }
 
 func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {

@@ -230,6 +230,8 @@ type Area struct {
 	MapId            string                       `json:"mapId"`
 	LoadStrategy     string                       `json:"loadStrategy,omitempty"`
 	SpawnStrategy    string                       `json:"spawnStrategy,omitempty"`
+	BroadcastGroup   string                       `json:"broadcastGroup,omitempty"`
+	Weather          string                       `json:"weather,omitempty"`
 }
 
 type InteractableDescription struct {

@@ -20,8 +20,8 @@ type AreaDescription struct {
 	MapId          string `json:"mapId"`
 	LoadStrategy   string `json:"loadStrategy"`
 	SpawnStrategy  string `json:"spawnStrategy"`
-	Weather        string `json:"weather,omitempty"`
 	BroadcastGroup string `json:"broadcastGroup,omitempty"`
+	Weather        string `json:"weather,omitempty"`
 }
 
 // Import from the other project instead? Or import from here. Transport too
@@ -39,6 +39,8 @@ type AreaOutput struct {
 	MapId            string                       `json:"mapId,omitempty"`
 	LoadStrategy     string                       `json:"loadStrategy,omitempty"`
 	SpawnStrategy    string                       `json:"spawnStrategy"`
+	BroadcastGroup   string                       `json:"broadcastGroup,omitempty"`
+	Weather          string                       `json:"weather,omitempty"`
 }
 
 type AreaEditPageData struct {

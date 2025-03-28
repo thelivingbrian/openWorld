@@ -386,6 +386,8 @@ func (c Context) postSpaceModify(w http.ResponseWriter, r *http.Request) {
 	defaultColor1, haveDefault1 := properties["default-tile-color1"]
 	_, haveSafe := properties["safe-update"]
 	safe := properties["safe"] == "on"
+	weather, haveWeather := properties["weather"]
+	broadcastGroup, haveBroadcast := properties["broadcast-group"]
 	for i := range space.Areas {
 		if haveDefault {
 			space.Areas[i].Blueprint.DefaultTileColor = defaultColor
@@ -395,6 +397,12 @@ func (c Context) postSpaceModify(w http.ResponseWriter, r *http.Request) {
 		}
 		if haveSafe {
 			space.Areas[i].Safe = safe
+		}
+		if haveWeather {
+			space.Areas[i].Weather = weather
+		}
+		if haveBroadcast {
+			space.Areas[i].BroadcastGroup = broadcastGroup
 		}
 	}
 	io.WriteString(w, "<h2>done</h2>")

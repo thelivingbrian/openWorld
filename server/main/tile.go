@@ -304,7 +304,7 @@ func (tile *Tile) tryToNotifyAfter(delay int) {
 	time.Sleep(time.Millisecond * time.Duration(delay))
 	if tile.eventsInFlight.Add(-1) == 0 {
 		// blue trsp20 for gloom
-		tile.stage.updateAll(weatherBox(tile, ""))
+		tile.stage.updateAll(weatherBox(tile, tile.stage.weather))
 	}
 }
 

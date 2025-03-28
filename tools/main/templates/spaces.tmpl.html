@@ -162,21 +162,31 @@
 {{define "space-modify-areas"}}
 <div id="space-modify-areas">
     <div id="save_notice"></div>
-	<form hx-include="[name='currentCollection'],[name='currentSpace']" hx-post="/space/modify" hx-target="#save_notice">
-        <label>Default Tile Color:</label>
-        <input type="text" name="default-tile-color" value="" />   
-        <input type="submit" />
+    <form hx-include="[name='currentCollection'],[name='currentSpace']" hx-post="/space/modify" hx-target="#save_notice">
+        <label for="default-tile-color">Default Tile Color:</label>
+        <input type="text" id="default-tile-color" name="default-tile-color" value="" />   
+        <input type="submit" value="Save" />
     </form>
-	<form hx-include="[name='currentCollection'],[name='currentSpace']" hx-post="/space/modify" hx-target="#save_notice">
-        <label>Default Tile Color1:</label>
-        <input type="text" name="default-tile-color1" value="" />       
-        <input type="submit" />
+    <form hx-include="[name='currentCollection'],[name='currentSpace']" hx-post="/space/modify" hx-target="#save_notice">
+        <label for="default-tile-color1">Default Tile Color 1:</label>
+        <input type="text" id="default-tile-color1" name="default-tile-color1" value="" />       
+        <input type="submit" value="Save" />
     </form>
-	<form hx-include="[name='currentCollection'],[name='currentSpace']" hx-post="/space/modify" hx-target="#save_notice">    
-        <label>Safe:</label>
-        <input type="checkbox" name="safe" ><br />
+    <form hx-include="[name='currentCollection'],[name='currentSpace']" hx-post="/space/modify" hx-target="#save_notice">    
+        <label for="safe">Safe Mode:</label>
+        <input type="checkbox" id="safe" name="safe" ><br />
         <input type="hidden" name="safe-update" value="true" >
-		<input type="submit" />
+        <input type="submit" value="Save" />
+    </form>
+    <form hx-include="[name='currentCollection'],[name='currentSpace']" hx-post="/space/modify" hx-target="#save_notice">
+        <label for="weather">Weather:</label>
+        <input type="text" id="weather" name="weather" value="" />       
+        <input type="submit" value="Save" />
+    </form>
+    <form hx-include="[name='currentCollection'],[name='currentSpace']" hx-post="/space/modify" hx-target="#save_notice">
+        <label for="broadcast-group">Broadcast Group Name:</label>
+        <input type="text" id="broadcast-group" name="broadcast-group" value="" />       
+        <input type="submit" value="Save" />
     </form>
 </div>
 {{end}}
