@@ -340,9 +340,12 @@ func createTestingSocketWithCancel(url string, wg *sync.WaitGroup) (*TestingSock
 	ctx, cancel := context.WithCancel(context.Background()) // Point of context vs just calling close?
 	go func(ctx context.Context) {
 		defer wg.Done()
-		for range ctx.Done() {
-			ts.ws.Close()
-			return
+		for {
+			select {
+			case <-ctx.Done():
+				ts.ws.Close()
+				return
+			}
 		}
 	}(ctx)
 	return ts, cancel
