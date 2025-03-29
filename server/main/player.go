@@ -333,6 +333,7 @@ func infirmaryStagenameForPlayer(player *Player) string {
 ////////////////////////////////////////////////////////////
 //	Updates
 
+/*
 func (player *Player) sendUpdatesUnbuffered() {
 	shouldSendUpdates := true
 	for {
@@ -353,6 +354,7 @@ func (player *Player) sendUpdatesUnbuffered() {
 		}
 	}
 }
+*/
 
 func (player *Player) sendUpdates() {
 	var buffer bytes.Buffer
@@ -748,7 +750,7 @@ func (player *Player) closeConnectionSync() error {
 	player.connLock.Lock()
 	defer player.connLock.Unlock()
 	if player.conn == nil {
-		return errors.New("Player connection nil before attempted close.")
+		return errors.New("player connection nil before attempted close")
 	}
 	return player.conn.Close()
 }

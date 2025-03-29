@@ -246,8 +246,8 @@ type InteractableDescription struct {
 }
 
 var (
-	materials []Material
-	areas     []Area
+	//materials []Material
+	areas []Area
 )
 
 func populateStructUsingFileName[T any](ptr *T, filename string) {

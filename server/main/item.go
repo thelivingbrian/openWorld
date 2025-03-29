@@ -2,8 +2,6 @@ package main
 
 import (
 	"math/rand"
-	"strconv"
-	"strings"
 )
 
 type SpawnAction struct {
@@ -21,17 +19,25 @@ func (s *SpawnAction) activateFor(player *Player, stage *Stage) {
 }
 
 var spawnActions = map[string][]SpawnAction{
-	"none": []SpawnAction{}, // Same as Should: Always, Action: doNothing
-	"": []SpawnAction{
-		SpawnAction{Should: always, Action: basicSpawnNoRing},
+	"none": {}, // Same as Should: Always, Action: doNothing
+	"": {
+		{Should: always, Action: basicSpawnNoRing},
 	},
-	"basic-ring": []SpawnAction{
-		SpawnAction{Should: always, Action: basicSpawnWithRing},
+	"basic-ring": {
+		{Should: always, Action: basicSpawnWithRing},
 	},
-	"tutorial-boost":   []SpawnAction{SpawnAction{Should: always, Action: tutorialBoost()}},
-	"tutorial-power":   []SpawnAction{SpawnAction{Should: always, Action: tutorialPower}},
-	"tutorial-2":       []SpawnAction{SpawnAction{Should: oneOutOf(4), Action: spawnBoosts}},
-	"tutorial-2-boost": []SpawnAction{SpawnAction{Should: always, Action: tutorial2Boost()}},
+	"tutorial-boost": {
+		{Should: always, Action: tutorialBoost()},
+	},
+	"tutorial-power": {
+		{Should: always, Action: tutorialPower},
+	},
+	"tutorial-2": {
+		{Should: oneOutOf(4), Action: spawnBoosts},
+	},
+	"tutorial-2-boost": {
+		{Should: always, Action: tutorial2Boost()},
+	},
 }
 
 /////////////////////////////////////////////
@@ -47,6 +53,7 @@ func both(f1, f2 func(*Player, *Stage) bool) func(*Player, *Stage) bool {
 	}
 }
 
+/*
 func checkDistanceFromEdge(gridHeight, gridWidth int) func(*Player, *Stage) bool {
 	return func(_ *Player, stage *Stage) bool {
 		maxDistance := min((gridHeight-1)/2, (gridWidth-1)/2)
@@ -60,6 +67,7 @@ func checkDistanceFromEdge(gridHeight, gridWidth int) func(*Player, *Stage) bool
 		return r < probability
 	}
 }
+*/
 
 func oneOutOf(n int) func(*Player, *Stage) bool {
 	return func(_ *Player, stage *Stage) bool {
@@ -68,6 +76,7 @@ func oneOutOf(n int) func(*Player, *Stage) bool {
 	}
 }
 
+/*
 func checkTeamName(teamname string) func(*Player, *Stage) bool {
 	return func(p *Player, _ *Stage) bool {
 		return teamname == p.getTeamNameSync()
@@ -77,28 +86,44 @@ func checkTeamName(teamname string) func(*Player, *Stage) bool {
 func excludeInfirmary(p *Player, s *Stage) bool {
 	return !strings.HasPrefix(s.name, "infirmary")
 }
+*/
 
-func distanceFromEdgeOfSpace(stage *Stage, gridHeight, gridWidth int) int {
-	if stage == nil {
-		return -1
+/*
+	func distanceFromEdgeOfSpace(stage *Stage, gridHeight, gridWidth int) int {
+		if stage == nil {
+			return -1
+		}
+		arr := strings.Split(stage.name, ":")
+		if len(arr) != 2 {
+			return -1
+		}
+		coords := strings.Split(arr[1], "-")
+		if len(coords) != 2 {
+			return -1
+		}
+		y, err := strconv.Atoi(coords[0])
+		if err != nil {
+			return -1
+		}
+		x, err := strconv.Atoi(coords[1])
+		if err != nil {
+			return -1
+		}
+		return min(y, x, gridHeight-1-y, gridWidth-1-x)
 	}
-	arr := strings.Split(stage.name, ":")
-	if len(arr) != 2 {
-		return -1
+*/
+
+func max(vals ...int) int {
+	if len(vals) == 0 {
+		panic("max requires at least one argument")
 	}
-	coords := strings.Split(arr[1], "-")
-	if len(coords) != 2 {
-		return -1
+	maxVal := vals[0]
+	for _, v := range vals[1:] {
+		if v > maxVal {
+			maxVal = v
+		}
 	}
-	y, err := strconv.Atoi(coords[0])
-	if err != nil {
-		return -1
-	}
-	x, err := strconv.Atoi(coords[1])
-	if err != nil {
-		return -1
-	}
-	return min(y, x, gridHeight-1-y, gridWidth-1-x)
+	return maxVal
 }
 
 func min(vals ...int) int {
@@ -112,19 +137,6 @@ func min(vals ...int) int {
 		}
 	}
 	return minVal
-}
-
-func max(vals ...int) int {
-	if len(vals) == 0 {
-		panic("max requires at least one argument")
-	}
-	maxVal := vals[0]
-	for _, v := range vals[1:] {
-		if v > maxVal {
-			maxVal = v
-		}
-	}
-	return maxVal
 }
 
 /////////////////////////////////////////////

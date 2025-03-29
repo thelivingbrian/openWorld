@@ -90,7 +90,7 @@ func (world *World) removePlayer(p *Player) {
 func (world *World) getPlayerById(id string) *Player {
 	world.wPlayerMutex.Lock()
 	defer world.wPlayerMutex.Unlock()
-	player, _ := world.worldPlayers[id]
+	player := world.worldPlayers[id]
 	return player
 }
 
@@ -185,11 +185,8 @@ var unableToJoin = `
 func (world *World) teamAtCapacity(teamName string) bool {
 	world.wPlayerMutex.Lock()
 	defer world.wPlayerMutex.Unlock()
-	count, _ := world.teamQuantities[teamName]
-	if count >= CAPACITY_PER_TEAM {
-		return true
-	}
-	return false
+	count := world.teamQuantities[teamName]
+	return count >= CAPACITY_PER_TEAM
 }
 
 func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player {
@@ -197,7 +194,7 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 	if record.Team == "" {
 		record.Team = "sky-blue"
 	}
-	updatesForPlayer := make(chan []byte, 0) // raise capacity?
+	updatesForPlayer := make(chan []byte) // raise capacity?
 	newPlayer := &Player{
 		id:                       id,
 		username:                 record.Username,

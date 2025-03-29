@@ -35,7 +35,7 @@ func swapsForTilesWithHighlights(tiles [][]*Tile, highlights map[*Tile]bool) []b
 				highlightColor = spaceHighlighter()
 			}
 			tileSwaps := swapsForTile(tiles[y][x], highlightColor)
-			fmt.Fprintf(&buf, tileSwaps)
+			buf.WriteString(tileSwaps)
 		}
 	}
 	return buf.Bytes()
