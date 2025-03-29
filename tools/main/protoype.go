@@ -316,6 +316,7 @@ func (proto *Prototype) applyTransformForEditor(transformation Transformation) M
 	}
 	return copy.applyTransform(transformation)
 }
+
 func (proto *Prototype) applyTransform(transformation Transformation) Material {
 	return Material{
 		Walkable:    proto.Walkable,

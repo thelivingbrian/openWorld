@@ -318,7 +318,7 @@ func (collection *Collection) compileTileDataAndAccumulateMaterials(desc AreaDes
 			}
 
 			// Apply transform
-			mat := proto.applyTransformForEditor(tile.Transformation)
+			mat := proto.applyTransform(tile.Transformation)
 
 			// Apply ground
 			ground := groundCellByCoord(desc.Blueprint, y, x)
