@@ -258,8 +258,7 @@ func canBeTeleported(interactable *Interactable) bool {
 
 func handleDeath(player *Player) {
 	popAndDropMoney(player)
-	// What if logout occurs first ?
-	removeFromTileAndStage(player) // After this should be impossible for any transfer to succeed // including from initiate logout?
+	removeFromTileAndStage(player) // After this should be impossible for any transfer to succeed
 	player.incrementDeathCount()
 	player.setHealth(150)
 	player.setKillStreak(0)
@@ -583,7 +582,7 @@ func (player *Player) addHatByName(hatName string) {
 	}
 	logger.Debug().Msg("Adding Hat: " + hat.Name)
 	player.world.db.addHatToPlayer(player.username, *hat)
-	updateIconForAllIfTangible(player)
+	updateIconForAllIfTangible(player) // May not originate from click hence check tangible
 }
 
 func (player *Player) cycleHats() {
@@ -696,7 +695,6 @@ func (player *Player) getMoneySync() int {
 }
 
 func (player *Player) getKillStreakSync() int {
-	// 2
 	player.streakLock.Lock()
 	defer player.streakLock.Unlock()
 	return player.killstreak
@@ -706,7 +704,6 @@ func (player *Player) setKillStreak(n int) int {
 	player.streakLock.Lock()
 	defer player.streakLock.Unlock()
 	player.killstreak = n
-	// 1
 	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: n, team: player.getTeamNameSync()}
 	return player.killstreak
 }
@@ -715,8 +712,6 @@ func (player *Player) incrementKillStreak() int {
 	player.streakLock.Lock()
 	defer player.streakLock.Unlock()
 	player.killstreak++
-	// 3
-	// Process is Locked trying to grab the players tagibility lock so this can't send
 	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: player.killstreak, team: player.getTeamNameSync()}
 	return player.killstreak
 }

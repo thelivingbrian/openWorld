@@ -280,10 +280,14 @@ One way or two way.
 
 -goals:
 
- - Broadcast group for area descriptions
- - Weather type for area descriptions
- - Ground pattern for area description
-  - Grid for editing ground pattern
+ - [ ] Broadcast group for area descriptions
+  - [-] Capture
+  - [ ] Utilize 
+ - [ ] Weather type for area descriptions
+   - [-] Static
+   - [ ] Dynamic
+ - [ ] Ground pattern for area description
+  - [-] Grid for editing ground pattern
     - [-] toggle 
     - [-] toggle between / toggle fill 
     - [-] view ground from area edit
@@ -297,15 +301,13 @@ One way or two way.
   - [ ] Add additional states for Cell ? 
     - [ ] would need to extend smoothness algorithm 
  - [-] remove global variables
- - [ ] update Area output to have materials by value
-   - [ ] remove material output?  
-   - [ ] compile / load successfully w/ ground
+ - [-] update Area output to have materials by value
+   - [-] remove material output?  
+   - [-] compile / load successfully w/ ground
+   - [ ] compile tests 
 
  - Toroidal Woods - 12x12
- - static weather initially
 
-stage loading / designer compiling strategy?
-Material includes ground? 
 
 type []byte(update) 100 times
 

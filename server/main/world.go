@@ -238,8 +238,6 @@ func (world *World) isLoggedInAlready(username string) bool {
 //
 //	Logging Out
 
-//var playersToLogout = make(chan *Player, 500)
-
 func processLogouts(players chan *Player) {
 	for {
 		player, ok := <-players
@@ -270,9 +268,7 @@ func completeLogout(player *Player) {
 	player.world.removePlayer(player)
 
 	player.closeConnectionSync() // If Read deadline is missed conn may still be open
-
 	close(player.updates)
-	// close(player.clearUpdateBuffer)
 
 	logger.Info().Msg("Logout complete: " + player.username)
 
@@ -471,12 +467,6 @@ func crownMostDangerousById(world *World, streakEvent PlayerStreakRecord) {
 	if player == nil {
 		return
 	}
-	// needed because hat -> icon update -> get player tile
-	// player.tangibilityLock.Lock()
-	// defer player.tangibilityLock.Unlock()
-	// if !player.tangible {
-	// 	return
-	// }
 	player.addHatByName("most-dangerous")
 	player.world.notifyChangeInMostDangerous(streakEvent)
 }

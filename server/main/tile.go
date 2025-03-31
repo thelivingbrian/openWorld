@@ -155,7 +155,8 @@ func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
 	if success {
 		tile.stage.updateAllExcept(playerBox(tile), player)
 	} else {
-		// Possible under what circumstance ?
+		// Possible under what circumstance :
+		//   Handle death can race with logout to produce this (harmlessly?)
 		logger.Warn().Msg("WARN : FAILED TO REMOVE PLAYER :(")
 	}
 	return success
@@ -217,7 +218,6 @@ func (tile *Tile) copyOfPlayers() []*Player {
 	return players
 }
 
-// Seperate path where not initiatied via click ? e.g. reactions
 func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 	if target == initiator {
 		return false
@@ -236,7 +236,7 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 		initiator.updateRecord()
 
 		streak := initiator.incrementKillStreak()
-		updateStreakIfTangible(initiator, streak) // initiator tangibility check only needed for this line?
+		updateStreakIfTangible(initiator, streak) // initiator may not have initiatied via click -> check tangible needed
 
 		go initiator.world.db.saveKillEvent(location, initiator, target)
 	}
@@ -265,7 +265,6 @@ func reduceHealthAndCheckFatal(player *Player, dmg int) bool {
 	return fatal
 }
 
-// incStreakAndUpdateIfTangible
 func updateStreakIfTangible(player *Player, streak int) {
 	ownLock := player.tangibilityLock.TryLock()
 	if !ownLock || !player.tangible {

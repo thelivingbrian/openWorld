@@ -36,8 +36,7 @@ func (p *Player) placeOnStage(stage *Stage, y, x int) {
 func createTestingPlayer(world *World, user string) *Player {
 	updatesForPlayer := make(chan []byte)
 	go drainChannel(updatesForPlayer)
-	//bufferClearChannel := make(chan struct{})
-	//go drainChannel(bufferClearChannel)
+
 	id := "tp" + user
 	tp := &Player{
 		id:           id,

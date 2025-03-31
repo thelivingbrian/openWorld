@@ -239,9 +239,8 @@ type AreaTile struct {
 }
 
 type SpaceEditPageData struct {
-	//GridDetails   GridDetails
 	SelectedSpace Space
-	AreaTiles     [][]AreaTile // Should be some combo of area and url
+	AreaTiles     [][]AreaTile
 }
 
 func (c Context) getSpace(w http.ResponseWriter, r *http.Request) {
@@ -269,7 +268,6 @@ func (c Context) getSpace(w http.ResponseWriter, r *http.Request) {
 							panic("OH NO")
 						}
 						tiles[row][column].SelectedArea = area
-						// Add the actual area
 					}
 				}
 			}

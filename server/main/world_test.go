@@ -22,9 +22,8 @@ var testingConfig = Configuration{
 func TestSocketJoinAndMove(t *testing.T) {
 	loadFromJson()
 	world, _ := createWorldForTesting()
-	// world, shutDown := createWorldForTesting()
+	// unsafe concurrently (send on closed)
 	// defer shutDown()
-	//defer shutDown()
 
 	req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
 	world.addIncoming(req)
@@ -133,15 +132,12 @@ func TestLogoutAndDeath(t *testing.T) {
 	}
 }
 
-// inconsistent results
-
 func TestLogoutAndDeath_Concurrent(t *testing.T) {
 	PLAYER_COUNT1 := 15
 	PLAYER_COUNT2 := 15
 	world, _ := createWorldForTesting()
-	// world, shutDown := createWorldForTesting()
-	// defer shutDown() // Only safe in a single threaded context?
-	//defer close(world.leaderBoard.mostDangerous.incoming)
+	// unsafe concurrently (send on closed)
+	// defer shutDown()
 
 	zerolog.SetGlobalLevel(zerolog.WarnLevel) // prevent log spam
 	defer zerolog.SetGlobalLevel(zerolog.InfoLevel)
@@ -195,9 +191,6 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 
 	wg.Wait()
 	time.Sleep(1000 * time.Millisecond)
-	// Investigate why this sometimes fails.
-	//    best guess because testing sockets were not being read; causing timeout logouts of all players
-	//    No. Being promoted to most dangerous took tangibility lock but so did Incrementing Killstreak -> deadlock
 	if player.getKillStreakSync() == 0 {
 		t.Error("Player should have killed at least one")
 	}
@@ -266,20 +259,13 @@ func createWorldForTesting() (*World, context.CancelFunc) {
 	world := createGameWorld(testdb(), &testingConfig)
 
 	ctx, cancel := context.WithCancel(context.Background())
-
 	go func(ctx context.Context) {
-		//defer
 		for {
 			select {
 			case <-ctx.Done():
 				close(world.playersToLogout)
 				close(world.leaderBoard.mostDangerous.incoming)
 				return
-				// case player, ok := <-world.playersToLogout:
-				// 	if !ok {
-				// 		return
-				// 	}
-				// 	completeLogout(player)
 			}
 		}
 	}(ctx)
@@ -351,7 +337,7 @@ func createTestingSocket(url string) *TestingSocket {
 
 func createTestingSocketWithCancel(url string, wg *sync.WaitGroup) (*TestingSocket, context.CancelFunc) {
 	ts := createTestingSocket(url)
-	ctx, cancel := context.WithCancel(context.Background()) // Point of context vs just calling close?
+	ctx, cancel := context.WithCancel(context.Background()) // Point of context vs just calling close? WG?
 	go func(ctx context.Context) {
 		defer wg.Done()
 		for {

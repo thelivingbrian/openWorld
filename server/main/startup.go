@@ -179,20 +179,6 @@ func retrieveKeys() (hashKey, blockKey []byte) {
 ////////////////////////////////////////////////////
 // Load Resources from JSON
 
-/*
-type Material struct {
-	ID          int    `json:"id"`
-	CommonName  string `json:"commonName"`
-	CssColor    string `json:"cssColor"`
-	Walkable    bool   `json:"walkable"`
-	Floor1Css   string `json:"layer1css"`
-	Floor2Css   string `json:"layer2css"`
-	Ceiling1Css string `json:"ceiling1css"`
-	Ceiling2Css string `json:"ceiling2css"`
-	DisplayText string `json:"displayText"`
-}
-*/
-
 type Material struct {
 	CommonName  string `json:"commonName"`
 	Walkable    bool   `json:"walkable"`
