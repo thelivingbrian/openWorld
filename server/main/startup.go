@@ -246,7 +246,6 @@ type InteractableDescription struct {
 }
 
 var (
-	//materials []Material
 	areas []Area
 )
 
@@ -264,7 +263,6 @@ func populateStructUsingFileName[T any](ptr *T, filename string) {
 // This should return values instead of populating globals
 func loadFromJson() {
 	populateStructUsingFileName(&areas, "areas")
-	//logger.Info().Msg(fmt.Sprintf("Loaded %d areas.", len(areas)))
 }
 
 func areaFromName(s string) (area Area, success bool) {

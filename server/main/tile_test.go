@@ -14,7 +14,8 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 
 	// Arrange
 	loadFromJson()
-	world := createGameWorld(testdb(), nil)
+	world, shutDown := createWorldForTesting()
+	defer shutDown()
 	CAPACITY_PER_TEAM = playerCount // Prevent player cap from preventing world.Join()
 
 	testStage := loadStageByName(world, "test-walls-interactable")

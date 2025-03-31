@@ -65,7 +65,7 @@ func main() {
 		loadFromJson()
 
 		// Process Logouts, should remove global.
-		go processLogouts(playersToLogout)
+		// go processLogouts(world.playersToLogout)
 
 		// World status and play
 		mux.HandleFunc("/status", world.statusHandler)

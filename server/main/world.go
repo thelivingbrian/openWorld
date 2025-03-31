@@ -23,6 +23,7 @@ type World struct {
 	status              WorldStatus
 	incomingPlayers     map[string]*LoginRequest
 	incomingPlayerMutex sync.Mutex
+	playersToLogout     chan *Player
 	worldStages         map[string]*Stage
 	wStageMutex         sync.Mutex
 	leaderBoard         *LeaderBoard
@@ -58,11 +59,13 @@ func createGameWorld(db *DB, config *Configuration) *World {
 		teamQuantities:      map[string]int{},
 		incomingPlayers:     make(map[string]*LoginRequest),
 		incomingPlayerMutex: sync.Mutex{},
+		playersToLogout:     make(chan *Player, 0),
 		worldStages:         make(map[string]*Stage),
 		wStageMutex:         sync.Mutex{},
 		leaderBoard:         createLeaderBoard(),
 	}
 	go Process(out, &out.leaderBoard.mostDangerous)
+	go processLogouts(out.playersToLogout)
 	return out
 }
 
@@ -235,7 +238,7 @@ func (world *World) isLoggedInAlready(username string) bool {
 //
 //	Logging Out
 
-var playersToLogout = make(chan *Player, 500)
+//var playersToLogout = make(chan *Player, 500)
 
 func processLogouts(players chan *Player) {
 	for {
@@ -256,7 +259,7 @@ func initiateLogout(player *Player) {
 	//   Add time delay to prevent rage quit ?
 	removeFromTileAndStage(player)
 
-	playersToLogout <- player
+	player.world.playersToLogout <- player
 
 }
 
@@ -447,7 +450,8 @@ func Process(world *World, h *MaxStreakHeap) {
 
 		func(currentMostDangerous, previousMostDangerous PlayerStreakRecord) {
 			if currentMostDangerous.id != previousMostDangerous.id {
-				crownMostDangerousById(world, currentMostDangerous)
+				// new routine prevents deadlock?
+				go crownMostDangerousById(world, currentMostDangerous)
 				return
 			}
 			// current and previous are the same

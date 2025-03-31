@@ -217,6 +217,7 @@ func (tile *Tile) copyOfPlayers() []*Player {
 	return players
 }
 
+// Seperate path where not initiatied via click ? e.g. reactions
 func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 	if target == initiator {
 		return false
@@ -234,7 +235,8 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 		initiator.incrementKillCount()
 		initiator.updateRecord()
 
-		updateStreakIfTangible(initiator) // initiator tangibility check only needed for this line?
+		streak := initiator.incrementKillStreak()
+		updateStreakIfTangible(initiator, streak) // initiator tangibility check only needed for this line?
 
 		go initiator.world.db.saveKillEvent(location, initiator, target)
 	}
@@ -263,13 +265,13 @@ func reduceHealthAndCheckFatal(player *Player, dmg int) bool {
 	return fatal
 }
 
-func updateStreakIfTangible(player *Player) {
+// incStreakAndUpdateIfTangible
+func updateStreakIfTangible(player *Player, streak int) {
 	ownLock := player.tangibilityLock.TryLock()
 	if !ownLock || !player.tangible {
 		return
 	}
 	defer player.tangibilityLock.Unlock()
-	streak := player.incrementKillStreak()
 	html := spanStreak(streak)
 	updateOne(html, player)
 }

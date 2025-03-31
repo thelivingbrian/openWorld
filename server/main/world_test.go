@@ -21,7 +21,10 @@ var testingConfig = Configuration{
 
 func TestSocketJoinAndMove(t *testing.T) {
 	loadFromJson()
-	world := createGameWorld(testdb(), &testingConfig)
+	world, _ := createWorldForTesting()
+	// world, shutDown := createWorldForTesting()
+	// defer shutDown()
+	//defer shutDown()
 
 	req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
 	world.addIncoming(req)
@@ -58,17 +61,17 @@ func TestLogoutAndDeath(t *testing.T) {
 	defer zerolog.SetGlobalLevel(zerolog.InfoLevel)
 
 	world, shutDown := createWorldForTesting()
-	defer shutDown()
+	defer shutDown() // Only safe in a single threaded context?
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		world.NewSocketConnection(w, r)
 	}))
 	defer server.Close()
 
-	_, cancel, tokens, _ := socketsCancelsTokensWaiter(world, server.URL, 1, "test-red")
+	_, cancel, tokens, _ := socketsCancelsTokensWaiter(world, server.URL, 1, "test-red", true)
 	firstToken := tokens[0]
 
-	_, cancelers, _, wg := socketsCancelsTokensWaiter(world, server.URL, PLAYER_COUNT, "test-blue")
+	_, cancelers, _, wg := socketsCancelsTokensWaiter(world, server.URL, PLAYER_COUNT, "test-blue", true)
 
 	time.Sleep(500 * time.Millisecond) // give time for all to join
 
@@ -130,11 +133,15 @@ func TestLogoutAndDeath(t *testing.T) {
 	}
 }
 
+// inconsistent results
+
 func TestLogoutAndDeath_Concurrent(t *testing.T) {
 	PLAYER_COUNT1 := 15
 	PLAYER_COUNT2 := 15
-	world, shutDown := createWorldForTesting()
-	defer shutDown()
+	world, _ := createWorldForTesting()
+	// world, shutDown := createWorldForTesting()
+	// defer shutDown() // Only safe in a single threaded context?
+	//defer close(world.leaderBoard.mostDangerous.incoming)
 
 	zerolog.SetGlobalLevel(zerolog.WarnLevel) // prevent log spam
 	defer zerolog.SetGlobalLevel(zerolog.InfoLevel)
@@ -144,13 +151,13 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 	}))
 	defer server.Close()
 
-	_, cancel, tokens, _ := socketsCancelsTokensWaiter(world, server.URL, PLAYER_COUNT1, "test-red")
+	_, cancel, tokens, _ := socketsCancelsTokensWaiter(world, server.URL, PLAYER_COUNT1, "test-red", true)
 	for i := range cancel {
 		defer cancel[i]()
 	}
 	firstToken := tokens[0]
 
-	_, cancelers, _, wg := socketsCancelsTokensWaiter(world, server.URL, PLAYER_COUNT2, "test-blue")
+	_, cancelers, _, wg := socketsCancelsTokensWaiter(world, server.URL, PLAYER_COUNT2, "test-blue", true)
 
 	time.Sleep(500 * time.Millisecond) // give time for all to join
 
@@ -190,6 +197,7 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 	time.Sleep(1000 * time.Millisecond)
 	// Investigate why this sometimes fails.
 	//    best guess because testing sockets were not being read; causing timeout logouts of all players
+	//    No. Being promoted to most dangerous took tangibility lock but so did Incrementing Killstreak -> deadlock
 	if player.getKillStreakSync() == 0 {
 		t.Error("Player should have killed at least one")
 	}
@@ -205,7 +213,8 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 
 func TestMostDangerous(t *testing.T) {
 	loadFromJson()
-	world := createGameWorld(testdb(), &testingConfig)
+	world, shutDown := createWorldForTesting()
+	defer shutDown()
 	stage := loadStageByName(world, "test-large")
 
 	req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: stage.name})
@@ -259,15 +268,18 @@ func createWorldForTesting() (*World, context.CancelFunc) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func(ctx context.Context) {
+		//defer
 		for {
 			select {
 			case <-ctx.Done():
+				close(world.playersToLogout)
+				close(world.leaderBoard.mostDangerous.incoming)
 				return
-			case player, ok := <-playersToLogout: // gross and global
-				if !ok {
-					return
-				}
-				completeLogout(player)
+				// case player, ok := <-world.playersToLogout:
+				// 	if !ok {
+				// 		return
+				// 	}
+				// 	completeLogout(player)
 			}
 		}
 	}(ctx)
@@ -297,7 +309,7 @@ type TestingSocket struct {
 	ws *websocket.Conn
 }
 
-func socketsCancelsTokensWaiter(world *World, serverURL string, PLAYER_COUNT int, team string) ([]*TestingSocket, []context.CancelFunc, []string, *sync.WaitGroup) {
+func socketsCancelsTokensWaiter(world *World, serverURL string, PLAYER_COUNT int, team string, read bool) ([]*TestingSocket, []context.CancelFunc, []string, *sync.WaitGroup) {
 	sockets := make([]*TestingSocket, 0)
 	cancelers := make([]context.CancelFunc, 0)
 	tokens := make([]string, 0)
@@ -316,7 +328,9 @@ func socketsCancelsTokensWaiter(world *World, serverURL string, PLAYER_COUNT int
 		wg.Add(1)
 		cancelers = append(cancelers, cancel)
 		testingSocket.writeOrFatal(createInitialTokenMessage(req.Token))
-		go testingSocket.readUntilClose()
+		if read {
+			go testingSocket.readUntilClose()
+		}
 
 		sockets = append(sockets, testingSocket)
 	}
