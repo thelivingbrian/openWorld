@@ -64,7 +64,7 @@ func createGameWorld(db *DB, config *Configuration) *World {
 		wStageMutex:         sync.Mutex{},
 		leaderBoard:         createLeaderBoard(),
 	}
-	go Process(out, &out.leaderBoard.mostDangerous)
+	go processMostDangerous(out, &out.leaderBoard.mostDangerous)
 	go processLogouts(out.playersToLogout)
 	return out
 }
@@ -425,7 +425,7 @@ func (heap *MaxStreakHeap) Peek() PlayerStreakRecord {
 
 //
 
-func Process(world *World, h *MaxStreakHeap) {
+func processMostDangerous(world *World, h *MaxStreakHeap) {
 	for {
 		previousMostDangerous := h.Peek()
 		event, ok := <-h.incoming
@@ -450,8 +450,8 @@ func Process(world *World, h *MaxStreakHeap) {
 
 		func(currentMostDangerous, previousMostDangerous PlayerStreakRecord) {
 			if currentMostDangerous.id != previousMostDangerous.id {
-				// new routine prevents deadlock?
-				go crownMostDangerousById(world, currentMostDangerous)
+				// new routine prevents deadlock from tangible check (removed)
+				crownMostDangerousById(world, currentMostDangerous)
 				return
 			}
 			// current and previous are the same
@@ -471,11 +471,12 @@ func crownMostDangerousById(world *World, streakEvent PlayerStreakRecord) {
 	if player == nil {
 		return
 	}
-	player.tangibilityLock.Lock()
-	defer player.tangibilityLock.Unlock()
-	if !player.tangible {
-		return
-	}
+	// needed because hat -> icon update -> get player tile
+	// player.tangibilityLock.Lock()
+	// defer player.tangibilityLock.Unlock()
+	// if !player.tangible {
+	// 	return
+	// }
 	player.addHatByName("most-dangerous")
 	player.world.notifyChangeInMostDangerous(streakEvent)
 }

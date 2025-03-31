@@ -53,65 +53,12 @@ func both(f1, f2 func(*Player, *Stage) bool) func(*Player, *Stage) bool {
 	}
 }
 
-/*
-func checkDistanceFromEdge(gridHeight, gridWidth int) func(*Player, *Stage) bool {
-	return func(_ *Player, stage *Stage) bool {
-		maxDistance := min((gridHeight-1)/2, (gridWidth-1)/2)
-		currentDistance := distanceFromEdgeOfSpace(stage, gridHeight, gridWidth)
-
-		// Faster than equivalent:  1.0 / math.Pow(4.0, float64(maxDistance-currentDistance))
-		denominator := 1 << (2 * (maxDistance - currentDistance))
-		probability := 1.0 / float64(denominator)
-
-		r := rand.Float64()
-		return r < probability
-	}
-}
-*/
-
 func oneOutOf(n int) func(*Player, *Stage) bool {
 	return func(_ *Player, stage *Stage) bool {
 		r := rand.Intn(n)
 		return r == 0
 	}
 }
-
-/*
-func checkTeamName(teamname string) func(*Player, *Stage) bool {
-	return func(p *Player, _ *Stage) bool {
-		return teamname == p.getTeamNameSync()
-	}
-}
-
-func excludeInfirmary(p *Player, s *Stage) bool {
-	return !strings.HasPrefix(s.name, "infirmary")
-}
-*/
-
-/*
-	func distanceFromEdgeOfSpace(stage *Stage, gridHeight, gridWidth int) int {
-		if stage == nil {
-			return -1
-		}
-		arr := strings.Split(stage.name, ":")
-		if len(arr) != 2 {
-			return -1
-		}
-		coords := strings.Split(arr[1], "-")
-		if len(coords) != 2 {
-			return -1
-		}
-		y, err := strconv.Atoi(coords[0])
-		if err != nil {
-			return -1
-		}
-		x, err := strconv.Atoi(coords[1])
-		if err != nil {
-			return -1
-		}
-		return min(y, x, gridHeight-1-y, gridWidth-1-x)
-	}
-*/
 
 func max(vals ...int) int {
 	if len(vals) == 0 {

@@ -476,6 +476,17 @@ func updateIconForAll(player *Player) {
 	tile.stage.updateAll(playerBox(tile))
 }
 
+func updateIconForAllIfTangible(player *Player) {
+	player.setIcon()
+	ownLock := player.tangibilityLock.TryLock()
+	if !ownLock || !player.tangible {
+		return
+	}
+	defer player.tangibilityLock.Unlock()
+	tile := player.getTileSync()
+	tile.stage.updateAll(playerBox(tile))
+}
+
 func sendSoundToPlayer(player *Player, soundName string) {
 	updateOne(soundTriggerByName(soundName), player)
 }
@@ -572,7 +583,7 @@ func (player *Player) addHatByName(hatName string) {
 	}
 	logger.Debug().Msg("Adding Hat: " + hat.Name)
 	player.world.db.addHatToPlayer(player.username, *hat)
-	updateIconForAll(player)
+	updateIconForAllIfTangible(player)
 }
 
 func (player *Player) cycleHats() {

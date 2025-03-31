@@ -399,12 +399,6 @@ func killInstantly(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	return nil, false
 }
 
-/*
-var superBoostEast = moveInitiator(0, 11)
-var superBoostWest = moveInitiator(0, -11)
-var superBoostNorth = moveInitiator(-11, 0)
-var superBoostSouth = moveInitiator(11, 0)
-*/
 func moveInitiatorPushSurrounding(yOff, xOff int) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 		for _, tile := range getVanNeumannNeighborsOfTile(t) {
