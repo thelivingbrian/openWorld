@@ -10,12 +10,8 @@
             <a hx-get="/grid/edit" hx-target="#edit_tool" hx-include="[name='currentCollection']" href="#">Modify</a> |
             <a hx-get="/editTransports" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Transports</a> | 
             <a hx-get="/area/display" hx-target="#edit_tool" href="#">Display</a> | 
-            <a hx-get="/area/neighbors" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Neighbors</a>
-            <!-- 
-            <a hx-get="/prototypes" hx-target="#edit_tool" hx-include="[name='currentCollection']" href="#">Prototypes</a> |
-            <a hx-get="/materialPage"  hx-target="#edit_tool" href="#">Colors/Materials</a> | 
-            <a hx-get="/fragments" hx-target="#edit_tool" hx-include="[name='currentCollection']" href="#">Fragments</a>
-            -->
+            <a hx-get="/area/neighbors" hx-target="#edit_tool" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Neighbors</a> | 
+            <a hx-get="/blueprint/ground" hx-target="#edit_window" hx-include="#area-name,[name='currentCollection'],[name='currentSpace']" href="#">Ground Pattern</a>
         </div>
         <div id="edit_tool">
             {{template "grid-modify" .PrototypeSelect}}

@@ -32,6 +32,7 @@
   - [-] Notify goal scores and team in lead 
   - [-] Goal shows score of each team
 - [-] Seperate homepage from game server
+- [-] Add sound fx
 
 ## Integration 
 - [ ] Bot AI
@@ -129,7 +130,8 @@
     - [ ] Maps for non-simple tilings?
       - [ ] Relative to current area
   - [ ] Test Play 
-    - [ ] Package executable in with tools? soft-deploy and run?
+    - [ ] Package executable in with tools? soft-deploy and run
+    - [ ] level player (e.g. live stage demo) ^ same as above
   - [ ] Save All/Everything button 
     - [ ] Cannot compile without save
     - [-] Save space 
@@ -160,8 +162,9 @@
     - [-] clean up collection logic
     - [-] add cli  
   - [-] get rid of proc folder?
-- [ ] level player (e.g. live stage demo) 
-- [ ] Bug: New color will output to local file but deploying requires application restart.
+- [ ] Bugs: 
+  - [ ]New color will output to local file but deploying requires application restart.
+  - [ ] New areas are always "safe"
 
 
 ## Mobile
@@ -255,6 +258,10 @@
     - [-] introduced via commit 90a3043177f78f90fb651c2cc1e427031c888e33
 
 
+## Bugs
+ - [-] test remove damage tangibility check
+ - [-] prevent infitine interactable spawn bug (technically still possible for game balls)
+
 ## Transformation syntax:
 layerXCss : "static {transformationType:value} string"
 
@@ -273,8 +280,38 @@ One way or two way.
 
 -goals:
 
-- add sound fx
+ - [ ] Broadcast group for area descriptions
+  - [-] Capture
+  - [ ] Utilize 
+ - [ ] Weather type for area descriptions
+   - [-] Static
+   - [ ] Dynamic
+ - [ ] Ground pattern for area description
+  - [-] Grid for editing ground pattern
+    - [-] toggle 
+    - [-] toggle between / toggle fill 
+    - [-] view ground from area edit
+    - [-] return to area edit not working
+  - [-] Ground is visible from map
+  - [-] Blueprint color1 and color2 
+    - [-] When creating space
+    - [-] Update for area
+    - [-] update for space 
+  - [ ] Add ground pattern using structure window 
+  - [ ] Add additional states for Cell ? 
+    - [ ] would need to extend smoothness algorithm 
+ - [-] remove global variables
+ - [-] update Area output to have materials by value
+   - [-] remove material output?  
+   - [-] compile / load successfully w/ ground
+   - [ ] compile tests 
+
+ - Toroidal Woods - 12x12
+
 
 type []byte(update) 100 times
 
- 
+[]byte(update)
+I will type []byte(update) 75 more times 
+I will type []byte(update) 74 more times
+

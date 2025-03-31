@@ -88,7 +88,6 @@ func (c Context) writeColorsToLocalFile() error {
 	return writeJsonFile(COLOR_PATH, c.colors)
 }
 
-// Combine with below
 func (c Context) createLocalCSSFile() {
 	c.createCSSFile(CSS_PATH)
 }
@@ -244,6 +243,7 @@ func (c Context) compile(w http.ResponseWriter, r *http.Request) {
 	collectionName := queryValues.Get("currentCollection")
 	c.createCSSFile(CSS_PATH)
 	c.compileCollectionByName(collectionName)
+	fmt.Println("Done.")
 }
 
 func (c Context) compileCollectionByName(collectionName string) {
@@ -256,15 +256,12 @@ func (c Context) compileCollectionByName(collectionName string) {
 }
 
 func (c Context) compileCollection(collection *Collection) {
-	mapToMaterials := make(map[Transformation]map[string]Material)
-	materials := make([]Material, 0)
 	areas := make([]AreaOutput, 0)
 
 	for _, space := range collection.Spaces {
 		c.generateAllPNGs(space)
 		for _, desc := range space.Areas {
-			var outputTiles [][]int
-			outputTiles, materials = collection.compileTileDataAndAccumulateMaterials(desc, materials, mapToMaterials)
+			outputTiles := collection.compileTileDataAndAccumulateMaterials(desc)
 
 			mapid := ""
 			if space.isSimplyTiled() {
@@ -278,7 +275,7 @@ func (c Context) compileCollection(collection *Collection) {
 				Tiles:            outputTiles,
 				Interactables:    collection.generateInteractables(desc.Blueprint.Tiles),
 				Transports:       desc.Transports,
-				DefaultTileColor: desc.DefaultTileColor,
+				DefaultTileColor: desc.Blueprint.DefaultTileColor, // used?
 				North:            desc.North,
 				South:            desc.South,
 				East:             desc.East,
@@ -286,14 +283,13 @@ func (c Context) compileCollection(collection *Collection) {
 				MapId:            mapid,
 				LoadStrategy:     desc.LoadStrategy,
 				SpawnStrategy:    desc.SpawnStrategy,
+				Weather:          desc.Weather,
+				BroadcastGroup:   desc.BroadcastGroup,
 			})
 		}
 	}
 	fmt.Printf("Writing (%d) Areas", len(areas))
 	writeJsonFile(filepath.Join(COMPILE_basePath, AREA_FILENAME), areas)
-	fmt.Printf("Writing (%d) Materials", len(materials))
-	writeJsonFile(filepath.Join(COMPILE_basePath, MATERIAL_FILENAME), materials)
-
 }
 
 func (c Context) copyMapPNG(space *Space, area *AreaDescription) string {
@@ -309,41 +305,28 @@ func (c Context) copyMapPNG(space *Space, area *AreaDescription) string {
 	return id
 }
 
-func (collection *Collection) compileTileDataAndAccumulateMaterials(desc AreaDescription, materials []Material, mapToMaterials map[Transformation]map[string]Material) ([][]int, []Material) {
-	outputTiles := make([][]int, len(desc.Blueprint.Tiles))
+func (collection *Collection) compileTileDataAndAccumulateMaterials(desc AreaDescription) [][]Material {
+	outputTiles := make([][]Material, len(desc.Blueprint.Tiles))
 	for y := range desc.Blueprint.Tiles {
-		outputTiles[y] = make([]int, len(desc.Blueprint.Tiles[y]))
-		for x := range desc.Blueprint.Tiles[y] {
-			var id int
-			prototype := collection.findPrototypeById(desc.Blueprint.Tiles[y][x].PrototypeId)
-			if prototype == nil {
+		outputTiles[y] = make([]Material, len(desc.Blueprint.Tiles[y]))
+		for x, tile := range desc.Blueprint.Tiles[y] {
+			// Find proto
+			proto := collection.findPrototypeById(tile.PrototypeId)
+			if proto == nil {
 				errMsg := fmt.Sprintf("Prototype with id: %s Not found. Area: %s | y:%d x:%d", desc.Blueprint.Tiles[y][x].PrototypeId, desc.Name, y, x)
 				panic("PROTO NOT FOUND. error - " + errMsg)
 			}
 
-			protoToMat, found := mapToMaterials[desc.Blueprint.Tiles[y][x].Transformation]
-			if found {
-				_, found = protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId]
-				if !found {
-					id = len(materials)
-					newMaterial := prototype.applyTransformWithId(desc.Blueprint.Tiles[y][x].Transformation, len(materials))
-					protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId] = newMaterial
-					materials = append(materials, newMaterial)
-				} else {
-					id = protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId].ID
-				}
-			} else {
-				protoToMat = make(map[string]Material)
-				id = len(materials)
-				newMaterial := prototype.applyTransformWithId(desc.Blueprint.Tiles[y][x].Transformation, len(materials))
-				protoToMat[desc.Blueprint.Tiles[y][x].PrototypeId] = newMaterial
-				materials = append(materials, newMaterial)
-				mapToMaterials[desc.Blueprint.Tiles[y][x].Transformation] = protoToMat
-			}
+			// Apply transform
+			mat := proto.applyTransform(tile.Transformation)
 
-			// Is added step worth it or should server areas have materials by value?
-			outputTiles[y][x] = id
+			// Apply ground
+			ground := groundCellByCoord(desc.Blueprint, y, x)
+			mat = addGroundToMaterial(mat, ground, desc.Blueprint.DefaultTileColor, desc.Blueprint.DefaultTileColor1)
+
+			// Assign
+			outputTiles[y][x] = mat
 		}
 	}
-	return outputTiles, materials
+	return outputTiles
 }

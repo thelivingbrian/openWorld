@@ -15,7 +15,7 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 func getImage(w http.ResponseWriter, r *http.Request) {
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) != 3 {
-		panic("invalid image path")
+		panic("invalid image path") // Panic too much?
 	}
 	serveImage(w, r, parts[2])
 }

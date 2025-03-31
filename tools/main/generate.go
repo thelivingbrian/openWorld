@@ -9,6 +9,11 @@ import (
 	"math/rand"
 )
 
+type Cell struct {
+	Status                                     int
+	BottomRight, BottomLeft, TopRight, TopLeft bool
+}
+
 func (col *Collection) generateAndSaveGroundPattern(config GroundConfig) {
 	cells := GenerateCircle(config.Span, config.Strategy, config.Fuzz)
 	prototypes, fragments, structure := makeAssetsForGround(cells, config)
@@ -92,11 +97,6 @@ func IdsMatchStructure(s1, s2 Structure) bool {
 ///////////////////////////////////////////////////////
 // Ground Pattern Generation
 
-type Cell struct {
-	status                                     int
-	bottomRight, bottomLeft, topRight, topLeft bool
-}
-
 type Corner struct {
 	a, b, c, d *Cell
 }
@@ -129,9 +129,9 @@ func gridWithCircle(gridSize int, strategy string, fuzz float64, seed int64) [][
 			d := math.Hypot(dx, dy)
 			p := probability(d, radius, fuzz)
 			if r.Float64() < p {
-				cells[i][j].status = 1
+				cells[i][j].Status = 1
 			} else {
-				cells[i][j].status = 0
+				cells[i][j].Status = 0
 			}
 		}
 	}
@@ -140,12 +140,14 @@ func gridWithCircle(gridSize int, strategy string, fuzz float64, seed int64) [][
 }
 
 func smoothCorners(cells [][]Cell) [][]Cell {
-	gridSize := len(cells)
+	gridHeight := len(cells)
+
 	// Create the Corner array
-	corners := make([][]*Corner, gridSize-1)
-	for i := 0; i < gridSize-1; i++ {
-		corners[i] = make([]*Corner, gridSize-1)
-		for j := 0; j < gridSize-1; j++ {
+	corners := make([][]*Corner, gridHeight-1)
+	for i := 0; i < gridHeight-1; i++ {
+		gridWidth := len(cells[i])
+		corners[i] = make([]*Corner, gridWidth-1)
+		for j := 0; j < gridWidth-1; j++ {
 			corners[i][j] = &Corner{
 				a: &cells[i][j],
 				b: &cells[i][j+1],
@@ -154,44 +156,43 @@ func smoothCorners(cells [][]Cell) [][]Cell {
 		}
 	}
 
-	// gl future me
 	// Find the roundness of each cell's corners
-	for i := 0; i < gridSize-1; i++ {
-		for j := 0; j < gridSize-1; j++ {
+	for i := 0; i < len(corners); i++ {
+		for j := 0; j < len(corners[i]); j++ {
 			corner := corners[i][j]
-			count := corner.a.status + corner.b.status + corner.c.status + corner.d.status
+			count := corner.a.Status + corner.b.Status + corner.c.Status + corner.d.Status
 			if count == 4 || count == 0 {
-				corner.a.bottomRight = false
-				corner.b.bottomLeft = false
-				corner.c.topRight = false
-				corner.d.topLeft = false
+				corner.a.BottomRight = false
+				corner.b.BottomLeft = false
+				corner.c.TopRight = false
+				corner.d.TopLeft = false
 			} else if count == 3 {
-				corner.a.bottomRight = !(corner.a.status == 1)
-				corner.b.bottomLeft = !(corner.b.status == 1)
-				corner.c.topRight = !(corner.c.status == 1)
-				corner.d.topLeft = !(corner.d.status == 1)
+				corner.a.BottomRight = !(corner.a.Status == 1)
+				corner.b.BottomLeft = !(corner.b.Status == 1)
+				corner.c.TopRight = !(corner.c.Status == 1)
+				corner.d.TopLeft = !(corner.d.Status == 1)
 			} else if count == 1 {
-				corner.a.bottomRight = (corner.a.status == 1)
-				corner.b.bottomLeft = (corner.b.status == 1)
-				corner.c.topRight = (corner.c.status == 1)
-				corner.d.topLeft = (corner.d.status == 1)
+				corner.a.BottomRight = (corner.a.Status == 1)
+				corner.b.BottomLeft = (corner.b.Status == 1)
+				corner.c.TopRight = (corner.c.Status == 1)
+				corner.d.TopLeft = (corner.d.Status == 1)
 			} else if count == 2 {
-				if corner.a.status == corner.b.status || corner.a.status == corner.c.status {
-					corner.a.bottomRight = false
-					corner.b.bottomLeft = false
-					corner.c.topRight = false
-					corner.d.topLeft = false
+				if corner.a.Status == corner.b.Status || corner.a.Status == corner.c.Status {
+					corner.a.BottomRight = false
+					corner.b.BottomLeft = false
+					corner.c.TopRight = false
+					corner.d.TopLeft = false
 				} else { // corner.a.status is equal to corner.d status
 					if rand.Float64() < .5 {
-						corner.a.bottomRight = true
-						corner.b.bottomLeft = false
-						corner.c.topRight = false
-						corner.d.topLeft = true
+						corner.a.BottomRight = true
+						corner.b.BottomLeft = false
+						corner.c.TopRight = false
+						corner.d.TopLeft = true
 					} else {
-						corner.a.bottomRight = false
-						corner.b.bottomLeft = true
-						corner.c.topRight = true
-						corner.d.topLeft = false
+						corner.a.BottomRight = false
+						corner.b.BottomLeft = true
+						corner.c.TopRight = true
+						corner.d.TopLeft = false
 					}
 				}
 			}
@@ -275,10 +276,10 @@ func makeAssetsForGround(cells [][]Cell, config GroundConfig) ([]Prototype, []Fr
 		for j := range tiles[i] {
 			id := "BLAH"
 			cell := &cells[i][j]
-			if cell.status == 1 {
-				id = color2OnTop[roundednessToInt(cell.topLeft, cell.topRight, cell.bottomLeft, cell.bottomRight)].ID
+			if cell.Status == 1 {
+				id = color2OnTop[roundednessToInt(cell.TopLeft, cell.TopRight, cell.BottomLeft, cell.BottomRight)].ID
 			} else {
-				id = color1OnTop[roundednessToInt(cell.topLeft, cell.topRight, cell.bottomLeft, cell.bottomRight)].ID
+				id = color1OnTop[roundednessToInt(cell.TopLeft, cell.TopRight, cell.BottomLeft, cell.BottomRight)].ID
 			}
 			tiles[i][j] = TileData{PrototypeId: id}
 		}

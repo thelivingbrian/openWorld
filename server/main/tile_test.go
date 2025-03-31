@@ -14,7 +14,8 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 
 	// Arrange
 	loadFromJson()
-	world := createGameWorld(testdb(), nil)
+	world, shutDown := createWorldForTesting()
+	defer shutDown()
 	CAPACITY_PER_TEAM = playerCount // Prevent player cap from preventing world.Join()
 
 	testStage := loadStageByName(world, "test-walls-interactable")
@@ -67,7 +68,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 		defer cancel()
 	}
 	if len(p.world.worldPlayers) != 501 {
-		t.Error(fmt.Sprintf("Player count should be 501 but is: %d", len(p.world.worldPlayers)))
+		t.Errorf("Player count should be 501 but is: %d", len(p.world.worldPlayers))
 	}
 
 	// Escape the box
@@ -87,7 +88,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	// check each clone is in clinic
 	for i := range clones {
 		if clones[i].stage.name != "clinic" {
-			t.Error(fmt.Sprintf("Clone#%d should be on clinic but is on: %s", i, clones[i].stage.name))
+			t.Errorf("Clone#%d should be on clinic but is on: %s", i, clones[i].stage.name)
 		}
 	}
 
@@ -96,7 +97,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 		for dx := 0; dx < 3; dx++ {
 			yPos, xPos, playerCount := 11+dy, 11+dx, len(testStage.tiles[11+dy][11+dx].playerMap)
 			if playerCount != 0 {
-				t.Error(fmt.Sprintf("Tile(y:%d x:%d) should have 0 players but has: %d", yPos, xPos, playerCount))
+				t.Errorf("Tile(y:%d x:%d) should have 0 players but has: %d", yPos, xPos, playerCount)
 			}
 		}
 	}

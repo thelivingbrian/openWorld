@@ -145,7 +145,7 @@ func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
 		return false
 	}
 
-	dest.addLockedPlayertoTile(p)
+	dest.addLockedPlayerToTile(p)
 	return true
 }
 
@@ -163,7 +163,7 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 	p.stage = dest.stage
 
 	dest.stage.addLockedPlayer(p)
-	dest.addLockedPlayertoTile(p)
+	dest.addLockedPlayerToTile(p)
 	return true
 }
 
@@ -262,12 +262,12 @@ func handleDeath(player *Player) {
 	player.incrementDeathCount()
 	player.setHealth(150)
 	player.setKillStreak(0)
-	player.actions = createDefaultActions() // problematic
+	player.actions = createDefaultActions() // problematic, -> setDefaultActions(player)
 
 	stage := player.fetchStageSync(infirmaryStagenameForPlayer(player))
 	player.setStage(stage)
 	player.updateRecordOnDeath(stage.tiles[2][2])
-	go respawnOnStage(player, stage)
+	respawnOnStage(player, stage)
 }
 
 func popAndDropMoney(player *Player) {
@@ -333,6 +333,7 @@ func infirmaryStagenameForPlayer(player *Player) string {
 ////////////////////////////////////////////////////////////
 //	Updates
 
+/*
 func (player *Player) sendUpdatesUnbuffered() {
 	shouldSendUpdates := true
 	for {
@@ -353,6 +354,7 @@ func (player *Player) sendUpdatesUnbuffered() {
 		}
 	}
 }
+*/
 
 func (player *Player) sendUpdates() {
 	var buffer bytes.Buffer
@@ -448,17 +450,6 @@ func updateEntireExistingScreen(player *Player) {
 	player.updates <- entireScreenAsSwaps(player)
 }
 
-func clearChannel(ch chan []byte) {
-	for {
-		select {
-		case <-ch: // Read from the channel
-			// Do nothing, just drain
-		default: // Exit when the channel is empty
-			return
-		}
-	}
-}
-
 func (player *Player) updateBottomText(message string) {
 	msg := fmt.Sprintf(`
 			<div id="bottom_text">
@@ -480,6 +471,17 @@ func (player *Player) updatePlayerBox() {
 
 func updateIconForAll(player *Player) {
 	player.setIcon()
+	tile := player.getTileSync()
+	tile.stage.updateAll(playerBox(tile))
+}
+
+func updateIconForAllIfTangible(player *Player) {
+	player.setIcon()
+	ownLock := player.tangibilityLock.TryLock()
+	if !ownLock || !player.tangible {
+		return
+	}
+	defer player.tangibilityLock.Unlock()
 	tile := player.getTileSync()
 	tile.stage.updateAll(playerBox(tile))
 }
@@ -580,7 +582,7 @@ func (player *Player) addHatByName(hatName string) {
 	}
 	logger.Debug().Msg("Adding Hat: " + hat.Name)
 	player.world.db.addHatToPlayer(player.username, *hat)
-	updateIconForAll(player)
+	updateIconForAllIfTangible(player) // May not originate from click hence check tangible
 }
 
 func (player *Player) cycleHats() {
@@ -759,7 +761,7 @@ func (player *Player) closeConnectionSync() error {
 	player.connLock.Lock()
 	defer player.connLock.Unlock()
 	if player.conn == nil {
-		return errors.New("Player connection nil before attempted close.")
+		return errors.New("player connection nil before attempted close")
 	}
 	return player.conn.Close()
 }

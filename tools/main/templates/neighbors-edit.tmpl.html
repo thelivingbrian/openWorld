@@ -32,7 +32,6 @@
 {{end}}
 
 {{define "neighbors-tiny"}}
-
 <p class="navigator">
     <span class="left_text">
         {{if eq .West ""}}
@@ -74,5 +73,48 @@
         {{end}}
     </span>
 </p>
+{{end}}
 
+{{define "neighbors-tiny-ground"}}
+<p class="navigator">
+    <span class="left_text">
+        {{if eq .West ""}}
+            W
+        {{else}}
+            <input id="tiny-west-go" type="hidden" name="area-name-selected" value="{{.West}}"/>
+            <a hx-get="/areagrid" hx-include="#tiny-west-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit_material" hx-swap="outerHTML" href="#">
+                W
+            </a>
+        {{end}}
+    </span>
+    <span class="center_text">
+        {{if eq .North ""}}
+            N
+        {{else}}
+            <input id="tiny-north-go" type="hidden" name="area-name-selected" value="{{.North}}"/>
+            <a hx-get="/areagrid" hx-include="#tiny-north-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit_material" hx-swap="outerHTML" href="#">
+                N
+            </a>
+        {{end}} 
+        /
+        {{if eq .South ""}}
+            S
+        {{else}}
+            <input id="tiny-south-go" type="hidden" name="area-name-selected" value="{{.South}}"/>
+            <a hx-get="/areagrid" hx-include="#tiny-south-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit_material" hx-swap="outerHTML" href="#">
+                S
+            </a>
+        {{end}}
+    </span>
+    <span class="right_text">
+        {{if eq .East ""}}
+            E
+        {{else}}
+            <input id="tiny-east-go" type="hidden" name="area-name-selected" value="{{.East}}"/>
+            <a hx-get="/areagrid" hx-include="#tiny-east-go,[name='currentCollection'],[name='currentSpace']" hx-target="#edit_material" hx-swap="outerHTML" href="#">
+                E
+            </a>
+        {{end}}
+    </span>
+</p>
 {{end}}

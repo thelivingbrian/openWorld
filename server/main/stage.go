@@ -6,16 +6,18 @@ import (
 )
 
 type Stage struct {
-	tiles       [][]*Tile          // [][]**Tile would be weird and open up FP over mutation (also lookup is less fragile)
-	playerMap   map[string]*Player // Player Map to Bson map to save whole stage in one command
-	playerMutex sync.RWMutex
-	name        string
-	north       string
-	south       string
-	east        string
-	west        string
-	mapId       string
-	spawn       []SpawnAction
+	tiles              [][]*Tile          // [][]**Tile would be weird and open up FP over mutation (also lookup is less fragile)
+	playerMap          map[string]*Player // Player Map to Bson map to save whole stage in one command
+	playerMutex        sync.RWMutex
+	name               string
+	north              string
+	south              string
+	east               string
+	west               string
+	mapId              string
+	spawn              []SpawnAction
+	broadcastGroupName string
+	weather            string
 }
 
 ////////////////////////////////////////////////////
@@ -23,18 +25,30 @@ type Stage struct {
 
 func createStageFromArea(area Area) *Stage {
 	spawnAction := spawnActions[area.SpawnStrategy]
-	outputStage := Stage{make([][]*Tile, len(area.Tiles)), make(map[string]*Player), sync.RWMutex{}, area.Name, area.North, area.South, area.East, area.West, area.MapId, spawnAction}
+	outputStage := Stage{
+		tiles:              make([][]*Tile, len(area.Tiles)),
+		playerMap:          make(map[string]*Player),
+		playerMutex:        sync.RWMutex{},
+		name:               area.Name,
+		north:              area.North,
+		south:              area.South,
+		east:               area.East,
+		west:               area.West,
+		mapId:              area.MapId,
+		spawn:              spawnAction,
+		broadcastGroupName: area.BroadcastGroup,
+		weather:            area.Weather,
+	}
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
 		for x := range outputStage.tiles[y] {
-			outputStage.tiles[y][x] = newTile(materials[area.Tiles[y][x]], y, x, area.DefaultTileColor)
+			outputStage.tiles[y][x] = newTile(area.Tiles[y][x], y, x, area.DefaultTileColor)
 			outputStage.tiles[y][x].stage = &outputStage
 			if area.Interactables != nil && y < len(area.Interactables) && x < len(area.Interactables[y]) {
 				description := area.Interactables[y][x]
 				if description != nil {
 					reaction := interactableReactions[description.Reactions]
 					outputStage.tiles[y][x].interactable = &Interactable{name: description.Name, cssClass: description.CssClass, pushable: description.Pushable, walkable: description.Walkable, fragile: description.Fragile, reactions: reaction}
-
 				}
 			}
 		}
@@ -44,8 +58,7 @@ func createStageFromArea(area Area) *Stage {
 
 		// Change this
 		mat := outputStage.tiles[transport.SourceY][transport.SourceX].material
-		mat.CssColor = "pink"
-		mat.Floor1Css = ""
+		mat.Floor1Css = "pink"
 		mat.Floor2Css = ""
 		outputStage.tiles[transport.SourceY][transport.SourceX].quickSwapTemplate = makeQuickSwapTemplate(mat, transport.SourceY, transport.SourceX)
 

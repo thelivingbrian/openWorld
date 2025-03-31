@@ -25,73 +25,73 @@ var interactableReactions map[string][]InteractableReaction
 func init() {
 	interactableReactions = map[string][]InteractableReaction{
 		// Capture the flag :
-		"black-hole": []InteractableReaction{
+		"black-hole": {
 			InteractableReaction{ReactsWith: interactableHasName("ball-fuchsia"), Reaction: hideByTeam("fuchsia")},
 			InteractableReaction{ReactsWith: interactableHasName("ball-sky-blue"), Reaction: hideByTeam("sky-blue")},
 			InteractableReaction{ReactsWith: everything, Reaction: eat}, // reduces number of rings
 		},
-		"goal-sky-blue": []InteractableReaction{
+		"goal-sky-blue": {
 			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: scoreGoalForTeam("sky-blue")},
 			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: pass},
 		},
-		"goal-fuchsia": []InteractableReaction{
+		"goal-fuchsia": {
 			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: scoreGoalForTeam("fuchsia")},
 			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: pass},
 		},
 		// Tutorial :
-		"tutorial-black-hole": []InteractableReaction{
+		"tutorial-black-hole": {
 			InteractableReaction{ReactsWith: interactableIsABall, Reaction: tutorial2HideAndNotify},
 			InteractableReaction{ReactsWith: everything, Reaction: eat},
 		},
-		"tutorial-goal-sky-blue": []InteractableReaction{
+		"tutorial-goal-sky-blue": {
 			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: destroyEveryotherInteractable},
 			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: notifyAndPass("Try using the matching ball.")},
 		},
-		"tutorial-goal-fuchsia": []InteractableReaction{
+		"tutorial-goal-fuchsia": {
 			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: destroyEveryotherInteractable},
 			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: notifyAndPass("Try using the matching ball.")},
 		},
-		"gold-target": []InteractableReaction{
+		"gold-target": {
 			InteractableReaction{ReactsWith: interactableHasName("ball-gold"), Reaction: destroyInRangeSkipingSelf(5, 3, 10, 8)},
 		},
-		"set-team-wild-text-and-delete": []InteractableReaction{
+		"set-team-wild-text-and-delete": {
 			InteractableReaction{ReactsWith: interactableIsNil, Reaction: setTeamWildText},
 		},
 		// machines :
-		"catapult-west": []InteractableReaction{
+		"catapult-west": {
 			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultWest},
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
-		"catapult-north": []InteractableReaction{
+		"catapult-north": {
 			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultNorth},
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
-		"catapult-south": []InteractableReaction{
+		"catapult-south": {
 			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultSouth},
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
-		"catapult-east": []InteractableReaction{
+		"catapult-east": {
 			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultEast},
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
-		"lily-pad": []InteractableReaction{
+		"lily-pad": {
 			InteractableReaction{ReactsWith: interactableIsNil, Reaction: playSoundForAll("water-splash")},
 			InteractableReaction{ReactsWith: interactableIsARing, Reaction: makeDangerousForOtherTeam},
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
-		"death-trap": []InteractableReaction{
+		"death-trap": {
 			InteractableReaction{ReactsWith: interactableIsNil, Reaction: killInstantly},
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
-		"exchange-ring": []InteractableReaction{
+		"exchange-ring": {
 			InteractableReaction{ReactsWith: interactableIsARing, Reaction: damageAndSpawn},
 		},
 		// Puzzles:
-		"target-lavender": []InteractableReaction{
+		"target-lavender": {
 			InteractableReaction{ReactsWith: interactableHasName("ball-lavender"), Reaction: checkSolveAndRemoveInteractable},
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
-		"target-dark-lavender": []InteractableReaction{
+		"target-dark-lavender": {
 			InteractableReaction{ReactsWith: interactableHasName("ball-dark-lavender"), Reaction: awardPuzzleHat},
 			InteractableReaction{ReactsWith: everything, Reaction: pass},
 		},
@@ -353,24 +353,34 @@ func hideByTeam(team string) func(*Interactable, *Player, *Tile) (*Interactable,
 }
 
 func placeInteractableOnStagePriorityCovered(stage *Stage, interactable *Interactable) {
-	tiles, uncovered := sortWalkableTiles(stage.tiles)
-	if len(tiles) < 0 {
-		tiles = uncovered
+	covered, uncovered := sortWalkableTiles(stage.tiles)
+	if len(covered)+len(uncovered) == 0 {
+		logger.Error().Msg("Trying to place interactable but no valid tiles on: " + stage.name)
+		return
 	}
-	placed := false
-	for !placed {
+
+	tiles := append([]*Tile(nil), covered...)
+	for {
+		if len(tiles) == 0 {
+			tiles = append([]*Tile(nil), uncovered...)
+			tiles = append([]*Tile(nil), covered...)
+		}
 		index := rand.Intn(len(tiles))
-		placed = trySetInteractable(tiles[index], interactable)
+		if trySetInteractable(tiles[index], interactable) {
+			return
+		}
+		tiles = append(tiles[:index], tiles[index+1:]...)
 	}
 }
 
-func placeInteractableOnStage(stage *Stage, interactable *Interactable) {
+func tryPlaceInteractableOnStage(stage *Stage, interactable *Interactable) {
 	tiles, uncovered := sortWalkableTiles(stage.tiles)
 	tiles = append(tiles, uncovered...)
-	placed := false
-	for !placed {
+	for i := 0; i < len(tiles); i++ {
 		index := rand.Intn(len(tiles))
-		placed = trySetInteractable(tiles[index], interactable)
+		if trySetInteractable(tiles[index], interactable) {
+			return
+		}
 	}
 }
 
@@ -388,11 +398,6 @@ func killInstantly(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	handleDeath(p)
 	return nil, false
 }
-
-var superBoostEast = moveInitiator(0, 11)
-var superBoostWest = moveInitiator(0, -11)
-var superBoostNorth = moveInitiator(-11, 0)
-var superBoostSouth = moveInitiator(11, 0)
 
 func moveInitiatorPushSurrounding(yOff, xOff int) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
@@ -418,12 +423,12 @@ func makeDangerousForOtherTeam(i *Interactable, p *Player, t *Tile) (*Interactab
 		dmg = 100
 	}
 	newReactions := []InteractableReaction{
-		InteractableReaction{
+		{
 			ReactsWith: playerHasTeam(oppositeTeamName(initiatorTeam)),
 			Reaction:   damageWithinRadiusAndReset(2, dmg, p.id),
 		},
-		InteractableReaction{ReactsWith: interactableIsNil, Reaction: playSoundForAll("water-splash")},
-		InteractableReaction{ReactsWith: everything, Reaction: pass},
+		{ReactsWith: interactableIsNil, Reaction: playSoundForAll("water-splash")},
+		{ReactsWith: everything, Reaction: pass},
 	}
 	t.interactable.cssClass = initiatorTeam + "-b thick r0"
 	t.interactable.reactions = newReactions
@@ -477,10 +482,11 @@ func createRing() *Interactable {
 	return &ring
 }
 
+// Does not reset
 func damageWithinRadiusAndReset(radius, dmg int, ownerId string) func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 		go damageWithinRadius(t, p.world, radius, dmg, ownerId) // damage can take interactable lock that is held by reacting tile
-		placeInteractableOnStagePriorityCovered(t.stage, createRing())
+		tryPlaceInteractableOnStage(t.stage, createRing())
 		t.interactable.cssClass = "white trsp20 r0"
 		t.interactable.reactions = interactableReactions["lily-pad"]
 		t.stage.updateAll(interactableBoxSpecific(t.y, t.x, t.interactable) + soundTriggerByName("explosion"))
@@ -493,11 +499,7 @@ func damageWithinRadius(tile *Tile, world *World, radius, dmg int, ownerId strin
 	tiles := getTilesInRadius(tile, radius)
 	trapSetter := world.getPlayerById(ownerId)
 	if trapSetter != nil {
-		trapSetter.tangibilityLock.Lock()
-		defer trapSetter.tangibilityLock.Unlock()
-		if trapSetter.tangible {
-			damageAndIndicate(tiles, trapSetter, tile.stage, dmg)
-		}
+		damageAndIndicate(tiles, trapSetter, tile.stage, dmg)
 	}
 }
 

@@ -8,15 +8,14 @@ import (
 )
 
 type Material struct {
-	ID          int    `json:"id"`
-	CommonName  string `json:"commonName"`
-	CssColor    string `json:"cssColor"`
-	Walkable    bool   `json:"walkable"`
-	Floor1Css   string `json:"layer1css"`
-	Floor2Css   string `json:"layer2css"`
-	Ceiling1Css string `json:"ceiling1css"`
-	Ceiling2Css string `json:"ceiling2css"`
-	DisplayText string `json:"displayText"`
+	Walkable    bool   `json:"walkable,omitempty"`
+	Ground1Css  string `json:"ground1css,omitempty"`
+	Ground2Css  string `json:"ground2css,omitempty"`
+	Floor1Css   string `json:"layer1css,omitempty"`
+	Floor2Css   string `json:"layer2css,omitempty"`
+	Ceiling1Css string `json:"ceiling1css,omitempty"`
+	Ceiling2Css string `json:"ceiling2css,omitempty"`
+	DisplayText string `json:"displayText,omitempty"`
 }
 
 type Color struct {

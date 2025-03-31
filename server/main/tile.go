@@ -39,9 +39,6 @@ type Teleport struct {
 }
 
 func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
-	if mat.CssColor == "" {
-		mat.CssColor = defaultTileColor
-	}
 	return &Tile{
 		material:          mat,
 		playerMap:         make(map[string]*Player),
@@ -67,8 +64,8 @@ func makeQuickSwapTemplate(mat Material, y, x int) string {
 	placeHold := "%s" // later becomes player, interactable, svg, weather, and highlight boxes
 
 	out := ""
-	out += swapToken(y, x, "Lg1", "g1", mat.CssColor)
-	out += swapToken(y, x, "Lg2", "g2", "")
+	out += swapToken(y, x, "Lg1", "g1", mat.Ground1Css)
+	out += swapToken(y, x, "Lg2", "g2", mat.Ground2Css)
 	out += swapToken(y, x, "Lf1", "f1", mat.Floor1Css)
 	out += swapToken(y, x, "Lf2", "f2", mat.Floor2Css)
 	out += placeHold
@@ -92,11 +89,11 @@ func swapToken(y, x int, prefix, zIndex, color string) string {
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	player.tileLock.Lock()
 	defer player.tileLock.Unlock()
-	tile.addLockedPlayertoTile(player)
+	tile.addLockedPlayerToTile(player)
 	tile.stage.updateAllExcept(playerBox(tile), player)
 }
 
-func (tile *Tile) addLockedPlayertoTile(player *Player) {
+func (tile *Tile) addLockedPlayerToTile(player *Player) {
 	tile.playerMutex.Lock()
 	defer tile.playerMutex.Unlock()
 
@@ -158,7 +155,8 @@ func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
 	if success {
 		tile.stage.updateAllExcept(playerBox(tile), player)
 	} else {
-		// Possible under what circumstance ?
+		// Possible under what circumstance :
+		//   Handle death can race with logout to produce this (harmlessly?)
 		logger.Warn().Msg("WARN : FAILED TO REMOVE PLAYER :(")
 	}
 	return success
@@ -189,6 +187,17 @@ func (tile *Tile) getAPlayer() *Player {
 /////////////////////////////////////////////////////////////////////
 // Damage
 
+func damageAndIndicate(tiles []*Tile, initiator *Player, stage *Stage, damage int) {
+	for _, tile := range tiles {
+		tile.damageAll(damage, initiator)
+		destroyFragileInteractable(tile, initiator)
+		tile.eventsInFlight.Add(1)
+		go tile.tryToNotifyAfter(100)
+	}
+	damageBoxes := sliceOfTileToWeatherBoxes(tiles, randomFieryColor())
+	stage.updateAll(damageBoxes)
+}
+
 func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	fatalities := false
 	for _, player := range tile.copyOfPlayers() {
@@ -213,31 +222,28 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 	if target == initiator {
 		return false
 	}
-	target.tangibilityLock.Lock()
-	defer target.tangibilityLock.Unlock()
-	if !target.tangible {
-		return false
-	}
-	if isInClinicOrInfirmary(target) {
+	location := target.getTileSync()
+	if safeFromDamage(location) {
 		return false
 	}
 	if target.getTeamNameSync() == initiator.getTeamNameSync() {
 		return false
 	}
 
-	location := target.getTileSync()
-	fatal := damagePlayerAndHandleDeath(target, dmg) // Death can't handle until return to tangibility
+	fatal := damagePlayerAndHandleDeath(target, dmg)
 	if fatal {
 		initiator.incrementKillCount()
-		updateOne(spanStreak(initiator.incrementKillStreak()), initiator)
-
 		initiator.updateRecord()
+
+		streak := initiator.incrementKillStreak()
+		updateStreakIfTangible(initiator, streak) // initiator may not have initiatied via click -> check tangible needed
+
 		go initiator.world.db.saveKillEvent(location, initiator, target)
 	}
 	return fatal
 }
 func damagePlayerAndHandleDeath(player *Player, dmg int) bool {
-	flashBackgroundColor(player, "twilight")
+	flashBackgroundColorIfTangible(player, "twilight")
 	fatal := reduceHealthAndCheckFatal(player, dmg)
 	if fatal {
 		handleDeath(player)
@@ -259,8 +265,21 @@ func reduceHealthAndCheckFatal(player *Player, dmg int) bool {
 	return fatal
 }
 
-func isInClinicOrInfirmary(p *Player) bool {
-	stagename := p.getStageNameSync()
+func updateStreakIfTangible(player *Player, streak int) {
+	ownLock := player.tangibilityLock.TryLock()
+	if !ownLock || !player.tangible {
+		return
+	}
+	defer player.tangibilityLock.Unlock()
+	html := spanStreak(streak)
+	updateOne(html, player)
+}
+
+func safeFromDamage(tile *Tile) bool {
+	if tile == nil {
+		return true
+	}
+	stagename := tile.stage.name
 	if stagename == "clinic" {
 		return true
 	}
@@ -277,7 +296,7 @@ func (tile *Tile) tryToNotifyAfter(delay int) {
 	time.Sleep(time.Millisecond * time.Duration(delay))
 	if tile.eventsInFlight.Add(-1) == 0 {
 		// blue trsp20 for gloom
-		tile.stage.updateAll(weatherBox(tile, ""))
+		tile.stage.updateAll(weatherBox(tile, tile.stage.weather))
 	}
 }
 
@@ -433,17 +452,6 @@ func getTilesInRadius(tile *Tile, r int) []*Tile {
 		}
 	}
 	return out
-}
-
-func damageAndIndicate(tiles []*Tile, initiator *Player, stage *Stage, damage int) {
-	for _, tile := range tiles {
-		tile.damageAll(damage, initiator)
-		destroyFragileInteractable(tile, initiator)
-		tile.eventsInFlight.Add(1)
-		go tile.tryToNotifyAfter(100)
-	}
-	damageBoxes := sliceOfTileToWeatherBoxes(tiles, randomFieryColor())
-	stage.updateAll(damageBoxes)
 }
 
 /////////////////////////////////////////////////////////////////

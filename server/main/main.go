@@ -64,9 +64,6 @@ func main() {
 		world := createGameWorld(db, config)
 		loadFromJson()
 
-		// Process Logouts, should remove global.
-		go processLogouts(playersToLogout)
-
 		// World status and play
 		mux.HandleFunc("/status", world.statusHandler)
 		mux.HandleFunc("/play", world.playHandler)

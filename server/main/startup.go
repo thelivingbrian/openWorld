@@ -180,10 +180,10 @@ func retrieveKeys() (hashKey, blockKey []byte) {
 // Load Resources from JSON
 
 type Material struct {
-	ID          int    `json:"id"`
 	CommonName  string `json:"commonName"`
-	CssColor    string `json:"cssColor"`
 	Walkable    bool   `json:"walkable"`
+	Ground1Css  string `json:"ground1css"`
+	Ground2Css  string `json:"ground2css"`
 	Floor1Css   string `json:"layer1css"`
 	Floor2Css   string `json:"layer2css"`
 	Ceiling1Css string `json:"ceiling1css"`
@@ -205,7 +205,7 @@ type Transport struct {
 type Area struct {
 	Name             string                       `json:"name"`
 	Safe             bool                         `json:"safe"`
-	Tiles            [][]int                      `json:"tiles"`
+	Tiles            [][]Material                 `json:"tiles"`
 	Transports       []Transport                  `json:"transports"`
 	Interactables    [][]*InteractableDescription `json:"interactables"`
 	DefaultTileColor string                       `json:"defaultTileColor"`
@@ -216,6 +216,8 @@ type Area struct {
 	MapId            string                       `json:"mapId"`
 	LoadStrategy     string                       `json:"loadStrategy,omitempty"`
 	SpawnStrategy    string                       `json:"spawnStrategy,omitempty"`
+	BroadcastGroup   string                       `json:"broadcastGroup,omitempty"`
+	Weather          string                       `json:"weather,omitempty"`
 }
 
 type InteractableDescription struct {
@@ -230,8 +232,7 @@ type InteractableDescription struct {
 }
 
 var (
-	materials []Material
-	areas     []Area
+	areas []Area
 )
 
 func populateStructUsingFileName[T any](ptr *T, filename string) {
@@ -247,11 +248,7 @@ func populateStructUsingFileName[T any](ptr *T, filename string) {
 
 // This should return values instead of populating globals
 func loadFromJson() {
-	populateStructUsingFileName(&materials, "materials")
 	populateStructUsingFileName(&areas, "areas")
-
-	//fmt.Printf("Loaded %d materials.", len(materials))
-	//fmt.Printf("Loaded %d areas.", len(areas))
 }
 
 func areaFromName(s string) (area Area, success bool) {

@@ -7,13 +7,11 @@ import (
 
 func TestActivateHighlightWithMovement_NoConcurrentWrite(t *testing.T) {
 	loadFromJson()
-	world := createGameWorld(testdb(), nil)
-	testStage := createStageByName("hallway")
-	updatesForPlayer := make(chan []byte)
-	go drainChannel(updatesForPlayer)
-	bufferClearChannel := make(chan struct{})
-	go drainChannel(bufferClearChannel)
 
+	world, shutDown := createWorldForTesting()
+	defer shutDown()
+
+	testStage := createStageByName("hallway")
 	player := createTestingPlayer(world, "")
 	player.placeOnStage(testStage, 1, 4)
 

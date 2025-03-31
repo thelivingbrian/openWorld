@@ -83,6 +83,15 @@ func (c Context) postSpaces(w http.ResponseWriter, r *http.Request) {
 
 		tileColor, ok := props["tileColor"]
 		valid = valid && ok
+
+		tileColor1, ok := props["tileColor1"]
+		valid = valid && ok
+
+		weather, ok := props["weather"]
+		valid = valid && ok
+
+		broadcastGroup, ok := props["broadcastGroup"]
+		valid = valid && ok
 		if !valid {
 			fmt.Println("Invalid, failed to get properties by name.")
 			io.WriteString(w, `<h3> Properties are invalid.</h3>`)
@@ -109,7 +118,7 @@ func (c Context) postSpaces(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Printf("%s %s %s %s %s %d %d", name, topology, areaWidth, areaHeight, tileColor, latitude, longitude)
 
-		space := createSpace(cName, name, latitude, longitude, topology, height, width, tileColor)
+		space := createSpace(cName, name, latitude, longitude, topology, height, width, tileColor, tileColor1, weather, broadcastGroup)
 		col.Spaces[name] = &space
 		io.WriteString(w, `<h3>Success</h3>`)
 		return
@@ -117,11 +126,11 @@ func (c Context) postSpaces(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, `<h3>Invalid collection Name.</h3>`)
 }
 
-func createSpace(cName, name string, latitude, longitude int, topology string, height, width int, tileColor string) Space {
+func createSpace(cName, name string, latitude, longitude int, topology string, height, width int, tileColor, tileColor1, weather, broadcastGroup string) Space {
 	areas := make([][]AreaDescription, latitude)
 	for y := 0; y < latitude; y++ {
 		for x := 0; x < longitude; x++ {
-			area := createBaseArea(height, width, tileColor)
+			area := createBaseArea(height, width, tileColor, tileColor1, weather, broadcastGroup)
 
 			if topology != "disconnected" {
 				// This is consistent with Tiles
@@ -161,13 +170,15 @@ func mod(i, n int) int {
 	return ((i % n) + n) % n
 }
 
-func createBaseArea(height, width int, tileColor string) AreaDescription {
+func createBaseArea(height, width int, tileColor, tileColor1, weather, broadcastGroup string) AreaDescription {
 	tiles := make([][]TileData, height)
 	for i := range tiles {
 		tiles[i] = make([]TileData, width)
 	}
-	blueprint := Blueprint{Tiles: tiles, Instructions: make([]Instruction, 0)}
-	return AreaDescription{Name: "", Safe: true, Blueprint: &blueprint, Transports: make([]Transport, 0), DefaultTileColor: tileColor}
+
+	blueprint := Blueprint{Tiles: tiles, DefaultTileColor: tileColor, DefaultTileColor1: tileColor1, Instructions: make([]Instruction, 0)}
+	// safe is always false. Can be reset elsewhere.
+	return AreaDescription{Name: "", Safe: false, Blueprint: &blueprint, Transports: make([]Transport, 0), Weather: weather, BroadcastGroup: broadcastGroup}
 }
 
 func getAreaByName(areas []AreaDescription, name string) *AreaDescription {
@@ -179,6 +190,7 @@ func getAreaByName(areas []AreaDescription, name string) *AreaDescription {
 	return nil
 }
 
+/*
 // Could also have getAreaByCoord
 func (s *Space) getAreaByName(name string) *AreaDescription {
 	return getAreaByName(s.Areas, name)
@@ -187,6 +199,7 @@ func (s *Space) getAreaByName(name string) *AreaDescription {
 func (s *Space) coordToName(y, x int) string {
 	return fmt.Sprintf("%s:%d-%d", s.Name, y, x)
 }
+*/
 
 func getFragmentByName(fragments []Fragment, name string) *Fragment {
 	for i, fragment := range fragments {
@@ -226,9 +239,8 @@ type AreaTile struct {
 }
 
 type SpaceEditPageData struct {
-	//GridDetails   GridDetails
 	SelectedSpace Space
-	AreaTiles     [][]AreaTile // Should be some combo of area and url
+	AreaTiles     [][]AreaTile
 }
 
 func (c Context) getSpace(w http.ResponseWriter, r *http.Request) {
@@ -256,7 +268,6 @@ func (c Context) getSpace(w http.ResponseWriter, r *http.Request) {
 							panic("OH NO")
 						}
 						tiles[row][column].SelectedArea = area
-						// Add the actual area
 					}
 				}
 			}
@@ -349,6 +360,56 @@ func (c Context) spaceStructureHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "DELETE" {
 		c.deleteSpaceStructure(w, r)
+	}
+}
+
+func (c Context) spaceModifyHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		c.getSpaceModify(w, r)
+	}
+	if r.Method == "POST" {
+		c.postSpaceModify(w, r)
+	}
+}
+
+func (c Context) postSpaceModify(w http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	collectionName := properties["currentCollection"]
+	spaceName := properties["currentSpace"]
+	space := c.spaceFromNames(collectionName, spaceName)
+	if space == nil {
+		panic("invalid space")
+	}
+	defaultColor, haveDefault := properties["default-tile-color"]
+	defaultColor1, haveDefault1 := properties["default-tile-color1"]
+	_, haveSafe := properties["safe-update"]
+	safe := properties["safe"] == "on"
+	weather, haveWeather := properties["weather"]
+	broadcastGroup, haveBroadcast := properties["broadcast-group"]
+	for i := range space.Areas {
+		if haveDefault {
+			space.Areas[i].Blueprint.DefaultTileColor = defaultColor
+		}
+		if haveDefault1 {
+			space.Areas[i].Blueprint.DefaultTileColor1 = defaultColor1
+		}
+		if haveSafe {
+			space.Areas[i].Safe = safe
+		}
+		if haveWeather {
+			space.Areas[i].Weather = weather
+		}
+		if haveBroadcast {
+			space.Areas[i].BroadcastGroup = broadcastGroup
+		}
+	}
+	io.WriteString(w, "<h2>done</h2>")
+}
+
+func (c Context) getSpaceModify(w http.ResponseWriter, _ *http.Request) {
+	err := tmpl.ExecuteTemplate(w, "space-modify-areas", nil)
+	if err != nil {
+		fmt.Println(err)
 	}
 }
 
@@ -571,20 +632,30 @@ func (c Context) generateImageFromSpace(space *Space) *image.RGBA {
 func (c Context) generateImgFromArea(area *AreaDescription, col Collection) *image.RGBA {
 	img := image.NewRGBA(image.Rect(0, 0, len(area.Blueprint.Tiles[0]), len(area.Blueprint.Tiles)))
 
-	areaColor := c.findColorByName(area.DefaultTileColor)
+	defaultColor := c.findColorByName(area.Blueprint.DefaultTileColor)
+	defaultColor1 := c.findColorByName(area.Blueprint.DefaultTileColor1)
 	for row := range area.Blueprint.Tiles {
 		for column, tile := range area.Blueprint.Tiles[row] {
-			proto := col.findPrototypeById(tile.PrototypeId)
-			if proto == nil {
-				fmt.Println("WARN: PROTOTYPE MISSING: " + tile.PrototypeId)
-				proto = &Prototype{MapColor: "red"}
+			outputColor := defaultColor
+			ground := groundCellByCoord(area.Blueprint, row, column)
+			if ground != nil && ground.Status == 1 {
+				outputColor = defaultColor1
 			}
-			mapColor := c.getMapColorFromProto(*proto)
-			protoColor := c.findColorByName(mapColor)
-			if protoColor.CssClassName == "invalid" {
-				protoColor = areaColor
+
+			if tile.PrototypeId != "" {
+				proto := col.findPrototypeById(tile.PrototypeId)
+				if proto == nil {
+					fmt.Println("WARN: PROTOTYPE MISSING: " + tile.PrototypeId)
+					proto = &Prototype{MapColor: "red"}
+				}
+				colorString := c.getMapColorFromProto(*proto)
+				protoColor := c.findColorByName(colorString) // will be invalid if proto has CommonName == empty
+				if protoColor.CssClassName != "NONE" {
+					outputColor = protoColor
+				}
+
 			}
-			img.Set(column, row, color.RGBA{R: uint8(protoColor.R), G: uint8(protoColor.G), B: uint8(protoColor.B), A: 255})
+			img.Set(column, row, color.RGBA{R: uint8(outputColor.R), G: uint8(outputColor.G), B: uint8(outputColor.B), A: 255})
 		}
 	}
 
@@ -636,7 +707,7 @@ func (c Context) findColorByName(s string) Color {
 			return color
 		}
 	}
-	return Color{CssClassName: "invalid"}
+	return Color{CssClassName: "NONE", R: 0, G: 0, B: 0}
 }
 
 func saveImageAsPNG(filename string, img image.Image) error {

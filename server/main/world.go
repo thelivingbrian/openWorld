@@ -23,6 +23,7 @@ type World struct {
 	status              WorldStatus
 	incomingPlayers     map[string]*LoginRequest
 	incomingPlayerMutex sync.Mutex
+	playersToLogout     chan *Player
 	worldStages         map[string]*Stage
 	wStageMutex         sync.Mutex
 	leaderBoard         *LeaderBoard
@@ -58,11 +59,13 @@ func createGameWorld(db *DB, config *Configuration) *World {
 		teamQuantities:      map[string]int{},
 		incomingPlayers:     make(map[string]*LoginRequest),
 		incomingPlayerMutex: sync.Mutex{},
+		playersToLogout:     make(chan *Player, 0),
 		worldStages:         make(map[string]*Stage),
 		wStageMutex:         sync.Mutex{},
 		leaderBoard:         createLeaderBoard(),
 	}
-	go Process(out, &out.leaderBoard.mostDangerous)
+	go processMostDangerous(out, &out.leaderBoard.mostDangerous)
+	go processLogouts(out.playersToLogout)
 	return out
 }
 
@@ -90,7 +93,7 @@ func (world *World) removePlayer(p *Player) {
 func (world *World) getPlayerById(id string) *Player {
 	world.wPlayerMutex.Lock()
 	defer world.wPlayerMutex.Unlock()
-	player, _ := world.worldPlayers[id]
+	player := world.worldPlayers[id]
 	return player
 }
 
@@ -185,11 +188,8 @@ var unableToJoin = `
 func (world *World) teamAtCapacity(teamName string) bool {
 	world.wPlayerMutex.Lock()
 	defer world.wPlayerMutex.Unlock()
-	count, _ := world.teamQuantities[teamName]
-	if count >= CAPACITY_PER_TEAM {
-		return true
-	}
-	return false
+	count := world.teamQuantities[teamName]
+	return count >= CAPACITY_PER_TEAM
 }
 
 func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player {
@@ -197,7 +197,7 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 	if record.Team == "" {
 		record.Team = "sky-blue"
 	}
-	updatesForPlayer := make(chan []byte, 0) // raise capacity?
+	updatesForPlayer := make(chan []byte) // raise capacity?
 	newPlayer := &Player{
 		id:                       id,
 		username:                 record.Username,
@@ -238,8 +238,6 @@ func (world *World) isLoggedInAlready(username string) bool {
 //
 //	Logging Out
 
-var playersToLogout = make(chan *Player, 500)
-
 func processLogouts(players chan *Player) {
 	for {
 		player, ok := <-players
@@ -259,7 +257,7 @@ func initiateLogout(player *Player) {
 	//   Add time delay to prevent rage quit ?
 	removeFromTileAndStage(player)
 
-	playersToLogout <- player
+	player.world.playersToLogout <- player
 
 }
 
@@ -270,9 +268,7 @@ func completeLogout(player *Player) {
 	player.world.removePlayer(player)
 
 	player.closeConnectionSync() // If Read deadline is missed conn may still be open
-
 	close(player.updates)
-	// close(player.clearUpdateBuffer)
 
 	logger.Info().Msg("Logout complete: " + player.username)
 
@@ -425,7 +421,7 @@ func (heap *MaxStreakHeap) Peek() PlayerStreakRecord {
 
 //
 
-func Process(world *World, h *MaxStreakHeap) {
+func processMostDangerous(world *World, h *MaxStreakHeap) {
 	for {
 		previousMostDangerous := h.Peek()
 		event, ok := <-h.incoming
@@ -450,6 +446,7 @@ func Process(world *World, h *MaxStreakHeap) {
 
 		func(currentMostDangerous, previousMostDangerous PlayerStreakRecord) {
 			if currentMostDangerous.id != previousMostDangerous.id {
+				// new routine prevents deadlock from tangible check (removed)
 				crownMostDangerousById(world, currentMostDangerous)
 				return
 			}
@@ -468,11 +465,6 @@ func crownMostDangerousById(world *World, streakEvent PlayerStreakRecord) {
 	}
 	player := world.getPlayerById(streakEvent.id)
 	if player == nil {
-		return
-	}
-	player.tangibilityLock.Lock()
-	defer player.tangibilityLock.Unlock()
-	if !player.tangible {
 		return
 	}
 	player.addHatByName("most-dangerous")

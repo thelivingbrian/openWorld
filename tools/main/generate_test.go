@@ -222,9 +222,9 @@ func TestSmoothCorners_Cross(t *testing.T) {
 	after := smoothCorners(before)
 
 	// Has two cases, must be one or the other. If neither throw.
-	if !(after[0][0].bottomRight && after[1][1].topLeft) && !(after[0][1].bottomLeft && after[1][0].topRight) {
-		fmt.Println(after[0][0].bottomRight && after[1][1].topLeft)
-		fmt.Println(after[0][1].bottomLeft && after[1][0].topRight)
+	if !(after[0][0].BottomRight && after[1][1].TopLeft) && !(after[0][1].BottomLeft && after[1][0].TopRight) {
+		fmt.Println(after[0][0].BottomRight && after[1][1].TopLeft)
+		fmt.Println(after[0][1].BottomLeft && after[1][0].TopRight)
 		t.Errorf("Incorrect smoothing of criss-cross pattern")
 	}
 }

@@ -8,8 +8,11 @@ import (
 )
 
 type Blueprint struct {
-	Tiles        [][]TileData `json:"tiles"`
-	Instructions []Instruction
+	Tiles             [][]TileData `json:"tiles"`
+	Instructions      []Instruction
+	Ground            [][]Cell
+	DefaultTileColor  string
+	DefaultTileColor1 string
 }
 
 type Instruction struct {
@@ -183,17 +186,30 @@ func (c *Context) postInstructionHighlight(w http.ResponseWriter, r *http.Reques
 
 	area, fragment := c.areaOrFragmentFromProperties(properties)
 	blueprint := c.blueprintFromAreaOrFragment(area, fragment)
-	gridType, screenId := "fragment", "fragment"
-	defaultTileColor := ""
-	if fragment == nil {
-		gridType, screenId = "area", "screen"
-		defaultTileColor = area.DefaultTileColor
+	gridType, screenId, defaultTileColor := "", "", ""
+	location := []string{}
+	if area != nil {
+		gridType, screenId, defaultTileColor = "area", "screen", area.Blueprint.DefaultTileColor
+		location = []string{properties["currentSpace"], area.Name}
+	}
+	if fragment != nil {
+		gridType, screenId = "fragment", "fragment"
+		location = []string{fragment.SetName, fragment.Name}
 	}
 
 	for i := range blueprint.Instructions {
 		if blueprint.Instructions[i].ID == instructionId {
-			details := GridClickDetails{GridType: gridType, ScreenID: screenId, X: blueprint.Instructions[i].X, Y: blueprint.Instructions[i].Y, DefaultTileColor: defaultTileColor}
-			io.WriteString(w, col.gridSelect(details, blueprint.Tiles))
+			details := GridClickDetails{
+				GridType:         gridType,
+				ScreenID:         screenId,
+				X:                blueprint.Instructions[i].X,
+				Y:                blueprint.Instructions[i].Y,
+				DefaultTileColor: defaultTileColor, // could be influenced by ground
+				Selected:         true,
+				Location:         location,
+			}
+			gridSelect(&details)
+			executeGridTemplate(w, col.generateMaterials(blueprint), col.generateInteractables(blueprint.Tiles), details)
 		}
 	}
 
@@ -315,4 +331,116 @@ func rotateClockwise[T any](input [][]T) [][]T {
 		}
 	}
 	return out
+}
+
+// ///////////////////////////////////////////////////////////
+// Ground
+
+func (c *Context) blueprintGroundHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		c.getGroundEdit(w, r)
+	}
+}
+
+func (c *Context) getGroundEdit(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	space := c.spaceFromGET(r)
+	name := queryValues.Get("area-name")
+	selectedArea := getAreaByName(space.Areas, name)
+	if selectedArea == nil {
+		io.WriteString(w, "<h2>no Area</h2>")
+		return
+	}
+
+	modifications := generateMaterialsForGround(selectedArea.Blueprint)
+
+	var pageData = AreaEditPageData{
+		AreaWithGrid: AreaWithGrid{
+			GridDetails: GridDetails{
+				MaterialGrid:     modifications,
+				InteractableGrid: nil,
+				Location:         locationStringFromArea(selectedArea, space.Name),
+				GridType:         "ground",
+				ScreenID:         "screen-g",
+			},
+			SelectedArea:   *selectedArea,
+			NavHasHadClick: false,
+		},
+	}
+	err := tmpl.ExecuteTemplate(w, "ground-edit", pageData)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func generateMaterialsForGround(bp *Blueprint) [][]Material {
+	if bp.Ground == nil {
+		bp.Ground = make([][]Cell, len(bp.Tiles))
+		for n := range bp.Ground {
+			bp.Ground[n] = make([]Cell, len(bp.Tiles[n]))
+		}
+	}
+	out := make([][]Material, len(bp.Ground))
+	for i := range bp.Ground {
+		out[i] = make([]Material, len(bp.Ground[i]))
+		for j := range bp.Ground[i] {
+			out[i][j] = createMaterialForGround(bp.Ground[i][j], bp.DefaultTileColor, bp.DefaultTileColor1)
+		}
+	}
+	return out
+}
+
+func createMaterialForGround(cell Cell, color0, color1 string) Material {
+	material := Material{
+		Ground1Css: "",
+		Ground2Css: "",
+	}
+
+	return addGroundToMaterial(material, &cell, color0, color1)
+}
+
+func addGroundToMaterial(material Material, cell *Cell, color0, color1 string) Material {
+	if cell == nil {
+		material.Ground1Css = color0
+		return material
+	}
+	if material.Ground2Css != "" {
+		// Material has preset Ground - leave the same
+		return material
+	}
+	primary, secondary := color0, color1
+	if cell.Status != 0 {
+		primary, secondary = color1, color0
+	}
+	material.Ground2Css = primary
+	if cell.TopLeft || cell.TopRight || cell.BottomLeft || cell.BottomRight {
+		material.Ground1Css = secondary
+	}
+	if cell.TopLeft {
+		material.Ground2Css += " r0-tl"
+	}
+	if cell.TopRight {
+		material.Ground2Css += " r0-tr"
+	}
+	if cell.BottomLeft {
+		material.Ground2Css += " r0-bl"
+	}
+	if cell.BottomRight {
+		material.Ground2Css += " r0-br"
+	}
+	return material
+}
+
+func SubGrid(grid [][]Cell, y, x, height, width int) [][]Cell {
+	rowStart := max(0, y)
+	rowEnd := min(y+height, len(grid))
+	colStart := max(0, x)
+	colEnd := min(x+width, len(grid[0]))
+
+	sub := make([][]Cell, 0, rowEnd-rowStart)
+	for r := rowStart; r < rowEnd; r++ {
+		rowSlice := grid[r][colStart:colEnd]
+		sub = append(sub, rowSlice)
+	}
+	return sub
 }

@@ -8,25 +8,26 @@ import (
 )
 
 type AreaDescription struct {
-	Name             string      `json:"name"`
-	Safe             bool        `json:"safe"`
-	Blueprint        *Blueprint  `json:"blueprint"`
-	Transports       []Transport `json:"transports"`
-	DefaultTileColor string      `json:"defaultTileColor"`
-	North            string      `json:"north,omitempty"`
-	South            string      `json:"south,omitempty"`
-	East             string      `json:"east,omitempty"`
-	West             string      `json:"west,omitempty"`
-	MapId            string      `json:"mapId"`
-	LoadStrategy     string      `json:"loadStrategy"`
-	SpawnStrategy    string      `json:"spawnStrategy"`
+	Name           string      `json:"name"`
+	Safe           bool        `json:"safe"`
+	Blueprint      *Blueprint  `json:"blueprint"`
+	Transports     []Transport `json:"transports"`
+	North          string      `json:"north,omitempty"`
+	South          string      `json:"south,omitempty"`
+	East           string      `json:"east,omitempty"`
+	West           string      `json:"west,omitempty"`
+	MapId          string      `json:"mapId"`
+	LoadStrategy   string      `json:"loadStrategy"`
+	SpawnStrategy  string      `json:"spawnStrategy"`
+	BroadcastGroup string      `json:"broadcastGroup,omitempty"`
+	Weather        string      `json:"weather,omitempty"`
 }
 
 // Import from the other project instead? Or import from here. Transport too
 type AreaOutput struct {
 	Name             string                       `json:"name"`
 	Safe             bool                         `json:"safe"`
-	Tiles            [][]int                      `json:"tiles"`
+	Tiles            [][]Material                 `json:"tiles"`
 	Interactables    [][]*InteractableDescription `json:"interactables"`
 	Transports       []Transport                  `json:"transports"`
 	DefaultTileColor string                       `json:"defaultTileColor"`
@@ -37,16 +38,8 @@ type AreaOutput struct {
 	MapId            string                       `json:"mapId,omitempty"`
 	LoadStrategy     string                       `json:"loadStrategy,omitempty"`
 	SpawnStrategy    string                       `json:"spawnStrategy"`
-}
-
-type GridDetails struct {
-	MaterialGrid     [][]Material
-	InteractableGrid [][]*InteractableDescription
-	DefaultTileColor string
-	Location         string
-	ScreenID         string
-	GridType         string
-	Oob              bool
+	BroadcastGroup   string                       `json:"broadcastGroup,omitempty"`
+	Weather          string                       `json:"weather,omitempty"`
 }
 
 type AreaEditPageData struct {
@@ -59,13 +52,6 @@ type AreaWithGrid struct {
 	SelectedArea   AreaDescription
 	NavHasHadClick bool
 }
-
-// //////////////////////////////////////////////////////////
-// Globals (fix)
-
-var haveSelection bool = false
-var selectedX int
-var selectedY int
 
 // ///////////////////////////////////////////////////////////
 // Areas
@@ -104,6 +90,7 @@ func (c Context) postAreas(w http.ResponseWriter, r *http.Request) {
 	name := properties["new-area-name"]
 	safe := (properties["safe"] == "on")
 	defaultTileColor := properties["default-tile-color"]
+	defaultTileColor1 := properties["default-tile-color1"]
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
 	panicIfAnyEmpty("POST to /area", collectionName, spaceName, name)
@@ -116,10 +103,10 @@ func (c Context) postAreas(w http.ResponseWriter, r *http.Request) {
 		tiles[i] = make([]TileData, width)
 	}
 
-	blueprint := &Blueprint{Tiles: tiles, Instructions: make([]Instruction, 0)}
+	blueprint := &Blueprint{Tiles: tiles, DefaultTileColor: defaultTileColor, DefaultTileColor1: defaultTileColor1, Instructions: make([]Instruction, 0)}
 
 	space := c.spaceFromNames(collectionName, spaceName)
-	space.Areas = append(space.Areas, AreaDescription{Name: name, Safe: safe, DefaultTileColor: defaultTileColor, Blueprint: blueprint, Transports: make([]Transport, 0)})
+	space.Areas = append(space.Areas, AreaDescription{Name: name, Safe: safe, Blueprint: blueprint, Transports: make([]Transport, 0)})
 	io.WriteString(w, "<h3>Done.</h3>")
 }
 
@@ -152,14 +139,13 @@ func (c *Context) getArea(w http.ResponseWriter, r *http.Request) {
 		setOptions = append(setOptions, key)
 	}
 
-	modifications := collection.generateMaterials(selectedArea.Blueprint.Tiles)
+	modifications := collection.generateMaterials(selectedArea.Blueprint)
 
 	var pageData = AreaEditPageData{
 		AreaWithGrid: AreaWithGrid{
 			GridDetails: GridDetails{
 				MaterialGrid:     modifications,
 				InteractableGrid: collection.generateInteractables(selectedArea.Blueprint.Tiles),
-				DefaultTileColor: selectedArea.DefaultTileColor,
 				Location:         locationStringFromArea(selectedArea, space.Name),
 				GridType:         "area",
 				ScreenID:         "screen",
@@ -198,13 +184,12 @@ func (c *Context) getAreaGrid(w http.ResponseWriter, r *http.Request) {
 
 	collection := c.collectionFromGet(r)
 
-	modifications := collection.generateMaterials(selectedArea.Blueprint.Tiles)
+	modifications := collection.generateMaterials(selectedArea.Blueprint)
 
 	areaWithGrid := AreaWithGrid{
 		GridDetails: GridDetails{
 			MaterialGrid:     modifications,
 			InteractableGrid: collection.generateInteractables(selectedArea.Blueprint.Tiles),
-			DefaultTileColor: selectedArea.DefaultTileColor,
 			Location:         locationStringFromArea(selectedArea, space.Name),
 			GridType:         "area",
 			ScreenID:         "screen",
@@ -225,7 +210,10 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	newName := properties["areaName"]
 	safe := (properties["safe"] == "on")
 	defaultTileColor := properties["defaultTileColor"]
+	defaultTileColor1 := properties["defaultTileColor1"]
+	weather := properties["weather"]
 	loadStrategy := properties["loadStrategy"]
+	broadcastGroup := properties["broadcastGroup"]
 	spawnStrategy := properties["spawnStrategy"]
 	collectionName := properties["currentCollection"]
 	spaceName := properties["currentSpace"]
@@ -239,16 +227,20 @@ func (c Context) postArea(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if newName == name {
+		// These changes will get lost if concurrent with name change
 		selectedArea.Safe = safe
-		selectedArea.DefaultTileColor = defaultTileColor
+		selectedArea.Blueprint.DefaultTileColor = defaultTileColor
+		selectedArea.Blueprint.DefaultTileColor1 = defaultTileColor1
+		selectedArea.Weather = weather
 		selectedArea.LoadStrategy = loadStrategy
 		selectedArea.SpawnStrategy = spawnStrategy
+		selectedArea.BroadcastGroup = broadcastGroup
 	} else {
 		if getAreaByName(space.Areas, newName) != nil {
 			panic("Invalid name") // This check doesn't look at other spaces
 		}
 		newBlueprint := copyBlueprint(selectedArea.Blueprint)
-		area := AreaDescription{Name: newName, Safe: safe, Blueprint: &newBlueprint, Transports: append([]Transport{}, selectedArea.Transports...), DefaultTileColor: defaultTileColor}
+		area := AreaDescription{Name: newName, Safe: safe, Blueprint: &newBlueprint, Transports: append([]Transport{}, selectedArea.Transports...)}
 		space.Areas = append(space.Areas, area)
 	}
 
@@ -267,7 +259,7 @@ func copyBlueprint(bp *Blueprint) Blueprint {
 	for i := range tiles {
 		tiles[i] = append(tiles[i], bp.Tiles[i]...)
 	}
-	return Blueprint{Tiles: tiles, Instructions: append([]Instruction{}, bp.Instructions...)}
+	return Blueprint{Tiles: tiles, DefaultTileColor: bp.DefaultTileColor, Instructions: append([]Instruction{}, bp.Instructions...)}
 
 }
 

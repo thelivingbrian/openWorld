@@ -102,7 +102,7 @@ func (db *DB) getUserByEmail(email string) (*User, error) {
 	var invalidChars = []string{"{", "}", "\"", "'", "`", "/", "\\", "\n", "\t", "$"}
 	for _, char := range invalidChars {
 		if strings.Contains(email, char) {
-			return nil, errors.New("Email is not valid")
+			return nil, errors.New("email is not valid")
 		}
 	}
 	err := collection.FindOne(context.TODO(), bson.M{"email": bson.M{"$eq": email}}).Decode(&result)

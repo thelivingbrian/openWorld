@@ -55,7 +55,7 @@
     <input type="radio" id="rt-select" name="radio-tool" value="select" checked>
     <label for="rt-select">Select</label>
     <input type="radio" id="rt-rotate" name="radio-tool" value="rotate">
-    <label for="rt-select">Rotate</label>
+    <label for="rt-roate">Rotate</label>
 </div>
 {{end}}
 
@@ -66,8 +66,6 @@
     </form>
 </div>
 {{end}}
-
-
 
 {{define "fixture-interactables"}}
     {{template "available-tools-interactable"}}
@@ -82,5 +80,19 @@
     <label for="rt-interactable-replace">Replace</label>
     <input type="radio" id="rt-interactable-delete" name="radio-tool" value="interactable-delete">
     <label for="rt-interactable-delete">Delete</label>
+</div>
+{{end}}
+
+<!-- TODO: use on main modify screen via dropdown. -->
+{{define "available-tools-ground"}}
+<div id="tool_select"> 
+    <input type="radio" id="rt-t-select" name="radio-tool" value="select" checked>
+    <label for="rt-t-select">Select</label>
+    <input type="radio" id="rt-toggle" name="radio-tool" value="toggle">
+    <label for="rt-toggle">Toggle</label>
+    <input type="radio" id="rt-t-fill" name="radio-tool" value="toggle-fill">
+    <label for="rt-t-fill">Toggle Fill</label>
+    <input type="radio" id="rt-t-between" name="radio-tool" value="toggle-between">
+    <label for="rt-t-between">Toggle between selected</label>
 </div>
 {{end}}

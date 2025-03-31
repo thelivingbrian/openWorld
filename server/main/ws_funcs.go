@@ -70,7 +70,7 @@ func handleNewPlayer(player *Player) {
 		}
 		currentRead := time.Now()
 
-		event, success := getKeyPress(msg)
+		event, success := getKeyPress(msg) // If your press was read it must now complete before logout e.g. player is tangible
 		if !success {
 			logger.Info().Msg("Invalid input")
 			continue

@@ -19,7 +19,7 @@ type Fragment struct {
 
 // For templates
 type FragmentDetails struct {
-	ID          string `json:"id"` // json not needed?
+	ID          string
 	Name        string
 	SetName     string
 	GridDetails GridDetails
@@ -89,24 +89,35 @@ func (c *Collection) DetailsFromFragment(fragment *Fragment, clickable bool) *Fr
 		Name:    fragment.Name,
 		SetName: fragment.SetName,
 		GridDetails: GridDetails{
-			MaterialGrid:     c.generateMaterials(fragment.Blueprint.Tiles),
+			MaterialGrid:     c.generateMaterials(fragment.Blueprint),
 			InteractableGrid: c.generateInteractables(fragment.Blueprint.Tiles),
-			DefaultTileColor: "",
 			Location:         fragment.SetName + "." + fragment.Name,
 			ScreenID:         "fragment",
 			GridType:         gridtype},
 	}
 }
 
-func (col *Collection) generateMaterials(tiles [][]TileData) [][]Material {
+func (col *Collection) generateMaterials(bp *Blueprint) [][]Material {
+	tiles := bp.Tiles
 	out := make([][]Material, len(tiles))
 	for i := range tiles {
 		out[i] = make([]Material, len(tiles[i]))
 		for j := range tiles[i] {
-			out[i][j] = col.createMaterial(tiles[i][j])
+
+			out[i][j] = col.createMaterial(bp, i, j)
 		}
 	}
 	return out
+}
+
+func groundCellByCoord(bp *Blueprint, y, x int) *Cell {
+	if bp == nil || bp.Ground == nil {
+		return nil
+	}
+	if y < 0 || x < 0 || y >= len(bp.Ground) || x >= len(bp.Ground[y]) {
+		return nil
+	}
+	return &bp.Ground[y][x]
 }
 
 func (col *Collection) generateInteractables(tiles [][]TileData) [][]*InteractableDescription {
@@ -120,12 +131,22 @@ func (col *Collection) generateInteractables(tiles [][]TileData) [][]*Interactab
 	return out
 }
 
-func (col *Collection) createMaterial(data TileData) Material {
+func (col *Collection) createMaterial(bp *Blueprint, y, x int) Material {
+	// Find prototype
+	data := bp.Tiles[y][x]
 	proto := col.findPrototypeById(data.PrototypeId)
 	if proto == nil {
 		proto = &Prototype{ID: "INVALID-", CssColor: "blue", Floor1Css: "green red-b thick"}
 	}
-	return proto.applyTransform(data.Transformation)
+
+	// Apply transform
+	mat := proto.applyTransformForEditor(data.Transformation)
+
+	// Apply ground
+	ground := groundCellByCoord(bp, y, x)
+	mat = addGroundToMaterial(mat, ground, bp.DefaultTileColor, bp.DefaultTileColor1)
+
+	return mat
 }
 
 func transformCss(input string, transformation Transformation) string {

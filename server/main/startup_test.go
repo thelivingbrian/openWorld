@@ -4,9 +4,9 @@ import (
 	"testing"
 )
 
-func TestEnsureMaterialsLoad(t *testing.T) {
+func TestEnsureAreasLoad(t *testing.T) {
 	loadFromJson()
-	if len(materials) == 0 {
+	if len(areas) == 0 {
 		t.Error("No Materials loaded on attempted start up")
 	}
 }
