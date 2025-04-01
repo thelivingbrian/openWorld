@@ -271,7 +271,6 @@ func completeLogout(player *Player) {
 	close(player.updates)
 
 	logger.Info().Msg("Logout complete: " + player.username)
-
 }
 
 ///////////////////////////////////////////////////////////////

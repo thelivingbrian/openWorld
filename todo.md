@@ -108,11 +108,11 @@
           - [-] Tiny nav only
     - [-] oob highlight
       - [-] Select corner 
-  - [ ] Blueprint page for fragment is broken 
-      - [ ] Fragment can only view the modify window and blueprint is loading for the parent area
+  - [-] Blueprint page for fragment is broken 
+      - [-] Fragment can only view the modify window and blueprint is loading for the parent area
   - [ ] Instruction human readable name
 - [ ] Space Enhancements
-  - [ ] Default tile color control
+  - [-] Default tile color control
   - [-] view map
     - [-] Area -> image 
     - [-] Absolute (for plane/torus)
@@ -120,6 +120,7 @@
     - [ ] Apply prototype via matrix 
 - [ ] Random
   - [ ] Interactable "select" tool  does not work on main grid
+    = [ ] is umimpemented in general - could indicated selected ?
   - [ ] Space Topologies
     - [-] Plane
     - [-] Disconnected
@@ -164,7 +165,7 @@
   - [-] get rid of proc folder?
 - [ ] Bugs: 
   - [ ]New color will output to local file but deploying requires application restart.
-  - [ ] New areas are always "safe"
+  - [ ] New areas are always "unsafe"
 
 
 ## Mobile
@@ -196,6 +197,7 @@
   - [-] Same stage teleport highlights
     - [-] Overlap excluded
     - [-] Sometimes entire highlight is removed at once shortly after displaying ?
+  - [ ] Disable buttons e.g. on laptop with touch screen 
 
 ## Bottom text
  - [-] Trigger
@@ -306,7 +308,9 @@ One way or two way.
    - [-] compile / load successfully w/ ground
    - [ ] compile tests 
 
- - Toroidal Woods - 12x12
+ - [-] Toroidal Woods - 12x12
+
+ - [ ] Clean up, consolidate todo list? 
 
 
 type []byte(update) 100 times
