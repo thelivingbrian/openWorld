@@ -89,7 +89,6 @@ func createGameWorld(db *DB, config *Configuration) *World {
 func periodicSnapshot(world *World) {
 	ticker := time.NewTicker(20 * time.Minute)
 	defer ticker.Stop()
-
 	for {
 		select {
 		case <-ticker.C:
@@ -139,7 +138,6 @@ func SetMaxAtomicIfGreater(atom *atomic.Int64, newValue int) bool {
 }
 
 func saveCurrentStatus(world *World) {
-	fmt.Println("Hello")
 	status := GameStatus{
 		ServerName:             world.config.serverName,
 		Timestamp:              time.Now(),
