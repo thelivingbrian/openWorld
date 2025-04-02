@@ -24,7 +24,7 @@ type DB struct {
 	users         *mongo.Collection
 	playerRecords *mongo.Collection
 	events        *mongo.Collection
-	status        *mongo.Collection
+	sessionData   *mongo.Collection
 }
 
 func createDbConnection(config *Configuration) *DB {

@@ -21,34 +21,30 @@ type World struct {
 	worldPlayers        map[string]*Player
 	wPlayerMutex        sync.Mutex
 	teamQuantities      map[string]int
-	status              WorldStatus
+	teamPlayerStatus    TeamPlayerStatus
 	incomingPlayers     map[string]*LoginRequest
 	incomingPlayerMutex sync.Mutex
 	playersToLogout     chan *Player
 	worldStages         map[string]*Stage
 	wStageMutex         sync.Mutex
 	leaderBoard         *LeaderBoard
-	sessionStats        *WorldSessionStatistics
+	sessionStats        *WorldSessionData
 }
 
-// duplicate of worldStatus in database ?
-// This check occurs more frequently, and is mainly used for the web interface
-type WorldStatus struct {
+type TeamPlayerStatus struct {
 	sync.Mutex
 	lastStatusCheck    time.Time
 	fuchsiaPlayerCount int
 	skyBluePlayerCount int
 }
 
-type WorldStatusDiv struct {
-	ServerName   string
-	DomainName   string
-	FuchsiaCount int
-	SkyBlueCount int
-	Vacancy      bool
+type LoginRequest struct {
+	Token     string
+	Record    PlayerRecord
+	timestamp time.Time
 }
 
-type WorldSessionStatistics struct {
+type WorldSessionData struct {
 	sessionStartTime       time.Time
 	peakSessionPlayerCount atomic.Int64
 	peakSessionKillStreak  atomic.Int64
@@ -57,11 +53,8 @@ type WorldSessionStatistics struct {
 	TotalSessionLogouts    atomic.Int64
 }
 
-type LoginRequest struct {
-	Token     string
-	Record    PlayerRecord
-	timestamp time.Time
-}
+//////////////////////////////////////////////////////////////////
+// Create World
 
 func createGameWorld(db *DB, config *Configuration) *World {
 	out := &World{
@@ -76,7 +69,7 @@ func createGameWorld(db *DB, config *Configuration) *World {
 		worldStages:         make(map[string]*Stage),
 		wStageMutex:         sync.Mutex{},
 		leaderBoard:         createLeaderBoard(),
-		sessionStats: &WorldSessionStatistics{
+		sessionStats: &WorldSessionData{
 			sessionStartTime: time.Now(),
 		},
 	}
@@ -88,8 +81,13 @@ func createGameWorld(db *DB, config *Configuration) *World {
 	return out
 }
 
+func createLeaderBoard() *LeaderBoard {
+	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: make([]PlayerStreakRecord, 0), index: make(map[string]int), incoming: make(chan PlayerStreakRecord)}}
+	return lb
+}
+
 func loadPreviousState(world *World) {
-	lastStatus, err := getMostRecentGameStatus(context.TODO(), world.db.status, world.config.serverName)
+	lastStatus, err := getMostRecentSessionData(context.TODO(), world.db.sessionData, world.config.serverName)
 	if err != nil {
 		logger.Error().Msg("Error: " + err.Error())
 	}
@@ -98,6 +96,9 @@ func loadPreviousState(world *World) {
 	}
 	world.leaderBoard.scoreboard.Import(lastStatus.Scoreboard)
 }
+
+///////////////////////////////////////////////////////////////
+// World Session State
 
 func periodicSnapshot(world *World) {
 	ticker := time.NewTicker(20 * time.Minute)
@@ -108,12 +109,12 @@ func periodicSnapshot(world *World) {
 }
 
 func saveCurrentStatus(world *World) {
-	status := GameStatus{
+	status := SessionDataRecord{
 		ServerName:             world.config.serverName,
 		Timestamp:              time.Now(),
 		SessionStartTime:       world.sessionStats.sessionStartTime,
 		PeakSessionPlayerCount: int(world.sessionStats.peakSessionPlayerCount.Load()),
-		PeakSessionKillSteak: StreakInfo{
+		PeakSessionKillSteak: SessionStreakRecord{
 			Streak:     int(world.sessionStats.peakSessionKillStreak.Load()),
 			PlayerName: world.sessionStats.peakSessionKiller,
 		},
@@ -125,7 +126,7 @@ func saveCurrentStatus(world *World) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if err := saveGameStatus(ctx, world.db.status, status); err != nil {
+	if err := saveGameStatus(ctx, world.db.sessionData, status); err != nil {
 		logger.Error().Msg(fmt.Sprintf("failed to save current game status: %v", err))
 	}
 
@@ -161,10 +162,18 @@ func SetMaxAtomicIfGreater(atom *atomic.Int64, newValue int) bool {
 	}
 }
 
-func createLeaderBoard() *LeaderBoard {
-	lb := &LeaderBoard{mostDangerous: MaxStreakHeap{items: make([]PlayerStreakRecord, 0), index: make(map[string]int), incoming: make(chan PlayerStreakRecord)}}
-	return lb
+func CopyTeamQuantities(world *World) map[string]int {
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	newMap := make(map[string]int, len(world.teamQuantities))
+	for key, value := range world.teamQuantities {
+		newMap[key] = value
+	}
+	return newMap
 }
+
+/////////////////////////////////////////////////////
+// Add / Remove / Find Players
 
 func (world *World) addPlayer(p *Player) int {
 	world.wPlayerMutex.Lock()
@@ -190,16 +199,6 @@ func (world *World) getPlayerById(id string) *Player {
 	defer world.wPlayerMutex.Unlock()
 	player := world.worldPlayers[id]
 	return player
-}
-
-func CopyTeamQuantities(world *World) map[string]int {
-	world.wPlayerMutex.Lock()
-	defer world.wPlayerMutex.Unlock()
-	newMap := make(map[string]int, len(world.teamQuantities))
-	for key, value := range world.teamQuantities {
-		newMap[key] = value
-	}
-	return newMap
 }
 
 //////////////////////////////////////////////////

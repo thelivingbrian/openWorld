@@ -19,6 +19,14 @@ const STATUS_CHECK_INTERVAL_IN_SECONDS = 5
 // ///////////////////////////////////////////
 // World Select and Status
 
+type WorldSelectBanner struct {
+	ServerName   string
+	DomainName   string
+	FuchsiaCount int
+	SkyBlueCount int
+	Vacancy      bool
+}
+
 func createWorldSelectHandler(config *Configuration) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, ok := getUserIdFromSession(r)
@@ -52,26 +60,26 @@ func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "<div>Invalid Sign in</div>")
 		return
 	}
-	world.status.Lock()
-	defer world.status.Unlock()
-	if isOverNSecondsAgo(world.status.lastStatusCheck, STATUS_CHECK_INTERVAL_IN_SECONDS) {
+	world.teamPlayerStatus.Lock()
+	defer world.teamPlayerStatus.Unlock()
+	if isOverNSecondsAgo(world.teamPlayerStatus.lastStatusCheck, STATUS_CHECK_INTERVAL_IN_SECONDS) {
 		world.wPlayerMutex.Lock()
 		defer world.wPlayerMutex.Unlock()
-		world.status.fuchsiaPlayerCount = world.teamQuantities["fuchsia"]
-		world.status.skyBluePlayerCount = world.teamQuantities["sky-blue"]
-		world.status.lastStatusCheck = time.Now()
+		world.teamPlayerStatus.fuchsiaPlayerCount = world.teamQuantities["fuchsia"]
+		world.teamPlayerStatus.skyBluePlayerCount = world.teamQuantities["sky-blue"]
+		world.teamPlayerStatus.lastStatusCheck = time.Now()
 	}
-	statusDiv := WorldStatusDiv{
+	statusDiv := WorldSelectBanner{
 		ServerName:   world.config.serverName,
 		DomainName:   world.config.domainName,
-		FuchsiaCount: world.status.fuchsiaPlayerCount,
-		SkyBlueCount: world.status.skyBluePlayerCount,
-		Vacancy:      vacancyOfLockedWorldStatus(&world.status),
+		FuchsiaCount: world.teamPlayerStatus.fuchsiaPlayerCount,
+		SkyBlueCount: world.teamPlayerStatus.skyBluePlayerCount,
+		Vacancy:      vacancyOfLockedWorldStatus(&world.teamPlayerStatus),
 	}
 	tmpl.ExecuteTemplate(w, "world-status", statusDiv)
 }
 
-func vacancyOfLockedWorldStatus(status *WorldStatus) bool {
+func vacancyOfLockedWorldStatus(status *TeamPlayerStatus) bool {
 	return status.fuchsiaPlayerCount < CAPACITY_PER_TEAM || status.skyBluePlayerCount < CAPACITY_PER_TEAM
 }
 

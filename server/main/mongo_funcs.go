@@ -61,19 +61,19 @@ type Event struct {
 	Details   string    `bson:"details,omitempty"` // Could be interface, no purpose
 }
 
-type GameStatus struct {
-	ServerName             string         `bson:"serverName"`
-	Timestamp              time.Time      `bson:"timestamp"`
-	SessionStartTime       time.Time      `bson:"sessionStartTime"`
-	PeakSessionPlayerCount int            `bson:"peakSessionPlayerCount"`
-	PeakSessionKillSteak   StreakInfo     `bson:"peakSessionKillSteak"`
-	TotalSessionLogins     int            `bson:"totalSessionLogins"`
-	TotalSessionLogouts    int            `bson:"totalSessionLogouts"`
-	CurrentTeamPlayerCount map[string]int `bson:"currentTeamPlayerCount"`
-	Scoreboard             map[string]int `bson:"scoreboard"`
+type SessionDataRecord struct {
+	ServerName             string              `bson:"serverName"`
+	Timestamp              time.Time           `bson:"timestamp"`
+	SessionStartTime       time.Time           `bson:"sessionStartTime"`
+	PeakSessionPlayerCount int                 `bson:"peakSessionPlayerCount"`
+	PeakSessionKillSteak   SessionStreakRecord `bson:"peakSessionKillSteak"`
+	TotalSessionLogins     int                 `bson:"totalSessionLogins"`
+	TotalSessionLogouts    int                 `bson:"totalSessionLogouts"`
+	CurrentTeamPlayerCount map[string]int      `bson:"currentTeamPlayerCount"`
+	Scoreboard             map[string]int      `bson:"scoreboard"`
 }
 
-type StreakInfo struct {
+type SessionStreakRecord struct {
 	Streak     int    `bson:"streak"`
 	PlayerName string `bson:"playerName"`
 }
@@ -307,15 +307,15 @@ func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 }
 
 ///////////////////////////////////////////////////////////////////////
-// Game Status
+// Game Status Funcs
 
-func getMostRecentGameStatus(ctx context.Context, status *mongo.Collection, serverName string) (*GameStatus, error) {
+func getMostRecentSessionData(ctx context.Context, collection *mongo.Collection, serverName string) (*SessionDataRecord, error) {
 	filter := bson.M{"serverName": serverName}
 	// Sort by timestamp in descending order to get the most recent document.
 	findOpts := options.FindOne().SetSort(bson.D{{Key: "timestamp", Value: -1}})
 
-	var result GameStatus
-	err := status.FindOne(ctx, filter, findOpts).Decode(&result)
+	var result SessionDataRecord
+	err := collection.FindOne(ctx, filter, findOpts).Decode(&result)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +323,7 @@ func getMostRecentGameStatus(ctx context.Context, status *mongo.Collection, serv
 	return &result, nil
 }
 
-func saveGameStatus(ctx context.Context, collection *mongo.Collection, status GameStatus) error {
+func saveGameStatus(ctx context.Context, collection *mongo.Collection, status SessionDataRecord) error {
 	_, err := collection.InsertOne(ctx, status)
 	return err
 }
