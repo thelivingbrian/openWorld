@@ -52,6 +52,7 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 		logger.Info().Msg("Failed to join player with token: " + token)
 		return
 	}
+	incrementSessionLogins(world)
 
 	handleNewPlayer(player)
 }
@@ -152,7 +153,8 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 	case "f":
 		updateEntireExistingScreen(player)
 	case "g":
-		makeHallucinate(player)
+		panic("test")
+		//makeHallucinate(player)
 	case "h":
 		player.cycleHats()
 	case "Shift-On":

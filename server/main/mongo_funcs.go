@@ -9,6 +9,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type User struct {
@@ -58,6 +59,23 @@ type Event struct {
 	X         int       `bson:"x,omitempty"`
 	Y         int       `bson:"y,omitempty"`
 	Details   string    `bson:"details,omitempty"` // Could be interface, no purpose
+}
+
+type GameStatus struct {
+	ServerName             string         `bson:"serverName"`
+	Timestamp              time.Time      `bson:"timestamp"`
+	SessionStartTime       time.Time      `bson:"sessionStartTime"`
+	PeakSessionPlayerCount int            `bson:"peakSessionPlayerCount"`
+	PeakSessionKillSteak   StreakInfo     `bson:"peakSessionKillSteak"`
+	TotalSessionLogins     int            `bson:"totalSessionLogins"`
+	TotalSessionLogouts    int            `bson:"totalSessionLogouts"`
+	CurrentTeamPlayerCount map[string]int `bson:"currentTeamPlayerCount"`
+	Scoreboard             map[string]int `bson:"scoreboard"`
+}
+
+type StreakInfo struct {
+	Streak     int    `bson:"streak"`
+	PlayerName string `bson:"playerName"`
 }
 
 func (db *DB) newAccount(user User) error {
@@ -286,4 +304,26 @@ func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 		"goalsScored":     p.getGoalsScored(),
 		"hatList.current": p.hatList.indexSync(),
 	}
+}
+
+///////////////////////////////////////////////////////////////////////
+// Game Status
+
+func getMostRecentGameStatus(ctx context.Context, status *mongo.Collection, serverName string) (*GameStatus, error) {
+	filter := bson.M{"serverName": serverName}
+	// Sort by timestamp in descending order to get the most recent document.
+	findOpts := options.FindOne().SetSort(bson.D{{Key: "timestamp", Value: -1}})
+
+	var result GameStatus
+	err := status.FindOne(ctx, filter, findOpts).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func saveGameStatus(ctx context.Context, collection *mongo.Collection, status GameStatus) error {
+	_, err := collection.InsertOne(ctx, status)
+	return err
 }

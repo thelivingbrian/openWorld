@@ -2,6 +2,7 @@ package main
 
 import (
 	"container/heap"
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -27,6 +28,7 @@ type World struct {
 	worldStages         map[string]*Stage
 	wStageMutex         sync.Mutex
 	leaderBoard         *LeaderBoard
+	sessionStats        *WorldSessionStatistics
 }
 
 type WorldStatus struct {
@@ -42,6 +44,15 @@ type WorldStatusDiv struct {
 	FuchsiaCount int
 	SkyBlueCount int
 	Vacancy      bool
+}
+
+type WorldSessionStatistics struct {
+	sessionStartTime       time.Time
+	peakSessionPlayerCount atomic.Int64
+	peakSessionKillStreak  atomic.Int64
+	peakSessionKiller      string
+	TotalSessionLogins     atomic.Int64
+	TotalSessionLogouts    atomic.Int64
 }
 
 type LoginRequest struct {
@@ -63,10 +74,95 @@ func createGameWorld(db *DB, config *Configuration) *World {
 		worldStages:         make(map[string]*Stage),
 		wStageMutex:         sync.Mutex{},
 		leaderBoard:         createLeaderBoard(),
+		sessionStats: &WorldSessionStatistics{
+			sessionStartTime: time.Now(),
+		},
+	}
+	if config.loadPreviousState {
+		loadPreviousState(out)
 	}
 	go processMostDangerous(out, &out.leaderBoard.mostDangerous)
 	go processLogouts(out.playersToLogout)
 	return out
+}
+
+func periodicSnapshot(world *World) {
+	ticker := time.NewTicker(20 * time.Minute)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			saveCurrentStatus(world)
+		}
+	}
+}
+
+func loadPreviousState(world *World) {
+	lastStatus, err := getMostRecentGameStatus(context.TODO(), world.db.status, world.config.serverName)
+	if err != nil {
+		logger.Error().Msg("Error: " + err.Error())
+	}
+	if lastStatus == nil {
+		return
+	}
+	world.leaderBoard.scoreboard.Import(lastStatus.Scoreboard)
+}
+
+func incrementSessionLogins(w *World) {
+	w.sessionStats.TotalSessionLogins.Add(1)
+}
+
+func incrementSessionLogouts(w *World) {
+	w.sessionStats.TotalSessionLogouts.Add(1)
+}
+
+func trySetPeakPlayerCount(w *World, count int) bool {
+	return SetMaxAtomicIfGreater(&w.sessionStats.peakSessionPlayerCount, count)
+}
+
+func trySetPeakKillStreak(w *World, streak int) bool {
+	return SetMaxAtomicIfGreater(&w.sessionStats.peakSessionKillStreak, streak)
+}
+
+func SetMaxAtomicIfGreater(atom *atomic.Int64, newValue int) bool {
+	// CAS loop for atomicity
+	for {
+		current := atom.Load()
+		if int(current) >= newValue {
+			return false
+		}
+		if atom.CompareAndSwap(current, int64(newValue)) {
+			return true
+		}
+	}
+}
+
+func saveCurrentStatus(world *World) {
+	fmt.Println("Hello")
+	status := GameStatus{
+		ServerName:             world.config.serverName,
+		Timestamp:              time.Now(),
+		SessionStartTime:       world.sessionStats.sessionStartTime,
+		PeakSessionPlayerCount: int(world.sessionStats.peakSessionPlayerCount.Load()),
+		PeakSessionKillSteak: StreakInfo{
+			Streak:     int(world.sessionStats.peakSessionKillStreak.Load()),
+			PlayerName: world.sessionStats.peakSessionKiller,
+		},
+		TotalSessionLogins:     int(world.sessionStats.TotalSessionLogins.Load()),
+		TotalSessionLogouts:    int(world.sessionStats.TotalSessionLogouts.Load()),
+		CurrentTeamPlayerCount: CopyTeamQuantities(world),
+		Scoreboard:             world.leaderBoard.scoreboard.Export(),
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Save the new snapshot record.
+	if err := saveGameStatus(ctx, world.db.status, status); err != nil {
+		logger.Error().Msg(fmt.Sprintf("failed to save current game status: %v", err))
+	}
+
+	logger.Info().Msg("Saving State -- " + fmt.Sprint(status))
 }
 
 func createLeaderBoard() *LeaderBoard {
@@ -74,12 +170,15 @@ func createLeaderBoard() *LeaderBoard {
 	return lb
 }
 
-func (world *World) addPlayer(p *Player) {
+func (world *World) addPlayer(p *Player) int {
 	world.wPlayerMutex.Lock()
-	world.worldPlayers[p.id] = p
+	defer world.wPlayerMutex.Unlock()
+	// Update team count
 	previousCount := world.teamQuantities[p.team]
 	world.teamQuantities[p.team] = previousCount + 1
-	world.wPlayerMutex.Unlock()
+	// Update world players
+	world.worldPlayers[p.id] = p
+	return len(world.worldPlayers)
 }
 
 func (world *World) removePlayer(p *Player) {
@@ -95,6 +194,16 @@ func (world *World) getPlayerById(id string) *Player {
 	defer world.wPlayerMutex.Unlock()
 	player := world.worldPlayers[id]
 	return player
+}
+
+func CopyTeamQuantities(world *World) map[string]int {
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	newMap := make(map[string]int, len(world.teamQuantities))
+	for key, value := range world.teamQuantities {
+		newMap[key] = value
+	}
+	return newMap
 }
 
 //////////////////////////////////////////////////
@@ -170,7 +279,8 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	sendUpdate(newPlayer, emptyScreen)
 	go newPlayer.sendUpdates()
 
-	world.addPlayer(newPlayer)
+	count := world.addPlayer(newPlayer)
+	trySetPeakPlayerCount(world, count)
 
 	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
 	return newPlayer
@@ -266,6 +376,7 @@ func completeLogout(player *Player) {
 
 	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: 0, team: ""}
 	player.world.removePlayer(player)
+	incrementSessionLogouts(player.world)
 
 	player.closeConnectionSync() // If Read deadline is missed conn may still be open
 	close(player.updates)
@@ -365,6 +476,37 @@ func (s *Scoreboard) GetScore(team string) int {
 	return int(score.Load())
 }
 
+func (s *Scoreboard) Export() map[string]int {
+	result := make(map[string]int)
+	s.data.Range(func(key, value interface{}) bool {
+		team, ok := key.(string)
+		if !ok {
+			return true
+		}
+		score, ok := value.(*atomic.Int64)
+		if !ok {
+			return true
+		}
+		result[team] = int(score.Load())
+		return true
+	})
+	return result
+}
+
+func (s *Scoreboard) Import(data map[string]int) {
+	// Existing Data is cleared.
+	s.data.Range(func(key, _ interface{}) bool {
+		s.data.Delete(key)
+		return true
+	})
+	// Import new data.
+	for team, score := range data {
+		scoreVal := &atomic.Int64{}
+		scoreVal.Store(int64(score))
+		s.data.Store(team, scoreVal)
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Most Dangerous Heap
 
@@ -442,6 +584,10 @@ func processMostDangerous(world *World, h *MaxStreakHeap) {
 			}
 		}
 		currentMostDangerous := h.Peek()
+
+		if trySetPeakKillStreak(world, currentMostDangerous.killstreak) {
+			world.sessionStats.peakSessionKiller = currentMostDangerous.username
+		}
 
 		func(currentMostDangerous, previousMostDangerous PlayerStreakRecord) {
 			if currentMostDangerous.id != previousMostDangerous.id {
