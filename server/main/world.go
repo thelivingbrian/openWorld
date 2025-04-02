@@ -13,7 +13,8 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var CAPACITY_PER_TEAM = 128
+const CAPACITY_PER_TEAM = 128
+const SESSION_SNAPSHOT_INTERVAL_IN_MIN = 30
 
 type World struct {
 	db                  *DB
@@ -101,7 +102,7 @@ func loadPreviousState(world *World) {
 // World Session State
 
 func periodicSnapshot(world *World) {
-	ticker := time.NewTicker(20 * time.Minute)
+	ticker := time.NewTicker(time.Duration(SESSION_SNAPSHOT_INTERVAL_IN_MIN) * time.Minute)
 	defer ticker.Stop()
 	for range ticker.C {
 		saveCurrentStatus(world)
