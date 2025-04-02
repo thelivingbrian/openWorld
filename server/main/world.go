@@ -31,6 +31,8 @@ type World struct {
 	sessionStats        *WorldSessionStatistics
 }
 
+// duplicate of worldStatus in database ?
+// This check occurs more frequently, and is mainly used for the web interface
 type WorldStatus struct {
 	sync.Mutex
 	lastStatusCheck    time.Time
@@ -86,17 +88,6 @@ func createGameWorld(db *DB, config *Configuration) *World {
 	return out
 }
 
-func periodicSnapshot(world *World) {
-	ticker := time.NewTicker(20 * time.Minute)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			saveCurrentStatus(world)
-		}
-	}
-}
-
 func loadPreviousState(world *World) {
 	lastStatus, err := getMostRecentGameStatus(context.TODO(), world.db.status, world.config.serverName)
 	if err != nil {
@@ -106,6 +97,39 @@ func loadPreviousState(world *World) {
 		return
 	}
 	world.leaderBoard.scoreboard.Import(lastStatus.Scoreboard)
+}
+
+func periodicSnapshot(world *World) {
+	ticker := time.NewTicker(20 * time.Minute)
+	defer ticker.Stop()
+	for range ticker.C {
+		saveCurrentStatus(world)
+	}
+}
+
+func saveCurrentStatus(world *World) {
+	status := GameStatus{
+		ServerName:             world.config.serverName,
+		Timestamp:              time.Now(),
+		SessionStartTime:       world.sessionStats.sessionStartTime,
+		PeakSessionPlayerCount: int(world.sessionStats.peakSessionPlayerCount.Load()),
+		PeakSessionKillSteak: StreakInfo{
+			Streak:     int(world.sessionStats.peakSessionKillStreak.Load()),
+			PlayerName: world.sessionStats.peakSessionKiller,
+		},
+		TotalSessionLogins:     int(world.sessionStats.TotalSessionLogins.Load()),
+		TotalSessionLogouts:    int(world.sessionStats.TotalSessionLogouts.Load()),
+		CurrentTeamPlayerCount: CopyTeamQuantities(world),
+		Scoreboard:             world.leaderBoard.scoreboard.Export(),
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := saveGameStatus(ctx, world.db.status, status); err != nil {
+		logger.Error().Msg(fmt.Sprintf("failed to save current game status: %v", err))
+	}
+
+	logger.Info().Msg("Saving State -- " + fmt.Sprint(status))
 }
 
 func incrementSessionLogins(w *World) {
@@ -135,32 +159,6 @@ func SetMaxAtomicIfGreater(atom *atomic.Int64, newValue int) bool {
 			return true
 		}
 	}
-}
-
-func saveCurrentStatus(world *World) {
-	status := GameStatus{
-		ServerName:             world.config.serverName,
-		Timestamp:              time.Now(),
-		SessionStartTime:       world.sessionStats.sessionStartTime,
-		PeakSessionPlayerCount: int(world.sessionStats.peakSessionPlayerCount.Load()),
-		PeakSessionKillSteak: StreakInfo{
-			Streak:     int(world.sessionStats.peakSessionKillStreak.Load()),
-			PlayerName: world.sessionStats.peakSessionKiller,
-		},
-		TotalSessionLogins:     int(world.sessionStats.TotalSessionLogins.Load()),
-		TotalSessionLogouts:    int(world.sessionStats.TotalSessionLogouts.Load()),
-		CurrentTeamPlayerCount: CopyTeamQuantities(world),
-		Scoreboard:             world.leaderBoard.scoreboard.Export(),
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	// Save the new snapshot record.
-	if err := saveGameStatus(ctx, world.db.status, status); err != nil {
-		logger.Error().Msg(fmt.Sprintf("failed to save current game status: %v", err))
-	}
-
-	logger.Info().Msg("Saving State -- " + fmt.Sprint(status))
 }
 
 func createLeaderBoard() *LeaderBoard {
