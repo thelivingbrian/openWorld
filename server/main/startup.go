@@ -29,7 +29,7 @@ type DB struct {
 
 func createDbConnection(config *Configuration) *DB {
 	mongodb := mongoClient(config).Database("bloopdb")
-	return &DB{mongodb.Collection("users"), mongodb.Collection("players"), mongodb.Collection("events"), mongodb.Collection("status")}
+	return &DB{mongodb.Collection("users"), mongodb.Collection("players"), mongodb.Collection("events"), mongodb.Collection("sessionData")}
 }
 
 func mongoClient(config *Configuration) *mongo.Client {

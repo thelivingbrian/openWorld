@@ -13,8 +13,9 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const CAPACITY_PER_TEAM = 128
 const SESSION_SNAPSHOT_INTERVAL_IN_MIN = 30
+
+var CAPACITY_PER_TEAM = 128 // Is modified by test => not const
 
 type World struct {
 	db                  *DB
