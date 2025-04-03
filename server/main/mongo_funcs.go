@@ -9,6 +9,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type User struct {
@@ -58,6 +59,23 @@ type Event struct {
 	X         int       `bson:"x,omitempty"`
 	Y         int       `bson:"y,omitempty"`
 	Details   string    `bson:"details,omitempty"` // Could be interface, no purpose
+}
+
+type SessionDataRecord struct {
+	ServerName             string              `bson:"serverName"`
+	Timestamp              time.Time           `bson:"timestamp"`
+	SessionStartTime       time.Time           `bson:"sessionStartTime"`
+	PeakSessionPlayerCount int                 `bson:"peakSessionPlayerCount"`
+	PeakSessionKillSteak   SessionStreakRecord `bson:"peakSessionKillSteak"`
+	TotalSessionLogins     int                 `bson:"totalSessionLogins"`
+	TotalSessionLogouts    int                 `bson:"totalSessionLogouts"`
+	CurrentTeamPlayerCount map[string]int      `bson:"currentTeamPlayerCount"`
+	Scoreboard             map[string]int      `bson:"scoreboard"`
+}
+
+type SessionStreakRecord struct {
+	Streak     int    `bson:"streak"`
+	PlayerName string `bson:"playerName"`
 }
 
 func (db *DB) newAccount(user User) error {
@@ -286,4 +304,26 @@ func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 		"goalsScored":     p.getGoalsScored(),
 		"hatList.current": p.hatList.indexSync(),
 	}
+}
+
+///////////////////////////////////////////////////////////////////////
+// Game Status Funcs
+
+func getMostRecentSessionData(ctx context.Context, collection *mongo.Collection, serverName string) (*SessionDataRecord, error) {
+	filter := bson.M{"serverName": serverName}
+	// Sort by timestamp in descending order to get the most recent document.
+	findOpts := options.FindOne().SetSort(bson.D{{Key: "timestamp", Value: -1}})
+
+	var result SessionDataRecord
+	err := collection.FindOne(ctx, filter, findOpts).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func saveGameStatus(ctx context.Context, collection *mongo.Collection, status SessionDataRecord) error {
+	_, err := collection.InsertOne(ctx, status)
+	return err
 }

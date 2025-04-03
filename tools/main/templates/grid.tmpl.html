@@ -56,12 +56,8 @@
 {{end}}
 
 {{define "grid-square"}}
-{{$cssColor := .Material.CssColor}}
-{{if eq $cssColor ""}}
-    {{$cssColor = .ClickEvent.DefaultTileColor}}
-{{end}}
 <div id="{{.ClickEvent.ScreenID}}c{{.ClickEvent.Y}}-{{.ClickEvent.X}}" 
-    class="grid-square {{$cssColor}}" 
+    class="grid-square {{.ClickEvent.DefaultTileColor}}" 
     hx-post="/grid/click/{{.ClickEvent.GridType}}"
     hx-trigger="click" 
     hx-include="[name='currentCollection'],

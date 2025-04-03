@@ -329,6 +329,8 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 			broadcastBottomText(p.world, message)
 		}
 
+		saveCurrentStatus(p.world)
+
 		return hideByTeam(team)(i, p, t)
 	}
 }

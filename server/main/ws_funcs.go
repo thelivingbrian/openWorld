@@ -52,6 +52,7 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 		logger.Info().Msg("Failed to join player with token: " + token)
 		return
 	}
+	incrementSessionLogins(world)
 
 	handleNewPlayer(player)
 }

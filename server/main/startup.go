@@ -24,11 +24,12 @@ type DB struct {
 	users         *mongo.Collection
 	playerRecords *mongo.Collection
 	events        *mongo.Collection
+	sessionData   *mongo.Collection
 }
 
 func createDbConnection(config *Configuration) *DB {
 	mongodb := mongoClient(config).Database("bloopdb")
-	return &DB{mongodb.Collection("users"), mongodb.Collection("players"), mongodb.Collection("events")}
+	return &DB{mongodb.Collection("users"), mongodb.Collection("players"), mongodb.Collection("events"), mongodb.Collection("sessionData")}
 }
 
 func mongoClient(config *Configuration) *mongo.Client {
@@ -71,6 +72,7 @@ type Configuration struct {
 	domains            []string
 	serverName         string
 	domainName         string
+	loadPreviousState  bool
 }
 
 func getConfiguration() *Configuration {
@@ -104,6 +106,7 @@ func getConfiguration() *Configuration {
 		domains:            strings.Split(os.Getenv("DOMAINS"), ","),
 		serverName:         os.Getenv("SERVER_NAME"),
 		domainName:         os.Getenv("DOMAIN_NAME"),
+		loadPreviousState:  strings.ToUpper(os.Getenv("LOAD_PEVIOUS_STATE")) == "TRUE",
 	}
 
 	if environmentName == "prod" {

@@ -62,6 +62,7 @@ func main() {
 	if config.isServer() {
 		logger.Info().Msg("Starting game world...")
 		world := createGameWorld(db, config)
+		go periodicSnapshot(world)
 		loadFromJson()
 
 		// World status and play
@@ -73,7 +74,7 @@ func main() {
 		mux.HandleFunc("/signin", world.postSignin)
 
 		logger.Info().Msg("Preparing for interactions...")
-		mux.HandleFunc("/clear", clearScreen) // would need to be in hub ?
+		mux.HandleFunc("/clear", clearScreen) // would need to be in hub ? - yes - also is unrecoverable. Remove
 		mux.HandleFunc("/insert", world.postHorribleBypass)
 		mux.HandleFunc("/stats", world.getStats)
 
