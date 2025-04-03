@@ -131,8 +131,6 @@ func saveCurrentStatus(world *World) {
 	if err := saveGameStatus(ctx, world.db.sessionData, status); err != nil {
 		logger.Error().Msg(fmt.Sprintf("failed to save current game status: %v", err))
 	}
-
-	logger.Info().Msg("Saving State -- " + fmt.Sprint(status))
 }
 
 func incrementSessionLogins(w *World) {
