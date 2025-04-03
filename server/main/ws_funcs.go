@@ -153,8 +153,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 	case "f":
 		updateEntireExistingScreen(player)
 	case "g":
-		panic("test")
-		//makeHallucinate(player)
+		makeHallucinate(player)
 	case "h":
 		player.cycleHats()
 	case "Shift-On":
