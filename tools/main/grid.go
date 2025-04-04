@@ -405,17 +405,17 @@ func fill(event *GridClickDetails, modifications [][]TileData, selectedPrototype
 		if event.Y+i >= 0 && event.Y+i < len(modifications) {
 			shouldfill := !seen[event.Y+i][event.X] && modifications[event.Y+i][event.X].PrototypeId == targetId
 			if shouldfill {
-				newEvent := event
+				newEvent := *event
 				newEvent.Y += i
-				fill(newEvent, modifications, selectedPrototype, seen, targetId)
+				fill(&newEvent, modifications, selectedPrototype, seen, targetId)
 			}
 		}
 		if event.X+i >= 0 && event.X+i < len(modifications[event.Y]) {
 			shouldfill := !seen[event.Y][event.X+i] && modifications[event.Y][event.X+i].PrototypeId == targetId
 			if shouldfill {
-				newEvent := event
+				newEvent := *event
 				newEvent.X += i
-				fill(newEvent, modifications, selectedPrototype, seen, targetId)
+				fill(&newEvent, modifications, selectedPrototype, seen, targetId)
 			}
 		}
 	}
