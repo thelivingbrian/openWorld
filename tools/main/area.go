@@ -383,3 +383,12 @@ func (c Context) postNeighbors(w http.ResponseWriter, r *http.Request) {
 
 	tmpl.ExecuteTemplate(w, "neighbors-edit", *selectedArea)
 }
+
+//////////////////////////////////////////////////
+// Utilities
+
+const CONNECTING_CHAR = "."
+
+func locationStringFromArea(area *AreaDescription, spacename string) string {
+	return spacename + CONNECTING_CHAR + area.Name
+}

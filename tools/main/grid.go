@@ -23,7 +23,6 @@ type Coordinate struct {
 	Y, X int
 }
 
-// Does location get or stringifyLocation get used by template?
 type GridClickDetails struct {
 	CollectionName   string
 	Location         []string
@@ -40,15 +39,8 @@ type GridClickDetails struct {
 	selectedY        int
 }
 
-var CONNECTING_CHAR = "."
-
-func (gridSquare GridClickDetails) stringifyLocation() string {
-	return strings.Join(gridSquare.Location, CONNECTING_CHAR)
-}
-
-func locationStringFromArea(area *AreaDescription, spacename string) string {
-	return spacename + CONNECTING_CHAR + area.Name
-}
+/////////////////////////////////////////////////////////////
+// Grid Modify + Fixture Select
 
 func (c *Context) gridEditHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
@@ -65,6 +57,73 @@ func (c *Context) getGridEdit(w http.ResponseWriter, r *http.Request) {
 	}
 	tmpl.ExecuteTemplate(w, "grid-modify", col.getProtoSelect())
 }
+
+func (c Context) getFixtureSelect(w http.ResponseWriter, r *http.Request) {
+	queryValues := r.URL.Query()
+	fixtureType := queryValues.Get("current-fixture")
+
+	switch fixtureType {
+	case "fragment":
+		collectionName := queryValues.Get("currentCollection")
+		collection, ok := c.Collections[collectionName]
+		if !ok {
+			fmt.Println("Collection Name Invalid")
+			return
+		}
+
+		var setOptions []string
+		for key := range collection.Fragments {
+			setOptions = append(setOptions, key)
+		}
+
+		pageData := struct {
+			FragmentSets []string
+			CurrentSet   string
+		}{
+			FragmentSets: setOptions,
+			CurrentSet:   "",
+		}
+		tmpl.ExecuteTemplate(w, "fixture-fragment", pageData)
+
+	case "prototype":
+		tmpl.ExecuteTemplate(w, "fixture-prototype", c.prototypeSelectFromRequest(r))
+
+	case "transformation":
+		tmpl.ExecuteTemplate(w, "fixture-transformation", nil)
+
+	case "blueprint":
+		c.getBlueprint(w, r)
+
+	case "interactable":
+		collectionName := queryValues.Get("currentCollection")
+		collection, ok := c.Collections[collectionName]
+		if !ok {
+			fmt.Println("Collection Name Invalid")
+			return
+		}
+
+		var setOptions []string
+		for key := range collection.InteractableSets {
+			setOptions = append(setOptions, key)
+		}
+
+		pageData := struct {
+			SetNames      []string
+			CurrentSet    string
+			Interactables []InteractableDescription
+		}{
+			SetNames:      setOptions,
+			CurrentSet:    "",
+			Interactables: nil,
+		}
+		if err := tmpl.ExecuteTemplate(w, "fixture-interactables", pageData); err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////
+// Grid Click Handlers
 
 func (c Context) gridClickAreaHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
@@ -163,6 +222,10 @@ func executeGridTemplate(w http.ResponseWriter, materials [][]Material, interact
 	}
 }
 
+func (gridSquare GridClickDetails) stringifyLocation() string {
+	return strings.Join(gridSquare.Location, CONNECTING_CHAR)
+}
+
 func createClickDetailsFromProps(properties map[string]string, gridType string) GridClickDetails {
 	currentCollection, ok := properties["currentCollection"]
 	if !ok {
@@ -233,7 +296,9 @@ func CreateSelectionFromClickDetails(details GridClickDetails) *Coordinate {
 	return nil
 }
 
-// / Tools
+/////////////////////////////////////////////////////////////////////
+// Grid Click Actions
+
 func (col *Collection) gridClickAction(details *GridClickDetails, blueprint *Blueprint) {
 	switch details.Tool {
 	case "select":
@@ -283,19 +348,6 @@ func (col *Collection) gridClickAction(details *GridClickDetails, blueprint *Blu
 	}
 }
 
-func (col *Collection) getTileGridByAssetId(assetId string) [][]TileData {
-	fragment := col.getFragmentById(assetId)
-	if fragment != nil {
-		return fragment.Blueprint.Tiles
-	}
-	out := make([][]TileData, 0)
-	proto := col.findPrototypeById(assetId)
-	if proto != nil {
-		out = append(out, append(make([]TileData, 0), TileData{PrototypeId: assetId, Transformation: Transformation{}})) // })//} )
-	}
-	return out
-}
-
 func pasteTiles(y, x int, source, dest [][]TileData) {
 	for i := range dest {
 		if y+i >= len(source) {
@@ -316,21 +368,6 @@ func pasteTiles(y, x int, source, dest [][]TileData) {
 	}
 }
 
-func clearTiles(y, x, height, width int, source [][]TileData) {
-	for i := 0; i < height; i++ {
-		if y+i >= len(source) {
-			break
-		}
-		for j := 0; j < width; j++ {
-			if x+j >= len(source[y+i]) {
-				break
-			}
-			source[y+i][x+j].PrototypeId = ""
-			source[y+i][x+j].InteractableId = ""
-		}
-	}
-}
-
 func (col *Collection) applyEveryInstruction(blueprint *Blueprint) {
 	for _, instruction := range blueprint.Instructions {
 		col.applyInstruction(blueprint.Tiles, instruction)
@@ -340,6 +377,19 @@ func (col *Collection) applyEveryInstruction(blueprint *Blueprint) {
 func (col *Collection) applyInstruction(source [][]TileData, instruction Instruction) {
 	gridToApply := rotateTimesN(col.getTileGridByAssetId(instruction.GridAssetId), instruction.ClockwiseRotations)
 	pasteTiles(instruction.Y, instruction.X, source, gridToApply)
+}
+
+func (col *Collection) getTileGridByAssetId(assetId string) [][]TileData {
+	fragment := col.getFragmentById(assetId)
+	if fragment != nil {
+		return fragment.Blueprint.Tiles
+	}
+	out := make([][]TileData, 0)
+	proto := col.findPrototypeById(assetId)
+	if proto != nil {
+		out = append(out, append(make([]TileData, 0), TileData{PrototypeId: assetId, Transformation: Transformation{}})) // })//} )
+	}
+	return out
 }
 
 func (col *Collection) getPrototypeOrCreateInvalid(protoId string) Prototype {
@@ -547,71 +597,4 @@ func gridToggleGroundStatus(event *GridClickDetails, modifications [][]Cell) {
 func toggleCellStatus(cell *Cell) {
 	currentStatus := cell.Status
 	cell.Status = (currentStatus + 1) % 2
-}
-
-///
-
-func (c Context) selectFixture(w http.ResponseWriter, r *http.Request) {
-	queryValues := r.URL.Query()
-	fixtureType := queryValues.Get("current-fixture")
-
-	if fixtureType == "fragment" {
-		collectionName := queryValues.Get("currentCollection")
-		collection, ok := c.Collections[collectionName]
-		if !ok {
-			fmt.Println("Collection Name Invalid")
-			return
-		}
-
-		var setOptions []string
-		for key := range collection.Fragments {
-			setOptions = append(setOptions, key)
-		}
-
-		var pageData = struct {
-			FragmentSets []string
-			CurrentSet   string
-		}{
-			FragmentSets: setOptions,
-			CurrentSet:   "",
-		}
-		tmpl.ExecuteTemplate(w, "fixture-fragment", pageData)
-	}
-	if fixtureType == "prototype" {
-		tmpl.ExecuteTemplate(w, "fixture-prototype", c.prototypeSelectFromRequest(r))
-
-	}
-	if fixtureType == "transformation" {
-		tmpl.ExecuteTemplate(w, "fixture-transformation", nil)
-	}
-	if fixtureType == "blueprint" {
-		c.getBlueprint(w, r)
-	}
-	if fixtureType == "interactable" {
-		collectionName := queryValues.Get("currentCollection")
-		collection, ok := c.Collections[collectionName]
-		if !ok {
-			fmt.Println("Collection Name Invalid")
-			return
-		}
-		var setOptions []string
-		for key := range collection.InteractableSets {
-			setOptions = append(setOptions, key)
-		}
-
-		var pageData = struct {
-			SetNames      []string
-			CurrentSet    string
-			Interactables []InteractableDescription
-		}{
-			SetNames:      setOptions,
-			CurrentSet:    "",
-			Interactables: nil,
-		}
-		err := tmpl.ExecuteTemplate(w, "fixture-interactables", pageData)
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
-
 }

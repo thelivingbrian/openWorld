@@ -11,6 +11,12 @@
     </div>
 {{end}}
 
+
+{{define "fixture-prototype"}}
+    {{template "available-tools-prototype"}}
+    {{template "prototype-select" .}}
+{{end}}
+
 {{define "available-tools-prototype"}}
 <div id="tool_select"> 
     <input type="radio" id="rt-select" name="radio-tool" value="select" checked>
@@ -26,6 +32,7 @@
 </div>
 {{end}}
 
+
 {{define "fixture-fragment"}}
     {{template "available-tools-fragment"}}
     {{template "fragments" .}}
@@ -40,10 +47,6 @@
 </div>
 {{end}}
 
-{{define "fixture-prototype"}}
-    {{template "available-tools-prototype"}}
-    {{template "prototype-select" .}}
-{{end}}
 
 {{define "fixture-transformation"}}
     {{template "available-tools-transformation"}}
@@ -62,10 +65,11 @@
 {{define "transformation-edit"}}
 <div id="transformation-edit">
     <form>
-
+        <!-- Unimplemented, intended to view selected tile interactable, if any ? -->
     </form>
 </div>
 {{end}}
+
 
 {{define "fixture-interactables"}}
     {{template "available-tools-interactable"}}
@@ -83,7 +87,8 @@
 </div>
 {{end}}
 
-<!-- TODO: use on main modify screen via dropdown. -->
+
+<!-- TODO: Currently no fixture - use on main modify screen via dropdown ? -->
 {{define "available-tools-ground"}}
 <div id="tool_select"> 
     <input type="radio" id="rt-t-select" name="radio-tool" value="select" checked>

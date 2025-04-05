@@ -15,6 +15,17 @@ type Blueprint struct {
 	DefaultTileColor1 string
 }
 
+type TileData struct {
+	PrototypeId    string         `json:"prototypeId,omitempty"`
+	Transformation Transformation `json:"transformation,omitempty"`
+	InteractableId string         `json:"interactableId,omitempty"`
+}
+
+type Transformation struct {
+	ClockwiseRotations int    `json:"clockwiseRotations,omitempty"`
+	ColorPalette       string `json:"colorPalette,omitempty"`
+}
+
 type Instruction struct {
 	ID                 string
 	X                  int
@@ -305,6 +316,24 @@ func (c *Context) putInstructionOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	executeBlueprintTemplate(w, fragment, area)
+}
+
+/////////////////////////////////////////////////////////////
+// Utilities
+
+func clearTiles(y, x, height, width int, source [][]TileData) {
+	for i := 0; i < height; i++ {
+		if y+i >= len(source) {
+			break
+		}
+		for j := 0; j < width; j++ {
+			if x+j >= len(source[y+i]) {
+				break
+			}
+			source[y+i][x+j].PrototypeId = ""
+			source[y+i][x+j].InteractableId = ""
+		}
+	}
 }
 
 func rotateTimesN(input [][]TileData, n int) [][]TileData {
