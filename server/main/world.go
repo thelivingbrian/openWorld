@@ -271,7 +271,14 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 
 	newPlayer.conn = conn
 	emptyScreen := emptyScreenForStage(stage)
-	sendUpdate(newPlayer, emptyScreen)
+	err := conn.WriteMessage(websocket.TextMessage, emptyScreen)
+	if err != nil {
+		// New Func
+		errorMessage := fmt.Sprintf(unableToJoin, "An Error Occured.")
+		conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
+	}
+
+	//sendUpdate(newPlayer, emptyScreen)
 	go newPlayer.sendUpdates()
 
 	count := world.addPlayer(newPlayer)
