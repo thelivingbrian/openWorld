@@ -405,7 +405,7 @@ func sendUpdate(player *Player, update []byte) error {
 		return errors.New("Connection is expired for: " + player.username)
 	}
 
-	err := player.conn.SetWriteDeadline(time.Now().Add(1000 * time.Millisecond))
+	err := player.conn.SetWriteDeadline(time.Now().Add(2000 * time.Millisecond))
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed to set write deadline:")
 		return err
