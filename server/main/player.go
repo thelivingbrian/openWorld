@@ -414,7 +414,7 @@ func sendUpdate(player *Player, update []byte) error {
 	if err != nil {
 		// Technically can be any write error
 		logger.Debug().Msg("Incrementing websocket session timeout violations for: " + player.username)
-		if player.sessionTimeOutViolations.Add(1) >= 1 {
+		if player.sessionTimeOutViolations.Add(1) >= 2 {
 			return err
 		}
 	}
