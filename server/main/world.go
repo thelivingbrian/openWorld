@@ -294,7 +294,7 @@ func sendUnableToJoinMessage(conn WebsocketConnection, description string) {
 }
 
 func sendInitialScreen(conn WebsocketConnection, screen []byte) bool {
-	err := conn.SetWriteDeadline(time.Now().Add(0 * time.Millisecond))
+	err := conn.SetWriteDeadline(time.Now().Add(4000 * time.Millisecond))
 	if err != nil {
 		logger.Warn().Msg("Failed to set deadline on join")
 		return false

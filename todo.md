@@ -202,6 +202,8 @@
 ## Bottom text
  - [-] Trigger
  - [ ] Display as "!" Notification in mobile instead of on screen
+ - [ ] Fade with time
+ - [ ] Deault bottom text on load
 
 ## Kill streak
  - [-] User Streak
