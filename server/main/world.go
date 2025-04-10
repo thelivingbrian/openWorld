@@ -253,8 +253,6 @@ func createRandomToken() string {
 
 func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Player {
 	if world.isLoggedInAlready(incoming.Record.Username) {
-		// errorMessage := fmt.Sprintf(unableToJoin, "You are already logged in.")
-		// conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
 		sendUnableToJoinMessage(conn, "You are already logged in.")
 		logger.Warn().Msg("User attempting to log in but is logged in already: " + incoming.Record.Username)
 		return nil
@@ -262,31 +260,42 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 
 	newPlayer := world.newPlayerFromRecord(incoming.Record, incoming.Token)
 	if world.teamAtCapacity(newPlayer.getTeamNameSync()) {
-		// errorMessage := fmt.Sprintf(unableToJoin, "Your team is at capacity.")
-		// conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
 		sendUnableToJoinMessage(conn, "Your team is at capacity.")
 		return nil
 	}
 
 	newPlayer.updateRecordOnLogin()
 	stage := getStageFromStageName(newPlayer, incoming.Record.StageName)
+	// if stage == nil {
+	// 	// Technically impossible because of clinic -> panic failsafe ?
+	// 	logger.Warn().Msg("WARN: Player " + newPlayer.username + " on unloadable stage: " + incoming.Record.StageName)
+	// 	return nil
+	// }
 
 	emptyScreen := emptyScreenForStage(stage)
 	if !sendInitialScreen(conn, emptyScreen) {
 		return nil
 	}
-	//sendUnableToJoinMessage(conn, "Test.")
 
-	//sendUpdate(newPlayer, emptyScreen)
 	newPlayer.conn = conn
 	go newPlayer.sendUpdates()
 
+	// correct order?
 	count := world.addPlayer(newPlayer)
 	trySetPeakPlayerCount(world, count)
 
 	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
 	return newPlayer
 }
+
+const unableToJoin = `
+<div id="main_view" hx-swap-oob="true">
+	<b>
+		<span>Unable to join.<br />
+		%s</span><br />
+		<a href="#" hx-get="/worlds" hx-target="#page"> Try again</a>
+	</b>
+</div>`
 
 func sendUnableToJoinMessage(conn WebsocketConnection, description string) {
 	errorMessage := fmt.Sprintf(unableToJoin, description)
@@ -306,15 +315,6 @@ func sendInitialScreen(conn WebsocketConnection, screen []byte) bool {
 	}
 	return true
 }
-
-var unableToJoin = `
-<div id="main_view" hx-swap-oob="true">
-	<b>
-		<span>Unable to join.<br />
-		%s</span><br />
-		<a href="#" hx-get="/worlds" hx-target="#page"> Try again</a>
-	</b>
-</div>`
 
 func (world *World) teamAtCapacity(teamName string) bool {
 	world.wPlayerMutex.Lock()
