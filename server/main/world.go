@@ -271,16 +271,14 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	newPlayer.updateRecordOnLogin()
 	stage := getStageFromStageName(newPlayer, incoming.Record.StageName)
 
-	newPlayer.conn = conn
 	emptyScreen := emptyScreenForStage(stage)
-	err := conn.WriteMessage(websocket.TextMessage, emptyScreen)
-	if err != nil {
-		// errorMessage := fmt.Sprintf(unableToJoin, "An Error Occured.")
-		// conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
-		sendUnableToJoinMessage(conn, "An Error Occured.")
+	if !sendInitialScreen(conn, emptyScreen) {
+		return nil
 	}
+	//sendUnableToJoinMessage(conn, "Test.")
 
 	//sendUpdate(newPlayer, emptyScreen)
+	newPlayer.conn = conn
 	go newPlayer.sendUpdates()
 
 	count := world.addPlayer(newPlayer)
@@ -293,6 +291,20 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 func sendUnableToJoinMessage(conn WebsocketConnection, description string) {
 	errorMessage := fmt.Sprintf(unableToJoin, description)
 	conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
+}
+
+func sendInitialScreen(conn WebsocketConnection, screen []byte) bool {
+	err := conn.SetWriteDeadline(time.Now().Add(0 * time.Millisecond))
+	if err != nil {
+		logger.Warn().Msg("Failed to set deadline on join")
+		return false
+	}
+	err = conn.WriteMessage(websocket.TextMessage, screen)
+	if err != nil {
+		logger.Warn().Msg("Failed to write message on join")
+		return false
+	}
+	return true
 }
 
 var unableToJoin = `

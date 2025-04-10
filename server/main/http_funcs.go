@@ -89,6 +89,12 @@ func unavailable(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, unavailableMessage)
 }
 
+var wrongMessage = `Something went wrong :( <a href="#" hx-get="/worlds" hx-target="#page">Choose other world</a>`
+
+func wrong(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, unavailableMessage)
+}
+
 // ///////////////////////////////////////////
 // Player Sign-in and Create
 

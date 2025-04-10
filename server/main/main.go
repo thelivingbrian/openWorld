@@ -54,6 +54,7 @@ func main() {
 		// Select World
 		mux.HandleFunc("/worlds", createWorldSelectHandler(config))
 		mux.HandleFunc("/unavailable", unavailable)
+		mux.HandleFunc("/wrong", wrong)
 
 		// New Account
 		mux.HandleFunc("/new", db.postNew)
