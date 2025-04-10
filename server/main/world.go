@@ -253,16 +253,18 @@ func createRandomToken() string {
 
 func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Player {
 	if world.isLoggedInAlready(incoming.Record.Username) {
-		errorMessage := fmt.Sprintf(unableToJoin, "You are already logged in.")
-		conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
+		// errorMessage := fmt.Sprintf(unableToJoin, "You are already logged in.")
+		// conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
+		sendUnableToJoinMessage(conn, "You are already logged in.")
 		logger.Warn().Msg("User attempting to log in but is logged in already: " + incoming.Record.Username)
 		return nil
 	}
 
 	newPlayer := world.newPlayerFromRecord(incoming.Record, incoming.Token)
 	if world.teamAtCapacity(newPlayer.getTeamNameSync()) {
-		errorMessage := fmt.Sprintf(unableToJoin, "Your team is at capacity.")
-		conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
+		// errorMessage := fmt.Sprintf(unableToJoin, "Your team is at capacity.")
+		// conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
+		sendUnableToJoinMessage(conn, "Your team is at capacity.")
 		return nil
 	}
 
@@ -273,9 +275,9 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	emptyScreen := emptyScreenForStage(stage)
 	err := conn.WriteMessage(websocket.TextMessage, emptyScreen)
 	if err != nil {
-		// New Func
-		errorMessage := fmt.Sprintf(unableToJoin, "An Error Occured.")
-		conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
+		// errorMessage := fmt.Sprintf(unableToJoin, "An Error Occured.")
+		// conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
+		sendUnableToJoinMessage(conn, "An Error Occured.")
 	}
 
 	//sendUpdate(newPlayer, emptyScreen)
@@ -286,6 +288,11 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 
 	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
 	return newPlayer
+}
+
+func sendUnableToJoinMessage(conn WebsocketConnection, description string) {
+	errorMessage := fmt.Sprintf(unableToJoin, description)
+	conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
 }
 
 var unableToJoin = `
