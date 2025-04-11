@@ -363,8 +363,7 @@ func (world *World) isLoggedInAlready(username string) bool {
 	return false
 }
 
-// ////////////////////////////////////////////////////
-//
+//////////////////////////////////////////////////////
 //	Logging Out
 
 func processLogouts(players chan *Player) {

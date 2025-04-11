@@ -164,7 +164,7 @@
     - [-] add cli  
   - [-] get rid of proc folder?
 - [ ] Bugs: 
-  - [ ]New color will output to local file but deploying requires application restart.
+  - [ ] New color will output to local file but deploying requires application restart.
   - [ ] New areas are always "unsafe"
 
 
@@ -243,6 +243,7 @@
   - [-] Prototype edit map color (And generate automatically?)
   - [-] Map has wrong size on wide monitor 
 - [-] Infirmary
+- [ ] Show weather on map 
   
 
 ## Testing
