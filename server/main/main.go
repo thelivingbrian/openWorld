@@ -54,7 +54,7 @@ func main() {
 		// Select World
 		mux.HandleFunc("/worlds", createWorldSelectHandler(config))
 		mux.HandleFunc("/unavailable", unavailable)
-		mux.HandleFunc("/wrong", wrong)
+		mux.HandleFunc("/wrong", somethingWentWrong)
 
 		// New Account
 		mux.HandleFunc("/new", db.postNew)
@@ -74,8 +74,7 @@ func main() {
 		mux.HandleFunc("/homesignin", getSignIn)
 		mux.HandleFunc("/signin", world.postSignin)
 
-		logger.Info().Msg("Preparing for interactions...")
-		mux.HandleFunc("/clear", clearScreen) // would need to be in hub ? - yes - also is unrecoverable. Remove
+		// REST based functionality
 		mux.HandleFunc("/insert", world.postHorribleBypass)
 		mux.HandleFunc("/stats", world.getStats)
 

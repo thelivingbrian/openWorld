@@ -91,7 +91,7 @@ func unavailable(w http.ResponseWriter, r *http.Request) {
 
 var wrongMessage = `Something went wrong :( <a href="#" hx-get="/worlds" hx-target="#page">Choose other world</a>`
 
-func wrong(w http.ResponseWriter, r *http.Request) {
+func somethingWentWrong(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, wrongMessage)
 }
 
@@ -334,6 +334,7 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 /////////////////////////////////////////////
 // Integration Endpoint
 
+// Add Basic Auth
 func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 	secret := os.Getenv("AUTO_PLAYER_PASSWORD")
 	if secret == "" {
@@ -369,17 +370,6 @@ func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 		tokens = append(tokens, loginRequest.Token)
 	}
 	io.WriteString(w, "[\""+strings.Join(tokens, "\",\"")+"\"]")
-}
-
-/////////////////////////////////////////////
-// Game Controls
-
-func clearScreen(w http.ResponseWriter, r *http.Request) {
-	output := `
-	<div id="screen" class="grid">
-				
-	</div>`
-	io.WriteString(w, output)
 }
 
 /////////////////////////////////////////////
