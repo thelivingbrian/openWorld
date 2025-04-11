@@ -364,27 +364,6 @@ func walkable(tile *Tile) bool {
 	return true
 }
 
-func validCoordinate(y int, x int, tiles [][]*Tile) bool {
-	if y < 0 || y >= len(tiles) {
-		return false
-	}
-	if x < 0 || x >= len(tiles[y]) {
-		return false
-	}
-	return true
-}
-
-func validityByAxis(y int, x int, tiles [][]*Tile) (bool, bool) {
-	invalidY, invalidX := false, false
-	if y < 0 || y >= len(tiles) {
-		invalidY = true
-	}
-	if x < 0 || x >= len(tiles[0]) { // Not the best, assumes rectangular grid
-		invalidX = true
-	}
-	return invalidY, invalidX
-}
-
 func mapOfTileToArray(m map[*Tile]bool) []*Tile {
 	out := make([]*Tile, 0)
 	for tile := range m {

@@ -83,7 +83,8 @@ func (stage *Stage) removeLockedPlayerById(id string) {
 }
 
 func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
-	if !validCoordinate(y, x, stage.tiles) {
+	if !validCoordinate(y, x, stage) {
+		// Extreme - Should be impossible - log error and return?
 		log.Fatal("Fatal: Invalid coords to place on stage.")
 	}
 
@@ -104,7 +105,9 @@ func spawnItemsFor(p *Player, stage *Stage) {
 	}
 }
 
-// Enqueue updates
+//////////////////////////////////////////////////
+// Send Updates
+
 func (stage *Stage) updateAll(update string) {
 	stage.updateAllExcept(update, nil)
 }
@@ -119,4 +122,31 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 		}
 		player.updates <- updateAsBytes
 	}
+}
+
+/////////////////////////////////////////////////////////////
+// Utilities
+
+func validCoordinate(y int, x int, stage *Stage) bool {
+	if stage == nil || stage.tiles == nil {
+		return false
+	}
+	if y < 0 || y >= len(stage.tiles) {
+		return false
+	}
+	if x < 0 || x >= len(stage.tiles[y]) {
+		return false
+	}
+	return true
+}
+
+func validityByAxis(y int, x int, tiles [][]*Tile) (bool, bool) {
+	invalidY, invalidX := false, false
+	if y < 0 || y >= len(tiles) {
+		invalidY = true
+	}
+	if x < 0 || x >= len(tiles[0]) { // Not the best, assumes rectangular grid
+		invalidX = true
+	}
+	return invalidY, invalidX
 }

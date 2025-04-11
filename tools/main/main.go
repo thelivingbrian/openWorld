@@ -66,7 +66,7 @@ func main() {
 	http.HandleFunc("/exampleSquare", exampleSquare)
 	http.HandleFunc("/outputIngredients", c.outputIngredients)
 
-	http.HandleFunc("/selectFixture", c.selectFixture)
+	http.HandleFunc("/selectFixture", c.getFixtureSelect)
 
 	http.HandleFunc("/editTransports", c.getEditTransports)
 	http.HandleFunc("/editTransport", c.editTransport)

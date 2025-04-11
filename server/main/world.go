@@ -131,8 +131,6 @@ func saveCurrentStatus(world *World) {
 	if err := saveGameStatus(ctx, world.db.sessionData, status); err != nil {
 		logger.Error().Msg(fmt.Sprintf("failed to save current game status: %v", err))
 	}
-
-	logger.Info().Msg("Saving State -- " + fmt.Sprint(status))
 }
 
 func incrementSessionLogins(w *World) {
@@ -255,25 +253,30 @@ func createRandomToken() string {
 
 func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Player {
 	if world.isLoggedInAlready(incoming.Record.Username) {
-		errorMessage := fmt.Sprintf(unableToJoin, "You are already logged in.")
-		conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
+		sendUnableToJoinMessage(conn, "You are already logged in.")
 		logger.Warn().Msg("User attempting to log in but is logged in already: " + incoming.Record.Username)
 		return nil
 	}
 
 	newPlayer := world.newPlayerFromRecord(incoming.Record, incoming.Token)
 	if world.teamAtCapacity(newPlayer.getTeamNameSync()) {
-		errorMessage := fmt.Sprintf(unableToJoin, "Your team is at capacity.")
-		conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
+		sendUnableToJoinMessage(conn, "Your team is at capacity.")
 		return nil
 	}
 
 	newPlayer.updateRecordOnLogin()
-	stage := getStageFromStageName(newPlayer, incoming.Record.StageName)
+	stage := getStageByNameOrGetDefault(newPlayer, incoming.Record.StageName)
+	if !validCoordinate(incoming.Record.Y, incoming.Record.X, stage) {
+		logger.Error().Msg("WARN: Player " + newPlayer.username + " on unloadable stage: " + incoming.Record.StageName)
+		return nil
+	}
+
+	emptyScreen := emptyScreenForStage(stage)
+	if !sendInitialScreen(conn, emptyScreen) {
+		return nil
+	}
 
 	newPlayer.conn = conn
-	emptyScreen := emptyScreenForStage(stage)
-	sendUpdate(newPlayer, emptyScreen)
 	go newPlayer.sendUpdates()
 
 	count := world.addPlayer(newPlayer)
@@ -283,7 +286,7 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	return newPlayer
 }
 
-var unableToJoin = `
+const unableToJoin = `
 <div id="main_view" hx-swap-oob="true">
 	<b>
 		<span>Unable to join.<br />
@@ -291,6 +294,25 @@ var unableToJoin = `
 		<a href="#" hx-get="/worlds" hx-target="#page"> Try again</a>
 	</b>
 </div>`
+
+func sendUnableToJoinMessage(conn WebsocketConnection, description string) {
+	errorMessage := fmt.Sprintf(unableToJoin, description)
+	conn.WriteMessage(websocket.TextMessage, []byte(errorMessage))
+}
+
+func sendInitialScreen(conn WebsocketConnection, screen []byte) bool {
+	err := conn.SetWriteDeadline(time.Now().Add(4000 * time.Millisecond))
+	if err != nil {
+		logger.Warn().Msg("Failed to set deadline on join")
+		return false
+	}
+	err = conn.WriteMessage(websocket.TextMessage, screen)
+	if err != nil {
+		logger.Warn().Msg("Failed to write message on join")
+		return false
+	}
+	return true
+}
 
 func (world *World) teamAtCapacity(teamName string) bool {
 	world.wPlayerMutex.Lock()
@@ -341,8 +363,7 @@ func (world *World) isLoggedInAlready(username string) bool {
 	return false
 }
 
-// ////////////////////////////////////////////////////
-//
+//////////////////////////////////////////////////////
 //	Logging Out
 
 func processLogouts(players chan *Player) {
@@ -387,7 +408,7 @@ func completeLogout(player *Player) {
 func getRelativeTile(source *Tile, yOff, xOff int, player *Player) *Tile {
 	destY := source.y + yOff
 	destX := source.x + xOff
-	if validCoordinate(destY, destX, source.stage.tiles) {
+	if validCoordinate(destY, destX, source.stage) {
 		return source.stage.tiles[destY][destX]
 	} else {
 		escapesVertically, escapesHorizontally := validityByAxis(destY, destX, source.stage.tiles)
@@ -406,12 +427,9 @@ func getRelativeTile(source *Tile, yOff, xOff int, player *Player) *Tile {
 				newStage = player.fetchStageSync(source.stage.north)
 			}
 
-			if newStage != nil {
-				if validCoordinate(mod(destY, len(newStage.tiles)), destX, newStage.tiles) {
-					return newStage.tiles[mod(destY, len(newStage.tiles))][destX]
-				}
+			if validCoordinate(mod(destY, len(newStage.tiles)), destX, newStage) {
+				return newStage.tiles[mod(destY, len(newStage.tiles))][destX]
 			}
-			return nil
 		}
 		if escapesHorizontally {
 			var newStage *Stage
@@ -422,12 +440,9 @@ func getRelativeTile(source *Tile, yOff, xOff int, player *Player) *Tile {
 				newStage = player.fetchStageSync(source.stage.west)
 			}
 
-			if newStage != nil {
-				if validCoordinate(destY, mod(destX, len(newStage.tiles)), newStage.tiles) {
-					return newStage.tiles[destY][mod(destX, len(newStage.tiles))]
-				}
+			if validCoordinate(destY, mod(destX, len(newStage.tiles)), newStage) {
+				return newStage.tiles[destY][mod(destX, len(newStage.tiles))]
 			}
-			return nil
 		}
 
 		return nil

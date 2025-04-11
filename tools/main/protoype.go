@@ -24,17 +24,6 @@ type Prototype struct {
 	DisplayText string `json:"displayText"`
 }
 
-type Transformation struct {
-	ClockwiseRotations int    `json:"clockwiseRotations,omitempty"`
-	ColorPalette       string `json:"colorPalette,omitempty"`
-}
-
-type TileData struct {
-	PrototypeId    string         `json:"prototypeId,omitempty"`
-	Transformation Transformation `json:"transformation,omitempty"`
-	InteractableId string         `json:"interactableId,omitempty"`
-}
-
 type PrototypeSelectPage struct {
 	PrototypeSets []string
 	CurrentSet    string

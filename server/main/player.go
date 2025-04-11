@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 	"math/rand/v2"
 	"strconv"
 	"sync"
@@ -112,9 +111,10 @@ func (player *Player) moveBoost(yOffset int, xOffset int) {
 }
 
 func (player *Player) applyTeleport(teleport *Teleport) {
-	stage := getStageFromStageName(player, teleport.destStage)
-	if !validCoordinate(teleport.destY, teleport.destX, stage.tiles) {
-		log.Fatal("Fatal: Invalid coords from teleport: ", teleport.destStage, teleport.destY, teleport.destX)
+	stage := player.fetchStageSync(teleport.destStage)
+	if !validCoordinate(teleport.destY, teleport.destX, stage) {
+		logger.Error().Msg(fmt.Sprint("Fatal: Invalid coords from teleport: ", teleport.destStage, teleport.destY, teleport.destX))
+		return
 	}
 	// Is using getTileSync a risk with the menu teleport authorizer?
 	transferPlayer(player, player.getTileSync(), stage.tiles[teleport.destY][teleport.destX])
@@ -213,8 +213,8 @@ func (p *Player) pushTeleport(tile *Tile, incoming *Interactable, yOff, xOff int
 		return false
 	}
 	if canBeTeleported(incoming) {
-		stage := getStageFromStageName(p, tile.teleport.destStage)
-		if !validCoordinate(tile.teleport.destY+yOff, tile.teleport.destX+xOff, stage.tiles) {
+		stage := p.fetchStageSync(tile.teleport.destStage)
+		if !validCoordinate(tile.teleport.destY+yOff, tile.teleport.destX+xOff, stage) {
 			return false
 		}
 		return p.push(stage.tiles[tile.teleport.destY+yOff][tile.teleport.destX+xOff], incoming, yOff, xOff)
@@ -405,7 +405,7 @@ func sendUpdate(player *Player, update []byte) error {
 		return errors.New("Connection is expired for: " + player.username)
 	}
 
-	err := player.conn.SetWriteDeadline(time.Now().Add(500 * time.Millisecond))
+	err := player.conn.SetWriteDeadline(time.Now().Add(2000 * time.Millisecond))
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed to set write deadline:")
 		return err
@@ -414,7 +414,7 @@ func sendUpdate(player *Player, update []byte) error {
 	if err != nil {
 		// Technically can be any write error
 		logger.Debug().Msg("Incrementing websocket session timeout violations for: " + player.username)
-		if player.sessionTimeOutViolations.Add(1) >= 1 {
+		if player.sessionTimeOutViolations.Add(1) >= 2 {
 			return err
 		}
 	}
@@ -524,10 +524,12 @@ func (player *Player) updateRecordOnLogout() {
 /////////////////////////////////////////////////////////////
 // Stages
 
-func getStageFromStageName(player *Player, stagename string) *Stage {
+func getStageByNameOrGetDefault(player *Player, stagename string) *Stage {
+	// Never returns nil - Used on login as protection against old records with nonexistant locations
 	stage := player.fetchStageSync(stagename)
 	if stage == nil {
 		logger.Warn().Msg("WARNING: Fetching default stage instead of: " + stagename)
+		// clinic must exist - Add test ?
 		stage = player.fetchStageSync("clinic")
 		if stage == nil {
 			panic("Default stage not found")

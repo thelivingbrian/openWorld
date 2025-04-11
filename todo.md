@@ -164,7 +164,7 @@
     - [-] add cli  
   - [-] get rid of proc folder?
 - [ ] Bugs: 
-  - [ ]New color will output to local file but deploying requires application restart.
+  - [ ] New color will output to local file but deploying requires application restart.
   - [ ] New areas are always "unsafe"
 
 
@@ -202,6 +202,8 @@
 ## Bottom text
  - [-] Trigger
  - [ ] Display as "!" Notification in mobile instead of on screen
+ - [ ] Fade with time
+ - [ ] Deault bottom text on load
 
 ## Kill streak
  - [-] User Streak
@@ -241,6 +243,7 @@
   - [-] Prototype edit map color (And generate automatically?)
   - [-] Map has wrong size on wide monitor 
 - [-] Infirmary
+- [ ] Show weather on map 
   
 
 ## Testing

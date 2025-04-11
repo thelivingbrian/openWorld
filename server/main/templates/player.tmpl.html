@@ -8,10 +8,15 @@
             </b>
         </div>
         <div id="screen" class="grid">
-                
+            <div class="center-horizontally">
+                <br />
+                <span id="status-screen" hx-get="/wrong" hx-trigger="load delay:4s">Loading . . .</span>
+                <br />
+                <br />
+            </div>
         </div>
         <div id="bottom_text">
-            &nbsp;&nbsp;&gt; Press 'm' for Menu.
+            <!-- &nbsp;&nbsp;&gt; Press 'm' for Menu. -->
         </div>
     </div>
     <div id="controls" hx-ext="ws" ws-connect="{{.DomainName}}/screen">
