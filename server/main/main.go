@@ -70,14 +70,15 @@ func main() {
 		mux.HandleFunc("/status", world.statusHandler)
 		mux.HandleFunc("/play", world.playHandler)
 
-		// Historical
+		// Historical - Remove ?
 		mux.HandleFunc("/homesignin", getSignIn)
 		mux.HandleFunc("/signin", world.postSignin)
 
-		// REST based functionality
+		// REST endpoints
 		mux.HandleFunc("/insert", world.postHorribleBypass)
 		mux.HandleFunc("/stats", world.getStats)
 
+		// Websockets
 		logger.Info().Msg("Initiating Websockets...")
 		mux.HandleFunc("/screen", world.NewSocketConnection)
 	}
