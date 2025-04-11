@@ -265,12 +265,11 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	}
 
 	newPlayer.updateRecordOnLogin()
-	stage := getStageFromStageName(newPlayer, incoming.Record.StageName)
-	// if stage == nil {
-	// 	// Technically impossible because of clinic -> panic failsafe ?
-	// 	logger.Warn().Msg("WARN: Player " + newPlayer.username + " on unloadable stage: " + incoming.Record.StageName)
-	// 	return nil
-	// }
+	stage := getStageByNameOrGetDefault(newPlayer, incoming.Record.StageName)
+	if !validCoordinate(incoming.Record.Y, incoming.Record.X, stage) {
+		logger.Error().Msg("WARN: Player " + newPlayer.username + " on unloadable stage: " + incoming.Record.StageName)
+		return nil
+	}
 
 	emptyScreen := emptyScreenForStage(stage)
 	if !sendInitialScreen(conn, emptyScreen) {
@@ -280,7 +279,6 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	newPlayer.conn = conn
 	go newPlayer.sendUpdates()
 
-	// correct order?
 	count := world.addPlayer(newPlayer)
 	trySetPeakPlayerCount(world, count)
 

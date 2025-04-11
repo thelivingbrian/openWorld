@@ -84,7 +84,7 @@ func (stage *Stage) removeLockedPlayerById(id string) {
 
 func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 	if !validCoordinate(y, x, stage) {
-		// Extreme - Can this happen ? - Yes log in
+		// Extreme - Should be impossible - log error and return?
 		log.Fatal("Fatal: Invalid coords to place on stage.")
 	}
 

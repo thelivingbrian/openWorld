@@ -524,7 +524,7 @@ func (player *Player) updateRecordOnLogout() {
 /////////////////////////////////////////////////////////////
 // Stages
 
-func getStageFromStageName(player *Player, stagename string) *Stage {
+func getStageByNameOrGetDefault(player *Player, stagename string) *Stage {
 	// Never returns nil - Used on login as protection against old records with nonexistant locations
 	stage := player.fetchStageSync(stagename)
 	if stage == nil {

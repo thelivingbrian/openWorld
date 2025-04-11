@@ -47,13 +47,14 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 		logger.Info().Msg("player not found with token: " + token)
 		return
 	}
+
 	player := world.join(incoming, conn)
 	if player == nil {
 		logger.Info().Msg("Failed to join player with token: " + token)
 		return
 	}
-	incrementSessionLogins(world)
 
+	incrementSessionLogins(world)
 	handleNewPlayer(player)
 }
 
