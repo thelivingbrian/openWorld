@@ -411,7 +411,7 @@ func completeLogout(player *Player) {
 func getRelativeTile(source *Tile, yOff, xOff int, player *Player) *Tile {
 	destY := source.y + yOff
 	destX := source.x + xOff
-	if validCoordinate(destY, destX, source.stage.tiles) {
+	if validCoordinate(destY, destX, source.stage) {
 		return source.stage.tiles[destY][destX]
 	} else {
 		escapesVertically, escapesHorizontally := validityByAxis(destY, destX, source.stage.tiles)
@@ -430,12 +430,9 @@ func getRelativeTile(source *Tile, yOff, xOff int, player *Player) *Tile {
 				newStage = player.fetchStageSync(source.stage.north)
 			}
 
-			if newStage != nil {
-				if validCoordinate(mod(destY, len(newStage.tiles)), destX, newStage.tiles) {
-					return newStage.tiles[mod(destY, len(newStage.tiles))][destX]
-				}
+			if validCoordinate(mod(destY, len(newStage.tiles)), destX, newStage) {
+				return newStage.tiles[mod(destY, len(newStage.tiles))][destX]
 			}
-			return nil
 		}
 		if escapesHorizontally {
 			var newStage *Stage
@@ -446,12 +443,9 @@ func getRelativeTile(source *Tile, yOff, xOff int, player *Player) *Tile {
 				newStage = player.fetchStageSync(source.stage.west)
 			}
 
-			if newStage != nil {
-				if validCoordinate(destY, mod(destX, len(newStage.tiles)), newStage.tiles) {
-					return newStage.tiles[destY][mod(destX, len(newStage.tiles))]
-				}
+			if validCoordinate(destY, mod(destX, len(newStage.tiles)), newStage) {
+				return newStage.tiles[destY][mod(destX, len(newStage.tiles))]
 			}
-			return nil
 		}
 
 		return nil

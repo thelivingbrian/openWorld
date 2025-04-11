@@ -40,7 +40,7 @@ func (player *Player) setSpaceHighlights() (map[*Tile]bool, bool) {
 	currentTile := player.getTileSync()
 	absCoordinatePairs := findOffsetsGivenPowerUp(currentTile.y, currentTile.x, player.actions.spaceStack.peek())
 	for _, pair := range absCoordinatePairs {
-		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
+		if validCoordinate(pair[0], pair[1], player.stage) {
 			tile := player.stage.tiles[pair[0]][pair[1]]
 			player.actions.spaceHighlights[tile] = true
 		}
@@ -57,7 +57,7 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 	absCoordinatePairs := findOffsetsGivenPowerUp(currentTile.y, currentTile.x, player.actions.spaceStack.peek())
 	var impactedTiles []*Tile
 	for _, pair := range absCoordinatePairs {
-		if validCoordinate(pair[0], pair[1], player.stage.tiles) {
+		if validCoordinate(pair[0], pair[1], player.stage) {
 			tile := player.stage.tiles[pair[0]][pair[1]]
 			player.actions.spaceHighlights[tile] = true
 			if _, contains := previous[tile]; contains {

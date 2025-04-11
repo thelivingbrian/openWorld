@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 	"math/rand/v2"
 	"strconv"
 	"sync"
@@ -112,9 +111,10 @@ func (player *Player) moveBoost(yOffset int, xOffset int) {
 }
 
 func (player *Player) applyTeleport(teleport *Teleport) {
-	stage := getStageFromStageName(player, teleport.destStage)
-	if !validCoordinate(teleport.destY, teleport.destX, stage.tiles) {
-		log.Fatal("Fatal: Invalid coords from teleport: ", teleport.destStage, teleport.destY, teleport.destX)
+	stage := player.fetchStageSync(teleport.destStage)
+	if !validCoordinate(teleport.destY, teleport.destX, stage) {
+		logger.Error().Msg(fmt.Sprint("Fatal: Invalid coords from teleport: ", teleport.destStage, teleport.destY, teleport.destX))
+		return
 	}
 	// Is using getTileSync a risk with the menu teleport authorizer?
 	transferPlayer(player, player.getTileSync(), stage.tiles[teleport.destY][teleport.destX])
@@ -213,8 +213,8 @@ func (p *Player) pushTeleport(tile *Tile, incoming *Interactable, yOff, xOff int
 		return false
 	}
 	if canBeTeleported(incoming) {
-		stage := getStageFromStageName(p, tile.teleport.destStage)
-		if !validCoordinate(tile.teleport.destY+yOff, tile.teleport.destX+xOff, stage.tiles) {
+		stage := p.fetchStageSync(tile.teleport.destStage)
+		if !validCoordinate(tile.teleport.destY+yOff, tile.teleport.destX+xOff, stage) {
 			return false
 		}
 		return p.push(stage.tiles[tile.teleport.destY+yOff][tile.teleport.destX+xOff], incoming, yOff, xOff)
@@ -525,9 +525,11 @@ func (player *Player) updateRecordOnLogout() {
 // Stages
 
 func getStageFromStageName(player *Player, stagename string) *Stage {
+	// Never returns nil - Used on login as protection against old records with nonexistant locations
 	stage := player.fetchStageSync(stagename)
 	if stage == nil {
 		logger.Warn().Msg("WARNING: Fetching default stage instead of: " + stagename)
+		// clinic must exist - Add test ?
 		stage = player.fetchStageSync("clinic")
 		if stage == nil {
 			panic("Default stage not found")
