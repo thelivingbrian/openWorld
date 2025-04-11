@@ -72,14 +72,14 @@ func createStageFromArea(area Area) *Stage {
 
 func (stage *Stage) addLockedPlayer(player *Player) {
 	stage.playerMutex.Lock()
+	defer stage.playerMutex.Unlock()
 	stage.playerMap[player.id] = player
-	stage.playerMutex.Unlock()
 }
 
 func (stage *Stage) removeLockedPlayerById(id string) {
 	stage.playerMutex.Lock()
+	defer stage.playerMutex.Unlock()
 	delete(stage.playerMap, id)
-	stage.playerMutex.Unlock()
 }
 
 func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
