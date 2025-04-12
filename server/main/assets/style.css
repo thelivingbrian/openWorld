@@ -118,11 +118,15 @@ a {
     text-decoration: none;
 }
 
-#about p {
+#about {
     width: 70%;
     margin: 0 auto;
 }
 
+#notice {
+    width: 92%;
+    margin: 0 auto;
+}
 
 /* color select */
 

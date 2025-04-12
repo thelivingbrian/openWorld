@@ -6,8 +6,8 @@ import (
 )
 
 type Stage struct {
-	tiles              [][]*Tile          // [][]**Tile would be weird and open up FP over mutation (also lookup is less fragile)
-	playerMap          map[string]*Player // Player Map to Bson map to save whole stage in one command
+	tiles              [][]*Tile
+	playerMap          map[string]*Player // Only used for updates
 	playerMutex        sync.RWMutex
 	name               string
 	north              string
@@ -72,14 +72,14 @@ func createStageFromArea(area Area) *Stage {
 
 func (stage *Stage) addLockedPlayer(player *Player) {
 	stage.playerMutex.Lock()
+	defer stage.playerMutex.Unlock()
 	stage.playerMap[player.id] = player
-	stage.playerMutex.Unlock()
 }
 
 func (stage *Stage) removeLockedPlayerById(id string) {
 	stage.playerMutex.Lock()
+	defer stage.playerMutex.Unlock()
 	delete(stage.playerMap, id)
-	stage.playerMutex.Unlock()
 }
 
 func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {

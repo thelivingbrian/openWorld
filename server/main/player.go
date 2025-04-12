@@ -333,29 +333,6 @@ func infirmaryStagenameForPlayer(player *Player) string {
 ////////////////////////////////////////////////////////////
 //	Updates
 
-/*
-func (player *Player) sendUpdatesUnbuffered() {
-	shouldSendUpdates := true
-	for {
-		select {
-		case update, ok := <-player.updates:
-			if !ok {
-				logger.Info().Msg("Player: " + player.username + " update channel closed")
-				return
-			}
-			if !shouldSendUpdates {
-				continue
-			}
-			err := sendUpdate(player, update)
-			if err != nil {
-				shouldSendUpdates = false
-				player.closeConnectionSync()
-			}
-		}
-	}
-}
-*/
-
 func (player *Player) sendUpdates() {
 	var buffer bytes.Buffer
 	const maxBufferSize = 10 * 256 * 1024
@@ -635,13 +612,14 @@ func (player *Player) getTeamNameSync() string {
 	return player.team
 }
 
-// Stage observer, also sets name.
+// Remove ?
 func (player *Player) setStage(stage *Stage) {
 	player.stageLock.Lock()
 	defer player.stageLock.Unlock()
 	player.stage = stage
 }
 
+// Use Tile ?
 func (player *Player) getStageNameSync() string {
 	player.stageLock.Lock()
 	defer player.stageLock.Unlock()
@@ -660,7 +638,6 @@ func (player *Player) getTileSync() *Tile {
 	return player.tile
 }
 
-// Money observer, All Money changes should go through here
 func (player *Player) setMoney(n int) {
 	player.moneyLock.Lock()
 	defer player.moneyLock.Unlock()
