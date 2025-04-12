@@ -259,6 +259,8 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	}
 
 	newPlayer := world.newPlayerFromRecord(incoming.Record, incoming.Token)
+
+	// TOCCTOA - capacity can be exceeded
 	if world.teamAtCapacity(newPlayer.getTeamNameSync()) {
 		sendUnableToJoinMessage(conn, "Your team is at capacity.")
 		return nil

@@ -6,8 +6,8 @@ import (
 )
 
 type Stage struct {
-	tiles              [][]*Tile          // [][]**Tile would be weird and open up FP over mutation (also lookup is less fragile)
-	playerMap          map[string]*Player // Player Map to Bson map to save whole stage in one command
+	tiles              [][]*Tile
+	playerMap          map[string]*Player // Only used for updates
 	playerMutex        sync.RWMutex
 	name               string
 	north              string
