@@ -159,7 +159,8 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 	case "h":
 		player.cycleHats()
 	case "e":
-		fmt.Println("hi")
+		highest, _ := player.world.db.getTopNPlayersByField("money", 10)
+		fmt.Println(highest)
 		// Spin around
 	case "Shift-On":
 		updateOne(divInputShift(), player)

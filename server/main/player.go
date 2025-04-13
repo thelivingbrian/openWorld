@@ -60,6 +60,7 @@ type WebsocketConnection interface {
 ////////////////////////////////////////////////////////////
 //   Movement
 
+// Don't use method style except for .move?
 func (player *Player) moveNorth() {
 	player.move(-1, 0)
 }
