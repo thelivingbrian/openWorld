@@ -334,7 +334,7 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 /////////////////////////////////////////////
 // Integration Endpoint
 
-// Add Basic Auth
+// Add Basic Auth / real auth ?
 func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 	secret := os.Getenv("AUTO_PLAYER_PASSWORD")
 	if secret == "" {
@@ -363,6 +363,7 @@ func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < count; i++ {
 		iStr := strconv.Itoa(i) // Add some easy regex match condition
 		record := PlayerRecord{Username: username + iStr, Health: 50, Y: 12, X: 5, StageName: stage, Team: team, Trim: "white-b thick"}
+		// Make optional
 		world.db.InsertPlayerRecord(record)
 		loginRequest := createLoginRequest(record)
 		world.addIncoming(loginRequest)
