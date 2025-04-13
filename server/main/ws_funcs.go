@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"time"
@@ -157,6 +158,9 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 		makeHallucinate(player)
 	case "h":
 		player.cycleHats()
+	case "e":
+		fmt.Println("hi")
+		// Spin around
 	case "Shift-On":
 		updateOne(divInputShift(), player)
 	case "Shift-Off":
