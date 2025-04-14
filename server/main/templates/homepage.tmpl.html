@@ -17,7 +17,7 @@
             {{ else }}
                 <a class="large-font" href="/auth?provider=google"> Sign in with Google </a><br />
             {{ end }}
-            <a class="large-font" href="#" hx-get="/about" hx-target="#page"> About </a><br />
+            <a class="large-font" href="/about" > About </a><br />
         </div>
         {{ template "social" }}
     </div>
@@ -26,6 +26,14 @@
 {{ end }}
 
 {{define "about"}}
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/assets/htmx-mod.js"></script>
+<script src="/assets/ws.js"></script>
+<script src="/assets/fx.js"></script>
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/colors.css">
+<body>
 <div id="about-page">
     <div id="logo">
         <img src="/assets/blooplogo2.webp" width="33%" alt="Welcome to bloopworld"><br />
@@ -59,6 +67,7 @@
     </div>
     {{ template "social" }}
 </div>
+</body>
 {{end}}
 
 {{define "social"}}
