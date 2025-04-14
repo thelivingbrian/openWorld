@@ -38,12 +38,11 @@ func main() {
 	logger.Info().Msg("Establishing Routes...")
 	mux := http.NewServeMux()
 
-	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
-	mux.HandleFunc("/images/", imageHandler)
-
 	if config.isHub {
-		// Home
 		logger.Info().Msg("Setting up hub...")
+		mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
+
+		// Pages
 		mux.HandleFunc("/{$}", homeHandler)
 		mux.HandleFunc("/about", aboutHandler)
 
@@ -66,15 +65,16 @@ func main() {
 		go periodicSnapshot(world)
 		loadFromJson()
 
-		// World status and play
+		// Game Fucntionality
 		mux.HandleFunc("/status", world.statusHandler)
 		mux.HandleFunc("/play", world.playHandler)
+		mux.HandleFunc("/images/", imageHandler)
 
 		// Historical - Remove ?
 		mux.HandleFunc("/homesignin", getSignIn)
 		mux.HandleFunc("/signin", world.postSignin)
 
-		// REST endpoints
+		// REST helper endpoints
 		mux.HandleFunc("/insert", world.postHorribleBypass)
 		mux.HandleFunc("/stats", world.getStats)
 
