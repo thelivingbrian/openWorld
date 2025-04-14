@@ -40,11 +40,15 @@ func main() {
 
 	if config.isHub {
 		logger.Info().Msg("Setting up hub...")
+		hub := createDefaultHub(db)
+
+		// Static Assets
 		mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
 
 		// Pages
 		mux.HandleFunc("/{$}", homeHandler)
 		mux.HandleFunc("/about", aboutHandler)
+		mux.HandleFunc("/highscore", hub.highscoreHandler)
 
 		// Oauth
 		mux.HandleFunc("/auth", auth)
@@ -112,22 +116,4 @@ func pProfEnabled() bool {
 func initiatePProf() {
 	logger.Info().Msg("Starting pprof HTTP server on :6060")
 	logger.Error().Err(http.ListenAndServe("localhost:6060", nil)).Msg("Failed to start Pprof")
-}
-
-////////////////////////////////////////////////////////
-// Homepage
-
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	logger.Info().Msg("Home page accessed.")
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	_, identifierFound := getUserIdFromSession(r)
-	tmpl.ExecuteTemplate(w, "homepage", identifierFound)
-}
-
-func aboutHandler(w http.ResponseWriter, r *http.Request) {
-	logger.Info().Msg("Home page accessed.")
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	tmpl.ExecuteTemplate(w, "about", nil)
 }

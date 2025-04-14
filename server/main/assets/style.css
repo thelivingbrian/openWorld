@@ -113,6 +113,18 @@ a {
     text-decoration: none;
     padding-top: 16px;
 }
+#highscore {
+    text-align: center;
+}
+
+.highscore-list {
+    display: inline-block;
+    border-radius: 25%
+}
+
+.highscore-table{
+    display: inline-block;
+}
 
 #social a {
     text-decoration: none;
