@@ -71,3 +71,22 @@ func TestGenerateDeadliestList(t *testing.T) {
 		t.Errorf("expected K/D %s, got %s", expectedKD, list.Entries[0].StatValues[1])
 	}
 }
+
+func TestGenerateMVPList(t *testing.T) {
+	mock := &MockRankProvider{
+		topNCalls: make(map[string]int),
+		players: map[string][]PlayerRecord{
+			"goalsScored": {
+				{Username: "Emma", GoalsScored: 11},
+				{Username: "Fred", GoalsScored: 7},
+				{Username: "Gabby", GoalsScored: 2},
+			},
+		},
+	}
+	hub := createDefaultHub(mock)
+
+	list := generateMVPList(hub)
+	if len(list.Entries) != 3 || list.Entries[0].Username != "Emma" {
+		t.Errorf("unexpected list: %+v", list.Entries)
+	}
+}
