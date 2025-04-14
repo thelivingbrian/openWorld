@@ -100,18 +100,15 @@ func aboutHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (hub *Hub) highscoreHandler(w http.ResponseWriter, r *http.Request) {
-	logger.Info().Msg("Home page accessed.")
+	logger.Info().Msg("Highscore page accessed.")
 
 	queryValues := r.URL.Query()
 	category := queryValues.Get("category")
-
-	fmt.Println(category)
 
 	var scores HighScoreList
 	switch category {
 	case "money":
 		scores = generateRichestList(hub)
-		fmt.Println(scores)
 	case "killCount":
 		scores = generateDeadliestList(hub)
 	case "goalsScored":
