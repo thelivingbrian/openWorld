@@ -12,7 +12,7 @@ const HIGHSCORE_CHECK_INTERVAL_IN_SECONDS = 15
 
 type Hub struct {
 	richest, deadliest, mvp *HighScoreListSync
-	db                      *DB
+	db                      RankingProvider
 }
 
 type HighScoreListSync struct {
@@ -33,6 +33,10 @@ type HighScoreEntry struct {
 	StatValues []string
 }
 
+type RankingProvider interface {
+	getTopNPlayersByField(field string, n int) ([]PlayerRecord, error)
+}
+
 // Used w/ Template methods to cycle through on site
 var queryCategories = [3][2]string{
 	[2]string{"Richest", "money"},
@@ -40,7 +44,7 @@ var queryCategories = [3][2]string{
 	[2]string{"MVP", "goalsScored"},
 }
 
-func createDefaultHub(db *DB) *Hub {
+func createDefaultHub(db RankingProvider) *Hub {
 	return &Hub{
 		db: db,
 		richest: &HighScoreListSync{
