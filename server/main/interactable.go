@@ -33,10 +33,12 @@ func init() {
 		"goal-sky-blue": {
 			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: scoreGoalForTeam("sky-blue")},
 			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: pass},
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: showScoreToPlayer("sky-blue")},
 		},
 		"goal-fuchsia": {
 			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: scoreGoalForTeam("fuchsia")},
 			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: pass},
+			InteractableReaction{ReactsWith: interactableIsNil, Reaction: showScoreToPlayer("fuchsia")},
 		},
 		// Tutorial :
 		"tutorial-black-hole": {
@@ -349,6 +351,30 @@ func hideByTeam(team string) func(*Interactable, *Player, *Tile) (*Interactable,
 		logger.Info().Msg("Ball is hidden on: " + stagename)
 		stage := p.fetchStageSync(stagename)
 		placeInteractableOnStagePriorityCovered(stage, i)
+
+		return nil, false
+	}
+}
+
+func showScoreToPlayer(team string) func(*Interactable, *Player, *Tile) (outgoing *Interactable, ok bool) {
+	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+		// Get scores
+		score := p.world.leaderBoard.scoreboard.GetScore(team)
+		oppositeTeamName := oppositeTeamName(team)
+		scoreOpposing := p.world.leaderBoard.scoreboard.GetScore(oppositeTeamName)
+
+		// Add a sound?
+		//broadcastUpdate(p.world, soundTriggerByName("info?"))
+
+		message := fmt.Sprintf("The score is - @[%s %d|%s] to @[%s %d|%s]. ", team, score, team, oppositeTeamName, scoreOpposing, oppositeTeamName)
+
+		playerTeam := p.getTeamNameSync()
+		rand := rand.Intn(2) // Displaying both messages is too much - especially on mobile
+		if team == playerTeam && rand > 0 {
+			message = fmt.Sprintf("...Find the @[Ball|%s] to score a point!", playerTeam)
+		}
+
+		p.updateBottomText(message)
 
 		return nil, false
 	}

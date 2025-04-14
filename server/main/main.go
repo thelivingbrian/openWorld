@@ -38,14 +38,17 @@ func main() {
 	logger.Info().Msg("Establishing Routes...")
 	mux := http.NewServeMux()
 
-	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
-	mux.HandleFunc("/images/", imageHandler)
-
 	if config.isHub {
-		// Home
 		logger.Info().Msg("Setting up hub...")
+		hub := createDefaultHub(db)
+
+		// Static Assets
+		mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
+
+		// Pages
 		mux.HandleFunc("/{$}", homeHandler)
 		mux.HandleFunc("/about", aboutHandler)
+		mux.HandleFunc("/highscore", hub.highscoreHandler)
 
 		// Oauth
 		mux.HandleFunc("/auth", auth)
@@ -66,15 +69,16 @@ func main() {
 		go periodicSnapshot(world)
 		loadFromJson()
 
-		// World status and play
+		// Game Fucntionality
 		mux.HandleFunc("/status", world.statusHandler)
 		mux.HandleFunc("/play", world.playHandler)
+		mux.HandleFunc("/images/", imageHandler)
 
 		// Historical - Remove ?
 		mux.HandleFunc("/homesignin", getSignIn)
 		mux.HandleFunc("/signin", world.postSignin)
 
-		// REST endpoints
+		// REST helper endpoints
 		mux.HandleFunc("/insert", world.postHorribleBypass)
 		mux.HandleFunc("/stats", world.getStats)
 
@@ -112,22 +116,4 @@ func pProfEnabled() bool {
 func initiatePProf() {
 	logger.Info().Msg("Starting pprof HTTP server on :6060")
 	logger.Error().Err(http.ListenAndServe("localhost:6060", nil)).Msg("Failed to start Pprof")
-}
-
-////////////////////////////////////////////////////////
-// Homepage
-
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	logger.Info().Msg("Home page accessed.")
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	_, identifierFound := getUserIdFromSession(r)
-	tmpl.ExecuteTemplate(w, "homepage", identifierFound)
-}
-
-func aboutHandler(w http.ResponseWriter, r *http.Request) {
-	logger.Info().Msg("Home page accessed.")
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	tmpl.ExecuteTemplate(w, "about", nil)
 }

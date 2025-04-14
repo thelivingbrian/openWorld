@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// Remove?
 type User struct {
 	Email    string    `bson:"email"`
 	Verified bool      `bson:"verified"`
@@ -78,6 +79,10 @@ type SessionStreakRecord struct {
 	PlayerName string `bson:"playerName"`
 }
 
+///////////////////////////////////////////////////////////
+// User
+
+// Only used by test
 func (db *DB) newAccount(user User) error {
 	player := PlayerRecord{
 		Username:  user.Username,
@@ -304,6 +309,30 @@ func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 		"goalsScored":     p.getGoalsScored(),
 		"hatList.current": p.hatList.indexSync(),
 	}
+}
+
+//////////////////////////////////////////////////////////////////////
+// Highscores
+
+func (db *DB) getTopNPlayersByField(field string, n int) ([]PlayerRecord, error) {
+	// Should add indexes where needed
+	findOptions := options.Find().
+		SetSort(bson.D{{Key: field, Value: -1}}).
+		SetLimit(int64(n))
+
+	// Impact of adding a team filter ?
+	cursor, err := db.playerRecords.Find(context.TODO(), bson.D{}, findOptions)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var results []PlayerRecord
+	if err := cursor.All(context.TODO(), &results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }
 
 ///////////////////////////////////////////////////////////////////////

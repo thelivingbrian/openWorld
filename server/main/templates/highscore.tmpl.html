@@ -1,0 +1,58 @@
+{{ define "highscore" }}
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/assets/htmx-mod.js"></script>
+<script src="/assets/ws.js"></script>
+<script src="/assets/fx.js"></script>
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/colors.css">
+<body>
+    <div id="page">
+        {{template "logo-small"}}
+        <div id="highscore">
+            {{template "highscore-list" .}}
+        </div>
+        {{ template "social" }}
+    </div>
+</body>
+{{ end }}
+
+{{ define "highscore-list" }}
+<div class="highscore-list {{.BorderColor}}-b thick" >
+    <h2>{{.Category}} High Scores</h2>
+
+    {{ if not (eq (len .Entries) 0) }}
+        <div class="hiscore-container">
+        <table class="highscore-table">
+            <thead>
+            <tr>
+                <th><strong>Player</strong></th>
+                {{/* Use the first entry to list the stat headers. */}}
+                {{ range $i, $statName := (index .Entries 0).StatNames }}
+                    <th><strong>{{ $statName }}</strong></th>
+                {{ end }}
+            </tr>
+            </thead>
+            <tbody>
+            {{ range .Entries }}
+                <tr>
+                    <td>{{ .Username }}</td>
+                    {{ range .StatValues }}
+                        <td>{{ . }}</td>
+                    {{ end }}
+                </tr>
+            {{ end }}
+            </tbody>
+        </table>
+    </div>
+    {{ else }}
+        <p>No high scores available.</p>
+    {{ end }}
+    <br />
+    <a href="/highscore?category={{.PrevCategory}}">Prev</a> | 
+    <a href="/">Home</a> |
+    <a href="/highscore?category={{.NextCategory}}">Next</a> 
+    <br />
+    <br />
+</div>
+{{ end }}

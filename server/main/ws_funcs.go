@@ -157,6 +157,8 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 		makeHallucinate(player)
 	case "h":
 		player.cycleHats()
+	case "e":
+		// Spin around
 	case "Shift-On":
 		updateOne(divInputShift(), player)
 	case "Shift-Off":
