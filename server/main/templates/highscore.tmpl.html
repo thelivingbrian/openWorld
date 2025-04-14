@@ -20,7 +20,7 @@
 {{ end }}
 
 {{ define "highscore-list" }}
-<div class="highscore-list" style="border: 2px solid {{.BorderColor}}; padding: 1rem; width: 80%;">
+<div class="highscore-list {{.BorderColor}}-b thick r0" >
     <h2>{{.Category}} High Scores</h2>
 
     {{ if not (eq (len .Entries) 0) }}
@@ -49,9 +49,10 @@
         <p>No high scores available.</p>
     {{ end }}
     <br />
-    <br />
     <a href="/highscore?category={{.PrevCategory}}">Prev</a> | 
     <a href="/">Home</a> |
     <a href="/highscore?category={{.NextCategory}}">Next</a> 
+    <br />
+    <br />
 </div>
 {{ end }}

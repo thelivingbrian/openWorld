@@ -63,7 +63,7 @@ func createDefaultHub(db *DB) *Hub {
 		richest: &HighScoreListSync{
 			HighScoreList: HighScoreList{
 				Category:    "Richest",
-				BorderColor: "lime",
+				BorderColor: "green",
 			},
 		},
 		deadliest: &HighScoreListSync{
