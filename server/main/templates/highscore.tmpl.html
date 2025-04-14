@@ -20,10 +20,11 @@
 {{ end }}
 
 {{ define "highscore-list" }}
-<div class="highscore-list {{.BorderColor}}-b thick r0" >
+<div class="highscore-list {{.BorderColor}}-b thick" >
     <h2>{{.Category}} High Scores</h2>
 
     {{ if not (eq (len .Entries) 0) }}
+        <div class="hiscore-container">
         <table class="highscore-table">
             <thead>
             <tr>
@@ -45,6 +46,7 @@
             {{ end }}
             </tbody>
         </table>
+    </div>
     {{ else }}
         <p>No high scores available.</p>
     {{ end }}
