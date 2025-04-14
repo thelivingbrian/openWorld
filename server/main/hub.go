@@ -8,12 +8,12 @@ import (
 	"time"
 )
 
+const HIGHSCORE_CHECK_INTERVAL_IN_SECONDS = 15
+
 type Hub struct {
 	richest, deadliest, mvp *HighScoreListSync
 	db                      *DB
 }
-
-const HIGHSCORE_CHECK_INTERVAL_IN_SECONDS = 15
 
 type HighScoreListSync struct {
 	sync.Mutex
@@ -27,34 +27,17 @@ type HighScoreList struct {
 	Entries     []HighScoreEntry
 }
 
-var queryCategories = [3][2]string{
-	[2]string{"Richest", "money"},
-	[2]string{"Deadliest", "killCount"},
-	[2]string{"MVP", "goalsScored"},
-}
-
-func (hs HighScoreList) NextCategory() string {
-	for i := range queryCategories {
-		if hs.Category == queryCategories[i][0] {
-			return queryCategories[mod(i+1, len(queryCategories))][1]
-		}
-	}
-	return "next-invalid"
-}
-
-func (hs HighScoreList) PrevCategory() string {
-	for i := range queryCategories {
-		if hs.Category == queryCategories[i][0] {
-			return queryCategories[mod(i-1, len(queryCategories))][1]
-		}
-	}
-	return "prev-invalid"
-}
-
 type HighScoreEntry struct {
 	Username   string
 	StatNames  []string
 	StatValues []string
+}
+
+// Used w/ Template methods to cycle through on site
+var queryCategories = [3][2]string{
+	[2]string{"Richest", "money"},
+	[2]string{"Deadliest", "killCount"},
+	[2]string{"MVP", "goalsScored"},
 }
 
 func createDefaultHub(db *DB) *Hub {
@@ -122,7 +105,7 @@ func (hub *Hub) highscoreHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 //////////////////////////////////////////////////////////////////
-// List populators
+// Highscores
 
 func generateRichestList(hub *Hub) HighScoreList {
 	hub.richest.Lock()
@@ -187,4 +170,25 @@ func generateMVPList(hub *Hub) HighScoreList {
 		hub.mvp.lastChecked = time.Now()
 	}
 	return hub.mvp.HighScoreList
+}
+
+///////////////////////////////////////////////////////////
+// Highscore Template Methods
+
+func (hs HighScoreList) NextCategory() string {
+	for i := range queryCategories {
+		if hs.Category == queryCategories[i][0] {
+			return queryCategories[mod(i+1, len(queryCategories))][1]
+		}
+	}
+	return "next-invalid"
+}
+
+func (hs HighScoreList) PrevCategory() string {
+	for i := range queryCategories {
+		if hs.Category == queryCategories[i][0] {
+			return queryCategories[mod(i-1, len(queryCategories))][1]
+		}
+	}
+	return "prev-invalid"
 }
