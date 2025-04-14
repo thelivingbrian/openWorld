@@ -36,9 +36,7 @@
 <link rel="stylesheet" href="/assets/colors.css">
 <body>
 <div id="about-page">
-    <div id="logo">
-        <img src="/assets/blooplogo2.webp" width="33%" alt="Welcome to bloopworld"><br />
-    </div>
+    {{template "logo-small"}}
     <div id="about">   
         <p>
             Development of the Bloopworld engine started in December of 2023.
@@ -69,6 +67,14 @@
     {{ template "social" }}
 </div>
 </body>
+{{end}}
+
+{{define "logo-small"}}
+<div id="logo">
+    <a href="/">
+        <img src="/assets/blooplogo2.webp" width="33%" alt="Welcome to bloopworld">
+    </a><br />
+</div>
 {{end}}
 
 {{define "social"}}
