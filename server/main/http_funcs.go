@@ -301,10 +301,10 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 
 	logger.Info().Msg("New callback from: " + user.UserID)
 	if user.UserID == "" || user.Provider == "" {
-		fmt.Printf("Invalid id: %s or provider %s ", user.UserID, user.Provider)
+		logger.Warn().Msg(fmt.Sprintf("Invalid id: %s or provider %s ", user.UserID, user.Provider))
 	}
-	identifier := user.Provider + ":" + user.UserID
 
+	identifier := user.Provider + ":" + user.UserID
 	userRecord := db.getAuthorizedUserById(identifier)
 	if userRecord == nil {
 		logger.Info().Msg("Creating new user with identifier: " + identifier)
@@ -371,95 +371,6 @@ func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 		tokens = append(tokens, loginRequest.Token)
 	}
 	io.WriteString(w, "[\""+strings.Join(tokens, "\",\"")+"\"]")
-}
-
-/////////////////////////////////////////////
-// Old sign in (Still used for testing)
-
-func getSignIn(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, signInPage())
-}
-
-func (world *World) postSignin(w http.ResponseWriter, r *http.Request) {
-	props, success := requestToProperties(r)
-	if !success {
-		logger.Debug().Msg("invalid properties for signin")
-		return
-	}
-	email, err := url.QueryUnescape(props["email"])
-	if err != nil {
-		logger.Debug().Msg("Unable to unescape sign in")
-		return
-	}
-	password, err := url.QueryUnescape(props["password"])
-	if err != nil {
-		logger.Debug().Msg("Password unescape failed.")
-		return
-	}
-
-	user, err := world.db.getUserByEmail(strings.ToLower(email))
-	if err != nil {
-		io.WriteString(w, invalidSignin())
-		return
-	}
-	logger.Debug().Msg("Found a user: " + user.Username)
-
-	worked := checkPasswordHash(password, user.Hashword)
-	if worked {
-		record, err := world.db.getPlayerRecord(user.Username)
-		if err != nil {
-			logger.Debug().Msg("No Player for user.")
-			return
-		}
-		loginRequest := createLoginRequest(record)
-		world.addIncoming(loginRequest)
-
-		s := struct {
-			LoginRequest *LoginRequest
-			DomainName   string
-		}{
-			LoginRequest: loginRequest,
-			DomainName:   world.config.domainName,
-		}
-		err = tmpl.ExecuteTemplate(w, "player-page", s)
-		if err != nil {
-			logger.Error().Err(err).Msg("Error executing player page template")
-		}
-	} else {
-		io.WriteString(w, invalidSignin())
-		return
-	}
-}
-
-func signInPage() string {
-	return `
-	<form hx-post="/signin" hx-trigger="click from:#link_submit, keydown[key=='Enter']" hx-target="#landing">
-		<div>
-			<label>Email:</label><br />
-			<input class="retro-input" type="text" name="email" value=""><br />
-			<label>Password:</label><br />
-			<input class="retro-input" type="text" name="password" value=""><br />
-			<a id="link_submit" href="#">Submit</a><br />
-			<a id="link_back" href="/">Back</a>
-		</div>
-	</form>
-	`
-}
-
-func invalidSignin() string {
-	return `
-	<form hx-post="/signin" hx-trigger="click from:#link_submit, keydown[key=='Enter']" hx-target="#landing">
-		<div>
-			<p style='color:red'> Invalid Sign-in. </p>
-			<label>Email:</label>
-			<input class="retro-input" type="text" name="email" value=""><br />
-			<label>Password:</label>
-			<input class="retro-input" type="text" name="password" value=""><br />
-			<a id="link_submit" href="#">Submit</a><br />
-			<a id="link_back" href="/">Back</a>
-		</div>
-	</form>
-	`
 }
 
 ////////////////////////////////////

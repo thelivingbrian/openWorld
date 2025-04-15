@@ -72,11 +72,7 @@ func main() {
 		// Game Fucntionality
 		mux.HandleFunc("/status", world.statusHandler)
 		mux.HandleFunc("/play", world.playHandler)
-		mux.HandleFunc("/images/", imageHandler)
-
-		// Historical - Remove ?
-		mux.HandleFunc("/homesignin", getSignIn)
-		mux.HandleFunc("/signin", world.postSignin)
+		mux.HandleFunc("/images/", imageHandler) // note:0 trailing '/'
 
 		// REST helper endpoints
 		mux.HandleFunc("/insert", world.postHorribleBypass)
