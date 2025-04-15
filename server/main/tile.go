@@ -223,7 +223,6 @@ func (tile *Tile) copyOfPlayers() []Character {
 	return players
 }
 
-// Character.ReceiveDamageFrom
 func (target *Player) receiveDamageFrom(initiator *Player, dmg int) bool {
 	if target == initiator {
 		return false
