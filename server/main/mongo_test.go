@@ -40,7 +40,7 @@ func testdb() *DB {
 
 const NUMBER_OF_TEST_ACOUNTS = 1000
 
-func setupUsers() []User {
+func setupUsers() []AuthorizedUser {
 	emailIndex := mongo.IndexModel{
 		Keys: bson.M{
 			"email": 1,
@@ -62,17 +62,16 @@ func setupUsers() []User {
 	if err != nil {
 		log.Fatal(err)
 	}
-	testUsers := make([]User, 1000)
+	testUsers := make([]AuthorizedUser, 1000)
 	for i := range testUsers {
 		iStr := strconv.Itoa(i)
-		testUsers[i] = User{
-			Email:    iStr + "@example.com",
-			Verified: true,
-			Username: "testuser" + iStr,
-			Hashword: "hashedpassword",
-			Created:  time.Now(),
+		testUsers[i] = AuthorizedUser{
+			Identifier:    "testbed:" + iStr,
+			CreationEmail: iStr + "@example.com",
+			Username:      "testuser" + iStr,
+			Created:       time.Now(),
 		}
-		testdb().newAccount(testUsers[i])
+		testdb().insertAuthorizedUser(testUsers[i])
 	}
 
 	return testUsers
@@ -91,14 +90,14 @@ func cleanUp() {
 func BenchmarkMongoInsert(b *testing.B) {
 	defer cleanUp()
 	numberToInsert := 1
-	testUsers := make([]User, numberToInsert)
+	testUsers := make([]AuthorizedUser, numberToInsert)
 	for i := range testUsers {
 		iStr := strconv.Itoa(i)
-		testUsers[i] = User{
-			Email:    iStr + "insertTest@example.com",
-			Verified: true,
-			Username: "testInsert" + iStr,
-			Hashword: "hashedpassword",
+		testUsers[i] = AuthorizedUser{
+			Identifier:    "testbedinsert:" + iStr,
+			CreationEmail: iStr + "@insertexample.com",
+			Username:      "insert" + iStr,
+			Created:       time.Now(),
 		}
 	}
 
@@ -106,7 +105,7 @@ func BenchmarkMongoInsert(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for x := 0; x < numberToInsert; x++ {
-			testdb().insertUser(testUsers[x])
+			testdb().insertAuthorizedUser(testUsers[x])
 		}
 	}
 	b.StopTimer()

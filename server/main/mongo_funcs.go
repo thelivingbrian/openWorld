@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"errors"
 	"log"
-	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,6 +11,7 @@ import (
 )
 
 // Remove?
+/*
 type User struct {
 	Email    string    `bson:"email"`
 	Verified bool      `bson:"verified"`
@@ -20,6 +19,7 @@ type User struct {
 	Hashword string    `bson:"hashword"`
 	Created  time.Time `bson:"created,omitempty"`
 }
+*/
 
 type AuthorizedUser struct {
 	Identifier    string    `bson:"identifier"`
@@ -82,6 +82,7 @@ type SessionStreakRecord struct {
 ///////////////////////////////////////////////////////////
 // User
 
+/*
 // Only used by test
 func (db *DB) newAccount(user User) error {
 	player := PlayerRecord{
@@ -111,14 +112,6 @@ func (db *DB) insertUser(user User) error {
 	return nil
 }
 
-func (db *DB) InsertPlayerRecord(player PlayerRecord) error {
-	_, err := db.playerRecords.InsertOne(context.TODO(), player)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (db *DB) getUserByEmail(email string) (*User, error) {
 	var result User
 	collection := db.users
@@ -138,6 +131,15 @@ func (db *DB) getUserByEmail(email string) (*User, error) {
 		}
 	}
 	return &result, nil
+}
+*/
+
+func (db *DB) InsertPlayerRecord(player PlayerRecord) error {
+	_, err := db.playerRecords.InsertOne(context.TODO(), player)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 /////////////////////////////////////////////////////////////
