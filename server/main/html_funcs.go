@@ -43,7 +43,7 @@ func swapsForTilesWithHighlights(tiles [][]*Tile, highlights map[*Tile]bool) []b
 
 func swapsForTile(tile *Tile, highlight string) string {
 	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.quickSwapTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x, tile.stage.weather), oobHighlightBox(tile, highlight))
+	return fmt.Sprintf(tile.quickSwapTemplate, CharacterBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x, tile.stage.weather), oobHighlightBox(tile, highlight))
 }
 
 ////////////////////////////////////////////////////////////
@@ -132,7 +132,7 @@ func playerBoxSpecifc(y, x int, icon string) string {
 	return fmt.Sprintf(`[~ id="Lp1-%d-%d" class="box zp %s"]`, y, x, icon)
 }
 
-func playerBox(tile *Tile) string {
+func CharacterBox(tile *Tile) string {
 	playerIndicator := ""
 	if p := tile.getAPlayer(); p != nil {
 		playerIndicator = p.getIconSync()
@@ -209,12 +209,14 @@ func weatherBox(tile *Tile, cssClass string) string {
 }
 
 func svgFromTile(tile *Tile) string {
-	tile.powerMutex.Lock()
-	defer tile.powerMutex.Unlock()
-	tile.moneyMutex.Lock()
-	defer tile.moneyMutex.Unlock()
-	tile.boostsMutex.Lock()
-	defer tile.boostsMutex.Unlock()
+	tile.itemMutex.Lock()
+	defer tile.itemMutex.Unlock()
+	// tile.powerMutex.Lock()
+	// defer tile.powerMutex.Unlock()
+	// tile.moneyMutex.Lock()
+	// defer tile.moneyMutex.Unlock()
+	// tile.boostsMutex.Lock()
+	// defer tile.boostsMutex.Unlock()
 
 	template := `[~ id="%s" class="%s"]`
 

@@ -11,7 +11,7 @@ import (
 type Tile struct {
 	material          Material
 	playerMap         map[string]Character
-	playerMutex       sync.Mutex
+	CharacterMutex    sync.Mutex
 	interactable      *Interactable
 	interactableMutex sync.Mutex
 	stage             *Stage
@@ -19,12 +19,13 @@ type Tile struct {
 	y                 int
 	x                 int
 	eventsInFlight    atomic.Int32
+	itemMutex         sync.Mutex
 	powerUp           *PowerUp
-	powerMutex        sync.Mutex
-	money             int
-	moneyMutex        sync.Mutex
-	boosts            int
-	boostsMutex       sync.Mutex
+	// powerMutex        sync.Mutex
+	money int
+	// moneyMutex        sync.Mutex
+	boosts int
+	// boostsMutex       sync.Mutex
 	quickSwapTemplate string
 	bottomText        string
 }
@@ -38,23 +39,19 @@ type Teleport struct {
 	rejectInteractable bool
 }
 
-type Character interface {
-	receiveDamageFrom(initiator *Player, dmg int) bool
-	getIconSync() string
-}
-
 func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 	return &Tile{
-		material:          mat,
-		playerMap:         make(map[string]Character),
-		playerMutex:       sync.Mutex{},
-		stage:             nil,
-		teleport:          nil,
-		y:                 y,
-		x:                 x,
-		eventsInFlight:    atomic.Int32{},
-		powerUp:           nil,
-		powerMutex:        sync.Mutex{},
+		material:       mat,
+		playerMap:      make(map[string]Character),
+		CharacterMutex: sync.Mutex{},
+		stage:          nil,
+		teleport:       nil,
+		y:              y,
+		x:              x,
+		eventsInFlight: atomic.Int32{},
+		itemMutex:      sync.Mutex{},
+		powerUp:        nil,
+		//powerMutex:        sync.Mutex{},
 		money:             0,
 		quickSwapTemplate: makeQuickSwapTemplate(mat, y, x),
 		bottomText:        mat.DisplayText, // Pre-process needed *String to have option of null?
@@ -95,12 +92,47 @@ func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	player.tileLock.Lock()
 	defer player.tileLock.Unlock()
 	tile.addLockedPlayerToTile(player)
-	tile.stage.updateAllExcept(playerBox(tile), player)
+	tile.stage.updateAllExcept(CharacterBox(tile), player)
+}
+
+func addNPCToTile(tile *Tile, npc *NonPlayer) {
+	npc.tileLock.Lock()
+	defer npc.tileLock.Unlock()
+	tile.CharacterMutex.Lock()
+	defer tile.CharacterMutex.Unlock()
+	if collectItemNPC(tile, npc) {
+		tile.stage.updateAll(svgFromTile(tile))
+	}
+	tile.playerMap[npc.id] = npc
+	npc.tile = tile
+}
+
+func collectItemNPC(tile *Tile, npc *NonPlayer) bool {
+	itemChange := false
+
+	tile.itemMutex.Lock()
+	defer tile.itemMutex.Unlock()
+	if tile.powerUp != nil {
+		tile.powerUp = nil
+		itemChange = true
+	}
+	if tile.money != 0 {
+		npc.money.Add(int32(tile.money))
+		tile.money = 0
+		itemChange = true
+	}
+	if tile.boosts > 0 {
+		npc.boosts.Add(int32(tile.boosts))
+		tile.boosts = 0
+		itemChange = true
+	}
+	return itemChange
+
 }
 
 func (tile *Tile) addLockedPlayerToTile(player *Player) {
-	tile.playerMutex.Lock()
-	defer tile.playerMutex.Unlock()
+	tile.CharacterMutex.Lock()
+	defer tile.CharacterMutex.Unlock()
 
 	// technically can race, e.g. with interactable reaction
 	if tile.bottomText != "" {
@@ -109,7 +141,7 @@ func (tile *Tile) addLockedPlayerToTile(player *Player) {
 
 	if tile.collectItemsForPlayer(player) {
 		sendSoundToPlayer(player, "money")
-		player.stage.updateAll(svgFromTile(tile))
+		tile.stage.updateAll(svgFromTile(tile))
 	}
 
 	// player's tile lock should be held
@@ -130,12 +162,14 @@ func (tile *Tile) addLockedPlayerToTile(player *Player) {
 func (tile *Tile) collectItemsForPlayer(player *Player) bool {
 	itemChange := false
 	// Single item mutex?
-	tile.powerMutex.Lock()
-	defer tile.powerMutex.Unlock()
-	tile.moneyMutex.Lock()
-	defer tile.moneyMutex.Unlock()
-	tile.boostsMutex.Lock()
-	defer tile.boostsMutex.Unlock()
+	// tile.powerMutex.Lock()
+	// defer tile.powerMutex.Unlock()
+	// tile.moneyMutex.Lock()
+	// defer tile.moneyMutex.Unlock()
+	// tile.boostsMutex.Lock()
+	// defer tile.boostsMutex.Unlock()
+	tile.itemMutex.Lock()
+	defer tile.itemMutex.Unlock()
 	if tile.powerUp != nil {
 		powerUp := tile.powerUp
 		tile.powerUp = nil
@@ -158,7 +192,7 @@ func (tile *Tile) collectItemsForPlayer(player *Player) bool {
 func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
 	success = tryRemovePlayer(tile, player)
 	if success {
-		tile.stage.updateAllExcept(playerBox(tile), player)
+		tile.stage.updateAllExcept(CharacterBox(tile), player)
 	} else {
 		// Possible under what circumstance :
 		//   Handle death can race with logout to produce this (harmlessly?)
@@ -168,8 +202,8 @@ func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
 }
 
 func tryRemovePlayer(tile *Tile, player *Player) bool {
-	tile.playerMutex.Lock()
-	defer tile.playerMutex.Unlock()
+	tile.CharacterMutex.Lock()
+	defer tile.CharacterMutex.Unlock()
 
 	_, foundOnTile := tile.playerMap[player.id]
 	if !foundOnTile {
@@ -181,8 +215,8 @@ func tryRemovePlayer(tile *Tile, player *Player) bool {
 }
 
 func (tile *Tile) getAPlayer() Character {
-	tile.playerMutex.Lock()
-	defer tile.playerMutex.Unlock()
+	tile.CharacterMutex.Lock()
+	defer tile.CharacterMutex.Unlock()
 	for _, player := range tile.playerMap {
 		return player
 	}
@@ -209,17 +243,17 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 		fatalities = player.receiveDamageFrom(initiator, dmg) || fatalities
 	}
 	if fatalities {
-		tile.stage.updateAll(playerBox(tile))
+		tile.stage.updateAll(CharacterBox(tile))
 	}
 }
 
 func (tile *Tile) copyOfPlayers() []Character {
 	players := make([]Character, 0)
-	tile.playerMutex.Lock()
+	tile.CharacterMutex.Lock()
 	for _, player := range tile.playerMap {
 		players = append(players, player)
 	}
-	tile.playerMutex.Unlock()
+	tile.CharacterMutex.Unlock()
 	return players
 }
 
@@ -442,19 +476,26 @@ func getTilesInRadius(tile *Tile, r int) []*Tile {
 /////////////////////////////////////////////////////////////////
 // Observers / Item state
 
-// / These need to get looked at (? mutex?)
 func (tile *Tile) addPowerUpAndNotifyAll(shape [][2]int) {
-	tile.powerMutex.Lock()
-	tile.powerUp = &PowerUp{shape}
-	tile.powerMutex.Unlock()
+	tile.addPowerUp(shape)
 	tile.stage.updateAll(svgFromTile(tile))
 }
 
+func (tile *Tile) addPowerUp(shape [][2]int) {
+	tile.itemMutex.Lock()
+	defer tile.itemMutex.Unlock()
+	tile.powerUp = &PowerUp{shape}
+}
+
 func (tile *Tile) addBoostsAndNotifyAll() {
-	tile.boostsMutex.Lock()
-	tile.boosts += 10
-	tile.boostsMutex.Unlock()
+	tile.addBoosts(10)
 	tile.stage.updateAll(svgFromTile(tile))
+}
+
+func (tile *Tile) addBoosts(amount int) {
+	tile.itemMutex.Lock()
+	defer tile.itemMutex.Unlock()
+	tile.boosts += amount
 }
 
 func (tile *Tile) addMoneyAndNotifyAll(amount int) {
@@ -462,8 +503,12 @@ func (tile *Tile) addMoneyAndNotifyAll(amount int) {
 }
 
 func (tile *Tile) addMoneyAndNotifyAllExcept(amount int, player *Player) {
-	tile.moneyMutex.Lock()
-	tile.money += amount
-	tile.moneyMutex.Unlock()
+	tile.addMoney(amount)
 	tile.stage.updateAllExcept(svgFromTile(tile), player)
+}
+
+func (tile *Tile) addMoney(amount int) {
+	tile.itemMutex.Lock()
+	defer tile.itemMutex.Unlock()
+	tile.money += amount
 }
