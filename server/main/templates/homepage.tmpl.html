@@ -1,11 +1,5 @@
 {{ define "homepage" }}
-<!DOCTYPE html>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="/assets/htmx-mod.js"></script>
-<script src="/assets/ws.js"></script>
-<script src="/assets/fx.js"></script>
-<link rel="stylesheet" href="/assets/style.css">
-<link rel="stylesheet" href="/assets/colors.css">
+{{template "page-header"}}
 <body>
     <div id="page">
         <div id="logo">
@@ -27,13 +21,7 @@
 {{ end }}
 
 {{define "about"}}
-<!DOCTYPE html>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="/assets/htmx-mod.js"></script>
-<script src="/assets/ws.js"></script>
-<script src="/assets/fx.js"></script>
-<link rel="stylesheet" href="/assets/style.css">
-<link rel="stylesheet" href="/assets/colors.css">
+{{template "page-header"}}
 <body>
 <div id="about-page">
     {{template "logo-small"}}
@@ -89,4 +77,15 @@
         <img src="/assets/x-twitter-logo.svg" alt="XTwitter" width="32" height="32">
     </a>
 </div>
+{{end}}
+
+{{define "page-header"}}
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/assets/htmx-mod.js"></script>
+<script src="/assets/ws.js"></script>
+<script src="/assets/fx.js"></script>
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/colors.css">
+<title>Bloopworld</title>
 {{end}}

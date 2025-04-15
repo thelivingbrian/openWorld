@@ -284,16 +284,13 @@ func divInputDisabled() string {
 
 func divLogOutResume(text, domain string) []byte {
 	var buf bytes.Buffer
-	logOutSuccess := `
-	  <div id="page">
-	      <div id="logo">
-	          <img src="/assets/blooplogo2.webp" width="400" height="400" alt="Welcome to bloopworld"><br />
-	      </div>
-	      <div id="landing">   
-		  	  <span>%s</span><br />
-	          <a class="large-font" href="#" hx-post="%s/play" hx-target="#page">Resume</a><br />
-	      </div>
-	  </div>`
-	fmt.Fprintf(&buf, logOutSuccess, text, domain)
+	data := struct {
+		Text   string
+		Domain string
+	}{
+		Text:   text,
+		Domain: domain,
+	}
+	tmpl.ExecuteTemplate(&buf, "log-out", data)
 	return buf.Bytes()
 }
