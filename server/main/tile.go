@@ -10,7 +10,7 @@ import (
 
 type Tile struct {
 	material          Material
-	playerMap         map[string]*Player
+	playerMap         map[string]Character
 	playerMutex       sync.Mutex
 	interactable      *Interactable
 	interactableMutex sync.Mutex
@@ -38,10 +38,15 @@ type Teleport struct {
 	rejectInteractable bool
 }
 
+type Character interface {
+	receiveDamageFrom(initiator *Player, dmg int) bool
+	getIconSync() string
+}
+
 func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 	return &Tile{
 		material:          mat,
-		playerMap:         make(map[string]*Player),
+		playerMap:         make(map[string]Character),
 		playerMutex:       sync.Mutex{},
 		stage:             nil,
 		teleport:          nil,
@@ -175,7 +180,7 @@ func tryRemovePlayer(tile *Tile, player *Player) bool {
 	return true
 }
 
-func (tile *Tile) getAPlayer() *Player {
+func (tile *Tile) getAPlayer() Character {
 	tile.playerMutex.Lock()
 	defer tile.playerMutex.Unlock()
 	for _, player := range tile.playerMap {
@@ -201,15 +206,15 @@ func damageAndIndicate(tiles []*Tile, initiator *Player, stage *Stage, damage in
 func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	fatalities := false
 	for _, player := range tile.copyOfPlayers() {
-		fatalities = damageTargetOnBehalfOf(player, initiator, dmg) || fatalities
+		fatalities = player.receiveDamageFrom(initiator, dmg) || fatalities
 	}
 	if fatalities {
 		tile.stage.updateAll(playerBox(tile))
 	}
 }
 
-func (tile *Tile) copyOfPlayers() []*Player {
-	players := make([]*Player, 0)
+func (tile *Tile) copyOfPlayers() []Character {
+	players := make([]Character, 0)
 	tile.playerMutex.Lock()
 	for _, player := range tile.playerMap {
 		players = append(players, player)
@@ -218,7 +223,8 @@ func (tile *Tile) copyOfPlayers() []*Player {
 	return players
 }
 
-func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
+// Character.ReceiveDamageFrom
+func (target *Player) receiveDamageFrom(initiator *Player, dmg int) bool {
 	if target == initiator {
 		return false
 	}
@@ -242,6 +248,7 @@ func damageTargetOnBehalfOf(target, initiator *Player, dmg int) bool {
 	}
 	return fatal
 }
+
 func damagePlayerAndHandleDeath(player *Player, dmg int) bool {
 	flashBackgroundColorIfTangible(player, "twilight")
 	fatal := reduceHealthAndCheckFatal(player, dmg)
