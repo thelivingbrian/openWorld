@@ -308,7 +308,7 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 	userRecord := db.getAuthorizedUserById(identifier)
 	if userRecord == nil {
 		logger.Info().Msg("Creating new user with identifier: " + identifier)
-		newUser := AuthorizedUser{Identifier: identifier, Username: "", CreationEmail: user.Email, Created: time.Now(), LastLogin: time.Now()}
+		newUser := UserRecord{Identifier: identifier, Username: "", CreationEmail: user.Email, Created: time.Now(), LastLogin: time.Now()}
 		err := db.insertAuthorizedUser(newUser)
 		if err != nil {
 			logger.Warn().Msg("New User creation in mongo failed")

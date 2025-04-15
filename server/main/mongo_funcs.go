@@ -10,18 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Remove?
-/*
-type User struct {
-	Email    string    `bson:"email"`
-	Verified bool      `bson:"verified"`
-	Username string    `bson:"username"`
-	Hashword string    `bson:"hashword"`
-	Created  time.Time `bson:"created,omitempty"`
-}
-*/
-
-type AuthorizedUser struct {
+type UserRecord struct {
 	Identifier    string    `bson:"identifier"`
 	Username      string    `bson:"username"`
 	CreationEmail string    `bson:"creationEmail"`
@@ -51,7 +40,7 @@ type PlayerRecord struct {
 	HatList HatList `bson:"hatList,omitempty"`
 }
 
-type Event struct {
+type EventRecord struct {
 	Owner     string    `bson:"owner"`
 	Secondary string    `bson:"secondary"`
 	Type      string    `bson:"eventtype"`
@@ -80,73 +69,10 @@ type SessionStreakRecord struct {
 }
 
 ///////////////////////////////////////////////////////////
-// User
+// User Record
 
-/*
-// Only used by test
-func (db *DB) newAccount(user User) error {
-	player := PlayerRecord{
-		Username:  user.Username,
-		Health:    100,
-		StageName: "tutorial:0-0",
-		X:         4,
-		Y:         4,
-		Money:     80,
-	}
-	err := db.insertUser(user)
-	if err != nil {
-		return err // This is fine
-	}
-	err = db.InsertPlayerRecord(player)
-	if err != nil {
-		return err // This is not fun
-	}
-	return nil
-}
-
-func (db *DB) insertUser(user User) error {
-	_, err := db.users.InsertOne(context.TODO(), user)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (db *DB) getUserByEmail(email string) (*User, error) {
-	var result User
-	collection := db.users
-	var invalidChars = []string{"{", "}", "\"", "'", "`", "/", "\\", "\n", "\t", "$"}
-	for _, char := range invalidChars {
-		if strings.Contains(email, char) {
-			return nil, errors.New("email is not valid")
-		}
-	}
-	err := collection.FindOne(context.TODO(), bson.M{"email": bson.M{"$eq": email}}).Decode(&result)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			logger.Error().Err(err).Msg("No document was found with the given email") // logger.Error().Err(err).Msg(
-			return nil, err
-		} else {
-			log.Fatal(err)
-		}
-	}
-	return &result, nil
-}
-*/
-
-func (db *DB) InsertPlayerRecord(player PlayerRecord) error {
-	_, err := db.playerRecords.InsertOne(context.TODO(), player)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-/////////////////////////////////////////////////////////////
-//  Authorized
-
-func (db *DB) getAuthorizedUserById(identifier string) *AuthorizedUser {
-	var result AuthorizedUser
+func (db *DB) getAuthorizedUserById(identifier string) *UserRecord {
+	var result UserRecord
 	collection := db.users
 	err := collection.FindOne(context.TODO(), bson.M{"identifier": bson.M{"$eq": identifier}}).Decode(&result)
 	if err != nil {
@@ -160,7 +86,7 @@ func (db *DB) getAuthorizedUserById(identifier string) *AuthorizedUser {
 	return &result
 }
 
-func (db *DB) insertAuthorizedUser(user AuthorizedUser) error {
+func (db *DB) insertAuthorizedUser(user UserRecord) error {
 	_, err := db.users.InsertOne(context.TODO(), user)
 	return err
 }
@@ -189,7 +115,17 @@ func (db *DB) updateUsernameForUserWithId(identifier, username string) bool {
 	return true
 }
 
-// needs to return error?
+/////////////////////////////////////////////////////////////
+//  Player Record
+
+func (db *DB) InsertPlayerRecord(player PlayerRecord) error {
+	_, err := db.playerRecords.InsertOne(context.TODO(), player)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (db *DB) getPlayerRecord(username string) (PlayerRecord, error) {
 	collection := db.playerRecords
 	var result PlayerRecord
@@ -208,45 +144,6 @@ func (db *DB) getPlayerRecord(username string) (PlayerRecord, error) {
 func (db *DB) foundUsername(username string) bool {
 	_, err := db.getPlayerRecord(username)
 	return err == nil
-}
-
-func (db *DB) saveKillEvent(tile *Tile, initiator *Player, defeated *Player) error {
-	eventCollection := db.events
-	event := Event{
-		Owner:     initiator.username,
-		Secondary: defeated.username,
-		Type:      "Kill",
-		Created:   time.Now(),
-		StageName: tile.stage.name,
-		X:         tile.x,
-		Y:         tile.y,
-	}
-	_, err := eventCollection.InsertOne(context.TODO(), event)
-	if err != nil {
-		log.Fatal("Event Insert Failed")
-	}
-
-	return nil
-}
-
-func (db *DB) saveScoreEvent(tile *Tile, initiator *Player, message string) error {
-	eventCollection := db.events
-	event := Event{
-		Owner:     initiator.username,
-		Secondary: "",
-		Type:      "Score",
-		Created:   time.Now(),
-		StageName: tile.stage.name,
-		X:         tile.x,
-		Y:         tile.y,
-		Details:   message,
-	}
-	_, err := eventCollection.InsertOne(context.TODO(), event)
-	if err != nil {
-		log.Fatal("Event Insert Failed")
-	}
-
-	return nil
 }
 
 func (db *DB) updateRecordForPlayer(p *Player, pTile *Tile) error {
@@ -311,6 +208,48 @@ func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 		"goalsScored":     p.getGoalsScored(),
 		"hatList.current": p.hatList.indexSync(),
 	}
+}
+
+//////////////////////////////////////////////////////////////////////
+// Event Records
+
+func (db *DB) saveKillEvent(tile *Tile, initiator *Player, defeated *Player) error {
+	eventCollection := db.events
+	event := EventRecord{
+		Owner:     initiator.username,
+		Secondary: defeated.username,
+		Type:      "Kill",
+		Created:   time.Now(),
+		StageName: tile.stage.name,
+		X:         tile.x,
+		Y:         tile.y,
+	}
+	_, err := eventCollection.InsertOne(context.TODO(), event)
+	if err != nil {
+		log.Fatal("Event Insert Failed")
+	}
+
+	return nil
+}
+
+func (db *DB) saveScoreEvent(tile *Tile, initiator *Player, message string) error {
+	eventCollection := db.events
+	event := EventRecord{
+		Owner:     initiator.username,
+		Secondary: "",
+		Type:      "Score",
+		Created:   time.Now(),
+		StageName: tile.stage.name,
+		X:         tile.x,
+		Y:         tile.y,
+		Details:   message,
+	}
+	_, err := eventCollection.InsertOne(context.TODO(), event)
+	if err != nil {
+		log.Fatal("Event Insert Failed")
+	}
+
+	return nil
 }
 
 //////////////////////////////////////////////////////////////////////

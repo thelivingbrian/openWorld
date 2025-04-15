@@ -40,7 +40,7 @@ func testdb() *DB {
 
 const NUMBER_OF_TEST_ACOUNTS = 1000
 
-func setupUsers() []AuthorizedUser {
+func setupUsers() []UserRecord {
 	emailIndex := mongo.IndexModel{
 		Keys: bson.M{
 			"email": 1,
@@ -62,10 +62,10 @@ func setupUsers() []AuthorizedUser {
 	if err != nil {
 		log.Fatal(err)
 	}
-	testUsers := make([]AuthorizedUser, 1000)
+	testUsers := make([]UserRecord, 1000)
 	for i := range testUsers {
 		iStr := strconv.Itoa(i)
-		testUsers[i] = AuthorizedUser{
+		testUsers[i] = UserRecord{
 			Identifier:    "testbed:" + iStr,
 			CreationEmail: iStr + "@example.com",
 			Username:      "testuser" + iStr,
@@ -90,10 +90,10 @@ func cleanUp() {
 func BenchmarkMongoInsert(b *testing.B) {
 	defer cleanUp()
 	numberToInsert := 1
-	testUsers := make([]AuthorizedUser, numberToInsert)
+	testUsers := make([]UserRecord, numberToInsert)
 	for i := range testUsers {
 		iStr := strconv.Itoa(i)
-		testUsers[i] = AuthorizedUser{
+		testUsers[i] = UserRecord{
 			Identifier:    "testbedinsert:" + iStr,
 			CreationEmail: iStr + "@insertexample.com",
 			Username:      "insert" + iStr,
