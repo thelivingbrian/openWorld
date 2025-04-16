@@ -417,7 +417,7 @@ func tryPlaceInteractableOnStage(stage *Stage, interactable *Interactable) {
 
 func moveInitiator(yOff, xOff int) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-		p.move(yOff, xOff)
+		move(p, yOff, xOff)
 		return i, true
 	}
 }
@@ -432,7 +432,7 @@ func moveInitiatorPushSurrounding(yOff, xOff int) func(*Interactable, *Player, *
 		for _, tile := range getVanNeumannNeighborsOfTile(t) {
 			p.push(tile, nil, yOff, xOff)
 		}
-		p.move(yOff, xOff)
+		move(p, yOff, xOff)
 		sendSoundToPlayer(p, "wind-swoosh")
 		t.stage.updateAllExcept(soundTriggerByName("woody-swoosh"), p)
 		return nil, false

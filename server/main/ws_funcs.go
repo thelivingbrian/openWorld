@@ -139,13 +139,13 @@ func (player *Player) handlePressActive(event *PlayerSocketEvent) bool {
 func (player *Player) handlePress(event *PlayerSocketEvent) {
 	switch event.Name {
 	case "w":
-		player.moveNorth()
+		moveNorth(player)
 	case "a":
-		player.moveWest()
+		moveWest(player)
 	case "s":
-		player.moveSouth()
+		moveSouth(player)
 	case "d":
-		player.moveEast()
+		moveEast(player)
 	case "W":
 		player.moveNorthBoost()
 	case "A":
@@ -161,7 +161,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 	case "h":
 		player.cycleHats()
 	case "e":
-		spawnNewNPCWithRandomMovement(player, 5)
+		spawnNewNPCWithRandomMovement(player, 115)
 	case "Shift-On":
 		updateOne(divInputShift(), player)
 	case "Shift-Off":
@@ -237,16 +237,16 @@ func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, conte
 				randn := rand.Intn(5000)
 
 				if randn%4 == 0 {
-					newPlayer.moveNorth()
+					moveNorth(newPlayer)
 				}
 				if randn%4 == 1 {
-					newPlayer.moveSouth()
+					moveSouth(newPlayer)
 				}
 				if randn%4 == 2 {
-					newPlayer.moveEast()
+					moveEast(newPlayer)
 				}
 				if randn%4 == 3 {
-					newPlayer.moveWest()
+					moveWest(newPlayer)
 				}
 			}
 		}

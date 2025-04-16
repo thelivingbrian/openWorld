@@ -61,53 +61,53 @@ type WebsocketConnection interface {
 //   Movement
 
 // Don't use method style except for .move?
-func (player *Player) moveNorth() {
-	player.move(-1, 0)
+func moveNorth(player Character) {
+	move(player, -1, 0)
 }
 
 func (player *Player) moveNorthBoost() {
 	player.moveBoost(-1, 0)
 }
 
-func (player *Player) moveSouth() {
-	player.move(1, 0)
+func moveSouth(player Character) {
+	move(player, 1, 0)
 }
 
 func (player *Player) moveSouthBoost() {
 	player.moveBoost(1, 0)
 }
 
-func (player *Player) moveEast() {
-	player.move(0, 1)
+func moveEast(player Character) {
+	move(player, 0, 1)
 }
 
 func (player *Player) moveEastBoost() {
 	player.moveBoost(0, 1)
 }
 
-func (player *Player) moveWest() {
-	player.move(0, -1)
+func moveWest(player Character) {
+	move(player, 0, -1)
 }
 
 func (player *Player) moveWestBoost() {
 	player.moveBoost(0, -1)
 }
 
-func (player *Player) move(yOffset int, xOffset int) {
+func move(player Character, yOffset int, xOffset int) {
 	sourceTile := player.getTileSync()
 	player.push(sourceTile, nil, yOffset, xOffset)
 	destTile := getRelativeTile(sourceTile, yOffset, xOffset, player)
 	player.push(destTile, nil, yOffset, xOffset)
 	if walkable(destTile) {
-		transferPlayer(player, sourceTile, destTile)
+		player.transferPlayer(sourceTile, destTile)
 	}
 }
 
 func (player *Player) moveBoost(yOffset int, xOffset int) {
 	if player.useBoost() {
-		player.move(2*yOffset, 2*xOffset)
+		move(player, 2*yOffset, 2*xOffset)
 	} else {
-		player.move(yOffset, xOffset)
+		move(player, yOffset, xOffset)
 	}
 }
 
@@ -118,15 +118,15 @@ func (player *Player) applyTeleport(teleport *Teleport) {
 		return
 	}
 	// Is using getTileSync a risk with the menu teleport authorizer?
-	transferPlayer(player, player.getTileSync(), stage.tiles[teleport.destY][teleport.destX])
+	player.transferPlayer(player.getTileSync(), stage.tiles[teleport.destY][teleport.destX])
 	sendSoundToPlayer(player, "teleport")
 }
 
 // Atomic Transfers
-func transferPlayer(p *Player, source, dest *Tile) {
+func (p *Player) transferPlayer(source, dest *Tile) {
 	if source.stage == dest.stage {
 		if transferPlayerWithinStage(p, source, dest) {
-			updateOthersAfterMovement(p, dest, source)
+			updateOthersAfterMovement(p, dest, source) // updateAll
 			updatePlayerAfterMovement(p, dest, source)
 		}
 	} else {
@@ -142,7 +142,7 @@ func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
 
-	if !tryRemovePlayer(source, p) {
+	if !tryRemoveCharacter(source, p.id) {
 		return false
 	}
 
@@ -151,12 +151,12 @@ func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
 }
 
 func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
-	p.stageLock.Lock()
+	p.stageLock.Lock() // No need for this ?
 	defer p.stageLock.Unlock()
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
 
-	if !tryRemovePlayer(source, p) {
+	if !tryRemoveCharacter(source, p.id) {
 		return false
 	}
 
@@ -180,7 +180,7 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	}
 
 	if hasTeleport(tile) {
-		return p.pushTeleport(tile, incoming, yOff, xOff)
+		return pushTeleport(p, tile, incoming, yOff, xOff)
 	}
 
 	ownLock := tile.interactableMutex.TryLock()
@@ -209,7 +209,7 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	return false
 }
 
-func (p *Player) pushTeleport(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
+func pushTeleport(p Character, tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	if tile.teleport.rejectInteractable {
 		return false
 	}
@@ -404,6 +404,11 @@ func sendUpdate(player *Player, update []byte) error {
 func updateOthersAfterMovement(player *Player, current, previous *Tile) {
 	previous.stage.updateAllExcept(CharacterBox(previous), player)
 	current.stage.updateAllExcept(CharacterBox(current), player)
+}
+
+func updateAllAfterMovement(current, previous *Tile) {
+	previous.stage.updateAll(CharacterBox(previous))
+	current.stage.updateAll(CharacterBox(current))
 }
 
 func updatePlayerAfterMovement(player *Player, current, previous *Tile) {

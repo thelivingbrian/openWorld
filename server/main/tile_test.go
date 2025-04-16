@@ -54,11 +54,11 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 		t.Error("Player should not have moved")
 	}
 	// collect all of the power ups
-	p.moveNorth()
-	p.moveNorth()
-	p.moveWest()
-	p.moveWest()
-	p.moveSouth()
+	moveNorth(p)
+	moveNorth(p)
+	moveWest(p)
+	moveWest(p)
+	moveSouth(p)
 
 	// Spawn all of the clone players
 	clones := make([]*Player, playerCount)

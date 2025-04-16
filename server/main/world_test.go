@@ -98,7 +98,7 @@ func TestLogoutAndDeath(t *testing.T) {
 		t.Error("All should be logged in - pre-activation")
 	}
 
-	player.moveEast()
+	moveEast(player)
 	player.activatePower()
 	player.activatePower()
 	if player.actions.spaceStack.peek() != nil {
@@ -179,7 +179,7 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 		t.Error("Should have players")
 	}
 
-	player.moveEast()
+	moveEast(player)
 	go player.activatePower()
 	go player.activatePower()
 

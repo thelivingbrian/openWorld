@@ -27,8 +27,8 @@ func BenchmarkMoveTwice(b *testing.B) {
 				for i := 0; i < b.N; i++ {
 					//testStage.updateAll("")
 					//players[0].nextPower() // This uses a pickup reducing the highlights decreasing time for one player
-					players[0].move(-1, 0)
-					players[0].move(1, 0)
+					move(players[0], -1, 0)
+					move(players[0], 1, 0)
 				}
 			})
 		}
@@ -49,10 +49,10 @@ func BenchmarkMoveAllTwice(b *testing.B) {
 				b.StartTimer()
 				for i := 0; i < b.N; i++ {
 					for index := range players {
-						players[index].move(-1, 0)
+						move(players[index], -1, 0)
 					}
 					for index := range players {
-						players[index].move(1, 0)
+						move(players[index], 1, 0)
 					}
 				}
 			})

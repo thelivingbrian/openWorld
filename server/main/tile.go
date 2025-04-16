@@ -95,9 +95,13 @@ func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	tile.stage.updateAllExcept(CharacterBox(tile), player)
 }
 
-func addNPCToTile(tile *Tile, npc *NonPlayer) {
+func addNPCToTile(npc *NonPlayer, tile *Tile) {
 	npc.tileLock.Lock()
 	defer npc.tileLock.Unlock()
+	addLockedNPCToTile(npc, tile)
+}
+
+func addLockedNPCToTile(npc *NonPlayer, tile *Tile) {
 	tile.CharacterMutex.Lock()
 	defer tile.CharacterMutex.Unlock()
 	if collectItemNPC(tile, npc) {
@@ -190,7 +194,7 @@ func (tile *Tile) collectItemsForPlayer(player *Player) bool {
 }
 
 func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
-	success = tryRemovePlayer(tile, player)
+	success = tryRemoveCharacter(tile, player.id)
 	if success {
 		tile.stage.updateAllExcept(CharacterBox(tile), player)
 	} else {
@@ -201,16 +205,16 @@ func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
 	return success
 }
 
-func tryRemovePlayer(tile *Tile, player *Player) bool {
+func tryRemoveCharacter(tile *Tile, id string) bool {
 	tile.CharacterMutex.Lock()
 	defer tile.CharacterMutex.Unlock()
 
-	_, foundOnTile := tile.playerMap[player.id]
+	_, foundOnTile := tile.playerMap[id]
 	if !foundOnTile {
 		return false
 	}
 
-	delete(tile.playerMap, player.id)
+	delete(tile.playerMap, id)
 	return true
 }
 

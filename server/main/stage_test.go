@@ -31,10 +31,10 @@ func TestEnsureInteractableWillPush(t *testing.T) {
 		t.Error("test-walls-interactable should have pushable at 14,2")
 	}
 
-	player.moveEast()
-	player.moveEast()
-	player.moveWest()
-	player.moveNorth()
+	moveEast(player)
+	moveEast(player)
+	moveWest(player)
+	moveNorth(player)
 
 	if player.stage.tiles[14][4].interactable == nil {
 		t.Error("Interactable did not push")
@@ -95,14 +95,14 @@ func TestSurroundedPushableSquare(t *testing.T) {
 	}
 
 	// Act
-	players[0].moveSouth() // p1 pushes from (2,7) to (3,7)
-	players[1].moveSouth() // p2 pushes from (2,8) to (3,3)
-	players[2].moveEast()  // p3 pushes from (3,6) to (3,7)
-	players[3].moveEast()
-	players[4].moveWest() // p5 pushes from (3,9) . . .
-	players[5].moveWest()
-	players[6].moveNorth()
-	players[7].moveNorth()
+	moveSouth(players[0]) // p1 pushes from (2,7) to (3,7)
+	moveSouth(players[1]) // p2 pushes from (2,8) to (3,3)
+	moveEast(players[2])  // p3 pushes from (3,6) to (3,7)
+	moveEast(players[3])
+	moveWest(players[4]) // p5 pushes from (3,9) . . .
+	moveWest(players[5])
+	moveNorth(players[6])
+	moveNorth(players[7])
 
 	// Assert - Exact positions are known
 	if testStage.tiles[14][2].interactable == nil ||
@@ -162,14 +162,14 @@ func TestSurroundedPushableSquareMultipleThreads(t *testing.T) {
 	wg.Add(len(players))
 
 	// Initial push from players
-	go func(wg *sync.WaitGroup) { defer wg.Done(); players[0].moveSouth() }(&wg)
-	go func(wg *sync.WaitGroup) { defer wg.Done(); players[1].moveSouth() }(&wg)
-	go func(wg *sync.WaitGroup) { defer wg.Done(); players[2].moveEast() }(&wg)
-	go func(wg *sync.WaitGroup) { defer wg.Done(); players[3].moveEast() }(&wg)
-	go func(wg *sync.WaitGroup) { defer wg.Done(); players[4].moveWest() }(&wg)
-	go func(wg *sync.WaitGroup) { defer wg.Done(); players[5].moveWest() }(&wg)
-	go func(wg *sync.WaitGroup) { defer wg.Done(); players[6].moveNorth() }(&wg)
-	go func(wg *sync.WaitGroup) { defer wg.Done(); players[7].moveNorth() }(&wg)
+	go func(wg *sync.WaitGroup) { defer wg.Done(); moveSouth(players[0]) }(&wg)
+	go func(wg *sync.WaitGroup) { defer wg.Done(); moveSouth(players[1]) }(&wg)
+	go func(wg *sync.WaitGroup) { defer wg.Done(); moveEast(players[2]) }(&wg)
+	go func(wg *sync.WaitGroup) { defer wg.Done(); moveEast(players[3]) }(&wg)
+	go func(wg *sync.WaitGroup) { defer wg.Done(); moveWest(players[4]) }(&wg)
+	go func(wg *sync.WaitGroup) { defer wg.Done(); moveWest(players[5]) }(&wg)
+	go func(wg *sync.WaitGroup) { defer wg.Done(); moveNorth(players[6]) }(&wg)
+	go func(wg *sync.WaitGroup) { defer wg.Done(); moveNorth(players[7]) }(&wg)
 
 	wg.Wait()
 
@@ -240,8 +240,8 @@ func TestEnsureNoInteractableDuplication(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	go func(wg *sync.WaitGroup) { defer wg.Done(); players[0].moveSouth() }(&wg)
-	go func(wg *sync.WaitGroup) { defer wg.Done(); players[1].moveNorth() }(&wg)
+	go func(wg *sync.WaitGroup) { defer wg.Done(); moveSouth(players[0]) }(&wg)
+	go func(wg *sync.WaitGroup) { defer wg.Done(); moveNorth(players[1]) }(&wg)
 
 	wg.Wait()
 
