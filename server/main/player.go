@@ -58,49 +58,22 @@ type WebsocketConnection interface {
 }
 
 ////////////////////////////////////////////////////////////
-//   Movement
-
-// Don't use method style except for .move?
-func moveNorth(player Character) {
-	move(player, -1, 0)
-}
+//  Special Movement
 
 func (player *Player) moveNorthBoost() {
 	player.moveBoost(-1, 0)
-}
-
-func moveSouth(player Character) {
-	move(player, 1, 0)
 }
 
 func (player *Player) moveSouthBoost() {
 	player.moveBoost(1, 0)
 }
 
-func moveEast(player Character) {
-	move(player, 0, 1)
-}
-
 func (player *Player) moveEastBoost() {
 	player.moveBoost(0, 1)
 }
 
-func moveWest(player Character) {
-	move(player, 0, -1)
-}
-
 func (player *Player) moveWestBoost() {
 	player.moveBoost(0, -1)
-}
-
-func move(player Character, yOffset int, xOffset int) {
-	sourceTile := player.getTileSync()
-	player.push(sourceTile, nil, yOffset, xOffset)
-	destTile := getRelativeTile(sourceTile, yOffset, xOffset, player)
-	player.push(destTile, nil, yOffset, xOffset)
-	if walkable(destTile) {
-		player.transferPlayer(sourceTile, destTile)
-	}
 }
 
 func (player *Player) moveBoost(yOffset int, xOffset int) {
@@ -112,146 +85,8 @@ func (player *Player) moveBoost(yOffset int, xOffset int) {
 }
 
 func (player *Player) applyTeleport(teleport *Teleport) {
-	stage := player.fetchStageSync(teleport.destStage)
-	if !validCoordinate(teleport.destY, teleport.destX, stage) {
-		logger.Error().Msg(fmt.Sprint("Fatal: Invalid coords from teleport: ", teleport.destStage, teleport.destY, teleport.destX))
-		return
-	}
-	// Is using getTileSync a risk with the menu teleport authorizer?
-	player.transferPlayer(player.getTileSync(), stage.tiles[teleport.destY][teleport.destX])
+	applyTeleport(player, teleport)
 	sendSoundToPlayer(player, "teleport")
-}
-
-// Atomic Transfers
-func (p *Player) transferPlayer(source, dest *Tile) {
-	if source.stage == dest.stage {
-		if transferPlayerWithinStage(p, source, dest) {
-			updateOthersAfterMovement(p, dest, source) // updateAll
-			updatePlayerAfterMovement(p, dest, source)
-		}
-	} else {
-		if transferPlayerAcrossStages(p, source, dest) {
-			spawnItemsFor(p, dest.stage)
-			updateOthersAfterMovement(p, dest, source)
-			updatePlayerAfterStageChange(p)
-		}
-	}
-}
-
-func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
-	p.tileLock.Lock()
-	defer p.tileLock.Unlock()
-
-	if !tryRemoveCharacter(source, p.id) {
-		return false
-	}
-
-	dest.addLockedPlayerToTile(p)
-	return true
-}
-
-func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
-	p.stageLock.Lock() // No need for this ?
-	defer p.stageLock.Unlock()
-	p.tileLock.Lock()
-	defer p.tileLock.Unlock()
-
-	if !tryRemoveCharacter(source, p.id) {
-		return false
-	}
-
-	p.stage.removeLockedPlayerById(p.id)
-	p.stage = dest.stage
-
-	dest.stage.addLockedPlayer(p)
-	dest.addLockedPlayerToTile(p)
-	return true
-}
-
-////////////////////////////////////////////////////////////
-//   Pushing
-
-func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool { // Returns if given interacable successfully pushed
-	// Do not nil check incoming interactable here.
-	// incoming = nil is valid and will continue a push chain
-	// e.g. by taking this tile's interactable and pushing it forward
-	if tile == nil {
-		return false
-	}
-
-	if hasTeleport(tile) {
-		return pushTeleport(p, tile, incoming, yOff, xOff)
-	}
-
-	ownLock := tile.interactableMutex.TryLock()
-	if !ownLock {
-		return false // Tile is already locked by another operation
-	}
-	defer tile.interactableMutex.Unlock()
-
-	if tile.interactable == nil {
-		return replaceNilInteractable(tile, incoming)
-	}
-
-	if tile.interactable.React(incoming, p, tile, yOff, xOff) {
-		return true
-	}
-
-	if tile.interactable.pushable {
-		nextTile := getRelativeTile(tile, yOff, xOff, p)
-		if nextTile != nil {
-			if p.push(nextTile, tile.interactable, yOff, xOff) {
-				setLockedInteractableAndUpdate(tile, incoming)
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func pushTeleport(p Character, tile *Tile, incoming *Interactable, yOff, xOff int) bool {
-	if tile.teleport.rejectInteractable {
-		return false
-	}
-	if canBeTeleported(incoming) {
-		stage := p.fetchStageSync(tile.teleport.destStage)
-		if !validCoordinate(tile.teleport.destY+yOff, tile.teleport.destX+xOff, stage) {
-			return false
-		}
-		return p.push(stage.tiles[tile.teleport.destY+yOff][tile.teleport.destX+xOff], incoming, yOff, xOff)
-	}
-	return false
-}
-
-func replaceNilInteractable(tile *Tile, incoming *Interactable) bool {
-	if incoming == nil {
-		return true
-	}
-	if tile.material.Walkable { // Prevents lock contention from using Walkable()
-		setLockedInteractableAndUpdate(tile, incoming)
-		return true
-	}
-
-	return false
-}
-
-func setLockedInteractableAndUpdate(tile *Tile, incoming *Interactable) {
-	tile.interactable = incoming
-	tile.stage.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
-}
-
-func hasTeleport(tile *Tile) bool {
-	if tile == nil || tile.teleport == nil {
-		return false
-	}
-	return true
-}
-
-func canBeTeleported(interactable *Interactable) bool {
-	if interactable == nil {
-		return false
-	}
-	return !interactable.rejectTeleport
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -522,41 +357,6 @@ func getStageByNameOrGetDefault(player *Player, stagename string) *Stage {
 	return stage
 }
 
-func (player *Player) fetchStageSync(stagename string) *Stage {
-	player.world.wStageMutex.Lock()
-	defer player.world.wStageMutex.Unlock()
-	stage, ok := player.world.worldStages[stagename]
-	if ok && stage != nil {
-		return stage
-	}
-	// stagename + team || stagename + rand
-
-	player.pStageMutex.Lock()
-	defer player.pStageMutex.Unlock()
-	stage, ok = player.playerStages[stagename]
-	if ok && stage != nil {
-		return stage
-	}
-
-	area, success := areaFromName(stagename)
-	if !success {
-		return nil
-	}
-
-	stage = createStageFromArea(area) // can create empty stage
-	if area.LoadStrategy == "" {
-		player.world.worldStages[stagename] = stage
-	}
-	if area.LoadStrategy == "Personal" {
-		player.playerStages[stagename] = stage
-	}
-	if area.LoadStrategy == "Individual" {
-		// no-op : stage will load fresh each time
-	}
-
-	return stage
-}
-
 /////////////////////////////////////////////////////////////
 //  Hats
 
@@ -606,12 +406,6 @@ func (player *Player) setIcon() string {
 	}
 }
 
-func (player *Player) getIconSync() string {
-	player.viewLock.Lock()
-	defer player.viewLock.Unlock()
-	return player.icon
-}
-
 func (player *Player) getTeamNameSync() string {
 	player.viewLock.Lock()
 	defer player.viewLock.Unlock()
@@ -636,12 +430,6 @@ func (player *Player) getStageSync() *Stage {
 	player.stageLock.Lock()
 	defer player.stageLock.Unlock()
 	return player.stage
-}
-
-func (player *Player) getTileSync() *Tile {
-	player.tileLock.Lock()
-	defer player.tileLock.Unlock()
-	return player.tile
 }
 
 func (player *Player) setMoney(n int) {

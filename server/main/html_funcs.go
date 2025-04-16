@@ -134,7 +134,7 @@ func playerBoxSpecifc(y, x int, icon string) string {
 
 func CharacterBox(tile *Tile) string {
 	playerIndicator := ""
-	if p := tile.getAPlayer(); p != nil {
+	if p := tile.getACharacter(); p != nil {
 		playerIndicator = p.getIconSync()
 	}
 	return playerBoxSpecifc(tile.y, tile.x, playerIndicator)

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"time"
@@ -43,13 +42,11 @@ func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	fmt.Println(token)
 	incoming := world.retreiveIncoming(token)
 	if incoming == nil {
 		logger.Info().Msg("player not found with token: " + token)
 		return
 	}
-	fmt.Println("about to join")
 
 	player := world.join(incoming, conn)
 	if player == nil {

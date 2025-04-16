@@ -86,52 +86,15 @@ func swapToken(y, x int, prefix, zIndex, color string) string {
 }
 
 ////////////////////////////////////////////////////////////
-// Players
+// Add Character
+
+// Player
 
 func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	player.tileLock.Lock()
 	defer player.tileLock.Unlock()
 	tile.addLockedPlayerToTile(player)
 	tile.stage.updateAllExcept(CharacterBox(tile), player)
-}
-
-func addNPCToTile(npc *NonPlayer, tile *Tile) {
-	npc.tileLock.Lock()
-	defer npc.tileLock.Unlock()
-	addLockedNPCToTile(npc, tile)
-}
-
-func addLockedNPCToTile(npc *NonPlayer, tile *Tile) {
-	tile.CharacterMutex.Lock()
-	defer tile.CharacterMutex.Unlock()
-	if collectItemNPC(tile, npc) {
-		tile.stage.updateAll(svgFromTile(tile))
-	}
-	tile.playerMap[npc.id] = npc
-	npc.tile = tile
-}
-
-func collectItemNPC(tile *Tile, npc *NonPlayer) bool {
-	itemChange := false
-
-	tile.itemMutex.Lock()
-	defer tile.itemMutex.Unlock()
-	if tile.powerUp != nil {
-		tile.powerUp = nil
-		itemChange = true
-	}
-	if tile.money != 0 {
-		npc.money.Add(int32(tile.money))
-		tile.money = 0
-		itemChange = true
-	}
-	if tile.boosts > 0 {
-		npc.boosts.Add(int32(tile.boosts))
-		tile.boosts = 0
-		itemChange = true
-	}
-	return itemChange
-
 }
 
 func (tile *Tile) addLockedPlayerToTile(player *Player) {
@@ -165,13 +128,7 @@ func (tile *Tile) addLockedPlayerToTile(player *Player) {
 
 func (tile *Tile) collectItemsForPlayer(player *Player) bool {
 	itemChange := false
-	// Single item mutex?
-	// tile.powerMutex.Lock()
-	// defer tile.powerMutex.Unlock()
-	// tile.moneyMutex.Lock()
-	// defer tile.moneyMutex.Unlock()
-	// tile.boostsMutex.Lock()
-	// defer tile.boostsMutex.Unlock()
+
 	tile.itemMutex.Lock()
 	defer tile.itemMutex.Unlock()
 	if tile.powerUp != nil {
@@ -193,8 +150,50 @@ func (tile *Tile) collectItemsForPlayer(player *Player) bool {
 	return itemChange
 }
 
+// npc
+
+func addNPCAndNotifyOthers(npc *NonPlayer, tile *Tile) {
+	npc.tileLock.Lock()
+	defer npc.tileLock.Unlock()
+	addLockedNPCToTile(npc, tile)
+	tile.stage.updateAll(CharacterBox(tile))
+}
+
+func addLockedNPCToTile(npc *NonPlayer, tile *Tile) {
+	tile.CharacterMutex.Lock()
+	defer tile.CharacterMutex.Unlock()
+	if collectItemNPC(tile, npc) {
+		tile.stage.updateAll(svgFromTile(tile))
+	}
+	tile.playerMap[npc.id] = npc
+	npc.tile = tile
+	// No teleport for npc currently
+}
+
+func collectItemNPC(tile *Tile, npc *NonPlayer) bool {
+	itemChange := false
+
+	tile.itemMutex.Lock()
+	defer tile.itemMutex.Unlock()
+	if tile.powerUp != nil {
+		tile.powerUp = nil
+		itemChange = true
+	}
+	if tile.money != 0 {
+		npc.money.Add(int32(tile.money))
+		tile.money = 0
+		itemChange = true
+	}
+	if tile.boosts > 0 {
+		npc.boosts.Add(int32(tile.boosts))
+		tile.boosts = 0
+		itemChange = true
+	}
+	return itemChange
+}
+
 func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
-	success = tryRemoveCharacter(tile, player.id)
+	success = tryRemoveCharacterById(tile, player.id)
 	if success {
 		tile.stage.updateAllExcept(CharacterBox(tile), player)
 	} else {
@@ -205,7 +204,7 @@ func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
 	return success
 }
 
-func tryRemoveCharacter(tile *Tile, id string) bool {
+func tryRemoveCharacterById(tile *Tile, id string) bool {
 	tile.CharacterMutex.Lock()
 	defer tile.CharacterMutex.Unlock()
 
@@ -218,7 +217,7 @@ func tryRemoveCharacter(tile *Tile, id string) bool {
 	return true
 }
 
-func (tile *Tile) getAPlayer() Character {
+func (tile *Tile) getACharacter() Character {
 	tile.CharacterMutex.Lock()
 	defer tile.CharacterMutex.Unlock()
 	for _, player := range tile.playerMap {
@@ -241,17 +240,18 @@ func damageAndIndicate(tiles []*Tile, initiator *Player, stage *Stage, damage in
 	stage.updateAll(damageBoxes)
 }
 
+// Method on a character?
 func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	fatalities := false
-	for _, player := range tile.copyOfPlayers() {
-		fatalities = player.receiveDamageFrom(initiator, dmg) || fatalities
+	for _, character := range tile.copyOfCharacters() {
+		fatalities = character.receiveDamageFrom(initiator, dmg) || fatalities
 	}
 	if fatalities {
 		tile.stage.updateAll(CharacterBox(tile))
 	}
 }
 
-func (tile *Tile) copyOfPlayers() []Character {
+func (tile *Tile) copyOfCharacters() []Character {
 	players := make([]Character, 0)
 	tile.CharacterMutex.Lock()
 	for _, player := range tile.playerMap {
@@ -259,31 +259,6 @@ func (tile *Tile) copyOfPlayers() []Character {
 	}
 	tile.CharacterMutex.Unlock()
 	return players
-}
-
-func (target *Player) receiveDamageFrom(initiator *Player, dmg int) bool {
-	if target == initiator {
-		return false
-	}
-	location := target.getTileSync()
-	if safeFromDamage(location) {
-		return false
-	}
-	if target.getTeamNameSync() == initiator.getTeamNameSync() {
-		return false
-	}
-
-	fatal := damagePlayerAndHandleDeath(target, dmg)
-	if fatal {
-		initiator.incrementKillCount()
-		initiator.updateRecord()
-
-		streak := initiator.incrementKillStreak()
-		updateStreakIfTangible(initiator, streak) // initiator may not have initiatied via click -> check tangible needed
-
-		go initiator.world.db.saveKillEvent(location, initiator, target)
-	}
-	return fatal
 }
 
 func damagePlayerAndHandleDeath(player *Player, dmg int) bool {
@@ -347,6 +322,23 @@ func (tile *Tile) tryToNotifyAfter(delay int) {
 //////////////////////////////////////////////////////////////////////
 // Interactables
 
+func replaceNilInteractable(tile *Tile, incoming *Interactable) bool {
+	if incoming == nil {
+		return true
+	}
+	if tile.material.Walkable { // Prevents lock contention from using Walkable()
+		setLockedInteractableAndUpdate(tile, incoming)
+		return true
+	}
+
+	return false
+}
+
+func setLockedInteractableAndUpdate(tile *Tile, incoming *Interactable) {
+	tile.interactable = incoming
+	tile.stage.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
+}
+
 func destroyInteractable(tile *Tile, _ *Player) {
 	// *Player is a placeholder for initiator/destroyer in future
 	tile.interactableMutex.Lock()
@@ -404,6 +396,13 @@ func walkable(tile *Tile) bool {
 	if tile.interactable != nil {
 		return tile.interactable.pushable || tile.interactable.walkable
 
+	}
+	return true
+}
+
+func hasTeleport(tile *Tile) bool {
+	if tile == nil || tile.teleport == nil {
+		return false
 	}
 	return true
 }
