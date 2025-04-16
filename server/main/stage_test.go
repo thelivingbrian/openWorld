@@ -23,7 +23,7 @@ func TestEnsureInteractableWillPush(t *testing.T) {
 	}
 	player.placeOnStage(testStage, 14, 1)
 
-	if len(player.stage.tiles[14][1].playerMap) == 0 {
+	if len(player.stage.tiles[14][1].characterMap) == 0 {
 		t.Error("Player did not spawn at correct location")
 	}
 
@@ -44,7 +44,7 @@ func TestEnsureInteractableWillPush(t *testing.T) {
 		t.Error("Interactable still at starting location despite being pushed")
 	}
 
-	if len(player.stage.tiles[13][2].playerMap) == 0 {
+	if len(player.stage.tiles[13][2].characterMap) == 0 {
 		t.Error("Player has not moved correctly:")
 		fmt.Printf("Y%dX%d", player.getTileSync().y, player.getTileSync().x)
 	}

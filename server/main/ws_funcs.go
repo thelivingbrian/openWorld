@@ -158,7 +158,8 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 	case "h":
 		player.cycleHats()
 	case "e":
-		spawnNewNPCWithRandomMovement(player, 300)
+		rotate(player, true)
+		//spawnNewNPCWithRandomMovement(player, 300)
 	case "Shift-On":
 		updateOne(divInputShift(), player)
 	case "Shift-Off":

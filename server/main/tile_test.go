@@ -95,7 +95,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	// check original box is empty of clones
 	for dy := 0; dy < 3; dy++ {
 		for dx := 0; dx < 3; dx++ {
-			yPos, xPos, playerCount := 11+dy, 11+dx, len(testStage.tiles[11+dy][11+dx].playerMap)
+			yPos, xPos, playerCount := 11+dy, 11+dx, len(testStage.tiles[11+dy][11+dx].characterMap)
 			if playerCount != 0 {
 				t.Errorf("Tile(y:%d x:%d) should have 0 players but has: %d", yPos, xPos, playerCount)
 			}

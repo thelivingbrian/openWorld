@@ -10,7 +10,7 @@ import (
 
 type Tile struct {
 	material          Material
-	playerMap         map[string]Character
+	characterMap      map[string]Character
 	CharacterMutex    sync.Mutex
 	interactable      *Interactable
 	interactableMutex sync.Mutex
@@ -21,11 +21,8 @@ type Tile struct {
 	eventsInFlight    atomic.Int32
 	itemMutex         sync.Mutex
 	powerUp           *PowerUp
-	// powerMutex        sync.Mutex
-	money int
-	// moneyMutex        sync.Mutex
-	boosts int
-	// boostsMutex       sync.Mutex
+	money             int
+	boosts            int
 	quickSwapTemplate string
 	bottomText        string
 }
@@ -42,7 +39,7 @@ type Teleport struct {
 func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
 	return &Tile{
 		material:       mat,
-		playerMap:      make(map[string]Character),
+		characterMap:   make(map[string]Character),
 		CharacterMutex: sync.Mutex{},
 		stage:          nil,
 		teleport:       nil,
@@ -112,7 +109,7 @@ func (tile *Tile) addLockedPlayerToTile(player *Player) {
 	}
 
 	// player's tile lock should be held
-	tile.playerMap[player.id] = player
+	tile.characterMap[player.id] = player
 	player.tile = tile
 
 	if tile.teleport != nil {
@@ -165,7 +162,7 @@ func addLockedNPCToTile(npc *NonPlayer, tile *Tile) {
 	if collectItemNPC(tile, npc) {
 		tile.stage.updateAll(svgFromTile(tile))
 	}
-	tile.playerMap[npc.id] = npc
+	tile.characterMap[npc.id] = npc
 	npc.tile = tile
 	// No teleport for npc currently
 }
@@ -208,19 +205,19 @@ func tryRemoveCharacterById(tile *Tile, id string) bool {
 	tile.CharacterMutex.Lock()
 	defer tile.CharacterMutex.Unlock()
 
-	_, foundOnTile := tile.playerMap[id]
+	_, foundOnTile := tile.characterMap[id]
 	if !foundOnTile {
 		return false
 	}
 
-	delete(tile.playerMap, id)
+	delete(tile.characterMap, id)
 	return true
 }
 
 func (tile *Tile) getACharacter() Character {
 	tile.CharacterMutex.Lock()
 	defer tile.CharacterMutex.Unlock()
-	for _, player := range tile.playerMap {
+	for _, player := range tile.characterMap {
 		return player
 	}
 	return nil
@@ -254,7 +251,7 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 func (tile *Tile) copyOfCharacters() []Character {
 	players := make([]Character, 0)
 	tile.CharacterMutex.Lock()
-	for _, player := range tile.playerMap {
+	for _, player := range tile.characterMap {
 		players = append(players, player)
 	}
 	tile.CharacterMutex.Unlock()
