@@ -20,9 +20,10 @@ type Character interface {
 }
 
 type NonPlayer struct {
-	id       string
-	icon     string
-	iconLock sync.Mutex
+	id      string
+	icon    string
+	iconLow string
+	//iconLock sync.Mutex
 	world    *World
 	tile     *Tile
 	tileLock sync.Mutex
@@ -34,7 +35,7 @@ type NonPlayer struct {
 func (npc *NonPlayer) getIconSync() string {
 	health := npc.health.Load()
 	if health <= 50 {
-		return "dim-" + npc.icon
+		return npc.iconLow
 	}
 	return npc.icon
 }
@@ -45,11 +46,12 @@ func (npc *NonPlayer) getTileSync() *Tile {
 }
 
 func (npc *NonPlayer) receiveDamageFrom(initiator *Player, dmg int) bool {
-	if npc.health.Add(int32(-dmg)) < 0 {
+	if npc.health.Add(int32(-dmg)) <= 0 {
 		npc.tileLock.Lock()
 		defer npc.tileLock.Unlock()
 		if tryRemoveCharacter(npc.tile, npc.id) {
-			npc.tile.stage.updateAll(CharacterBox(npc.tile))
+			sound := soundTriggerByName("clink")
+			npc.tile.stage.updateAll(CharacterBox(npc.tile) + sound)
 		} else {
 			logger.Warn().Msg("FAILED TO REMOVE AN NPC")
 		}
@@ -150,10 +152,11 @@ func spawnNewNPCWithRandomMovement(ref *Player, interval int) (*NonPlayer, conte
 	username := uuid.New().String()
 	refTile := ref.getTileSync()
 	npc := &NonPlayer{
-		id:     username,
-		world:  ref.world,
-		icon:   "red r0 black-b thick",
-		health: atomic.Int32{},
+		id:      username,
+		world:   ref.world,
+		icon:    "red-b thick r0",
+		iconLow: "dark-red-b thick r0",
+		health:  atomic.Int32{},
 	}
 	npc.health.Store(int32(100))
 	addNPCToTile(npc, refTile)
