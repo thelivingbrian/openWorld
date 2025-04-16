@@ -355,12 +355,13 @@ func (npc *NonPlayer) receiveDamageFrom(initiator *Player, dmg int) bool {
 		defer npc.tileLock.Unlock()
 		if tryRemoveCharacterById(npc.tile, npc.id) {
 			sound := soundTriggerByName("clink")
-			npc.tile.stage.updateAll(CharacterBox(npc.tile) + sound)
+			npc.tile.stage.updateAll(sound)
 		} else {
 			logger.Warn().Msg("FAILED TO REMOVE AN NPC")
 		}
 		return true
 	}
+	//npc.tile.stage.updateAll(CharacterBox(npc.tile))
 	return false
 }
 
@@ -408,23 +409,6 @@ func spawnNewNPCWithRandomMovement(ref *Player, interval int) (*NonPlayer, conte
 	return npc, cancel
 }
 
-//
-
-/*
-type TileSequence struct {
-	node *Tile
-	next *TileSequence
-}
-
-func addTo(ts *TileSequence, tile *Tile)*TileSequence{
-	if ts == nil {
-		ts = &TileSequence{node: tile, next: nil}
-	}
-	ts.next = &TileSequence{node: tile, next: nil}
-	return ts.next
-}
-*/
-
 func rotate(character Character, orientClockwise bool) {
 	sourceTile := character.getTileSync()
 	n := getRelativeTile(sourceTile, -1, 0, character)
@@ -438,7 +422,11 @@ func rotate(character Character, orientClockwise bool) {
 		path = []*Tile{n, w, s, e}
 	}
 
-	for i := 0; i < 4; i++ {
+	cycleInteractableList(path)
+}
+
+func cycleInteractableList(path []*Tile) {
+	for i := 0; i < len(path); i++ {
 		if path[i] == nil {
 			continue
 		}
@@ -447,19 +435,25 @@ func rotate(character Character, orientClockwise bool) {
 			continue
 		}
 
-		ok, last, depth := swapInto(path, i, 0)
+		ok, last, depth := cycleForward(path, i, 0)
 		if ok {
 			setLockedInteractableAndUpdate(path[i], last)
 
 		}
-		path[i].interactableMutex.Unlock()
+		path[i].interactableMutex.Unlock() // cannot defer
 		i += depth
 	}
 }
 
-func swapInto(path []*Tile, index, depth int) (bool, *Interactable, int) {
-
+func cycleForward(path []*Tile, index, depth int) (bool, *Interactable, int) {
 	final := depth == len(path)-1
+	if final {
+		return true, path[index].interactable, depth + 1
+	}
+
+	if !(path[index].interactable == nil) && !path[index].interactable.pushable {
+		return false, nil, depth
+	}
 
 	next := mod(index+1, len(path))
 	if path[next] == nil {
@@ -472,6 +466,9 @@ func swapInto(path []*Tile, index, depth int) (bool, *Interactable, int) {
 	}
 	defer path[next].interactableMutex.Unlock()
 
+	if !path[next].material.Walkable {
+		return false, nil, depth + 1
+	}
 	if path[next].interactable == nil {
 		setLockedInteractableAndUpdate(path[next], path[index].interactable)
 		return true, nil, depth + 1
@@ -480,14 +477,9 @@ func swapInto(path []*Tile, index, depth int) (bool, *Interactable, int) {
 		return false, nil, depth + 1
 	}
 
-	if final {
-		out := path[next].interactable
-		setLockedInteractableAndUpdate(path[next], path[index].interactable)
-		return true, out, depth + 1
-	}
-	ok, out, depth := swapInto(path, index+1, depth+1)
+	ok, out, newDepth := cycleForward(path, index+1, depth+1)
 	if ok {
 		setLockedInteractableAndUpdate(path[next], path[index].interactable)
 	}
-	return ok, out, depth + 1
+	return ok, out, newDepth
 }
