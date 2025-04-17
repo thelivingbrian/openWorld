@@ -237,13 +237,13 @@ func sendUpdate(player *Player, update []byte) error {
 
 // Updates - Enqueue
 func updateOthersAfterMovement(player *Player, current, previous *Tile) {
-	previous.stage.updateAllExcept(CharacterBox(previous), player)
-	current.stage.updateAllExcept(CharacterBox(current), player)
+	previous.stage.updateAllExcept(characterBox(previous), player)
+	current.stage.updateAllExcept(characterBox(current), player)
 }
 
 func updateAllAfterMovement(current, previous *Tile) {
-	previous.stage.updateAll(CharacterBox(previous))
-	current.stage.updateAll(CharacterBox(current))
+	previous.stage.updateAll(characterBox(previous))
+	current.stage.updateAll(characterBox(current))
 }
 
 func updatePlayerAfterMovement(player *Player, current, previous *Tile) {
@@ -253,7 +253,7 @@ func updatePlayerAfterMovement(player *Player, current, previous *Tile) {
 
 	previousBoxes := ""
 	if previous != nil && previous.stage == player.getStageSync() {
-		previousBoxes += CharacterBox(previous)
+		previousBoxes += characterBox(previous)
 	}
 
 	player.updates <- []byte(highlightBoxesForPlayer(player, impactedHighlights) + previousBoxes + playerIcon)
@@ -290,7 +290,7 @@ func (player *Player) updatePlayerBox() {
 func updateIconForAll(player *Player) {
 	player.setIcon()
 	tile := player.getTileSync()
-	tile.stage.updateAll(CharacterBox(tile))
+	tile.stage.updateAll(characterBox(tile))
 }
 
 func updateIconForAllIfTangible(player *Player) {
@@ -301,7 +301,7 @@ func updateIconForAllIfTangible(player *Player) {
 	}
 	defer player.tangibilityLock.Unlock()
 	tile := player.getTileSync()
-	tile.stage.updateAll(CharacterBox(tile))
+	tile.stage.updateAll(characterBox(tile))
 }
 
 func sendSoundToPlayer(player *Player, soundName string) {

@@ -429,7 +429,7 @@ func getRelativeTile(source *Tile, yOff, xOff int, character Character) *Tile {
 				newStage = character.fetchStageSync(source.stage.north)
 			}
 
-			if validCoordinate(mod(destY, len(newStage.tiles)), destX, newStage) {
+			if newStage != nil && validCoordinate(mod(destY, len(newStage.tiles)), destX, newStage) {
 				return newStage.tiles[mod(destY, len(newStage.tiles))][destX]
 			}
 		}
@@ -442,7 +442,7 @@ func getRelativeTile(source *Tile, yOff, xOff int, character Character) *Tile {
 				newStage = character.fetchStageSync(source.stage.west)
 			}
 
-			if validCoordinate(destY, mod(destX, len(newStage.tiles)), newStage) {
+			if newStage != nil && validCoordinate(destY, mod(destX, len(newStage.tiles)), newStage) {
 				return newStage.tiles[destY][mod(destX, len(newStage.tiles))]
 			}
 		}

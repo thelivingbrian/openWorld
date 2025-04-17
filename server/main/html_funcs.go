@@ -43,7 +43,7 @@ func swapsForTilesWithHighlights(tiles [][]*Tile, highlights map[*Tile]bool) []b
 
 func swapsForTile(tile *Tile, highlight string) string {
 	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.quickSwapTemplate, CharacterBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x, tile.stage.weather), oobHighlightBox(tile, highlight))
+	return fmt.Sprintf(tile.quickSwapTemplate, characterBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x, tile.stage.weather), oobHighlightBox(tile, highlight))
 }
 
 ////////////////////////////////////////////////////////////
@@ -132,12 +132,12 @@ func playerBoxSpecifc(y, x int, icon string) string {
 	return fmt.Sprintf(`[~ id="Lp1-%d-%d" class="box zp %s"]`, y, x, icon)
 }
 
-func CharacterBox(tile *Tile) string {
-	playerIndicator := ""
-	if p := tile.getACharacter(); p != nil {
-		playerIndicator = p.getIconSync()
+func characterBox(tile *Tile) string {
+	characterIndicator := ""
+	if ch := tile.getACharacter(); ch != nil {
+		characterIndicator = ch.getIconSync()
 	}
-	return playerBoxSpecifc(tile.y, tile.x, playerIndicator)
+	return playerBoxSpecifc(tile.y, tile.x, characterIndicator)
 }
 
 func interactableBoxSpecific(y, x int, interactable *Interactable) string {
@@ -211,12 +211,6 @@ func weatherBox(tile *Tile, cssClass string) string {
 func svgFromTile(tile *Tile) string {
 	tile.itemMutex.Lock()
 	defer tile.itemMutex.Unlock()
-	// tile.powerMutex.Lock()
-	// defer tile.powerMutex.Unlock()
-	// tile.moneyMutex.Lock()
-	// defer tile.moneyMutex.Unlock()
-	// tile.boostsMutex.Lock()
-	// defer tile.boostsMutex.Unlock()
 
 	template := `[~ id="%s" class="%s"]`
 

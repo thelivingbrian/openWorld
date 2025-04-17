@@ -91,7 +91,7 @@ func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	player.tileLock.Lock()
 	defer player.tileLock.Unlock()
 	tile.addLockedPlayerToTile(player)
-	tile.stage.updateAllExcept(CharacterBox(tile), player)
+	tile.stage.updateAllExcept(characterBox(tile), player)
 }
 
 func (tile *Tile) addLockedPlayerToTile(player *Player) {
@@ -153,7 +153,7 @@ func addNPCAndNotifyOthers(npc *NonPlayer, tile *Tile) {
 	npc.tileLock.Lock()
 	defer npc.tileLock.Unlock()
 	addLockedNPCToTile(npc, tile)
-	tile.stage.updateAll(CharacterBox(tile))
+	tile.stage.updateAll(characterBox(tile))
 }
 
 func addLockedNPCToTile(npc *NonPlayer, tile *Tile) {
@@ -192,7 +192,7 @@ func collectItemNPC(tile *Tile, npc *NonPlayer) bool {
 func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
 	success = tryRemoveCharacterById(tile, player.id)
 	if success {
-		tile.stage.updateAllExcept(CharacterBox(tile), player)
+		tile.stage.updateAllExcept(characterBox(tile), player)
 	} else {
 		// Possible under what circumstance :
 		//   Handle death can race with logout to produce this (harmlessly?)
@@ -243,7 +243,7 @@ func (tile *Tile) damageAll(dmg int, initiator *Player) {
 	for _, character := range tile.copyOfCharacters() {
 		character.receiveDamageFrom(initiator, dmg)
 	}
-	tile.stage.updateAll(CharacterBox(tile))
+	tile.stage.updateAll(characterBox(tile))
 
 }
 

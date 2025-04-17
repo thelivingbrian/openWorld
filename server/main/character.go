@@ -212,6 +212,7 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	return false
 }
 
+// Feels messy
 func (target *Player) receiveDamageFrom(initiator *Player, dmg int) bool {
 	if target == initiator {
 		return false
@@ -241,10 +242,9 @@ func (target *Player) receiveDamageFrom(initiator *Player, dmg int) bool {
 //  Non-Player
 
 type NonPlayer struct {
-	id      string
-	icon    string
-	iconLow string
-	//iconLock sync.Mutex
+	id       string
+	icon     string
+	iconLow  string
 	world    *World
 	tile     *Tile
 	tileLock sync.Mutex
@@ -466,7 +466,7 @@ func cycleForward(path []*Tile, index, depth int) (bool, *Interactable, int) {
 	}
 	defer path[next].interactableMutex.Unlock()
 
-	if !path[next].material.Walkable { // Move up to next nil check?
+	if !path[next].material.Walkable { // Move up to next nil check? - Or move down in nil check to match push
 		return false, nil, depth + 1
 	}
 	if path[next].interactable == nil {
