@@ -36,19 +36,19 @@ type Teleport struct {
 	rejectInteractable bool
 }
 
-func newTile(mat Material, y int, x int, defaultTileColor string) *Tile {
+func newTile(mat Material, y int, x int) *Tile {
 	return &Tile{
-		material:       mat,
-		characterMap:   make(map[string]Character),
-		CharacterMutex: sync.Mutex{},
-		stage:          nil,
-		teleport:       nil,
-		y:              y,
-		x:              x,
-		eventsInFlight: atomic.Int32{},
-		itemMutex:      sync.Mutex{},
-		powerUp:        nil,
-		//powerMutex:        sync.Mutex{},
+		material:          mat,
+		characterMap:      make(map[string]Character),
+		CharacterMutex:    sync.Mutex{},
+		stage:             nil,
+		teleport:          nil,
+		y:                 y,
+		x:                 x,
+		eventsInFlight:    atomic.Int32{},
+		itemMutex:         sync.Mutex{},
+		powerUp:           nil,
+		boosts:            0,
 		money:             0,
 		quickSwapTemplate: makeQuickSwapTemplate(mat, y, x),
 		bottomText:        mat.DisplayText, // Pre-process needed *String to have option of null?

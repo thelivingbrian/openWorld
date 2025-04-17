@@ -206,21 +206,20 @@ type Transport struct {
 }
 
 type Area struct {
-	Name             string                       `json:"name"`
-	Safe             bool                         `json:"safe"`
-	Tiles            [][]Material                 `json:"tiles"`
-	Transports       []Transport                  `json:"transports"`
-	Interactables    [][]*InteractableDescription `json:"interactables"`
-	DefaultTileColor string                       `json:"defaultTileColor"`
-	North            string                       `json:"north"`
-	South            string                       `json:"south"`
-	East             string                       `json:"east"`
-	West             string                       `json:"west"`
-	MapId            string                       `json:"mapId"`
-	LoadStrategy     string                       `json:"loadStrategy,omitempty"`
-	SpawnStrategy    string                       `json:"spawnStrategy,omitempty"`
-	BroadcastGroup   string                       `json:"broadcastGroup,omitempty"`
-	Weather          string                       `json:"weather,omitempty"`
+	Name           string                       `json:"name"`
+	Safe           bool                         `json:"safe"`
+	Tiles          [][]Material                 `json:"tiles"`
+	Transports     []Transport                  `json:"transports"`
+	Interactables  [][]*InteractableDescription `json:"interactables"`
+	North          string                       `json:"north"`
+	South          string                       `json:"south"`
+	East           string                       `json:"east"`
+	West           string                       `json:"west"`
+	MapId          string                       `json:"mapId"`
+	LoadStrategy   string                       `json:"loadStrategy,omitempty"`
+	SpawnStrategy  string                       `json:"spawnStrategy,omitempty"`
+	BroadcastGroup string                       `json:"broadcastGroup,omitempty"`
+	Weather        string                       `json:"weather,omitempty"`
 }
 
 type InteractableDescription struct {

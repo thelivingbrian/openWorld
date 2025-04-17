@@ -19,7 +19,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	CAPACITY_PER_TEAM = playerCount // Prevent player cap from preventing world.Join()
 
 	testStage := loadStageByName(world, "test-walls-interactable")
-	testStage.spawn = []SpawnAction{SpawnAction{always, addBoostsAt(11, 13)}}
+	testStage.spawn = []SpawnAction{{always, addBoostsAt(11, 13)}}
 	if len(world.worldStages) != 1 {
 		t.Error("Should have two stages")
 	}
@@ -77,12 +77,22 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 		t.Error("Player should have moved")
 	}
 
-	// Activate every collected power
-	fmt.Println("Starting killstreak: ", p.getKillStreakSync(), " / 500")
+	stopEarly := false
+	current := p.getKillStreakSync()
+	fmt.Println("Starting killstreak: ", current, " / 500")
 	for count := 0; count < 7; count++ {
+		stopEarly = current == 500
+
+		// Activate every collected power
+		// hit once after stopearly to ensure no overflow
 		p.activatePower()
 		time.Sleep(time.Duration(activationDelay) * time.Millisecond)
-		fmt.Println("current ks: ", p.getKillStreakSync(), " / 500")
+
+		current = p.getKillStreakSync()
+		fmt.Println("current ks: ", current, " / 500")
+		if stopEarly {
+			break
+		}
 	}
 
 	// check each clone is in clinic

@@ -67,7 +67,7 @@ func createGameWorld(db *DB, config *Configuration) *World {
 		teamQuantities:      map[string]int{},
 		incomingPlayers:     make(map[string]*LoginRequest),
 		incomingPlayerMutex: sync.Mutex{},
-		playersToLogout:     make(chan *Player, 0),
+		playersToLogout:     make(chan *Player),
 		worldStages:         make(map[string]*Stage),
 		wStageMutex:         sync.Mutex{},
 		leaderBoard:         createLeaderBoard(),
