@@ -26,3 +26,5 @@ func TestEnsureClinicIsDefault(t *testing.T) {
 		t.Error("Default stage is not clinic")
 	}
 }
+
+// Test personal / individual load types
