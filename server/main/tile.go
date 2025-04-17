@@ -438,6 +438,7 @@ func everyOtherTileOnStage(tile *Tile) []*Tile {
 	return out
 }
 
+// use for airlock?
 func getVanNeumannNeighborsOfTile(tile *Tile) []*Tile {
 	out := make([]*Tile, 0)
 	for _, yOff := range []int{-1, 1} {
