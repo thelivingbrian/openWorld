@@ -239,13 +239,12 @@ func damageAndIndicate(tiles []*Tile, initiator *Player, stage *Stage, damage in
 
 // Method on a character?
 func (tile *Tile) damageAll(dmg int, initiator *Player) {
-	fatalities := false
+	//fatalities := false
 	for _, character := range tile.copyOfCharacters() {
-		fatalities = character.receiveDamageFrom(initiator, dmg) || fatalities
+		character.receiveDamageFrom(initiator, dmg)
 	}
-	if fatalities {
-		tile.stage.updateAll(CharacterBox(tile))
-	}
+	tile.stage.updateAll(CharacterBox(tile))
+
 }
 
 func (tile *Tile) copyOfCharacters() []Character {
