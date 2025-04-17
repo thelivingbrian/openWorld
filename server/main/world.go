@@ -67,7 +67,7 @@ func createGameWorld(db *DB, config *Configuration) *World {
 		teamQuantities:      map[string]int{},
 		incomingPlayers:     make(map[string]*LoginRequest),
 		incomingPlayerMutex: sync.Mutex{},
-		playersToLogout:     make(chan *Player, 0),
+		playersToLogout:     make(chan *Player),
 		worldStages:         make(map[string]*Stage),
 		wStageMutex:         sync.Mutex{},
 		leaderBoard:         createLeaderBoard(),
@@ -407,7 +407,7 @@ func completeLogout(player *Player) {
 ///////////////////////////////////////////////////////////////
 // References / Lookup
 
-func getRelativeTile(source *Tile, yOff, xOff int, player *Player) *Tile {
+func getRelativeTile(source *Tile, yOff, xOff int, character Character) *Tile {
 	destY := source.y + yOff
 	destX := source.x + xOff
 	if validCoordinate(destY, destX, source.stage) {
@@ -423,26 +423,26 @@ func getRelativeTile(source *Tile, yOff, xOff int, player *Player) *Tile {
 		if escapesVertically {
 			var newStage *Stage
 			if yOff > 0 {
-				newStage = player.fetchStageSync(source.stage.south)
+				newStage = character.fetchStageSync(source.stage.south)
 			}
 			if yOff < 0 {
-				newStage = player.fetchStageSync(source.stage.north)
+				newStage = character.fetchStageSync(source.stage.north)
 			}
 
-			if validCoordinate(mod(destY, len(newStage.tiles)), destX, newStage) {
+			if newStage != nil && validCoordinate(mod(destY, len(newStage.tiles)), destX, newStage) {
 				return newStage.tiles[mod(destY, len(newStage.tiles))][destX]
 			}
 		}
 		if escapesHorizontally {
 			var newStage *Stage
 			if xOff > 0 {
-				newStage = player.fetchStageSync(source.stage.east)
+				newStage = character.fetchStageSync(source.stage.east)
 			}
 			if xOff < 0 {
-				newStage = player.fetchStageSync(source.stage.west)
+				newStage = character.fetchStageSync(source.stage.west)
 			}
 
-			if validCoordinate(destY, mod(destX, len(newStage.tiles)), newStage) {
+			if newStage != nil && validCoordinate(destY, mod(destX, len(newStage.tiles)), newStage) {
 				return newStage.tiles[destY][mod(destX, len(newStage.tiles))]
 			}
 		}

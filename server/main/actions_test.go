@@ -32,10 +32,10 @@ func TestActivateHighlightWithMovement_NoConcurrentWrite(t *testing.T) {
 		defer wg.Done()
 		for i := 0; i < reps; i++ {
 			wg.Add(4) // Add 4 waits for each iteration of the loop
-			go func() { defer wg.Done(); player.moveNorth() }()
-			go func() { defer wg.Done(); player.moveSouth() }()
-			go func() { defer wg.Done(); player.moveEast() }()
-			go func() { defer wg.Done(); player.moveWest() }()
+			go func() { defer wg.Done(); moveNorth(player) }()
+			go func() { defer wg.Done(); moveSouth(player) }()
+			go func() { defer wg.Done(); moveEast(player) }()
+			go func() { defer wg.Done(); moveWest(player) }()
 		}
 	}()
 

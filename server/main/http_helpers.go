@@ -14,7 +14,7 @@ func requestToProperties(r *http.Request) (map[string]string, bool) {
 	// Works on standard htmx form post
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		fmt.Printf("Error reading body: %v", err)
+		logger.Error().Err(err).Msg(fmt.Sprintf("Error reading body: %v", err))
 		return nil, false
 	}
 

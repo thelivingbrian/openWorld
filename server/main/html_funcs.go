@@ -43,7 +43,7 @@ func swapsForTilesWithHighlights(tiles [][]*Tile, highlights map[*Tile]bool) []b
 
 func swapsForTile(tile *Tile, highlight string) string {
 	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.quickSwapTemplate, playerBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x, tile.stage.weather), oobHighlightBox(tile, highlight))
+	return fmt.Sprintf(tile.quickSwapTemplate, characterBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x, tile.stage.weather), oobHighlightBox(tile, highlight))
 }
 
 ////////////////////////////////////////////////////////////
@@ -132,12 +132,12 @@ func playerBoxSpecifc(y, x int, icon string) string {
 	return fmt.Sprintf(`[~ id="Lp1-%d-%d" class="box zp %s"]`, y, x, icon)
 }
 
-func playerBox(tile *Tile) string {
-	playerIndicator := ""
-	if p := tile.getAPlayer(); p != nil {
-		playerIndicator = p.getIconSync()
+func characterBox(tile *Tile) string {
+	characterIndicator := ""
+	if ch := tile.getACharacter(); ch != nil {
+		characterIndicator = ch.getIconSync()
 	}
-	return playerBoxSpecifc(tile.y, tile.x, playerIndicator)
+	return playerBoxSpecifc(tile.y, tile.x, characterIndicator)
 }
 
 func interactableBoxSpecific(y, x int, interactable *Interactable) string {
@@ -209,12 +209,8 @@ func weatherBox(tile *Tile, cssClass string) string {
 }
 
 func svgFromTile(tile *Tile) string {
-	tile.powerMutex.Lock()
-	defer tile.powerMutex.Unlock()
-	tile.moneyMutex.Lock()
-	defer tile.moneyMutex.Unlock()
-	tile.boostsMutex.Lock()
-	defer tile.boostsMutex.Unlock()
+	tile.itemMutex.Lock()
+	defer tile.itemMutex.Unlock()
 
 	template := `[~ id="%s" class="%s"]`
 
@@ -284,16 +280,13 @@ func divInputDisabled() string {
 
 func divLogOutResume(text, domain string) []byte {
 	var buf bytes.Buffer
-	logOutSuccess := `
-	  <div id="page">
-	      <div id="logo">
-	          <img src="/assets/blooplogo2.webp" width="400" height="400" alt="Welcome to bloopworld"><br />
-	      </div>
-	      <div id="landing">   
-		  	  <span>%s</span><br />
-	          <a class="large-font" href="#" hx-post="%s/play" hx-target="#page">Resume</a><br />
-	      </div>
-	  </div>`
-	fmt.Fprintf(&buf, logOutSuccess, text, domain)
+	data := struct {
+		Text   string
+		Domain string
+	}{
+		Text:   text,
+		Domain: domain,
+	}
+	tmpl.ExecuteTemplate(&buf, "log-out", data)
 	return buf.Bytes()
 }

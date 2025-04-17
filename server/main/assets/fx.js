@@ -12,6 +12,7 @@ const sounds = {
     "wind-swoosh": new Audio("/assets/sounds/wind-swoosh.mp3"),
     "woody-swoosh": new Audio("/assets/sounds/woody-swoosh.mp3"),
     "water-splash": new Audio("/assets/sounds/water-splash.mp3"),
+    "clink": new Audio("/assets/sounds/clink.mp3"),
 };
 
 // Mixing

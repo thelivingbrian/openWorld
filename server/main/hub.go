@@ -39,9 +39,9 @@ type RankingProvider interface {
 
 // Used w/ Template methods to cycle through on site
 var queryCategories = [3][2]string{
-	[2]string{"Richest", "money"},
-	[2]string{"Deadliest", "killCount"},
-	[2]string{"MVP", "goalsScored"},
+	{"Richest", "money"},
+	{"Deadliest", "killCount"},
+	{"MVP", "goalsScored"},
 }
 
 func createDefaultHub(db RankingProvider) *Hub {

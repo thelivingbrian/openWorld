@@ -270,21 +270,20 @@ func (c Context) compileCollection(collection *Collection) {
 			// Add maps for all individual areas as well
 
 			areas = append(areas, AreaOutput{
-				Name:             desc.Name,
-				Safe:             desc.Safe,
-				Tiles:            outputTiles,
-				Interactables:    collection.generateInteractables(desc.Blueprint.Tiles),
-				Transports:       desc.Transports,
-				DefaultTileColor: desc.Blueprint.DefaultTileColor, // used?
-				North:            desc.North,
-				South:            desc.South,
-				East:             desc.East,
-				West:             desc.West,
-				MapId:            mapid,
-				LoadStrategy:     desc.LoadStrategy,
-				SpawnStrategy:    desc.SpawnStrategy,
-				Weather:          desc.Weather,
-				BroadcastGroup:   desc.BroadcastGroup,
+				Name:           desc.Name,
+				Safe:           desc.Safe,
+				Tiles:          outputTiles,
+				Interactables:  collection.generateInteractables(desc.Blueprint.Tiles),
+				Transports:     desc.Transports,
+				North:          desc.North,
+				South:          desc.South,
+				East:           desc.East,
+				West:           desc.West,
+				MapId:          mapid,
+				LoadStrategy:   desc.LoadStrategy,
+				SpawnStrategy:  desc.SpawnStrategy,
+				Weather:        desc.Weather,
+				BroadcastGroup: desc.BroadcastGroup,
 			})
 		}
 	}
