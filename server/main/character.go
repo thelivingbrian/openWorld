@@ -533,9 +533,6 @@ func cycleForward(path []*Tile, index, depth int) (bool, *Interactable, int) {
 	}
 	defer path[next].interactableMutex.Unlock()
 
-	// if !path[next].material.Walkable { // Move up to next nil check? - Or move down in nil check to match push
-	// 	return false, nil, depth + 1
-	// }
 	if path[next].interactable == nil {
 		ok := replaceNilInteractable(path[next], path[index].interactable)
 		return ok, nil, depth + 1
