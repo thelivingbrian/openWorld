@@ -85,6 +85,17 @@ func applyTeleport(character Character, teleport *Teleport) {
 	character.transferBetween(character.getTileSync(), stage.tiles[teleport.destY][teleport.destX])
 }
 
+// Juke
+func jukeRight(yOff, xOff int, character Character) {
+	rel, rot := getRelativeAndRotate(yOff, xOff, character, true)
+	swapIfEmpty(rel, rot)
+}
+
+func jukeLeft(yOff, xOff int, character Character) {
+	rel, rot := getRelativeAndRotate(yOff, xOff, character, false)
+	swapIfEmpty(rel, rot)
+}
+
 /////////////////////////////////////////////////////////////////////
 //  Player
 

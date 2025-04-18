@@ -14,7 +14,6 @@ import (
 type PlayerSocketEvent struct {
 	Token    string `json:"token"`
 	Name     string `json:"eventname"`
-	Prev     string // compose in e.g meta
 	MenuName string `json:"menuName"`
 	Arg0     string `json:"arg0"`
 }
@@ -63,8 +62,7 @@ func handleNewPlayer(player *Player) {
 	defer initiateLogout(player)
 	logger.Info().Msg("New Connection from: " + player.username)
 	lastRead := time.Unix(0, 0)
-	//prev2 := ""
-	prev := ""
+	previous := ""
 	for {
 		player.conn.SetReadDeadline(time.Now().Add(MAX_IDLE_IN_SECONDS))
 		_, msg, err := player.conn.ReadMessage()
@@ -81,11 +79,6 @@ func handleNewPlayer(player *Player) {
 			continue
 		}
 
-		//if prev == prev2 {
-		event.Prev = prev
-
-		//}
-
 		if player.handlePressActive(event) {
 			lastRead = currentRead
 			time.Sleep(20 * time.Millisecond)
@@ -98,9 +91,8 @@ func handleNewPlayer(player *Player) {
 		}
 		lastRead = currentRead
 
-		player.handlePress(event)
-		//prev2 = prev
-		prev = event.Name
+		player.handlePress(event, previous)
+		previous = event.Name
 	}
 }
 
@@ -143,46 +135,38 @@ func (player *Player) handlePressActive(event *PlayerSocketEvent) bool {
 	return false
 }
 
-func (player *Player) handlePress(event *PlayerSocketEvent) {
+func (player *Player) handlePress(event *PlayerSocketEvent, pevious string) {
 	switch event.Name {
 	case "w":
-		if event.Prev == "a" {
-			rel, rot := getRelativeAndRotate(0, -1, player, true)
-			swapIfEmpty(rel, rot)
+		if pevious == "a" {
+			jukeRight(0, -1, player)
 		}
-		if event.Prev == "d" {
-			rel, rot := getRelativeAndRotate(0, 1, player, false)
-			swapIfEmpty(rel, rot)
+		if pevious == "d" {
+			jukeLeft(0, 1, player)
 		}
 		moveNorth(player)
 	case "a":
-		if event.Prev == "s" {
-			rel, rot := getRelativeAndRotate(1, 0, player, true)
-			swapIfEmpty(rel, rot)
+		if pevious == "s" {
+			jukeRight(1, 0, player)
 		}
-		if event.Prev == "w" {
-			rel, rot := getRelativeAndRotate(-1, 0, player, false)
-			swapIfEmpty(rel, rot)
+		if pevious == "w" {
+			jukeLeft(-1, 0, player)
 		}
 		moveWest(player)
 	case "s":
-		if event.Prev == "d" {
-			rel, rot := getRelativeAndRotate(0, 1, player, true)
-			swapIfEmpty(rel, rot)
+		if pevious == "d" {
+			jukeRight(0, 1, player)
 		}
-		if event.Prev == "a" {
-			rel, rot := getRelativeAndRotate(0, -1, player, false)
-			swapIfEmpty(rel, rot)
+		if pevious == "a" {
+			jukeLeft(0, -1, player)
 		}
 		moveSouth(player)
 	case "d":
-		if event.Prev == "w" {
-			rel, rot := getRelativeAndRotate(-1, 0, player, true)
-			swapIfEmpty(rel, rot)
+		if pevious == "w" {
+			jukeRight(-1, 0, player)
 		}
-		if event.Prev == "s" {
-			rel, rot := getRelativeAndRotate(1, 0, player, false)
-			swapIfEmpty(rel, rot)
+		if pevious == "s" {
+			jukeLeft(1, 0, player)
 		}
 		moveEast(player)
 	case "W":
