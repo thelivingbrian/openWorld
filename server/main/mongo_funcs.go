@@ -213,10 +213,10 @@ func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 //////////////////////////////////////////////////////////////////////
 // Event Records
 
-func (db *DB) saveKillEvent(tile *Tile, initiator *Player, defeated *Player) error {
+func (db *DB) saveKillEvent(tile *Tile, initiator Character, defeated *Player) error {
 	eventCollection := db.events
 	event := EventRecord{
-		Owner:     initiator.username,
+		Owner:     initiator.getName(),
 		Secondary: defeated.username,
 		Type:      "Kill",
 		Created:   time.Now(),

@@ -155,11 +155,11 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 		updateEntireExistingScreen(player)
 	case "g":
 		makeHallucinate(player)
-		spawnNewNPCWithRandomMovement(player, 100)
 	case "h":
 		player.cycleHats()
 	case "q":
 		rotate(player, false)
+		spawnNewNPCWithRandomMovement(player, 100)
 	case "e":
 		rotate(player, true)
 	case "Shift-On":

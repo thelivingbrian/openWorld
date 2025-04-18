@@ -481,12 +481,13 @@ func (player *Player) setKillStreak(n int) int {
 	return player.killstreak
 }
 
-func (player *Player) incrementKillStreak() int {
+func (player *Player) incrementKillStreak() {
+	// Vs just having character.updateHud ?
+	defer updateStreakIfTangible(player) // initiator may not have initiatied via click -> check tangible needed
 	player.streakLock.Lock()
 	defer player.streakLock.Unlock()
 	player.killstreak++
 	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: player.killstreak, team: player.getTeamNameSync()}
-	return player.killstreak
 }
 
 func (player *Player) getKillCountSync() int {

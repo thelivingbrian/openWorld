@@ -12,12 +12,17 @@ import (
 )
 
 type Character interface {
+	getName() string
 	getIconSync() string
 	getTileSync() *Tile
+	getTeamNameSync() string
 	fetchStageSync(stagename string) *Stage
 	transferBetween(source, dest *Tile)
 	push(tile *Tile, incoming *Interactable, yOff, xOff int) bool
-	receiveDamageFrom(initiator *Player, dmg int) bool
+	takeDamageFrom(initiator Character, dmg int)
+	incrementKillCount()
+	incrementKillStreak()
+	updateRecord()
 }
 
 // Move
@@ -82,6 +87,10 @@ func applyTeleport(character Character, teleport *Teleport) {
 
 /////////////////////////////////////////////////////////////////////
 //  Player
+
+func (player *Player) getName() string {
+	return player.username
+}
 
 func (player *Player) getIconSync() string {
 	player.viewLock.Lock()
@@ -213,44 +222,66 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 }
 
 // Feels messy
-func (target *Player) receiveDamageFrom(initiator *Player, dmg int) bool {
-	if target == initiator {
-		return false
-	}
+func (target *Player) takeDamageFrom(initiator Character, dmg int) {
+	// could use getName()
+	// if target == initiator {
+	// 	return false
+	// }
 	location := target.getTileSync()
-	if safeFromDamage(location) {
-		return false
-	}
-	if target.getTeamNameSync() == initiator.getTeamNameSync() {
-		return false
+	// if safeFromDamage(location) {
+	// 	return false
+	// }
+	// if target.getTeamNameSync() == initiator.getTeamNameSync() {
+	// 	return false
+	// }
+	if safe(location, target, initiator) {
+		return
 	}
 
 	fatal := damagePlayerAndHandleDeath(target, dmg)
 	if fatal {
 		initiator.incrementKillCount()
+		initiator.incrementKillStreak()
 		initiator.updateRecord()
 
-		streak := initiator.incrementKillStreak()
-		updateStreakIfTangible(initiator, streak) // initiator may not have initiatied via click -> check tangible needed
+		//streak := initiator.incrementKillStreak()
+		//updateStreakIfTangible(initiator, streak) // initiator may not have initiatied via click -> check tangible needed
 
-		go initiator.world.db.saveKillEvent(location, initiator, target)
+		go target.world.db.saveKillEvent(location, initiator, target)
 	}
-	return fatal
+}
+
+func safe(location *Tile, partyA, partyB Character) bool {
+	if safeFromDamage(location) {
+		return true
+	}
+	if partyA.getTeamNameSync() == partyB.getTeamNameSync() {
+		return true
+	}
+	return false
 }
 
 /////////////////////////////////////////////////////////////////////
 //  Non-Player
 
 type NonPlayer struct {
-	id       string
-	icon     string
-	iconLow  string
-	world    *World
-	tile     *Tile
-	tileLock sync.Mutex
-	health   atomic.Int32
-	money    atomic.Int32
-	boosts   atomic.Int32
+	id         string
+	team       string
+	teamLock   sync.Mutex
+	icon       string
+	iconLow    string
+	world      *World
+	tile       *Tile
+	tileLock   sync.Mutex
+	health     atomic.Int32
+	money      atomic.Int32
+	boosts     atomic.Int32
+	killCount  atomic.Int32
+	killStreak atomic.Int32
+}
+
+func (npc *NonPlayer) getName() string {
+	return npc.id
 }
 
 func (npc *NonPlayer) getIconSync() string {
@@ -264,6 +295,12 @@ func (npc *NonPlayer) getTileSync() *Tile {
 	npc.tileLock.Lock()
 	defer npc.tileLock.Unlock()
 	return npc.tile
+}
+
+func (npc *NonPlayer) getTeamNameSync() string {
+	npc.teamLock.Lock()
+	defer npc.teamLock.Unlock()
+	return npc.team
 }
 
 func (npc *NonPlayer) fetchStageSync(stagename string) *Stage {
@@ -349,7 +386,10 @@ func (npc *NonPlayer) push(tile *Tile, incoming *Interactable, yOff, xOff int) b
 	return false
 }
 
-func (npc *NonPlayer) receiveDamageFrom(initiator *Player, dmg int) bool {
+func (npc *NonPlayer) takeDamageFrom(initiator Character, dmg int) {
+	if safe(npc.getTileSync(), npc, initiator) {
+		return
+	}
 	if npc.health.Add(int32(-dmg)) <= 0 {
 		npc.tileLock.Lock()
 		defer npc.tileLock.Unlock()
@@ -359,10 +399,19 @@ func (npc *NonPlayer) receiveDamageFrom(initiator *Player, dmg int) bool {
 		} else {
 			logger.Warn().Msg("FAILED TO REMOVE AN NPC")
 		}
-		return true
 	}
-	//npc.tile.stage.updateAll(CharacterBox(npc.tile))
-	return false
+}
+
+func (npc *NonPlayer) incrementKillCount() {
+	npc.killCount.Add(1)
+}
+
+func (npc *NonPlayer) incrementKillStreak() {
+	npc.killStreak.Add(1)
+}
+
+func (npc *NonPlayer) updateRecord() {
+	// Do Nothing
 }
 
 // Spawn NPC
@@ -393,6 +442,7 @@ func spawnNewNPCWithRandomMovement(ref *Player, interval int) (*NonPlayer, conte
 
 				if randn%4 == 0 {
 					moveNorth(npc)
+					activatePower(npc)
 				}
 				if randn%4 == 1 {
 					moveSouth(npc)
@@ -408,6 +458,25 @@ func spawnNewNPCWithRandomMovement(ref *Player, interval int) (*NonPlayer, conte
 	}(ctx)
 	return npc, cancel
 }
+
+func activatePower(npc *NonPlayer) {
+	shapes := [][][2]int{grid9x9, grid5x5}
+	currentTile := npc.getTileSync()
+	rand := rand.Intn(2)
+	absCoordinatePairs := applyRelativeDistance(currentTile.y, currentTile.x, shapes[rand])
+	tiles := make([]*Tile, 0)
+	for _, pair := range absCoordinatePairs {
+		if validCoordinate(pair[0], pair[1], currentTile.stage) {
+			tile := currentTile.stage.tiles[pair[0]][pair[1]]
+			tiles = append(tiles, tile)
+		}
+	}
+	damageAndIndicate(tiles, npc, currentTile.stage, 50)
+	// damage tiles
+}
+
+//////////////////////////////////////////////////////////////////////
+// Rotation
 
 func rotate(character Character, orientClockwise bool) {
 	sourceTile := character.getTileSync()
