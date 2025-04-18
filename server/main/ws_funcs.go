@@ -14,6 +14,7 @@ import (
 type PlayerSocketEvent struct {
 	Token    string `json:"token"`
 	Name     string `json:"eventname"`
+	Prev     string // compose in e.g meta
 	MenuName string `json:"menuName"`
 	Arg0     string `json:"arg0"`
 }
@@ -62,6 +63,8 @@ func handleNewPlayer(player *Player) {
 	defer initiateLogout(player)
 	logger.Info().Msg("New Connection from: " + player.username)
 	lastRead := time.Unix(0, 0)
+	//prev2 := ""
+	prev := ""
 	for {
 		player.conn.SetReadDeadline(time.Now().Add(MAX_IDLE_IN_SECONDS))
 		_, msg, err := player.conn.ReadMessage()
@@ -78,6 +81,11 @@ func handleNewPlayer(player *Player) {
 			continue
 		}
 
+		//if prev == prev2 {
+		event.Prev = prev
+
+		//}
+
 		if player.handlePressActive(event) {
 			lastRead = currentRead
 			time.Sleep(20 * time.Millisecond)
@@ -91,6 +99,8 @@ func handleNewPlayer(player *Player) {
 		lastRead = currentRead
 
 		player.handlePress(event)
+		//prev2 = prev
+		prev = event.Name
 	}
 }
 
@@ -136,12 +146,44 @@ func (player *Player) handlePressActive(event *PlayerSocketEvent) bool {
 func (player *Player) handlePress(event *PlayerSocketEvent) {
 	switch event.Name {
 	case "w":
+		if event.Prev == "a" {
+			rel, rot := getRelativeAndRotate(0, -1, player, true)
+			swapIfEmpty(rel, rot)
+		}
+		if event.Prev == "d" {
+			rel, rot := getRelativeAndRotate(0, 1, player, false)
+			swapIfEmpty(rel, rot)
+		}
 		moveNorth(player)
 	case "a":
+		if event.Prev == "s" {
+			rel, rot := getRelativeAndRotate(1, 0, player, true)
+			swapIfEmpty(rel, rot)
+		}
+		if event.Prev == "w" {
+			rel, rot := getRelativeAndRotate(-1, 0, player, false)
+			swapIfEmpty(rel, rot)
+		}
 		moveWest(player)
 	case "s":
+		if event.Prev == "d" {
+			rel, rot := getRelativeAndRotate(0, 1, player, true)
+			swapIfEmpty(rel, rot)
+		}
+		if event.Prev == "a" {
+			rel, rot := getRelativeAndRotate(0, -1, player, false)
+			swapIfEmpty(rel, rot)
+		}
 		moveSouth(player)
 	case "d":
+		if event.Prev == "w" {
+			rel, rot := getRelativeAndRotate(-1, 0, player, true)
+			swapIfEmpty(rel, rot)
+		}
+		if event.Prev == "s" {
+			rel, rot := getRelativeAndRotate(1, 0, player, false)
+			swapIfEmpty(rel, rot)
+		}
 		moveEast(player)
 	case "W":
 		player.moveNorthBoost()

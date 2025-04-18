@@ -221,19 +221,8 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	return false
 }
 
-// Feels messy
 func (target *Player) takeDamageFrom(initiator Character, dmg int) {
-	// could use getName()
-	// if target == initiator {
-	// 	return false
-	// }
 	location := target.getTileSync()
-	// if safeFromDamage(location) {
-	// 	return false
-	// }
-	// if target.getTeamNameSync() == initiator.getTeamNameSync() {
-	// 	return false
-	// }
 	if safe(location, target, initiator) {
 		return
 	}
@@ -243,9 +232,6 @@ func (target *Player) takeDamageFrom(initiator Character, dmg int) {
 		initiator.incrementKillCount()
 		initiator.incrementKillStreak()
 		initiator.updateRecord()
-
-		//streak := initiator.incrementKillStreak()
-		//updateStreakIfTangible(initiator, streak) // initiator may not have initiatied via click -> check tangible needed
 
 		go target.world.db.saveKillEvent(location, initiator, target)
 	}
@@ -391,6 +377,7 @@ func (npc *NonPlayer) takeDamageFrom(initiator Character, dmg int) {
 		return
 	}
 	if npc.health.Add(int32(-dmg)) <= 0 {
+		initiator.incrementKillStreak()
 		npc.tileLock.Lock()
 		defer npc.tileLock.Unlock()
 		if tryRemoveCharacterById(npc.tile, npc.id) {
@@ -551,4 +538,28 @@ func cycleForward(path []*Tile, index, depth int) (bool, *Interactable, int) {
 		setLockedInteractableAndUpdate(path[next], path[index].interactable)
 	}
 	return ok, out, newDepth
+}
+
+/// New
+
+func swapIfEmpty(source, target *Tile) {
+	ownSource := source.interactableMutex.TryLock()
+	if !ownSource {
+		return
+	}
+	defer source.interactableMutex.Unlock()
+	if source.interactable == nil || !source.interactable.pushable {
+		return
+	}
+	ownTarget := target.interactableMutex.TryLock()
+	if !ownTarget {
+		return
+	}
+	defer target.interactableMutex.Unlock()
+	if target.interactable != nil {
+		return
+	}
+	if replaceNilInteractable(target, source.interactable) {
+		setLockedInteractableAndUpdate(source, nil)
+	}
 }
