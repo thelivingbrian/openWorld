@@ -135,39 +135,22 @@ func (player *Player) handlePressActive(event *PlayerSocketEvent) bool {
 	return false
 }
 
-func (player *Player) handlePress(event *PlayerSocketEvent, pevious string) {
+func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	switch event.Name {
 	case "w":
-		if pevious == "a" {
-			jukeRight(0, -1, player)
-		}
-		if pevious == "d" {
-			jukeLeft(0, 1, player)
-		}
+		tryJukeNorth(previous, player)
 		moveNorth(player)
+
 	case "a":
-		if pevious == "s" {
-			jukeRight(1, 0, player)
-		}
-		if pevious == "w" {
-			jukeLeft(-1, 0, player)
-		}
+		tryJukeWest(previous, player)
 		moveWest(player)
+
 	case "s":
-		if pevious == "d" {
-			jukeRight(0, 1, player)
-		}
-		if pevious == "a" {
-			jukeLeft(0, -1, player)
-		}
+		tryJukeSouth(previous, player)
 		moveSouth(player)
+
 	case "d":
-		if pevious == "w" {
-			jukeRight(-1, 0, player)
-		}
-		if pevious == "s" {
-			jukeLeft(1, 0, player)
-		}
+		tryJukeEast(previous, player)
 		moveEast(player)
 	case "W":
 		player.moveNorthBoost()

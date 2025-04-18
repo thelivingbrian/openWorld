@@ -96,6 +96,42 @@ func jukeLeft(yOff, xOff int, character Character) {
 	swapIfEmpty(rel, rot)
 }
 
+func tryJukeNorth(prev string, character Character) {
+	switch prev {
+	case "a": // coming from West - turning north
+		jukeRight(0, -1, character)
+	case "d": // coming from East - turning north
+		jukeLeft(0, 1, character)
+	}
+}
+
+func tryJukeSouth(prev string, character Character) {
+	switch prev {
+	case "d": // came from East  - turning South
+		jukeRight(0, 1, character)
+	case "a": // came from West - turning South
+		jukeLeft(0, -1, character)
+	}
+}
+
+func tryJukeWest(prev string, character Character) {
+	switch prev {
+	case "s": // came from South - turning west
+		jukeRight(1, 0, character)
+	case "w": // came from North - turning west
+		jukeLeft(-1, 0, character)
+	}
+}
+
+func tryJukeEast(prev string, character Character) {
+	switch prev {
+	case "w": // came from North - turning east
+		jukeRight(-1, 0, character)
+	case "s": // came from South - turning east
+		jukeLeft(1, 0, character)
+	}
+}
+
 /////////////////////////////////////////////////////////////////////
 //  Player
 
