@@ -423,17 +423,23 @@ func (npc *NonPlayer) takeDamageFrom(initiator Character, dmg int) {
 	if safe(npc.getTileSync(), npc, initiator) {
 		return
 	}
-	if npc.health.Add(int32(-dmg)) <= 0 {
+	currentHealth := npc.health.Add(-int32(dmg))
+	previousHealth := currentHealth + int32(dmg)
+	if currentHealth <= 0 && previousHealth > 0 {
 		initiator.incrementKillStreak()
-		npc.tileLock.Lock()
-		defer npc.tileLock.Unlock()
-		if tryRemoveCharacterById(npc.tile, npc.id) {
-			sound := soundTriggerByName("clink")
-			npc.tile.stage.updateAll(sound)
-		} else {
-			logger.Warn().Msg("FAILED TO REMOVE AN NPC")
-		}
+		removeNpc(npc)
 	}
+}
+
+func removeNpc(npc *NonPlayer) {
+	npc.tileLock.Lock()
+	defer npc.tileLock.Unlock()
+	if !tryRemoveCharacterById(npc.tile, npc.id) {
+		logger.Error().Msg("Error - FAILED TO REMOVE NPC")
+		return
+	}
+	sound := soundTriggerByName("clink")
+	npc.tile.stage.updateAll(sound)
 }
 
 func (npc *NonPlayer) incrementKillCount() {
