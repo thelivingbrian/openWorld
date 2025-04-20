@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"time"
@@ -172,6 +173,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	case "g":
 		//makeHallucinate(player)
 		dumbCount++
+		fmt.Println(dumbCount)
 		spawnNewNPCWithRandomMovement(player, 100)
 	case "h":
 		player.cycleHats()
