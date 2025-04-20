@@ -472,7 +472,7 @@ func spawnNewNPCWithRandomMovement(ref *Player, interval int) (*NonPlayer, conte
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go func(ctx context.Context) {
-		time.Sleep(1000)
+		time.Sleep(5 * time.Second)
 		for {
 			select {
 			case <-ctx.Done():
