@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"time"
@@ -144,8 +143,6 @@ func (player *Player) handlePressActive(event *PlayerSocketEvent) bool {
 	return false
 }
 
-var dumbCount = 0
-
 func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	switch event.Name {
 	case "w":
@@ -171,16 +168,14 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	case "f":
 		updateEntireExistingScreen(player)
 	case "g":
-		//makeHallucinate(player)
-		dumbCount++
-		fmt.Println(dumbCount)
-		spawnNewNPCWithRandomMovement(player, 100)
+		makeHallucinate(player)
+		//spawnNewNPCWithRandomMovement(player, 100)
 	case "h":
 		player.cycleHats()
 	case "q":
-		//rotate(player, false)
+		// rotate(player, false)
 	case "e":
-		//rotate(player, true)
+		// rotate(player, true)
 	case "Shift-On":
 		updateOne(divInputShift(), player)
 	case "Shift-Off":
