@@ -439,7 +439,7 @@ func removeNpc(npc *NonPlayer) {
 		return
 	}
 	sound := soundTriggerByName("clink")
-	npc.tile.stage.updateAll(sound)
+	npc.tile.stage.updateAll(sound + characterBox(npc.tile))
 }
 
 func (npc *NonPlayer) incrementKillCount() {
@@ -476,6 +476,7 @@ func spawnNewNPCWithRandomMovement(ref *Player, interval int) (*NonPlayer, conte
 		for {
 			select {
 			case <-ctx.Done():
+				removeNpc(npc)
 				return
 			default:
 				time.Sleep(time.Duration(interval) * time.Millisecond)
