@@ -12,12 +12,17 @@ import (
 )
 
 type Character interface {
+	getName() string
 	getIconSync() string
 	getTileSync() *Tile
+	getTeamNameSync() string
 	fetchStageSync(stagename string) *Stage
 	transferBetween(source, dest *Tile)
 	push(tile *Tile, incoming *Interactable, yOff, xOff int) bool
-	receiveDamageFrom(initiator *Player, dmg int) bool
+	takeDamageFrom(initiator Character, dmg int)
+	incrementKillCount()
+	incrementKillStreak()
+	updateRecord()
 }
 
 // Move
@@ -80,8 +85,59 @@ func applyTeleport(character Character, teleport *Teleport) {
 	character.transferBetween(character.getTileSync(), stage.tiles[teleport.destY][teleport.destX])
 }
 
+// Juke
+func jukeRight(yOff, xOff int, character Character) {
+	rel, rot := getRelativeAndRotate(yOff, xOff, character, true)
+	swapIfEmpty(rel, rot)
+}
+
+func jukeLeft(yOff, xOff int, character Character) {
+	rel, rot := getRelativeAndRotate(yOff, xOff, character, false)
+	swapIfEmpty(rel, rot)
+}
+
+func tryJukeNorth(prev string, character Character) {
+	switch prev {
+	case "a": // coming from West - turning north
+		jukeRight(0, -1, character)
+	case "d": // coming from East - turning north
+		jukeLeft(0, 1, character)
+	}
+}
+
+func tryJukeSouth(prev string, character Character) {
+	switch prev {
+	case "d": // came from East  - turning South
+		jukeRight(0, 1, character)
+	case "a": // came from West - turning South
+		jukeLeft(0, -1, character)
+	}
+}
+
+func tryJukeWest(prev string, character Character) {
+	switch prev {
+	case "s": // came from South - turning west
+		jukeRight(1, 0, character)
+	case "w": // came from North - turning west
+		jukeLeft(-1, 0, character)
+	}
+}
+
+func tryJukeEast(prev string, character Character) {
+	switch prev {
+	case "w": // came from North - turning east
+		jukeRight(-1, 0, character)
+	case "s": // came from South - turning east
+		jukeLeft(1, 0, character)
+	}
+}
+
 /////////////////////////////////////////////////////////////////////
 //  Player
+
+func (player *Player) getName() string {
+	return player.username
+}
 
 func (player *Player) getIconSync() string {
 	player.viewLock.Lock()
@@ -212,45 +268,53 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	return false
 }
 
-// Feels messy
-func (target *Player) receiveDamageFrom(initiator *Player, dmg int) bool {
-	if target == initiator {
-		return false
-	}
+func (target *Player) takeDamageFrom(initiator Character, dmg int) {
 	location := target.getTileSync()
-	if safeFromDamage(location) {
-		return false
-	}
-	if target.getTeamNameSync() == initiator.getTeamNameSync() {
-		return false
+	if safe(location, target, initiator) {
+		return
 	}
 
 	fatal := damagePlayerAndHandleDeath(target, dmg)
 	if fatal {
 		initiator.incrementKillCount()
+		initiator.incrementKillStreak()
 		initiator.updateRecord()
 
-		streak := initiator.incrementKillStreak()
-		updateStreakIfTangible(initiator, streak) // initiator may not have initiatied via click -> check tangible needed
-
-		go initiator.world.db.saveKillEvent(location, initiator, target)
+		go target.world.db.saveKillEvent(location, initiator, target)
 	}
-	return fatal
+}
+
+func safe(location *Tile, partyA, partyB Character) bool {
+	if safeFromDamage(location) {
+		return true
+	}
+	if partyA.getTeamNameSync() == partyB.getTeamNameSync() {
+		return true
+	}
+	return false
 }
 
 /////////////////////////////////////////////////////////////////////
 //  Non-Player
 
 type NonPlayer struct {
-	id       string
-	icon     string
-	iconLow  string
-	world    *World
-	tile     *Tile
-	tileLock sync.Mutex
-	health   atomic.Int32
-	money    atomic.Int32
-	boosts   atomic.Int32
+	id         string
+	team       string
+	teamLock   sync.Mutex
+	icon       string
+	iconLow    string
+	world      *World
+	tile       *Tile
+	tileLock   sync.Mutex
+	health     atomic.Int32
+	money      atomic.Int32
+	boosts     atomic.Int32
+	killCount  atomic.Int32
+	killStreak atomic.Int32
+}
+
+func (npc *NonPlayer) getName() string {
+	return npc.id
 }
 
 func (npc *NonPlayer) getIconSync() string {
@@ -264,6 +328,12 @@ func (npc *NonPlayer) getTileSync() *Tile {
 	npc.tileLock.Lock()
 	defer npc.tileLock.Unlock()
 	return npc.tile
+}
+
+func (npc *NonPlayer) getTeamNameSync() string {
+	npc.teamLock.Lock()
+	defer npc.teamLock.Unlock()
+	return npc.team
 }
 
 func (npc *NonPlayer) fetchStageSync(stagename string) *Stage {
@@ -349,20 +419,39 @@ func (npc *NonPlayer) push(tile *Tile, incoming *Interactable, yOff, xOff int) b
 	return false
 }
 
-func (npc *NonPlayer) receiveDamageFrom(initiator *Player, dmg int) bool {
-	if npc.health.Add(int32(-dmg)) <= 0 {
-		npc.tileLock.Lock()
-		defer npc.tileLock.Unlock()
-		if tryRemoveCharacterById(npc.tile, npc.id) {
-			sound := soundTriggerByName("clink")
-			npc.tile.stage.updateAll(sound)
-		} else {
-			logger.Warn().Msg("FAILED TO REMOVE AN NPC")
-		}
-		return true
+func (npc *NonPlayer) takeDamageFrom(initiator Character, dmg int) {
+	if safe(npc.getTileSync(), npc, initiator) {
+		return
 	}
-	//npc.tile.stage.updateAll(CharacterBox(npc.tile))
-	return false
+	currentHealth := npc.health.Add(-int32(dmg))
+	previousHealth := currentHealth + int32(dmg)
+	if currentHealth <= 0 && previousHealth > 0 {
+		initiator.incrementKillStreak()
+		removeNpc(npc)
+	}
+}
+
+func removeNpc(npc *NonPlayer) {
+	npc.tileLock.Lock()
+	defer npc.tileLock.Unlock()
+	if !tryRemoveCharacterById(npc.tile, npc.id) {
+		logger.Error().Msg("Error - FAILED TO REMOVE NPC")
+		return
+	}
+	sound := soundTriggerByName("clink")
+	npc.tile.stage.updateAll(sound + characterBox(npc.tile))
+}
+
+func (npc *NonPlayer) incrementKillCount() {
+	npc.killCount.Add(1)
+}
+
+func (npc *NonPlayer) incrementKillStreak() {
+	npc.killStreak.Add(1)
+}
+
+func (npc *NonPlayer) updateRecord() {
+	// Do Nothing
 }
 
 // Spawn NPC
@@ -383,9 +472,11 @@ func spawnNewNPCWithRandomMovement(ref *Player, interval int) (*NonPlayer, conte
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go func(ctx context.Context) {
+		time.Sleep(5 * time.Second)
 		for {
 			select {
 			case <-ctx.Done():
+				removeNpc(npc)
 				return
 			default:
 				time.Sleep(time.Duration(interval) * time.Millisecond)
@@ -393,6 +484,7 @@ func spawnNewNPCWithRandomMovement(ref *Player, interval int) (*NonPlayer, conte
 
 				if randn%4 == 0 {
 					moveNorth(npc)
+					activatePower(npc)
 				}
 				if randn%4 == 1 {
 					moveSouth(npc)
@@ -406,8 +498,33 @@ func spawnNewNPCWithRandomMovement(ref *Player, interval int) (*NonPlayer, conte
 			}
 		}
 	}(ctx)
+
+	go func(cancel context.CancelFunc) {
+		time.Sleep(300 * time.Second)
+		cancel()
+	}(cancel)
+
 	return npc, cancel
 }
+
+func activatePower(npc *NonPlayer) {
+	shapes := [][][2]int{grid9x9, grid5x5}
+	currentTile := npc.getTileSync()
+	rand := rand.Intn(2)
+	absCoordinatePairs := applyRelativeDistance(currentTile.y, currentTile.x, shapes[rand])
+	tiles := make([]*Tile, 0)
+	for _, pair := range absCoordinatePairs {
+		if validCoordinate(pair[0], pair[1], currentTile.stage) {
+			tile := currentTile.stage.tiles[pair[0]][pair[1]]
+			tiles = append(tiles, tile)
+		}
+	}
+	damageAndIndicate(tiles, npc, currentTile.stage, 50)
+	// damage tiles
+}
+
+//////////////////////////////////////////////////////////////////////
+// Rotation
 
 func rotate(character Character, orientClockwise bool) {
 	sourceTile := character.getTileSync()
@@ -466,12 +583,9 @@ func cycleForward(path []*Tile, index, depth int) (bool, *Interactable, int) {
 	}
 	defer path[next].interactableMutex.Unlock()
 
-	if !path[next].material.Walkable { // Move up to next nil check? - Or move down in nil check to match push
-		return false, nil, depth + 1
-	}
 	if path[next].interactable == nil {
-		setLockedInteractableAndUpdate(path[next], path[index].interactable)
-		return true, nil, depth + 1
+		ok := replaceNilInteractable(path[next], path[index].interactable)
+		return ok, nil, depth + 1
 	}
 	if !path[next].interactable.pushable {
 		return false, nil, depth + 1
@@ -482,4 +596,28 @@ func cycleForward(path []*Tile, index, depth int) (bool, *Interactable, int) {
 		setLockedInteractableAndUpdate(path[next], path[index].interactable)
 	}
 	return ok, out, newDepth
+}
+
+/// New
+
+func swapIfEmpty(source, target *Tile) {
+	ownSource := source.interactableMutex.TryLock()
+	if !ownSource {
+		return
+	}
+	defer source.interactableMutex.Unlock()
+	if source.interactable == nil || !source.interactable.pushable {
+		return
+	}
+	ownTarget := target.interactableMutex.TryLock()
+	if !ownTarget {
+		return
+	}
+	defer target.interactableMutex.Unlock()
+	if target.interactable != nil {
+		return
+	}
+	if replaceNilInteractable(target, source.interactable) {
+		setLockedInteractableAndUpdate(source, nil)
+	}
 }

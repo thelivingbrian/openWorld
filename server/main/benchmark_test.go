@@ -212,7 +212,7 @@ func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 func createStageByName(name string) *Stage {
 	area, success := areaFromName(name)
 	if !success {
-		panic("invalid area.")
+		panic("invalid area: " + name)
 	}
 	return createStageFromArea(area)
 }

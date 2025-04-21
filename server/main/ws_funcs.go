@@ -11,6 +11,14 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type WebsocketConnection interface {
+	WriteMessage(messageType int, data []byte) error
+	ReadMessage() (messageType int, p []byte, err error)
+	Close() error
+	SetWriteDeadline(t time.Time) error
+	SetReadDeadline(t time.Time) error
+}
+
 type PlayerSocketEvent struct {
 	Token    string `json:"token"`
 	Name     string `json:"eventname"`
@@ -62,6 +70,7 @@ func handleNewPlayer(player *Player) {
 	defer initiateLogout(player)
 	logger.Info().Msg("New Connection from: " + player.username)
 	lastRead := time.Unix(0, 0)
+	previous := ""
 	for {
 		player.conn.SetReadDeadline(time.Now().Add(MAX_IDLE_IN_SECONDS))
 		_, msg, err := player.conn.ReadMessage()
@@ -90,7 +99,8 @@ func handleNewPlayer(player *Player) {
 		}
 		lastRead = currentRead
 
-		player.handlePress(event)
+		player.handlePress(event, previous)
+		previous = event.Name
 	}
 }
 
@@ -133,15 +143,19 @@ func (player *Player) handlePressActive(event *PlayerSocketEvent) bool {
 	return false
 }
 
-func (player *Player) handlePress(event *PlayerSocketEvent) {
+func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	switch event.Name {
 	case "w":
+		tryJukeNorth(previous, player)
 		moveNorth(player)
 	case "a":
+		tryJukeWest(previous, player)
 		moveWest(player)
 	case "s":
+		tryJukeSouth(previous, player)
 		moveSouth(player)
 	case "d":
+		tryJukeEast(previous, player)
 		moveEast(player)
 	case "W":
 		player.moveNorthBoost()
@@ -155,13 +169,13 @@ func (player *Player) handlePress(event *PlayerSocketEvent) {
 		updateEntireExistingScreen(player)
 	case "g":
 		makeHallucinate(player)
-		spawnNewNPCWithRandomMovement(player, 100)
+		//spawnNewNPCWithRandomMovement(player, 100)
 	case "h":
 		player.cycleHats()
 	case "q":
-		rotate(player, false)
+		// rotate(player, false)
 	case "e":
-		rotate(player, true)
+		// rotate(player, true)
 	case "Shift-On":
 		updateOne(divInputShift(), player)
 	case "Shift-Off":

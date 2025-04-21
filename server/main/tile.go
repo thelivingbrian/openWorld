@@ -226,7 +226,7 @@ func (tile *Tile) getACharacter() Character {
 /////////////////////////////////////////////////////////////////////
 // Damage
 
-func damageAndIndicate(tiles []*Tile, initiator *Player, stage *Stage, damage int) {
+func damageAndIndicate(tiles []*Tile, initiator Character, stage *Stage, damage int) {
 	for _, tile := range tiles {
 		tile.damageAll(damage, initiator)
 		destroyFragileInteractable(tile, initiator)
@@ -234,13 +234,12 @@ func damageAndIndicate(tiles []*Tile, initiator *Player, stage *Stage, damage in
 		go tile.tryToNotifyAfter(100)
 	}
 	damageBoxes := sliceOfTileToWeatherBoxes(tiles, randomFieryColor())
-	stage.updateAll(damageBoxes)
+	stage.updateAll(damageBoxes + soundTriggerByName("explosion"))
 }
 
-// Method on a character?
-func (tile *Tile) damageAll(dmg int, initiator *Player) {
+func (tile *Tile) damageAll(dmg int, initiator Character) {
 	for _, character := range tile.copyOfCharacters() {
-		character.receiveDamageFrom(initiator, dmg)
+		character.takeDamageFrom(initiator, dmg)
 	}
 	tile.stage.updateAll(characterBox(tile))
 
@@ -279,13 +278,15 @@ func reduceHealthAndCheckFatal(player *Player, dmg int) bool {
 	return fatal
 }
 
-func updateStreakIfTangible(player *Player, streak int) {
+func updateStreakIfTangible(player *Player) {
 	ownLock := player.tangibilityLock.TryLock()
 	if !ownLock || !player.tangible {
 		return
 	}
 	defer player.tangibilityLock.Unlock()
-	html := spanStreak(streak)
+	player.streakLock.Lock()
+	defer player.streakLock.Unlock()
+	html := spanStreak(player.killstreak)
 	updateOne(html, player)
 }
 
@@ -344,7 +345,7 @@ func destroyInteractable(tile *Tile, _ *Player) {
 	}
 }
 
-func destroyFragileInteractable(tile *Tile, _ *Player) {
+func destroyFragileInteractable(tile *Tile, _ Character) {
 	// *Player is a placeholder for initiator/destroyer in future
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()

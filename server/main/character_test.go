@@ -155,4 +155,20 @@ func TestEnsureCharacterCanRotateInteractables(t *testing.T) {
 	if north.interactable != int5 {
 		t.Error("Non-pushable should not rotate")
 	}
+
+	north.interactable = nil
+	north.material.Walkable = false
+	south.interactable = nil
+	east.interactable = nil
+	west.interactable = int0
+	rotate(npc, true)
+	if north.interactable != nil {
+		t.Error("Non-walkable should not accept new interactable")
+	}
+
+	north.interactable = int1
+	rotate(npc, false)
+	if north.interactable != nil && west.interactable != int1 && south.interactable != int0 {
+		t.Error("Should be able to rotate off of non-walkable")
+	}
 }
