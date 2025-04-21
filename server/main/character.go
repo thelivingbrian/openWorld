@@ -497,6 +497,12 @@ func spawnNewNPCWithRandomMovement(ref *Player, interval int) (*NonPlayer, conte
 			}
 		}
 	}(ctx)
+
+	go func(cancel context.CancelFunc) {
+		time.Sleep(300 * time.Second)
+		cancel()
+	}(cancel)
+
 	return npc, cancel
 }
 
