@@ -33,6 +33,7 @@
   - [-] Goal shows score of each team
 - [-] Seperate homepage from game server
 - [-] Add sound fx
+- [ ] Canvas based interactive/realtime stage map? 
 
 ## Integration 
 - [ ] Bot AI
@@ -41,7 +42,7 @@
   - [ ] Open menus
   - [ ] Hallucinate
 - [-] All players in tutorial 
-- [ ] With DB Writes 
+- [-] With DB Writes 
 
 ## Stats 
 - [ ] Boosts 
@@ -66,7 +67,9 @@
 - [-] Highlight code broken for overlapping after teleport
 - [-] Result of removing buffer with the new timeout deadlines (Should still get overwhelmed)
   - [-] Not as good
-- [ ] Load test database cluster
+- [-] Load test database cluster
+- [ ] Load Test NPC
+  - [-] Max count ~2000 cpu ~43.4%
 
 ## Design Workspace
 - [-] Rotations
