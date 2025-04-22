@@ -549,10 +549,21 @@ func checkSolveAndRemoveInteractable(i *Interactable, p *Player, t *Tile) (*Inte
 }
 
 func awardPuzzleHat(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	// add hat
 	p.addHatByName("puzzle-solve-1")
+
 	// add boost 13,5
 	p.getTileSync().stage.tiles[13][5].addBoostsAndNotifyAll()
-	// spawn escape lily 14,5
+
+	// spawn escape lily 15,5
+	lilySpot := p.getTileSync().stage.tiles[15][5]
+	lilySpot.interactableMutex.Lock()
+	defer lilySpot.interactableMutex.Unlock()
+	lily := Interactable{name: "lily-pad", cssClass: "black trsp20 lime-b thin r0", walkable: true, fragile: true}
+	setLockedInteractableAndUpdate(lilySpot, &lily)
+
+	// TODO: reward sound
+
 	return nil, false
 }
 
