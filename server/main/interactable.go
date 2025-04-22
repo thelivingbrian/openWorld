@@ -550,7 +550,9 @@ func checkSolveAndRemoveInteractable(i *Interactable, p *Player, t *Tile) (*Inte
 
 func awardPuzzleHat(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	p.addHatByName("puzzle-solve-1")
-	// spawn escape lily
+	// add boost 13,5
+	p.getTileSync().stage.tiles[13][5].addBoostsAndNotifyAll()
+	// spawn escape lily 14,5
 	return nil, false
 }
 
