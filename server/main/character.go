@@ -159,6 +159,7 @@ func (player *Player) fetchStageSync(stagename string) *Stage {
 		return stage
 	}
 	// stagename + team || stagename + rand
+	// stagename + prompt for / provide group code
 
 	player.pStageMutex.Lock()
 	defer player.pStageMutex.Unlock()
