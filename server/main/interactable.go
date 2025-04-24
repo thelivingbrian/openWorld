@@ -26,77 +26,93 @@ func init() {
 	interactableReactions = map[string][]InteractableReaction{
 		// Capture the flag :
 		"black-hole": {
-			InteractableReaction{ReactsWith: interactableHasName("ball-fuchsia"), Reaction: hideByTeam("fuchsia")},
-			InteractableReaction{ReactsWith: interactableHasName("ball-sky-blue"), Reaction: hideByTeam("sky-blue")},
-			InteractableReaction{ReactsWith: everything, Reaction: eat}, // reduces number of rings
+			{ReactsWith: interactableHasName("ball-fuchsia"), Reaction: hideByTeam("fuchsia")},
+			{ReactsWith: interactableHasName("ball-sky-blue"), Reaction: hideByTeam("sky-blue")},
+			{ReactsWith: everything, Reaction: eat}, // reduces number of rings
 		},
 		"goal-sky-blue": {
-			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: scoreGoalForTeam("sky-blue")},
-			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: pass},
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: showScoreToPlayer("sky-blue")},
+			{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: scoreGoalForTeam("sky-blue")},
+			{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: pass},
+			{ReactsWith: interactableIsNil, Reaction: showScoreToPlayer("sky-blue")},
 		},
 		"goal-fuchsia": {
-			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: scoreGoalForTeam("fuchsia")},
-			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: pass},
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: showScoreToPlayer("fuchsia")},
+			{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: scoreGoalForTeam("fuchsia")},
+			{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: pass},
+			{ReactsWith: interactableIsNil, Reaction: showScoreToPlayer("fuchsia")},
 		},
+
+		////////////////////////////////////////////////////////////////
 		// Tutorial :
 		"tutorial-black-hole": {
-			InteractableReaction{ReactsWith: interactableIsABall, Reaction: tutorial2HideAndNotify},
-			InteractableReaction{ReactsWith: everything, Reaction: eat},
+			{ReactsWith: interactableIsABall, Reaction: tutorial2HideAndNotify},
+			{ReactsWith: everything, Reaction: eat},
 		},
 		"tutorial-goal-sky-blue": {
-			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: destroyEveryotherInteractable},
-			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: notifyAndPass("Try using the matching ball.")},
+			{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: destroyEveryotherInteractable},
+			{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: notifyAndPass("Try using the matching ball.")},
 		},
 		"tutorial-goal-fuchsia": {
-			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: destroyEveryotherInteractable},
-			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: notifyAndPass("Try using the matching ball.")},
+			{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: destroyEveryotherInteractable},
+			{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: notifyAndPass("Try using the matching ball.")},
 		},
 		"gold-target": {
-			InteractableReaction{ReactsWith: interactableHasName("ball-gold"), Reaction: destroyInRangeSkipingSelf(5, 3, 10, 8)},
+			{ReactsWith: interactableHasName("ball-gold"), Reaction: destroyInRangeSkipingSelf(5, 3, 10, 8)},
 		},
 		"set-team-wild-text-and-delete": {
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: setTeamWildText},
+			{ReactsWith: interactableIsNil, Reaction: setTeamWildText},
 		},
+
+		////////////////////////////////////////////////////////////////
 		// machines :
+
+		// catapult
 		"catapult-west": {
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultWest},
-			InteractableReaction{ReactsWith: everything, Reaction: pass},
+			{ReactsWith: interactableIsNil, Reaction: catapultWest},
+			{ReactsWith: everything, Reaction: pass},
 		},
 		"catapult-north": {
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultNorth},
-			InteractableReaction{ReactsWith: everything, Reaction: pass},
+			{ReactsWith: interactableIsNil, Reaction: catapultNorth},
+			{ReactsWith: everything, Reaction: pass},
 		},
 		"catapult-south": {
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultSouth},
-			InteractableReaction{ReactsWith: everything, Reaction: pass},
+			{ReactsWith: interactableIsNil, Reaction: catapultSouth},
+			{ReactsWith: everything, Reaction: pass},
 		},
 		"catapult-east": {
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultEast},
-			InteractableReaction{ReactsWith: everything, Reaction: pass},
+			{ReactsWith: interactableIsNil, Reaction: catapultEast},
+			{ReactsWith: everything, Reaction: pass},
 		},
+
+		// environment
 		"lily-pad": {
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: playSoundForAll("water-splash")},
-			InteractableReaction{ReactsWith: interactableIsARing, Reaction: makeDangerousForOtherTeam},
-			InteractableReaction{ReactsWith: everything, Reaction: pass},
+			{ReactsWith: interactableIsNil, Reaction: playSoundForAll("water-splash")},
+			{ReactsWith: interactableIsARing, Reaction: makeDangerousForOtherTeam},
+			{ReactsWith: everything, Reaction: pass},
 		},
 		"death-trap": {
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: killInstantly},
-			InteractableReaction{ReactsWith: everything, Reaction: pass},
+			{ReactsWith: interactableIsNil, Reaction: killInstantly},
+			{ReactsWith: everything, Reaction: pass},
 		},
 		"exchange-ring": {
-			InteractableReaction{ReactsWith: interactableIsARing, Reaction: damageAndSpawn},
+			{ReactsWith: interactableIsARing, Reaction: damageAndSpawn},
 		},
+
+		////////////////////////////////////////////////////////////////
 		// Puzzles:
+
+		// Lavander Ball Puzzle
 		"target-lavender": {
-			InteractableReaction{ReactsWith: interactableHasName("ball-lavender"), Reaction: checkSolveAndRemoveInteractable},
-			InteractableReaction{ReactsWith: everything, Reaction: pass},
+			{ReactsWith: interactableHasName("ball-lavender"), Reaction: checkSolveAndRemoveInteractable},
+			{ReactsWith: everything, Reaction: pass},
 		},
 		"target-dark-lavender": {
-			InteractableReaction{ReactsWith: interactableHasName("ball-dark-lavender"), Reaction: awardPuzzleHat},
-			InteractableReaction{ReactsWith: everything, Reaction: pass},
+			{ReactsWith: interactableHasName("ball-dark-lavender"), Reaction: awardPuzzleHat},
+			{ReactsWith: everything, Reaction: pass},
 		},
+
+		// Airlock
+		"airlock-on":  {{ReactsWith: interactableIsNil, Reaction: killInstantly}},
+		"airlock-off": {{ReactsWith: interactableIsNil, Reaction: killInstantly}},
 	}
 
 }
@@ -594,5 +610,15 @@ func tutorial2HideAndNotify(i *Interactable, p *Player, t *Tile) (*Interactable,
 		placed = trySetInteractable(tiles[index], i)
 	}
 	p.updateBottomText("black holes will absorb balls and spit them out elsewhere")
+	return nil, false
+}
+
+// airlock
+func openAirlockDoors(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	// find all airlock-door and make walkable / invisible
+	return nil, false
+}
+
+func closeAirlockDoors(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	return nil, false
 }
