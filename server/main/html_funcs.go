@@ -235,7 +235,7 @@ func svgFromTile(tile *Tile) string {
 
 func spaceHighlighter() string {
 	// constant instead.
-	return "half-trsp salmon"
+	return "trsp50 salmon"
 }
 
 func randomFieryColor() string {

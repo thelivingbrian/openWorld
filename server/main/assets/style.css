@@ -113,9 +113,9 @@ a {
     text-decoration: none;
     padding-top: 16px;
 }
+
 #highscore {
     text-align: center;
-
 }
 
 .highscore-list {
@@ -191,40 +191,40 @@ img {
   }
 
 @media (orientation: landscape) {
- #screen {
+  #screen {
      width: 40%
- }
+  }
 
- .logo-img {
+  .logo-img {
     width: 40%
- }
+  }
 
- .modal_content {
+  .modal_content {
     width: 37%;
-}
+  }
 }
 
 @media (orientation: portrait) {
- #screen {
+  #screen {
      width: 87%
- }
+  }
 
- .logo-img {
+  .logo-img {
     width: 87%
- }
+  }
 }
 
 .grid-row {
     display: grid;        
     grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-  }
+}
   
 .grid-square {
     aspect-ratio: 1;
     border: 0px solid rgba(172, 152, 219,0);
     cursor: pointer;
     position: relative;
-  }
+}
   
 /* these colors are needed by the game itself */
 
@@ -335,11 +335,6 @@ img {
 
 .trsp40 {
     opacity: .4;
-}
-
-/* used? */
-.half-trsp {
-    opacity: .5;
 }
 
 .trsp50 {
