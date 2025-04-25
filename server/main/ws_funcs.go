@@ -168,8 +168,8 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	case "f":
 		updateEntireExistingScreen(player)
 	case "g":
-		//makeHallucinate(player)
-		spawnNewNPCWithRandomMovement(player, 100)
+		makeHallucinate(player)
+		//spawnNewNPCWithRandomMovement(player, 100)
 	case "h":
 		player.cycleHats()
 	case "q":
