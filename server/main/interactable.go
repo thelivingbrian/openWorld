@@ -758,7 +758,7 @@ func findTopLeftDoor(t *Tile) *Tile {
 
 	hasBelow := isAirlockDoor(s, t.y+1, t.x)
 	hasRight := isAirlockDoor(s, t.y, t.x+1)
-	topGroup := isAirlockDoor(s, t.y+4, t.x)
+	topGroup := isAirlockDoor(s, t.y+4, t.x) || isAirlockArmOnly(s, t.y+4, t.x)
 
 	yAdjustment := 0
 	if !topGroup {
@@ -788,4 +788,16 @@ func isAirlockDoor(s *Stage, y, x int) bool {
 
 	return t.interactable != nil &&
 		t.interactable.name == "airlock-door"
+}
+
+func isAirlockArmOnly(s *Stage, y, x int) bool {
+	if !validCoordinate(y, x, s) {
+		return false
+	}
+	t := s.tiles[y][x]
+	t.interactableMutex.Lock()
+	defer t.interactableMutex.Unlock()
+
+	return t.interactable != nil &&
+		t.interactable.name == "airlock-arm-only"
 }
