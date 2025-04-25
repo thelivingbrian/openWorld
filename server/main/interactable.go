@@ -482,7 +482,8 @@ func makeDangerousForOtherTeam(i *Interactable, p *Player, t *Tile) (*Interactab
 	t.interactable.cssClass = initiatorTeam + "-b thick r0"
 	t.interactable.reactions = newReactions
 	t.stage.updateAll(interactableBoxSpecific(t.y, t.x, t.interactable))
-	addMoneyToStage(t.stage, 10) // should be more money
+	addMoneyToStage(t.stage, 100)
+	addMoneyToStage(t.stage, dmg)
 	return nil, false
 }
 
@@ -499,6 +500,8 @@ func damageAndSpawn(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	go damageWithinRadius(epicenter, p.world, 4, dmg, p.id)
 	t.stage.updateAll(soundTriggerByName("explosion"))
 	addMoneyToStage(t.stage, dmg/5)
+	addMoneyToStage(t.stage, dmg/5)
+	addMoneyToStage(t.stage, dmg/2)
 	for i := 0; i < powerToSpawn; i++ {
 		spawnPowerup(t.stage)
 	}
