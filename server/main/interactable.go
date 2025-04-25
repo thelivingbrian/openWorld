@@ -615,53 +615,57 @@ func tutorial2HideAndNotify(i *Interactable, p *Player, t *Tile) (*Interactable,
 
 // airlock
 func openAirlockDoors(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-	// find all airlock-door and make walkable / invisible
-	check1 := false
-	if validCoordinate(t.y+5, t.x, t.stage) {
-		// new func "isAirlockOffSwitch" - can use defer
-		t.stage.tiles[t.y+5][t.x].interactableMutex.Lock()
-		if t.stage.tiles[t.y+5][t.x].interactable != nil && t.stage.tiles[t.y+5][t.x].interactable.name == "airlock-off-switch" {
-			check1 = true
-		}
-		t.stage.tiles[t.y+5][t.x].interactableMutex.Unlock()
-	}
-	check2 := false
-	if validCoordinate(t.y, t.x+3, t.stage) {
-		t.stage.tiles[t.y][t.x+3].interactableMutex.Lock()
-		if t.stage.tiles[t.y][t.x+3].interactable != nil && t.stage.tiles[t.y][t.x+3].interactable.name == "airlock-off-switch" {
-			check2 = true
-		}
-		t.stage.tiles[t.y][t.x+3].interactableMutex.Unlock()
-	}
-	var topLeft *Tile
-	if check1 && check2 {
-		topLeft = t
-	}
-	if check1 && !check2 && validCoordinate(t.y, t.x-3, t.stage) {
-		topLeft = t.stage.tiles[t.y][t.x-3]
-	}
-	if !check1 && check2 && validCoordinate(t.y-5, t.x, t.stage) {
-		topLeft = t.stage.tiles[t.y-5][t.x]
-	}
-	if !check1 && !check2 && validCoordinate(t.y-5, t.x-3, t.stage) {
-		topLeft = t.stage.tiles[t.y-5][t.x-3]
-	}
+	topLeft := findTopLeft(t)
 	if topLeft == nil {
-		logger.Warn().Msg(fmt.Sprintf("unexpected region for airlock off press at: %d %d", t.y, t.x))
+		logger.Warn().Msgf("unexpected region for airlock press at %d,%d", t.y, t.x)
 		return nil, false
 	}
-	fmt.Println(topLeft.y, topLeft.x)
+
 	tiles := getOrderedRegion(t.stage, topLeft.y, topLeft.x+1, 6, 2)
 	for _, tile := range tiles {
 		tile.interactableMutex.Lock()
 		defer tile.interactableMutex.Unlock()
+
 		if tile.interactable != nil && tile.interactable.name == "airlock-door" {
 			tile.interactable.walkable = true
 			tile.interactable.cssClass = ""
 			tile.stage.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
 		}
 	}
-	return nil, false
+	return nil, true
+}
+
+func isAirlockOffSwitch(s *Stage, y, x int) bool {
+	if !validCoordinate(y, x, s) {
+		return false
+	}
+	t := s.tiles[y][x]
+	t.interactableMutex.Lock()
+	defer t.interactableMutex.Unlock()
+
+	if t.interactable != nil && t.interactable.name == "airlock-off-switch" {
+		return true
+	}
+	return false
+}
+
+func findTopLeft(t *Tile) *Tile {
+	s := t.stage
+
+	hasBelow := isAirlockOffSwitch(s, t.y+5, t.x)
+	hasRight := isAirlockOffSwitch(s, t.y, t.x+3)
+
+	switch {
+	case hasBelow && hasRight:
+		return t
+	case hasBelow && !hasRight:
+		return s.tiles[t.y][t.x-3]
+	case !hasBelow && hasRight:
+		return s.tiles[t.y-5][t.x]
+	case !hasBelow && !hasRight:
+		return s.tiles[t.y-5][t.x-3]
+	}
+	return nil
 }
 
 func closeAirlockDoors(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
