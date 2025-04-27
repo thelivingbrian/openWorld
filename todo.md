@@ -10,7 +10,9 @@
  - [ ] Observe stage / player 
 - [-] Test client
   - [-] integration client
-- [ ] Constant special area names in tests and game 
+- [ ] Constant special area names in tests and game
+  - [ ] complete? e.g. clinic & test stages? 
+- [ ] Constant predefined interactables 
 - [-] Boosts not spawning at same rate?
 - [-] Instant kill button or key
 - [-] Shift prevents stage changes even with no boosts 
@@ -207,6 +209,7 @@
  - [ ] Display as "!" Notification in mobile instead of on screen
  - [ ] Fade with time
  - [ ] Deault bottom text on load
+ - [ ] Game tips
 
 ## Kill streak
  - [-] User Streak
