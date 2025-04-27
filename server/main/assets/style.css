@@ -491,7 +491,6 @@ fill-opacity: 0.6;
     .button {
         background-color: #333;
         color: #fff;
-        border: none;
         border-radius: 5px;
         display: flex;
         justify-content: center;
@@ -499,6 +498,14 @@ fill-opacity: 0.6;
         cursor: pointer;
         height: 100%;
         aspect-ratio: 1;
+    }
+    .shift {
+        border-color: rgb(170, 255, 255);
+        border-style: solid;
+        border-width: 2px;
+    }
+    .borderless {
+        border: none;
     }
     .half-button {
         background-color: #333;
