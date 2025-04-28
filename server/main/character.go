@@ -429,20 +429,20 @@ func (npc *NonPlayer) takeDamageFrom(initiator Character, dmg int) {
 	previousHealth := currentHealth + int32(dmg)
 	if currentHealth <= 0 && previousHealth > 0 {
 		initiator.incrementKillStreak()
+		handleNPCDeath(npc)
 		npc.terminate()
 		//removeNpc(npc)
 	}
 }
 
-func removeNpc(npc *NonPlayer) {
+func removeNpcFromTile(npc *NonPlayer) {
 	npc.tileLock.Lock()
 	defer npc.tileLock.Unlock()
 	if !tryRemoveCharacterById(npc.tile, npc.id) {
 		logger.Error().Msg("Error - FAILED TO REMOVE NPC")
 		return
 	}
-	sound := soundTriggerByName("clink")
-	npc.tile.stage.updateAll(sound + characterBox(npc.tile))
+	npc.tile.stage.updateAll(characterBox(npc.tile))
 }
 
 func (npc *NonPlayer) incrementKillCount() {
@@ -467,7 +467,8 @@ func spawnNewNPCDoingAction(ref *Player, interval int, action func(*NonPlayer)) 
 	go doAtIntervalUntilTermination(npc, ctx, interval, action)
 
 	go func(cancel context.CancelFunc) {
-		time.Sleep(600 * time.Second)
+		time.Sleep(300 * time.Second)
+		removeNpcFromTile(npc)
 		cancel()
 	}(npc.terminate)
 
@@ -483,9 +484,9 @@ func createNewNPC(world *World) (*NonPlayer, context.Context) {
 		world:     world,
 		icon:      "red-b thick r0",
 		iconLow:   "dark-red-b thick r0",
-		health:    atomic.Int32{},
 	}
 	npc.health.Store(int32(100))
+	npc.money.Store(int32(20))
 	return npc, ctx
 }
 
@@ -501,13 +502,26 @@ func doAtIntervalUntilTermination(npc *NonPlayer, ctx context.Context, interval 
 	for {
 		select {
 		case <-ctx.Done():
-			removeNpc(npc)
 			return
 		default:
 			time.Sleep(time.Duration(interval) * time.Millisecond)
 			action(npc)
 		}
 	}
+}
+
+func handleNPCDeath(npc *NonPlayer) {
+	dropMoneyAndUpdate(npc)
+	removeNpcFromTile(npc)
+}
+
+func dropMoneyAndUpdate(npc *NonPlayer) {
+	tile := npc.getTileSync()
+	money := npc.money.Swap(0)
+	if money != 0 {
+		tile.addMoneyAndNotifyAll(int(money))
+	}
+	tile.stage.updateAllWithSound("clink")
 }
 
 func moveRandomlyAndActivatePower(npc *NonPlayer) {

@@ -124,6 +124,10 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 	}
 }
 
+func (stage *Stage) updateAllWithSound(soundName string) {
+	stage.updateAll(soundTriggerByName(soundName))
+}
+
 /////////////////////////////////////////////////////////////
 // Utilities
 

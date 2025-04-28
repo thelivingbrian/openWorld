@@ -186,10 +186,13 @@ func basicSpawnWithRing(p *Player) {
 
 	determination2 := rand.Intn(16)
 	if determination2%8 == 0 {
+		spawnPowerup(stage)
 		spawnNewNPCDoingAction(p, 105, moveRandomlyAndActivatePower)
 	}
 	if determination2 == 0 {
-		spawnNewNPCDoingAction(p, 95, moveAggressively)
+		spawnPowerup(stage)
+		npc := spawnNewNPCDoingAction(p, 95, moveAggressively)
+		npc.money.Add(int32(125))
 	}
 
 }

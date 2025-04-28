@@ -174,6 +174,7 @@ func collectItemNPC(tile *Tile, npc *NonPlayer) bool {
 	defer tile.itemMutex.Unlock()
 	if tile.powerUp != nil {
 		tile.powerUp = nil
+		// Activate power
 		itemChange = true
 	}
 	if tile.money != 0 {
