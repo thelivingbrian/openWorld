@@ -6,7 +6,7 @@ import (
 
 type SpawnAction struct {
 	Should func(*Player, *Stage) bool
-	Action func(*Stage) // func of player?
+	Action func(*Player) // func of player?
 }
 
 func (s *SpawnAction) activateFor(player *Player, stage *Stage) {
@@ -14,30 +14,37 @@ func (s *SpawnAction) activateFor(player *Player, stage *Stage) {
 		if s.Action == nil {
 			return
 		}
-		s.Action(stage)
+		s.Action(player)
 	}
 }
 
 var spawnActions = map[string][]SpawnAction{
 	"none": {}, // Same as Should: Always, Action: doNothing
 	"": {
-		{Should: always, Action: basicSpawnNoRing},
+		{Should: always, Action: onCurrentStage(basicSpawnNoRing)},
 	},
 	"basic-ring": {
 		{Should: always, Action: basicSpawnWithRing},
 	},
 	"tutorial-boost": {
-		{Should: always, Action: tutorialBoost()},
+		{Should: always, Action: onCurrentStage(tutorialBoost())},
 	},
 	"tutorial-power": {
-		{Should: always, Action: tutorialPower},
+		{Should: always, Action: onCurrentStage(tutorialPower)},
 	},
 	"tutorial-2": {
-		{Should: oneOutOf(4), Action: spawnBoosts},
+		{Should: oneOutOf(4), Action: onCurrentStage(spawnBoosts)},
 	},
 	"tutorial-2-boost": {
-		{Should: always, Action: tutorial2Boost()},
+		{Should: always, Action: onCurrentStage(tutorial2Boost())},
 	},
+}
+
+func onCurrentStage(f func(*Stage)) func(*Player) {
+	return func(p *Player) {
+		tile := p.getTileSync()
+		f(tile.stage)
+	}
 }
 
 /////////////////////////////////////////////
@@ -119,8 +126,20 @@ func spawnBoosts(stage *Stage) {
 	tile := uncoveredTiles[rand.Intn(len(uncoveredTiles))]
 	tile.addBoostsAndNotifyAll()
 }
+
 func spawnPowerup(stage *Stage) {
-	shapes := [][][2]int{grid3x3, grid3x3, grid5x5, grid5x5, grid5x5, grid7x7, grid7x7, grid9x9, jumpCross(), longCross(5), longCross(3), longCross(3), cross(), x()}
+	shapes := [][][2]int{
+		diagonalBlock(true, 2), diagonalBlock(false, 2),
+		diagonalBlock(true, 3), diagonalBlock(false, 3),
+		grid3x3, grid3x3,
+		grid5x5, grid5x5, grid5x5,
+		grid7x7, grid7x7,
+		grid9x9,
+		jumpCross(),
+		longCross(5),
+		longCross(3),
+		x(),
+	}
 	index := rand.Intn(len(shapes))
 	tiles, uncoveredTiles := sortWalkableTiles(stage.tiles)
 	tiles = append(tiles, uncoveredTiles...)
@@ -162,17 +181,32 @@ func basicSpawnOld(stage *Stage) {
 	}
 }
 
-func basicSpawnWithRing(stage *Stage) {
+func basicSpawnWithRing(p *Player) {
 	determination := rand.Intn(1000)
-	if determination < 400 {
+	if determination < 350 {
 		// Do nothing
-	} else if determination < 750 {
+		return
+	}
+	stage := p.getTileSync().stage
+	if determination < 665 {
 		spawnBoosts(stage)
-	} else if determination < 990 {
+	} else if determination < 925 {
 		spawnPowerup(stage)
-	} else {
+	} else if determination < 975 {
 		tryPlaceInteractableOnStage(stage, createRing())
 	}
+
+	determination2 := rand.Intn(16)
+	if determination2%8 == 0 {
+		spawnPowerup(stage)
+		spawnNewNPCDoingAction(p, 105, moveRandomlyAndActivatePower)
+	}
+	if determination2 == 0 {
+		spawnPowerup(stage)
+		npc := spawnNewNPCDoingAction(p, 95, moveAggressively)
+		npc.money.Add(int32(125))
+	}
+
 }
 
 func basicSpawnNoRing(stage *Stage) {

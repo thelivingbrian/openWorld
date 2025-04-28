@@ -26,77 +26,94 @@ func init() {
 	interactableReactions = map[string][]InteractableReaction{
 		// Capture the flag :
 		"black-hole": {
-			InteractableReaction{ReactsWith: interactableHasName("ball-fuchsia"), Reaction: hideByTeam("fuchsia")},
-			InteractableReaction{ReactsWith: interactableHasName("ball-sky-blue"), Reaction: hideByTeam("sky-blue")},
-			InteractableReaction{ReactsWith: everything, Reaction: eat}, // reduces number of rings
+			{ReactsWith: interactableHasName("ball-fuchsia"), Reaction: hideByTeam("fuchsia")},
+			{ReactsWith: interactableHasName("ball-sky-blue"), Reaction: hideByTeam("sky-blue")},
+			{ReactsWith: everything, Reaction: eat}, // reduces number of rings
 		},
 		"goal-sky-blue": {
-			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: scoreGoalForTeam("sky-blue")},
-			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: pass},
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: showScoreToPlayer("sky-blue")},
+			{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: scoreGoalForTeam("sky-blue")},
+			{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: pass},
+			{ReactsWith: interactableIsNil, Reaction: showScoreToPlayer("sky-blue")},
 		},
 		"goal-fuchsia": {
-			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: scoreGoalForTeam("fuchsia")},
-			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: pass},
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: showScoreToPlayer("fuchsia")},
+			{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: scoreGoalForTeam("fuchsia")},
+			{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: pass},
+			{ReactsWith: interactableIsNil, Reaction: showScoreToPlayer("fuchsia")},
 		},
+
+		////////////////////////////////////////////////////////////////
 		// Tutorial :
 		"tutorial-black-hole": {
-			InteractableReaction{ReactsWith: interactableIsABall, Reaction: tutorial2HideAndNotify},
-			InteractableReaction{ReactsWith: everything, Reaction: eat},
+			{ReactsWith: interactableIsABall, Reaction: tutorial2HideAndNotify},
+			{ReactsWith: everything, Reaction: eat},
 		},
 		"tutorial-goal-sky-blue": {
-			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: destroyEveryotherInteractable},
-			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: notifyAndPass("Try using the matching ball.")},
+			{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: destroyEveryotherInteractable},
+			{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: notifyAndPass("Try using the matching ball.")},
 		},
 		"tutorial-goal-fuchsia": {
-			InteractableReaction{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: destroyEveryotherInteractable},
-			InteractableReaction{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: notifyAndPass("Try using the matching ball.")},
+			{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: destroyEveryotherInteractable},
+			{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: notifyAndPass("Try using the matching ball.")},
 		},
 		"gold-target": {
-			InteractableReaction{ReactsWith: interactableHasName("ball-gold"), Reaction: destroyInRangeSkipingSelf(5, 3, 10, 8)},
+			{ReactsWith: interactableHasName("ball-gold"), Reaction: destroyInRangeSkipingSelf(5, 3, 10, 8)},
 		},
 		"set-team-wild-text-and-delete": {
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: setTeamWildText},
+			{ReactsWith: interactableIsNil, Reaction: setTeamWildText},
 		},
+
+		////////////////////////////////////////////////////////////////
 		// machines :
+
+		// catapult
 		"catapult-west": {
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultWest},
-			InteractableReaction{ReactsWith: everything, Reaction: pass},
+			{ReactsWith: interactableIsNil, Reaction: catapultWest},
+			{ReactsWith: everything, Reaction: pass},
 		},
 		"catapult-north": {
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultNorth},
-			InteractableReaction{ReactsWith: everything, Reaction: pass},
+			{ReactsWith: interactableIsNil, Reaction: catapultNorth},
+			{ReactsWith: everything, Reaction: pass},
 		},
 		"catapult-south": {
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultSouth},
-			InteractableReaction{ReactsWith: everything, Reaction: pass},
+			{ReactsWith: interactableIsNil, Reaction: catapultSouth},
+			{ReactsWith: everything, Reaction: pass},
 		},
 		"catapult-east": {
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: catapultEast},
-			InteractableReaction{ReactsWith: everything, Reaction: pass},
+			{ReactsWith: interactableIsNil, Reaction: catapultEast},
+			{ReactsWith: everything, Reaction: pass},
 		},
+
+		// environment
 		"lily-pad": {
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: playSoundForAll("water-splash")},
-			InteractableReaction{ReactsWith: interactableIsARing, Reaction: makeDangerousForOtherTeam},
-			InteractableReaction{ReactsWith: everything, Reaction: pass},
+			{ReactsWith: interactableIsNil, Reaction: playSoundForAll("water-splash")},
+			{ReactsWith: interactableIsARing, Reaction: makeDangerousForOtherTeam},
+			{ReactsWith: everything, Reaction: pass},
 		},
 		"death-trap": {
-			InteractableReaction{ReactsWith: interactableIsNil, Reaction: killInstantly},
-			InteractableReaction{ReactsWith: everything, Reaction: pass},
+			{ReactsWith: interactableIsNil, Reaction: killInstantly},
+			{ReactsWith: everything, Reaction: pass},
 		},
 		"exchange-ring": {
-			InteractableReaction{ReactsWith: interactableIsARing, Reaction: damageAndSpawn},
+			{ReactsWith: interactableIsARing, Reaction: damageAndSpawn},
 		},
+
+		////////////////////////////////////////////////////////////////
 		// Puzzles:
+
+		// Lavander Ball Puzzle
 		"target-lavender": {
-			InteractableReaction{ReactsWith: interactableHasName("ball-lavender"), Reaction: checkSolveAndRemoveInteractable},
-			InteractableReaction{ReactsWith: everything, Reaction: pass},
+			{ReactsWith: interactableHasName("ball-lavender"), Reaction: checkSolveAndRemoveInteractable},
+			{ReactsWith: everything, Reaction: pass},
 		},
 		"target-dark-lavender": {
-			InteractableReaction{ReactsWith: interactableHasName("ball-dark-lavender"), Reaction: awardPuzzleHat},
-			InteractableReaction{ReactsWith: everything, Reaction: pass},
+			{ReactsWith: interactableHasName("ball-dark-lavender"), Reaction: awardPuzzleHat},
+			{ReactsWith: everything, Reaction: pass},
 		},
+
+		// Airlock
+		"airlock-close": {{ReactsWith: interactableIsNil, Reaction: closeAirlockDoors}},
+		"airlock-arm":   {{ReactsWith: interactableIsNil, Reaction: armAirlockDoors}},
+		"airlock-open":  {{ReactsWith: interactableIsNil, Reaction: openAirlockDoors}},
 	}
 
 }
@@ -126,6 +143,10 @@ func (source *Interactable) React(incoming *Interactable, initiator *Player, loc
 
 func everything(*Interactable, *Player) bool {
 	return true
+}
+
+func never(*Interactable, *Player) bool {
+	return false
 }
 
 func interactableIsNil(i *Interactable, p *Player) bool {
@@ -461,7 +482,8 @@ func makeDangerousForOtherTeam(i *Interactable, p *Player, t *Tile) (*Interactab
 	t.interactable.cssClass = initiatorTeam + "-b thick r0"
 	t.interactable.reactions = newReactions
 	t.stage.updateAll(interactableBoxSpecific(t.y, t.x, t.interactable))
-	addMoneyToStage(t.stage, 10) // should be more money
+	addMoneyToStage(t.stage, 50)
+	addMoneyToStage(t.stage, dmg)
 	return nil, false
 }
 
@@ -478,6 +500,8 @@ func damageAndSpawn(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	go damageWithinRadius(epicenter, p.world, 4, dmg, p.id)
 	t.stage.updateAll(soundTriggerByName("explosion"))
 	addMoneyToStage(t.stage, dmg/5)
+	addMoneyToStage(t.stage, dmg/5)
+	addMoneyToStage(t.stage, dmg/2)
 	for i := 0; i < powerToSpawn; i++ {
 		spawnPowerup(t.stage)
 	}
@@ -549,8 +573,21 @@ func checkSolveAndRemoveInteractable(i *Interactable, p *Player, t *Tile) (*Inte
 }
 
 func awardPuzzleHat(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	// add hat
 	p.addHatByName("puzzle-solve-1")
-	// spawn escape lily
+
+	// add boost 13,5
+	p.getTileSync().stage.tiles[13][5].addBoostsAndNotifyAll()
+
+	// spawn escape lily 15,5
+	lilySpot := p.getTileSync().stage.tiles[15][5]
+	lilySpot.interactableMutex.Lock()
+	defer lilySpot.interactableMutex.Unlock()
+	lily := Interactable{name: "lily-pad", cssClass: "black trsp20 lime-b thin r0", walkable: true, fragile: true}
+	setLockedInteractableAndUpdate(lilySpot, &lily)
+
+	// TODO: reward sound
+
 	return nil, false
 }
 
@@ -582,4 +619,188 @@ func tutorial2HideAndNotify(i *Interactable, p *Player, t *Tile) (*Interactable,
 	}
 	p.updateBottomText("black holes will absorb balls and spit them out elsewhere")
 	return nil, false
+}
+
+// airlock
+func openAirlockDoors(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	topLeft := findTopLeftOpenSwitch(t)
+	if topLeft == nil {
+		logger.Warn().Msgf("unexpected region for airlock press at %d,%d", t.y, t.x)
+		return nil, false
+	}
+
+	tiles := getOrderedRegion(t.stage, topLeft.y, topLeft.x+1, 6, 2)
+	for _, tile := range tiles {
+		tile.interactableMutex.Lock()
+		defer tile.interactableMutex.Unlock()
+
+		if tile.interactable != nil && tile.interactable.name == "airlock-door" {
+			tile.interactable.walkable = true
+			tile.interactable.cssClass = ""
+			tile.stage.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
+		}
+		if tile.interactable != nil && tile.interactable.name == "airlock-close-switch" {
+			tile.interactable.reactions[0].ReactsWith = never
+		}
+	}
+	return nil, true
+}
+
+func findTopLeftOpenSwitch(t *Tile) *Tile {
+	s := t.stage
+
+	hasBelow := isAirlockOpenSwitch(s, t.y+5, t.x)
+	hasRight := isAirlockOpenSwitch(s, t.y, t.x+3)
+
+	switch {
+	case hasBelow && hasRight:
+		return t
+	case hasBelow && !hasRight:
+		return s.tiles[t.y][t.x-3]
+	case !hasBelow && hasRight:
+		return s.tiles[t.y-5][t.x]
+	case !hasBelow && !hasRight:
+		return s.tiles[t.y-5][t.x-3]
+	}
+	return nil
+}
+
+func isAirlockOpenSwitch(s *Stage, y, x int) bool {
+	if !validCoordinate(y, x, s) {
+		return false
+	}
+	t := s.tiles[y][x]
+	t.interactableMutex.Lock()
+	defer t.interactableMutex.Unlock()
+
+	if t.interactable != nil && t.interactable.name == "airlock-open-switch" {
+		return true
+	}
+	return false
+}
+
+func closeAirlockDoors(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	topLeft := findTopLeftCloseSwitch(t)
+	if topLeft == nil {
+		logger.Warn().Msgf("unexpected region for airlock press at %d,%d", t.y, t.x)
+		return nil, false
+	}
+
+	// Risk of hitting starting/player tile
+	tiles := getOrderedRegion(t.stage, topLeft.y-2, topLeft.x, 2, 2)
+	tiles = append(tiles, getOrderedRegion(t.stage, topLeft.y+2, topLeft.x, 2, 2)...)
+	for _, tile := range tiles {
+		tile.interactableMutex.Lock()
+		defer tile.interactableMutex.Unlock()
+
+		if tile.interactable != nil && tile.interactable.name == "airlock-door" {
+			tile.interactable.walkable = false
+			tile.interactable.cssClass = "s-hoz chocolate-b thick no-lr"
+			tile.stage.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
+		}
+	}
+
+	return nil, false
+}
+
+func findTopLeftCloseSwitch(t *Tile) *Tile {
+	s := t.stage
+
+	hasBelow := isAirlockCloseSwitch(s, t.y+1, t.x)
+	hasRight := isAirlockCloseSwitch(s, t.y, t.x+1)
+
+	switch {
+	case hasBelow && hasRight:
+		return t
+	case hasBelow && !hasRight:
+		return s.tiles[t.y][t.x-1]
+	case !hasBelow && hasRight:
+		return s.tiles[t.y-1][t.x]
+	case !hasBelow && !hasRight:
+		return s.tiles[t.y-1][t.x-1]
+	}
+	return nil
+}
+
+func isAirlockCloseSwitch(s *Stage, y, x int) bool {
+	if !validCoordinate(y, x, s) {
+		return false
+	}
+	t := s.tiles[y][x]
+	t.interactableMutex.Lock()
+	defer t.interactableMutex.Unlock()
+
+	return t.interactable != nil &&
+		t.interactable.name == "airlock-close-switch"
+}
+
+func armAirlockDoors(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	// Need arm step to prevent close after being saved
+	topLeft := findTopLeftDoor(t)
+	if topLeft == nil {
+		logger.Warn().Msgf("unexpected region for airlock press at %d,%d", t.y, t.x)
+		return nil, false
+	}
+
+	// Risk of hitting starting/player tile
+	tiles := getOrderedRegion(t.stage, topLeft.y+2, topLeft.x, 2, 2)
+	for _, tile := range tiles {
+		tile.interactableMutex.Lock()
+		defer tile.interactableMutex.Unlock()
+
+		if tile.interactable != nil && tile.interactable.name == "airlock-close-switch" {
+			tile.interactable.reactions[0].ReactsWith = interactableIsNil
+		}
+	}
+
+	return nil, false
+}
+
+func findTopLeftDoor(t *Tile) *Tile {
+	s := t.stage
+
+	hasBelow := isAirlockDoor(s, t.y+1, t.x)
+	hasRight := isAirlockDoor(s, t.y, t.x+1)
+	topGroup := isAirlockDoor(s, t.y+4, t.x) || isAirlockArmOnly(s, t.y+4, t.x)
+
+	yAdjustment := 0
+	if !topGroup {
+		yAdjustment = -4
+	}
+
+	switch {
+	case hasBelow && hasRight:
+		return s.tiles[t.y+yAdjustment][t.x]
+	case hasBelow && !hasRight:
+		return s.tiles[t.y+yAdjustment][t.x-1]
+	case !hasBelow && hasRight:
+		return s.tiles[t.y-1+yAdjustment][t.x]
+	case !hasBelow && !hasRight:
+		return s.tiles[t.y-1+yAdjustment][t.x-1]
+	}
+	return nil
+}
+
+func isAirlockDoor(s *Stage, y, x int) bool {
+	if !validCoordinate(y, x, s) {
+		return false
+	}
+	t := s.tiles[y][x]
+	t.interactableMutex.Lock()
+	defer t.interactableMutex.Unlock()
+
+	return t.interactable != nil &&
+		t.interactable.name == "airlock-door"
+}
+
+func isAirlockArmOnly(s *Stage, y, x int) bool {
+	if !validCoordinate(y, x, s) {
+		return false
+	}
+	t := s.tiles[y][x]
+	t.interactableMutex.Lock()
+	defer t.interactableMutex.Unlock()
+
+	return t.interactable != nil &&
+		t.interactable.name == "airlock-arm-only"
 }

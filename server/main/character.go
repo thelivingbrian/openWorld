@@ -159,6 +159,7 @@ func (player *Player) fetchStageSync(stagename string) *Stage {
 		return stage
 	}
 	// stagename + team || stagename + rand
+	// stagename + prompt for / provide group code
 
 	player.pStageMutex.Lock()
 	defer player.pStageMutex.Unlock()
@@ -299,6 +300,7 @@ func safe(location *Tile, partyA, partyB Character) bool {
 
 type NonPlayer struct {
 	id         string
+	terminate  context.CancelFunc
 	team       string
 	teamLock   sync.Mutex
 	icon       string
@@ -427,19 +429,33 @@ func (npc *NonPlayer) takeDamageFrom(initiator Character, dmg int) {
 	previousHealth := currentHealth + int32(dmg)
 	if currentHealth <= 0 && previousHealth > 0 {
 		initiator.incrementKillStreak()
-		removeNpc(npc)
+		handleNPCDeath(npc)
+		npc.terminate()
 	}
 }
 
-func removeNpc(npc *NonPlayer) {
+func handleNPCDeath(npc *NonPlayer) {
+	dropMoneyAndUpdate(npc)
+	removeNpcFromTile(npc)
+}
+
+func dropMoneyAndUpdate(npc *NonPlayer) {
+	tile := npc.getTileSync()
+	money := npc.money.Swap(0)
+	if money != 0 {
+		tile.addMoneyAndNotifyAll(int(money))
+	}
+	tile.stage.updateAllWithSound("clink")
+}
+
+func removeNpcFromTile(npc *NonPlayer) {
 	npc.tileLock.Lock()
 	defer npc.tileLock.Unlock()
 	if !tryRemoveCharacterById(npc.tile, npc.id) {
-		logger.Error().Msg("Error - FAILED TO REMOVE NPC")
+		logger.Error().Msg("Error - FAILED TO REMOVE NPC") // Normal if dead already
 		return
 	}
-	sound := soundTriggerByName("clink")
-	npc.tile.stage.updateAll(sound + characterBox(npc.tile))
+	npc.tile.stage.updateAll(characterBox(npc.tile))
 }
 
 func (npc *NonPlayer) incrementKillCount() {
@@ -456,61 +472,96 @@ func (npc *NonPlayer) updateRecord() {
 
 // Spawn NPC
 
-func spawnNewNPCWithRandomMovement(ref *Player, interval int) (*NonPlayer, context.CancelFunc) {
-	username := uuid.New().String()
-	refTile := ref.getTileSync()
-	npc := &NonPlayer{
-		id:      username,
-		world:   ref.world,
-		icon:    "red-b thick r0",
-		iconLow: "dark-red-b thick r0",
-		health:  atomic.Int32{},
-	}
-	npc.health.Store(int32(100))
+func spawnNewNPCDoingAction(ref *Player, interval int, action func(*NonPlayer)) *NonPlayer {
+	npc, ctx := createNewNPC(ref.world)
+	placeOnSameStage(npc, ref)
 
-	addNPCAndNotifyOthers(npc, refTile)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	go func(ctx context.Context) {
-		time.Sleep(5 * time.Second)
-		for {
-			select {
-			case <-ctx.Done():
-				removeNpc(npc)
-				return
-			default:
-				time.Sleep(time.Duration(interval) * time.Millisecond)
-				randn := rand.Intn(5000)
-
-				if randn%4 == 0 {
-					moveNorth(npc)
-					activatePower(npc)
-				}
-				if randn%4 == 1 {
-					moveSouth(npc)
-				}
-				if randn%4 == 2 {
-					moveEast(npc)
-				}
-				if randn%4 == 3 {
-					moveWest(npc)
-				}
-			}
-		}
-	}(ctx)
+	go doAtIntervalUntilTermination(npc, ctx, interval, action)
 
 	go func(cancel context.CancelFunc) {
 		time.Sleep(300 * time.Second)
+		removeNpcFromTile(npc)
 		cancel()
-	}(cancel)
+	}(npc.terminate)
 
-	return npc, cancel
+	return npc
+}
+
+func createNewNPC(world *World) (*NonPlayer, context.Context) {
+	username := uuid.New().String()
+	ctx, cancel := context.WithCancel(context.Background())
+	npc := &NonPlayer{
+		id:        username,
+		terminate: cancel,
+		world:     world,
+		icon:      "red-b thick r0",
+		iconLow:   "dark-red-b thick r0",
+	}
+	npc.health.Store(int32(100))
+	npc.money.Store(int32(20))
+	return npc, ctx
+}
+
+func placeOnSameStage(npc *NonPlayer, ref *Player) {
+	refTile := ref.getTileSync()
+	tiles := walkableTiles(refTile.stage.tiles)
+	n := rand.Intn(len(tiles))
+	startTile := tiles[n]
+	addNPCAndNotifyOthers(npc, startTile)
+}
+
+func doAtIntervalUntilTermination(npc *NonPlayer, ctx context.Context, interval int, action func(*NonPlayer)) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			time.Sleep(time.Duration(interval) * time.Millisecond)
+			action(npc)
+		}
+	}
+}
+
+func moveRandomlyAndActivatePower(npc *NonPlayer) {
+	randn := rand.Intn(5000)
+	if randn%4 == 0 {
+		moveNorth(npc)
+	}
+	if randn%4 == 1 {
+		moveSouth(npc)
+	}
+	if randn%4 == 2 {
+		moveEast(npc)
+	}
+	if randn%4 == 3 {
+		moveWest(npc)
+	}
+	if randn%51 == 0 {
+		activatePower(npc)
+	}
+}
+
+func moveAggressively(npc *NonPlayer) {
+	randn := rand.Intn(5000)
+	if randn%4 == 0 {
+		moveNorth(npc)
+		activatePower(npc)
+	}
+	if randn%4 == 1 {
+		moveSouth(npc)
+	}
+	if randn%4 == 2 {
+		moveEast(npc)
+	}
+	if randn%4 == 3 {
+		moveWest(npc)
+	}
 }
 
 func activatePower(npc *NonPlayer) {
-	shapes := [][][2]int{grid9x9, grid5x5}
+	shapes := [][][2]int{grid7x7, grid5x5, longCross(4), jumpCross()} // list should belong to npc?
 	currentTile := npc.getTileSync()
-	rand := rand.Intn(2)
+	rand := rand.Intn(len(shapes))
 	absCoordinatePairs := applyRelativeDistance(currentTile.y, currentTile.x, shapes[rand])
 	tiles := make([]*Tile, 0)
 	for _, pair := range absCoordinatePairs {
@@ -520,7 +571,6 @@ func activatePower(npc *NonPlayer) {
 		}
 	}
 	damageAndIndicate(tiles, npc, currentTile.stage, 50)
-	// damage tiles
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -597,8 +647,6 @@ func cycleForward(path []*Tile, index, depth int) (bool, *Interactable, int) {
 	}
 	return ok, out, newDepth
 }
-
-/// New
 
 func swapIfEmpty(source, target *Tile) {
 	ownSource := source.interactableMutex.TryLock()

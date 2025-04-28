@@ -89,9 +89,9 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 	}
 
 	p.setStage(stage)
-	spawnItemsFor(p, stage)
 	stage.addLockedPlayer(p)
 	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
+	spawnItemsFor(p, stage)
 	p.setSpaceHighlights()
 	updateEntireExistingScreen(p)
 }
@@ -124,6 +124,10 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 	}
 }
 
+func (stage *Stage) updateAllWithSound(soundName string) {
+	stage.updateAll(soundTriggerByName(soundName))
+}
+
 /////////////////////////////////////////////////////////////
 // Utilities
 
@@ -149,4 +153,32 @@ func validityByAxis(y int, x int, tiles [][]*Tile) (bool, bool) {
 		invalidX = true
 	}
 	return invalidY, invalidX
+}
+
+func getOrderedRegion(s *Stage, y, x, height, width int) []*Tile {
+	if s == nil || len(s.tiles) == 0 || height <= 0 || width <= 0 {
+		return nil
+	}
+
+	maxY := len(s.tiles) - 1
+	maxX := len(s.tiles[0]) - 1
+
+	y0 := max(0, y)
+	x0 := max(0, x)
+	y1 := min(maxY, y+height-1)
+	x1 := min(maxX, x+width-1)
+
+	capHint := (y1 - y0 + 1) * (x1 - x0 + 1)
+	region := make([]*Tile, 0, capHint)
+
+	// Tiles returned in row-major (y-then-x) order for safe locking
+	for row := y0; row <= y1; row++ {
+		tilesRow := s.tiles[row]
+		for col := x0; col <= x1; col++ {
+			if t := tilesRow[col]; t != nil {
+				region = append(region, t)
+			}
+		}
+	}
+	return region
 }

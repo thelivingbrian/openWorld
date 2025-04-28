@@ -19,7 +19,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	CAPACITY_PER_TEAM = playerCount // Prevent player cap from preventing world.Join()
 
 	testStage := loadStageByName(world, "test-walls-interactable")
-	testStage.spawn = []SpawnAction{{always, addBoostsAt(11, 13)}}
+	testStage.spawn = []SpawnAction{{always, onCurrentStage(addBoostsAt(11, 13))}}
 	if len(world.worldStages) != 1 {
 		t.Error("Should have two stages")
 	}

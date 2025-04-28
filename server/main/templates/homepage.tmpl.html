@@ -1,60 +1,66 @@
 {{ define "homepage" }}
-{{template "page-header"}}
-<body>
-    <div id="page">
-        <div id="logo">
-            <img class="logo-img" src="/assets/blooplogo2.webp" width="80%" alt="Welcome to bloopworld"><br />
+<!DOCTYPE html>
+<html>
+    {{template "page-header"}}
+    <body>
+        <div id="page">
+            <div id="logo">
+                <img class="logo-img" src="/assets/blooplogo2.webp" width="80%" alt="Welcome to bloopworld"><br />
+            </div>
+            <div id="landing">
+                {{ if . }}
+                    <a class="large-font" href="#" hx-get="/worlds" hx-target="#landing">Select World</a><br />
+                {{ else }}
+                    <a class="large-font" href="/auth?provider=google"> Sign in with Google </a><br />
+                {{ end }}
+                <a class="large-font" href="/highscore?category=goalsScored" > High-Scores </a><br />
+                <a class="large-font" href="/about" > About </a><br />
+            </div>
+            {{ template "social" }}
         </div>
-        <div id="landing">
-            {{ if . }}
-                <a class="large-font" href="#" hx-get="/worlds" hx-target="#landing">Select World</a><br />
-            {{ else }}
-                <a class="large-font" href="/auth?provider=google"> Sign in with Google </a><br />
-            {{ end }}
-            <a class="large-font" href="/highscore?category=goalsScored" > High-Scores </a><br />
-            <a class="large-font" href="/about" > About </a><br />
-        </div>
-        {{ template "social" }}
-    </div>
-    <div id="sound-trigger" class="invisible"><div id="sound"></div></div>
-</body>
+        <div id="sound-trigger" class="invisible"><div id="sound"></div></div>
+    </body>
+</html>
 {{ end }}
 
 {{define "about"}}
-{{template "page-header"}}
-<body>
-<div id="about-page">
-    {{template "logo-small"}}
-    <div id="about">   
-        <p>
-            Development of the Bloopworld engine started in December of 2023.
-        </p><br />
-        <p>
-            Currently the world allows two teams to compete in a game of capture the flag - First team to 100 wins!
-        </p><br />
-        <p>
-            I'm not a game developer - and this game is just a demo.
-        </p><br />
-        <p> 
-            If you like Bloopworld check out the <a href="https://bloopworldgame.blogspot.com/">Blog</a>!
-        </p><br />
-        <p>
-            <strong>Thanks anyone who is kind enough to play / contribute / provide feedback!</strong>
-        </p><br />
-        <p>
-            <span style='color:red'>&gt;Disclaimers</span> <br />
-            - Bloopworld is a game and has flashing lights. <br />
-            - Bloopworld uses cookies as needed for authentication <br />
-            - By creating an account you are sharing your email with bloopworld, we will never contact you<br />
-            - <a href="/assets/privacy.html">Privacy</a> | <a href="/assets/terms.html">Terms of Service</a>
-            <br />
-            <br />
-            <a href="/">Back</a>
-        </p>
-    </div>
-    {{ template "social" }}
-</div>
-</body>
+<!DOCTYPE html>
+<html>
+    {{template "page-header"}}
+    <body>
+        <div id="about-page">
+            {{template "logo-small"}}
+            <div id="about">   
+                <p>
+                    Development of the Bloopworld engine started in December of 2023.
+                </p><br />
+                <p>
+                    Currently the world allows two teams to compete in a game of capture the flag - First team to 100 wins!
+                </p><br />
+                <p>
+                    I'm not a game developer - and this game is just a demo.
+                </p><br />
+                <p> 
+                    If you like Bloopworld check out the <a href="https://bloopworldgame.blogspot.com/">Blog</a>!
+                </p><br />
+                <p>
+                    <strong>Thanks anyone who is kind enough to play / contribute / provide feedback!</strong>
+                </p><br />
+                <p>
+                    <span style='color:red'>&gt;Disclaimers</span> <br />
+                    - Bloopworld is a game and has flashing lights. <br />
+                    - Bloopworld uses cookies as needed for authentication <br />
+                    - By creating an account you are sharing your email with bloopworld, we will never contact you<br />
+                    - <a href="/assets/privacy.html">Privacy</a> | <a href="/assets/terms.html">Terms of Service</a>
+                    <br />
+                    <br />
+                    <a href="/">Back</a>
+                </p>
+            </div>
+            {{ template "social" }}
+        </div>
+    </body>
+</html>
 {{end}}
 
 {{define "logo-small"}}
@@ -67,24 +73,28 @@
 
 {{define "social"}}
 <div id="social">
-    <a href="https://www.instagram.com/bloopworldgame/" target="_blank" aria-label="Instagram">
-        <img src="/assets/insta-logo.svg" alt="Instagram" width="32" height="32">
+    <a href="https://discord.gg/JYYE9HFDuG" target="_blank" aria-label="Discord">
+        <img src="/assets/logo-discord.svg" alt="Discord" width="32" height="32">
     </a>
     <a href="https://bloopworldgame.blogspot.com/" target="_blank" aria-label="Blogger">
-        <img src="/assets/blogger-logo.svg" alt="Blogger" width="32" height="32">
+        <img src="/assets/logo-blogger.svg" alt="Blogger" width="32" height="32">
+    </a>
+    <a href="https://www.instagram.com/bloopworldgame/" target="_blank" aria-label="Instagram">
+        <img src="/assets/logo-insta.svg" alt="Instagram" width="32" height="32">
     </a>
     <a href="https://x.com/BloopWorld" target="_blank" aria-label="XTwitter">
-        <img src="/assets/x-twitter-logo.svg" alt="XTwitter" width="32" height="32">
+        <img src="/assets/logo-x-twitter.svg" alt="XTwitter" width="32" height="32">
     </a>
 </div>
 {{end}}
 
 {{define "page-header"}}
-<!DOCTYPE html>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="/assets/htmx-mod.js"></script>
-<script src="/assets/ws.js"></script>
-<script src="/assets/fx.js"></script>
-<link rel="stylesheet" href="/assets/style.css">
-<link rel="stylesheet" href="/assets/colors.css">
+<head>
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <script src="/assets/htmx-mod.js"></script>
+    <script src="/assets/ws.js"></script>
+    <script src="/assets/fx.js"></script>
+    <link rel="stylesheet" href="/assets/style.css">
+    <link rel="stylesheet" href="/assets/colors.css">
+</head>
 {{end}}

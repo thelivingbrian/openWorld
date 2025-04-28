@@ -1,7 +1,6 @@
 
 body {
     background-color: #252535;
-    /*background-color: #120500;*/
     color: rgba(169, 169, 169, 0.973)
 }
 
@@ -35,9 +34,9 @@ body {
 input[type="text"].inline-input {
     display: inline-block;
     width: 5ch;
-    padding: 2px 5px; /* Adjust padding as needed */
-    box-sizing: border-box; /* Ensures padding doesn't increase the width */
-    font-family: inherit; /* Inherit font settings from the parent */
+    padding: 2px 5px; 
+    box-sizing: border-box;
+    font-family: inherit; 
     font-size: inherit;
 }
 
@@ -59,10 +58,12 @@ img {
     background-color: #ff6a5c;
 }
 
-/* Overlays */
+/* Include border w/ box size */
 * {
     box-sizing: border-box;
-  }
+}
+
+/* Box dimensions  */
 
 .box {
     width: 30px;
@@ -74,6 +75,18 @@ img {
     padding: 0px;
     border: 1px solid rgba(169, 169, 169, 1);
 }
+
+.s-hoz {
+    height : 50%;
+    top: 25%;
+}
+
+.s-vert {
+    width : 50%;
+    left: 25%;
+}
+
+/* Z-indices */
   
 .zP {
     z-index: 20;
@@ -107,6 +120,8 @@ img {
     z-index: 40;
 }
 
+/* Transparency  */
+
 .trsp {
     opacity: 0;
 }
@@ -119,8 +134,7 @@ img {
     opacity: .4;
 }
 
-/* replace with trsp50 */
-.half-trsp {
+.trsp50 {
     opacity: .5;
 }
 
@@ -136,6 +150,7 @@ img {
     opacity: 1;
 }
 
+/* Border Radius  */
 
 .r0 {
     border-radius: 25%
@@ -177,10 +192,6 @@ img {
     border-top-right-radius: 50%
 }
 
-.r2 {
-    border-radius: 75%
-}
-
 .r2-bl {
     border-bottom-left-radius: 75%
 }
@@ -195,12 +206,6 @@ img {
 
 .r2-tr {
     border-top-right-radius: 75%
-}
-
-
-/* no need? */
-.r3 {
-    border-radius: 90%
 }
 
 .r3-bl {
@@ -235,21 +240,7 @@ img {
     border-top-right-radius: 100%
 }
 
-.r5-bl {
-    border-bottom-left-radius: 1000%
-}
-
-.r5-br {
-    border-bottom-right-radius: 1000%
-}
-
-.r5-tl {
-    border-top-left-radius: 1000%
-}
-
-.r5-tr {
-    border-top-right-radius: 1000%
-}
+/* Border thickness  */
 
 .thin {
     border-style: solid;
@@ -265,6 +256,11 @@ img {
     border-style: solid;
     border-width: 5px;
 }
+
+.no-lr   { border-left:0; border-right:0; }
+.no-tb   { border-top:0;  border-bottom:0; }
+
+/* Margin - used how?   */
 
 .margin {
     margin: 5px;

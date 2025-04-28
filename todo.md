@@ -10,7 +10,9 @@
  - [ ] Observe stage / player 
 - [-] Test client
   - [-] integration client
-- [ ] Constant special area names in tests and game 
+- [ ] Constant special area names in tests and game
+  - [ ] complete? e.g. clinic & test stages? 
+- [ ] Constant predefined interactables 
 - [-] Boosts not spawning at same rate?
 - [-] Instant kill button or key
 - [-] Shift prevents stage changes even with no boosts 
@@ -33,6 +35,7 @@
   - [-] Goal shows score of each team
 - [-] Seperate homepage from game server
 - [-] Add sound fx
+- [ ] Canvas based interactive/realtime stage map? 
 
 ## Integration 
 - [ ] Bot AI
@@ -41,7 +44,7 @@
   - [ ] Open menus
   - [ ] Hallucinate
 - [-] All players in tutorial 
-- [ ] With DB Writes 
+- [-] With DB Writes 
 
 ## Stats 
 - [ ] Boosts 
@@ -66,7 +69,9 @@
 - [-] Highlight code broken for overlapping after teleport
 - [-] Result of removing buffer with the new timeout deadlines (Should still get overwhelmed)
   - [-] Not as good
-- [ ] Load test database cluster
+- [-] Load test database cluster
+- [ ] Load Test NPC
+  - [-] Max count ~2000 cpu ~43.4%
 
 ## Design Workspace
 - [-] Rotations
@@ -204,6 +209,7 @@
  - [ ] Display as "!" Notification in mobile instead of on screen
  - [ ] Fade with time
  - [ ] Deault bottom text on load
+ - [ ] Game tips
 
 ## Kill streak
  - [-] User Streak
@@ -315,6 +321,10 @@ One way or two way.
 
  - [ ] Clean up, consolidate todo list? 
 
+ - [ ] Spawn NPCs 
+   - [-] Basic
+   - [ ] Clean up old spawns 
+ - [ ] Programmable interactable state 
 
 type []byte(update) 100 times
 

@@ -21,6 +21,28 @@ func longCross(n int) [][2]int {
 	return points
 }
 
+func diagonalBlock(positiveSlope bool, n int) [][2]int {
+	if n <= 0 {
+		return nil
+	}
+
+	var pts [][2]int
+	for dx := 1; dx <= n; dx++ {
+		for dy := 1; dy <= n; dy++ {
+			if positiveSlope {
+				// “/” diagonal: same-sign pairs
+				pts = append(pts, [2]int{-dy, dx})
+				pts = append(pts, [2]int{dy, -dx})
+			} else {
+				// “\” diagonal: opposite-sign pairs
+				pts = append(pts, [2]int{-dy, -dx})
+				pts = append(pts, [2]int{dy, dx})
+			}
+		}
+	}
+	return pts
+}
+
 func x() [][2]int {
 	return [][2]int{{1, 1}, {-1, 1}, {1, -1}, {-1, -1}}
 }

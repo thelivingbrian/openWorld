@@ -1,21 +1,29 @@
 {{ define "highscore" }}
 <!DOCTYPE html>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="/assets/htmx-mod.js"></script>
-<script src="/assets/ws.js"></script>
-<script src="/assets/fx.js"></script>
-<link rel="stylesheet" href="/assets/style.css">
-<link rel="stylesheet" href="/assets/colors.css">
-<body>
-    <div id="page">
-        {{template "logo-small"}}
-        <div id="highscore">
-            {{template "highscore-list" .}}
+<html>
+    {{template "score-header"}}
+    <body>
+        <div id="page">
+            {{template "logo-small"}}
+            <div id="highscore">
+                {{template "highscore-list" .}}
+            </div>
+            {{ template "social" }}
         </div>
-        {{ template "social" }}
-    </div>
-</body>
+    </body>
+</html>
 {{ end }}
+
+{{define "score-header"}}
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/assets/htmx-mod.js"></script>
+    <script src="/assets/ws.js"></script>
+    <script src="/assets/fx.js"></script>
+    <link rel="stylesheet" href="/assets/style.css">
+    <link rel="stylesheet" href="/assets/colors.css">
+</head>
+{{end}}
 
 {{ define "highscore-list" }}
 <div class="highscore-list {{.BorderColor}}-b thick" >
