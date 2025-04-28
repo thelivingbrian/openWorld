@@ -1,7 +1,5 @@
 package main
 
-import "math/rand/v2"
-
 // [[ycoord, xcoord], ... ]
 
 func jumpCross() [][2]int {
@@ -43,19 +41,6 @@ func diagonalBlock(positiveSlope bool, n int) [][2]int {
 		}
 	}
 	return pts
-}
-
-// Not very useful because most are prcopiled?
-func randomDiagonalBlock(n int) [][2]int {
-	if n <= 0 {
-		return nil
-	}
-
-	if rand.IntN(2) == 0 {
-		return diagonalBlock(true, n)
-	} else {
-		return diagonalBlock(false, n)
-	}
 }
 
 func x() [][2]int {
