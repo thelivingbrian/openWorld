@@ -321,6 +321,10 @@ One way or two way.
 
  - [ ] Clean up, consolidate todo list? 
 
+ - [ ] Spawn NPCs 
+   - [-] Basic
+   - [ ] Clean up old spawns 
+ - [ ] Programmable interactable state 
 
 type []byte(update) 100 times
 
