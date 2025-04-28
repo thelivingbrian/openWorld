@@ -459,60 +459,93 @@ func (npc *NonPlayer) updateRecord() {
 
 // Spawn NPC
 
-func spawnNewNPCWithRandomMovement(ref *Player, interval int) (*NonPlayer, context.CancelFunc) {
+func spawnNewNPCDoingAction(ref *Player, interval int, action func(*NonPlayer)) *NonPlayer {
+	npc, ctx := createNewNPC(ref.world)
+
+	placeOnSameStage(npc, ref)
+
+	go doAtIntervalUntilTermination(npc, ctx, interval, action)
+
+	go func(cancel context.CancelFunc) {
+		time.Sleep(600 * time.Second)
+		cancel()
+	}(npc.terminate)
+
+	return npc
+}
+
+func createNewNPC(world *World) (*NonPlayer, context.Context) {
 	username := uuid.New().String()
 	ctx, cancel := context.WithCancel(context.Background())
 	npc := &NonPlayer{
 		id:        username,
 		terminate: cancel,
-		world:     ref.world,
+		world:     world,
 		icon:      "red-b thick r0",
 		iconLow:   "dark-red-b thick r0",
 		health:    atomic.Int32{},
 	}
 	npc.health.Store(int32(100))
+	return npc, ctx
+}
 
+func placeOnSameStage(npc *NonPlayer, ref *Player) {
 	refTile := ref.getTileSync()
 	tiles := walkableTiles(refTile.stage.tiles)
 	n := rand.Intn(len(tiles))
 	startTile := tiles[n]
 	addNPCAndNotifyOthers(npc, startTile)
+}
 
-	go func(ctx context.Context) {
-		for {
-			select {
-			case <-ctx.Done():
-				removeNpc(npc)
-				return
-			default:
-				time.Sleep(time.Duration(interval) * time.Millisecond)
-				randn := rand.Intn(5000)
-
-				if randn%4 == 0 {
-					moveNorth(npc)
-				}
-				if randn%4 == 1 {
-					moveSouth(npc)
-				}
-				if randn%4 == 2 {
-					moveEast(npc)
-				}
-				if randn%4 == 3 {
-					moveWest(npc)
-				}
-				if randn%51 == 0 {
-					activatePower(npc)
-				}
-			}
+func doAtIntervalUntilTermination(npc *NonPlayer, ctx context.Context, interval int, action func(*NonPlayer)) {
+	for {
+		select {
+		case <-ctx.Done():
+			removeNpc(npc)
+			return
+		default:
+			time.Sleep(time.Duration(interval) * time.Millisecond)
+			action(npc)
 		}
-	}(ctx)
+	}
+}
 
-	go func(cancel context.CancelFunc) {
-		time.Sleep(600 * time.Second)
-		cancel()
-	}(cancel)
+func moveRandomlyAndActivatePower(npc *NonPlayer) {
+	randn := rand.Intn(5000)
 
-	return npc, cancel
+	if randn%4 == 0 {
+		moveNorth(npc)
+	}
+	if randn%4 == 1 {
+		moveSouth(npc)
+	}
+	if randn%4 == 2 {
+		moveEast(npc)
+	}
+	if randn%4 == 3 {
+		moveWest(npc)
+	}
+	if randn%51 == 0 {
+		activatePower(npc)
+	}
+}
+
+func moveAggressively(npc *NonPlayer) {
+	randn := rand.Intn(5000)
+
+	if randn%4 == 0 {
+		moveNorth(npc)
+		activatePower(npc)
+	}
+	if randn%4 == 1 {
+		moveSouth(npc)
+	}
+	if randn%4 == 2 {
+		moveEast(npc)
+	}
+	if randn%4 == 3 {
+		moveWest(npc)
+	}
 }
 
 func activatePower(npc *NonPlayer) {

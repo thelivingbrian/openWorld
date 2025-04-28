@@ -184,10 +184,12 @@ func basicSpawnWithRing(p *Player) {
 		tryPlaceInteractableOnStage(stage, createRing())
 	}
 
-	determination2 := rand.Intn(8)
+	determination2 := rand.Intn(16)
+	if determination2%8 == 0 {
+		spawnNewNPCDoingAction(p, 105, moveRandomlyAndActivatePower)
+	}
 	if determination2 == 0 {
-		spawnNewNPCWithRandomMovement(p, 100)
-
+		spawnNewNPCDoingAction(p, 95, moveAggressively)
 	}
 
 }
