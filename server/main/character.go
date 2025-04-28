@@ -300,6 +300,7 @@ func safe(location *Tile, partyA, partyB Character) bool {
 
 type NonPlayer struct {
 	id         string
+	terminate  context.CancelFunc
 	team       string
 	teamLock   sync.Mutex
 	icon       string
@@ -428,7 +429,8 @@ func (npc *NonPlayer) takeDamageFrom(initiator Character, dmg int) {
 	previousHealth := currentHealth + int32(dmg)
 	if currentHealth <= 0 && previousHealth > 0 {
 		initiator.incrementKillStreak()
-		removeNpc(npc)
+		npc.terminate()
+		//removeNpc(npc)
 	}
 }
 
@@ -460,20 +462,24 @@ func (npc *NonPlayer) updateRecord() {
 func spawnNewNPCWithRandomMovement(ref *Player, interval int) (*NonPlayer, context.CancelFunc) {
 	username := uuid.New().String()
 	refTile := ref.getTileSync()
+	stage := refTile.stage
+	height := rand.Intn(len(stage.tiles))
+	width := rand.Intn(len(stage.tiles[height]))
+	start := stage.tiles[height][width]
+	ctx, cancel := context.WithCancel(context.Background())
 	npc := &NonPlayer{
-		id:      username,
-		world:   ref.world,
-		icon:    "red-b thick r0",
-		iconLow: "dark-red-b thick r0",
-		health:  atomic.Int32{},
+		id:        username,
+		terminate: cancel,
+		world:     ref.world,
+		icon:      "red-b thick r0",
+		iconLow:   "dark-red-b thick r0",
+		health:    atomic.Int32{},
 	}
 	npc.health.Store(int32(100))
 
-	addNPCAndNotifyOthers(npc, refTile)
+	addNPCAndNotifyOthers(npc, start)
 
-	ctx, cancel := context.WithCancel(context.Background())
 	go func(ctx context.Context) {
-		time.Sleep(5 * time.Second)
 		for {
 			select {
 			case <-ctx.Done():
@@ -485,7 +491,6 @@ func spawnNewNPCWithRandomMovement(ref *Player, interval int) (*NonPlayer, conte
 
 				if randn%4 == 0 {
 					moveNorth(npc)
-					activatePower(npc)
 				}
 				if randn%4 == 1 {
 					moveSouth(npc)
@@ -496,12 +501,15 @@ func spawnNewNPCWithRandomMovement(ref *Player, interval int) (*NonPlayer, conte
 				if randn%4 == 3 {
 					moveWest(npc)
 				}
+				if randn%51 == 0 {
+					activatePower(npc)
+				}
 			}
 		}
 	}(ctx)
 
 	go func(cancel context.CancelFunc) {
-		time.Sleep(300 * time.Second)
+		time.Sleep(600 * time.Second)
 		cancel()
 	}(cancel)
 
