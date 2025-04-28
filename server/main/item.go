@@ -171,20 +171,20 @@ func basicSpawnOld(stage *Stage) {
 
 func basicSpawnWithRing(p *Player) {
 	determination := rand.Intn(1000)
-	if determination < 375 {
+	if determination < 350 {
 		// Do nothing
 		return
 	}
 	stage := p.getTileSync().stage
-	if determination < 725 {
+	if determination < 665 {
 		spawnBoosts(stage)
-	} else if determination < 960 {
+	} else if determination < 925 {
 		spawnPowerup(stage)
-	} else if determination < 980 {
+	} else if determination < 975 {
 		tryPlaceInteractableOnStage(stage, createRing())
 	}
 
-	determination2 := rand.Intn(10)
+	determination2 := rand.Intn(8)
 	if determination2 == 0 {
 		spawnNewNPCWithRandomMovement(p, 100)
 

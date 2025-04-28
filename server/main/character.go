@@ -461,11 +461,6 @@ func (npc *NonPlayer) updateRecord() {
 
 func spawnNewNPCWithRandomMovement(ref *Player, interval int) (*NonPlayer, context.CancelFunc) {
 	username := uuid.New().String()
-	refTile := ref.getTileSync()
-	stage := refTile.stage
-	height := rand.Intn(len(stage.tiles))
-	width := rand.Intn(len(stage.tiles[height]))
-	start := stage.tiles[height][width]
 	ctx, cancel := context.WithCancel(context.Background())
 	npc := &NonPlayer{
 		id:        username,
@@ -477,7 +472,11 @@ func spawnNewNPCWithRandomMovement(ref *Player, interval int) (*NonPlayer, conte
 	}
 	npc.health.Store(int32(100))
 
-	addNPCAndNotifyOthers(npc, start)
+	refTile := ref.getTileSync()
+	tiles := walkableTiles(refTile.stage.tiles)
+	n := rand.Intn(len(tiles))
+	startTile := tiles[n]
+	addNPCAndNotifyOthers(npc, startTile)
 
 	go func(ctx context.Context) {
 		for {
