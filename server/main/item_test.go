@@ -16,12 +16,12 @@ func BenchmarkSpawnItems(b *testing.B) {
 			b.StopTimer()
 
 			testStage := createStageByName(stageName)
-			placeNPlayersOnStage(200, testStage) // This number has an impact
+			players := placeNPlayersOnStage(200, testStage) // This number has an impact - if true why?
 
 			b.StartTimer()
 
 			for i := 0; i < b.N; i++ {
-				spawnItemsFor(nil, testStage)
+				spawnItemsFor(players[0], testStage)
 			}
 		})
 	}
