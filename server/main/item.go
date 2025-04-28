@@ -126,8 +126,20 @@ func spawnBoosts(stage *Stage) {
 	tile := uncoveredTiles[rand.Intn(len(uncoveredTiles))]
 	tile.addBoostsAndNotifyAll()
 }
+
 func spawnPowerup(stage *Stage) {
-	shapes := [][][2]int{grid3x3, grid3x3, grid5x5, grid5x5, grid5x5, grid7x7, grid7x7, grid9x9, jumpCross(), longCross(5), longCross(3), longCross(3), cross(), x()}
+	shapes := [][][2]int{
+		diagonalBlock(true, 2), diagonalBlock(false, 2),
+		diagonalBlock(true, 3), diagonalBlock(false, 3),
+		grid3x3, grid3x3,
+		grid5x5, grid5x5, grid5x5,
+		grid7x7, grid7x7,
+		grid9x9,
+		jumpCross(),
+		longCross(5),
+		longCross(3),
+		x(),
+	}
 	index := rand.Intn(len(shapes))
 	tiles, uncoveredTiles := sortWalkableTiles(stage.tiles)
 	tiles = append(tiles, uncoveredTiles...)

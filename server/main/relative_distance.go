@@ -1,5 +1,7 @@
 package main
 
+import "math/rand/v2"
+
 // [[ycoord, xcoord], ... ]
 
 func jumpCross() [][2]int {
@@ -19,6 +21,41 @@ func longCross(n int) [][2]int {
 		points = append(points, [2]int{0, -i}) // down
 	}
 	return points
+}
+
+func diagonalBlock(positiveSlope bool, n int) [][2]int {
+	if n <= 0 {
+		return nil
+	}
+
+	var pts [][2]int
+	for dx := 1; dx <= n; dx++ {
+		for dy := 1; dy <= n; dy++ {
+			if positiveSlope {
+				// “/” diagonal: same-sign pairs
+				pts = append(pts, [2]int{-dy, dx})
+				pts = append(pts, [2]int{dy, -dx})
+			} else {
+				// “\” diagonal: opposite-sign pairs
+				pts = append(pts, [2]int{-dy, -dx})
+				pts = append(pts, [2]int{dy, dx})
+			}
+		}
+	}
+	return pts
+}
+
+// Not very useful because most are prcopiled?
+func randomDiagonalBlock(n int) [][2]int {
+	if n <= 0 {
+		return nil
+	}
+
+	if rand.IntN(2) == 0 {
+		return diagonalBlock(true, n)
+	} else {
+		return diagonalBlock(false, n)
+	}
 }
 
 func x() [][2]int {
