@@ -49,9 +49,25 @@
 ## Stats 
 - [ ] Boosts 
   - [ ] used
-  - [ ] collected
-- [ ] Total money 
-- [-] Goals scored 
+  - [x] collected - nah?
+- [ ] Money
+  - [ ] Total
+  - [-] Current
+  - [ ] Peak 
+- [-] Goals scored
+- [ ] Games won
+- [ ] NPC Kills
+- [ ] Peak Killstreak 
+
+## Highscores
+- [-] Current Money / Kills / Goals Scored
+- [ ] Peak kill streak
+  - [ ] player/npc kills as side stats
+  - [ ] KD (Player + NPC) / Deaths as side stat 
+- [ ] Peak money 
+  - [ ] Current money becomes side stat
+  - [ ] Total money as side stat? 
+- [ ] Games won as side stat for Goals Scored
 
 ## Performance 
 - [-] Performance from Ec2 is degraded vs localhost - 400 Websocket users / 8 stages very stable

@@ -452,7 +452,7 @@ func removeNpcFromTile(npc *NonPlayer) {
 	npc.tileLock.Lock()
 	defer npc.tileLock.Unlock()
 	if !tryRemoveCharacterById(npc.tile, npc.id) {
-		logger.Error().Msg("Error - FAILED TO REMOVE NPC") // Normal if dead already
+		//logger.Error().Msg("Error - FAILED TO REMOVE NPC") // Normal if dead already
 		return
 	}
 	npc.tile.stage.updateAll(characterBox(npc.tile))
