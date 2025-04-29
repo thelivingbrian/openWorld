@@ -470,19 +470,18 @@ func (npc *NonPlayer) updateRecord() {
 	// Do Nothing
 }
 
+//////////////////////////////////////////////////////////////////////////////
 // Spawn NPC
 
 func spawnNewNPCDoingAction(ref *Player, interval int, action func(*NonPlayer)) *NonPlayer {
 	npc, ctx := createNewNPC(ref.world)
 	placeOnSameStage(npc, ref)
 
-	go doAtIntervalUntilTermination(npc, ctx, interval, action)
+	if action != nil {
+		go doAtIntervalUntilTermination(npc, ctx, interval, action)
+	}
 
-	go func(cancel context.CancelFunc) {
-		time.Sleep(300 * time.Second)
-		removeNpcFromTile(npc)
-		cancel()
-	}(npc.terminate)
+	go removeAfterWaiting(npc, 450) // Remove after 7.5 min
 
 	return npc
 }
@@ -522,6 +521,13 @@ func doAtIntervalUntilTermination(npc *NonPlayer, ctx context.Context, interval 
 	}
 }
 
+func removeAfterWaiting(npc *NonPlayer, seconds int) {
+	time.Sleep(time.Duration(seconds) * time.Second)
+
+	removeNpcFromTile(npc)
+	npc.terminate()
+}
+
 func moveRandomlyAndActivatePower(npc *NonPlayer) {
 	randn := rand.Intn(5000)
 	if randn%4 == 0 {
@@ -545,7 +551,23 @@ func moveAggressively(npc *NonPlayer) {
 	randn := rand.Intn(5000)
 	if randn%4 == 0 {
 		moveNorth(npc)
-		activatePower(npc)
+		activatePower(npc) // Power always activates on northern movement
+	}
+	if randn%4 == 1 {
+		moveSouth(npc)
+	}
+	if randn%4 == 2 {
+		moveEast(npc)
+	}
+	if randn%4 == 3 {
+		moveWest(npc)
+	}
+}
+
+func moveRandomly(npc *NonPlayer) {
+	randn := rand.Intn(4)
+	if randn%4 == 0 {
+		moveNorth(npc)
 	}
 	if randn%4 == 1 {
 		moveSouth(npc)

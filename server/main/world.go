@@ -345,6 +345,7 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		health:                   record.Health,
 		money:                    record.Money,
 		killCount:                record.KillCount,
+		peakKillStreak:           record.PeakKillStreak,
 		deathCount:               record.DeathCount,
 		goalsScored:              record.GoalsScored,
 		hatList:                  SyncHatList{HatList: record.HatList},

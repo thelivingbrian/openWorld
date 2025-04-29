@@ -21,21 +21,28 @@ type UserRecord struct {
 type PlayerRecord struct {
 	// ID
 	Username string `bson:"username"`
+
 	// Meta
 	LastLogin  time.Time `bson:"lastLogin,omitempty"`
 	LastLogout time.Time `bson:"lastLogout,omitempty"`
+
 	// World Location
 	StageName string `bson:"stagename"`
 	X         int    `bson:"x"`
 	Y         int    `bson:"y"`
+
+	// Details
+	Team   string `bson:"team"`
+	Trim   string `bson:"trim,omitempty"`
+	Health int    `bson:"health"`
+	Money  int    `bson:"money,omitempty"`
+
 	// Stats
-	Team        string `bson:"team"`
-	Trim        string `bson:"trim,omitempty"`
-	Health      int    `bson:"health"`
-	Money       int    `bson:"money,omitempty"`
-	KillCount   int    `bson:"killCount,omitempty"`
-	DeathCount  int    `bson:"deathCount,omitempty"`
-	GoalsScored int    `bson:"goalsScored,omitempty"`
+	KillCount      int `bson:"killCount,omitempty"`
+	PeakKillStreak int `bson:"peakKillSteak,omitempty"`
+	DeathCount     int `bson:"deathCount,omitempty"`
+	GoalsScored    int `bson:"goalsScored,omitempty"`
+
 	// Unlocks
 	HatList HatList `bson:"hatList,omitempty"`
 }
@@ -204,6 +211,7 @@ func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 		"stagename":       pTile.stage.name,
 		"money":           p.getMoneySync(),
 		"killCount":       p.getKillCountSync(),
+		"peakKillStreak":  getPeakKillSteakSync(p),
 		"deathCount":      p.getDeathCountSync(),
 		"goalsScored":     p.getGoalsScored(),
 		"hatList.current": p.hatList.indexSync(),

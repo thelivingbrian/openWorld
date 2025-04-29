@@ -41,6 +41,7 @@ type Player struct {
 	goalsScored              int
 	goalsScoredLock          sync.Mutex
 	killstreak               int
+	peakKillStreak           int
 	streakLock               sync.Mutex
 	actions                  *Actions
 	menues                   map[string]Menu
@@ -479,7 +480,17 @@ func (player *Player) incrementKillStreak() {
 	player.streakLock.Lock()
 	defer player.streakLock.Unlock()
 	player.killstreak++
-	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: player.killstreak, team: player.getTeamNameSync()}
+	currentKs := player.killstreak
+	if currentKs > player.peakKillStreak {
+		player.peakKillStreak = currentKs
+	}
+	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: currentKs, team: player.getTeamNameSync()}
+}
+
+func getPeakKillSteakSync(player *Player) int {
+	player.streakLock.Lock()
+	defer player.streakLock.Unlock()
+	return player.peakKillStreak
 }
 
 func (player *Player) getKillCountSync() int {
