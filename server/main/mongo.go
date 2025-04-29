@@ -32,10 +32,10 @@ type PlayerRecord struct {
 	Y         int    `bson:"y"`
 
 	// Details
-	Team   string `bson:"team"`
-	Trim   string `bson:"trim,omitempty"`
-	Health int    `bson:"health"`
-	Money  int    `bson:"money,omitempty"`
+	Team string `bson:"team"`
+	//Trim   string `bson:"trim,omitempty"`
+	Health int `bson:"health"`
+	Money  int `bson:"money,omitempty"`
 
 	// Stats
 	KillCount      int `bson:"killCount,omitempty"`

@@ -97,8 +97,8 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 
 	// check each clone is in clinic
 	for i := range clones {
-		if clones[i].stage.name != "clinic" {
-			t.Errorf("Clone#%d should be on clinic but is on: %s", i, clones[i].stage.name)
+		if clones[i].getTileSync().stage.name != "clinic" {
+			t.Errorf("Clone#%d should be on clinic but is on: %s", i, clones[i].getTileSync().stage.name)
 		}
 	}
 
@@ -113,7 +113,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	}
 
 	// check player
-	if p.stage != testStage {
+	if p.getTileSync().stage != testStage {
 		t.Error("Player should be on the test stage")
 	}
 	if p.getKillStreakSync() != 500 {
@@ -128,7 +128,7 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	// respawn using menu
 	menu := p.menues["respawn"]
 	menu.attemptClick(p, PlayerSocketEvent{Arg0: "0"})
-	if p.stage.name != "clinic" {
+	if p.getTileSync().stage.name != "clinic" {
 		t.Error("Player should be in the clinic")
 	}
 	if p.getKillStreakSync() != 0 {

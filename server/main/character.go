@@ -223,8 +223,8 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 		return false
 	}
 
-	p.stage.removeLockedPlayerById(p.id)
-	p.stage = dest.stage
+	source.stage.removeLockedPlayerById(p.id)
+	//p.stage = dest.stage
 
 	dest.stage.addLockedPlayer(p)
 	dest.addLockedPlayerToTile(p)

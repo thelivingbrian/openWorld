@@ -14,13 +14,13 @@ import (
 )
 
 type Player struct {
-	id                       string
-	username                 string
-	team                     string
-	icon                     string
-	viewLock                 sync.Mutex
-	world                    *World
-	stage                    *Stage // Shouldn't exist except for tile?
+	id       string
+	username string
+	team     string
+	icon     string
+	viewLock sync.Mutex
+	world    *World
+	//stage                    *Stage // Shouldn't exist except for tile?
 	stageLock                sync.Mutex
 	tile                     *Tile
 	tileLock                 sync.Mutex
@@ -94,7 +94,7 @@ func handleDeath(player *Player) {
 	player.actions = createDefaultActions() // problematic, -> setDefaultActions(player)
 
 	stage := player.fetchStageSync(infirmaryStagenameForPlayer(player))
-	player.setStage(stage)
+	//player.setStage(stage)
 	player.updateRecordOnDeath(stage.tiles[2][2])
 	respawnOnStage(player, stage)
 }
@@ -136,11 +136,11 @@ func removeFromTileAndStage(player *Player) {
 	defer player.stageLock.Unlock()
 	player.tileLock.Lock()
 	defer player.tileLock.Unlock()
-	if player.stage == nil || player.tile == nil {
+	if player.tile == nil {
 		return
 	}
 	player.tile.removePlayerAndNotifyOthers(player)
-	player.stage.removeLockedPlayerById(player.id)
+	player.tile.stage.removeLockedPlayerById(player.id)
 }
 
 func infirmaryStagenameForPlayer(player *Player) string {
@@ -245,7 +245,7 @@ func updatePlayerAfterMovement(player *Player, current, previous *Tile) {
 	playerIcon := playerBoxSpecifc(current.y, current.x, player.getIconSync())
 
 	previousBoxes := ""
-	if previous != nil && previous.stage == player.getStageSync() {
+	if previous != nil && previous.stage == current.stage {
 		previousBoxes += characterBox(previous)
 	}
 
@@ -406,24 +406,27 @@ func (player *Player) getTeamNameSync() string {
 }
 
 // Remove ?
+/*
 func (player *Player) setStage(stage *Stage) {
 	player.stageLock.Lock()
 	defer player.stageLock.Unlock()
 	player.stage = stage
 }
 
-// Use Tile ?
+
 func (player *Player) getStageNameSync() string {
 	player.stageLock.Lock()
 	defer player.stageLock.Unlock()
 	return player.stage.name
 }
 
+
 func (player *Player) getStageSync() *Stage {
 	player.stageLock.Lock()
 	defer player.stageLock.Unlock()
 	return player.stage
 }
+*/
 
 func (player *Player) setMoney(n int) {
 	player.moneyLock.Lock()

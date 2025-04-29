@@ -176,8 +176,9 @@ func Quit(p *Player) {
 func openMapMenu(p *Player) {
 	var buf bytes.Buffer
 	copy := mapMenu
-	if p.stage.mapId != "" {
-		mapPath := p.world.config.domainName + "/images/" + p.stage.mapId
+	mapId := p.getTileSync().stage.mapId
+	if mapId != "" {
+		mapPath := p.world.config.domainName + "/images/" + mapId
 		copy.InfoHtml = template.HTML(`<img src="` + mapPath + `" width="100%" alt="map of space" />`)
 	} else {
 		copy.InfoHtml = `<h2>unavailable</h2>`
@@ -245,18 +246,18 @@ func teleportEventHandler(teleport *Teleport) func(*Player) {
 
 func sourceStageAuthorizerAffirmative(source string) func(*Player) bool {
 	return func(p *Player) bool {
-		return p.getStageNameSync() == source
+		return p.getTileSync().stage.name == source
 	}
 }
 
 func sourceStageAuthorizerExclude(source string) func(*Player) bool {
 	return func(p *Player) bool {
-		return p.getStageNameSync() != source
+		return p.getTileSync().stage.name != source
 	}
 }
 
 func excludeSpecialStages(p *Player) bool {
-	stagename := p.getStageNameSync()
+	stagename := p.getTileSync().stage.name
 	if strings.HasPrefix(stagename, "infirmary") {
 		return false
 	}

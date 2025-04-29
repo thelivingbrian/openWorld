@@ -38,10 +38,11 @@ func (player *Player) setSpaceHighlights() (map[*Tile]bool, bool) {
 	defer player.actions.spaceHighlightMutex.Unlock()
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	currentTile := player.getTileSync()
+	stage := currentTile.stage
 	absCoordinatePairs := findOffsetsGivenPowerUp(currentTile.y, currentTile.x, player.actions.spaceStack.peek())
 	for _, pair := range absCoordinatePairs {
-		if validCoordinate(pair[0], pair[1], player.stage) {
-			tile := player.stage.tiles[pair[0]][pair[1]]
+		if validCoordinate(pair[0], pair[1], stage) {
+			tile := stage.tiles[pair[0]][pair[1]]
 			player.actions.spaceHighlights[tile] = true
 		}
 	}
@@ -54,11 +55,12 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 	previous := player.actions.spaceHighlights
 	player.actions.spaceHighlights = map[*Tile]bool{}
 	currentTile := player.getTileSync()
+	stage := currentTile.stage
 	absCoordinatePairs := findOffsetsGivenPowerUp(currentTile.y, currentTile.x, player.actions.spaceStack.peek())
 	var impactedTiles []*Tile
 	for _, pair := range absCoordinatePairs {
-		if validCoordinate(pair[0], pair[1], player.stage) {
-			tile := player.stage.tiles[pair[0]][pair[1]]
+		if validCoordinate(pair[0], pair[1], stage) {
+			tile := stage.tiles[pair[0]][pair[1]]
 			player.actions.spaceHighlights[tile] = true
 			if _, contains := previous[tile]; contains {
 				delete(previous, tile)
@@ -72,7 +74,7 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 
 // rewrite as tryActivate for atomicity.
 func (player *Player) activatePower() {
-	stage := player.getStageSync()
+	stage := player.getTileSync().stage
 	stage.updateAll(soundTriggerByName("explosion"))
 
 	playerHighlights := highlightMapToSlice(player)

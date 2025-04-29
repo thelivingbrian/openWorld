@@ -330,9 +330,9 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 	}
 	updatesForPlayer := make(chan []byte) // raise capacity?
 	newPlayer := &Player{
-		id:                       id,
-		username:                 record.Username,
-		stage:                    nil,
+		id:       id,
+		username: record.Username,
+		//stage:                    nil,
 		updates:                  updatesForPlayer,
 		sessionTimeOutViolations: atomic.Int32{},
 		tangible:                 true,

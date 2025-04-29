@@ -171,7 +171,7 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 		if tile == nil {
 			continue
 		}
-		if tile.stage != player.stage {
+		if tile.stage != player.getTileSync().stage {
 			continue
 		}
 

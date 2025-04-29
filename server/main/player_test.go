@@ -18,7 +18,7 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 	player.addBoostsAndUpdate(5)
 	player.moveNorthBoost()
 
-	if player.stage.name != "hallway2" {
+	if player.getTileSync().stage.name != "hallway2" {
 		t.Error("player.stage.name should be hallway2")
 	}
 
