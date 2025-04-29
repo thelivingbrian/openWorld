@@ -1,5 +1,5 @@
 
-[TestGridActions - 1]
+[TestGridActions/Test_make_empty_grid_for_TestGridActions - 1]
 {
  "DefaultTileColor": "",
  "DefaultTileColor1": "",
@@ -8,601 +8,239 @@
  "tiles": [
   [
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    }
   ],
   [
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    }
   ],
   [
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "wall",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "wall",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "wall",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "wall",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    }
   ],
   [
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "wall",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "wall",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    }
   ],
   [
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "wall",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "wall",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    }
   ],
   [
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "wall",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "wall",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "wall",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "wall",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    }
   ],
   [
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    },
    {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   }
-  ],
-  [
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   }
-  ],
-  [
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   }
-  ],
-  [
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   }
-  ],
-  [
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   }
-  ],
-  [
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
+    "prototypeId": "-",
     "transformation": {}
    }
   ]
@@ -610,802 +248,711 @@
 }
 ---
 
-[TestGridActions - 2]
-{
- "DefaultTileColor": "",
- "DefaultTileColor1": "",
- "Ground": null,
- "Instructions": null,
- "tiles": [
-  [
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   }
-  ],
-  [
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   }
-  ],
-  [
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "transformation": {}
-   },
-   {
-    "transformation": {}
-   },
-   {
-    "transformation": {}
-   },
-   {
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   }
-  ],
-  [
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   }
-  ],
-  [
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   }
-  ],
-  [
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "transformation": {}
-   },
-   {
-    "transformation": {}
-   },
-   {
-    "transformation": {}
-   },
-   {
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   }
-  ],
-  [
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   }
-  ],
-  [
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   }
-  ],
-  [
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   }
-  ],
-  [
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   }
-  ],
-  [
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   }
-  ],
-  [
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   },
-   {
-    "prototypeId": "empty",
-    "transformation": {}
-   }
-  ]
- ]
-}
----
-
-[TestGridActions/should_make_an_int_snapshot - 1]
+[TestGridActions/Test_'between'_by_creating_a_boundary. - 1]
 &main.Blueprint{
     Tiles: {
         {
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
         },
         {
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
         },
         {
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "2",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "2",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "2",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "2",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
         },
         {
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+    },
+    Instructions:      nil,
+    Ground:            nil,
+    DefaultTileColor:  "",
+    DefaultTileColor1: "",
+}
+---
+
+[TestGridActions/Test_'fill'_against_boundary. - 1]
+&main.Blueprint{
+    Tiles: {
+        {
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "1",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "1",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "1",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "1",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "1",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "1",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "1",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "1",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "1",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "1",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+    },
+    Instructions:      nil,
+    Ground:            nil,
+    DefaultTileColor:  "",
+    DefaultTileColor1: "",
+}
+---
+
+[TestGridActions/Test_'fill'_against_boundary. - 2]
+&main.Blueprint{
+    Tiles: {
+        {
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
@@ -1415,12 +962,12 @@
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "2",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
@@ -1430,59 +977,24 @@
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
         },
         {
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "2",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
@@ -1492,44 +1004,39 @@
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "2",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "2",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
         },
         {
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
@@ -1554,404 +1061,1316 @@
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
         },
         {
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
         },
         {
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "-",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+    },
+    Instructions:      nil,
+    Ground:            nil,
+    DefaultTileColor:  "",
+    DefaultTileColor1: "",
+}
+---
+
+[TestGridActions/Test_'fill'_against_boundary. - 3]
+&main.Blueprint{
+    Tiles: {
+        {
+            {
+                PrototypeId:    "4",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "4",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "4",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "4",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
         },
         {
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "4",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
+                PrototypeId:    "4",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
         },
         {
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "4",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "2",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "2",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "2",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
+                PrototypeId:    "4",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
         },
         {
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "4",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "2",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "2",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "2",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
-                Transformation: main.Transformation{},
-                InteractableId: "",
-            },
-            {
-                PrototypeId:    "empty",
+                PrototypeId:    "4",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
         },
         {
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "4",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "2",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "2",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "2",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "2",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
             {
-                PrototypeId:    "empty",
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "6",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+    },
+    Instructions:      nil,
+    Ground:            nil,
+    DefaultTileColor:  "",
+    DefaultTileColor1: "",
+}
+---
+
+[TestGridActions/Test_'fill'_against_boundary. - 4]
+&main.Blueprint{
+    Tiles: {
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "3",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+    },
+    Instructions:      nil,
+    Ground:            nil,
+    DefaultTileColor:  "",
+    DefaultTileColor1: "",
+}
+---
+
+[TestGridActions/Test_'fill'_against_boundary. - 5]
+&main.Blueprint{
+    Tiles: {
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "2",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+    },
+    Instructions:      nil,
+    Ground:            nil,
+    DefaultTileColor:  "",
+    DefaultTileColor1: "",
+}
+---
+
+[TestGridActions/Test_'fill'_against_boundary. - 6]
+&main.Blueprint{
+    Tiles: {
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+        },
+        {
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
+                Transformation: main.Transformation{},
+                InteractableId: "",
+            },
+            {
+                PrototypeId:    "4",
                 Transformation: main.Transformation{},
                 InteractableId: "",
             },
