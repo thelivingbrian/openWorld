@@ -48,6 +48,9 @@ type Player struct {
 	hatList                  SyncHatList
 }
 
+type PlayerStats struct {
+}
+
 ////////////////////////////////////////////////////////////
 //  Special Movement
 
@@ -335,13 +338,11 @@ func getStageByNameOrGetDefault(player *Player, stagename string) *Stage {
 	stage := player.fetchStageSync(stagename)
 	if stage == nil {
 		logger.Warn().Msg("WARNING: Fetching default stage instead of: " + stagename)
-		// clinic must exist - Add test ?
 		stage = player.fetchStageSync("clinic")
 		if stage == nil {
 			panic("Default stage not found")
 		}
 	}
-
 	return stage
 }
 

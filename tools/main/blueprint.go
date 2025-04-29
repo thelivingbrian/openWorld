@@ -22,8 +22,8 @@ type TileData struct {
 }
 
 type Transformation struct {
-	ClockwiseRotations int    `json:"clockwiseRotations,omitempty"`
-	ColorPalette       string `json:"colorPalette,omitempty"`
+	ClockwiseRotations int `json:"clockwiseRotations,omitempty"`
+	//ColorPalette       string `json:"colorPalette,omitempty"`
 }
 
 type Instruction struct {

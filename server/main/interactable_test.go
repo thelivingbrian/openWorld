@@ -14,8 +14,7 @@ func TestEnsureInteractableWillPush(t *testing.T) {
 	go drainChannel(updatesForPlayer)
 
 	player := &Player{
-		id: "tp",
-		//stage:    testStage,
+		id:       "tp",
 		actions:  createDefaultActions(),
 		health:   100,
 		updates:  updatesForPlayer,

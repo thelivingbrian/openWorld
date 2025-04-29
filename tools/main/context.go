@@ -261,7 +261,10 @@ func (c Context) compileCollection(collection *Collection) {
 	for _, space := range collection.Spaces {
 		c.generateAllPNGs(space)
 		for _, desc := range space.Areas {
-			outputTiles := collection.compileTileDataAndAccumulateMaterials(desc)
+			outputTiles, err := collection.compileTileDataAndAccumulateMaterials(desc.Blueprint)
+			if err != nil {
+				panic(desc.Name + ": has compile error: " + err.Error())
+			}
 
 			mapid := ""
 			if space.isSimplyTiled() {
@@ -304,28 +307,29 @@ func (c Context) copyMapPNG(space *Space, area *AreaDescription) string {
 	return id
 }
 
-func (collection *Collection) compileTileDataAndAccumulateMaterials(desc AreaDescription) [][]Material {
-	outputTiles := make([][]Material, len(desc.Blueprint.Tiles))
-	for y := range desc.Blueprint.Tiles {
-		outputTiles[y] = make([]Material, len(desc.Blueprint.Tiles[y]))
-		for x, tile := range desc.Blueprint.Tiles[y] {
+func (collection *Collection) compileTileDataAndAccumulateMaterials(bp *Blueprint) ([][]Material, error) {
+	outputTiles := make([][]Material, len(bp.Tiles))
+	for y := range bp.Tiles {
+		outputTiles[y] = make([]Material, len(bp.Tiles[y]))
+		for x, tile := range bp.Tiles[y] {
 			// Find proto
 			proto := collection.findPrototypeById(tile.PrototypeId)
 			if proto == nil {
-				errMsg := fmt.Sprintf("Prototype with id: %s Not found. Area: %s | y:%d x:%d", desc.Blueprint.Tiles[y][x].PrototypeId, desc.Name, y, x)
-				panic("PROTO NOT FOUND. error - " + errMsg)
+				//errMsg := fmt.Sprintf("Prototype with id: %s Not found. Area: %s | y:%d x:%d", bp.Tiles[y][x].PrototypeId, desc.Name, y, x)
+				//panic("PROTO NOT FOUND. error - " + errMsg)
+				return nil, fmt.Errorf("Prototype with id: %s Not found. y:%d x:%d", bp.Tiles[y][x].PrototypeId, y, x)
 			}
 
 			// Apply transform
 			mat := proto.applyTransform(tile.Transformation)
 
 			// Apply ground
-			ground := groundCellByCoord(desc.Blueprint, y, x)
-			mat = addGroundToMaterial(mat, ground, desc.Blueprint.DefaultTileColor, desc.Blueprint.DefaultTileColor1)
+			ground := groundCellByCoord(bp, y, x)
+			mat = addGroundToMaterial(mat, ground, bp.DefaultTileColor, bp.DefaultTileColor1)
 
 			// Assign
 			outputTiles[y][x] = mat
 		}
 	}
-	return outputTiles
+	return outputTiles, nil
 }
