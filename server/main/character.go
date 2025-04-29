@@ -214,8 +214,8 @@ func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
 }
 
 func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
-	p.stageLock.Lock() // No need for this ?
-	defer p.stageLock.Unlock()
+	// p.stageLock.Lock() // No need for this ?
+	// defer p.stageLock.Unlock()
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
 

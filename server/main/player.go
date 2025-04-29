@@ -21,7 +21,7 @@ type Player struct {
 	viewLock sync.Mutex
 	world    *World
 	//stage                    *Stage // Shouldn't exist except for tile?
-	stageLock                sync.Mutex
+	//stageLock                sync.Mutex
 	tile                     *Tile
 	tileLock                 sync.Mutex
 	updates                  chan []byte
@@ -132,8 +132,8 @@ func respawnOnStage(player *Player, stage *Stage) {
 }
 
 func removeFromTileAndStage(player *Player) {
-	player.stageLock.Lock()
-	defer player.stageLock.Unlock()
+	// player.stageLock.Lock()
+	// defer player.stageLock.Unlock()
 	player.tileLock.Lock()
 	defer player.tileLock.Unlock()
 	if player.tile == nil {
