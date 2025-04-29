@@ -14,14 +14,12 @@ import (
 )
 
 type Player struct {
-	id       string
-	username string
-	team     string
-	icon     string
-	viewLock sync.Mutex
-	world    *World
-	//stage                    *Stage // Shouldn't exist except for tile?
-	//stageLock                sync.Mutex
+	id                       string
+	username                 string
+	team                     string
+	icon                     string
+	viewLock                 sync.Mutex
+	world                    *World
 	tile                     *Tile
 	tileLock                 sync.Mutex
 	updates                  chan []byte
@@ -94,7 +92,6 @@ func handleDeath(player *Player) {
 	player.actions = createDefaultActions() // problematic, -> setDefaultActions(player)
 
 	stage := player.fetchStageSync(infirmaryStagenameForPlayer(player))
-	//player.setStage(stage)
 	player.updateRecordOnDeath(stage.tiles[2][2])
 	respawnOnStage(player, stage)
 }
@@ -132,8 +129,6 @@ func respawnOnStage(player *Player, stage *Stage) {
 }
 
 func removeFromTileAndStage(player *Player) {
-	// player.stageLock.Lock()
-	// defer player.stageLock.Unlock()
 	player.tileLock.Lock()
 	defer player.tileLock.Unlock()
 	if player.tile == nil {
@@ -404,29 +399,6 @@ func (player *Player) getTeamNameSync() string {
 	defer player.viewLock.Unlock()
 	return player.team
 }
-
-// Remove ?
-/*
-func (player *Player) setStage(stage *Stage) {
-	player.stageLock.Lock()
-	defer player.stageLock.Unlock()
-	player.stage = stage
-}
-
-
-func (player *Player) getStageNameSync() string {
-	player.stageLock.Lock()
-	defer player.stageLock.Unlock()
-	return player.stage.name
-}
-
-
-func (player *Player) getStageSync() *Stage {
-	player.stageLock.Lock()
-	defer player.stageLock.Unlock()
-	return player.stage
-}
-*/
 
 func (player *Player) setMoney(n int) {
 	player.moneyLock.Lock()
