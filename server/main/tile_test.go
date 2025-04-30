@@ -67,8 +67,8 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 		clones[i] = clone
 		defer cancel()
 	}
-	if len(p.world.worldPlayers) != 501 {
-		t.Errorf("Player count should be 501 but is: %d", len(p.world.worldPlayers))
+	if len(p.world.worldPlayers) != playerCount+1 {
+		t.Errorf("Player count should be %d but is: %d", playerCount+1, len(p.world.worldPlayers))
 	}
 
 	// Escape the box
@@ -116,11 +116,11 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	if p.getTileSync().stage != testStage {
 		t.Error("Player should be on the test stage")
 	}
-	if p.getKillStreakSync() != 500 {
-		t.Error("Killstreak should be exactly 500")
+	if p.getKillStreakSync() != playerCount {
+		t.Errorf("Killstreak should be exactly %d", playerCount)
 	}
-	if p.peakKillStreak.Load() != 500 {
-		t.Error("Peak Killstreak should be exactly 500")
+	if p.peakKillStreak.Load() != int64(playerCount) {
+		t.Errorf("Peak Killstreak should be exactly %d", playerCount)
 	}
 	if p.world.leaderBoard.mostDangerous.Peek().id != p.id {
 		t.Error("Player should be most dangerous")
