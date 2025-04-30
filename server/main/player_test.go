@@ -51,3 +51,7 @@ func createTestingPlayer(world *World, user string) *Player {
 	world.worldPlayers[id] = tp
 	return tp
 }
+
+func (player *Player) getKillStreakSync() int {
+	return int(player.killstreak.Load())
+}

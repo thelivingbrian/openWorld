@@ -439,13 +439,6 @@ func (player *Player) getMoneySync() int {
 	return player.money
 }
 
-func (player *Player) getKillStreakSync() int {
-	// player.streakLock.Lock()
-	// defer player.streakLock.Unlock()
-	// return player.killstreak
-	return int(player.killstreak.Load())
-}
-
 func (player *Player) setKillStreak(n int) {
 	// player.streakLock.Lock()
 	// defer player.streakLock.Unlock()
@@ -477,12 +470,14 @@ func getPeakKillSteakSync(player *Player) int64 {
 	return player.peakKillStreak.Load()
 }
 
+/*
 func (player *Player) getKillCountSync() int {
 	// player.killCountLock.Lock()
 	// defer player.killCountLock.Unlock()
 	// return player.killCount
 	return int(player.killCount.Load())
 }
+*/
 
 // killCount Observer - no direct set
 func (player *Player) incrementKillCount() {
@@ -492,12 +487,14 @@ func (player *Player) incrementKillCount() {
 	player.killCount.Add(1)
 }
 
+/*
 func (player *Player) getDeathCountSync() int64 {
 	// player.deathCountLock.Lock()
 	// defer player.deathCountLock.Unlock()
 	return player.deathCount.Load()
 }
 
+*/
 // deathCount Observer - no direct set
 func (player *Player) incrementDeathCount() {
 	// player.deathCountLock.Lock()
@@ -515,11 +512,13 @@ func (player *Player) incrementGoalsScored() int64 {
 	return player.goalsScored.Add(1)
 }
 
+/*
 func (player *Player) getGoalsScored() int64 {
 	// player.goalsScoredLock.Lock()
 	// defer player.goalsScoredLock.Unlock()
 	return player.goalsScored.Load()
 }
+*/
 
 // generally will trigger a logout
 func (player *Player) closeConnectionSync() error {

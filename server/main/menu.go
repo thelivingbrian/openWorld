@@ -214,7 +214,7 @@ func createInfoHtmlForPlayer(p *Player) template.HTML {
 			<p>&#9656;Streak: %d</p>
 			<br />
 		</div>`,
-		p.getGoalsScored(), p.getKillCountSync(), p.getDeathCountSync(), getPeakKillSteakSync(p),
+		p.goalsScored.Load(), p.killCount.Load(), p.deathCount.Load(), getPeakKillSteakSync(p),
 	)
 
 	return template.HTML(htmlContent)
