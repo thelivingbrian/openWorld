@@ -34,8 +34,8 @@ type PlayerRecord struct {
 
 	// Details
 	Team   string            `bson:"team"`
-	Health int               `bson:"health"`
-	Money  int               `bson:"money"`
+	Health int64             `bson:"health"`
+	Money  int64             `bson:"money"`
 	Stats  PlayerStatsRecord `bson:"stats"`
 
 	// Unlocks
@@ -210,9 +210,9 @@ func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 	return bson.M{
 		"x":         pTile.x,
 		"y":         pTile.y,
-		"health":    p.getHealthSync(),
+		"health":    p.health.Load(),
 		"stagename": pTile.stage.name,
-		"money":     p.getMoneySync(),
+		"money":     p.money.Load(),
 		"stats":     statsRecordFromPlayerStats(p.PlayerStats),
 		//"killCount":       p.getKillCountSync(),
 		//"peakKillStreak":  getPeakKillSteakSync(p),

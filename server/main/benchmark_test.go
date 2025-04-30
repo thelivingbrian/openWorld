@@ -196,13 +196,14 @@ func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 		players[i] = &Player{
 			id: fmt.Sprintf("tp%d", i),
 			//stage:        stage,
-			actions:      createDefaultActions(),
-			health:       100,
+			actions: createDefaultActions(),
+			//health:       100,
 			updates:      updatesForPlayer,
 			world:        &World{worldStages: make(map[string]*Stage)},
 			tangible:     true,
 			playerStages: map[string]*Stage{},
 		}
+		players[i].health.Store(100)
 		players[i].placeOnStage(stage, 2, 2)
 	}
 	return players

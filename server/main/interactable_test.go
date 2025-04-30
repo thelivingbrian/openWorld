@@ -14,9 +14,9 @@ func TestEnsureInteractableWillPush(t *testing.T) {
 	go drainChannel(updatesForPlayer)
 
 	player := &Player{
-		id:       "tp",
-		actions:  createDefaultActions(),
-		health:   100,
+		id:      "tp",
+		actions: createDefaultActions(),
+		//health:   atomic.NewInt64(100),
 		updates:  updatesForPlayer,
 		tangible: true,
 	}
@@ -66,14 +66,14 @@ func TestSurroundedPushableSquare(t *testing.T) {
 
 	// Place players around the 2x2 square of pushable tiles (3,7) (3,8) (4,7) (4,8)
 	players := []*Player{
-		{id: "p0", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p1", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p2", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p3", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p4", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p5", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p6", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p7", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
+		{id: "p0", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p1", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p2", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p3", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p4", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p5", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p6", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p7", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
 	}
 
 	positions := []struct {
@@ -130,14 +130,14 @@ func TestSurroundedPushableSquareMultipleThreads(t *testing.T) {
 
 	// Place players around the 2x2 square of pushable tiles (3,7) (3,8) (4,7) (4,8)
 	players := []*Player{
-		{id: "p0", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p1", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p2", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p3", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p4", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p5", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p6", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p7", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
+		{id: "p0", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p1", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p2", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p3", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p4", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p5", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p6", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p7", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
 	}
 
 	positions := []struct {
@@ -221,8 +221,8 @@ func TestEnsureNoInteractableDuplication(t *testing.T) {
 
 	// Place 2 players at ends of long interactable line
 	players := []*Player{
-		{id: "p0", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p1", updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
+		{id: "p0", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p1", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
 	}
 
 	positions := []struct {

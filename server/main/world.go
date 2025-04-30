@@ -341,15 +341,17 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		menues:                   map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu}, // terrifying
 		playerStages:             make(map[string]*Stage),
 		team:                     record.Team,
-		health:                   record.Health,
-		money:                    record.Money,
-		PlayerStats:              playerStatsFromRecord(record),
+		//health:                   record.Health,
+		//money:                    record.Money,
+		PlayerStats: playerStatsFromRecord(record),
 		// killCount:                record.KillCount,
 		// peakKillStreak:           record.PeakKillStreak,
 		// deathCount:               record.DeathCount,
 		// goalsScored:              record.GoalsScored,
 		hatList: SyncHatList{HatList: record.HatList},
 	}
+	newPlayer.health.Store(record.Health)
+	newPlayer.money.Store(record.Money)
 
 	newPlayer.setIcon()
 	return newPlayer

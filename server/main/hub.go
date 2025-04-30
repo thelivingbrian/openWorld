@@ -121,7 +121,7 @@ func generateRichestList(hub *Hub) HighScoreList {
 			entries = append(entries, HighScoreEntry{
 				Username:   record.Username,
 				StatNames:  []string{"Money"},
-				StatValues: []string{strconv.Itoa(record.Money)},
+				StatValues: []string{strconv.Itoa(int(record.Money))},
 			})
 		}
 		hub.richest.Entries = entries

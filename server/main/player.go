@@ -29,12 +29,11 @@ type Player struct {
 	tangible                 bool
 	tangibilityLock          sync.Mutex
 
-	health     int
-	healthLock sync.Mutex
-	money      int
-	moneyLock  sync.Mutex
+	health atomic.Int64
+	//healthLock sync.Mutex
+	money atomic.Int64
+	//moneyLock  sync.Mutex
 	killstreak atomic.Int64
-	//streakLock sync.Mutex
 	*PlayerStats
 
 	actions      *Actions
@@ -45,12 +44,9 @@ type Player struct {
 }
 
 type PlayerStats struct {
-	killCount atomic.Int64
-	//killCountLock   sync.Mutex
-	deathCount atomic.Int64
-	//deathCountLock  sync.Mutex
-	goalsScored atomic.Int64
-	//goalsScoredLock sync.Mutex
+	killCount      atomic.Int64
+	deathCount     atomic.Int64
+	goalsScored    atomic.Int64
 	peakKillStreak atomic.Int64
 }
 
@@ -93,7 +89,8 @@ func handleDeath(player *Player) {
 	popAndDropMoney(player)
 	removeFromTileAndStage(player) // After this should be impossible for any transfer to succeed
 	player.incrementDeathCount()
-	player.setHealth(150)
+	//player.setHealth(150)
+	player.resetHealth()
 	player.zeroKillStreak()
 	player.actions = createDefaultActions() // problematic, -> setDefaultActions(player)
 
@@ -115,10 +112,14 @@ func popAndDropMoney(player *Player) {
 
 func halveMoneyOf(player *Player) int {
 	// race risk
-	currentMoney := player.getMoneySync()
-	newValue := currentMoney / 2
-	player.setMoneyAndUpdate(newValue)
-	return newValue
+	// currentMoney := player.getMoneySync()
+	// newValue := currentMoney / 2
+	// html := spanStreak(player.killstreak.Load())
+	// updateOne(html, player)
+	lost := player.halveMoney()
+	updateOne(spanMoney(player.money.Load()), player)
+	// player.setMoneyAndUpdate(newValue)
+	return int(lost)
 }
 
 func respawnOnStage(player *Player, stage *Stage) {
@@ -371,25 +372,25 @@ func (player *Player) cycleHats() {
 // Observers
 
 // Does not handle death
-func (player *Player) setHealth(n int) {
-	player.healthLock.Lock()
-	defer player.healthLock.Unlock()
-	player.health = n
+func (player *Player) resetHealth() {
+	// player.healthLock.Lock()
+	// defer player.healthLock.Unlock()
+	player.health.Store(150)
 }
 
-func (player *Player) getHealthSync() int {
-	player.healthLock.Lock()
-	defer player.healthLock.Unlock()
-	return player.health
-}
+// func (player *Player) getHealthSync() int {
+// 	player.healthLock.Lock()
+// 	defer player.healthLock.Unlock()
+// 	return player.health
+// }
 
 // Icon Observer, note that health can not be locked
 func (player *Player) setIcon() string {
 	player.viewLock.Lock()
 	defer player.viewLock.Unlock()
-	player.healthLock.Lock()
-	defer player.healthLock.Unlock()
-	if player.health <= 50 {
+	// player.healthLock.Lock()
+	// defer player.healthLock.Unlock()
+	if player.health.Load() <= 50 {
 		player.icon = "dim-" + player.team + " " + player.hatList.currentTrim() + " r0"
 		return player.icon
 	} else {
@@ -404,12 +405,26 @@ func (player *Player) getTeamNameSync() string {
 	return player.team
 }
 
-func (player *Player) setMoney(n int) {
-	player.moneyLock.Lock()
-	defer player.moneyLock.Unlock()
-	player.money = n
+/*
+	func (player *Player) setMoney(n int) {
+		player.moneyLock.Lock()
+		defer player.moneyLock.Unlock()
+		player.money = n
+	}
+*/
+func (player *Player) halveMoney() int64 {
+	// Currently lost and remaining money are equal but may want to split into two returns
+	// e.g. for factor other than 1/2
+	for {
+		old := player.money.Load()
+		new := old / 2
+		if player.money.CompareAndSwap(old, new) {
+			return new
+		}
+	}
 }
 
+/*
 func (player *Player) addMoney(n int) int {
 	player.moneyLock.Lock()
 	defer player.moneyLock.Unlock()
@@ -417,13 +432,15 @@ func (player *Player) addMoney(n int) int {
 	return player.money
 }
 
+
 func (player *Player) setMoneyAndUpdate(n int) {
 	player.setMoney(n)
 	updateOne(spanMoney(n), player)
 }
+*/
 
 func (player *Player) addMoneyAndUpdate(n int) {
-	totalMoney := player.addMoney(n)
+	totalMoney := player.money.Add(int64(n))
 	if totalMoney > 2*1000 {
 		player.addHatByName("made-of-money")
 	}
@@ -433,11 +450,13 @@ func (player *Player) addMoneyAndUpdate(n int) {
 	updateOne(spanMoney(totalMoney), player)
 }
 
+/*
 func (player *Player) getMoneySync() int {
 	player.moneyLock.Lock()
 	defer player.moneyLock.Unlock()
 	return player.money
 }
+*/
 
 func (player *Player) zeroKillStreak() {
 	player.killstreak.Store(0)
