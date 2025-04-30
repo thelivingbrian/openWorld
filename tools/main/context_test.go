@@ -9,11 +9,11 @@ import (
 
 func TestCompileSnap(t *testing.T) {
 	c := populateFromJson()
-	col := c.Collections["bloop"] // change to snaps
+	col := c.Collections["snaps"] // change to snaps
 
 	t.Run("Test make empty grid for TestGridActions", func(t *testing.T) {
-		space := col.Spaces["rooms"]
-		desc := getAreaByName(space.Areas, "sandy")
+		space := col.Spaces["toroid"]
+		desc := getAreaByName(space.Areas, "toroid:0-0")
 		mat, err := col.compileMaterialsFromBlueprint(desc.Blueprint)
 		if err != nil {
 			panic("error with compile for test")
@@ -26,7 +26,7 @@ func TestCompileSnap(t *testing.T) {
 const slotWidth = 15 // fixed width for every cell
 
 // -----------------------------------------------------------------------------
-// Public API
+// Serialize for Snapshots
 // -----------------------------------------------------------------------------
 
 func FormatGrid(grid [][]Material) string {
