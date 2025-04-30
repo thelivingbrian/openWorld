@@ -134,7 +134,7 @@ func generateDeadliestList(hub *Hub) HighScoreList {
 	hub.deadliest.Lock()
 	defer hub.deadliest.Unlock()
 	if isOverNSecondsAgo(hub.deadliest.lastChecked, HIGHSCORE_CHECK_INTERVAL_IN_SECONDS) {
-		records, _ := hub.db.getTopNPlayersByField("killCount", 10)
+		records, _ := hub.db.getTopNPlayersByField("stats.killCount", 10)
 		entries := make([]HighScoreEntry, 0)
 		for _, record := range records {
 			entries = append(entries, HighScoreEntry{
@@ -161,7 +161,7 @@ func generateMVPList(hub *Hub) HighScoreList {
 	hub.mvp.Lock()
 	defer hub.mvp.Unlock()
 	if isOverNSecondsAgo(hub.mvp.lastChecked, HIGHSCORE_CHECK_INTERVAL_IN_SECONDS) {
-		records, _ := hub.db.getTopNPlayersByField("goalsScored", 10)
+		records, _ := hub.db.getTopNPlayersByField("stats.goalsScored", 10)
 		entries := make([]HighScoreEntry, 0)
 		for _, record := range records {
 			entries = append(entries, HighScoreEntry{
