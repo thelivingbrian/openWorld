@@ -204,7 +204,7 @@ func basicSpawnWithRing(p *Player) {
 	if determination2 == 0 {
 		spawnPowerup(stage)
 		npc := spawnNewNPCDoingAction(p, 95, moveAggressively)
-		npc.money.Add(int32(125))
+		npc.money.Add(int64(125))
 	}
 
 }

@@ -178,12 +178,12 @@ func collectItemNPC(tile *Tile, npc *NonPlayer) bool {
 		itemChange = true
 	}
 	if tile.money != 0 {
-		npc.money.Add(int32(tile.money))
+		npc.money.Add(int64(tile.money))
 		tile.money = 0
 		itemChange = true
 	}
 	if tile.boosts > 0 {
-		npc.boosts.Add(int32(tile.boosts))
+		npc.boosts.Add(int64(tile.boosts))
 		tile.boosts = 0
 		itemChange = true
 	}

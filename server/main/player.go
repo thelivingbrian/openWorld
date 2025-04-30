@@ -463,7 +463,7 @@ func (player *Player) zeroKillStreak() {
 	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: 0, team: player.getTeamNameSync()}
 }
 
-func (player *Player) incrementKillStreak() {
+func (player *Player) incrementKillStreak() int64 {
 	// Vs - character.updateHud ?
 	defer updateStreakIfTangible(player) // initiator may not have initiatied via click -> check tangible needed
 
@@ -471,14 +471,15 @@ func (player *Player) incrementKillStreak() {
 	SetMaxAtomic64IfGreater(&player.peakKillStreak, currentKs)
 
 	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: currentKs, team: player.getTeamNameSync()}
+	return currentKs
 }
 
-func (player *Player) incrementKillCount() {
-	player.killCount.Add(1)
+func (player *Player) incrementKillCount() int64 {
+	return player.killCount.Add(1)
 }
 
-func (player *Player) incrementDeathCount() {
-	player.deathCount.Add(1)
+func (player *Player) incrementDeathCount() int64 {
+	return player.deathCount.Add(1)
 }
 
 func (player *Player) incrementGoalsScored() int64 {

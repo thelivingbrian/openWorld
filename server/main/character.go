@@ -20,8 +20,8 @@ type Character interface {
 	transferBetween(source, dest *Tile)
 	push(tile *Tile, incoming *Interactable, yOff, xOff int) bool
 	takeDamageFrom(initiator Character, dmg int)
-	incrementKillCount()
-	incrementKillStreak()
+	incrementKillCount() int64
+	incrementKillStreak() int64
 	updateRecord()
 }
 
@@ -308,11 +308,11 @@ type NonPlayer struct {
 	world      *World
 	tile       *Tile
 	tileLock   sync.Mutex
-	health     atomic.Int32
-	money      atomic.Int32
-	boosts     atomic.Int32
-	killCount  atomic.Int32
-	killStreak atomic.Int32
+	health     atomic.Int64
+	money      atomic.Int64
+	boosts     atomic.Int64
+	killCount  atomic.Int64
+	killStreak atomic.Int64
 }
 
 func (npc *NonPlayer) getName() string {
@@ -425,8 +425,8 @@ func (npc *NonPlayer) takeDamageFrom(initiator Character, dmg int) {
 	if safe(npc.getTileSync(), npc, initiator) {
 		return
 	}
-	currentHealth := npc.health.Add(-int32(dmg))
-	previousHealth := currentHealth + int32(dmg)
+	currentHealth := npc.health.Add(-int64(dmg))
+	previousHealth := currentHealth + int64(dmg)
 	if currentHealth <= 0 && previousHealth > 0 {
 		initiator.incrementKillStreak()
 		handleNPCDeath(npc)
@@ -458,12 +458,12 @@ func removeNpcFromTile(npc *NonPlayer) {
 	npc.tile.stage.updateAll(characterBox(npc.tile))
 }
 
-func (npc *NonPlayer) incrementKillCount() {
-	npc.killCount.Add(1)
+func (npc *NonPlayer) incrementKillCount() int64 {
+	return npc.killCount.Add(1)
 }
 
-func (npc *NonPlayer) incrementKillStreak() {
-	npc.killStreak.Add(1)
+func (npc *NonPlayer) incrementKillStreak() int64 {
+	return npc.killStreak.Add(1)
 }
 
 func (npc *NonPlayer) updateRecord() {
@@ -496,8 +496,8 @@ func createNewNPC(world *World) (*NonPlayer, context.Context) {
 		icon:      "red-b thick r0",
 		iconLow:   "dark-red-b thick r0",
 	}
-	npc.health.Store(int32(100))
-	npc.money.Store(int32(20))
+	npc.health.Store(int64(100))
+	npc.money.Store(int64(20))
 	return npc, ctx
 }
 
