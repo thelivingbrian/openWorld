@@ -301,7 +301,7 @@ func examplePrototype(w http.ResponseWriter, r *http.Request) {
 func (proto *Prototype) applyTransformForEditor(transformation Transformation) Material {
 	copy := *proto
 	if copy.EditorColor != "" {
-		copy.CssColor = copy.EditorColor
+		copy.Ceiling2Css = copy.EditorColor // Not perfect but better than CssColor - which breaks trsp and ground
 	}
 	return copy.applyTransform(transformation)
 }

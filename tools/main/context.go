@@ -261,7 +261,7 @@ func (c Context) compileCollection(collection *Collection) {
 	for _, space := range collection.Spaces {
 		c.generateAllPNGs(space)
 		for _, desc := range space.Areas {
-			outputTiles, err := collection.compileTileDataAndAccumulateMaterials(desc.Blueprint)
+			outputTiles, err := collection.compileMaterialsFromBlueprint(desc.Blueprint)
 			if err != nil {
 				panic(desc.Name + ": has compile error: " + err.Error())
 			}
@@ -307,7 +307,7 @@ func (c Context) copyMapPNG(space *Space, area *AreaDescription) string {
 	return id
 }
 
-func (collection *Collection) compileTileDataAndAccumulateMaterials(bp *Blueprint) ([][]Material, error) {
+func (collection *Collection) compileMaterialsFromBlueprint(bp *Blueprint) ([][]Material, error) {
 	outputTiles := make([][]Material, len(bp.Tiles))
 	for y := range bp.Tiles {
 		outputTiles[y] = make([]Material, len(bp.Tiles[y]))
