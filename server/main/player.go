@@ -94,7 +94,7 @@ func handleDeath(player *Player) {
 	removeFromTileAndStage(player) // After this should be impossible for any transfer to succeed
 	player.incrementDeathCount()
 	player.setHealth(150)
-	player.setKillStreak(0)
+	player.zeroKillStreak()
 	player.actions = createDefaultActions() // problematic, -> setDefaultActions(player)
 
 	stage := player.fetchStageSync(infirmaryStagenameForPlayer(player))
@@ -439,86 +439,32 @@ func (player *Player) getMoneySync() int {
 	return player.money
 }
 
-func (player *Player) setKillStreak(n int) {
-	// player.streakLock.Lock()
-	// defer player.streakLock.Unlock()
-	// player.killstreak = n
-	player.killstreak.Store(int64(n))
-	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: int64(n), team: player.getTeamNameSync()}
-	//return player.killstreak
+func (player *Player) zeroKillStreak() {
+	player.killstreak.Store(0)
+	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: 0, team: player.getTeamNameSync()}
 }
 
 func (player *Player) incrementKillStreak() {
-	// Vs just having character.updateHud ?
+	// Vs - character.updateHud ?
 	defer updateStreakIfTangible(player) // initiator may not have initiatied via click -> check tangible needed
-	// player.streakLock.Lock()
-	// defer player.streakLock.Unlock()
-	// player.killstreak++
-	// currentKs := player.killstreak
-	// if currentKs > player.peakKillStreak {
-	// 	player.peakKillStreak = currentKs
-	// }
+
 	currentKs := player.killstreak.Add(1)
 	SetMaxAtomic64IfGreater(&player.peakKillStreak, currentKs)
 
 	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: currentKs, team: player.getTeamNameSync()}
 }
 
-func getPeakKillSteakSync(player *Player) int64 {
-	// player.streakLock.Lock()
-	// defer player.streakLock.Unlock()
-	return player.peakKillStreak.Load()
-}
-
-/*
-func (player *Player) getKillCountSync() int {
-	// player.killCountLock.Lock()
-	// defer player.killCountLock.Unlock()
-	// return player.killCount
-	return int(player.killCount.Load())
-}
-*/
-
-// killCount Observer - no direct set
 func (player *Player) incrementKillCount() {
-	// player.killCountLock.Lock()
-	// defer player.killCountLock.Unlock()
-	// player.killCount++
 	player.killCount.Add(1)
 }
 
-/*
-func (player *Player) getDeathCountSync() int64 {
-	// player.deathCountLock.Lock()
-	// defer player.deathCountLock.Unlock()
-	return player.deathCount.Load()
-}
-
-*/
-// deathCount Observer - no direct set
 func (player *Player) incrementDeathCount() {
-	// player.deathCountLock.Lock()
-	// defer player.deathCountLock.Unlock()
-	// player.deathCount++
 	player.deathCount.Add(1)
 }
 
-// goals observer no direct set
 func (player *Player) incrementGoalsScored() int64 {
-	// player.goalsScoredLock.Lock()
-	// defer player.goalsScoredLock.Unlock()
-	// player.goalsScored++
-	// return player.goalsScored
 	return player.goalsScored.Add(1)
 }
-
-/*
-func (player *Player) getGoalsScored() int64 {
-	// player.goalsScoredLock.Lock()
-	// defer player.goalsScoredLock.Unlock()
-	return player.goalsScored.Load()
-}
-*/
 
 // generally will trigger a logout
 func (player *Player) closeConnectionSync() error {
