@@ -119,6 +119,9 @@ func TestDamageABunchOfPlayers(t *testing.T) {
 	if p.getKillStreakSync() != 500 {
 		t.Error("Killstreak should be exactly 500")
 	}
+	if p.peakKillStreak.Load() != 500 {
+		t.Error("Peak Killstreak should be exactly 500")
+	}
 	if p.world.leaderBoard.mostDangerous.Peek().id != p.id {
 		t.Error("Player should be most dangerous")
 	}

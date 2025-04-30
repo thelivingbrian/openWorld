@@ -206,11 +206,15 @@ func createInfoHtmlForPlayer(p *Player) template.HTML {
 	htmlContent := fmt.Sprintf(
 		`<div class="player-stats">
 			<p><strong>  Total  </strong></p>
-			<p>Goals: %d</p>
-			<p>Kills: %d</p>
-			<p>Deaths: %d</p>
+			<p>&#9656;Goals: %d</p>
+			<p>&#9656;Kills: %d</p>
+			<p>&#9656;Deaths: %d</p>
+			<br />
+			<p><strong>  Best  </strong></p>
+			<p>&#9656;Streak: %d</p>
+			<br />
 		</div>`,
-		p.getGoalsScored(), p.getKillCountSync(), p.getDeathCountSync(),
+		p.getGoalsScored(), p.getKillCountSync(), p.getDeathCountSync(), getPeakKillSteakSync(p),
 	)
 
 	return template.HTML(htmlContent)

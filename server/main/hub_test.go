@@ -55,8 +55,8 @@ func TestGenerateDeadliestList(t *testing.T) {
 		topNCalls: make(map[string]int),
 		players: map[string][]PlayerRecord{
 			"killCount": {
-				{Username: "Charlie", KillCount: 10, DeathCount: 2},
-				{Username: "Dana", KillCount: 5, DeathCount: 1},
+				{Username: "Charlie", Stats: PlayerStatsRecord{KillCount: 10, DeathCount: 2}},
+				{Username: "Dana", Stats: PlayerStatsRecord{KillCount: 5, DeathCount: 1}},
 			},
 		},
 	}
@@ -77,9 +77,9 @@ func TestGenerateMVPList(t *testing.T) {
 		topNCalls: make(map[string]int),
 		players: map[string][]PlayerRecord{
 			"goalsScored": {
-				{Username: "Emma", GoalsScored: 11},
-				{Username: "Fred", GoalsScored: 7},
-				{Username: "Gabby", GoalsScored: 2},
+				{Username: "Emma", Stats: PlayerStatsRecord{GoalsScored: 11}},
+				{Username: "Fred", Stats: PlayerStatsRecord{GoalsScored: 7}},
+				{Username: "Gabby", Stats: PlayerStatsRecord{GoalsScored: 2}},
 			},
 		},
 	}

@@ -28,27 +28,30 @@ type Player struct {
 	connLock                 sync.RWMutex
 	tangible                 bool
 	tangibilityLock          sync.Mutex
-	health                   int
-	healthLock               sync.Mutex
-	money                    int
-	moneyLock                sync.Mutex
-	killCount                int
-	killCountLock            sync.Mutex
-	deathCount               int
-	deathCountLock           sync.Mutex
-	goalsScored              int
-	goalsScoredLock          sync.Mutex
-	killstreak               int
-	peakKillStreak           int
-	streakLock               sync.Mutex
-	actions                  *Actions
-	menues                   map[string]Menu
-	playerStages             map[string]*Stage
-	pStageMutex              sync.Mutex
-	hatList                  SyncHatList
+
+	health     int
+	healthLock sync.Mutex
+	money      int
+	moneyLock  sync.Mutex
+	killstreak atomic.Int64
+	//streakLock sync.Mutex
+	*PlayerStats
+
+	actions      *Actions
+	menues       map[string]Menu
+	playerStages map[string]*Stage
+	pStageMutex  sync.Mutex
+	hatList      SyncHatList
 }
 
 type PlayerStats struct {
+	killCount atomic.Int64
+	//killCountLock   sync.Mutex
+	deathCount atomic.Int64
+	//deathCountLock  sync.Mutex
+	goalsScored atomic.Int64
+	//goalsScoredLock sync.Mutex
+	peakKillStreak atomic.Int64
 }
 
 ////////////////////////////////////////////////////////////
@@ -437,76 +440,85 @@ func (player *Player) getMoneySync() int {
 }
 
 func (player *Player) getKillStreakSync() int {
-	player.streakLock.Lock()
-	defer player.streakLock.Unlock()
-	return player.killstreak
+	// player.streakLock.Lock()
+	// defer player.streakLock.Unlock()
+	// return player.killstreak
+	return int(player.killstreak.Load())
 }
 
-func (player *Player) setKillStreak(n int) int {
-	player.streakLock.Lock()
-	defer player.streakLock.Unlock()
-	player.killstreak = n
-	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: n, team: player.getTeamNameSync()}
-	return player.killstreak
+func (player *Player) setKillStreak(n int) {
+	// player.streakLock.Lock()
+	// defer player.streakLock.Unlock()
+	// player.killstreak = n
+	player.killstreak.Store(int64(n))
+	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: int64(n), team: player.getTeamNameSync()}
+	//return player.killstreak
 }
 
 func (player *Player) incrementKillStreak() {
 	// Vs just having character.updateHud ?
 	defer updateStreakIfTangible(player) // initiator may not have initiatied via click -> check tangible needed
-	player.streakLock.Lock()
-	defer player.streakLock.Unlock()
-	player.killstreak++
-	currentKs := player.killstreak
-	if currentKs > player.peakKillStreak {
-		player.peakKillStreak = currentKs
-	}
+	// player.streakLock.Lock()
+	// defer player.streakLock.Unlock()
+	// player.killstreak++
+	// currentKs := player.killstreak
+	// if currentKs > player.peakKillStreak {
+	// 	player.peakKillStreak = currentKs
+	// }
+	currentKs := player.killstreak.Add(1)
+	SetMaxAtomic64IfGreater(&player.peakKillStreak, currentKs)
+
 	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: currentKs, team: player.getTeamNameSync()}
 }
 
-func getPeakKillSteakSync(player *Player) int {
-	player.streakLock.Lock()
-	defer player.streakLock.Unlock()
-	return player.peakKillStreak
+func getPeakKillSteakSync(player *Player) int64 {
+	// player.streakLock.Lock()
+	// defer player.streakLock.Unlock()
+	return player.peakKillStreak.Load()
 }
 
 func (player *Player) getKillCountSync() int {
-	player.killCountLock.Lock()
-	defer player.killCountLock.Unlock()
-	return player.killCount
+	// player.killCountLock.Lock()
+	// defer player.killCountLock.Unlock()
+	// return player.killCount
+	return int(player.killCount.Load())
 }
 
 // killCount Observer - no direct set
 func (player *Player) incrementKillCount() {
-	player.killCountLock.Lock()
-	defer player.killCountLock.Unlock()
-	player.killCount++
+	// player.killCountLock.Lock()
+	// defer player.killCountLock.Unlock()
+	// player.killCount++
+	player.killCount.Add(1)
 }
 
-func (player *Player) getDeathCountSync() int {
-	player.deathCountLock.Lock()
-	defer player.deathCountLock.Unlock()
-	return player.deathCount
+func (player *Player) getDeathCountSync() int64 {
+	// player.deathCountLock.Lock()
+	// defer player.deathCountLock.Unlock()
+	return player.deathCount.Load()
 }
 
 // deathCount Observer - no direct set
 func (player *Player) incrementDeathCount() {
-	player.deathCountLock.Lock()
-	defer player.deathCountLock.Unlock()
-	player.deathCount++
+	// player.deathCountLock.Lock()
+	// defer player.deathCountLock.Unlock()
+	// player.deathCount++
+	player.deathCount.Add(1)
 }
 
 // goals observer no direct set
-func (player *Player) incrementGoalsScored() int {
-	player.goalsScoredLock.Lock()
-	defer player.goalsScoredLock.Unlock()
-	player.goalsScored++
-	return player.goalsScored
+func (player *Player) incrementGoalsScored() int64 {
+	// player.goalsScoredLock.Lock()
+	// defer player.goalsScoredLock.Unlock()
+	// player.goalsScored++
+	// return player.goalsScored
+	return player.goalsScored.Add(1)
 }
 
-func (player *Player) getGoalsScored() int {
-	player.goalsScoredLock.Lock()
-	defer player.goalsScoredLock.Unlock()
-	return player.goalsScored
+func (player *Player) getGoalsScored() int64 {
+	// player.goalsScoredLock.Lock()
+	// defer player.goalsScoredLock.Unlock()
+	return player.goalsScored.Load()
 }
 
 // generally will trigger a logout

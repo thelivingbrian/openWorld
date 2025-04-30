@@ -285,9 +285,9 @@ func updateStreakIfTangible(player *Player) {
 		return
 	}
 	defer player.tangibilityLock.Unlock()
-	player.streakLock.Lock()
-	defer player.streakLock.Unlock()
-	html := spanStreak(player.killstreak)
+	// player.streakLock.Lock()
+	// defer player.streakLock.Unlock()
+	html := spanStreak(player.killstreak.Load())
 	updateOne(html, player)
 }
 

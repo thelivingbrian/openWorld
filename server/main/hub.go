@@ -140,7 +140,7 @@ func generateDeadliestList(hub *Hub) HighScoreList {
 			entries = append(entries, HighScoreEntry{
 				Username:   record.Username,
 				StatNames:  []string{"Kill-Count", "K/D"},
-				StatValues: []string{strconv.Itoa(record.KillCount), DivideIntsFloatToString(record.KillCount, record.DeathCount)},
+				StatValues: []string{strconv.Itoa(int(record.Stats.KillCount)), DivideIntsFloatToString(int(record.Stats.KillCount), int(record.Stats.DeathCount))},
 			})
 		}
 		hub.deadliest.Entries = entries
@@ -167,7 +167,7 @@ func generateMVPList(hub *Hub) HighScoreList {
 			entries = append(entries, HighScoreEntry{
 				Username:   record.Username,
 				StatNames:  []string{"Total Goals"},
-				StatValues: []string{strconv.Itoa(record.GoalsScored)},
+				StatValues: []string{strconv.Itoa(int(record.Stats.GoalsScored))},
 			})
 		}
 		hub.mvp.Entries = entries

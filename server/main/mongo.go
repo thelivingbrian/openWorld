@@ -25,6 +25,7 @@ type PlayerRecord struct {
 	// Meta
 	LastLogin  time.Time `bson:"lastLogin,omitempty"`
 	LastLogout time.Time `bson:"lastLogout,omitempty"`
+	// total logins / cumulative play time
 
 	// World Location
 	StageName string `bson:"stagename"`
@@ -32,19 +33,21 @@ type PlayerRecord struct {
 	Y         int    `bson:"y"`
 
 	// Details
-	Team string `bson:"team"`
-	//Trim   string `bson:"trim,omitempty"`
-	Health int `bson:"health"`
-	Money  int `bson:"money,omitempty"`
-
-	// Stats
-	KillCount      int `bson:"killCount,omitempty"`
-	PeakKillStreak int `bson:"peakKillSteak,omitempty"`
-	DeathCount     int `bson:"deathCount,omitempty"`
-	GoalsScored    int `bson:"goalsScored,omitempty"`
+	Team   string            `bson:"team"`
+	Health int               `bson:"health"`
+	Money  int               `bson:"money"`
+	Stats  PlayerStatsRecord `bson:"stats"`
 
 	// Unlocks
 	HatList HatList `bson:"hatList,omitempty"`
+}
+
+type PlayerStatsRecord struct {
+	// Stats
+	KillCount      int64 `bson:"killCount,omitempty"`
+	PeakKillStreak int64 `bson:"peakKillSteak,omitempty"`
+	DeathCount     int64 `bson:"deathCount,omitempty"`
+	GoalsScored    int64 `bson:"goalsScored,omitempty"`
 }
 
 type EventRecord struct {
@@ -205,16 +208,26 @@ func (db *DB) addHatToPlayer(username string, newHat Hat) error {
 
 func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 	return bson.M{
-		"x":               pTile.x,
-		"y":               pTile.y,
-		"health":          p.getHealthSync(),
-		"stagename":       pTile.stage.name,
-		"money":           p.getMoneySync(),
-		"killCount":       p.getKillCountSync(),
-		"peakKillStreak":  getPeakKillSteakSync(p),
-		"deathCount":      p.getDeathCountSync(),
-		"goalsScored":     p.getGoalsScored(),
+		"x":         pTile.x,
+		"y":         pTile.y,
+		"health":    p.getHealthSync(),
+		"stagename": pTile.stage.name,
+		"money":     p.getMoneySync(),
+		"stats":     statsRecordFromPlayerStats(p.PlayerStats),
+		//"killCount":       p.getKillCountSync(),
+		//"peakKillStreak":  getPeakKillSteakSync(p),
+		//"deathCount":      p.getDeathCountSync(),
+		//"goalsScored":     p.getGoalsScored(),
 		"hatList.current": p.hatList.indexSync(),
+	}
+}
+
+func statsRecordFromPlayerStats(stats *PlayerStats) PlayerStatsRecord {
+	return PlayerStatsRecord{
+		KillCount:      stats.killCount.Load(),
+		DeathCount:     stats.deathCount.Load(),
+		GoalsScored:    stats.goalsScored.Load(),
+		PeakKillStreak: stats.peakKillStreak.Load(),
 	}
 }
 

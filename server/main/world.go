@@ -142,18 +142,18 @@ func incrementSessionLogouts(w *World) {
 }
 
 func trySetPeakPlayerCount(w *World, count int) bool {
-	return SetMaxAtomicIfGreater(&w.sessionStats.peakSessionPlayerCount, count)
+	return SetMaxAtomic64IfGreater(&w.sessionStats.peakSessionPlayerCount, int64(count))
 }
 
-func trySetPeakKillStreak(w *World, streak int) bool {
-	return SetMaxAtomicIfGreater(&w.sessionStats.peakSessionKillStreak, streak)
+func trySetPeakKillStreak(w *World, streak int64) bool {
+	return SetMaxAtomic64IfGreater(&w.sessionStats.peakSessionKillStreak, streak)
 }
 
-func SetMaxAtomicIfGreater(atom *atomic.Int64, newValue int) bool {
+func SetMaxAtomic64IfGreater(atom *atomic.Int64, newValue int64) bool {
 	// CAS loop for atomicity
 	for {
 		current := atom.Load()
-		if int(current) >= newValue {
+		if current >= newValue {
 			return false
 		}
 		if atom.CompareAndSwap(current, int64(newValue)) {
@@ -343,15 +343,25 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		team:                     record.Team,
 		health:                   record.Health,
 		money:                    record.Money,
-		killCount:                record.KillCount,
-		peakKillStreak:           record.PeakKillStreak,
-		deathCount:               record.DeathCount,
-		goalsScored:              record.GoalsScored,
-		hatList:                  SyncHatList{HatList: record.HatList},
+		PlayerStats:              playerStatsFromRecord(record),
+		// killCount:                record.KillCount,
+		// peakKillStreak:           record.PeakKillStreak,
+		// deathCount:               record.DeathCount,
+		// goalsScored:              record.GoalsScored,
+		hatList: SyncHatList{HatList: record.HatList},
 	}
 
 	newPlayer.setIcon()
 	return newPlayer
+}
+
+func playerStatsFromRecord(record PlayerRecord) *PlayerStats {
+	out := PlayerStats{}
+	out.deathCount.Store(record.Stats.DeathCount)
+	out.killCount.Store(record.Stats.KillCount)
+	out.goalsScored.Store(record.Stats.GoalsScored)
+	out.peakKillStreak.Store(record.Stats.PeakKillStreak)
+	return &out
 }
 
 func (world *World) isLoggedInAlready(username string) bool {
@@ -543,7 +553,7 @@ type MaxStreakHeap struct {
 
 type PlayerStreakRecord struct {
 	id         string
-	killstreak int
+	killstreak int64
 	username   string
 	team       string
 }
