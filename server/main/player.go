@@ -28,19 +28,15 @@ type Player struct {
 	connLock                 sync.RWMutex
 	tangible                 bool
 	tangibilityLock          sync.Mutex
-
-	health atomic.Int64
-	//healthLock sync.Mutex
-	money atomic.Int64
-	//moneyLock  sync.Mutex
-	killstreak atomic.Int64
+	actions                  *Actions
+	menues                   map[string]Menu
+	playerStages             map[string]*Stage
+	pStageMutex              sync.Mutex
+	hatList                  SyncHatList
+	health                   atomic.Int64
+	money                    atomic.Int64
+	killstreak               atomic.Int64
 	*PlayerStats
-
-	actions      *Actions
-	menues       map[string]Menu
-	playerStages map[string]*Stage
-	pStageMutex  sync.Mutex
-	hatList      SyncHatList
 }
 
 type PlayerStats struct {
@@ -89,7 +85,6 @@ func handleDeath(player *Player) {
 	popAndDropMoney(player)
 	removeFromTileAndStage(player) // After this should be impossible for any transfer to succeed
 	player.incrementDeathCount()
-	//player.setHealth(150)
 	player.resetHealth()
 	player.zeroKillStreak()
 	player.actions = createDefaultActions() // problematic, -> setDefaultActions(player)
@@ -111,14 +106,8 @@ func popAndDropMoney(player *Player) {
 }
 
 func halveMoneyOf(player *Player) int {
-	// race risk
-	// currentMoney := player.getMoneySync()
-	// newValue := currentMoney / 2
-	// html := spanStreak(player.killstreak.Load())
-	// updateOne(html, player)
 	lost := player.halveMoney()
 	updateOne(spanMoney(player.money.Load()), player)
-	// player.setMoneyAndUpdate(newValue)
 	return int(lost)
 }
 
@@ -371,25 +360,14 @@ func (player *Player) cycleHats() {
 /////////////////////////////////////////////////////////////
 // Observers
 
-// Does not handle death
 func (player *Player) resetHealth() {
-	// player.healthLock.Lock()
-	// defer player.healthLock.Unlock()
 	player.health.Store(150)
 }
-
-// func (player *Player) getHealthSync() int {
-// 	player.healthLock.Lock()
-// 	defer player.healthLock.Unlock()
-// 	return player.health
-// }
 
 // Icon Observer, note that health can not be locked
 func (player *Player) setIcon() string {
 	player.viewLock.Lock()
 	defer player.viewLock.Unlock()
-	// player.healthLock.Lock()
-	// defer player.healthLock.Unlock()
 	if player.health.Load() <= 50 {
 		player.icon = "dim-" + player.team + " " + player.hatList.currentTrim() + " r0"
 		return player.icon
@@ -405,13 +383,6 @@ func (player *Player) getTeamNameSync() string {
 	return player.team
 }
 
-/*
-	func (player *Player) setMoney(n int) {
-		player.moneyLock.Lock()
-		defer player.moneyLock.Unlock()
-		player.money = n
-	}
-*/
 func (player *Player) halveMoney() int64 {
 	// Currently lost and remaining money are equal but may want to split into two returns
 	// e.g. for factor other than 1/2
@@ -424,21 +395,6 @@ func (player *Player) halveMoney() int64 {
 	}
 }
 
-/*
-func (player *Player) addMoney(n int) int {
-	player.moneyLock.Lock()
-	defer player.moneyLock.Unlock()
-	player.money += n
-	return player.money
-}
-
-
-func (player *Player) setMoneyAndUpdate(n int) {
-	player.setMoney(n)
-	updateOne(spanMoney(n), player)
-}
-*/
-
 func (player *Player) addMoneyAndUpdate(n int) {
 	totalMoney := player.money.Add(int64(n))
 	if totalMoney > 2*1000 {
@@ -449,14 +405,6 @@ func (player *Player) addMoneyAndUpdate(n int) {
 	}
 	updateOne(spanMoney(totalMoney), player)
 }
-
-/*
-func (player *Player) getMoneySync() int {
-	player.moneyLock.Lock()
-	defer player.moneyLock.Unlock()
-	return player.money
-}
-*/
 
 func (player *Player) zeroKillStreak() {
 	player.killstreak.Store(0)
