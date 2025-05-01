@@ -261,10 +261,6 @@ func (c Context) compileCollection(collection *Collection) {
 	for _, space := range collection.Spaces {
 		c.generateAllPNGs(space)
 		for _, desc := range space.Areas {
-			outputTiles, err := collection.compileMaterialsFromBlueprint(desc.Blueprint)
-			if err != nil {
-				panic(desc.Name + ": has compile error: " + err.Error())
-			}
 
 			mapid := ""
 			if space.isSimplyTiled() {
@@ -272,26 +268,37 @@ func (c Context) compileCollection(collection *Collection) {
 			}
 			// Add maps for all individual areas as well
 
-			areas = append(areas, AreaOutput{
-				Name:           desc.Name,
-				Safe:           desc.Safe,
-				Tiles:          outputTiles,
-				Interactables:  collection.generateInteractables(desc.Blueprint.Tiles),
-				Transports:     desc.Transports,
-				North:          desc.North,
-				South:          desc.South,
-				East:           desc.East,
-				West:           desc.West,
-				MapId:          mapid,
-				LoadStrategy:   desc.LoadStrategy,
-				SpawnStrategy:  desc.SpawnStrategy,
-				Weather:        desc.Weather,
-				BroadcastGroup: desc.BroadcastGroup,
-			})
+			areas = append(areas, collection.areaOutputFromDescription(desc, mapid))
 		}
 	}
 	fmt.Printf("Writing (%d) Areas", len(areas))
 	writeJsonFile(filepath.Join(COMPILE_basePath, AREA_FILENAME), areas)
+}
+
+func (col Collection) areaOutputFromDescription(desc AreaDescription, mapid string) AreaOutput {
+	outputTiles, err := col.compileMaterialsFromBlueprint(desc.Blueprint)
+	if err != nil {
+		panic(desc.Name + ": has compile error: " + err.Error())
+	}
+
+	outputInteractables := col.generateInteractables(desc.Blueprint.Tiles)
+
+	return AreaOutput{
+		Name:           desc.Name,
+		Safe:           desc.Safe,
+		Tiles:          outputTiles,
+		Interactables:  outputInteractables,
+		Transports:     desc.Transports,
+		North:          desc.North,
+		South:          desc.South,
+		East:           desc.East,
+		West:           desc.West,
+		MapId:          mapid,
+		LoadStrategy:   desc.LoadStrategy,
+		SpawnStrategy:  desc.SpawnStrategy,
+		Weather:        desc.Weather,
+		BroadcastGroup: desc.BroadcastGroup,
+	}
 }
 
 func (c Context) copyMapPNG(space *Space, area *AreaDescription) string {

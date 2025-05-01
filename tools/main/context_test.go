@@ -14,11 +14,11 @@ func TestCompileSnap(t *testing.T) {
 	t.Run("Test make empty grid for TestGridActions", func(t *testing.T) {
 		space := col.Spaces["toroid"]
 		desc := getAreaByName(space.Areas, "toroid:0-0")
-		mat, err := col.compileMaterialsFromBlueprint(desc.Blueprint)
-		if err != nil {
-			panic("error with compile for test")
-		}
-		fmt.Println(FormatGrid(mat))
+		// mat, err := col.compileMaterialsFromBlueprint(desc.Blueprint)
+		// if err != nil {
+		// 	panic("error with compile for test")
+		// }
+		fmt.Println(FormatAreaOutput(col.areaOutputFromDescription(*desc, "fakeid")))
 	})
 
 }
@@ -29,7 +29,19 @@ const slotWidth = 15 // fixed width for every cell
 // Serialize for Snapshots
 // -----------------------------------------------------------------------------
 
-func FormatGrid(grid [][]Material) string {
+func FormatAreaOutput(area AreaOutput) string {
+	header := fmt.Sprintf(`
+Name: %s
+--------------
+Safe: %t	North: %s	South: %s	East: %s	West: %s
+MapId: %s	LoadStrategy: %s	Spawnstrategy: %s	BroadcastGroup: %s	Weather: %s
+--------------`,
+		area.Name, area.Safe, area.North, area.South, area.East, area.West,
+		area.MapId, area.LoadStrategy, area.SpawnStrategy, area.BroadcastGroup, area.Weather)
+	return header + "\n" + FormatMaterialGrid(area.Tiles)
+}
+
+func FormatMaterialGrid(grid [][]Material) string {
 	var b strings.Builder
 
 	for r, row := range grid {
@@ -83,14 +95,14 @@ func chooseCss(m Material) string {
 		return m.Ceiling2Css
 	case m.Ceiling1Css != "":
 		return m.Ceiling1Css
-	case m.Ground2Css != "":
-		return m.Ground2Css
-	case m.Ground1Css != "":
-		return m.Ground1Css
 	case m.Floor2Css != "":
 		return m.Floor2Css
-	default:
+	case m.Floor1Css != "":
 		return m.Floor1Css
+	case m.Ground2Css != "":
+		return m.Ground2Css
+	default:
+		return m.Ground1Css
 	}
 }
 
