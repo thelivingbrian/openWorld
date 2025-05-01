@@ -13,9 +13,17 @@ func TestCompileSnap(t *testing.T) {
 
 	t.Run("Test make empty grid for TestGridActions", func(t *testing.T) {
 		space := col.Spaces["toroid"]
-		desc := getAreaByName(space.Areas, "toroid:0-1")
+		desc := getAreaByName(space.Areas, "toroid:0-0")
+		desc1 := getAreaByName(space.Areas, "toroid:0-1")
+		desc2 := getAreaByName(space.Areas, "toroid:1-0")
+		desc3 := getAreaByName(space.Areas, "toroid:1-1")
+		desc4 := getAreaByName(space.Areas, "random-room")
 
-		fmt.Println(FormatAreaOutput(col.areaOutputFromDescription(*desc, "fakeid")))
+		fmt.Println(serializeForSnapshot(desc, col))
+		fmt.Println(serializeForSnapshot(desc1, col))
+		fmt.Println(serializeForSnapshot(desc2, col))
+		fmt.Println(serializeForSnapshot(desc3, col))
+		fmt.Println(serializeForSnapshot(desc4, col))
 	})
 
 }
@@ -23,6 +31,13 @@ func TestCompileSnap(t *testing.T) {
 // -----------------------------------------------------------------------------
 // Serialize for Snapshots
 // -----------------------------------------------------------------------------
+
+func serializeForSnapshot(area *AreaDescription, collection *Collection) string {
+	if area == nil {
+		return "NIL AREA DESCRIPTION"
+	}
+	return FormatAreaOutput(collection.areaOutputFromDescription(*area, "test-id"))
+}
 
 const areaOutputTemplate = `
 Name: %s
