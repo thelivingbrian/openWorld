@@ -22,17 +22,11 @@ func TestCompileSnap(t *testing.T) {
 		desc3 := getAreaByName(space.Areas, "toroid:1-1")  // Transports (1)
 		desc4 := getAreaByName(space.Areas, "random-room") // 8x8 - empty
 
-		s0 := serializeForSnapshot(desc0, col)
-		s1 := serializeForSnapshot(desc1, col)
-		s2 := serializeForSnapshot(desc2, col)
-		s3 := serializeForSnapshot(desc3, col)
-		s4 := serializeForSnapshot(desc4, col)
-
-		snaps.MatchSnapshot(t, s0)
-		snaps.MatchSnapshot(t, s1)
-		snaps.MatchSnapshot(t, s2)
-		snaps.MatchSnapshot(t, s3)
-		snaps.MatchSnapshot(t, s4)
+		snaps.MatchSnapshot(t, serializeForSnapshot(desc0, col))
+		snaps.MatchSnapshot(t, serializeForSnapshot(desc1, col))
+		snaps.MatchSnapshot(t, serializeForSnapshot(desc2, col))
+		snaps.MatchSnapshot(t, serializeForSnapshot(desc3, col))
+		snaps.MatchSnapshot(t, serializeForSnapshot(desc4, col))
 	})
 
 }
