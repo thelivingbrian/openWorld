@@ -17,7 +17,7 @@ func TestGridActions(t *testing.T) {
 	})
 
 	t.Run("Test 'between' by creating a boundary.", func(t *testing.T) {
-		click1 := makeClick(1, 6, "between", "6").withSelected(1, 1)
+		click1 := makeClick(1, 1, "between", "6").withSelected(1, 6)
 		click2 := makeClick(5, 6, "between", "6").withSelected(1, 6)
 		click3 := makeClick(5, 1, "between", "6").withSelected(5, 6)
 		click4 := makeClick(1, 1, "between", "6").withSelected(5, 1)

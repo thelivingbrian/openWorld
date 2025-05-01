@@ -12,10 +12,9 @@ import (
 func TestCompileSnap(t *testing.T) {
 	c := populateFromJson()
 	col := c.Collections["snaps"]
+	space := col.Spaces["toroid"]
 
 	t.Run("Take baseline snapshots", func(t *testing.T) {
-		space := col.Spaces["toroid"]
-
 		desc0 := getAreaByName(space.Areas, "toroid:0-0")  // Ground + Protos
 		desc1 := getAreaByName(space.Areas, "toroid:0-1")  // Interacables (2)
 		desc2 := getAreaByName(space.Areas, "toroid:1-0")  // Uses BP for Fragment + Proto
@@ -27,6 +26,53 @@ func TestCompileSnap(t *testing.T) {
 		snaps.MatchSnapshot(t, serializeForSnapshot(desc2, col))
 		snaps.MatchSnapshot(t, serializeForSnapshot(desc3, col))
 		snaps.MatchSnapshot(t, serializeForSnapshot(desc4, col))
+	})
+
+	t.Run("Snapshot after every grid action", func(t *testing.T) {
+		area := getAreaByName(space.Areas, "random-room") // 8x8 - empty
+
+		fillWithSand := makeClick(0, 0, "fill", "4")
+		walledSection := makeClick(6, 1, "between", "6").withSelected(1, 7)
+		sandWallGrass := makeClick(2, 2, "between", "2").withSelected(5, 7)
+
+		innerwall0 := makeClick(4, 6, "between", "3").withSelected(1, 6)
+		innerwall1 := makeClick(4, 6, "between", "3").withSelected(4, 3)
+		innerwall2 := makeClick(2, 4, "between", "3").withSelected(4, 4)
+
+		empty := makeClick(2, 7, "fill", "")
+
+		// Toggle Ground pattern
+		toggleFill := makeClick(6, 6, "toggle-fill", "")
+		toggleBetween := makeClick(2, 3, "toggle-between", "").withSelected(1, 1)
+		toggle := makeClick(5, 6, "toggle", "")
+
+		// place on blueprint
+		placeFrag := makeClick(6, 0, "place", "24106447-8d37-4b9d-bdf3-2df0104b4bc4")
+		placeFrag2 := makeClick(6, 2, "place-blueprint", "24106447-8d37-4b9d-bdf3-2df0104b4bc4")
+		placeProto := makeClick(5, 2, "place-blueprint", "4b-07")
+
+		// rotate (not through bp) delete interactable
+		rotateProto := makeClick(5, 2, "rotate", "")
+		deleteInteractable := makeClick(6, 3, "interactable-delete", "")
+
+		col.gridClickAction(fillWithSand, area.Blueprint)
+		col.gridClickAction(walledSection, area.Blueprint)
+		col.gridClickAction(sandWallGrass, area.Blueprint)
+		col.gridClickAction(innerwall0, area.Blueprint)
+		col.gridClickAction(innerwall1, area.Blueprint)
+		col.gridClickAction(innerwall2, area.Blueprint)
+		col.gridClickAction(empty, area.Blueprint)
+		col.gridClickAction(toggleFill, area.Blueprint)
+		col.gridClickAction(toggleBetween, area.Blueprint)
+		col.gridClickAction(toggle, area.Blueprint)
+		col.gridClickAction(placeFrag, area.Blueprint)
+		col.gridClickAction(placeFrag2, area.Blueprint)
+		col.gridClickAction(placeProto, area.Blueprint)
+		col.gridClickAction(rotateProto, area.Blueprint)
+		col.gridClickAction(deleteInteractable, area.Blueprint)
+
+		snaps.MatchSnapshot(t, serializeForSnapshot(area, col))
+
 	})
 
 }
