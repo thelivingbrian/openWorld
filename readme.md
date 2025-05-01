@@ -2,7 +2,7 @@
 
 A webserver (./server) and asset manager (./tools) - used to build/deploy/host 2D web based multiplayer worlds. 
 
-Players view the world as rendered HTML/css after connecting over HTTP/WebSocket - Modest server Hardware should support hundred of players.
+Players view the world as rendered HTML/css after connecting over HTTP/WebSocket - Modest server hardware should support hundreds of players.
 
 Check out: https://bloopworld.co - For live demo
 
