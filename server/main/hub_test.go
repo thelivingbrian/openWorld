@@ -54,7 +54,7 @@ func TestGenerateDeadliestList(t *testing.T) {
 	mock := &MockRankProvider{
 		topNCalls: make(map[string]int),
 		players: map[string][]PlayerRecord{
-			"killCount": {
+			"stats.killCount": {
 				{Username: "Charlie", Stats: PlayerStatsRecord{KillCount: 10, DeathCount: 2}},
 				{Username: "Dana", Stats: PlayerStatsRecord{KillCount: 5, DeathCount: 1}},
 			},
@@ -76,7 +76,7 @@ func TestGenerateMVPList(t *testing.T) {
 	mock := &MockRankProvider{
 		topNCalls: make(map[string]int),
 		players: map[string][]PlayerRecord{
-			"goalsScored": {
+			"stats.goalsScored": {
 				{Username: "Emma", Stats: PlayerStatsRecord{GoalsScored: 11}},
 				{Username: "Fred", Stats: PlayerStatsRecord{GoalsScored: 7}},
 				{Username: "Gabby", Stats: PlayerStatsRecord{GoalsScored: 2}},
