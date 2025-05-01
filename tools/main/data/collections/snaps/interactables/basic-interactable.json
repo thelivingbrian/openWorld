@@ -1,0 +1,1 @@
+[{"id":"0b728088-f72c-440b-8b39-140dfbc7f98e","name":"PWDR","setName":"basic-interactable","cssClass":"blue r1-tr r0-bl","pushable":true,"walkable":true,"fragile":true,"reactions":"foo"},{"id":"522f33ef-3e5c-456e-b012-5a797b9e4a18","name":"push","setName":"basic-interactable","cssClass":"pink-b r1 thick","pushable":true,"walkable":false,"fragile":false,"reactions":""}]
