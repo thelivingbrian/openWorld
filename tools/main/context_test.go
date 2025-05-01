@@ -14,10 +14,7 @@ func TestCompileSnap(t *testing.T) {
 	t.Run("Test make empty grid for TestGridActions", func(t *testing.T) {
 		space := col.Spaces["toroid"]
 		desc := getAreaByName(space.Areas, "toroid:0-1")
-		// mat, err := col.compileMaterialsFromBlueprint(desc.Blueprint)
-		// if err != nil {
-		// 	panic("error with compile for test")
-		// }
+
 		fmt.Println(FormatAreaOutput(col.areaOutputFromDescription(*desc, "fakeid")))
 	})
 
@@ -27,15 +24,17 @@ func TestCompileSnap(t *testing.T) {
 // Serialize for Snapshots
 // -----------------------------------------------------------------------------
 
-func FormatAreaOutput(area AreaOutput) string {
-	header := fmt.Sprintf(`
+const areaOutputTemplate = `
 Name: %s
 --------------
 Safe: %t	North: %s	South: %s	East: %s	West: %s
 MapId: %s	LoadStrategy: %s	Spawnstrategy: %s	BroadcastGroup: %s	Weather: %s
 --------------
 # of Transports: %d
---------------`,
+--------------`
+
+func FormatAreaOutput(area AreaOutput) string {
+	header := fmt.Sprintf(areaOutputTemplate,
 		area.Name, area.Safe, area.North, area.South, area.East, area.West,
 		area.MapId, area.LoadStrategy, area.SpawnStrategy, area.BroadcastGroup, area.Weather,
 		len(area.Transports))
