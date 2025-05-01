@@ -228,7 +228,7 @@ Name: toroid:1-1
 Safe: false    North: toroid:0-1 South: toroid:0-1 East: toroid:1-0 West: toroid:1-0
 MapId: test-id LoadStrategy:     Spawnstrategy:    BroadcastGroup:  Weather: 
 --------------
-# of Transports: 0
+# of Transports: 1
 --------------
      true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
      grass      |      grass      |      grass      |      grass      |      grass      |      grass      |      grass      |      grass     

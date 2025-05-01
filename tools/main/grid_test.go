@@ -33,12 +33,12 @@ func TestGridActions(t *testing.T) {
 	})
 
 	t.Run("Test 'fill' against boundary.", func(t *testing.T) {
-		click1 := makeClick(2, 2, "fill", "1")  // fill inner region
-		click2 := makeClick(3, 3, "fill", "2")  // fill inner again - different
-		click3 := makeClick(0, 0, "fill", "4")  // fill outer region
-		click4 := makeClick(1, 1, "fill", "3")  // fill boundary
-		click5 := makeClick(1, 1, "fill", "4")  // fill boundary to match outer
-		click6 := makeClick(2, 2, "fill", "x4") // entire grid should now match
+		click1 := makeClick(2, 2, "fill", "1") // fill inner region
+		click2 := makeClick(3, 3, "fill", "2") // fill inner again - different
+		click3 := makeClick(0, 0, "fill", "4") // fill outer region
+		click4 := makeClick(1, 1, "fill", "3") // fill boundary
+		click5 := makeClick(1, 1, "fill", "4") // fill boundary to match outer
+		click6 := makeClick(2, 2, "fill", "4") // entire grid should now match
 
 		col.gridClickAction(click1, bp)
 		snaps.MatchSnapshot(t, bp)
