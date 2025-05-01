@@ -57,7 +57,7 @@
 - [-] Goals scored
 - [ ] Games won
 - [ ] NPC Kills
-- [ ] Peak Killstreak 
+- [-] Peak Killstreak 
 
 ## Highscores
 - [-] Current Money / Kills / Goals Scored
@@ -339,7 +339,7 @@ One way or two way.
 
  - [ ] Spawn NPCs 
    - [-] Basic
-   - [ ] Clean up old spawns 
+   - [ ] Clean up old spawns (e.g. method signature changes)
  - [ ] Programmable interactable state 
 
 type []byte(update) 100 times
