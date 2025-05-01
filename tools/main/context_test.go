@@ -16,11 +16,11 @@ func TestCompileSnap(t *testing.T) {
 	t.Run("Take baseline snapshots", func(t *testing.T) {
 		space := col.Spaces["toroid"]
 
-		desc0 := getAreaByName(space.Areas, "toroid:0-0") // Ground + Protos
-		desc1 := getAreaByName(space.Areas, "toroid:0-1") // Has Interacables
-		desc2 := getAreaByName(space.Areas, "toroid:1-0") // Uses Fragment
-		desc3 := getAreaByName(space.Areas, "toroid:1-1")
-		desc4 := getAreaByName(space.Areas, "random-room") // 8x8 Ground / BP / Interactable
+		desc0 := getAreaByName(space.Areas, "toroid:0-0")  // Ground + Protos
+		desc1 := getAreaByName(space.Areas, "toroid:0-1")  // Interacables (2)
+		desc2 := getAreaByName(space.Areas, "toroid:1-0")  // Uses BP for Fragment + Proto
+		desc3 := getAreaByName(space.Areas, "toroid:1-1")  // Transports (1)
+		desc4 := getAreaByName(space.Areas, "random-room") // 8x8 - empty
 
 		s0 := serializeForSnapshot(desc0, col)
 		s1 := serializeForSnapshot(desc1, col)
