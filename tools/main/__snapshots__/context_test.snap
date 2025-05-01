@@ -1,0 +1,379 @@
+
+[TestCompileSnap/Take_baseline_snapshots - 1]
+
+Name: toroid:0-0
+--------------
+Safe: false    North: toroid:1-0 South: toroid:1-0 East: toroid:0-1 West: toroid:0-1
+MapId: test-id LoadStrategy:     Spawnstrategy:    BroadcastGroup:  Weather: 
+--------------
+# of Transports: 0
+--------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     grass      |      grass      |      grass      |      grass      |      grass      |      grass      |      grass      |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      false      |      false      |      false      |      false      |      true       |      true       |      true      
+     grass      |   wall r1-tl    |      wall       |      wall       |   wall r1-tr    |      grass      |      sand       |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      false      |      true       |      true       |      false      |      true       |      true       |      true      
+     grass      |      wall       |      grass      |      grass      |      wall       |      grass      |      grass      |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      false      |      true       |      true       |      false      |      true       |      true       |      true      
+     grass      |      wall       |      grass      |   sand r0-tl    |      wall       |   sand r0-tr    |      grass      |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      false      |      false      |      false      |      false      |      true       |      true       |      true      
+     grass      |   wall r1-bl    |      wall       |      wall       |   wall r1-br    |      sand       |      grass      |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     grass      |      grass      |      grass      |   sand r0-bl    |      sand       |   sand r0-br    |      grass      |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      false      |      false      |      true      
+     grass      |      grass      |      grass      | lime trsp20 r2- | lime trsp20 r2- | sand trsp60 r1  | r2-tl r2-br dar | red r0-br  r1-b
+                |                 |                 | tl  r2-br  r0-t | tr  r2-bl  r0-b |                 |  k-gray-b med   | l r0-tr  r2-tl 
+     false      |      false      |      true       |      false      |      false      |      false      |      false      |      false     
+
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+
+---
+
+[TestCompileSnap/Take_baseline_snapshots - 2]
+
+Name: toroid:0-1
+--------------
+Safe: false    North: toroid:1-1 South: toroid:1-1 East: toroid:0-0 West: toroid:0-0
+MapId: test-id LoadStrategy:     Spawnstrategy:    BroadcastGroup:  Weather: 
+--------------
+# of Transports: 0
+--------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     grass      |      grass      |      grass      |      grass      |      grass      |      grass      |      grass      |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     grass      |   grass r0-br   | sand r0-tl r0-t |   grass r0-bl   |      grass      | sand r0-tl r0-t |      grass      |      grass     
+                |                 |        r        |                 |                 |  r r0-bl r0-br  |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     grass      | sand r0-tl r0-b |      sand       |   sand r0-tr    |      grass      | dark-green r1-b | sand r0-tl r0-t |      grass     
+                |        l        |                 |                 |                 |    r  r1-bl     |  r r0-bl r0-br  |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     grass      |   grass r0-tr   |   sand r0-bl    |   sand r0-br    |      grass      |      grass      |      grass      |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     grass      |      grass      |      grass      |      grass      |      grass      | sand r0-tl r0-t |   grass r0-bl   |      grass     
+                |                 |                 |                 |                 |     r r0-bl     |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     grass      | sand r0-tl r0-b |      sand       | sand r0-tr r0-b |      grass      |   grass r0-tr   | sand r0-tr r0-b |      grass     
+                |        l        |                 |        r        |                 |                 |     l r0-br     |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     grass      |      grass      |      grass      |      grass      |      grass      |      grass      |      grass      |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |    push     |             |             |             |             |             |            
+     -      | pink-b r1 t |      -      |      -      |      -      |      -      |      -      |      -     
+            |   T F F F   |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |    PWDR     |             |             |            
+     -      |      -      |      -      |      -      | blue r1-tr  |      -      |      -      |      -     
+            |             |             |             |   T T T T   |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+
+---
+
+[TestCompileSnap/Take_baseline_snapshots - 3]
+
+Name: toroid:1-0
+--------------
+Safe: false    North: toroid:0-0 South: toroid:0-0 East: toroid:1-1 West: toroid:1-1
+MapId: test-id LoadStrategy:     Spawnstrategy:    BroadcastGroup:  Weather: 
+--------------
+# of Transports: 0
+--------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     grass      |      grass      |      grass      |      grass      |      grass      |      grass      |      grass      |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     grass      |   sand r0-tl    |      sand       |      sand       |      sand       |      sand       |   sand r0-tr    |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      false      |      false      |      false      |      true       |      true       |      true      
+     grass      |   sand r0-bl    |   blue r2-tl    |      blue       |   blue r2-tr    |      sand       |   sand r0-br    |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      false      |      false      |      false      |      true       |      true       |      true      
+     grass      |      grass      |      blue       |      blue       |      blue       |      grass      |      grass      |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      false      |      true       |      false      |      true       |      false      |      true      
+     grass      |      grass      |      blue       | dark-green-b r0 |      blue       |      grass      |       red       |      grass     
+                |                 |                 |       med       |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      false      |      false      |      false      |      true       |      true       |      true      
+     grass      |      grass      |   blue r2-bl    |      blue       |   blue r2-br    |      grass      |      grass      |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     grass      |      grass      |      grass      |      grass      |      grass      |      grass      |      grass      |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+
+---
+
+[TestCompileSnap/Take_baseline_snapshots - 4]
+
+Name: toroid:1-1
+--------------
+Safe: false    North: toroid:0-1 South: toroid:0-1 East: toroid:1-0 West: toroid:1-0
+MapId: test-id LoadStrategy:     Spawnstrategy:    BroadcastGroup:  Weather: 
+--------------
+# of Transports: 0
+--------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     grass      |      grass      |      grass      |      grass      |      grass      |      grass      |      grass      |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      false      |      false      |      false      |      false      |      false      |      false      |      true      
+     grass      |   wall r1-tl    |      wall       |      wall       |      wall       |      wall       |   wall r1-tr    |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      false      |      true       |      true       |      true       |      true       |      false      |      true      
+     grass      |      wall       |      grass      |      grass      |      grass      |      grass      |      wall       |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      false      |      true       |      true       |      true       |      true       |      false      |      true      
+     grass      |      wall       |      grass      |      grass      |      white      |      grass      |      wall       |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      false      |      true       |      true       |      true       |      true       |      false      |      true      
+     grass      |      wall       |      grass      |      grass      |      grass      |      grass      |      wall       |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      false      |      false      |      false      |      false      |      false      |      false      |      true      
+     grass      |   wall r1-bl    |      wall       |      wall       |      wall       |      wall       |      wall       |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     grass      |      grass      |      grass      |      grass      |      grass      |      grass      |      grass      |      grass     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+
+---
+
+[TestCompileSnap/Take_baseline_snapshots - 5]
+
+Name: random-room
+--------------
+Safe: true     North:         South:          East:            West: 
+MapId: test-id LoadStrategy:  Spawnstrategy:  BroadcastGroup:  Weather: 
+--------------
+# of Transports: 0
+--------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     white      |      white      |      white      |      white      |      white      |      white      |      white      |      white     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     white      |      white      |      white      |      white      |      white      |      white      |      white      |      white     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     white      |      white      |      white      |      white      |      white      |      white      |      white      |      white     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     white      |      white      |      white      |      white      |      white      |      white      |      white      |      white     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     white      |   white r0-br   | dark-grass r0-t |   white r0-bl   |      white      | red r0-tr  r1-b |      white      |      white     
+                |                 |     l r0-tr     |                 |                 | r r0-tl  r2-bl  |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     white      | dark-grass r0-t |   dark-grass    | dark-grass r0-t |      white      |      white      |      white      |      white     
+                |     l r0-bl     |                 |     r r0-br     |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     white      |   white r0-tr   | dark-grass r0-b |   white r0-tl   |      white      |      white      |      white      |      white     
+                |                 |     l r0-br     |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+---------------------------------------------------------------------------------------------------------------------------------------------
+     true       |      true       |      true       |      true       |      true       |      true       |      true       |      true      
+     white      |      white      |      white      |      white      |      white      |      white      |      white      |      white     
+                |                 |                 |                 |                 |                 |                 |                
+     false      |      false      |      false      |      false      |      false      |      false      |      false      |      false     
+
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |    push     |             |            
+     -      |      -      |      -      |      -      |      -      | pink-b r1 t |      -      |      -     
+            |             |             |             |             |   T F F F   |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+-------------------------------------------------------------------------------------------------------------
+            |             |             |             |             |             |             |            
+     -      |      -      |      -      |      -      |      -      |      -      |      -      |      -     
+            |             |             |             |             |             |             |            
+
+---

@@ -5,25 +5,34 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/gkampitakis/go-snaps/snaps"
 )
 
 func TestCompileSnap(t *testing.T) {
 	c := populateFromJson()
-	col := c.Collections["snaps"] // change to snaps
+	col := c.Collections["snaps"]
 
-	t.Run("Test make empty grid for TestGridActions", func(t *testing.T) {
+	t.Run("Take baseline snapshots", func(t *testing.T) {
 		space := col.Spaces["toroid"]
-		desc := getAreaByName(space.Areas, "toroid:0-0")
-		desc1 := getAreaByName(space.Areas, "toroid:0-1")
-		desc2 := getAreaByName(space.Areas, "toroid:1-0")
-		desc3 := getAreaByName(space.Areas, "toroid:1-1")
-		desc4 := getAreaByName(space.Areas, "random-room")
 
-		fmt.Println(serializeForSnapshot(desc, col))
-		fmt.Println(serializeForSnapshot(desc1, col))
-		fmt.Println(serializeForSnapshot(desc2, col))
-		fmt.Println(serializeForSnapshot(desc3, col))
-		fmt.Println(serializeForSnapshot(desc4, col))
+		desc0 := getAreaByName(space.Areas, "toroid:0-0") // Ground + Protos
+		desc1 := getAreaByName(space.Areas, "toroid:0-1") // Has Interacables
+		desc2 := getAreaByName(space.Areas, "toroid:1-0") // Uses Fragment
+		desc3 := getAreaByName(space.Areas, "toroid:1-1")
+		desc4 := getAreaByName(space.Areas, "random-room") // 8x8 Ground / BP / Interactable
+
+		s0 := serializeForSnapshot(desc0, col)
+		s1 := serializeForSnapshot(desc1, col)
+		s2 := serializeForSnapshot(desc2, col)
+		s3 := serializeForSnapshot(desc3, col)
+		s4 := serializeForSnapshot(desc4, col)
+
+		snaps.MatchSnapshot(t, s0)
+		snaps.MatchSnapshot(t, s1)
+		snaps.MatchSnapshot(t, s2)
+		snaps.MatchSnapshot(t, s3)
+		snaps.MatchSnapshot(t, s4)
 	})
 
 }
