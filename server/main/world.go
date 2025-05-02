@@ -116,7 +116,7 @@ func saveCurrentStatus(world *World) {
 		Timestamp:              time.Now(),
 		SessionStartTime:       world.sessionStats.sessionStartTime,
 		PeakSessionPlayerCount: int(world.sessionStats.peakSessionPlayerCount.Load()),
-		PeakSessionKillSteak: SessionStreakRecord{
+		PeakSessionKillStreak: SessionStreakRecord{
 			Streak:     int(world.sessionStats.peakSessionKillStreak.Load()),
 			PlayerName: world.sessionStats.peakSessionKiller,
 		},

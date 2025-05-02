@@ -40,7 +40,7 @@ type RankingProvider interface {
 // Used w/ Template methods to cycle through on site
 var queryCategories = [3][2]string{
 	{"Richest", "money"},
-	{"Deadliest", "killCount"},
+	{"Deadliest", "deadliest"},
 	{"MVP", "goalsScored"},
 }
 
@@ -96,7 +96,7 @@ func (hub *Hub) highscoreHandler(w http.ResponseWriter, r *http.Request) {
 	switch category {
 	case "money":
 		scores = generateRichestList(hub)
-	case "killCount":
+	case "deadliest":
 		scores = generateDeadliestList(hub)
 	case "goalsScored":
 		scores = generateMVPList(hub)

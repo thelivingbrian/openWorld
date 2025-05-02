@@ -68,7 +68,7 @@ type SessionDataRecord struct {
 	Timestamp              time.Time           `bson:"timestamp"`
 	SessionStartTime       time.Time           `bson:"sessionStartTime"`
 	PeakSessionPlayerCount int                 `bson:"peakSessionPlayerCount"`
-	PeakSessionKillSteak   SessionStreakRecord `bson:"peakSessionKillSteak"`
+	PeakSessionKillStreak  SessionStreakRecord `bson:"peakSessionKillStreak"`
 	TotalSessionLogins     int                 `bson:"totalSessionLogins"`
 	TotalSessionLogouts    int                 `bson:"totalSessionLogouts"`
 	CurrentTeamPlayerCount map[string]int      `bson:"currentTeamPlayerCount"`
