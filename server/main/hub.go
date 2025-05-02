@@ -115,13 +115,17 @@ func generateRichestList(hub *Hub) HighScoreList {
 	hub.richest.Lock()
 	defer hub.richest.Unlock()
 	if isOverNSecondsAgo(hub.richest.lastChecked, HIGHSCORE_CHECK_INTERVAL_IN_SECONDS) {
-		records, _ := hub.db.getTopNPlayersByField("money", 10)
+		records, _ := hub.db.getTopNPlayersByField("stats.peakWealth", 10)
 		entries := make([]HighScoreEntry, 0)
 		for _, record := range records {
 			entries = append(entries, HighScoreEntry{
-				Username:   record.Username,
-				StatNames:  []string{"Money"},
-				StatValues: []string{strconv.Itoa(record.Money)},
+				Username: record.Username,
+				StatNames: []string{
+					"money",
+				},
+				StatValues: []string{
+					strconv.Itoa(int(record.Stats.PeakWealth)),
+				},
 			})
 		}
 		hub.richest.Entries = entries
@@ -134,13 +138,18 @@ func generateDeadliestList(hub *Hub) HighScoreList {
 	hub.deadliest.Lock()
 	defer hub.deadliest.Unlock()
 	if isOverNSecondsAgo(hub.deadliest.lastChecked, HIGHSCORE_CHECK_INTERVAL_IN_SECONDS) {
-		records, _ := hub.db.getTopNPlayersByField("killCount", 10)
+		records, _ := hub.db.getTopNPlayersByField("stats.peakKillStreak", 10)
 		entries := make([]HighScoreEntry, 0)
 		for _, record := range records {
 			entries = append(entries, HighScoreEntry{
-				Username:   record.Username,
-				StatNames:  []string{"Kill-Count", "K/D"},
-				StatValues: []string{strconv.Itoa(record.KillCount), DivideIntsFloatToString(record.KillCount, record.DeathCount)},
+				Username: record.Username,
+				StatNames: []string{
+					"Streak",
+					"K/D",
+				},
+				StatValues: []string{
+					strconv.Itoa(int(record.Stats.PeakKillStreak)),
+					DivideIntsFloatToString(int(record.Stats.KillCount+record.Stats.KillCountNpc), int(record.Stats.DeathCount))},
 			})
 		}
 		hub.deadliest.Entries = entries
@@ -161,13 +170,13 @@ func generateMVPList(hub *Hub) HighScoreList {
 	hub.mvp.Lock()
 	defer hub.mvp.Unlock()
 	if isOverNSecondsAgo(hub.mvp.lastChecked, HIGHSCORE_CHECK_INTERVAL_IN_SECONDS) {
-		records, _ := hub.db.getTopNPlayersByField("goalsScored", 10)
+		records, _ := hub.db.getTopNPlayersByField("stats.goalsScored", 10)
 		entries := make([]HighScoreEntry, 0)
 		for _, record := range records {
 			entries = append(entries, HighScoreEntry{
 				Username:   record.Username,
 				StatNames:  []string{"Total Goals"},
-				StatValues: []string{strconv.Itoa(record.GoalsScored)},
+				StatValues: []string{strconv.Itoa(int(record.Stats.GoalsScored))},
 			})
 		}
 		hub.mvp.Entries = entries

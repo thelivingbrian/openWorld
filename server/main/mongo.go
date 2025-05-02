@@ -21,23 +21,35 @@ type UserRecord struct {
 type PlayerRecord struct {
 	// ID
 	Username string `bson:"username"`
+
 	// Meta
 	LastLogin  time.Time `bson:"lastLogin,omitempty"`
 	LastLogout time.Time `bson:"lastLogout,omitempty"`
+	// total logins / cumulative play time
+
 	// World Location
 	StageName string `bson:"stagename"`
 	X         int    `bson:"x"`
 	Y         int    `bson:"y"`
-	// Stats
-	Team        string `bson:"team"`
-	Trim        string `bson:"trim,omitempty"`
-	Health      int    `bson:"health"`
-	Money       int    `bson:"money,omitempty"`
-	KillCount   int    `bson:"killCount,omitempty"`
-	DeathCount  int    `bson:"deathCount,omitempty"`
-	GoalsScored int    `bson:"goalsScored,omitempty"`
+
+	// Details
+	Team   string            `bson:"team"`
+	Health int64             `bson:"health"`
+	Money  int64             `bson:"money"`
+	Stats  PlayerStatsRecord `bson:"stats"`
+
 	// Unlocks
 	HatList HatList `bson:"hatList,omitempty"`
+}
+
+type PlayerStatsRecord struct {
+	// Stats
+	KillCount      int64 `bson:"killCount,omitempty"`
+	KillCountNpc   int64 `bson:"killCountNpc,omitempty"`
+	PeakKillStreak int64 `bson:"peakKillStreak,omitempty"`
+	DeathCount     int64 `bson:"deathCount,omitempty"`
+	GoalsScored    int64 `bson:"goalsScored,omitempty"`
+	PeakWealth     int64 `bson:"peakWealth,omitempty"`
 }
 
 type EventRecord struct {
@@ -200,13 +212,22 @@ func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 	return bson.M{
 		"x":               pTile.x,
 		"y":               pTile.y,
-		"health":          p.getHealthSync(),
+		"health":          p.health.Load(),
 		"stagename":       pTile.stage.name,
-		"money":           p.getMoneySync(),
-		"killCount":       p.getKillCountSync(),
-		"deathCount":      p.getDeathCountSync(),
-		"goalsScored":     p.getGoalsScored(),
+		"money":           p.money.Load(),
+		"stats":           statsRecordFromPlayerStats(p.PlayerStats),
 		"hatList.current": p.hatList.indexSync(),
+	}
+}
+
+func statsRecordFromPlayerStats(stats *PlayerStats) PlayerStatsRecord {
+	return PlayerStatsRecord{
+		KillCount:      stats.killCount.Load(),
+		KillCountNpc:   stats.killCountNpc.Load(),
+		DeathCount:     stats.deathCount.Load(),
+		GoalsScored:    stats.goalsScored.Load(),
+		PeakKillStreak: stats.peakKillStreak.Load(),
+		PeakWealth:     stats.peakWealth.Load(),
 	}
 }
 

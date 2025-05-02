@@ -18,7 +18,7 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 	player.addBoostsAndUpdate(5)
 	player.moveNorthBoost()
 
-	if player.stage.name != "hallway2" {
+	if player.getTileSync().stage.name != "hallway2" {
 		t.Error("player.stage.name should be hallway2")
 	}
 
@@ -42,12 +42,16 @@ func createTestingPlayer(world *World, user string) *Player {
 		id:           id,
 		username:     user,
 		actions:      createDefaultActions(),
-		health:       100,
 		updates:      updatesForPlayer,
 		tangible:     true,
 		playerStages: map[string]*Stage{},
 		world:        world,
 	}
+	tp.health.Store(100)
 	world.worldPlayers[id] = tp
 	return tp
+}
+
+func (player *Player) getKillStreakSync() int {
+	return int(player.killstreak.Load())
 }

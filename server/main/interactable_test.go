@@ -15,19 +15,17 @@ func TestEnsureInteractableWillPush(t *testing.T) {
 
 	player := &Player{
 		id:       "tp",
-		stage:    testStage,
 		actions:  createDefaultActions(),
-		health:   100,
 		updates:  updatesForPlayer,
 		tangible: true,
 	}
 	player.placeOnStage(testStage, 14, 1)
 
-	if len(player.stage.tiles[14][1].characterMap) == 0 {
+	if len(player.getTileSync().stage.tiles[14][1].characterMap) == 0 {
 		t.Error("Player did not spawn at correct location")
 	}
 
-	if player.stage.tiles[14][2].interactable == nil || !player.stage.tiles[14][2].interactable.pushable {
+	if player.getTileSync().stage.tiles[14][2].interactable == nil || !player.getTileSync().stage.tiles[14][2].interactable.pushable {
 		t.Error("test-walls-interactable should have pushable at 14,2")
 	}
 
@@ -36,15 +34,15 @@ func TestEnsureInteractableWillPush(t *testing.T) {
 	moveWest(player)
 	moveNorth(player)
 
-	if player.stage.tiles[14][4].interactable == nil {
+	if player.getTileSync().stage.tiles[14][4].interactable == nil {
 		t.Error("Interactable did not push")
 	}
 
-	if player.stage.tiles[14][2].interactable != nil {
+	if player.getTileSync().stage.tiles[14][2].interactable != nil {
 		t.Error("Interactable still at starting location despite being pushed")
 	}
 
-	if len(player.stage.tiles[13][2].characterMap) == 0 {
+	if len(player.getTileSync().stage.tiles[13][2].characterMap) == 0 {
 		t.Error("Player has not moved correctly:")
 		fmt.Printf("Y%dX%d", player.getTileSync().y, player.getTileSync().x)
 	}
@@ -67,14 +65,14 @@ func TestSurroundedPushableSquare(t *testing.T) {
 
 	// Place players around the 2x2 square of pushable tiles (3,7) (3,8) (4,7) (4,8)
 	players := []*Player{
-		{id: "p0", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p1", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p2", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p3", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p4", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p5", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p6", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p7", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
+		{id: "p0", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p1", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p2", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p3", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p4", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p5", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p6", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p7", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
 	}
 
 	positions := []struct {
@@ -131,14 +129,14 @@ func TestSurroundedPushableSquareMultipleThreads(t *testing.T) {
 
 	// Place players around the 2x2 square of pushable tiles (3,7) (3,8) (4,7) (4,8)
 	players := []*Player{
-		{id: "p0", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p1", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p2", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p3", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p4", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p5", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p6", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p7", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
+		{id: "p0", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p1", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p2", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p3", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p4", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p5", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p6", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p7", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
 	}
 
 	positions := []struct {
@@ -222,8 +220,8 @@ func TestEnsureNoInteractableDuplication(t *testing.T) {
 
 	// Place 2 players at ends of long interactable line
 	players := []*Player{
-		{id: "p0", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
-		{id: "p1", stage: testStage, updates: updatesForPlayer, actions: createDefaultActions(), health: 100, tangible: true},
+		{id: "p0", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
+		{id: "p1", updates: updatesForPlayer, actions: createDefaultActions(), tangible: true},
 	}
 
 	positions := []struct {

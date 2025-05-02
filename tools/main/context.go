@@ -60,21 +60,19 @@ func parseJsonFile[T any](filename string) T {
 	return out
 }
 
-func writeJsonFile[T any](path string, entries T) error {
-	data, err := json.Marshal(entries)
-	if err != nil {
-		return fmt.Errorf("error marshalling materials: %w", err)
-	}
-
+func writeJsonFile[T any](path string, entries T, pretty bool) error {
 	file, err := os.Create(path)
 	if err != nil {
 		return fmt.Errorf("error creating file: %w", err)
 	}
 	defer file.Close()
 
-	_, err = file.Write(data)
-	if err != nil {
-		return fmt.Errorf("error writing to file: %w", err)
+	enc := json.NewEncoder(file)
+	if pretty {
+		enc.SetIndent("", "  ")
+	}
+	if err := enc.Encode(entries); err != nil {
+		return fmt.Errorf("error encoding JSON: %w", err)
 	}
 
 	return nil
@@ -85,7 +83,7 @@ func colorName(c Color) string {
 }
 
 func (c Context) writeColorsToLocalFile() error {
-	return writeJsonFile(COLOR_PATH, c.colors)
+	return writeJsonFile(COLOR_PATH, c.colors, true)
 }
 
 func (c Context) createLocalCSSFile() {
@@ -261,7 +259,6 @@ func (c Context) compileCollection(collection *Collection) {
 	for _, space := range collection.Spaces {
 		c.generateAllPNGs(space)
 		for _, desc := range space.Areas {
-			outputTiles := collection.compileTileDataAndAccumulateMaterials(desc)
 
 			mapid := ""
 			if space.isSimplyTiled() {
@@ -269,26 +266,37 @@ func (c Context) compileCollection(collection *Collection) {
 			}
 			// Add maps for all individual areas as well
 
-			areas = append(areas, AreaOutput{
-				Name:           desc.Name,
-				Safe:           desc.Safe,
-				Tiles:          outputTiles,
-				Interactables:  collection.generateInteractables(desc.Blueprint.Tiles),
-				Transports:     desc.Transports,
-				North:          desc.North,
-				South:          desc.South,
-				East:           desc.East,
-				West:           desc.West,
-				MapId:          mapid,
-				LoadStrategy:   desc.LoadStrategy,
-				SpawnStrategy:  desc.SpawnStrategy,
-				Weather:        desc.Weather,
-				BroadcastGroup: desc.BroadcastGroup,
-			})
+			areas = append(areas, collection.areaOutputFromDescription(desc, mapid))
 		}
 	}
 	fmt.Printf("Writing (%d) Areas", len(areas))
-	writeJsonFile(filepath.Join(COMPILE_basePath, AREA_FILENAME), areas)
+	writeJsonFile(filepath.Join(COMPILE_basePath, AREA_FILENAME), areas, false)
+}
+
+func (col Collection) areaOutputFromDescription(desc AreaDescription, mapid string) AreaOutput {
+	outputTiles, err := col.compileMaterialsFromBlueprint(desc.Blueprint)
+	if err != nil {
+		panic(desc.Name + ": has compile error: " + err.Error())
+	}
+
+	outputInteractables := col.generateInteractables(desc.Blueprint.Tiles)
+
+	return AreaOutput{
+		Name:           desc.Name,
+		Safe:           desc.Safe,
+		Tiles:          outputTiles,
+		Interactables:  outputInteractables,
+		Transports:     desc.Transports,
+		North:          desc.North,
+		South:          desc.South,
+		East:           desc.East,
+		West:           desc.West,
+		MapId:          mapid,
+		LoadStrategy:   desc.LoadStrategy,
+		SpawnStrategy:  desc.SpawnStrategy,
+		Weather:        desc.Weather,
+		BroadcastGroup: desc.BroadcastGroup,
+	}
 }
 
 func (c Context) copyMapPNG(space *Space, area *AreaDescription) string {
@@ -304,28 +312,27 @@ func (c Context) copyMapPNG(space *Space, area *AreaDescription) string {
 	return id
 }
 
-func (collection *Collection) compileTileDataAndAccumulateMaterials(desc AreaDescription) [][]Material {
-	outputTiles := make([][]Material, len(desc.Blueprint.Tiles))
-	for y := range desc.Blueprint.Tiles {
-		outputTiles[y] = make([]Material, len(desc.Blueprint.Tiles[y]))
-		for x, tile := range desc.Blueprint.Tiles[y] {
+func (collection *Collection) compileMaterialsFromBlueprint(bp *Blueprint) ([][]Material, error) {
+	outputTiles := make([][]Material, len(bp.Tiles))
+	for y := range bp.Tiles {
+		outputTiles[y] = make([]Material, len(bp.Tiles[y]))
+		for x, tile := range bp.Tiles[y] {
 			// Find proto
 			proto := collection.findPrototypeById(tile.PrototypeId)
 			if proto == nil {
-				errMsg := fmt.Sprintf("Prototype with id: %s Not found. Area: %s | y:%d x:%d", desc.Blueprint.Tiles[y][x].PrototypeId, desc.Name, y, x)
-				panic("PROTO NOT FOUND. error - " + errMsg)
+				return nil, fmt.Errorf("Prototype with id: %s Not found. y:%d x:%d", bp.Tiles[y][x].PrototypeId, y, x)
 			}
 
 			// Apply transform
 			mat := proto.applyTransform(tile.Transformation)
 
 			// Apply ground
-			ground := groundCellByCoord(desc.Blueprint, y, x)
-			mat = addGroundToMaterial(mat, ground, desc.Blueprint.DefaultTileColor, desc.Blueprint.DefaultTileColor1)
+			ground := groundCellByCoord(bp, y, x)
+			mat = addGroundToMaterial(mat, ground, bp.DefaultTileColor, bp.DefaultTileColor1)
 
 			// Assign
 			outputTiles[y][x] = mat
 		}
 	}
-	return outputTiles
+	return outputTiles, nil
 }

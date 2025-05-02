@@ -94,7 +94,7 @@ func (c Context) deleteStructure(w http.ResponseWriter, r *http.Request) {
 
 	// bad
 	outFileStruct := "./data/collections/bloop/structures/ground.json"
-	err := writeJsonFile(outFileStruct, col.StructureSets["ground"])
+	err := writeJsonFile(outFileStruct, col.StructureSets["ground"], false)
 	if err != nil {
 		panic(err)
 	}

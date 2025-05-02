@@ -176,8 +176,9 @@ func Quit(p *Player) {
 func openMapMenu(p *Player) {
 	var buf bytes.Buffer
 	copy := mapMenu
-	if p.stage.mapId != "" {
-		mapPath := p.world.config.domainName + "/images/" + p.stage.mapId
+	mapId := p.getTileSync().stage.mapId
+	if mapId != "" {
+		mapPath := p.world.config.domainName + "/images/" + mapId
 		copy.InfoHtml = template.HTML(`<img src="` + mapPath + `" width="100%" alt="map of space" />`)
 	} else {
 		copy.InfoHtml = `<h2>unavailable</h2>`
@@ -205,11 +206,24 @@ func createInfoHtmlForPlayer(p *Player) template.HTML {
 	htmlContent := fmt.Sprintf(
 		`<div class="player-stats">
 			<p><strong>  Total  </strong></p>
-			<p>Goals: %d</p>
-			<p>Kills: %d</p>
-			<p>Deaths: %d</p>
+			<p>&#9656;Goals: %d</p>
+			<p>&#9656;Player Kills: %d</p>
+			<p>&#9656;NPC Kills: %d</p>
+			<p>&#9656;Deaths: %d</p>
+			<br />
+			<p><strong>  Highest  </strong></p>
+			<p>&#9656;Streak: %d</p>
+			<p>&#9656;Wealth: %d</p>
+			<br />
 		</div>`,
-		p.getGoalsScored(), p.getKillCountSync(), p.getDeathCountSync(),
+		// Total
+		p.goalsScored.Load(),
+		p.killCount.Load(),
+		p.killCountNpc.Load(),
+		p.deathCount.Load(),
+		// Peak
+		p.peakKillStreak.Load(),
+		p.peakWealth.Load(),
 	)
 
 	return template.HTML(htmlContent)
@@ -245,18 +259,18 @@ func teleportEventHandler(teleport *Teleport) func(*Player) {
 
 func sourceStageAuthorizerAffirmative(source string) func(*Player) bool {
 	return func(p *Player) bool {
-		return p.getStageNameSync() == source
+		return p.getTileSync().stage.name == source
 	}
 }
 
 func sourceStageAuthorizerExclude(source string) func(*Player) bool {
 	return func(p *Player) bool {
-		return p.getStageNameSync() != source
+		return p.getTileSync().stage.name != source
 	}
 }
 
 func excludeSpecialStages(p *Player) bool {
-	stagename := p.getStageNameSync()
+	stagename := p.getTileSync().stage.name
 	if strings.HasPrefix(stagename, "infirmary") {
 		return false
 	}

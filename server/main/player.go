@@ -20,8 +20,6 @@ type Player struct {
 	icon                     string
 	viewLock                 sync.Mutex
 	world                    *World
-	stage                    *Stage // Shouldn't exist except for tile?
-	stageLock                sync.Mutex
 	tile                     *Tile
 	tileLock                 sync.Mutex
 	updates                  chan []byte
@@ -30,23 +28,24 @@ type Player struct {
 	connLock                 sync.RWMutex
 	tangible                 bool
 	tangibilityLock          sync.Mutex
-	health                   int
-	healthLock               sync.Mutex
-	money                    int
-	moneyLock                sync.Mutex
-	killCount                int
-	killCountLock            sync.Mutex
-	deathCount               int
-	deathCountLock           sync.Mutex
-	goalsScored              int
-	goalsScoredLock          sync.Mutex
-	killstreak               int
-	streakLock               sync.Mutex
 	actions                  *Actions
 	menues                   map[string]Menu
 	playerStages             map[string]*Stage
 	pStageMutex              sync.Mutex
 	hatList                  SyncHatList
+	health                   atomic.Int64
+	money                    atomic.Int64
+	killstreak               atomic.Int64
+	*PlayerStats
+}
+
+type PlayerStats struct {
+	killCount      atomic.Int64
+	killCountNpc   atomic.Int64
+	deathCount     atomic.Int64
+	goalsScored    atomic.Int64
+	peakKillStreak atomic.Int64
+	peakWealth     atomic.Int64
 }
 
 ////////////////////////////////////////////////////////////
@@ -88,12 +87,11 @@ func handleDeath(player *Player) {
 	popAndDropMoney(player)
 	removeFromTileAndStage(player) // After this should be impossible for any transfer to succeed
 	player.incrementDeathCount()
-	player.setHealth(150)
-	player.setKillStreak(0)
+	player.resetHealth()
+	player.zeroKillStreak()
 	player.actions = createDefaultActions() // problematic, -> setDefaultActions(player)
 
 	stage := player.fetchStageSync(infirmaryStagenameForPlayer(player))
-	player.setStage(stage)
 	player.updateRecordOnDeath(stage.tiles[2][2])
 	respawnOnStage(player, stage)
 }
@@ -110,11 +108,9 @@ func popAndDropMoney(player *Player) {
 }
 
 func halveMoneyOf(player *Player) int {
-	// race risk
-	currentMoney := player.getMoneySync()
-	newValue := currentMoney / 2
-	player.setMoneyAndUpdate(newValue)
-	return newValue
+	lost := player.halveMoney()
+	updateOne(spanMoney(player.money.Load()), player)
+	return int(lost)
 }
 
 func respawnOnStage(player *Player, stage *Stage) {
@@ -131,15 +127,13 @@ func respawnOnStage(player *Player, stage *Stage) {
 }
 
 func removeFromTileAndStage(player *Player) {
-	player.stageLock.Lock()
-	defer player.stageLock.Unlock()
 	player.tileLock.Lock()
 	defer player.tileLock.Unlock()
-	if player.stage == nil || player.tile == nil {
+	if player.tile == nil {
 		return
 	}
 	player.tile.removePlayerAndNotifyOthers(player)
-	player.stage.removeLockedPlayerById(player.id)
+	player.tile.stage.removeLockedPlayerById(player.id)
 }
 
 func infirmaryStagenameForPlayer(player *Player) string {
@@ -244,7 +238,7 @@ func updatePlayerAfterMovement(player *Player, current, previous *Tile) {
 	playerIcon := playerBoxSpecifc(current.y, current.x, player.getIconSync())
 
 	previousBoxes := ""
-	if previous != nil && previous.stage == player.getStageSync() {
+	if previous != nil && previous.stage == current.stage {
 		previousBoxes += characterBox(previous)
 	}
 
@@ -339,13 +333,11 @@ func getStageByNameOrGetDefault(player *Player, stagename string) *Stage {
 	stage := player.fetchStageSync(stagename)
 	if stage == nil {
 		logger.Warn().Msg("WARNING: Fetching default stage instead of: " + stagename)
-		// clinic must exist - Add test ?
 		stage = player.fetchStageSync("clinic")
 		if stage == nil {
 			panic("Default stage not found")
 		}
 	}
-
 	return stage
 }
 
@@ -370,26 +362,15 @@ func (player *Player) cycleHats() {
 /////////////////////////////////////////////////////////////
 // Observers
 
-// Does not handle death
-func (player *Player) setHealth(n int) {
-	player.healthLock.Lock()
-	defer player.healthLock.Unlock()
-	player.health = n
-}
-
-func (player *Player) getHealthSync() int {
-	player.healthLock.Lock()
-	defer player.healthLock.Unlock()
-	return player.health
+func (player *Player) resetHealth() {
+	player.health.Store(150)
 }
 
 // Icon Observer, note that health can not be locked
 func (player *Player) setIcon() string {
 	player.viewLock.Lock()
 	defer player.viewLock.Unlock()
-	player.healthLock.Lock()
-	defer player.healthLock.Unlock()
-	if player.health <= 50 {
+	if player.health.Load() <= 50 {
 		player.icon = "dim-" + player.team + " " + player.hatList.currentTrim() + " r0"
 		return player.icon
 	} else {
@@ -404,46 +385,21 @@ func (player *Player) getTeamNameSync() string {
 	return player.team
 }
 
-// Remove ?
-func (player *Player) setStage(stage *Stage) {
-	player.stageLock.Lock()
-	defer player.stageLock.Unlock()
-	player.stage = stage
-}
-
-// Use Tile ?
-func (player *Player) getStageNameSync() string {
-	player.stageLock.Lock()
-	defer player.stageLock.Unlock()
-	return player.stage.name
-}
-
-func (player *Player) getStageSync() *Stage {
-	player.stageLock.Lock()
-	defer player.stageLock.Unlock()
-	return player.stage
-}
-
-func (player *Player) setMoney(n int) {
-	player.moneyLock.Lock()
-	defer player.moneyLock.Unlock()
-	player.money = n
-}
-
-func (player *Player) addMoney(n int) int {
-	player.moneyLock.Lock()
-	defer player.moneyLock.Unlock()
-	player.money += n
-	return player.money
-}
-
-func (player *Player) setMoneyAndUpdate(n int) {
-	player.setMoney(n)
-	updateOne(spanMoney(n), player)
+func (player *Player) halveMoney() int64 {
+	// Currently lost and remaining money are equal but may want to split into two returns
+	// e.g. for factor other than 1/2
+	for {
+		old := player.money.Load()
+		new := old / 2
+		if player.money.CompareAndSwap(old, new) {
+			return new
+		}
+	}
 }
 
 func (player *Player) addMoneyAndUpdate(n int) {
-	totalMoney := player.addMoney(n)
+	totalMoney := player.money.Add(int64(n))
+	SetMaxAtomic64IfGreater(&player.peakWealth, totalMoney)
 	if totalMoney > 2*1000 {
 		player.addHatByName("made-of-money")
 	}
@@ -453,73 +409,36 @@ func (player *Player) addMoneyAndUpdate(n int) {
 	updateOne(spanMoney(totalMoney), player)
 }
 
-func (player *Player) getMoneySync() int {
-	player.moneyLock.Lock()
-	defer player.moneyLock.Unlock()
-	return player.money
+func (player *Player) zeroKillStreak() {
+	player.killstreak.Store(0)
+	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: 0, team: player.getTeamNameSync()}
 }
 
-func (player *Player) getKillStreakSync() int {
-	player.streakLock.Lock()
-	defer player.streakLock.Unlock()
-	return player.killstreak
-}
-
-func (player *Player) setKillStreak(n int) int {
-	player.streakLock.Lock()
-	defer player.streakLock.Unlock()
-	player.killstreak = n
-	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: n, team: player.getTeamNameSync()}
-	return player.killstreak
-}
-
-func (player *Player) incrementKillStreak() {
-	// Vs just having character.updateHud ?
+func (player *Player) incrementKillStreak() int64 {
+	// Vs - character.updateHud ?
 	defer updateStreakIfTangible(player) // initiator may not have initiatied via click -> check tangible needed
-	player.streakLock.Lock()
-	defer player.streakLock.Unlock()
-	player.killstreak++
-	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: player.killstreak, team: player.getTeamNameSync()}
+
+	currentKs := player.killstreak.Add(1)
+	SetMaxAtomic64IfGreater(&player.peakKillStreak, currentKs)
+
+	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: currentKs, team: player.getTeamNameSync()}
+	return currentKs
 }
 
-func (player *Player) getKillCountSync() int {
-	player.killCountLock.Lock()
-	defer player.killCountLock.Unlock()
-	return player.killCount
+func (player *Player) incrementKillCount() int64 {
+	return player.killCount.Add(1)
 }
 
-// killCount Observer - no direct set
-func (player *Player) incrementKillCount() {
-	player.killCountLock.Lock()
-	defer player.killCountLock.Unlock()
-	player.killCount++
+func (player *Player) incrementKillCountNpc() int64 {
+	return player.killCountNpc.Add(1)
 }
 
-func (player *Player) getDeathCountSync() int {
-	player.deathCountLock.Lock()
-	defer player.deathCountLock.Unlock()
-	return player.deathCount
+func (player *Player) incrementDeathCount() int64 {
+	return player.deathCount.Add(1)
 }
 
-// deathCount Observer - no direct set
-func (player *Player) incrementDeathCount() {
-	player.deathCountLock.Lock()
-	defer player.deathCountLock.Unlock()
-	player.deathCount++
-}
-
-// goals observer no direct set
-func (player *Player) incrementGoalsScored() int {
-	player.goalsScoredLock.Lock()
-	defer player.goalsScoredLock.Unlock()
-	player.goalsScored++
-	return player.goalsScored
-}
-
-func (player *Player) getGoalsScored() int {
-	player.goalsScoredLock.Lock()
-	defer player.goalsScoredLock.Unlock()
-	return player.goalsScored
+func (player *Player) incrementGoalsScored() int64 {
+	return player.goalsScored.Add(1)
 }
 
 // generally will trigger a logout

@@ -125,6 +125,7 @@ func (col *Collection) generateInteractables(tiles [][]TileData) [][]*Interactab
 	for i := range tiles {
 		out[i] = make([]*InteractableDescription, len(tiles[i]))
 		for j := range tiles[i] {
+			// Could apply Transformation to interactable CSS here:
 			out[i][j] = col.findInteractableById(tiles[i][j].InteractableId)
 		}
 	}

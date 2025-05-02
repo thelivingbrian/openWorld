@@ -14,27 +14,28 @@ type Cell struct {
 	BottomRight, BottomLeft, TopRight, TopLeft bool
 }
 
+// Still needed?
 func (col *Collection) generateAndSaveGroundPattern(config GroundConfig) {
 	cells := GenerateCircle(config.Span, config.Strategy, config.Fuzz)
 	prototypes, fragments, structure := makeAssetsForGround(cells, config)
 
 	col.PrototypeSets["floors"] = merge(col.PrototypeSets["floors"], prototypes, IdsMatchProto)
 	outFileProto := "./data/collections/bloop/prototypes/floors.json"
-	err := writeJsonFile(outFileProto, col.PrototypeSets["floors"])
+	err := writeJsonFile(outFileProto, col.PrototypeSets["floors"], true)
 	if err != nil {
 		panic(err)
 	}
 
 	col.Fragments["ground-patterns"] = merge(fragments, col.Fragments["ground-patterns"], IdsMatchFragment)
 	outFileFragment := "./data/collections/bloop/fragments/ground-patterns.json"
-	err = writeJsonFile(outFileFragment, col.Fragments["ground-patterns"])
+	err = writeJsonFile(outFileFragment, col.Fragments["ground-patterns"], false)
 	if err != nil {
 		panic(err)
 	}
 
 	col.StructureSets["ground"] = merge(col.StructureSets["ground"], append(make([]Structure, 0), structure), IdsMatchStructure)
 	outFileStruct := "./data/collections/bloop/structures/ground.json"
-	err = writeJsonFile(outFileStruct, col.StructureSets["ground"])
+	err = writeJsonFile(outFileStruct, col.StructureSets["ground"], false)
 	if err != nil {
 		panic(err)
 	}

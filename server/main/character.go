@@ -20,8 +20,9 @@ type Character interface {
 	transferBetween(source, dest *Tile)
 	push(tile *Tile, incoming *Interactable, yOff, xOff int) bool
 	takeDamageFrom(initiator Character, dmg int)
-	incrementKillCount()
-	incrementKillStreak()
+	incrementKillCount() int64
+	incrementKillCountNpc() int64
+	incrementKillStreak() int64
 	updateRecord()
 }
 
@@ -214,8 +215,8 @@ func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
 }
 
 func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
-	p.stageLock.Lock() // No need for this ?
-	defer p.stageLock.Unlock()
+	// p.stageLock.Lock() // No need for this ?
+	// defer p.stageLock.Unlock()
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
 
@@ -223,8 +224,8 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 		return false
 	}
 
-	p.stage.removeLockedPlayerById(p.id)
-	p.stage = dest.stage
+	source.stage.removeLockedPlayerById(p.id)
+	//p.stage = dest.stage
 
 	dest.stage.addLockedPlayer(p)
 	dest.addLockedPlayerToTile(p)
@@ -299,20 +300,21 @@ func safe(location *Tile, partyA, partyB Character) bool {
 //  Non-Player
 
 type NonPlayer struct {
-	id         string
-	terminate  context.CancelFunc
-	team       string
-	teamLock   sync.Mutex
-	icon       string
-	iconLow    string
-	world      *World
-	tile       *Tile
-	tileLock   sync.Mutex
-	health     atomic.Int32
-	money      atomic.Int32
-	boosts     atomic.Int32
-	killCount  atomic.Int32
-	killStreak atomic.Int32
+	id           string
+	terminate    context.CancelFunc
+	team         string
+	teamLock     sync.Mutex
+	icon         string
+	iconLow      string
+	world        *World
+	tile         *Tile
+	tileLock     sync.Mutex
+	health       atomic.Int64
+	money        atomic.Int64
+	boosts       atomic.Int64
+	killCount    atomic.Int64
+	killCountNpc atomic.Int64
+	killStreak   atomic.Int64
 }
 
 func (npc *NonPlayer) getName() string {
@@ -425,10 +427,11 @@ func (npc *NonPlayer) takeDamageFrom(initiator Character, dmg int) {
 	if safe(npc.getTileSync(), npc, initiator) {
 		return
 	}
-	currentHealth := npc.health.Add(-int32(dmg))
-	previousHealth := currentHealth + int32(dmg)
+	currentHealth := npc.health.Add(-int64(dmg))
+	previousHealth := currentHealth + int64(dmg)
 	if currentHealth <= 0 && previousHealth > 0 {
 		initiator.incrementKillStreak()
+		initiator.incrementKillCountNpc()
 		handleNPCDeath(npc)
 		npc.terminate()
 	}
@@ -452,37 +455,40 @@ func removeNpcFromTile(npc *NonPlayer) {
 	npc.tileLock.Lock()
 	defer npc.tileLock.Unlock()
 	if !tryRemoveCharacterById(npc.tile, npc.id) {
-		logger.Error().Msg("Error - FAILED TO REMOVE NPC") // Normal if dead already
+		//logger.Error().Msg("Error - FAILED TO REMOVE NPC") // Normal if dead already
 		return
 	}
 	npc.tile.stage.updateAll(characterBox(npc.tile))
 }
 
-func (npc *NonPlayer) incrementKillCount() {
-	npc.killCount.Add(1)
+func (npc *NonPlayer) incrementKillCount() int64 {
+	return npc.killCount.Add(1)
 }
 
-func (npc *NonPlayer) incrementKillStreak() {
-	npc.killStreak.Add(1)
+func (npc *NonPlayer) incrementKillCountNpc() int64 {
+	return npc.killCountNpc.Add(1)
+}
+
+func (npc *NonPlayer) incrementKillStreak() int64 {
+	return npc.killStreak.Add(1)
 }
 
 func (npc *NonPlayer) updateRecord() {
 	// Do Nothing
 }
 
+//////////////////////////////////////////////////////////////////////////////
 // Spawn NPC
 
 func spawnNewNPCDoingAction(ref *Player, interval int, action func(*NonPlayer)) *NonPlayer {
 	npc, ctx := createNewNPC(ref.world)
 	placeOnSameStage(npc, ref)
 
-	go doAtIntervalUntilTermination(npc, ctx, interval, action)
+	if action != nil {
+		go doAtIntervalUntilTermination(npc, ctx, interval, action)
+	}
 
-	go func(cancel context.CancelFunc) {
-		time.Sleep(300 * time.Second)
-		removeNpcFromTile(npc)
-		cancel()
-	}(npc.terminate)
+	go removeAfterWaiting(npc, 450) // Remove after 7.5 min
 
 	return npc
 }
@@ -497,8 +503,8 @@ func createNewNPC(world *World) (*NonPlayer, context.Context) {
 		icon:      "red-b thick r0",
 		iconLow:   "dark-red-b thick r0",
 	}
-	npc.health.Store(int32(100))
-	npc.money.Store(int32(20))
+	npc.health.Store(int64(100))
+	npc.money.Store(int64(20))
 	return npc, ctx
 }
 
@@ -520,6 +526,13 @@ func doAtIntervalUntilTermination(npc *NonPlayer, ctx context.Context, interval 
 			action(npc)
 		}
 	}
+}
+
+func removeAfterWaiting(npc *NonPlayer, seconds int) {
+	time.Sleep(time.Duration(seconds) * time.Second)
+
+	removeNpcFromTile(npc)
+	npc.terminate()
 }
 
 func moveRandomlyAndActivatePower(npc *NonPlayer) {
@@ -545,7 +558,23 @@ func moveAggressively(npc *NonPlayer) {
 	randn := rand.Intn(5000)
 	if randn%4 == 0 {
 		moveNorth(npc)
-		activatePower(npc)
+		activatePower(npc) // Power always activates on northern movement
+	}
+	if randn%4 == 1 {
+		moveSouth(npc)
+	}
+	if randn%4 == 2 {
+		moveEast(npc)
+	}
+	if randn%4 == 3 {
+		moveWest(npc)
+	}
+}
+
+func moveRandomly(npc *NonPlayer) {
+	randn := rand.Intn(4)
+	if randn%4 == 0 {
+		moveNorth(npc)
 	}
 	if randn%4 == 1 {
 		moveSouth(npc)

@@ -57,8 +57,8 @@ func divPlayerInformation(player *Player) string {
 }
 
 func playerInformation(player *Player) string {
-	hearts := getHeartsFromHealth(player.getHealthSync())
-	return fmt.Sprintf(`%s %s<br />%s | %s | %s %s`, player.username, hearts, spanStreak(player.getKillStreakSync()), spanBoosts(player.getBoostCountSync()), spanMoney(player.getMoneySync()), spanPower(player.actions.spaceStack.count()))
+	hearts := getHeartsFromHealth(player.health.Load())
+	return fmt.Sprintf(`%s %s<br />%s | %s | %s %s`, player.username, hearts, spanStreak(player.killstreak.Load()), spanBoosts(player.getBoostCountSync()), spanMoney(player.money.Load()), spanPower(player.actions.spaceStack.count()))
 }
 
 func spanPower(quantity int) string {
@@ -69,17 +69,17 @@ func spanPower(quantity int) string {
 	}
 }
 
-func spanStreak(quantity int) string {
+func spanStreak(quantity int64) string {
 	return fmt.Sprintf(`<span id="streak" class="red">Streak %d</span>`, quantity)
 }
 func spanBoosts(quantity int) string {
 	return fmt.Sprintf(`<span id="boosts" class="blue">^ %d</span>`, quantity)
 }
-func spanMoney(quantity int) string {
+func spanMoney(quantity int64) string {
 	return fmt.Sprintf(`<span id="money" class="dark-green">$ %d</span>`, quantity)
 }
 
-func getHeartsFromHealth(i int) string {
+func getHeartsFromHealth(i int64) string {
 	i = (i - (i % 50)) / 50
 	if i == 0 {
 		return ""
@@ -171,7 +171,7 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 		if tile == nil {
 			continue
 		}
-		if tile.stage != player.stage {
+		if tile.stage != player.getTileSync().stage {
 			continue
 		}
 
