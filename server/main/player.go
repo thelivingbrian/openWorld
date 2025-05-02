@@ -44,6 +44,7 @@ type PlayerStats struct {
 	deathCount     atomic.Int64
 	goalsScored    atomic.Int64
 	peakKillStreak atomic.Int64
+	peakWealth     atomic.Int64
 }
 
 ////////////////////////////////////////////////////////////
@@ -397,6 +398,7 @@ func (player *Player) halveMoney() int64 {
 
 func (player *Player) addMoneyAndUpdate(n int) {
 	totalMoney := player.money.Add(int64(n))
+	SetMaxAtomic64IfGreater(&player.peakWealth, totalMoney)
 	if totalMoney > 2*1000 {
 		player.addHatByName("made-of-money")
 	}

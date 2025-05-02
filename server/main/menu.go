@@ -207,14 +207,21 @@ func createInfoHtmlForPlayer(p *Player) template.HTML {
 		`<div class="player-stats">
 			<p><strong>  Total  </strong></p>
 			<p>&#9656;Goals: %d</p>
-			<p>&#9656;Kills: %d</p>
+			<p>&#9656;Player Kills: %d</p>
 			<p>&#9656;Deaths: %d</p>
 			<br />
-			<p><strong>  Best  </strong></p>
+			<p><strong>  Highest  </strong></p>
 			<p>&#9656;Streak: %d</p>
+			<p>&#9656;Wealth: %d</p>
 			<br />
 		</div>`,
-		p.goalsScored.Load(), p.killCount.Load(), p.deathCount.Load(), p.peakKillStreak.Load(),
+		// Total
+		p.goalsScored.Load(),
+		p.killCount.Load(),
+		p.deathCount.Load(),
+		// Peak
+		p.peakKillStreak.Load(),
+		p.peakWealth.Load(),
 	)
 
 	return template.HTML(htmlContent)

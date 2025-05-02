@@ -48,6 +48,7 @@ type PlayerStatsRecord struct {
 	PeakKillStreak int64 `bson:"peakKillSteak,omitempty"`
 	DeathCount     int64 `bson:"deathCount,omitempty"`
 	GoalsScored    int64 `bson:"goalsScored,omitempty"`
+	PeakWealth     int64 `bson:"peakWealth,omitempty"`
 }
 
 type EventRecord struct {
