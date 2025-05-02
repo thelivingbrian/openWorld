@@ -172,7 +172,7 @@ func save[T any](directoryName, fileName string, data T, col *Collection) {
 		panic("Invalid collection")
 	}
 	outFile := COLLECTION_PATH + col.Name + "/" + directoryName + "/" + fileName + ".json"
-	err := writeJsonFile(outFile, data)
+	err := writeJsonFile(outFile, data, true)
 	if err != nil {
 		panic(err)
 	}

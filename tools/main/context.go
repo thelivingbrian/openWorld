@@ -60,11 +60,11 @@ func parseJsonFile[T any](filename string) T {
 	return out
 }
 
-func writeJsonFile[T any](path string, entries T) error {
-	data, err := json.Marshal(entries)
-	if err != nil {
-		return fmt.Errorf("error marshalling materials: %w", err)
-	}
+func writeJsonFile[T any](path string, entries T, pretty bool) error {
+	// data, err := json.Marshal(entries)
+	// if err != nil {
+	// 	return fmt.Errorf("error marshalling materials: %w", err)
+	// }
 
 	file, err := os.Create(path)
 	if err != nil {
@@ -72,10 +72,18 @@ func writeJsonFile[T any](path string, entries T) error {
 	}
 	defer file.Close()
 
-	_, err = file.Write(data)
-	if err != nil {
-		return fmt.Errorf("error writing to file: %w", err)
+	enc := json.NewEncoder(file)
+	if pretty {
+		enc.SetIndent("", "  ")
 	}
+	if err := enc.Encode(entries); err != nil {
+		return fmt.Errorf("error encoding JSON: %w", err)
+	}
+
+	// _, err = file.Write(data)
+	// if err != nil {
+	// 	return fmt.Errorf("error writing to file: %w", err)
+	// }
 
 	return nil
 }
@@ -85,7 +93,7 @@ func colorName(c Color) string {
 }
 
 func (c Context) writeColorsToLocalFile() error {
-	return writeJsonFile(COLOR_PATH, c.colors)
+	return writeJsonFile(COLOR_PATH, c.colors, true)
 }
 
 func (c Context) createLocalCSSFile() {
@@ -272,7 +280,7 @@ func (c Context) compileCollection(collection *Collection) {
 		}
 	}
 	fmt.Printf("Writing (%d) Areas", len(areas))
-	writeJsonFile(filepath.Join(COMPILE_basePath, AREA_FILENAME), areas)
+	writeJsonFile(filepath.Join(COMPILE_basePath, AREA_FILENAME), areas, false)
 }
 
 func (col Collection) areaOutputFromDescription(desc AreaDescription, mapid string) AreaOutput {
