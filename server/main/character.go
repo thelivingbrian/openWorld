@@ -215,8 +215,6 @@ func transferPlayerWithinStage(p *Player, source, dest *Tile) bool {
 }
 
 func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
-	// p.stageLock.Lock() // No need for this ?
-	// defer p.stageLock.Unlock()
 	p.tileLock.Lock()
 	defer p.tileLock.Unlock()
 
@@ -225,7 +223,6 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 	}
 
 	source.stage.removeLockedPlayerById(p.id)
-	//p.stage = dest.stage
 
 	dest.stage.addLockedPlayer(p)
 	dest.addLockedPlayerToTile(p)
