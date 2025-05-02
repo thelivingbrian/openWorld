@@ -14,9 +14,8 @@ func TestEnsureInteractableWillPush(t *testing.T) {
 	go drainChannel(updatesForPlayer)
 
 	player := &Player{
-		id:      "tp",
-		actions: createDefaultActions(),
-		//health:   atomic.NewInt64(100),
+		id:       "tp",
+		actions:  createDefaultActions(),
 		updates:  updatesForPlayer,
 		tangible: true,
 	}

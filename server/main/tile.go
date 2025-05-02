@@ -268,11 +268,6 @@ func damagePlayerAndHandleDeath(player *Player, dmg int) bool {
 }
 
 func reduceHealthAndCheckFatal(player *Player, dmg int) bool {
-	// player.healthLock.Lock()
-	// defer player.healthLock.Unlock()
-	// oldHealth := player.health
-	// newHealth := oldHealth - dmg
-	// player.health = newHealth
 	newHealth := player.health.Add(-int64(dmg))
 	oldHealth := newHealth + int64(dmg)
 
@@ -287,8 +282,7 @@ func updateStreakIfTangible(player *Player) {
 		return
 	}
 	defer player.tangibilityLock.Unlock()
-	// player.streakLock.Lock()
-	// defer player.streakLock.Unlock()
+
 	html := spanStreak(player.killstreak.Load())
 	updateOne(html, player)
 }

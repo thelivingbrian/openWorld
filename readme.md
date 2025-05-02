@@ -23,5 +23,6 @@ Check out: https://bloopworld.co - For live demo
 ## Snapshots 
 This project uses: https://github.com/gkampitakis/go-snaps
 
-To update snapshots once (Powershell) use: 
+To update snapshots once (Powershell) use:
+
     $env:UPDATE_SNAPS = 'true'; go test; Remove-Item Env:\UPDATE_SNAPS

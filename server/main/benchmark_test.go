@@ -194,10 +194,8 @@ func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 		updatesForPlayer := make(chan []byte)
 		go drainChannel(updatesForPlayer)
 		players[i] = &Player{
-			id: fmt.Sprintf("tp%d", i),
-			//stage:        stage,
-			actions: createDefaultActions(),
-			//health:       100,
+			id:           fmt.Sprintf("tp%d", i),
+			actions:      createDefaultActions(),
 			updates:      updatesForPlayer,
 			world:        &World{worldStages: make(map[string]*Stage)},
 			tangible:     true,

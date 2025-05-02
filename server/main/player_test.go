@@ -39,10 +39,9 @@ func createTestingPlayer(world *World, user string) *Player {
 
 	id := "tp" + user
 	tp := &Player{
-		id:       id,
-		username: user,
-		actions:  createDefaultActions(),
-		//health:       100,
+		id:           id,
+		username:     user,
+		actions:      createDefaultActions(),
 		updates:      updatesForPlayer,
 		tangible:     true,
 		playerStages: map[string]*Stage{},

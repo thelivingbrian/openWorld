@@ -61,11 +61,6 @@ func parseJsonFile[T any](filename string) T {
 }
 
 func writeJsonFile[T any](path string, entries T, pretty bool) error {
-	// data, err := json.Marshal(entries)
-	// if err != nil {
-	// 	return fmt.Errorf("error marshalling materials: %w", err)
-	// }
-
 	file, err := os.Create(path)
 	if err != nil {
 		return fmt.Errorf("error creating file: %w", err)
@@ -79,11 +74,6 @@ func writeJsonFile[T any](path string, entries T, pretty bool) error {
 	if err := enc.Encode(entries); err != nil {
 		return fmt.Errorf("error encoding JSON: %w", err)
 	}
-
-	// _, err = file.Write(data)
-	// if err != nil {
-	// 	return fmt.Errorf("error writing to file: %w", err)
-	// }
 
 	return nil
 }
@@ -330,8 +320,6 @@ func (collection *Collection) compileMaterialsFromBlueprint(bp *Blueprint) ([][]
 			// Find proto
 			proto := collection.findPrototypeById(tile.PrototypeId)
 			if proto == nil {
-				//errMsg := fmt.Sprintf("Prototype with id: %s Not found. Area: %s | y:%d x:%d", bp.Tiles[y][x].PrototypeId, desc.Name, y, x)
-				//panic("PROTO NOT FOUND. error - " + errMsg)
 				return nil, fmt.Errorf("Prototype with id: %s Not found. y:%d x:%d", bp.Tiles[y][x].PrototypeId, y, x)
 			}
 

@@ -88,7 +88,6 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 		log.Fatal("Fatal: Invalid coords to place on stage.")
 	}
 
-	//p.setStage(stage)
 	stage.addLockedPlayer(p)
 	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
 	spawnItemsFor(p, stage)
