@@ -19,7 +19,7 @@ func TestGenerateRichestList(t *testing.T) {
 	mock := &MockRankProvider{
 		topNCalls: make(map[string]int),
 		players: map[string][]PlayerRecord{
-			"money": {
+			"stats.peakWealth": {
 				{Username: "Alice", Money: 1000},
 				{Username: "Bob", Money: 800},
 			},
@@ -32,20 +32,20 @@ func TestGenerateRichestList(t *testing.T) {
 	if len(list.Entries) != 2 || list.Entries[0].Username != "Alice" {
 		t.Errorf("unexpected high score list: %+v", list.Entries)
 	}
-	if mock.topNCalls["money"] != 1 {
+	if mock.topNCalls["stats.peakWealth"] != 1 {
 		t.Errorf("expected DB call, got: %d", mock.topNCalls["money"])
 	}
 
 	// Second call within cache interval should not trigger DB access
 	list = generateRichestList(hub)
-	if mock.topNCalls["money"] != 1 {
+	if mock.topNCalls["stats.peakWealth"] != 1 {
 		t.Errorf("expected cache hit, but DB was called again")
 	}
 
 	// Force cache expiration
 	hub.richest.lastChecked = time.Now().Add(-20 * time.Second)
 	list = generateRichestList(hub)
-	if mock.topNCalls["money"] != 2 {
+	if mock.topNCalls["stats.peakWealth"] != 2 {
 		t.Errorf("expected second DB call after expiry")
 	}
 }
@@ -54,7 +54,7 @@ func TestGenerateDeadliestList(t *testing.T) {
 	mock := &MockRankProvider{
 		topNCalls: make(map[string]int),
 		players: map[string][]PlayerRecord{
-			"stats.killCount": {
+			"stats.peakKillStreak": {
 				{Username: "Charlie", Stats: PlayerStatsRecord{KillCount: 10, DeathCount: 2}},
 				{Username: "Dana", Stats: PlayerStatsRecord{KillCount: 5, DeathCount: 1}},
 			},

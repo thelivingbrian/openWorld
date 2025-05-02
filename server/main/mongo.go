@@ -46,7 +46,7 @@ type PlayerStatsRecord struct {
 	// Stats
 	KillCount      int64 `bson:"killCount,omitempty"`
 	KillCountNpc   int64 `bson:"killCountNpc,omitempty"`
-	PeakKillStreak int64 `bson:"peakKillSteak,omitempty"`
+	PeakKillStreak int64 `bson:"peakKillStreak,omitempty"`
 	DeathCount     int64 `bson:"deathCount,omitempty"`
 	GoalsScored    int64 `bson:"goalsScored,omitempty"`
 	PeakWealth     int64 `bson:"peakWealth,omitempty"`
