@@ -208,6 +208,7 @@ func createInfoHtmlForPlayer(p *Player) template.HTML {
 			<p><strong>  Total  </strong></p>
 			<p>&#9656;Goals: %d</p>
 			<p>&#9656;Player Kills: %d</p>
+			<p>&#9656;NPC Kills: %d</p>
 			<p>&#9656;Deaths: %d</p>
 			<br />
 			<p><strong>  Highest  </strong></p>
@@ -218,6 +219,7 @@ func createInfoHtmlForPlayer(p *Player) template.HTML {
 		// Total
 		p.goalsScored.Load(),
 		p.killCount.Load(),
+		p.killCountNpc.Load(),
 		p.deathCount.Load(),
 		// Peak
 		p.peakKillStreak.Load(),

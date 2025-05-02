@@ -45,6 +45,7 @@ type PlayerRecord struct {
 type PlayerStatsRecord struct {
 	// Stats
 	KillCount      int64 `bson:"killCount,omitempty"`
+	KillCountNpc   int64 `bson:"killCountNpc,omitempty"`
 	PeakKillStreak int64 `bson:"peakKillSteak,omitempty"`
 	DeathCount     int64 `bson:"deathCount,omitempty"`
 	GoalsScored    int64 `bson:"goalsScored,omitempty"`
@@ -209,16 +210,12 @@ func (db *DB) addHatToPlayer(username string, newHat Hat) error {
 
 func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 	return bson.M{
-		"x":         pTile.x,
-		"y":         pTile.y,
-		"health":    p.health.Load(),
-		"stagename": pTile.stage.name,
-		"money":     p.money.Load(),
-		"stats":     statsRecordFromPlayerStats(p.PlayerStats),
-		//"killCount":       p.getKillCountSync(),
-		//"peakKillStreak":  getPeakKillSteakSync(p),
-		//"deathCount":      p.getDeathCountSync(),
-		//"goalsScored":     p.getGoalsScored(),
+		"x":               pTile.x,
+		"y":               pTile.y,
+		"health":          p.health.Load(),
+		"stagename":       pTile.stage.name,
+		"money":           p.money.Load(),
+		"stats":           statsRecordFromPlayerStats(p.PlayerStats),
 		"hatList.current": p.hatList.indexSync(),
 	}
 }
@@ -226,9 +223,11 @@ func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 func statsRecordFromPlayerStats(stats *PlayerStats) PlayerStatsRecord {
 	return PlayerStatsRecord{
 		KillCount:      stats.killCount.Load(),
+		KillCountNpc:   stats.killCountNpc.Load(),
 		DeathCount:     stats.deathCount.Load(),
 		GoalsScored:    stats.goalsScored.Load(),
 		PeakKillStreak: stats.peakKillStreak.Load(),
+		PeakWealth:     stats.peakWealth.Load(),
 	}
 }
 

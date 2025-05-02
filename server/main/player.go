@@ -41,6 +41,7 @@ type Player struct {
 
 type PlayerStats struct {
 	killCount      atomic.Int64
+	killCountNpc   atomic.Int64
 	deathCount     atomic.Int64
 	goalsScored    atomic.Int64
 	peakKillStreak atomic.Int64
@@ -426,6 +427,10 @@ func (player *Player) incrementKillStreak() int64 {
 
 func (player *Player) incrementKillCount() int64 {
 	return player.killCount.Add(1)
+}
+
+func (player *Player) incrementKillCountNpc() int64 {
+	return player.killCountNpc.Add(1)
 }
 
 func (player *Player) incrementDeathCount() int64 {

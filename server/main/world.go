@@ -355,6 +355,7 @@ func playerStatsFromRecord(record PlayerRecord) *PlayerStats {
 	out := PlayerStats{}
 	out.deathCount.Store(record.Stats.DeathCount)
 	out.killCount.Store(record.Stats.KillCount)
+	out.killCountNpc.Store(record.Stats.KillCountNpc)
 	out.goalsScored.Store(record.Stats.GoalsScored)
 	out.peakKillStreak.Store(record.Stats.PeakKillStreak)
 	out.peakWealth.Store(record.Stats.PeakWealth)
