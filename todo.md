@@ -53,21 +53,23 @@
 - [ ] Money
   - [ ] Total
   - [-] Current
-  - [ ] Peak 
+  - [-] Peak 
 - [-] Goals scored
 - [ ] Games won
-- [ ] NPC Kills
+- [-] NPC Kills
 - [-] Peak Killstreak 
 
 ## Highscores
 - [-] Current Money / Kills / Goals Scored
-- [ ] Peak kill streak
-  - [ ] player/npc kills as side stats
-  - [ ] KD (Player + NPC) / Deaths as side stat 
-- [ ] Peak money 
-  - [ ] Current money becomes side stat
-  - [ ] Total money as side stat? 
+- [-] Peak kill streak
+  - [-] player/npc kills as side stats - tried but no, too busy
+  - [-] KD (Player + NPC) / Deaths as side stat 
+- [-] Peak money 
+  - [-] Current money becomes side stat
+  - [-] Total money as side stat?
+  - [-] Too busy - probably 2 stats tops - prefer 1. 
 - [ ] Games won as side stat for Goals Scored
+- [ ] BUG: Non-number in mongo breaks HS list for everyone 
 
 ## Performance 
 - [-] Performance from Ec2 is degraded vs localhost - 400 Websocket users / 8 stages very stable
