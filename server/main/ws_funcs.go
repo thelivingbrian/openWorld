@@ -172,8 +172,8 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	case "h":
 		player.cycleHats()
 	case "q":
-		//spawnNewPlayerWithRandomMovement(player, 100)
-		spawnNewNPCDoingAction(player, 100, moveRandomly)
+		// spawnNewPlayerWithRandomMovement(player, 100)
+		// spawnNewNPCDoingAction(player, 100, moveRandomly)
 		// rotate(player, false)
 	case "e":
 		// rotate(player, true)
