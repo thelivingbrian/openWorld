@@ -15,7 +15,7 @@ type AccomplishmentList struct {
 }
 
 type Accomplishment struct {
-	acquiredAt time.Time
-	name       string
+	AcquiredAt time.Time
+	Name       string
 	// Event id? - which currently only is/could be mongo _id
 }
