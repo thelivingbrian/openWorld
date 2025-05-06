@@ -33,6 +33,7 @@ type Player struct {
 	playerStages             map[string]*Stage
 	pStageMutex              sync.Mutex
 	hatList                  SyncHatList
+	accomplishments          SyncAccomplishmentList
 	health                   atomic.Int64
 	money                    atomic.Int64
 	killstreak               atomic.Int64
@@ -357,6 +358,15 @@ func (player *Player) addHatByName(hatName string) {
 func (player *Player) cycleHats() {
 	player.hatList.nextValid()
 	updateIconForAll(player)
+}
+
+func (player *Player) addAccomplishmenttByName(accomplishmentName string) {
+	acc := player.accomplishments.addByName(accomplishmentName)
+	if acc == nil {
+		return
+	}
+	logger.Debug().Msg("Adding Accomplishment: " + acc.Name)
+	player.world.db.addAccomplishmentToPlayer(player.username, acc.Name, *acc)
 }
 
 /////////////////////////////////////////////////////////////

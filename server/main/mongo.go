@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -202,6 +203,19 @@ func (db *DB) addHatToPlayer(username string, newHat Hat) error {
 		bson.M{
 			"$push": bson.M{
 				"hatList.hats": newHat,
+			},
+		},
+	)
+	return err
+}
+
+func (db *DB) addAccomplishmentToPlayer(username string, key string, value Accomplishment) error {
+	_, err := db.playerRecords.UpdateOne(
+		context.TODO(),
+		bson.M{"username": username},
+		bson.M{
+			"$set": bson.M{
+				fmt.Sprintf("accomplishments.%s", key): value,
 			},
 		},
 	)
