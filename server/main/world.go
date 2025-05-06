@@ -343,10 +343,13 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		team:                     record.Team,
 		PlayerStats:              playerStatsFromRecord(record),
 		hatList:                  SyncHatList{HatList: record.HatList},
+		accomplishments:          SyncAccomplishmentList{Accomplishments: record.Accomplishments},
+	}
+	if newPlayer.accomplishments.Accomplishments == nil {
+		newPlayer.accomplishments.Accomplishments = make(map[string]Accomplishment)
 	}
 	newPlayer.health.Store(record.Health)
 	newPlayer.money.Store(record.Money)
-
 	newPlayer.setIcon()
 	return newPlayer
 }

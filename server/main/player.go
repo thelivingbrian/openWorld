@@ -360,7 +360,7 @@ func (player *Player) cycleHats() {
 	updateIconForAll(player)
 }
 
-func (player *Player) addAccomplishmenttByName(accomplishmentName string) {
+func (player *Player) addAccomplishmentByName(accomplishmentName string) {
 	acc := player.accomplishments.addByName(accomplishmentName)
 	if acc == nil {
 		return
