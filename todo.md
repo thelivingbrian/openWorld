@@ -347,6 +347,7 @@ One way or two way.
 type []byte(update) 100 times
 
 []byte(update)
-I will type []byte(update) 75 more times 
-I will type []byte(update) 74 more times
+I will type []byte(update) 70 more times
+I will type []byte(update) 69 more times 
+I will type []byte(update) 68 more times
 

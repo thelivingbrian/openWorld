@@ -70,7 +70,7 @@ var accomplishmentsMenu = Menu{
 	CssClass: "",
 	InfoHtml: `<h2>Accomplishment population error.</h2>`,
 	Links: []MenuLink{
-		{Text: "Back", eventHandler: openPauseMenu, auth: nil},
+		{Text: "Back", eventHandler: openStatsMenu, auth: nil},
 	},
 }
 
@@ -207,7 +207,7 @@ func openPauseMenu(p *Player) {
 }
 
 func openStatsMenu(p *Player) {
-	menu := statsMenu
+	menu := p.menues["stats"] // statsMenu -> circular reference
 	menu.InfoHtml = createInfoHtmlForPlayer(p)
 	sendMenu(p, menu)
 }
