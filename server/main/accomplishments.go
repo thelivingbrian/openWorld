@@ -11,7 +11,7 @@ type SyncAccomplishmentList struct {
 }
 
 type Accomplishment struct {
-	AcquiredAt time.Time
+	AcquiredAt time.Time // need bson annotation
 	Name       string
 	// Event id? - which currently only is/could be mongo _id
 }

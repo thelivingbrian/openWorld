@@ -260,9 +260,9 @@ func createAccomplishmentsHtmlForPlayer(p *Player) template.HTML {
 	for _, name := range everyAccomplishment {
 		if acc, ok := p.accomplishments.Accomplishments[name]; ok {
 			// earned
-			date := acc.AcquiredAt.Format("Jun 11, 1996") // adjust format as you like
+			date := acc.AcquiredAt.Format("Jan 2, 2006") // adjust format as you like
 			sb.WriteString(
-				fmt.Sprintf(`<p>✔ %s – <small>%s</small></p>`, name, date),
+				fmt.Sprintf(`<p>✔️ %s – <small>%s</small></p>`, name, date),
 			)
 		} else {
 			// not yet earned
