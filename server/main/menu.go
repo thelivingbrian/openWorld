@@ -50,6 +50,7 @@ var statsMenu = Menu{
 	CssClass: "",
 	InfoHtml: `<h2>Stat population error.</h2>`,
 	Links: []MenuLink{
+		{Text: "Accomplishments", eventHandler: openAccomplishmentsMenu, auth: nil},
 		{Text: "Back", eventHandler: openPauseMenu, auth: nil},
 	},
 }
@@ -61,6 +62,15 @@ var respawnMenu = Menu{
 	Links: []MenuLink{
 		{Text: "Yes", eventHandler: turnMenuOffAnd(handleDeath), auth: excludeSpecialStages},
 		{Text: "No", eventHandler: openPauseMenu, auth: nil},
+	},
+}
+
+var accomplishmentsMenu = Menu{
+	Name:     "accomplishments",
+	CssClass: "",
+	InfoHtml: `<h2>Accomplishment population error.</h2>`,
+	Links: []MenuLink{
+		{Text: "Back", eventHandler: openPauseMenu, auth: nil},
 	},
 }
 
@@ -231,6 +241,39 @@ func createInfoHtmlForPlayer(p *Player) template.HTML {
 
 func openRespawnMenu(p *Player) {
 	turnMenuOnByName(p, "respawn")
+}
+
+func openAccomplishmentsMenu(p *Player) {
+	menu := accomplishmentsMenu
+	menu.InfoHtml = createAccomplishmentsHtmlForPlayer(p)
+	sendMenu(p, menu)
+}
+
+func createAccomplishmentsHtmlForPlayer(p *Player) template.HTML {
+	var sb strings.Builder
+	sb.WriteString(`<div class="player-accomplishments">`)
+
+	// lock once while we read the map
+	p.accomplishments.Lock()
+	defer p.accomplishments.Unlock()
+
+	for _, name := range everyAccomplishment {
+		if acc, ok := p.accomplishments.Accomplishments[name]; ok {
+			// earned
+			date := acc.AcquiredAt.Format("Jun 11, 1996") // adjust format as you like
+			sb.WriteString(
+				fmt.Sprintf(`<p>✔ %s – <small>%s</small></p>`, name, date),
+			)
+		} else {
+			// not yet earned
+			sb.WriteString(
+				fmt.Sprintf(`<p>❌ %s</p>`, name),
+			)
+		}
+	}
+
+	sb.WriteString(`</div>`)
+	return template.HTML(sb.String())
 }
 
 // Player specific menues
