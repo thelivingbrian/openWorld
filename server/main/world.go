@@ -338,7 +338,7 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		tangibilityLock:          sync.Mutex{},
 		actions:                  createDefaultActions(),
 		world:                    world,
-		menues:                   map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu}, // terrifying
+		menues:                   map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu, "accomplishments": accomplishmentsMenu}, // terrifying
 		playerStages:             make(map[string]*Stage),
 		team:                     record.Team,
 		PlayerStats:              playerStatsFromRecord(record),
