@@ -20,6 +20,7 @@ type Accomplishment struct {
 const (
 	becomeMostDangerous = "Become most dangerous"
 	scoreAGoal          = "Score a goal"
+	winningTeam         = "Be on winning team"
 	defeatPlayer        = "Defeat another player"
 	tenKillStreak       = "10 Kill streak"
 	hundredKillStreak   = "100 Kill streak"
@@ -30,9 +31,12 @@ const (
 	puzzle0             = "Puzzle 0"
 )
 
+// Difficulty level ? e.g. Win a game is harder than winning team
+
 var everyAccomplishment = []string{
 	becomeMostDangerous,
 	scoreAGoal,
+	winningTeam,
 	defeatPlayer,
 	tenKillStreak,
 	hundredKillStreak,
