@@ -348,6 +348,8 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 			awardHatByTeam(p.world, team, "winning-team", true)
 			p.addAccomplishmentByName(winningAGame)
 
+			// Games won stat?
+
 			// Reset and notify
 			p.world.leaderBoard.scoreboard.ResetAll()
 			message := fmt.Sprintf("@[%s|%s] won the game for @[%s|%s]!", p.username, team, team, team)

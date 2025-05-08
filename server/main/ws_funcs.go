@@ -172,13 +172,9 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	case "h":
 		player.cycleHats()
 	case "q":
-		// player.addHatByName("score-1-goal", true)
-		// player.addAccomplishmentByName(becomeMostDangerous)
-		// spawnNewPlayerWithRandomMovement(player, 100)
-		// spawnNewNPCDoingAction(player, 100, moveRandomly)
-		// rotate(player, false)
+		// Unimplemented
 	case "e":
-		// rotate(player, true)
+		// Unimplemented
 	case "Shift-On":
 		updateOne(divInputShift(), player)
 	case "Shift-Off":

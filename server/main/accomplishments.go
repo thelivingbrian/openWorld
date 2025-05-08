@@ -16,8 +16,9 @@ type Accomplishment struct {
 }
 
 // Changing name invalidates previous accomplishment - Add ID?
+// Need difficulty levels ?
 const (
-	becomeMostDangerous = "Become most dangerous"   // X
+	becomeMostDangerous = "Become most dangerous"   // X = implemented
 	scoreAGoal          = "Score a goal"            // X
 	winningAGame        = "Score game winning goal" // X
 	defeatPlayer        = "Defeat another player"   // X
@@ -29,8 +30,6 @@ const (
 	tripleKill          = "Triple kill"             // X
 	puzzle0             = "Puzzle 0"                // X
 )
-
-// Difficulty level ?
 
 var everyAccomplishment = []string{
 	becomeMostDangerous,

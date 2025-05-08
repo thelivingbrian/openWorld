@@ -71,6 +71,9 @@
 - [ ] Games won as side stat for Goals Scored
 - [ ] BUG: Non-number in mongo breaks HS list for everyone 
 
+## Accomplishments 
+- [-] Add accomplishments list
+
 ## Performance 
 - [-] Performance from Ec2 is degraded vs localhost - 400 Websocket users / 8 stages very stable
   - [-] Client overwhelmed Potentially?
@@ -333,7 +336,9 @@ One way or two way.
  - [-] update Area output to have materials by value
    - [-] remove material output?  
    - [-] compile / load successfully w/ ground
-   - [ ] compile tests 
+   - [-] compile tests
+     - [-] Snapshots for grid actions 
+   - [ ] http writer - keep in handler instead of action funcs 
 
  - [-] Toroidal Woods - 12x12
 

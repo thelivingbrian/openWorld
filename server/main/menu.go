@@ -207,7 +207,7 @@ func openPauseMenu(p *Player) {
 }
 
 func openStatsMenu(p *Player) {
-	menu := p.menues["stats"] // statsMenu -> circular reference
+	menu := p.menues["stats"]
 	menu.InfoHtml = createInfoHtmlForPlayer(p)
 	sendMenu(p, menu)
 }
@@ -253,19 +253,16 @@ func createAccomplishmentsHtmlForPlayer(p *Player) template.HTML {
 	var sb strings.Builder
 	sb.WriteString(`<div class="player-accomplishments">`)
 
-	// lock once while we read the map
 	p.accomplishments.Lock()
 	defer p.accomplishments.Unlock()
 
 	for _, name := range everyAccomplishment {
 		if acc, ok := p.accomplishments.Accomplishments[name]; ok {
-			// earned
-			date := acc.AcquiredAt.Format("Jan 2, 2006") // adjust format as you like
+			date := acc.AcquiredAt.Format("Jan 2, 2006")
 			sb.WriteString(
 				fmt.Sprintf(`<p>✔️ %s – <small>%s</small></p>`, name, date),
 			)
 		} else {
-			// not yet earned
 			sb.WriteString(
 				fmt.Sprintf(`<p>❌ %s</p>`, name),
 			)

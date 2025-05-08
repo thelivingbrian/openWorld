@@ -480,9 +480,9 @@ func (npc *NonPlayer) updateRecord() {
 //////////////////////////////////////////////////////////////////////////////
 // Spawn NPC
 
-func spawnNewNPCDoingAction(ref *Player, interval int, action func(*NonPlayer)) *NonPlayer {
+func spawnNewNPCDoingAction(ref *Player, interval int, action func(*NonPlayer), sameTile bool) *NonPlayer {
 	npc, ctx := createNewNPC(ref.world)
-	placeOnSameStage(npc, ref)
+	placeOnSameStage(npc, ref, sameTile)
 
 	if action != nil {
 		go doAtIntervalUntilTermination(npc, ctx, interval, action)
@@ -508,12 +508,16 @@ func createNewNPC(world *World) (*NonPlayer, context.Context) {
 	return npc, ctx
 }
 
-func placeOnSameStage(npc *NonPlayer, ref *Player) {
+func placeOnSameStage(npc *NonPlayer, ref *Player, sameTile bool) {
 	refTile := ref.getTileSync()
-	// tiles := walkableTiles(refTile.stage.tiles)
-	// n := rand.Intn(len(tiles))
-	// startTile := tiles[n]
-	addNPCAndNotifyOthers(npc, refTile)
+	if sameTile {
+		addNPCAndNotifyOthers(npc, refTile)
+		return
+	}
+	tiles := walkableTiles(refTile.stage.tiles)
+	n := rand.Intn(len(tiles))
+	startTile := tiles[n]
+	addNPCAndNotifyOthers(npc, startTile)
 }
 
 func doAtIntervalUntilTermination(npc *NonPlayer, ctx context.Context, interval int, action func(*NonPlayer)) {
