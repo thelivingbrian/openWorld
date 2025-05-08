@@ -6,13 +6,13 @@ import (
 )
 
 var EVERY_HAT_NAME_TO_TRIM map[string]string = map[string]string{
-	"score-1-goal":    "black-b med",
-	"winning-team":    "black-b thick",
-	"most-dangerous":  "red-b thick",
-	"made-of-money":   "green-b med",
-	"made-of-money-2": "green-b med",
-	"puzzle-solve-1":  "lavender-b thick",
-	"contributor":     "gold-b thick",
+	"score-1-goal":   "black-b med",
+	"winning-team":   "black-b thick",
+	"most-dangerous": "red-b thick",
+	// "made-of-money":   "green-b med",
+	// "made-of-money-2": "green-b med",
+	"puzzle-solve": "lavender-b thick",
+	"contributor":  "gold-b thick",
 }
 
 type HatList struct {
@@ -39,6 +39,7 @@ func (hatList *SyncHatList) addByName(hatName string) *Hat {
 	defer hatList.Unlock()
 	for i := range hatList.Hats {
 		if hatList.Hats[i].Name == hatName {
+			hatList.Current = &i
 			return nil
 		}
 	}
@@ -57,6 +58,7 @@ func (hatList *SyncHatList) peek() *Hat {
 	}
 	i := *hatList.Current
 	if i < 0 || i >= len(hatList.Hats) {
+		hatList.Current = nil
 		return nil
 	}
 	return &hatList.Hats[*hatList.Current]

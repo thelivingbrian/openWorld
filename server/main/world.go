@@ -648,7 +648,8 @@ func crownMostDangerousById(world *World, streakEvent PlayerStreakRecord) {
 	if player == nil {
 		return
 	}
-	player.addHatByName("most-dangerous")
+	player.addHatByName("most-dangerous", false)
+	player.addAccomplishmentByName(becomeMostDangerous)
 	player.world.notifyChangeInMostDangerous(streakEvent)
 }
 
@@ -685,12 +686,12 @@ func broadcastUpdate(world *World, message string) {
 	}
 }
 
-func awardHatByTeam(world *World, team, hat string) {
+func awardHatByTeam(world *World, team, hat string, persist bool) {
 	world.wPlayerMutex.Lock()
 	defer world.wPlayerMutex.Unlock()
 	for _, p := range world.worldPlayers {
 		if p.getTeamNameSync() == team {
-			p.addHatByName(hat)
+			p.addHatByName(hat, persist)
 		}
 	}
 }

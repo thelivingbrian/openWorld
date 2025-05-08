@@ -345,13 +345,15 @@ func getStageByNameOrGetDefault(player *Player, stagename string) *Stage {
 /////////////////////////////////////////////////////////////
 //  Hats
 
-func (player *Player) addHatByName(hatName string) {
+func (player *Player) addHatByName(hatName string, persist bool) {
 	hat := player.hatList.addByName(hatName)
 	if hat == nil {
 		return
 	}
 	logger.Debug().Msg("Adding Hat: " + hat.Name)
-	player.world.db.addHatToPlayer(player.username, *hat)
+	if persist {
+		player.world.db.addHatToPlayer(player.username, *hat)
+	}
 	updateIconForAllIfTangible(player) // May not originate from click hence check tangible
 }
 
@@ -400,13 +402,18 @@ func (player *Player) halveMoney() int64 {
 
 func (player *Player) addMoneyAndUpdate(n int) {
 	totalMoney := player.money.Add(int64(n))
-	SetMaxAtomic64IfGreater(&player.peakWealth, totalMoney)
-	if totalMoney > 2*1000 {
-		player.addHatByName("made-of-money")
+	if SetMaxAtomic64IfGreater(&player.peakWealth, totalMoney) {
+		checkMoneyAccomplishments(player, int(totalMoney))
 	}
-	if totalMoney > 100*1000 {
-		player.addHatByName("made-of-money-2")
-	}
+
+	// Replace with Richest?
+	// if totalMoney > 2*1000 {
+	// 	player.addHatByName("made-of-money")
+	// }
+	// if totalMoney > 100*1000 {
+	// 	player.addHatByName("made-of-money-2")
+	// }
+
 	updateOne(spanMoney(totalMoney), player)
 }
 
@@ -420,13 +427,16 @@ func (player *Player) incrementKillStreak() int64 {
 	defer updateStreakIfTangible(player) // initiator may not have initiatied via click -> check tangible needed
 
 	currentKs := player.killstreak.Add(1)
-	SetMaxAtomic64IfGreater(&player.peakKillStreak, currentKs)
+	if SetMaxAtomic64IfGreater(&player.peakKillStreak, currentKs) {
+		checkStreakAccomplishments(player, int(currentKs))
+	}
 
 	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: currentKs, team: player.getTeamNameSync()}
 	return currentKs
 }
 
 func (player *Player) incrementKillCount() int64 {
+	player.addAccomplishmentByName(defeatPlayer)
 	return player.killCount.Add(1)
 }
 

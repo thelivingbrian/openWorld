@@ -13,30 +13,29 @@ type SyncAccomplishmentList struct {
 type Accomplishment struct {
 	Name       string    `bson:"name,omitempty"`
 	AcquiredAt time.Time `bson:"acquiredAt,omitempty"`
-	// Event id? - which currently only is/could be mongo _id
 }
 
 // Changing name invalidates previous accomplishment - Add ID?
 const (
-	becomeMostDangerous = "Become most dangerous"
-	scoreAGoal          = "Score a goal"
-	winningTeam         = "Be on winning team"
-	defeatPlayer        = "Defeat another player"
-	tenKillStreak       = "10 Kill streak"
-	hundredKillStreak   = "100 Kill streak"
-	oneThousandMoney    = "1,000 money"
-	fiftyThousandMoney  = "50,000 money"
-	doubleKill          = "Double kill"
-	tripleKill          = "Triple kill"
-	puzzle0             = "Puzzle 0"
+	becomeMostDangerous = "Become most dangerous"   // X
+	scoreAGoal          = "Score a goal"            // X
+	winningAGame        = "Score game winning goal" // X
+	defeatPlayer        = "Defeat another player"   // X
+	tenKillStreak       = "10 Kill streak"          // X
+	hundredKillStreak   = "100 Kill streak"         // X
+	oneThousandMoney    = "1,000 money"             // X
+	fiftyThousandMoney  = "50,000 money"            // X
+	doubleKill          = "Double kill"             // X
+	tripleKill          = "Triple kill"             // X
+	puzzle0             = "Puzzle 0"                // X
 )
 
-// Difficulty level ? e.g. Win a game is harder than winning team
+// Difficulty level ?
 
 var everyAccomplishment = []string{
 	becomeMostDangerous,
 	scoreAGoal,
-	winningTeam,
+	winningAGame,
 	defeatPlayer,
 	tenKillStreak,
 	hundredKillStreak,
@@ -74,5 +73,23 @@ func checkFatalityAccomplishments(player *Player, fatalities int) {
 	}
 	if fatalities >= 3 {
 		player.addAccomplishmentByName(tripleKill)
+	}
+}
+
+func checkStreakAccomplishments(player *Player, streak int) {
+	if streak >= 10 {
+		player.addAccomplishmentByName(tenKillStreak)
+	}
+	if streak >= 100 {
+		player.addAccomplishmentByName(hundredKillStreak)
+	}
+}
+
+func checkMoneyAccomplishments(player *Player, money int) {
+	if money >= 1000 {
+		player.addAccomplishmentByName(oneThousandMoney)
+	}
+	if money >= 50000 {
+		player.addAccomplishmentByName(fiftyThousandMoney)
 	}
 }
