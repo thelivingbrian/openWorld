@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -38,10 +39,10 @@ type RankingProvider interface {
 }
 
 // Used w/ Template methods to cycle through on site
-var queryCategories = [3][2]string{
-	{"Richest", "money"},
-	{"Deadliest", "killCount"},
-	{"MVP", "goalsScored"},
+var queryCategories = []string{
+	"Richest",
+	"Deadliest",
+	"MVP",
 }
 
 func createDefaultHub(db RankingProvider) *Hub {
@@ -90,15 +91,15 @@ func (hub *Hub) highscoreHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Info().Msg("Highscore page accessed.")
 
 	queryValues := r.URL.Query()
-	category := queryValues.Get("category")
+	category := strings.ToLower(queryValues.Get("category"))
 
 	var scores HighScoreList
 	switch category {
-	case "money":
+	case "richest":
 		scores = generateRichestList(hub)
-	case "killCount":
+	case "deadliest":
 		scores = generateDeadliestList(hub)
-	case "goalsScored":
+	case "mvp":
 		scores = generateMVPList(hub)
 	default:
 		break
@@ -190,8 +191,8 @@ func generateMVPList(hub *Hub) HighScoreList {
 
 func (hs HighScoreList) NextCategory() string {
 	for i := range queryCategories {
-		if hs.Category == queryCategories[i][0] {
-			return queryCategories[mod(i+1, len(queryCategories))][1]
+		if hs.Category == queryCategories[i] {
+			return queryCategories[mod(i+1, len(queryCategories))]
 		}
 	}
 	return "next-invalid"
@@ -199,8 +200,8 @@ func (hs HighScoreList) NextCategory() string {
 
 func (hs HighScoreList) PrevCategory() string {
 	for i := range queryCategories {
-		if hs.Category == queryCategories[i][0] {
-			return queryCategories[mod(i-1, len(queryCategories))][1]
+		if hs.Category == queryCategories[i] {
+			return queryCategories[mod(i-1, len(queryCategories))]
 		}
 	}
 	return "prev-invalid"

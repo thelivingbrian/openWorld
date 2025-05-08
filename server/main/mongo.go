@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -39,7 +40,8 @@ type PlayerRecord struct {
 	Stats  PlayerStatsRecord `bson:"stats"`
 
 	// Unlocks
-	HatList HatList `bson:"hatList,omitempty"`
+	HatList         HatList                   `bson:"hatList,omitempty"`
+	Accomplishments map[string]Accomplishment `bson:"accomplishments,omitempty"`
 }
 
 type PlayerStatsRecord struct {
@@ -68,7 +70,7 @@ type SessionDataRecord struct {
 	Timestamp              time.Time           `bson:"timestamp"`
 	SessionStartTime       time.Time           `bson:"sessionStartTime"`
 	PeakSessionPlayerCount int                 `bson:"peakSessionPlayerCount"`
-	PeakSessionKillSteak   SessionStreakRecord `bson:"peakSessionKillSteak"`
+	PeakSessionKillStreak  SessionStreakRecord `bson:"peakSessionKillStreak"`
 	TotalSessionLogins     int                 `bson:"totalSessionLogins"`
 	TotalSessionLogouts    int                 `bson:"totalSessionLogouts"`
 	CurrentTeamPlayerCount map[string]int      `bson:"currentTeamPlayerCount"`
@@ -208,6 +210,19 @@ func (db *DB) addHatToPlayer(username string, newHat Hat) error {
 	return err
 }
 
+func (db *DB) addAccomplishmentToPlayer(username string, key string, value Accomplishment) error {
+	_, err := db.playerRecords.UpdateOne(
+		context.TODO(),
+		bson.M{"username": username},
+		bson.M{
+			"$set": bson.M{
+				fmt.Sprintf("accomplishments.%s", key): value,
+			},
+		},
+	)
+	return err
+}
+
 func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 	return bson.M{
 		"x":               pTile.x,
@@ -216,7 +231,7 @@ func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 		"stagename":       pTile.stage.name,
 		"money":           p.money.Load(),
 		"stats":           statsRecordFromPlayerStats(p.PlayerStats),
-		"hatList.current": p.hatList.indexSync(),
+		"hatList.current": p.hatList.indexSync(), // Can be wrong if wearing temp hat
 	}
 }
 

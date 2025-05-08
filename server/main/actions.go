@@ -78,7 +78,8 @@ func (player *Player) activatePower() {
 	stage.updateAll(soundTriggerByName("explosion"))
 
 	playerHighlights := highlightMapToSlice(player)
-	damageAndIndicate(playerHighlights, player, stage, 50)
+	fatalities := damageAndIndicate(playerHighlights, player, stage, 50)
+	checkFatalityAccomplishments(player, fatalities)
 	updateOne(sliceOfTileToHighlightBoxes(playerHighlights, ""), player)
 
 	_, powerCount := player.actions.spaceStack.pop()

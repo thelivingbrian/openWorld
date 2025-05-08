@@ -227,23 +227,29 @@ func (tile *Tile) getACharacter() Character {
 /////////////////////////////////////////////////////////////////////
 // Damage
 
-func damageAndIndicate(tiles []*Tile, initiator Character, stage *Stage, damage int) {
+func damageAndIndicate(tiles []*Tile, initiator Character, stage *Stage, damage int) int {
+	fatalities := 0
 	for _, tile := range tiles {
-		tile.damageAll(damage, initiator)
+		fatalities += tile.damageAll(damage, initiator)
 		destroyFragileInteractable(tile, initiator)
 		tile.eventsInFlight.Add(1)
 		go tile.tryToNotifyAfter(100)
 	}
 	damageBoxes := sliceOfTileToWeatherBoxes(tiles, randomFieryColor())
 	stage.updateAll(damageBoxes + soundTriggerByName("explosion"))
+	return fatalities
 }
 
-func (tile *Tile) damageAll(dmg int, initiator Character) {
+func (tile *Tile) damageAll(dmg int, initiator Character) int {
+	fatalities := 0
 	for _, character := range tile.copyOfCharacters() {
-		character.takeDamageFrom(initiator, dmg)
+		fatal := character.takeDamageFrom(initiator, dmg)
+		if fatal {
+			fatalities++
+		}
 	}
 	tile.stage.updateAll(characterBox(tile))
-
+	return fatalities
 }
 
 func (tile *Tile) copyOfCharacters() []Character {

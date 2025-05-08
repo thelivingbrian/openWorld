@@ -53,21 +53,26 @@
 - [ ] Money
   - [ ] Total
   - [-] Current
-  - [ ] Peak 
+  - [-] Peak 
 - [-] Goals scored
 - [ ] Games won
-- [ ] NPC Kills
+- [-] NPC Kills
 - [-] Peak Killstreak 
 
 ## Highscores
 - [-] Current Money / Kills / Goals Scored
-- [ ] Peak kill streak
-  - [ ] player/npc kills as side stats
-  - [ ] KD (Player + NPC) / Deaths as side stat 
-- [ ] Peak money 
-  - [ ] Current money becomes side stat
-  - [ ] Total money as side stat? 
+- [-] Peak kill streak
+  - [-] player/npc kills as side stats - tried but no, too busy
+  - [-] KD (Player + NPC) / Deaths as side stat 
+- [-] Peak money 
+  - [-] Current money becomes side stat
+  - [-] Total money as side stat?
+  - [-] Too busy - probably 2 stats tops - prefer 1. 
 - [ ] Games won as side stat for Goals Scored
+- [ ] BUG: Non-number in mongo breaks HS list for everyone 
+
+## Accomplishments 
+- [-] Add accomplishments list
 
 ## Performance 
 - [-] Performance from Ec2 is degraded vs localhost - 400 Websocket users / 8 stages very stable
@@ -331,7 +336,9 @@ One way or two way.
  - [-] update Area output to have materials by value
    - [-] remove material output?  
    - [-] compile / load successfully w/ ground
-   - [ ] compile tests 
+   - [-] compile tests
+     - [-] Snapshots for grid actions 
+   - [ ] http writer - keep in handler instead of action funcs 
 
  - [-] Toroidal Woods - 12x12
 
@@ -345,6 +352,7 @@ One way or two way.
 type []byte(update) 100 times
 
 []byte(update)
-I will type []byte(update) 75 more times 
-I will type []byte(update) 74 more times
+I will type []byte(update) 70 more times
+I will type []byte(update) 69 more times 
+I will type []byte(update) 68 more times
 

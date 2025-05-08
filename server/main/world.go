@@ -116,7 +116,7 @@ func saveCurrentStatus(world *World) {
 		Timestamp:              time.Now(),
 		SessionStartTime:       world.sessionStats.sessionStartTime,
 		PeakSessionPlayerCount: int(world.sessionStats.peakSessionPlayerCount.Load()),
-		PeakSessionKillSteak: SessionStreakRecord{
+		PeakSessionKillStreak: SessionStreakRecord{
 			Streak:     int(world.sessionStats.peakSessionKillStreak.Load()),
 			PlayerName: world.sessionStats.peakSessionKiller,
 		},
@@ -338,15 +338,18 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		tangibilityLock:          sync.Mutex{},
 		actions:                  createDefaultActions(),
 		world:                    world,
-		menues:                   map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu}, // terrifying
+		menues:                   map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu, "accomplishments": accomplishmentsMenu}, // terrifying
 		playerStages:             make(map[string]*Stage),
 		team:                     record.Team,
 		PlayerStats:              playerStatsFromRecord(record),
 		hatList:                  SyncHatList{HatList: record.HatList},
+		accomplishments:          SyncAccomplishmentList{Accomplishments: record.Accomplishments},
+	}
+	if newPlayer.accomplishments.Accomplishments == nil {
+		newPlayer.accomplishments.Accomplishments = make(map[string]Accomplishment)
 	}
 	newPlayer.health.Store(record.Health)
 	newPlayer.money.Store(record.Money)
-
 	newPlayer.setIcon()
 	return newPlayer
 }
@@ -645,7 +648,8 @@ func crownMostDangerousById(world *World, streakEvent PlayerStreakRecord) {
 	if player == nil {
 		return
 	}
-	player.addHatByName("most-dangerous")
+	player.addHatByName("most-dangerous", false)
+	player.addAccomplishmentByName(becomeMostDangerous)
 	player.world.notifyChangeInMostDangerous(streakEvent)
 }
 
@@ -682,12 +686,12 @@ func broadcastUpdate(world *World, message string) {
 	}
 }
 
-func awardHatByTeam(world *World, team, hat string) {
+func awardHatByTeam(world *World, team, hat string, persist bool) {
 	world.wPlayerMutex.Lock()
 	defer world.wPlayerMutex.Unlock()
 	for _, p := range world.worldPlayers {
 		if p.getTeamNameSync() == team {
-			p.addHatByName(hat)
+			p.addHatByName(hat, persist)
 		}
 	}
 }
