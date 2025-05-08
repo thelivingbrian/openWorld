@@ -19,7 +19,7 @@ type Character interface {
 	fetchStageSync(stagename string) *Stage
 	transferBetween(source, dest *Tile)
 	push(tile *Tile, incoming *Interactable, yOff, xOff int) bool
-	takeDamageFrom(initiator Character, dmg int)
+	takeDamageFrom(initiator Character, dmg int) bool
 	incrementKillCount() int64
 	incrementKillCountNpc() int64
 	incrementKillStreak() int64
@@ -267,10 +267,10 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	return false
 }
 
-func (target *Player) takeDamageFrom(initiator Character, dmg int) {
+func (target *Player) takeDamageFrom(initiator Character, dmg int) bool {
 	location := target.getTileSync()
 	if safe(location, target, initiator) {
-		return
+		return false
 	}
 
 	fatal := damagePlayerAndHandleDeath(target, dmg)
@@ -281,6 +281,7 @@ func (target *Player) takeDamageFrom(initiator Character, dmg int) {
 
 		go target.world.db.saveKillEvent(location, initiator, target)
 	}
+	return fatal
 }
 
 func safe(location *Tile, partyA, partyB Character) bool {
@@ -420,18 +421,20 @@ func (npc *NonPlayer) push(tile *Tile, incoming *Interactable, yOff, xOff int) b
 	return false
 }
 
-func (npc *NonPlayer) takeDamageFrom(initiator Character, dmg int) {
+func (npc *NonPlayer) takeDamageFrom(initiator Character, dmg int) bool {
 	if safe(npc.getTileSync(), npc, initiator) {
-		return
+		return false
 	}
 	currentHealth := npc.health.Add(-int64(dmg))
 	previousHealth := currentHealth + int64(dmg)
-	if currentHealth <= 0 && previousHealth > 0 {
+	fatal := currentHealth <= 0 && previousHealth > 0
+	if fatal {
 		initiator.incrementKillStreak()
 		initiator.incrementKillCountNpc()
 		handleNPCDeath(npc)
 		npc.terminate()
 	}
+	return fatal
 }
 
 func handleNPCDeath(npc *NonPlayer) {
@@ -507,10 +510,10 @@ func createNewNPC(world *World) (*NonPlayer, context.Context) {
 
 func placeOnSameStage(npc *NonPlayer, ref *Player) {
 	refTile := ref.getTileSync()
-	tiles := walkableTiles(refTile.stage.tiles)
-	n := rand.Intn(len(tiles))
-	startTile := tiles[n]
-	addNPCAndNotifyOthers(npc, startTile)
+	// tiles := walkableTiles(refTile.stage.tiles)
+	// n := rand.Intn(len(tiles))
+	// startTile := tiles[n]
+	addNPCAndNotifyOthers(npc, refTile)
 }
 
 func doAtIntervalUntilTermination(npc *NonPlayer, ctx context.Context, interval int, action func(*NonPlayer)) {

@@ -360,15 +360,6 @@ func (player *Player) cycleHats() {
 	updateIconForAll(player)
 }
 
-func (player *Player) addAccomplishmentByName(accomplishmentName string) {
-	acc := player.accomplishments.addByName(accomplishmentName)
-	if acc == nil {
-		return
-	}
-	logger.Debug().Msg("Adding Accomplishment: " + acc.Name)
-	player.world.db.addAccomplishmentToPlayer(player.username, acc.Name, *acc)
-}
-
 /////////////////////////////////////////////////////////////
 // Observers
 
