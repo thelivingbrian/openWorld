@@ -350,7 +350,6 @@ func (player *Player) addHatByName(hatName string, persist bool) {
 	if hat == nil {
 		return
 	}
-	logger.Debug().Msg("Adding Hat: " + hat.Name)
 	if persist {
 		player.world.db.addHatToPlayer(player.username, *hat)
 	}
