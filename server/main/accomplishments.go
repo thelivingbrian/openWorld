@@ -16,19 +16,19 @@ type Accomplishment struct {
 }
 
 // Changing name invalidates previous accomplishment - Add ID?
-// Need difficulty levels ?
+// difficulty levels ?
 const (
-	becomeMostDangerous = "Become most dangerous"   // X = implemented
-	scoreAGoal          = "Score a goal"            // X
-	winningAGame        = "Score game winning goal" // X
-	defeatPlayer        = "Defeat another player"   // X
-	tenKillStreak       = "10 Kill streak"          // X
-	hundredKillStreak   = "100 Kill streak"         // X
-	oneThousandMoney    = "1,000 money"             // X
-	fiftyThousandMoney  = "50,000 money"            // X
-	doubleKill          = "Double kill"             // X
-	tripleKill          = "Triple kill"             // X
-	puzzle0             = "Puzzle 0"                // X
+	becomeMostDangerous = "Become most dangerous"
+	scoreAGoal          = "Score a goal"
+	winningAGame        = "Score game winning goal"
+	defeatPlayer        = "Defeat another player"
+	tenKillStreak       = "10 Kill streak"
+	hundredKillStreak   = "100 Kill streak"
+	oneThousandMoney    = "1,000 money"
+	fiftyThousandMoney  = "50,000 money"
+	doubleKill          = "Double kill"
+	tripleKill          = "Triple kill"
+	puzzle0             = "Puzzle 0"
 )
 
 var everyAccomplishment = []string{
@@ -45,15 +45,6 @@ var everyAccomplishment = []string{
 	puzzle0,
 }
 
-func (player *Player) addAccomplishmentByName(accomplishmentName string) {
-	acc := player.accomplishments.addByName(accomplishmentName)
-	if acc == nil {
-		return
-	}
-	logger.Debug().Msg("Adding Accomplishment: " + acc.Name)
-	player.world.db.addAccomplishmentToPlayer(player.username, acc.Name, *acc)
-}
-
 func (accomplishments *SyncAccomplishmentList) addByName(name string) *Accomplishment {
 	accomplishments.Lock()
 	defer accomplishments.Unlock()
@@ -65,6 +56,9 @@ func (accomplishments *SyncAccomplishmentList) addByName(name string) *Accomplis
 	accomplishments.Accomplishments[name] = newAccomplishment
 	return &newAccomplishment
 }
+
+///////////////////////////////////////////////////////
+// Check / Award
 
 func checkFatalityAccomplishments(player *Player, fatalities int) {
 	if fatalities >= 2 {

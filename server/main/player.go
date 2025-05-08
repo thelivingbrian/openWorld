@@ -363,6 +363,17 @@ func (player *Player) cycleHats() {
 }
 
 /////////////////////////////////////////////////////////////
+//  Accomplishments
+
+func (player *Player) addAccomplishmentByName(accomplishmentName string) {
+	acc := player.accomplishments.addByName(accomplishmentName)
+	if acc == nil {
+		return
+	}
+	player.world.db.addAccomplishmentToPlayer(player.username, acc.Name, *acc)
+}
+
+/////////////////////////////////////////////////////////////
 // Observers
 
 func (player *Player) resetHealth() {
@@ -406,13 +417,7 @@ func (player *Player) addMoneyAndUpdate(n int) {
 		checkMoneyAccomplishments(player, int(totalMoney))
 	}
 
-	// Replace with Richest?
-	// if totalMoney > 2*1000 {
-	// 	player.addHatByName("made-of-money")
-	// }
-	// if totalMoney > 100*1000 {
-	// 	player.addHatByName("made-of-money-2")
-	// }
+	// Track richest?
 
 	updateOne(spanMoney(totalMoney), player)
 }
@@ -423,13 +428,13 @@ func (player *Player) zeroKillStreak() {
 }
 
 func (player *Player) incrementKillStreak() int64 {
-	// Vs - character.updateHud ?
-	defer updateStreakIfTangible(player) // initiator may not have initiatied via click -> check tangible needed
-
 	currentKs := player.killstreak.Add(1)
 	if SetMaxAtomic64IfGreater(&player.peakKillStreak, currentKs) {
 		checkStreakAccomplishments(player, int(currentKs))
 	}
+
+	// Vs - character.updateHud ?
+	updateStreakIfTangible(player) // initiator may not have initiatied via click -> check tangible needed
 
 	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: currentKs, team: player.getTeamNameSync()}
 	return currentKs
