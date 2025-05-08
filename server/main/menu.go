@@ -126,7 +126,10 @@ func (menu *Menu) menuSelectUp(index string) string {
 	if err != nil {
 		return ""
 	}
-	return menu.selectedLinkAt(i-1) + menu.unselectedLinkAt(i)
+	if len(menu.Links) <= 1 {
+		return ""
+	}
+	return menu.unselectedLinkAt(i) + menu.selectedLinkAt(i-1)
 }
 
 func menuDown(p *Player, event PlayerSocketEvent) {
@@ -141,12 +144,15 @@ func (menu *Menu) menuSelectDown(index string) string {
 	if err != nil {
 		return ""
 	}
-	return menu.selectedLinkAt(i+1) + menu.unselectedLinkAt(i)
+	if len(menu.Links) <= 1 {
+		return ""
+	}
+	return menu.unselectedLinkAt(i) + menu.selectedLinkAt(i+1)
 }
 
 // view updates
 func (m *Menu) selectedLinkAt(i int) string {
-	index := mod(i, len(m.Links)) // divide by 0
+	index := mod(i, len(m.Links))
 	out := `
 	<input id="menu_selected_index" type="hidden" name="arg0" value="%d" />
 	<a id="menulink_%s_%d" class="selected" href="#"> %s </a><br />`
@@ -154,7 +160,7 @@ func (m *Menu) selectedLinkAt(i int) string {
 }
 
 func (m *Menu) unselectedLinkAt(i int) string {
-	index := mod(i, len(m.Links)) // divide by 0
+	index := mod(i, len(m.Links))
 	out := `<a id="menulink_%s_%d" href="#"> %s </a><br />`
 	return fmt.Sprintf(out, m.Name, index, m.Links[index].Text)
 }
