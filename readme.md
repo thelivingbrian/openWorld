@@ -14,10 +14,11 @@ Check out: https://bloopworld.co - For live demo
         - Compile executable with go & run
     # Tools 
         - Compile executable with go & run 
-        - Track changes in git 
-        - Deploy changes 
+        - Deploy changes:
+            -Web: visit localhost:4444 with application running
             -linux: go build && ./main deploy bloop
             -powershell: go build; .\main.exe deploy bloop
+        - Track changes using git 
 
 
 ## Snapshots 
