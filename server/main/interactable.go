@@ -28,7 +28,7 @@ func init() {
 		"black-hole": {
 			{ReactsWith: interactableHasName("ball-fuchsia"), Reaction: hideByTeam("fuchsia")},
 			{ReactsWith: interactableHasName("ball-sky-blue"), Reaction: hideByTeam("sky-blue")},
-			{ReactsWith: everything, Reaction: eat}, // reduces number of rings
+			{ReactsWith: everything, Reaction: eat},
 		},
 		"goal-sky-blue": {
 			{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: scoreGoalForTeam("sky-blue")},
