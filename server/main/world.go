@@ -395,7 +395,7 @@ func initiateLogout(player *Player) {
 	player.tangible = false
 
 	logger.Info().Msg("initate logout: " + player.username)
-	//   Add time delay to prevent rage quit ?
+	//   Add time delay to prevent rage quit ? - Consequence of intangibility in this window?
 	removeFromTileAndStage(player)
 
 	player.world.playersToLogout <- player

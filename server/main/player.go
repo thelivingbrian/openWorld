@@ -24,6 +24,7 @@ type Player struct {
 	tileLock                 sync.Mutex
 	updates                  chan []byte
 	sessionTimeOutViolations atomic.Int32
+	textUpdatesInFlight      atomic.Int32
 	conn                     WebsocketConnection
 	connLock                 sync.RWMutex
 	tangible                 bool
@@ -255,12 +256,32 @@ func updateEntireExistingScreen(player *Player) {
 	player.updates <- entireScreenAsSwaps(player)
 }
 
+const bottomTextTemplate = `
+<div id="bottom_text">
+	&nbsp;&nbsp;> %s
+</div>`
+
+const bottomTextEmpty = `
+<div id="bottom_text">
+</div>`
+
 func (player *Player) updateBottomText(message string) {
-	msg := fmt.Sprintf(`
-			<div id="bottom_text">
-				&nbsp;&nbsp;> %s
-			</div>`, processStringForColors(message))
-	updateOne(msg, player)
+	msg := fmt.Sprintf(bottomTextTemplate, processStringForColors(message))
+	updateOne(msg, player) // Potential to send on closed ?
+	player.textUpdatesInFlight.Add(1)
+	go tryClearBottomTextAfter(player, 5000)
+}
+
+func tryClearBottomTextAfter(player *Player, delay int) {
+	time.Sleep(time.Millisecond * time.Duration(delay))
+	if player.textUpdatesInFlight.Add(-1) == 0 {
+		ownLock := player.tangibilityLock.TryLock()
+		if !ownLock || !player.tangible {
+			return
+		}
+		defer player.tangibilityLock.Unlock()
+		updateOne(bottomTextEmpty, player)
+	}
 }
 
 func (player *Player) updatePlayerHud() {
