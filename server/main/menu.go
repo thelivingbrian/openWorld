@@ -43,6 +43,7 @@ var mapMenu = Menu{
 	InfoHtml: "",
 	Links: []MenuLink{
 		{Text: "Back", eventHandler: openPauseMenu, auth: nil},
+		{Text: "Close", eventHandler: turnMenuOff, auth: nil},
 	},
 }
 var statsMenu = Menu{
@@ -52,6 +53,7 @@ var statsMenu = Menu{
 	Links: []MenuLink{
 		{Text: "Accomplishments", eventHandler: openAccomplishmentsMenu, auth: nil},
 		{Text: "Back", eventHandler: openPauseMenu, auth: nil},
+		{Text: "Close", eventHandler: turnMenuOff, auth: nil},
 	},
 }
 
@@ -71,6 +73,7 @@ var accomplishmentsMenu = Menu{
 	InfoHtml: `<h2>Accomplishment population error.</h2>`,
 	Links: []MenuLink{
 		{Text: "Back", eventHandler: openStatsMenu, auth: nil},
+		{Text: "Close", eventHandler: turnMenuOff, auth: nil},
 	},
 }
 

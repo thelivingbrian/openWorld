@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"time"
 )
 
 type Interactable struct {
@@ -48,11 +49,11 @@ func init() {
 			{ReactsWith: everything, Reaction: eat},
 		},
 		"tutorial-goal-sky-blue": {
-			{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: destroyEveryotherInteractable},
+			{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: finishTutorial},
 			{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: notifyAndPass("Try using the matching ball.")},
 		},
 		"tutorial-goal-fuchsia": {
-			{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: destroyEveryotherInteractable},
+			{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: finishTutorial},
 			{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: notifyAndPass("Try using the matching ball.")},
 		},
 		"gold-target": {
@@ -263,6 +264,22 @@ func spawnMoney(amounts []int) func(*Interactable, *Player, *Tile) (*Interactabl
 		}
 		return nil, false
 	}
+}
+
+func finishTutorial(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	destroyEveryotherInteractable(i, p, t)
+	p.goalsScored.CompareAndSwap(0, 1)
+	p.updateBottomText("You scored a goal! View stats in menu... ")
+	go func() {
+		time.Sleep(time.Millisecond * time.Duration(1600))
+		ownLock := p.tangibilityLock.TryLock()
+		if !ownLock || !p.tangible {
+			return
+		}
+		defer p.tangibilityLock.Unlock()
+		openStatsMenu(p)
+	}()
+	return nil, false
 }
 
 func destroyEveryotherInteractable(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
