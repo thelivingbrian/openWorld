@@ -328,11 +328,9 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 		scoreOpposing := p.world.leaderBoard.scoreboard.GetScore(oppositeTeamName)
 
 		// Award hat
-		totalGoals := p.incrementGoalsScored()
-		if totalGoals == 1 {
-			p.addHatByName("score-1-goal", true)
-			p.addAccomplishmentByName(scoreAGoal)
-		}
+		p.incrementGoalsScored()
+		p.addHatByName("score-1-goal", true)
+		p.addAccomplishmentByName(scoreAGoal)
 
 		// Database
 		p.updateRecord()
