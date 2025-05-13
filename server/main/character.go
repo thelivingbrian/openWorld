@@ -576,9 +576,9 @@ func moveAgressiveNorth(shapes [][][2]int) func(*NonPlayer) {
 }
 
 func moveAgressiveRand(shapes [][][2]int) func(*NonPlayer) {
+	randn := rand.Intn(4)
+	fmt.Println(randn)
 	return func(npc *NonPlayer) {
-		randn := rand.Intn(4)
-
 		moveAggressively(npc, shapes, randn)
 	}
 }
