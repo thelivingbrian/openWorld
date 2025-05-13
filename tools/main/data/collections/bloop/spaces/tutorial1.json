@@ -8956,9 +8956,8 @@
               }
             },
             {
-              "prototypeId": "c219e026-c08c-430e-bfed-6f8da85f4ecc",
               "transformation": {},
-              "interactableId": "be52229e-8852-4f41-87f1-25fb5cbe1a58"
+              "interactableId": "29ac227d-ac24-499f-a9c2-18b136bd2ec5"
             },
             {
               "transformation": {}
@@ -9015,11 +9014,10 @@
               "transformation": {}
             },
             {
-              "prototypeId": "c219e026-c08c-430e-bfed-6f8da85f4ecc",
               "transformation": {
                 "clockwiseRotations": 2
               },
-              "interactableId": "be52229e-8852-4f41-87f1-25fb5cbe1a58"
+              "interactableId": "29ac227d-ac24-499f-a9c2-18b136bd2ec5"
             },
             {
               "prototypeId": "c219e026-c08c-430e-bfed-6f8da85f4ecc",
@@ -9489,13 +9487,6 @@
         ],
         "Instructions": [
           {
-            "ID": "b5758500-fca2-44cd-a566-ea08ab212ee0",
-            "X": 7,
-            "Y": 7,
-            "GridAssetId": "450849ad-305c-4277-bd09-e5c9e06e7445",
-            "ClockwiseRotations": 0
-          },
-          {
             "ID": "9c01057d-c7f7-4825-82fd-9cd6bc6f11d6",
             "X": 3,
             "Y": 3,
@@ -9528,6 +9519,20 @@
             "X": 7,
             "Y": 12,
             "GridAssetId": "7367d7f2-d5b2-4931-a5c7-a5f052709917",
+            "ClockwiseRotations": 0
+          },
+          {
+            "ID": "16ca7b7a-6511-4300-8a4f-a7ba126aebbe",
+            "X": 7,
+            "Y": 7,
+            "GridAssetId": "c219e026-c08c-430e-bfed-6f8da85f4ecc",
+            "ClockwiseRotations": 0
+          },
+          {
+            "ID": "098ccd63-10f3-4422-b076-e233449dd4f0",
+            "X": 8,
+            "Y": 8,
+            "GridAssetId": "c219e026-c08c-430e-bfed-6f8da85f4ecc",
             "ClockwiseRotations": 0
           }
         ],

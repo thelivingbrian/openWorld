@@ -88,5 +88,15 @@
     "walkable": true,
     "fragile": false,
     "reactions": "teleport-home"
+  },
+  {
+    "id": "29ac227d-ac24-499f-a9c2-18b136bd2ec5",
+    "name": "tutorial-exchange",
+    "setName": "tutorial",
+    "cssClass": "chocolate gold-b thin",
+    "pushable": false,
+    "walkable": false,
+    "fragile": false,
+    "reactions": "tutorial-exchange"
   }
 ]

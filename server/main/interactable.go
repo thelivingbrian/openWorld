@@ -62,6 +62,9 @@ func init() {
 		"set-team-wild-text-and-delete": {
 			{ReactsWith: interactableIsNil, Reaction: setTeamWildText},
 		},
+		"tutorial-exchange": {
+			{ReactsWith: interactableIsARing, Reaction: tutorialExchange},
+		},
 
 		////////////////////////////////////////////////////////////////
 		// machines :
@@ -523,6 +526,23 @@ func damageAndSpawn(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	addMoneyToStage(t.stage, dmg/2)
 	for i := 0; i < powerToSpawn; i++ {
 		spawnPowerup(t.stage)
+	}
+	return nil, false
+}
+
+func tutorialExchange(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	y := rand.Intn(len(t.stage.tiles))
+	x := rand.Intn(len(t.stage.tiles[y]))
+	epicenter := t.stage.tiles[y][x]
+	dmg := 50
+	powerToSpawn := 2
+	go damageWithinRadius(epicenter, p.world, 4, dmg, p.id)
+	t.stage.updateAll(soundTriggerByName("explosion"))
+	addMoneyToStage(t.stage, 1)
+	addMoneyToStage(t.stage, 1)
+	addMoneyToStage(t.stage, 1)
+	for i := 0; i < powerToSpawn; i++ {
+		spawnPowerupShort(t.stage)
 	}
 	return nil, false
 }
