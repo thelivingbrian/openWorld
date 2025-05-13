@@ -4077,12 +4077,63 @@
               }
             },
             {
-              "prototypeId": "987bfef0-da43-4460-be55-18f61ec0d7df",
               "transformation": {}
             },
             {
-              "prototypeId": "987bfef0-da43-4460-be55-18f61ec0d7df",
               "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "prototypeId": "6",
+              "transformation": {}
+            }
+          ],
+          [
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {},
+              "interactableId": "5ca4451e-2f93-4af2-b4f3-2942247d0b26"
+            },
+            {
+              "transformation": {},
+              "interactableId": "5ca4451e-2f93-4af2-b4f3-2942247d0b26"
             },
             {
               "transformation": {}
@@ -4138,61 +4189,6 @@
               "interactableId": "5ca4451e-2f93-4af2-b4f3-2942247d0b26"
             },
             {
-              "prototypeId": "987bfef0-da43-4460-be55-18f61ec0d7df",
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            }
-          ],
-          [
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {},
-              "interactableId": "5ca4451e-2f93-4af2-b4f3-2942247d0b26"
-            },
-            {
-              "transformation": {},
-              "interactableId": "5ca4451e-2f93-4af2-b4f3-2942247d0b26"
-            },
-            {
-              "prototypeId": "987bfef0-da43-4460-be55-18f61ec0d7df",
               "transformation": {}
             },
             {
@@ -4250,7 +4246,6 @@
               "interactableId": "5ca4451e-2f93-4af2-b4f3-2942247d0b26"
             },
             {
-              "prototypeId": "987bfef0-da43-4460-be55-18f61ec0d7df",
               "transformation": {}
             },
             {
@@ -4310,7 +4305,6 @@
               "interactableId": "5ca4451e-2f93-4af2-b4f3-2942247d0b26"
             },
             {
-              "prototypeId": "987bfef0-da43-4460-be55-18f61ec0d7df",
               "transformation": {}
             },
             {
@@ -4357,6 +4351,229 @@
               "transformation": {}
             },
             {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "prototypeId": "6",
+              "transformation": {}
+            }
+          ],
+          [
+            {
+              "prototypeId": "6",
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "prototypeId": "6",
+              "transformation": {}
+            }
+          ],
+          [
+            {
+              "prototypeId": "6",
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "prototypeId": "6",
+              "transformation": {}
+            }
+          ],
+          [
+            {
+              "prototypeId": "6",
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "prototypeId": "6",
+              "transformation": {}
+            }
+          ],
+          [
+            {
+              "prototypeId": "6",
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
               "prototypeId": "987bfef0-da43-4460-be55-18f61ec0d7df",
               "transformation": {}
             },
@@ -4365,236 +4582,11 @@
               "transformation": {}
             },
             {
+              "prototypeId": "987bfef0-da43-4460-be55-18f61ec0d7df",
               "transformation": {}
             },
             {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            }
-          ],
-          [
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            }
-          ],
-          [
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            }
-          ],
-          [
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            }
-          ],
-          [
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "prototypeId": "5b5f7ca6-8880-43e3-ab88-57294127d853",
-              "transformation": {}
-            },
-            {
-              "prototypeId": "5b5f7ca6-8880-43e3-ab88-57294127d853",
-              "transformation": {}
-            },
-            {
-              "prototypeId": "5b5f7ca6-8880-43e3-ab88-57294127d853",
-              "transformation": {}
-            },
-            {
-              "prototypeId": "5b5f7ca6-8880-43e3-ab88-57294127d853",
+              "prototypeId": "987bfef0-da43-4460-be55-18f61ec0d7df",
               "transformation": {}
             },
             {
@@ -8956,6 +8948,7 @@
               }
             },
             {
+              "prototypeId": "6",
               "transformation": {},
               "interactableId": "29ac227d-ac24-499f-a9c2-18b136bd2ec5"
             },
@@ -9014,6 +9007,7 @@
               "transformation": {}
             },
             {
+              "prototypeId": "6",
               "transformation": {
                 "clockwiseRotations": 2
               },

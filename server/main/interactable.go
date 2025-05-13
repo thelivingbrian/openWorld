@@ -544,6 +544,7 @@ func tutorialExchange(i *Interactable, p *Player, t *Tile) (*Interactable, bool)
 	for i := 0; i < powerToSpawn; i++ {
 		spawnPowerupShort(t.stage)
 	}
+	p.updateBottomText("*[red] berries grant you destructive powers")
 	return nil, false
 }
 

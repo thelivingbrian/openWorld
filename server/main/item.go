@@ -32,6 +32,9 @@ var spawnActions = map[string][]SpawnAction{
 	"tutorial-1-boost": {
 		{Should: always, Action: onCurrentStage(tutorial1Boost())},
 	},
+	"tutorial-1-npc": {
+		{Should: always, Action: tutorial1Npc},
+	},
 	"tutorial-power": {
 		{Should: always, Action: onCurrentStage(tutorialPower)},
 	},
@@ -118,6 +121,65 @@ func tutorialBoost() func(stage *Stage) {
 
 func tutorial1Boost() func(stage *Stage) {
 	return addBoostsAt(7, 4)
+}
+
+func tutorial1Npc(player *Player) {
+	stage := player.getTileSync().stage
+	tiles0 := getRegion(stage.tiles, Rect{2, 5, 5, 6})
+	tiles1 := getRegion(stage.tiles, Rect{6, 7, 2, 4})
+	tiles := append(tiles0, tiles1...)
+	tile, ok := pickOne(tiles)
+	if !ok {
+		return
+	}
+	spawnNewNPCDoingAction(player, 110, 60, moveAgressiveRand(shortShapes), tile)
+
+}
+
+type Rect struct {
+	MinY, MaxY int
+	MinX, MaxX int
+}
+
+// PickOne returns one random element from the slice.
+// ok is false when the slice is empty.
+func pickOne[T any](items []T) (item T, ok bool) {
+	if len(items) == 0 {
+		return
+	}
+	item = items[rand.Intn(len(items))]
+	ok = true
+	return
+}
+
+// GetRegion flattens every grid cell inside r into a single slice.
+// Coordinates that fall outside the grid (or ragged rows) are skipped.
+func getRegion[T any](grid [][]T, r Rect) []T {
+	var out []T
+	for y := r.MinY; y <= r.MaxY; y++ {
+		if y < 0 || y >= len(grid) {
+			continue
+		}
+		row := grid[y]
+		minX := clamp(r.MinX, 0, len(row)-1)
+		maxX := clamp(r.MaxX, 0, len(row)-1)
+		if maxX < minX {
+			continue
+		}
+		out = append(out, row[minX:maxX+1]...)
+	}
+	return out
+}
+
+// clamp confines v to [lo,hi].
+func clamp(v, lo, hi int) int {
+	if v < lo {
+		return lo
+	}
+	if v > hi {
+		return hi
+	}
+	return v
 }
 
 func tutorial2Boost() func(stage *Stage) {
@@ -220,13 +282,14 @@ func basicSpawnWithRing(p *Player) {
 	}
 
 	determination2 := rand.Intn(16)
+	lifeInSeconds := 450
 	if determination2%8 == 0 {
 		spawnPowerup(stage)
-		spawnNewNPCDoingAction(p, 105, moveRandomlyAndActivatePower, false)
+		spawnNewNPCDoingAction(p, 105, lifeInSeconds, moveRandomlyAndActivatePower, nil)
 	}
 	if determination2 == 0 {
 		spawnPowerup(stage)
-		npc := spawnNewNPCDoingAction(p, 95, moveAggressively, false)
+		npc := spawnNewNPCDoingAction(p, 95, lifeInSeconds, moveAgressiveRand(shapesNpc), nil)
 		npc.money.Add(int64(125))
 	}
 

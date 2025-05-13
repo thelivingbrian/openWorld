@@ -487,15 +487,19 @@ func (npc *NonPlayer) updateRecord() {
 //////////////////////////////////////////////////////////////////////////////
 // Spawn NPC
 
-func spawnNewNPCDoingAction(ref *Player, interval int, action func(*NonPlayer), sameTile bool) *NonPlayer {
+func spawnNewNPCDoingAction(ref *Player, interval, duration int, action func(*NonPlayer), tile *Tile) *NonPlayer {
 	npc, ctx := createNewNPC(ref.world)
-	placeOnSameStage(npc, ref, sameTile)
+	if tile == nil {
+		placeNpcOnStage(npc, ref)
+	} else {
+		addNPCAndNotifyOthers(npc, tile)
+	}
 
 	if action != nil {
 		go doAtIntervalUntilTermination(npc, ctx, interval, action)
 	}
 
-	go removeAfterWaiting(npc, 450) // Remove after 7.5 min
+	go removeAfterWaiting(npc, duration) // Remove after 7.5 min
 
 	return npc
 }
@@ -515,12 +519,12 @@ func createNewNPC(world *World) (*NonPlayer, context.Context) {
 	return npc, ctx
 }
 
-func placeOnSameStage(npc *NonPlayer, ref *Player, sameTile bool) {
+func placeNpcOnStage(npc *NonPlayer, ref *Player) {
 	refTile := ref.getTileSync()
-	if sameTile {
-		addNPCAndNotifyOthers(npc, refTile)
-		return
-	}
+	// if sameTile {
+	// 	addNPCAndNotifyOthers(npc, refTile)
+	// 	return
+	// }
 	tiles := walkableTiles(refTile.stage.tiles)
 	n := rand.Intn(len(tiles))
 	startTile := tiles[n]
@@ -561,24 +565,41 @@ func moveRandomlyAndActivatePower(npc *NonPlayer) {
 		moveWest(npc)
 	}
 	if randn%51 == 0 {
-		activatePower(npc)
+		activatePower(npc, shapesNpc)
 	}
 }
 
-func moveAggressively(npc *NonPlayer) {
-	randn := rand.Intn(5000)
-	if randn%4 == 0 {
-		moveNorth(npc)
-		activatePower(npc) // Power always activates on northern movement
+func moveAgressiveNorth(shapes [][][2]int) func(*NonPlayer) {
+	return func(npc *NonPlayer) {
+		moveAggressively(npc, shapes, 0)
 	}
-	if randn%4 == 1 {
+}
+
+func moveAgressiveRand(shapes [][][2]int) func(*NonPlayer) {
+	return func(npc *NonPlayer) {
+		randn := rand.Intn(4)
+
+		moveAggressively(npc, shapes, randn)
+	}
+}
+
+func moveAggressively(npc *NonPlayer, shapes [][][2]int, offenceDirection int) {
+	randn := rand.Intn(5000)
+	dir := randn % 4
+	if dir == 0 {
+		moveNorth(npc)
+	}
+	if dir == 1 {
 		moveSouth(npc)
 	}
-	if randn%4 == 2 {
+	if dir == 2 {
 		moveEast(npc)
 	}
-	if randn%4 == 3 {
+	if dir == 3 {
 		moveWest(npc)
+	}
+	if dir == offenceDirection {
+		activatePower(npc, shapes)
 	}
 }
 
@@ -598,8 +619,10 @@ func moveRandomly(npc *NonPlayer) {
 	}
 }
 
-func activatePower(npc *NonPlayer) {
-	shapes := [][][2]int{grid7x7, grid5x5, longCross(4), jumpCross()} // list should belong to npc?
+var shapesNpc = [][][2]int{grid7x7, grid5x5, longCross(4), jumpCross()}
+
+func activatePower(npc *NonPlayer, shapes [][][2]int) {
+	// list should belong to npc?
 	currentTile := npc.getTileSync()
 	rand := rand.Intn(len(shapes))
 	absCoordinatePairs := applyRelativeDistance(currentTile.y, currentTile.x, shapes[rand])
