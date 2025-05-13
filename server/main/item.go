@@ -29,6 +29,9 @@ var spawnActions = map[string][]SpawnAction{
 	"tutorial-boost": {
 		{Should: always, Action: onCurrentStage(tutorialBoost())},
 	},
+	"tutorial-1-boost": {
+		{Should: always, Action: onCurrentStage(tutorial1Boost())},
+	},
 	"tutorial-power": {
 		{Should: always, Action: onCurrentStage(tutorialPower)},
 	},
@@ -111,6 +114,10 @@ func addBoostsAt(y, x int) func(stage *Stage) {
 
 func tutorialBoost() func(stage *Stage) {
 	return addBoostsAt(8, 8)
+}
+
+func tutorial1Boost() func(stage *Stage) {
+	return addBoostsAt(7, 4)
 }
 
 func tutorial2Boost() func(stage *Stage) {

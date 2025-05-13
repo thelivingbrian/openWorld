@@ -25,7 +25,7 @@
     "setName": "textboxes",
     "mapColor": "",
     "editorColor": "blue trsp20",
-    "displayText": "Press 'm' for menu."
+    "displayText": "Pressing 'm' will open your menu."
   },
   {
     "id": "a3b09b3d-7340-423b-a2f9-3f34e808cb93",
@@ -39,11 +39,11 @@
     "setName": "textboxes",
     "mapColor": "",
     "editorColor": "grass trsp20",
-    "displayText": "The pink tile will transport you elsewhere."
+    "displayText": "Pink tiles will teleport you other places."
   },
   {
     "id": "72cb34d3-feae-4c63-a876-947c10197007",
-    "commonName": "boosts",
+    "commonName": "activate-boost",
     "cssColor": "",
     "walkable": true,
     "layer1css": "",
@@ -109,7 +109,7 @@
     "setName": "textboxes",
     "mapColor": "",
     "editorColor": "grass trsp20",
-    "displayText": "Go to the next room."
+    "displayText": "Go to the next room"
   },
   {
     "id": "4156fba3-a9c0-4794-8a4c-70bf785c8cce",
@@ -166,5 +166,117 @@
     "mapColor": "",
     "editorColor": "pink trsp20",
     "displayText": "Your menu has useful information - such as a map. "
+  },
+  {
+    "id": "dae9cb04-4031-4688-94af-4526cc27b0a0",
+    "commonName": "enjoy-scenery",
+    "cssColor": "",
+    "walkable": true,
+    "layer1css": "",
+    "layer2css": "",
+    "ceiling1css": "",
+    "ceiling2css": "",
+    "setName": "textboxes",
+    "mapColor": "",
+    "editorColor": "blue trsp20",
+    "displayText": "Please, enjoy the scenery on your way to the next room"
+  },
+  {
+    "id": "a9bf4259-f214-4b98-a8a3-fad16d9d29e9",
+    "commonName": "blue-berries",
+    "cssColor": "",
+    "walkable": true,
+    "layer1css": "",
+    "layer2css": "",
+    "ceiling1css": "",
+    "ceiling2css": "",
+    "setName": "textboxes",
+    "mapColor": "",
+    "editorColor": "green trsp20",
+    "displayText": "Blue berries will let you boost over obstacles"
+  },
+  {
+    "id": "fbb62a49-836f-44aa-8523-71d2d3f1619a",
+    "commonName": "gold-ring",
+    "cssColor": "",
+    "walkable": true,
+    "layer1css": "",
+    "layer2css": "",
+    "ceiling1css": "",
+    "ceiling2css": "",
+    "setName": "textboxes",
+    "mapColor": "",
+    "editorColor": "red trsp20",
+    "displayText": "Push the @[gold ring|gold] into the @[exchange stone|chocolate]"
+  },
+  {
+    "id": "5b5f7ca6-8880-43e3-ab88-57294127d853",
+    "commonName": "red-berries",
+    "cssColor": "",
+    "walkable": true,
+    "layer1css": "",
+    "layer2css": "",
+    "ceiling1css": "",
+    "ceiling2css": "",
+    "setName": "textboxes",
+    "mapColor": "",
+    "editorColor": "green trsp20",
+    "displayText": "Red berries grant destructive power"
+  },
+  {
+    "id": "987bfef0-da43-4460-be55-18f61ec0d7df",
+    "commonName": "use-power",
+    "cssColor": "",
+    "walkable": true,
+    "layer1css": "",
+    "layer2css": "",
+    "ceiling1css": "",
+    "ceiling2css": "",
+    "setName": "textboxes",
+    "mapColor": "",
+    "editorColor": "blue trsp20",
+    "displayText": "Use power to destroy obstacles - or attack enemies"
+  },
+  {
+    "id": "fcd00ffb-14ee-43ef-96d6-5e43d958cacf",
+    "commonName": "npcs",
+    "cssColor": "",
+    "walkable": true,
+    "layer1css": "",
+    "layer2css": "",
+    "ceiling1css": "",
+    "ceiling2css": "",
+    "setName": "textboxes",
+    "mapColor": "",
+    "editorColor": "red trsp20",
+    "displayText": "NPCs appear as outlines and are dangerous"
+  },
+  {
+    "id": "3e313cff-ea84-40e9-ad95-a04a376d711d",
+    "commonName": "leave-it",
+    "cssColor": "",
+    "walkable": true,
+    "layer1css": "",
+    "layer2css": "",
+    "ceiling1css": "",
+    "ceiling2css": "",
+    "setName": "textboxes",
+    "mapColor": "",
+    "editorColor": "green trsp20",
+    "displayText": "Lets leave it alone for now"
+  },
+  {
+    "id": "a196a595-9d03-4466-8b6f-2af23fd3f834",
+    "commonName": "goal-or-finish",
+    "cssColor": "",
+    "walkable": true,
+    "layer1css": "",
+    "layer2css": "",
+    "ceiling1css": "",
+    "ceiling2css": "",
+    "setName": "textboxes",
+    "mapColor": "",
+    "editorColor": "blue trsp20",
+    "displayText": "Left for goal scoring tutorial. Right to finish."
   }
 ]

@@ -1,1 +1,92 @@
-[{"id":"45e7d743-a34b-470b-a344-1e341b5baf5e","name":"destroyed-by-goal","setName":"tutorial","cssClass":"half-gray","pushable":false,"fragile":false,"reactions":""},{"id":"d7d98f29-63a8-4cf8-8a90-9db7cb9f86ad","name":"tutorial-goal-fuschsia","setName":"capture-the-flag","cssClass":"fuchsia-b thick","pushable":false,"fragile":false,"reactions":"tutorial-goal-fuchsia"},{"id":"2fb72c65-64b4-40b0-b169-f82b443d4b80","name":"tutorial-goal-sky-blue","setName":"capture-the-flag","cssClass":"sky-blue-b thick","pushable":false,"fragile":false,"reactions":"tutorial-goal-sky-blue"},{"id":"9749e801-466f-49ec-a8e3-26158fe25980","name":"gold-target","setName":"tutorial","cssClass":"gold-b thick","pushable":false,"fragile":false,"reactions":"gold-target"},{"id":"2b2afdfb-8e37-4f84-bdda-c26dc8b0404b","name":"ball-gold","setName":"tutorial","cssClass":"gold r1 yellow-b thick","pushable":true,"fragile":false,"reactions":""},{"id":"db2c2305-4ba5-412d-bbf5-c5bc08ae8430","name":"team-wild-text","setName":"tutorial","cssClass":"","pushable":false,"fragile":false,"reactions":"set-team-wild-text-and-delete"},{"id":"b6e06152-a8d4-4d86-adb4-525040ea5008","name":"tutorial-black-hole","setName":"tutorial","cssClass":"black white-b thin","pushable":false,"fragile":false,"reactions":"tutorial-black-hole"},{"id":"6c12fece-dbf8-487a-b084-0791e9efe866","name":"tutorial-ball-fuchsia","setName":"tutorial","cssClass":"fuchsia r1 pink-b thick","pushable":true,"fragile":false,"reactions":""}]
+[
+  {
+    "id": "45e7d743-a34b-470b-a344-1e341b5baf5e",
+    "name": "destroyed-by-goal",
+    "setName": "tutorial",
+    "cssClass": "half-gray",
+    "pushable": false,
+    "walkable": false,
+    "fragile": false,
+    "reactions": ""
+  },
+  {
+    "id": "d7d98f29-63a8-4cf8-8a90-9db7cb9f86ad",
+    "name": "tutorial-goal-fuschsia",
+    "setName": "capture-the-flag",
+    "cssClass": "fuchsia-b thick",
+    "pushable": false,
+    "walkable": false,
+    "fragile": false,
+    "reactions": "tutorial-goal-fuchsia"
+  },
+  {
+    "id": "2fb72c65-64b4-40b0-b169-f82b443d4b80",
+    "name": "tutorial-goal-sky-blue",
+    "setName": "capture-the-flag",
+    "cssClass": "sky-blue-b thick",
+    "pushable": false,
+    "walkable": false,
+    "fragile": false,
+    "reactions": "tutorial-goal-sky-blue"
+  },
+  {
+    "id": "9749e801-466f-49ec-a8e3-26158fe25980",
+    "name": "gold-target",
+    "setName": "tutorial",
+    "cssClass": "gold-b thick",
+    "pushable": false,
+    "walkable": false,
+    "fragile": false,
+    "reactions": "gold-target"
+  },
+  {
+    "id": "2b2afdfb-8e37-4f84-bdda-c26dc8b0404b",
+    "name": "ball-gold",
+    "setName": "tutorial",
+    "cssClass": "gold r1 yellow-b thick",
+    "pushable": true,
+    "walkable": false,
+    "fragile": false,
+    "reactions": ""
+  },
+  {
+    "id": "db2c2305-4ba5-412d-bbf5-c5bc08ae8430",
+    "name": "team-wild-text",
+    "setName": "tutorial",
+    "cssClass": "",
+    "pushable": false,
+    "walkable": false,
+    "fragile": false,
+    "reactions": "set-team-wild-text-and-delete"
+  },
+  {
+    "id": "b6e06152-a8d4-4d86-adb4-525040ea5008",
+    "name": "tutorial-black-hole",
+    "setName": "tutorial",
+    "cssClass": "black white-b thin",
+    "pushable": false,
+    "walkable": false,
+    "fragile": false,
+    "reactions": "tutorial-black-hole"
+  },
+  {
+    "id": "6c12fece-dbf8-487a-b084-0791e9efe866",
+    "name": "tutorial-ball-fuchsia",
+    "setName": "tutorial",
+    "cssClass": "fuchsia r1 pink-b thick",
+    "pushable": true,
+    "walkable": false,
+    "fragile": false,
+    "reactions": ""
+  },
+  {
+    "id": "1364ccd2-deac-4da2-9a89-797a349fa22d",
+    "name": "teleport-home",
+    "setName": "tutorial",
+    "cssClass": "pink",
+    "pushable": false,
+    "walkable": true,
+    "fragile": false,
+    "reactions": "teleport-home"
+  }
+]
