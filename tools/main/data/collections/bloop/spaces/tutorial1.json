@@ -940,7 +940,7 @@
       "east": "tutorial1:0-1",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": ""
+      "spawnStrategy": "none"
     },
     {
       "name": "tutorial1:0-1",
@@ -3763,7 +3763,7 @@
       "west": "tutorial1:0-0",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "",
+      "spawnStrategy": "none",
       "weather": "blue trsp20"
     },
     {
@@ -4664,7 +4664,7 @@
       "west": "tutorial1:0-1",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": ""
+      "spawnStrategy": "none"
     },
     {
       "name": "tutorial1:1-0",
@@ -7478,7 +7478,7 @@
       "east": "tutorial1:1-1",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": ""
+      "spawnStrategy": "none"
     },
     {
       "name": "tutorial1:1-1",
@@ -8426,7 +8426,7 @@
       "west": "tutorial1:1-0",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": ""
+      "spawnStrategy": "none"
     },
     {
       "name": "tutorial1:1-2",
@@ -11266,7 +11266,7 @@
       "west": "tutorial1:1-1",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": ""
+      "spawnStrategy": "none"
     },
     {
       "name": "tutorial1:2-0",
@@ -12162,7 +12162,7 @@
       "east": "tutorial1:2-1",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": ""
+      "spawnStrategy": "none"
     },
     {
       "name": "tutorial1:2-1",
@@ -13114,7 +13114,7 @@
       "west": "tutorial1:2-0",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": ""
+      "spawnStrategy": "none"
     },
     {
       "name": "tutorial1:2-2",
@@ -14016,7 +14016,7 @@
       "west": "tutorial1:2-1",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": ""
+      "spawnStrategy": "none"
     }
   ]
 }

@@ -188,6 +188,16 @@
         <input type="text" id="broadcast-group" name="broadcast-group" value="" />       
         <input type="submit" value="Save" />
     </form>
+    <form hx-include="[name='currentCollection'],[name='currentSpace']" hx-post="/space/modify" hx-target="#save_notice">
+        <label for="load-strategy">Load Strategy:</label>
+        <input type="text" id="load-strategy" name="load-strategy" value="" />       
+        <input type="submit" value="Save" />
+    </form>
+    <form hx-include="[name='currentCollection'],[name='currentSpace']" hx-post="/space/modify" hx-target="#save_notice">
+        <label for="spawn-strategy">Spawn Strategy:</label>
+        <input type="text" id="spawn-strategy" name="spawn-strategy" value="" />       
+        <input type="submit" value="Save" />
+    </form>
 </div>
 {{end}}
 
