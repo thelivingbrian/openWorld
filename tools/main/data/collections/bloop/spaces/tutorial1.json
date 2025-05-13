@@ -939,7 +939,7 @@
       "south": "tutorial1:1-0",
       "east": "tutorial1:0-1",
       "mapId": "",
-      "loadStrategy": "",
+      "loadStrategy": "Team",
       "spawnStrategy": "none"
     },
     {
@@ -1318,8 +1318,10 @@
               "transformation": {}
             },
             {
-              "prototypeId": "6",
-              "transformation": {}
+              "prototypeId": "c219e026-c08c-430e-bfed-6f8da85f4ecc",
+              "transformation": {
+                "clockwiseRotations": 2
+              }
             }
           ],
           [
@@ -1620,8 +1622,10 @@
               "transformation": {}
             },
             {
-              "prototypeId": "6",
-              "transformation": {}
+              "prototypeId": "c219e026-c08c-430e-bfed-6f8da85f4ecc",
+              "transformation": {
+                "clockwiseRotations": 3
+              }
             }
           ],
           [
@@ -1864,7 +1868,7 @@
               "transformation": {}
             },
             {
-              "prototypeId": "6",
+              "prototypeId": "c219e026-c08c-430e-bfed-6f8da85f4ecc",
               "transformation": {}
             },
             {
@@ -1880,8 +1884,10 @@
               "transformation": {}
             },
             {
-              "prototypeId": "6",
-              "transformation": {}
+              "prototypeId": "c219e026-c08c-430e-bfed-6f8da85f4ecc",
+              "transformation": {
+                "clockwiseRotations": 3
+              }
             },
             {
               "prototypeId": "6",
@@ -2699,11 +2705,11 @@
               "TopLeft": false
             },
             {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
+              "Status": 1,
+              "BottomRight": true,
+              "BottomLeft": true,
+              "TopRight": true,
+              "TopLeft": true
             },
             {
               "Status": 0,
@@ -3049,8 +3055,31 @@
             },
             {
               "Status": 0,
-              "BottomRight": false,
+              "BottomRight": true,
               "BottomLeft": true,
+              "TopRight": true,
+              "TopLeft": false
+            },
+            {
+              "Status": 1,
+              "BottomRight": true,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": true
+            }
+          ],
+          [
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
               "TopRight": false,
               "TopLeft": false
             },
@@ -3060,6 +3089,97 @@
               "BottomLeft": false,
               "TopRight": false,
               "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 1,
+              "BottomRight": false,
+              "BottomLeft": true,
+              "TopRight": false,
+              "TopLeft": true
+            },
+            {
+              "Status": 1,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 1,
+              "BottomRight": true,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": true
             },
             {
               "Status": 0,
@@ -3145,462 +3265,6 @@
               "BottomRight": false,
               "BottomLeft": false,
               "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 1,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": true
-            },
-            {
-              "Status": 1,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 1,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 1,
-              "BottomRight": true,
-              "BottomLeft": false,
-              "TopRight": true,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            }
-          ],
-          [
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": true,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 1,
-              "BottomRight": true,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": true
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            }
-          ],
-          [
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 1,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": true
-            },
-            {
-              "Status": 1,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": true,
-              "BottomLeft": true,
-              "TopRight": false,
-              "TopLeft": true
-            },
-            {
-              "Status": 1,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": true,
-              "TopLeft": true
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            }
-          ],
-          [
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 1,
-              "BottomRight": true,
-              "BottomLeft": true,
-              "TopRight": true,
-              "TopLeft": true
-            },
-            {
-              "Status": 0,
-              "BottomRight": true,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 1,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": true,
-              "TopRight": true,
-              "TopLeft": true
-            },
-            {
-              "Status": 1,
-              "BottomRight": false,
-              "BottomLeft": true,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 1,
-              "BottomRight": true,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            }
-          ],
-          [
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 0,
-              "BottomRight": true,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": false
-            },
-            {
-              "Status": 1,
-              "BottomRight": false,
-              "BottomLeft": false,
-              "TopRight": false,
-              "TopLeft": true
-            },
-            {
-              "Status": 0,
-              "BottomRight": true,
-              "BottomLeft": true,
-              "TopRight": true,
-              "TopLeft": true
-            },
-            {
-              "Status": 1,
-              "BottomRight": true,
-              "BottomLeft": false,
-              "TopRight": true,
               "TopLeft": false
             },
             {
@@ -3690,6 +3354,20 @@
               "TopLeft": false
             },
             {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
               "Status": 1,
               "BottomRight": false,
               "BottomLeft": false,
@@ -3698,7 +3376,107 @@
             },
             {
               "Status": 1,
+              "BottomRight": true,
+              "BottomLeft": false,
+              "TopRight": true,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
               "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 1,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": true,
+              "TopLeft": true
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            }
+          ],
+          [
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 1,
+              "BottomRight": true,
+              "BottomLeft": true,
+              "TopRight": true,
+              "TopLeft": true
+            },
+            {
+              "Status": 0,
+              "BottomRight": true,
               "BottomLeft": false,
               "TopRight": false,
               "TopLeft": false
@@ -3713,9 +3491,237 @@
             {
               "Status": 0,
               "BottomRight": false,
+              "BottomLeft": true,
+              "TopRight": false,
+              "TopLeft": true
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 1,
+              "BottomRight": true,
+              "BottomLeft": true,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            }
+          ],
+          [
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 1,
+              "BottomRight": true,
+              "BottomLeft": true,
+              "TopRight": true,
+              "TopLeft": true
+            },
+            {
+              "Status": 0,
+              "BottomRight": true,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 1,
+              "BottomRight": false,
               "BottomLeft": false,
               "TopRight": false,
               "TopLeft": true
+            },
+            {
+              "Status": 0,
+              "BottomRight": true,
+              "BottomLeft": true,
+              "TopRight": true,
+              "TopLeft": true
+            },
+            {
+              "Status": 1,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": true,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            }
+          ],
+          [
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 0,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 1,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": true
+            },
+            {
+              "Status": 1,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 1,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
+            },
+            {
+              "Status": 1,
+              "BottomRight": false,
+              "BottomLeft": false,
+              "TopRight": false,
+              "TopLeft": false
             },
             {
               "Status": 0,
@@ -3762,7 +3768,7 @@
       "east": "tutorial1:0-2",
       "west": "tutorial1:0-0",
       "mapId": "",
-      "loadStrategy": "",
+      "loadStrategy": "Team",
       "spawnStrategy": "none",
       "weather": "blue trsp20"
     },
@@ -4663,7 +4669,7 @@
       "south": "tutorial1:1-2",
       "west": "tutorial1:0-1",
       "mapId": "",
-      "loadStrategy": "",
+      "loadStrategy": "Team",
       "spawnStrategy": "none"
     },
     {
@@ -7477,7 +7483,7 @@
       "south": "tutorial1:2-0",
       "east": "tutorial1:1-1",
       "mapId": "",
-      "loadStrategy": "",
+      "loadStrategy": "Team",
       "spawnStrategy": "none"
     },
     {
@@ -8425,7 +8431,7 @@
       "east": "tutorial1:1-2",
       "west": "tutorial1:1-0",
       "mapId": "",
-      "loadStrategy": "",
+      "loadStrategy": "Team",
       "spawnStrategy": "none"
     },
     {
@@ -11265,7 +11271,7 @@
       "south": "tutorial1:2-2",
       "west": "tutorial1:1-1",
       "mapId": "",
-      "loadStrategy": "",
+      "loadStrategy": "Team",
       "spawnStrategy": "none"
     },
     {
@@ -12161,7 +12167,7 @@
       "north": "tutorial1:1-0",
       "east": "tutorial1:2-1",
       "mapId": "",
-      "loadStrategy": "",
+      "loadStrategy": "Team",
       "spawnStrategy": "none"
     },
     {
@@ -13113,7 +13119,7 @@
       "east": "tutorial1:2-2",
       "west": "tutorial1:2-0",
       "mapId": "",
-      "loadStrategy": "",
+      "loadStrategy": "Team",
       "spawnStrategy": "none"
     },
     {
@@ -14015,7 +14021,7 @@
       "north": "tutorial1:1-2",
       "west": "tutorial1:2-1",
       "mapId": "",
-      "loadStrategy": "",
+      "loadStrategy": "Team",
       "spawnStrategy": "none"
     }
   ]

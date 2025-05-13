@@ -159,7 +159,11 @@ func (player *Player) fetchStageSync(stagename string) *Stage {
 	if ok && stage != nil {
 		return stage
 	}
-	// stagename + team || stagename + rand
+	teamStageName := stagename + ":" + player.getTeamNameSync()
+	stage, ok = player.world.worldStages[teamStageName]
+	if ok && stage != nil {
+		return stage
+	}
 	// stagename + prompt for / provide group code
 
 	player.pStageMutex.Lock()
@@ -177,6 +181,9 @@ func (player *Player) fetchStageSync(stagename string) *Stage {
 	stage = createStageFromArea(area) // can create empty stage
 	if area.LoadStrategy == "" {
 		player.world.worldStages[stagename] = stage
+	}
+	if area.LoadStrategy == "Team" {
+		player.world.worldStages[teamStageName] = stage
 	}
 	if area.LoadStrategy == "Personal" {
 		player.playerStages[stagename] = stage
