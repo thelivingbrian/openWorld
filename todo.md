@@ -306,6 +306,8 @@ layerXCss : "static {transformationType:value} string"
 
 
 
+Events/Triggers - Similar to ineractables but stationary - stackable - have state - only react to nil  
+
 
 Interactable machine for teleporting across a boundary:
 

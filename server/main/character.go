@@ -487,8 +487,8 @@ func (npc *NonPlayer) updateRecord() {
 //////////////////////////////////////////////////////////////////////////////
 // Spawn NPC
 
-func spawnNewNPCDoingAction(ref *Player, interval, duration int, action func(*NonPlayer), tile *Tile) *NonPlayer {
-	npc, ctx := createNewNPC(ref.world)
+func spawnNewNPCDoingAction(ref *Player, team string, interval, duration int, action func(*NonPlayer), tile *Tile) *NonPlayer {
+	npc, ctx := createNewNPC(ref.world, team)
 	if tile == nil {
 		placeNpcOnStage(npc, ref)
 	} else {
@@ -504,13 +504,14 @@ func spawnNewNPCDoingAction(ref *Player, interval, duration int, action func(*No
 	return npc
 }
 
-func createNewNPC(world *World) (*NonPlayer, context.Context) {
+func createNewNPC(world *World, team string) (*NonPlayer, context.Context) {
 	username := uuid.New().String()
 	ctx, cancel := context.WithCancel(context.Background())
 	npc := &NonPlayer{
 		id:        username,
 		terminate: cancel,
 		world:     world,
+		team:      team,
 		icon:      "red-b thick r0",
 		iconLow:   "dark-red-b thick r0",
 	}
@@ -577,7 +578,6 @@ func moveAgressiveNorth(shapes [][][2]int) func(*NonPlayer) {
 
 func moveAgressiveRand(shapes [][][2]int) func(*NonPlayer) {
 	randn := rand.Intn(4)
-	fmt.Println(randn)
 	return func(npc *NonPlayer) {
 		moveAggressively(npc, shapes, randn)
 	}

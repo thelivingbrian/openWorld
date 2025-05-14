@@ -2,6 +2,8 @@ package main
 
 import (
 	"math/rand"
+	"strconv"
+	"time"
 )
 
 type SpawnAction struct {
@@ -29,8 +31,11 @@ var spawnActions = map[string][]SpawnAction{
 	"tutorial-boost": {
 		{Should: always, Action: onCurrentStage(tutorialBoost())},
 	},
+	"tutorial-1-menu": {
+		{Should: checkYCoord(0), Action: openNamedMenuAfterDelay("pause", 1600)},
+	},
 	"tutorial-1-boost": {
-		{Should: always, Action: onCurrentStage(tutorial1Boost())},
+		{Should: checkXCoord(0), Action: tutorial1Boost},
 	},
 	"tutorial-1-npc": {
 		{Should: always, Action: tutorial1Npc},
@@ -99,6 +104,18 @@ func min(vals ...int) int {
 	return minVal
 }
 
+func checkYCoord(check int) func(p *Player, s *Stage) bool {
+	return func(p *Player, s *Stage) bool {
+		return p.getTileSync().y == check
+	}
+}
+
+func checkXCoord(check int) func(p *Player, s *Stage) bool {
+	return func(p *Player, s *Stage) bool {
+		return p.getTileSync().x == check
+	}
+}
+
 /////////////////////////////////////////////
 //  Actions
 
@@ -119,8 +136,9 @@ func tutorialBoost() func(stage *Stage) {
 	return addBoostsAt(8, 8)
 }
 
-func tutorial1Boost() func(stage *Stage) {
-	return addBoostsAt(7, 4)
+func tutorial1Boost(player *Player) {
+	stage := player.getTileSync().stage
+	stage.tiles[7][4].addBoostsAndNotifyAll()
 }
 
 func tutorial1Npc(player *Player) {
@@ -132,8 +150,23 @@ func tutorial1Npc(player *Player) {
 	if !ok {
 		return
 	}
-	spawnNewNPCDoingAction(player, 110, 60, moveAgressiveRand(shortShapes), tile)
+	randStr := strconv.Itoa(rand.Intn(16))
+	spawnNewNPCDoingAction(player, randStr, 110, 60, moveAgressiveRand(shortShapes), tile)
 
+}
+
+func openNamedMenuAfterDelay(name string, delay int) func(*Player) {
+	return func(p *Player) {
+		go func() {
+			time.Sleep(time.Millisecond * time.Duration(delay))
+			ownLock := p.tangibilityLock.TryLock()
+			if !ownLock || !p.tangible {
+				return
+			}
+			defer p.tangibilityLock.Unlock()
+			turnMenuOnByName(p, name)
+		}()
+	}
 }
 
 type Rect struct {
@@ -285,11 +318,11 @@ func basicSpawnWithRing(p *Player) {
 	lifeInSeconds := 450
 	if determination2%8 == 0 {
 		spawnPowerup(stage)
-		spawnNewNPCDoingAction(p, 105, lifeInSeconds, moveRandomlyAndActivatePower, nil)
+		spawnNewNPCDoingAction(p, "npc", 105, lifeInSeconds, moveRandomlyAndActivatePower, nil)
 	}
 	if determination2 == 0 {
 		spawnPowerup(stage)
-		npc := spawnNewNPCDoingAction(p, 95, lifeInSeconds, moveAgressiveRand(shapesNpc), nil)
+		npc := spawnNewNPCDoingAction(p, "npc", 95, lifeInSeconds, moveAgressiveRand(shapesNpc), nil)
 		npc.money.Add(int64(125))
 	}
 

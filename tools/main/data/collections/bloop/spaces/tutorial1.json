@@ -99,7 +99,6 @@
               "transformation": {}
             },
             {
-              "prototypeId": "2cdeae00-8ca4-4a24-a434-70951609a39e",
               "transformation": {}
             },
             {
@@ -156,7 +155,6 @@
               }
             },
             {
-              "prototypeId": "2cdeae00-8ca4-4a24-a434-70951609a39e",
               "transformation": {}
             },
             {
@@ -212,7 +210,6 @@
               "transformation": {}
             },
             {
-              "prototypeId": "2cdeae00-8ca4-4a24-a434-70951609a39e",
               "transformation": {}
             },
             {
@@ -275,7 +272,6 @@
               }
             },
             {
-              "prototypeId": "2cdeae00-8ca4-4a24-a434-70951609a39e",
               "transformation": {}
             },
             {
@@ -330,7 +326,6 @@
               "transformation": {}
             },
             {
-              "prototypeId": "2cdeae00-8ca4-4a24-a434-70951609a39e",
               "transformation": {}
             },
             {
@@ -368,23 +363,18 @@
               "transformation": {}
             },
             {
-              "prototypeId": "2cdeae00-8ca4-4a24-a434-70951609a39e",
               "transformation": {}
             },
             {
-              "prototypeId": "2cdeae00-8ca4-4a24-a434-70951609a39e",
               "transformation": {}
             },
             {
-              "prototypeId": "2cdeae00-8ca4-4a24-a434-70951609a39e",
               "transformation": {}
             },
             {
-              "prototypeId": "2cdeae00-8ca4-4a24-a434-70951609a39e",
               "transformation": {}
             },
             {
-              "prototypeId": "2cdeae00-8ca4-4a24-a434-70951609a39e",
               "transformation": {}
             },
             {
@@ -11410,15 +11400,19 @@
               }
             },
             {
+              "prototypeId": "1d97d308-b544-4fcf-8104-b05b7cfacfaf",
               "transformation": {}
             },
             {
+              "prototypeId": "1d97d308-b544-4fcf-8104-b05b7cfacfaf",
               "transformation": {}
             },
             {
+              "prototypeId": "1d97d308-b544-4fcf-8104-b05b7cfacfaf",
               "transformation": {}
             },
             {
+              "prototypeId": "1d97d308-b544-4fcf-8104-b05b7cfacfaf",
               "transformation": {}
             },
             {
@@ -11469,19 +11463,15 @@
               "transformation": {}
             },
             {
-              "prototypeId": "1d97d308-b544-4fcf-8104-b05b7cfacfaf",
               "transformation": {}
             },
             {
-              "prototypeId": "1d97d308-b544-4fcf-8104-b05b7cfacfaf",
               "transformation": {}
             },
             {
-              "prototypeId": "1d97d308-b544-4fcf-8104-b05b7cfacfaf",
               "transformation": {}
             },
             {
-              "prototypeId": "1d97d308-b544-4fcf-8104-b05b7cfacfaf",
               "transformation": {}
             },
             {
@@ -12279,7 +12269,7 @@
       "east": "tutorial1:2-1",
       "mapId": "",
       "loadStrategy": "Team",
-      "spawnStrategy": "none"
+      "spawnStrategy": "tutorial-1-menu"
     },
     {
       "name": "tutorial1:2-1",
