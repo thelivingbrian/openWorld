@@ -37,6 +37,9 @@ var spawnActions = map[string][]SpawnAction{
 	"tutorial-1-boost": {
 		{Should: checkXCoord(0), Action: tutorial1Boost},
 	},
+	"tutorial-1-ring": {
+		{Should: always, Action: tutorial1Ring},
+	},
 	"tutorial-1-npc": {
 		{Should: always, Action: tutorial1Npc},
 	},
@@ -141,6 +144,8 @@ func tutorial1Boost(player *Player) {
 	stage.tiles[7][4].addBoostsAndNotifyAll()
 }
 
+/*
+ */
 func tutorial1Npc(player *Player) {
 	stage := player.getTileSync().stage
 	tiles0 := getRegion(stage.tiles, Rect{2, 5, 5, 6})
@@ -152,7 +157,28 @@ func tutorial1Npc(player *Player) {
 	}
 	randStr := strconv.Itoa(rand.Intn(16))
 	spawnNewNPCDoingAction(player, randStr, 110, 60, moveAgressiveRand(shortShapes), tile)
+}
 
+func tutorial1Ring(player *Player) {
+	stage := player.getTileSync().stage
+	tiles := []*Tile{
+		stage.tiles[2][2],
+		stage.tiles[13][2],
+		stage.tiles[2][13],
+	}
+	n := rand.Intn(len(tiles))
+	n2 := mod(n+1, len(tiles))
+	tile := tiles[n]
+	tile2 := tiles[n2]
+	ring := Interactable{
+		name:     "ring-big",
+		cssClass: "gold-b thick r1",
+		pushable: true,
+		fragile:  true,
+	}
+	copy := ring
+	trySetInteractable(tile, &ring)
+	trySetInteractable(tile2, &copy)
 }
 
 func openNamedMenuAfterDelay(name string, delay int) func(*Player) {

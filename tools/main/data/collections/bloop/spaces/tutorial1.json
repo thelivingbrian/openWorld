@@ -8594,8 +8594,7 @@
             },
             {
               "prototypeId": "fbb62a49-836f-44aa-8523-71d2d3f1619a",
-              "transformation": {},
-              "interactableId": "600aab97-1fad-48e9-8fb2-16a00855aeb0"
+              "transformation": {}
             },
             {
               "transformation": {}
@@ -8629,8 +8628,7 @@
             },
             {
               "prototypeId": "fbb62a49-836f-44aa-8523-71d2d3f1619a",
-              "transformation": {},
-              "interactableId": "600aab97-1fad-48e9-8fb2-16a00855aeb0"
+              "transformation": {}
             },
             {
               "transformation": {}
@@ -9300,8 +9298,7 @@
             },
             {
               "prototypeId": "fbb62a49-836f-44aa-8523-71d2d3f1619a",
-              "transformation": {},
-              "interactableId": "600aab97-1fad-48e9-8fb2-16a00855aeb0"
+              "transformation": {}
             },
             {
               "transformation": {}
@@ -11365,7 +11362,7 @@
       "west": "tutorial1:1-1",
       "mapId": "",
       "loadStrategy": "Team",
-      "spawnStrategy": "none"
+      "spawnStrategy": "tutorial-1-ring"
     },
     {
       "name": "tutorial1:2-0",
