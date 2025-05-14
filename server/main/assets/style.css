@@ -132,6 +132,14 @@ a {
     display: inline-block;
 }
 
+.gradient-bg {
+  background: linear-gradient(
+    135deg,
+    rgba(48, 152, 240, 0.5),          /* sky‑blue @ 50 % opacity */
+    rgba(253, 52, 172, 0.5)           /* fuchsia  @ 50 % opacity */
+  );
+}
+
 #social a {
     text-decoration: none;
 }
