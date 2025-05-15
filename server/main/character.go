@@ -88,13 +88,13 @@ func applyTeleport(character Character, teleport *Teleport) {
 
 // Juke
 func jukeRight(yOff, xOff int, character Character) {
-	rel, rot := getRelativeAndRotate(yOff, xOff, character, true)
-	swapIfEmpty(rel, rot)
+	rel, _ := getRelativeAndRotate(yOff, xOff, character, true)
+	swapIfEmpty(rel, character.getTileSync())
 }
 
 func jukeLeft(yOff, xOff int, character Character) {
-	rel, rot := getRelativeAndRotate(yOff, xOff, character, false)
-	swapIfEmpty(rel, rot)
+	rel, _ := getRelativeAndRotate(yOff, xOff, character, false)
+	swapIfEmpty(rel, character.getTileSync())
 }
 
 func tryJukeNorth(prev string, character Character) {
