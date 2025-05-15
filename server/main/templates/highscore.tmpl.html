@@ -3,12 +3,14 @@
 <html>
     {{template "score-header"}}
     <body>
-        <div id="page">
-            {{template "logo-small"}}
-            <div id="highscore">
-                {{template "highscore-list" .}}
+        <div id="page" class="center-vertically">
+            <div>
+                {{template "logo-small"}}
+                <div id="highscore">
+                    {{template "highscore-list" .}}
+                </div>
+                {{ template "social" }}
             </div>
-            {{ template "social" }}
         </div>
     </body>
 </html>

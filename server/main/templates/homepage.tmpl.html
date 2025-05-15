@@ -3,20 +3,22 @@
 <html>
     {{template "page-header"}}
     <body>
-        <div id="page">
-            <div id="logo">
-                <img class="logo-img" src="/assets/bloopworld.png" width="80%" alt="Welcome to bloopworld"><br />
+        <div id="page" class="center-vertically">
+            <div>
+                <div id="logo">
+                    <img class="logo-img" src="/assets/bloopworld.png" width="80%" alt="Welcome to bloopworld"><br />
+                </div>
+                <div id="landing">
+                    {{ if . }}
+                        <a class="large-font" href="#" hx-get="/worlds" hx-target="#landing">Select World</a><br />
+                    {{ else }}
+                        <a class="large-font" href="/auth?provider=google">Sign in with Google</a><br />
+                    {{ end }}
+                    <a class="large-font" href="/highscore?category=richest">High-Scores</a><br />
+                    <a class="large-font" href="/about" > About </a><br />
+                </div>
+                {{ template "social" }}
             </div>
-            <div id="landing">
-                {{ if . }}
-                    <a class="large-font" href="#" hx-get="/worlds" hx-target="#landing">Select World</a><br />
-                {{ else }}
-                    <a class="large-font" href="/auth?provider=google">Sign in with Google</a><br />
-                {{ end }}
-                <a class="large-font" href="/highscore?category=richest">High-Scores</a><br />
-                <a class="large-font" href="/about" > About </a><br />
-            </div>
-            {{ template "social" }}
         </div>
         <div id="sound-trigger" class="invisible"><div id="sound"></div></div>
     </body>
@@ -28,7 +30,7 @@
 <html>
     {{template "page-header"}}
     <body>
-        <div id="about-page">
+        <div id="about-page" >
             {{template "logo-small"}}
             <div id="about">   
                 <p>
