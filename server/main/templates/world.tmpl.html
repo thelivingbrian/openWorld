@@ -1,6 +1,6 @@
 {{define "world-select"}}
 <div id="page" class="center-vertically" hx-swap-oob="true">
-    <div> 
+    <div id="container"> 
         {{template "logo-small"}}
         <div id="landing">   
             {{range  $i, $domain := .}}
@@ -32,7 +32,7 @@
 
 {{define "log-out"}}
 <div id="page" class="center-vertically">
-    <div>
+    <div id="container">
         {{template "logo-small"}}
         <div id="landing">   
             <span>{{.Text}}</span><br />
