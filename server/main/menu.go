@@ -296,9 +296,21 @@ func continueTeleporting(teleport *Teleport) Menu {
 	}
 }
 
+func exitTutorial(teleport *Teleport) Menu {
+	return Menu{
+		Name:     "teleport",
+		CssClass: "",
+		InfoHtml: "<h2>Finish tutorial?</h2>",
+		Links: []MenuLink{
+			{Text: "Yes", eventHandler: teleportEventHandler(teleport), auth: sourceStageAuthorizerAffirmative(teleport.sourceStage)},
+			{Text: "No", eventHandler: turnMenuOff, auth: nil},
+		},
+	}
+}
+
 func teleportEventHandler(teleport *Teleport) func(*Player) {
 	return func(player *Player) {
-		turnMenuOff(player) // menu off beefore teleport
+		turnMenuOff(player) // menu off before teleport
 		// No need for new routine?
 		go func() {
 			player.applyTeleport(teleport)

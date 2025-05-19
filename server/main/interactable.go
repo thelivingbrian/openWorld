@@ -65,6 +65,9 @@ func init() {
 		"tutorial-exchange": {
 			{ReactsWith: interactableIsARing, Reaction: tutorialExchange},
 		},
+		"teleport-home": {
+			{ReactsWith: interactableIsNil, Reaction: teleportHome},
+		},
 
 		////////////////////////////////////////////////////////////////
 		// machines :
@@ -545,6 +548,31 @@ func tutorialExchange(i *Interactable, p *Player, t *Tile) (*Interactable, bool)
 		spawnPowerupShort(t.stage)
 	}
 	p.updateBottomText("*[red] berries grant you destructive powers")
+	return nil, false
+}
+
+func teleportHome(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	team := p.getTeamNameSync()
+	stage := ""
+	switch team {
+	case "fuchsia":
+		stage = "team-fuchsia:4-3"
+	case "sky-blue":
+		stage = "team-blue:3-4"
+	default:
+		return nil, false
+	}
+	exitTeleport := Teleport{
+		destStage:          stage,
+		destY:              7,
+		destX:              7,
+		sourceStage:        t.stage.name,
+		confirmation:       true,
+		rejectInteractable: true,
+	}
+
+	p.menues["teleport"] = exitTutorial(&exitTeleport)
+	turnMenuOnByName(p, "teleport")
 	return nil, false
 }
 

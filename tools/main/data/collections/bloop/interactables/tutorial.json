@@ -85,7 +85,7 @@
     "setName": "tutorial",
     "cssClass": "pink",
     "pushable": false,
-    "walkable": true,
+    "walkable": false,
     "fragile": false,
     "reactions": "teleport-home"
   },
