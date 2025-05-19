@@ -32833,7 +32833,7 @@
       "west": "team-fuchsia:2-1",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "basic-ring"
+      "spawnStrategy": "basic-weak"
     },
     {
       "name": "team-fuchsia:2-3",
@@ -35775,7 +35775,7 @@
       "west": "team-fuchsia:2-2",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "basic-ring"
+      "spawnStrategy": "basic-weak"
     },
     {
       "name": "team-fuchsia:2-4",
@@ -38702,7 +38702,7 @@
       "west": "team-fuchsia:2-3",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "basic-ring"
+      "spawnStrategy": "basic-weak"
     },
     {
       "name": "team-fuchsia:2-5",
@@ -41710,7 +41710,7 @@
       "west": "team-fuchsia:2-4",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "basic-ring"
+      "spawnStrategy": "basic-weak"
     },
     {
       "name": "team-fuchsia:2-6",
@@ -53105,7 +53105,7 @@
       "west": "team-fuchsia:3-1",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "basic-ring"
+      "spawnStrategy": "basic-weak"
     },
     {
       "name": "team-fuchsia:3-3",
@@ -55990,7 +55990,7 @@
       "west": "team-fuchsia:3-2",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "basic-ring"
+      "spawnStrategy": "basic-weak"
     },
     {
       "name": "team-fuchsia:3-4",
@@ -57119,7 +57119,7 @@
       "west": "team-fuchsia:3-3",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "basic-ring"
+      "spawnStrategy": "basic-weak"
     },
     {
       "name": "team-fuchsia:3-5",
@@ -59905,7 +59905,7 @@
       "west": "team-fuchsia:3-4",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "basic-ring"
+      "spawnStrategy": "basic-weak"
     },
     {
       "name": "team-fuchsia:3-6",
@@ -71124,7 +71124,7 @@
       "west": "team-fuchsia:4-1",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "basic-ring"
+      "spawnStrategy": "basic-weak"
     },
     {
       "name": "team-fuchsia:4-3",
@@ -73875,7 +73875,7 @@
       "west": "team-fuchsia:4-2",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "basic-ring"
+      "spawnStrategy": "none"
     },
     {
       "name": "team-fuchsia:4-4",
@@ -75034,7 +75034,7 @@
       "west": "team-fuchsia:4-3",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "basic-ring"
+      "spawnStrategy": "basic-weak"
     },
     {
       "name": "team-fuchsia:4-5",
@@ -77848,7 +77848,7 @@
       "west": "team-fuchsia:4-4",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "basic-ring"
+      "spawnStrategy": "basic-weak"
     },
     {
       "name": "team-fuchsia:4-6",
@@ -89268,7 +89268,7 @@
       "west": "team-fuchsia:5-1",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "basic-ring"
+      "spawnStrategy": "basic-weak"
     },
     {
       "name": "team-fuchsia:5-3",
@@ -92180,7 +92180,7 @@
       "west": "team-fuchsia:5-2",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "basic-ring"
+      "spawnStrategy": "basic-weak"
     },
     {
       "name": "team-fuchsia:5-4",
@@ -94996,7 +94996,7 @@
       "west": "team-fuchsia:5-3",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "basic-ring"
+      "spawnStrategy": "basic-weak"
     },
     {
       "name": "team-fuchsia:5-5",
@@ -97959,7 +97959,7 @@
       "west": "team-fuchsia:5-4",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "basic-ring"
+      "spawnStrategy": "basic-weak"
     },
     {
       "name": "team-fuchsia:5-6",

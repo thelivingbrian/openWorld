@@ -8911,13 +8911,11 @@
               "transformation": {}
             },
             {
-              "prototypeId": "114de46e-3601-4617-9ee5-02562271f4be",
               "transformation": {
                 "clockwiseRotations": 3
               }
             },
             {
-              "prototypeId": "114de46e-3601-4617-9ee5-02562271f4be",
               "transformation": {}
             },
             {
@@ -8974,13 +8972,11 @@
               "transformation": {}
             },
             {
-              "prototypeId": "114de46e-3601-4617-9ee5-02562271f4be",
               "transformation": {
                 "clockwiseRotations": 2
               }
             },
             {
-              "prototypeId": "114de46e-3601-4617-9ee5-02562271f4be",
               "transformation": {
                 "clockwiseRotations": 1
               }
@@ -9256,13 +9252,11 @@
               "transformation": {}
             },
             {
-              "prototypeId": "114de46e-3601-4617-9ee5-02562271f4be",
               "transformation": {
                 "clockwiseRotations": 3
               }
             },
             {
-              "prototypeId": "114de46e-3601-4617-9ee5-02562271f4be",
               "transformation": {}
             },
             {
@@ -9313,13 +9307,11 @@
               "transformation": {}
             },
             {
-              "prototypeId": "114de46e-3601-4617-9ee5-02562271f4be",
               "transformation": {
                 "clockwiseRotations": 2
               }
             },
             {
-              "prototypeId": "114de46e-3601-4617-9ee5-02562271f4be",
               "transformation": {
                 "clockwiseRotations": 1
               }
@@ -9489,32 +9481,18 @@
             "ClockwiseRotations": 1
           },
           {
-            "ID": "f695b5f4-1ee4-4674-9697-186bb17d8988",
-            "X": 2,
-            "Y": 7,
-            "GridAssetId": "7367d7f2-d5b2-4931-a5c7-a5f052709917",
-            "ClockwiseRotations": 0
-          },
-          {
-            "ID": "96d4160b-45d3-4f49-8fe5-7088f450c1ca",
-            "X": 7,
-            "Y": 12,
-            "GridAssetId": "7367d7f2-d5b2-4931-a5c7-a5f052709917",
-            "ClockwiseRotations": 0
-          },
-          {
             "ID": "16ca7b7a-6511-4300-8a4f-a7ba126aebbe",
             "X": 7,
             "Y": 7,
             "GridAssetId": "c219e026-c08c-430e-bfed-6f8da85f4ecc",
-            "ClockwiseRotations": 0
+            "ClockwiseRotations": 3
           },
           {
             "ID": "098ccd63-10f3-4422-b076-e233449dd4f0",
             "X": 8,
             "Y": 8,
             "GridAssetId": "c219e026-c08c-430e-bfed-6f8da85f4ecc",
-            "ClockwiseRotations": 0
+            "ClockwiseRotations": 1
           }
         ],
         "Ground": [

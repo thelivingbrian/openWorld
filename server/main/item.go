@@ -8,7 +8,7 @@ import (
 
 type SpawnAction struct {
 	Should func(*Player, *Stage) bool
-	Action func(*Player) // func of player?
+	Action func(*Player)
 }
 
 func (s *SpawnAction) activateFor(player *Player, stage *Stage) {
@@ -26,7 +26,10 @@ var spawnActions = map[string][]SpawnAction{
 		{Should: always, Action: onCurrentStage(basicSpawnNoRing)},
 	},
 	"basic-ring": {
-		{Should: always, Action: basicSpawnWithRing},
+		{Should: always, Action: basicSpawnWithRingAndNPCs},
+	},
+	"basic-weak": {
+		{Should: always, Action: onCurrentStage(basicSpawnWeak)},
 	},
 	"tutorial-boost": {
 		{Should: always, Action: onCurrentStage(tutorialBoost())},
@@ -262,6 +265,13 @@ var shortShapes = [][][2]int{
 	x(),
 }
 
+var weakShapes = [][][2]int{
+	grid3x3, grid3x3,
+	cross(),
+	jumpCross(), jumpCross(),
+	x(),
+}
+
 var standardShapes = [][][2]int{
 	diagonalBlock(true, 2), diagonalBlock(false, 2),
 	diagonalBlock(true, 3), diagonalBlock(false, 3),
@@ -325,7 +335,7 @@ func basicSpawnOld(stage *Stage) {
 	}
 }
 
-func basicSpawnWithRing(p *Player) {
+func basicSpawnWithRingAndNPCs(p *Player) {
 	determination := rand.Intn(1000)
 	if determination < 350 {
 		// Do nothing
@@ -362,6 +372,17 @@ func basicSpawnNoRing(stage *Stage) {
 		spawnBoosts(stage)
 	} else {
 		spawnPowerup(stage)
+	}
+}
+
+func basicSpawnWeak(stage *Stage) {
+	determination := rand.Intn(1000)
+	if determination < 400 {
+		// Do nothing
+	} else if determination < 750 {
+		spawnBoosts(stage)
+	} else {
+		spawnPowerupFromSet(stage, weakShapes)
 	}
 }
 
