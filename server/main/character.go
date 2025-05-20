@@ -86,50 +86,57 @@ func applyTeleport(character Character, teleport *Teleport) {
 	character.transferBetween(character.getTileSync(), stage.tiles[teleport.destY][teleport.destX])
 }
 
-// Juke
+// Juke Right/Left take interactable at given offset and pulls it in front of player (Less useful in practice vs jukeIn)
 func jukeRight(yOff, xOff int, character Character) {
-	rel, _ := getRelativeAndRotate(yOff, xOff, character, true)
-	swapIfEmpty(rel, character.getTileSync())
+	rel, rot := getRelativeAndRotate(yOff, xOff, character, true)
+	swapIfEmpty(rel, rot)
 }
 
 func jukeLeft(yOff, xOff int, character Character) {
-	rel, _ := getRelativeAndRotate(yOff, xOff, character, false)
-	swapIfEmpty(rel, character.getTileSync())
+	rel, rot := getRelativeAndRotate(yOff, xOff, character, false)
+	swapIfEmpty(rel, rot)
+}
+
+// Juke "In" takes the interactable at the given offset and pulls it under the player
+func jukeIn(yOff, xOff int, character Character) {
+	current := character.getTileSync()
+	rel := getRelativeTile(current, yOff, xOff, character)
+	swapIfEmpty(rel, current)
 }
 
 func tryJukeNorth(prev string, character Character) {
 	switch prev {
-	case "a": // coming from West - turning north
-		jukeRight(0, -1, character)
-	case "d": // coming from East - turning north
-		jukeLeft(0, 1, character)
+	case "a": // previously heading West - turning north
+		jukeIn(0, -1, character)
+	case "d": // previously heading East - turning north
+		jukeIn(0, 1, character)
 	}
 }
 
 func tryJukeSouth(prev string, character Character) {
 	switch prev {
-	case "d": // came from East  - turning South
-		jukeRight(0, 1, character)
-	case "a": // came from West - turning South
-		jukeLeft(0, -1, character)
+	case "d": // previously heading East  - turning South
+		jukeIn(0, 1, character)
+	case "a": // previously heading West - turning South
+		jukeIn(0, -1, character)
 	}
 }
 
 func tryJukeWest(prev string, character Character) {
 	switch prev {
-	case "s": // came from South - turning west
-		jukeRight(1, 0, character)
-	case "w": // came from North - turning west
-		jukeLeft(-1, 0, character)
+	case "s": // previously heading South - turning west
+		jukeIn(1, 0, character)
+	case "w": // previously heading North - turning west
+		jukeIn(-1, 0, character)
 	}
 }
 
 func tryJukeEast(prev string, character Character) {
 	switch prev {
-	case "w": // came from North - turning east
-		jukeRight(-1, 0, character)
-	case "s": // came from South - turning east
-		jukeLeft(1, 0, character)
+	case "w": // previously heading North - turning east
+		jukeIn(-1, 0, character)
+	case "s": // previously heading South - turning east
+		jukeIn(1, 0, character)
 	}
 }
 
@@ -490,7 +497,7 @@ func (npc *NonPlayer) updateRecord() {
 func spawnNewNPCDoingAction(ref *Player, team string, interval, duration int, action func(*NonPlayer), tile *Tile) *NonPlayer {
 	npc, ctx := createNewNPC(ref.world, team)
 	if tile == nil {
-		placeNpcOnStage(npc, ref)
+		placeNpcOnSameStage(npc, ref)
 	} else {
 		addNPCAndNotifyOthers(npc, tile)
 	}
@@ -520,12 +527,8 @@ func createNewNPC(world *World, team string) (*NonPlayer, context.Context) {
 	return npc, ctx
 }
 
-func placeNpcOnStage(npc *NonPlayer, ref *Player) {
+func placeNpcOnSameStage(npc *NonPlayer, ref *Player) {
 	refTile := ref.getTileSync()
-	// if sameTile {
-	// 	addNPCAndNotifyOthers(npc, refTile)
-	// 	return
-	// }
 	tiles := walkableTiles(refTile.stage.tiles)
 	n := rand.Intn(len(tiles))
 	startTile := tiles[n]

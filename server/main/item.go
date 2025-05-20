@@ -150,8 +150,6 @@ func tutorial1Boost(player *Player) {
 	stage.tiles[7][4].addBoostsAndNotifyAll()
 }
 
-/*
- */
 func tutorial1Npc(player *Player) {
 	stage := player.getTileSync().stage
 	tiles0 := getRegion(stage.tiles, Rect{2, 5, 5, 6})
@@ -163,6 +161,48 @@ func tutorial1Npc(player *Player) {
 	}
 	randStr := strconv.Itoa(rand.Intn(16))
 	spawnNewNPCDoingAction(player, randStr, 110, 60, moveAgressiveRand(shortShapes), tile)
+}
+
+type Rect struct {
+	MinY, MaxY int
+	MinX, MaxX int
+}
+
+func getRegion[T any](grid [][]T, r Rect) []T {
+	var out []T
+	for y := r.MinY; y <= r.MaxY; y++ {
+		if y < 0 || y >= len(grid) {
+			continue
+		}
+		row := grid[y]
+		minX := clamp(r.MinX, 0, len(row)-1)
+		maxX := clamp(r.MaxX, 0, len(row)-1)
+		if maxX < minX {
+			continue
+		}
+		out = append(out, row[minX:maxX+1]...)
+	}
+	return out
+}
+
+func clamp(v, lo, hi int) int {
+	if v < lo {
+		return lo
+	}
+	if v > hi {
+		return hi
+	}
+	return v
+}
+
+// ok is false when the slice is empty.
+func pickOne[T any](items []T) (item T, ok bool) {
+	if len(items) == 0 {
+		return
+	}
+	item = items[rand.Intn(len(items))]
+	ok = true
+	return
 }
 
 func tutorial1Ring(player *Player) {
@@ -199,52 +239,6 @@ func openNamedMenuAfterDelay(name string, delay int) func(*Player) {
 			turnMenuOnByName(p, name)
 		}()
 	}
-}
-
-type Rect struct {
-	MinY, MaxY int
-	MinX, MaxX int
-}
-
-// PickOne returns one random element from the slice.
-// ok is false when the slice is empty.
-func pickOne[T any](items []T) (item T, ok bool) {
-	if len(items) == 0 {
-		return
-	}
-	item = items[rand.Intn(len(items))]
-	ok = true
-	return
-}
-
-// GetRegion flattens every grid cell inside r into a single slice.
-// Coordinates that fall outside the grid (or ragged rows) are skipped.
-func getRegion[T any](grid [][]T, r Rect) []T {
-	var out []T
-	for y := r.MinY; y <= r.MaxY; y++ {
-		if y < 0 || y >= len(grid) {
-			continue
-		}
-		row := grid[y]
-		minX := clamp(r.MinX, 0, len(row)-1)
-		maxX := clamp(r.MaxX, 0, len(row)-1)
-		if maxX < minX {
-			continue
-		}
-		out = append(out, row[minX:maxX+1]...)
-	}
-	return out
-}
-
-// clamp confines v to [lo,hi].
-func clamp(v, lo, hi int) int {
-	if v < lo {
-		return lo
-	}
-	if v > hi {
-		return hi
-	}
-	return v
 }
 
 func tutorial2Boost() func(stage *Stage) {
