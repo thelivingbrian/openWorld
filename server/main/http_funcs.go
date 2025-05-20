@@ -231,9 +231,9 @@ func createNewPlayerRecord(username, team string) PlayerRecord {
 		Username:  username,
 		Team:      team,
 		Health:    100,
-		StageName: "tutorial:0-0",
-		X:         4,
-		Y:         4,
+		StageName: "tutorial1:0-0",
+		X:         3,
+		Y:         3,
 		Money:     80,
 		HatList:   HatList{Current: nil, Hats: make([]Hat, 0)},
 	}
