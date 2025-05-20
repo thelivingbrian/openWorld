@@ -86,13 +86,7 @@ func applyTeleport(character Character, teleport *Teleport) {
 	character.transferBetween(character.getTileSync(), stage.tiles[teleport.destY][teleport.destX])
 }
 
-// Juke "In" takes the interactable at the given offset and pulls it under the player
-// func jukeIn(yOff, xOff int, character Character) {
-// 	current := character.getTileSync()
-// 	rel := getRelativeTile(current, yOff, xOff, character)
-// 	swapIfEmpty(rel, current)
-// }
-
+// Juke
 func tryJukeNorth(prev string, character Character) {
 	switch prev {
 	case "a": // previously heading West - turning north
