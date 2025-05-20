@@ -284,10 +284,13 @@ func reduceHealthAndCheckFatal(player *Player, dmg int) bool {
 
 func updateStreakIfTangible(player *Player) {
 	ownLock := player.tangibilityLock.TryLock()
-	if !ownLock || !player.tangible {
+	if !ownLock {
 		return
 	}
 	defer player.tangibilityLock.Unlock()
+	if !player.tangible {
+		return
+	}
 
 	html := spanStreak(player.killstreak.Load())
 	updateOne(html, player)

@@ -276,11 +276,14 @@ func tryClearBottomTextAfter(player *Player, delay int) {
 	time.Sleep(time.Millisecond * time.Duration(delay))
 	if player.textUpdatesInFlight.Add(-1) == 0 {
 		ownLock := player.tangibilityLock.TryLock()
-		if !ownLock || !player.tangible {
-			// Intangible player -> no unlock?
+		if !ownLock {
 			return
 		}
 		defer player.tangibilityLock.Unlock()
+		if !player.tangible {
+			return
+		}
+
 		updateOne(bottomTextEmpty, player)
 	}
 }
@@ -305,10 +308,13 @@ func updateIconForAll(player *Player) {
 func updateIconForAllIfTangible(player *Player) {
 	player.setIcon()
 	ownLock := player.tangibilityLock.TryLock()
-	if !ownLock || !player.tangible {
+	if !ownLock {
 		return
 	}
 	defer player.tangibilityLock.Unlock()
+	if !player.tangible {
+		return
+	}
 	tile := player.getTileSync()
 	tile.stage.updateAll(characterBox(tile))
 }

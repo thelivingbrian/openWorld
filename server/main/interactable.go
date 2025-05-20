@@ -279,10 +279,13 @@ func finishTutorial(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	go func() {
 		time.Sleep(time.Millisecond * time.Duration(1600))
 		ownLock := p.tangibilityLock.TryLock()
-		if !ownLock || !p.tangible {
+		if !ownLock {
 			return
 		}
 		defer p.tangibilityLock.Unlock()
+		if !p.tangible {
+			return
+		}
 		openStatsMenu(p)
 	}()
 	return nil, false

@@ -232,10 +232,13 @@ func openNamedMenuAfterDelay(name string, delay int) func(*Player) {
 		go func() {
 			time.Sleep(time.Millisecond * time.Duration(delay))
 			ownLock := p.tangibilityLock.TryLock()
-			if !ownLock || !p.tangible {
+			if !ownLock {
 				return
 			}
 			defer p.tangibilityLock.Unlock()
+			if !p.tangible {
+				return
+			}
 			turnMenuOnByName(p, name)
 		}()
 	}

@@ -87,7 +87,6 @@ func applyTeleport(character Character, teleport *Teleport) {
 }
 
 // Juke "In" takes the interactable at the given offset and pulls it under the player
-// Previously JukeLeft and JukeRight would pull interactable in front - but in practice this is more useful
 func jukeIn(yOff, xOff int, character Character) {
 	current := character.getTileSync()
 	rel := getRelativeTile(current, yOff, xOff, character)
@@ -578,20 +577,20 @@ func moveAgressiveRand(shapes [][][2]int) func(*NonPlayer) {
 
 func moveAggressively(npc *NonPlayer, shapes [][][2]int, offenceDirection int) {
 	randn := rand.Intn(5000)
-	dir := randn % 4
-	if dir == 0 {
+	direction := randn % 4
+	if direction == 0 {
 		moveNorth(npc)
 	}
-	if dir == 1 {
+	if direction == 1 {
 		moveSouth(npc)
 	}
-	if dir == 2 {
+	if direction == 2 {
 		moveEast(npc)
 	}
-	if dir == 3 {
+	if direction == 3 {
 		moveWest(npc)
 	}
-	if dir == offenceDirection {
+	if direction == offenceDirection {
 		activatePower(npc, shapes)
 	}
 }
