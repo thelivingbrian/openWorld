@@ -297,7 +297,7 @@
   - [-] NPC Spawn
   - [-] Teleport Home
 - [-] Skip tutorial option
-- [ ] New players start in new tutorial
+- [-] New players start in new tutorial
 - [ ] Old player records are updated
 
 ## Bugs
