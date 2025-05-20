@@ -87,35 +87,11 @@ func applyTeleport(character Character, teleport *Teleport) {
 }
 
 // Juke "In" takes the interactable at the given offset and pulls it under the player
-func jukeIn(yOff, xOff int, character Character) {
-	current := character.getTileSync()
-	rel := getRelativeTile(current, yOff, xOff, character)
-	swapIfEmpty(rel, current)
-}
-
-func jukeRight(yOff, xOff int, character Character) {
-	rel, rot := getRelativeAndRotate(yOff, xOff, character, true)
-	if !swapIfEmpty(rel, rot) {
-		swapIfEmpty(rel, character.getTileSync())
-	}
-}
-func jukeLeft(yOff, xOff int, character Character) {
-	rel, rot := getRelativeAndRotate(yOff, xOff, character, false)
-	if !swapIfEmpty(rel, rot) {
-		swapIfEmpty(rel, character.getTileSync())
-	}
-}
-
-func getRelativeAndRotate(yOff, xOff int, character Character, clockwise bool) (*Tile, *Tile) {
-	current := character.getTileSync()
-	rel := getRelativeTile(current, yOff, xOff, character) // Tile pushable prumably may be
-	y2Off, x2Off := xOff, -yOff
-	if !clockwise {
-		y2Off, x2Off = -xOff, yOff
-	}
-	rot := getRelativeTile(current, y2Off, x2Off, character) // Tile Player is about to walk on
-	return rel, rot
-}
+// func jukeIn(yOff, xOff int, character Character) {
+// 	current := character.getTileSync()
+// 	rel := getRelativeTile(current, yOff, xOff, character)
+// 	swapIfEmpty(rel, current)
+// }
 
 func tryJukeNorth(prev string, character Character) {
 	switch prev {
@@ -151,6 +127,30 @@ func tryJukeEast(prev string, character Character) {
 	case "s": // previously heading South - turning east
 		jukeLeft(1, 0, character)
 	}
+}
+
+func jukeRight(yOff, xOff int, character Character) {
+	rel, rot, current := getRelativeAndRotate(yOff, xOff, character, true)
+	if !swapIfEmpty(rel, rot) {
+		swapIfEmpty(rel, current)
+	}
+}
+func jukeLeft(yOff, xOff int, character Character) {
+	rel, rot, current := getRelativeAndRotate(yOff, xOff, character, false)
+	if !swapIfEmpty(rel, rot) {
+		swapIfEmpty(rel, current)
+	}
+}
+
+func getRelativeAndRotate(yOff, xOff int, character Character, clockwise bool) (*Tile, *Tile, *Tile) {
+	current := character.getTileSync()
+	rel := getRelativeTile(current, yOff, xOff, character) // Tile pushable presumably may be
+	y2Off, x2Off := xOff, -yOff
+	if !clockwise {
+		y2Off, x2Off = -xOff, yOff
+	}
+	rot := getRelativeTile(current, y2Off, x2Off, character) // Tile Player is about to walk on
+	return rel, rot, current
 }
 
 /////////////////////////////////////////////////////////////////////
