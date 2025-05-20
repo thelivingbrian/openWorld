@@ -291,12 +291,14 @@
     - [-] introduced via commit 90a3043177f78f90fb651c2cc1e427031c888e33
 
 ## Tutorial
-- [ ] New Tutorial
-  - [ ] Layout
-  - [ ] Item Spawning
-  - [ ] NPC Spawn
-  - [ ] Teleport Home
-- [ ] Skip tutorial option
+- [-] New Tutorial
+  - [-] Layout
+  - [-] Item Spawning
+  - [-] NPC Spawn
+  - [-] Teleport Home
+- [-] Skip tutorial option
+- [ ] New players start in new tutorial
+- [ ] Old player records are updated
 
 ## Bugs
  - [-] test remove damage tangibility check
