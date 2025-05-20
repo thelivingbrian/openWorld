@@ -93,39 +93,63 @@ func jukeIn(yOff, xOff int, character Character) {
 	swapIfEmpty(rel, current)
 }
 
+func jukeRight(yOff, xOff int, character Character) {
+	rel, rot := getRelativeAndRotate(yOff, xOff, character, true)
+	if !swapIfEmpty(rel, rot) {
+		swapIfEmpty(rel, character.getTileSync())
+	}
+}
+func jukeLeft(yOff, xOff int, character Character) {
+	rel, rot := getRelativeAndRotate(yOff, xOff, character, false)
+	if !swapIfEmpty(rel, rot) {
+		swapIfEmpty(rel, character.getTileSync())
+	}
+}
+
+func getRelativeAndRotate(yOff, xOff int, character Character, clockwise bool) (*Tile, *Tile) {
+	current := character.getTileSync()
+	rel := getRelativeTile(current, yOff, xOff, character) // Tile pushable prumably may be
+	y2Off, x2Off := xOff, -yOff
+	if !clockwise {
+		y2Off, x2Off = -xOff, yOff
+	}
+	rot := getRelativeTile(current, y2Off, x2Off, character) // Tile Player is about to walk on
+	return rel, rot
+}
+
 func tryJukeNorth(prev string, character Character) {
 	switch prev {
 	case "a": // previously heading West - turning north
-		jukeIn(0, -1, character)
+		jukeRight(0, -1, character)
 	case "d": // previously heading East - turning north
-		jukeIn(0, 1, character)
+		jukeLeft(0, 1, character)
 	}
 }
 
 func tryJukeSouth(prev string, character Character) {
 	switch prev {
 	case "d": // previously heading East  - turning South
-		jukeIn(0, 1, character)
+		jukeRight(0, 1, character)
 	case "a": // previously heading West - turning South
-		jukeIn(0, -1, character)
+		jukeLeft(0, -1, character)
 	}
 }
 
 func tryJukeWest(prev string, character Character) {
 	switch prev {
 	case "s": // previously heading South - turning west
-		jukeIn(1, 0, character)
+		jukeRight(1, 0, character)
 	case "w": // previously heading North - turning west
-		jukeIn(-1, 0, character)
+		jukeLeft(-1, 0, character)
 	}
 }
 
 func tryJukeEast(prev string, character Character) {
 	switch prev {
 	case "w": // previously heading North - turning east
-		jukeIn(-1, 0, character)
+		jukeRight(-1, 0, character)
 	case "s": // previously heading South - turning east
-		jukeIn(1, 0, character)
+		jukeLeft(1, 0, character)
 	}
 }
 
@@ -703,24 +727,26 @@ func cycleForward(path []*Tile, index, depth int) (bool, *Interactable, int) {
 	return ok, out, newDepth
 }
 
-func swapIfEmpty(source, target *Tile) {
+func swapIfEmpty(source, target *Tile) bool {
 	ownSource := source.interactableMutex.TryLock()
 	if !ownSource {
-		return
+		return false
 	}
 	defer source.interactableMutex.Unlock()
 	if source.interactable == nil || !source.interactable.pushable {
-		return
+		return false
 	}
 	ownTarget := target.interactableMutex.TryLock()
 	if !ownTarget {
-		return
+		return false
 	}
 	defer target.interactableMutex.Unlock()
 	if target.interactable != nil {
-		return
+		return false
 	}
 	if replaceNilInteractable(target, source.interactable) {
 		setLockedInteractableAndUpdate(source, nil)
+		return true
 	}
+	return false
 }
