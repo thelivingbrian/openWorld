@@ -24,7 +24,7 @@ type Menu struct {
 
 type MenuLink struct {
 	Text         string
-	eventHandler func(*Player) // should handler and auth be consolidated?
+	eventHandler func(*Player)
 	auth         func(*Player) bool
 }
 
@@ -83,6 +83,16 @@ var accomplishmentsMenu = Menu{
 	},
 }
 
+var skipTutorialMenu = Menu{
+	Name:     "skip",
+	CssClass: "",
+	InfoHtml: `<h2>Would you like a tutorial?</h2>`,
+	Links: []MenuLink{
+		{Text: "Yes", eventHandler: turnMenuOffAnd(resendText), auth: nil},
+		{Text: "No", eventHandler: skipTutorial, auth: nil},
+	},
+}
+
 /////////////////////////////////////////////////////
 // Player Menues
 
@@ -120,7 +130,7 @@ func sendMenu(p *Player, menu Menu) {
 }
 
 /////////////////////////////////////////////////////
-// Menu events
+// Menu Controls
 
 func (m *Menu) attemptClick(p *Player, e PlayerSocketEvent) {
 	i, err := strconv.Atoi(e.Arg0)
@@ -194,7 +204,8 @@ func mod(i, n int) int {
 	return ((i % n) + n) % n
 }
 
-// Menu event handlers
+////////////////////////////////////////////////////////////////////////
+// Menu Event Handlers
 
 func turnMenuOff(p *Player) {
 	var buffer bytes.Buffer
@@ -304,7 +315,8 @@ func createAccomplishmentsHtmlForPlayer(p *Player) template.HTML {
 	return template.HTML(sb.String())
 }
 
-// Player specific menues
+//////////////////////////////////////////////////////////
+// Player Menues
 
 func continueTeleporting(teleport *Teleport) Menu {
 	return Menu{
@@ -318,26 +330,51 @@ func continueTeleporting(teleport *Teleport) Menu {
 	}
 }
 
+func teleportEventHandler(teleport *Teleport) func(*Player) {
+	return func(player *Player) {
+		turnMenuOff(player)
+		// No need for new routine? - Should test? but I think still needed
+		go func() {
+			player.applyTeleport(teleport)
+		}()
+	}
+}
+
 func exitTutorial(teleport *Teleport) Menu {
 	return Menu{
 		Name:     "teleport",
 		CssClass: "",
 		InfoHtml: "<h2>Finish tutorial?</h2>",
 		Links: []MenuLink{
-			{Text: "Yes", eventHandler: teleportEventHandler(teleport), auth: sourceStageAuthorizerAffirmative(teleport.sourceStage)},
+			{Text: "Yes", eventHandler: teleportEventHandler(teleport), auth: currentlyInTutorial},
 			{Text: "No", eventHandler: turnMenuOff, auth: nil},
 		},
 	}
 }
 
-func teleportEventHandler(teleport *Teleport) func(*Player) {
-	return func(player *Player) {
-		turnMenuOff(player) // menu off before teleport
-		// No need for new routine?
-		go func() {
-			player.applyTeleport(teleport)
-		}()
+func confirmSkipTutorial(teleport *Teleport) Menu {
+	return Menu{
+		Name:     "teleport",
+		CssClass: "",
+		InfoHtml: "<h2>Skip Tutorial - Are you sure?</h2>",
+		Links: []MenuLink{
+			{Text: "Yes - Exit tutorial", eventHandler: teleportEventHandler(teleport), auth: currentlyInTutorial},
+			{Text: "No", eventHandler: openNamedMenuAfterDelay("skip", 0), auth: currentlyInTutorial},
+		},
 	}
+}
+
+func skipTutorial(p *Player) {
+	teleport := makeHomeTeleport(p)
+	if teleport == nil {
+		return
+	}
+	p.setMenu("teleport", confirmSkipTutorial(teleport))
+	turnMenuOnByName(p, "teleport")
+}
+
+func resendText(player *Player) {
+	player.updateBottomText(player.getTileSync().bottomText)
 }
 
 func sourceStageAuthorizerAffirmative(source string) func(*Player) bool {
@@ -361,4 +398,9 @@ func excludeSpecialStages(p *Player) bool {
 		return false
 	}
 	return true
+}
+
+func currentlyInTutorial(p *Player) bool {
+	stagename := p.getTileSync().stage.name
+	return strings.HasPrefix(stagename, "tutorial")
 }

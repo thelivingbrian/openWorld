@@ -34,6 +34,9 @@ var spawnActions = map[string][]SpawnAction{
 	"tutorial-boost": {
 		{Should: always, Action: onCurrentStage(tutorialBoost())},
 	},
+	"tutorial-1-skip": {
+		{Should: both(checkYCoord(3), checkXCoord(3)), Action: openNamedMenuAfterDelay("skip", 0)},
+	},
 	"tutorial-1-menu": {
 		{Should: checkYCoord(0), Action: openNamedMenuAfterDelay("pause", 1600)},
 	},

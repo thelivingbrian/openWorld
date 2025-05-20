@@ -66,7 +66,7 @@ func init() {
 			{ReactsWith: interactableIsARing, Reaction: tutorialExchange},
 		},
 		"teleport-home": {
-			{ReactsWith: interactableIsNil, Reaction: teleportHome},
+			{ReactsWith: interactableIsNil, Reaction: teleportHomeInteraction},
 		},
 
 		////////////////////////////////////////////////////////////////
@@ -551,7 +551,17 @@ func tutorialExchange(i *Interactable, p *Player, t *Tile) (*Interactable, bool)
 	return nil, false
 }
 
-func teleportHome(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+func teleportHomeInteraction(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	teleport := makeHomeTeleport(p)
+	if teleport == nil {
+		return nil, false
+	}
+	p.setMenu("teleport", exitTutorial(teleport))
+	turnMenuOnByName(p, "teleport")
+	return nil, false
+}
+
+func makeHomeTeleport(p *Player) *Teleport {
 	team := p.getTeamNameSync()
 	stage := ""
 	switch team {
@@ -560,20 +570,15 @@ func teleportHome(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	case "sky-blue":
 		stage = "team-blue:3-4"
 	default:
-		return nil, false
+		return nil
 	}
-	exitTeleport := Teleport{
+	return &Teleport{
 		destStage:          stage,
 		destY:              7,
 		destX:              7,
-		sourceStage:        t.stage.name,
 		confirmation:       true,
 		rejectInteractable: true,
 	}
-
-	p.setMenu("teleport", exitTutorial(&exitTeleport))
-	turnMenuOnByName(p, "teleport")
-	return nil, false
 }
 
 func addMoneyToStage(stage *Stage, amount int) {

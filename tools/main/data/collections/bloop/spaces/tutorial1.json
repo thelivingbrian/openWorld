@@ -941,7 +941,7 @@
       "east": "tutorial1:0-1",
       "mapId": "",
       "loadStrategy": "Team",
-      "spawnStrategy": "none"
+      "spawnStrategy": "tutorial-1-skip"
     },
     {
       "name": "tutorial1:0-1",
