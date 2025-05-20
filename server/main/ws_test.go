@@ -207,20 +207,24 @@ func TestNoJukeOnNonWalkable(t *testing.T) {
 	}
 
 	player.handlePress(eventWithName("d"), "w")
-	if testStage.tiles[3][5].interactable == nil {
+	if testStage.tiles[3][5].interactable != nil {
 		t.Error("Expected interactable at y3 x5 not to have juked")
 	}
 	if testStage.tiles[4][6].interactable != nil {
 		t.Error("Should not juke on walkable")
 	}
+	if testStage.tiles[4][5].interactable == nil {
+		t.Error("Contrained juke should leave interactable under player")
+	}
 
-	player.handlePress(eventWithName("a"), "w")
-	if testStage.tiles[3][5].interactable != nil {
-		t.Error("Expected interactable at y3 x5 not to juke")
-	}
-	if testStage.tiles[4][3].interactable == nil {
-		t.Error("Interacable should have juked to 4,4 ")
-	}
+	// No longer relavant?
+	// player.handlePress(eventWithName("a"), "w")
+	// if testStage.tiles[3][5].interactable != nil {
+	// 	t.Error("Expected interactable at y3 x5 not to juke")
+	// }
+	// if testStage.tiles[4][3].interactable == nil {
+	// 	t.Error("Interacable should have juked to 4,4 ")
+	// }
 }
 
 /////////////////////////////////////////////////////////

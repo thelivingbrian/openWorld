@@ -30,7 +30,6 @@ type Player struct {
 	tangible                 bool
 	tangibilityLock          sync.Mutex
 	actions                  *Actions
-	menues                   map[string]Menu
 	playerStages             map[string]*Stage
 	pStageMutex              sync.Mutex
 	hatList                  SyncHatList
@@ -38,7 +37,8 @@ type Player struct {
 	health                   atomic.Int64
 	money                    atomic.Int64
 	killstreak               atomic.Int64
-	*PlayerStats
+	PlayerStats
+	SyncMenuList
 }
 
 type PlayerStats struct {
@@ -277,6 +277,7 @@ func tryClearBottomTextAfter(player *Player, delay int) {
 	if player.textUpdatesInFlight.Add(-1) == 0 {
 		ownLock := player.tangibilityLock.TryLock()
 		if !ownLock || !player.tangible {
+			// Intangible player -> no unlock?
 			return
 		}
 		defer player.tangibilityLock.Unlock()

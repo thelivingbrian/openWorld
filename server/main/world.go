@@ -338,12 +338,14 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		tangibilityLock:          sync.Mutex{},
 		actions:                  createDefaultActions(),
 		world:                    world,
-		menues:                   map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu, "accomplishments": accomplishmentsMenu}, // terrifying
 		playerStages:             make(map[string]*Stage),
 		team:                     record.Team,
 		PlayerStats:              playerStatsFromRecord(record),
 		hatList:                  SyncHatList{HatList: record.HatList},
 		accomplishments:          SyncAccomplishmentList{Accomplishments: record.Accomplishments},
+		SyncMenuList: SyncMenuList{
+			menues: map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu, "accomplishments": accomplishmentsMenu}, // terrifying,
+		},
 	}
 	if newPlayer.accomplishments.Accomplishments == nil {
 		newPlayer.accomplishments.Accomplishments = make(map[string]Accomplishment)
@@ -354,7 +356,7 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 	return newPlayer
 }
 
-func playerStatsFromRecord(record PlayerRecord) *PlayerStats {
+func playerStatsFromRecord(record PlayerRecord) PlayerStats {
 	out := PlayerStats{}
 	out.deathCount.Store(record.Stats.DeathCount)
 	out.killCount.Store(record.Stats.KillCount)
@@ -362,7 +364,7 @@ func playerStatsFromRecord(record PlayerRecord) *PlayerStats {
 	out.goalsScored.Store(record.Stats.GoalsScored)
 	out.peakKillStreak.Store(record.Stats.PeakKillStreak)
 	out.peakWealth.Store(record.Stats.PeakWealth)
-	return &out
+	return out
 }
 
 func (world *World) isLoggedInAlready(username string) bool {

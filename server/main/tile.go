@@ -114,8 +114,7 @@ func (tile *Tile) addLockedPlayerToTile(player *Player) {
 
 	if tile.teleport != nil {
 		if tile.teleport.confirmation {
-			// concurrency risk
-			player.menues["teleport"] = continueTeleporting(tile.teleport)
+			player.setMenu("teleport", continueTeleporting(tile.teleport))
 			turnMenuOnByName(player, "teleport")
 		} else {
 			// new routine prevents deadlock

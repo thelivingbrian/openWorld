@@ -305,6 +305,8 @@
 layerXCss : "static {transformationType:value} string"
 
 
+If item spawns on stage on same initial tile as you - do you pick it up? - Think maybe no.
+
 
 Events/Triggers - Similar to ineractables but stationary - stackable - have state - only react to nil  
 

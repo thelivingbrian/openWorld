@@ -571,7 +571,7 @@ func teleportHome(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 		rejectInteractable: true,
 	}
 
-	p.menues["teleport"] = exitTutorial(&exitTeleport)
+	p.setMenu("teleport", exitTutorial(&exitTeleport))
 	turnMenuOnByName(p, "teleport")
 	return nil, false
 }

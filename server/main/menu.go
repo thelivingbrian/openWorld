@@ -6,7 +6,13 @@ import (
 	"html/template"
 	"strconv"
 	"strings"
+	"sync"
 )
+
+type SyncMenuList struct {
+	sync.Mutex
+	menues map[string]Menu
+}
 
 type Menu struct {
 	Name       string
@@ -77,11 +83,27 @@ var accomplishmentsMenu = Menu{
 	},
 }
 
+/////////////////////////////////////////////////////
+// Player Menues
+
+func (menuList *SyncMenuList) setMenu(name string, menu Menu) {
+	menuList.Lock()
+	defer menuList.Unlock()
+	menuList.menues[name] = menu
+}
+
+func (menuList *SyncMenuList) getMenu(name string) (Menu, bool) {
+	menuList.Lock()
+	defer menuList.Unlock()
+	menu, ok := menuList.menues[name]
+	return menu, ok
+}
+
 //////////////////////////////////////////////////////
 // Menu send
 
 func turnMenuOnByName(p *Player, menuName string) {
-	menu, ok := p.menues[menuName]
+	menu, ok := p.getMenu(menuName)
 	if ok {
 		sendMenu(p, menu)
 	}
@@ -118,7 +140,7 @@ func (m *Menu) attemptClick(p *Player, e PlayerSocketEvent) {
 }
 
 func menuUp(p *Player, event PlayerSocketEvent) {
-	menu, ok := p.menues[event.MenuName]
+	menu, ok := p.getMenu(event.MenuName)
 	if ok {
 		updateOne(menu.menuSelectUp(event.Arg0), p)
 	}
@@ -136,7 +158,7 @@ func (menu *Menu) menuSelectUp(index string) string {
 }
 
 func menuDown(p *Player, event PlayerSocketEvent) {
-	menu, ok := p.menues[event.MenuName]
+	menu, ok := p.getMenu(event.MenuName)
 	if ok {
 		updateOne(menu.menuSelectDown(event.Arg0), p)
 	}
@@ -216,7 +238,7 @@ func openPauseMenu(p *Player) {
 }
 
 func openStatsMenu(p *Player) {
-	menu := p.menues["stats"]
+	menu, _ := p.getMenu("stats")
 	menu.InfoHtml = createInfoHtmlForPlayer(p)
 	sendMenu(p, menu)
 }

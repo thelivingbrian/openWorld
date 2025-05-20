@@ -247,6 +247,9 @@ func TestMostDangerous(t *testing.T) {
 		t.Error("Invalid leader should be p1")
 	}
 
+	// Cleanup / Prevent send on closed
+	p1.tangible, p2.tangible, p3.tangible = false, false, false
+
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
