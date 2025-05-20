@@ -470,6 +470,7 @@ func getRelativeTile(source *Tile, yOff, xOff int, character Character) *Tile {
 	}
 }
 
+/*
 func getRelativeAndRotate(yOff, xOff int, character Character, clockwise bool) (*Tile, *Tile) {
 	current := character.getTileSync()
 	rel := getRelativeTile(current, yOff, xOff, character) // Tile pushable prumably may be
@@ -480,6 +481,7 @@ func getRelativeAndRotate(yOff, xOff int, character Character, clockwise bool) (
 	rot := getRelativeTile(current, y2Off, x2Off, character) // Tile Player is about to walk on
 	return rel, rot
 }
+*/
 
 ///////////////////////////////////////////////////////////////
 // LeaderBoards
