@@ -86,20 +86,8 @@ func applyTeleport(character Character, teleport *Teleport) {
 	character.transferBetween(character.getTileSync(), stage.tiles[teleport.destY][teleport.destX])
 }
 
-// Juke Right/Left take interactable at given offset and pulls it in front of player (Less useful in practice vs jukeIn)
-/*
-func jukeRight(yOff, xOff int, character Character) {
-	rel, rot := getRelativeAndRotate(yOff, xOff, character, true)
-	swapIfEmpty(rel, rot)
-}
-
-func jukeLeft(yOff, xOff int, character Character) {
-	rel, rot := getRelativeAndRotate(yOff, xOff, character, false)
-	swapIfEmpty(rel, rot)
-}
-*/
-
 // Juke "In" takes the interactable at the given offset and pulls it under the player
+// Previously JukeLeft and JukeRight would pull interactable in front - but in practice this is more useful
 func jukeIn(yOff, xOff int, character Character) {
 	current := character.getTileSync()
 	rel := getRelativeTile(current, yOff, xOff, character)
