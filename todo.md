@@ -36,6 +36,7 @@
 - [-] Seperate homepage from game server
 - [-] Add sound fx
 - [ ] Canvas based interactive/realtime stage map? 
+- [ ] Shift support for arrow keys 
 
 ## Integration 
 - [ ] Bot AI
