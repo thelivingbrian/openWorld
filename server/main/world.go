@@ -339,9 +339,8 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		world:                    world,
 		playerStages:             make(map[string]*Stage),
 		team:                     record.Team,
-		//PlayerStats:              playerStatsFromRecord(record),
-		hatList:         SyncHatList{HatList: record.HatList},
-		accomplishments: SyncAccomplishmentList{Accomplishments: record.Accomplishments},
+		hatList:                  SyncHatList{HatList: record.HatList},
+		accomplishments:          SyncAccomplishmentList{Accomplishments: record.Accomplishments},
 		SyncMenuList: SyncMenuList{
 			menues: map[string]Menu{
 				"pause":           pauseMenu,
@@ -366,14 +365,12 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 }
 
 func storePlayerStats(stats *PlayerStats, record PlayerRecord) {
-	//stats := PlayerStats{}
 	stats.deathCount.Store(record.Stats.DeathCount)
 	stats.killCount.Store(record.Stats.KillCount)
 	stats.killCountNpc.Store(record.Stats.KillCountNpc)
 	stats.goalsScored.Store(record.Stats.GoalsScored)
 	stats.peakKillStreak.Store(record.Stats.PeakKillStreak)
 	stats.peakWealth.Store(record.Stats.PeakWealth)
-	//return &stats
 }
 
 func (world *World) isLoggedInAlready(username string) bool {
