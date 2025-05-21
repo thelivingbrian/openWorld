@@ -65,6 +65,10 @@ body {
     align-items: center;
 }
 
+.center-vertically > *{
+    margin-block: auto;
+}
+
 a {
     color: #00ffff;
 }
@@ -87,7 +91,7 @@ a {
 }
 
 #page {
-    height:100%;
+    min-height: 100dvh;
     width:100%;
     justify-content: center;
 }
