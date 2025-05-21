@@ -328,41 +328,49 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 	if record.Team == "" {
 		record.Team = "sky-blue"
 	}
-	updatesForPlayer := make(chan []byte) // raise capacity?
 	newPlayer := &Player{
 		id:                       id,
 		username:                 record.Username,
-		updates:                  updatesForPlayer,
+		updates:                  make(chan []byte),
 		sessionTimeOutViolations: atomic.Int32{},
 		tangible:                 true,
 		tangibilityLock:          sync.Mutex{},
 		actions:                  createDefaultActions(),
 		world:                    world,
-		menues:                   map[string]Menu{"pause": pauseMenu, "map": mapMenu, "stats": statsMenu, "respawn": respawnMenu, "accomplishments": accomplishmentsMenu}, // terrifying
 		playerStages:             make(map[string]*Stage),
 		team:                     record.Team,
-		PlayerStats:              playerStatsFromRecord(record),
 		hatList:                  SyncHatList{HatList: record.HatList},
 		accomplishments:          SyncAccomplishmentList{Accomplishments: record.Accomplishments},
+		SyncMenuList: SyncMenuList{
+			menues: map[string]Menu{
+				"pause":           pauseMenu,
+				"map":             mapMenu,
+				"stats":           statsMenu,
+				"respawn":         respawnMenu,
+				"accomplishments": accomplishmentsMenu,
+				"skip":            skipTutorialMenu,
+			}, // Break out differently ? Maintenence req / scary
+		},
 	}
 	if newPlayer.accomplishments.Accomplishments == nil {
 		newPlayer.accomplishments.Accomplishments = make(map[string]Accomplishment)
 	}
+
 	newPlayer.health.Store(record.Health)
 	newPlayer.money.Store(record.Money)
+	storePlayerStats(&newPlayer.PlayerStats, record)
+
 	newPlayer.setIcon()
 	return newPlayer
 }
 
-func playerStatsFromRecord(record PlayerRecord) *PlayerStats {
-	out := PlayerStats{}
-	out.deathCount.Store(record.Stats.DeathCount)
-	out.killCount.Store(record.Stats.KillCount)
-	out.killCountNpc.Store(record.Stats.KillCountNpc)
-	out.goalsScored.Store(record.Stats.GoalsScored)
-	out.peakKillStreak.Store(record.Stats.PeakKillStreak)
-	out.peakWealth.Store(record.Stats.PeakWealth)
-	return &out
+func storePlayerStats(stats *PlayerStats, record PlayerRecord) {
+	stats.deathCount.Store(record.Stats.DeathCount)
+	stats.killCount.Store(record.Stats.KillCount)
+	stats.killCountNpc.Store(record.Stats.KillCountNpc)
+	stats.goalsScored.Store(record.Stats.GoalsScored)
+	stats.peakKillStreak.Store(record.Stats.PeakKillStreak)
+	stats.peakWealth.Store(record.Stats.PeakWealth)
 }
 
 func (world *World) isLoggedInAlready(username string) bool {
@@ -395,7 +403,7 @@ func initiateLogout(player *Player) {
 	player.tangible = false
 
 	logger.Info().Msg("initate logout: " + player.username)
-	//   Add time delay to prevent rage quit ?
+	//   Add time delay to prevent rage quit ? - Consequence of intangibility in this window?
 	removeFromTileAndStage(player)
 
 	player.world.playersToLogout <- player
@@ -460,17 +468,6 @@ func getRelativeTile(source *Tile, yOff, xOff int, character Character) *Tile {
 
 		return nil
 	}
-}
-
-func getRelativeAndRotate(yOff, xOff int, character Character, clockwise bool) (*Tile, *Tile) {
-	current := character.getTileSync()
-	rel := getRelativeTile(current, yOff, xOff, character)
-	y2Off, x2Off := xOff, -yOff
-	if !clockwise {
-		y2Off, x2Off = -xOff, yOff
-	}
-	rot := getRelativeTile(current, y2Off, x2Off, character)
-	return rel, rot
 }
 
 ///////////////////////////////////////////////////////////////

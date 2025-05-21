@@ -19,7 +19,7 @@ type Accomplishment struct {
 // difficulty levels ?
 const (
 	becomeMostDangerous = "Become most dangerous"
-	scoreAGoal          = "Score a goal"
+	scoreAGoal          = "Score a goal (outside tutorial)"
 	winningAGame        = "Score game winning goal"
 	defeatPlayer        = "Defeat another player"
 	tenKillStreak       = "10 Kill streak"

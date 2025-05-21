@@ -114,7 +114,7 @@ func (tile *Tile) addLockedPlayerToTile(player *Player) {
 
 	if tile.teleport != nil {
 		if tile.teleport.confirmation {
-			player.menues["teleport"] = continueTeleporting(tile.teleport)
+			player.setMenu("teleport", continueTeleporting(tile.teleport))
 			turnMenuOnByName(player, "teleport")
 		} else {
 			// new routine prevents deadlock
@@ -284,10 +284,13 @@ func reduceHealthAndCheckFatal(player *Player, dmg int) bool {
 
 func updateStreakIfTangible(player *Player) {
 	ownLock := player.tangibilityLock.TryLock()
-	if !ownLock || !player.tangible {
+	if !ownLock {
 		return
 	}
 	defer player.tangibilityLock.Unlock()
+	if !player.tangible {
+		return
+	}
 
 	html := spanStreak(player.killstreak.Load())
 	updateOne(html, player)

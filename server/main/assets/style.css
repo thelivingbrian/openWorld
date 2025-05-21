@@ -27,6 +27,7 @@
 }
 
 html, body {
+    height: 100%;
     overflow-x: hidden;
 }
 
@@ -59,6 +60,15 @@ body {
     margin-top: 6;
 }
 
+.center-vertically {
+    display: flex;
+    align-items: center;
+}
+
+.center-vertically > *{
+    margin-block: auto;
+}
+
 a {
     color: #00ffff;
 }
@@ -81,6 +91,7 @@ a {
 }
 
 #page {
+    min-height: 100dvh;
     width:100%;
     justify-content: center;
 }
@@ -130,6 +141,14 @@ a {
 
 .highscore-table{
     display: inline-block;
+}
+
+.gradient-bg {
+  background: linear-gradient(
+    135deg,
+    rgba(48, 152, 240, 0.5),          /* sky‑blue @ 50 % opacity */
+    rgba(253, 52, 172, 0.5)           /* fuchsia  @ 50 % opacity */
+  );
 }
 
 #social a {

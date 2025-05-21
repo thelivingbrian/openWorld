@@ -87,50 +87,64 @@ func applyTeleport(character Character, teleport *Teleport) {
 }
 
 // Juke
-func jukeRight(yOff, xOff int, character Character) {
-	rel, rot := getRelativeAndRotate(yOff, xOff, character, true)
-	swapIfEmpty(rel, rot)
-}
-
-func jukeLeft(yOff, xOff int, character Character) {
-	rel, rot := getRelativeAndRotate(yOff, xOff, character, false)
-	swapIfEmpty(rel, rot)
-}
-
 func tryJukeNorth(prev string, character Character) {
 	switch prev {
-	case "a": // coming from West - turning north
+	case "a": // previously heading West - turning north
 		jukeRight(0, -1, character)
-	case "d": // coming from East - turning north
+	case "d": // previously heading East - turning north
 		jukeLeft(0, 1, character)
 	}
 }
 
 func tryJukeSouth(prev string, character Character) {
 	switch prev {
-	case "d": // came from East  - turning South
+	case "d": // previously heading East  - turning South
 		jukeRight(0, 1, character)
-	case "a": // came from West - turning South
+	case "a": // previously heading West - turning South
 		jukeLeft(0, -1, character)
 	}
 }
 
 func tryJukeWest(prev string, character Character) {
 	switch prev {
-	case "s": // came from South - turning west
+	case "s": // previously heading South - turning west
 		jukeRight(1, 0, character)
-	case "w": // came from North - turning west
+	case "w": // previously heading North - turning west
 		jukeLeft(-1, 0, character)
 	}
 }
 
 func tryJukeEast(prev string, character Character) {
 	switch prev {
-	case "w": // came from North - turning east
+	case "w": // previously heading North - turning east
 		jukeRight(-1, 0, character)
-	case "s": // came from South - turning east
+	case "s": // previously heading South - turning east
 		jukeLeft(1, 0, character)
 	}
+}
+
+func jukeRight(yOff, xOff int, character Character) {
+	rel, rot, current := getRelativeAndRotate(yOff, xOff, character, true)
+	if !swapIfEmpty(rel, rot) {
+		swapIfEmpty(rel, current)
+	}
+}
+func jukeLeft(yOff, xOff int, character Character) {
+	rel, rot, current := getRelativeAndRotate(yOff, xOff, character, false)
+	if !swapIfEmpty(rel, rot) {
+		swapIfEmpty(rel, current)
+	}
+}
+
+func getRelativeAndRotate(yOff, xOff int, character Character, clockwise bool) (*Tile, *Tile, *Tile) {
+	current := character.getTileSync()
+	rel := getRelativeTile(current, yOff, xOff, character) // Tile pushable presumably may be
+	y2Off, x2Off := xOff, -yOff
+	if !clockwise {
+		y2Off, x2Off = -xOff, yOff
+	}
+	rot := getRelativeTile(current, y2Off, x2Off, character) // Tile Player is about to walk on
+	return rel, rot, current
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -159,7 +173,11 @@ func (player *Player) fetchStageSync(stagename string) *Stage {
 	if ok && stage != nil {
 		return stage
 	}
-	// stagename + team || stagename + rand
+	teamStageName := stagename + ":" + player.getTeamNameSync()
+	stage, ok = player.world.worldStages[teamStageName]
+	if ok && stage != nil {
+		return stage
+	}
 	// stagename + prompt for / provide group code
 
 	player.pStageMutex.Lock()
@@ -177,6 +195,9 @@ func (player *Player) fetchStageSync(stagename string) *Stage {
 	stage = createStageFromArea(area) // can create empty stage
 	if area.LoadStrategy == "" {
 		player.world.worldStages[stagename] = stage
+	}
+	if area.LoadStrategy == "Team" {
+		player.world.worldStages[teamStageName] = stage
 	}
 	if area.LoadStrategy == "Personal" {
 		player.playerStages[stagename] = stage
@@ -480,26 +501,31 @@ func (npc *NonPlayer) updateRecord() {
 //////////////////////////////////////////////////////////////////////////////
 // Spawn NPC
 
-func spawnNewNPCDoingAction(ref *Player, interval int, action func(*NonPlayer), sameTile bool) *NonPlayer {
-	npc, ctx := createNewNPC(ref.world)
-	placeOnSameStage(npc, ref, sameTile)
+func spawnNewNPCDoingAction(ref *Player, team string, interval, duration int, action func(*NonPlayer), tile *Tile) *NonPlayer {
+	npc, ctx := createNewNPC(ref.world, team)
+	if tile == nil {
+		placeNpcOnSameStage(npc, ref)
+	} else {
+		addNPCAndNotifyOthers(npc, tile)
+	}
 
 	if action != nil {
 		go doAtIntervalUntilTermination(npc, ctx, interval, action)
 	}
 
-	go removeAfterWaiting(npc, 450) // Remove after 7.5 min
+	go removeAfterWaiting(npc, duration) // Remove after 7.5 min
 
 	return npc
 }
 
-func createNewNPC(world *World) (*NonPlayer, context.Context) {
+func createNewNPC(world *World, team string) (*NonPlayer, context.Context) {
 	username := uuid.New().String()
 	ctx, cancel := context.WithCancel(context.Background())
 	npc := &NonPlayer{
 		id:        username,
 		terminate: cancel,
 		world:     world,
+		team:      team,
 		icon:      "red-b thick r0",
 		iconLow:   "dark-red-b thick r0",
 	}
@@ -508,12 +534,8 @@ func createNewNPC(world *World) (*NonPlayer, context.Context) {
 	return npc, ctx
 }
 
-func placeOnSameStage(npc *NonPlayer, ref *Player, sameTile bool) {
+func placeNpcOnSameStage(npc *NonPlayer, ref *Player) {
 	refTile := ref.getTileSync()
-	if sameTile {
-		addNPCAndNotifyOthers(npc, refTile)
-		return
-	}
 	tiles := walkableTiles(refTile.stage.tiles)
 	n := rand.Intn(len(tiles))
 	startTile := tiles[n]
@@ -554,24 +576,40 @@ func moveRandomlyAndActivatePower(npc *NonPlayer) {
 		moveWest(npc)
 	}
 	if randn%51 == 0 {
-		activatePower(npc)
+		activatePower(npc, shapesNpc)
 	}
 }
 
-func moveAggressively(npc *NonPlayer) {
-	randn := rand.Intn(5000)
-	if randn%4 == 0 {
-		moveNorth(npc)
-		activatePower(npc) // Power always activates on northern movement
+func moveAgressiveNorth(shapes [][][2]int) func(*NonPlayer) {
+	return func(npc *NonPlayer) {
+		moveAggressively(npc, shapes, 0)
 	}
-	if randn%4 == 1 {
+}
+
+func moveAgressiveRand(shapes [][][2]int) func(*NonPlayer) {
+	randn := rand.Intn(4)
+	return func(npc *NonPlayer) {
+		moveAggressively(npc, shapes, randn)
+	}
+}
+
+func moveAggressively(npc *NonPlayer, shapes [][][2]int, offenceDirection int) {
+	randn := rand.Intn(5000)
+	direction := randn % 4
+	if direction == 0 {
+		moveNorth(npc)
+	}
+	if direction == 1 {
 		moveSouth(npc)
 	}
-	if randn%4 == 2 {
+	if direction == 2 {
 		moveEast(npc)
 	}
-	if randn%4 == 3 {
+	if direction == 3 {
 		moveWest(npc)
+	}
+	if direction == offenceDirection {
+		activatePower(npc, shapes)
 	}
 }
 
@@ -591,8 +629,10 @@ func moveRandomly(npc *NonPlayer) {
 	}
 }
 
-func activatePower(npc *NonPlayer) {
-	shapes := [][][2]int{grid7x7, grid5x5, longCross(4), jumpCross()} // list should belong to npc?
+var shapesNpc = [][][2]int{grid7x7, grid5x5, longCross(4), jumpCross()}
+
+func activatePower(npc *NonPlayer, shapes [][][2]int) {
+	// list should belong to npc?
 	currentTile := npc.getTileSync()
 	rand := rand.Intn(len(shapes))
 	absCoordinatePairs := applyRelativeDistance(currentTile.y, currentTile.x, shapes[rand])
@@ -681,24 +721,26 @@ func cycleForward(path []*Tile, index, depth int) (bool, *Interactable, int) {
 	return ok, out, newDepth
 }
 
-func swapIfEmpty(source, target *Tile) {
+func swapIfEmpty(source, target *Tile) bool {
 	ownSource := source.interactableMutex.TryLock()
 	if !ownSource {
-		return
+		return false
 	}
 	defer source.interactableMutex.Unlock()
 	if source.interactable == nil || !source.interactable.pushable {
-		return
+		return false
 	}
 	ownTarget := target.interactableMutex.TryLock()
 	if !ownTarget {
-		return
+		return false
 	}
 	defer target.interactableMutex.Unlock()
 	if target.interactable != nil {
-		return
+		return false
 	}
 	if replaceNilInteractable(target, source.interactable) {
 		setLockedInteractableAndUpdate(source, nil)
+		return true
 	}
+	return false
 }

@@ -6,7 +6,13 @@ import (
 	"html/template"
 	"strconv"
 	"strings"
+	"sync"
 )
+
+type SyncMenuList struct {
+	sync.Mutex
+	menues map[string]Menu
+}
 
 type Menu struct {
 	Name       string
@@ -18,7 +24,7 @@ type Menu struct {
 
 type MenuLink struct {
 	Text         string
-	eventHandler func(*Player) // should handler and auth be consolidated?
+	eventHandler func(*Player)
 	auth         func(*Player) bool
 }
 
@@ -43,6 +49,7 @@ var mapMenu = Menu{
 	InfoHtml: "",
 	Links: []MenuLink{
 		{Text: "Back", eventHandler: openPauseMenu, auth: nil},
+		{Text: "Close", eventHandler: turnMenuOff, auth: nil},
 	},
 }
 var statsMenu = Menu{
@@ -52,6 +59,7 @@ var statsMenu = Menu{
 	Links: []MenuLink{
 		{Text: "Accomplishments", eventHandler: openAccomplishmentsMenu, auth: nil},
 		{Text: "Back", eventHandler: openPauseMenu, auth: nil},
+		{Text: "Close", eventHandler: turnMenuOff, auth: nil},
 	},
 }
 
@@ -71,14 +79,41 @@ var accomplishmentsMenu = Menu{
 	InfoHtml: `<h2>Accomplishment population error.</h2>`,
 	Links: []MenuLink{
 		{Text: "Back", eventHandler: openStatsMenu, auth: nil},
+		{Text: "Close", eventHandler: turnMenuOff, auth: nil},
 	},
+}
+
+var skipTutorialMenu = Menu{
+	Name:     "skip",
+	CssClass: "",
+	InfoHtml: `<h2>Would you like a tutorial?</h2>`,
+	Links: []MenuLink{
+		{Text: "Yes", eventHandler: turnMenuOffAnd(resendText), auth: nil},
+		{Text: "No", eventHandler: skipTutorial, auth: nil},
+	},
+}
+
+/////////////////////////////////////////////////////
+// Player Menues
+
+func (menuList *SyncMenuList) setMenu(name string, menu Menu) {
+	menuList.Lock()
+	defer menuList.Unlock()
+	menuList.menues[name] = menu
+}
+
+func (menuList *SyncMenuList) getMenu(name string) (Menu, bool) {
+	menuList.Lock()
+	defer menuList.Unlock()
+	menu, ok := menuList.menues[name]
+	return menu, ok
 }
 
 //////////////////////////////////////////////////////
 // Menu send
 
 func turnMenuOnByName(p *Player, menuName string) {
-	menu, ok := p.menues[menuName]
+	menu, ok := p.getMenu(menuName)
 	if ok {
 		sendMenu(p, menu)
 	}
@@ -95,7 +130,7 @@ func sendMenu(p *Player, menu Menu) {
 }
 
 /////////////////////////////////////////////////////
-// Menu events
+// Menu Controls
 
 func (m *Menu) attemptClick(p *Player, e PlayerSocketEvent) {
 	i, err := strconv.Atoi(e.Arg0)
@@ -115,7 +150,7 @@ func (m *Menu) attemptClick(p *Player, e PlayerSocketEvent) {
 }
 
 func menuUp(p *Player, event PlayerSocketEvent) {
-	menu, ok := p.menues[event.MenuName]
+	menu, ok := p.getMenu(event.MenuName)
 	if ok {
 		updateOne(menu.menuSelectUp(event.Arg0), p)
 	}
@@ -133,7 +168,7 @@ func (menu *Menu) menuSelectUp(index string) string {
 }
 
 func menuDown(p *Player, event PlayerSocketEvent) {
-	menu, ok := p.menues[event.MenuName]
+	menu, ok := p.getMenu(event.MenuName)
 	if ok {
 		updateOne(menu.menuSelectDown(event.Arg0), p)
 	}
@@ -169,7 +204,8 @@ func mod(i, n int) int {
 	return ((i % n) + n) % n
 }
 
-// Menu event handlers
+////////////////////////////////////////////////////////////////////////
+// Menu Event Handlers
 
 func turnMenuOff(p *Player) {
 	var buffer bytes.Buffer
@@ -213,7 +249,7 @@ func openPauseMenu(p *Player) {
 }
 
 func openStatsMenu(p *Player) {
-	menu := p.menues["stats"]
+	menu, _ := p.getMenu("stats")
 	menu.InfoHtml = createInfoHtmlForPlayer(p)
 	sendMenu(p, menu)
 }
@@ -279,7 +315,8 @@ func createAccomplishmentsHtmlForPlayer(p *Player) template.HTML {
 	return template.HTML(sb.String())
 }
 
-// Player specific menues
+//////////////////////////////////////////////////////////
+// Player Menues
 
 func continueTeleporting(teleport *Teleport) Menu {
 	return Menu{
@@ -295,12 +332,49 @@ func continueTeleporting(teleport *Teleport) Menu {
 
 func teleportEventHandler(teleport *Teleport) func(*Player) {
 	return func(player *Player) {
-		turnMenuOff(player) // menu off beefore teleport
-		// No need for new routine?
+		turnMenuOff(player)
+		// No need for new routine? - Should test? but I think still needed
 		go func() {
 			player.applyTeleport(teleport)
 		}()
 	}
+}
+
+func exitTutorial(teleport *Teleport) Menu {
+	return Menu{
+		Name:     "teleport",
+		CssClass: "",
+		InfoHtml: "<h2>Finish tutorial?</h2>",
+		Links: []MenuLink{
+			{Text: "Yes", eventHandler: teleportEventHandler(teleport), auth: currentlyInTutorial},
+			{Text: "No", eventHandler: turnMenuOff, auth: nil},
+		},
+	}
+}
+
+func confirmSkipTutorial(teleport *Teleport) Menu {
+	return Menu{
+		Name:     "teleport",
+		CssClass: "",
+		InfoHtml: "<h2>Skip Tutorial - Are you sure?</h2>",
+		Links: []MenuLink{
+			{Text: "Yes - Exit tutorial", eventHandler: teleportEventHandler(teleport), auth: currentlyInTutorial},
+			{Text: "No", eventHandler: openNamedMenuAfterDelay("skip", 0), auth: currentlyInTutorial},
+		},
+	}
+}
+
+func skipTutorial(p *Player) {
+	teleport := makeHomeTeleport(p)
+	if teleport == nil {
+		return
+	}
+	p.setMenu("teleport", confirmSkipTutorial(teleport))
+	turnMenuOnByName(p, "teleport")
+}
+
+func resendText(player *Player) {
+	player.updateBottomText(player.getTileSync().bottomText)
 }
 
 func sourceStageAuthorizerAffirmative(source string) func(*Player) bool {
@@ -324,4 +398,9 @@ func excludeSpecialStages(p *Player) bool {
 		return false
 	}
 	return true
+}
+
+func currentlyInTutorial(p *Player) bool {
+	stagename := p.getTileSync().stage.name
+	return strings.HasPrefix(stagename, "tutorial")
 }

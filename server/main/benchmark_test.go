@@ -198,7 +198,7 @@ func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 			actions:      createDefaultActions(),
 			updates:      updatesForPlayer,
 			world:        &World{worldStages: make(map[string]*Stage)},
-			tangible:     true,
+			tangible:     false,
 			playerStages: map[string]*Stage{},
 		}
 		players[i].health.Store(100)

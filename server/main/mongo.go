@@ -230,7 +230,7 @@ func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 		"health":          p.health.Load(),
 		"stagename":       pTile.stage.name,
 		"money":           p.money.Load(),
-		"stats":           statsRecordFromPlayerStats(p.PlayerStats),
+		"stats":           statsRecordFromPlayerStats(&p.PlayerStats),
 		"hatList.current": p.hatList.indexSync(), // Can be wrong if wearing temp hat
 	}
 }

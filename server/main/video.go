@@ -14,10 +14,13 @@ import (
 
 func flashBackgroundColorIfTangible(player *Player, color string) {
 	ownLock := player.tangibilityLock.TryLock() // Try because what if this player is currently intangible due to event damaging the initiator of this flash
-	if !ownLock || !player.tangible {
+	if !ownLock {
 		return
 	}
 	defer player.tangibilityLock.Unlock()
+	if !player.tangible {
+		return
+	}
 	flashBackgroundColor(player, color)
 }
 

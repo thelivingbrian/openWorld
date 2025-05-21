@@ -24,12 +24,12 @@ type Player struct {
 	tileLock                 sync.Mutex
 	updates                  chan []byte
 	sessionTimeOutViolations atomic.Int32
+	textUpdatesInFlight      atomic.Int32
 	conn                     WebsocketConnection
 	connLock                 sync.RWMutex
 	tangible                 bool
 	tangibilityLock          sync.Mutex
 	actions                  *Actions
-	menues                   map[string]Menu
 	playerStages             map[string]*Stage
 	pStageMutex              sync.Mutex
 	hatList                  SyncHatList
@@ -37,7 +37,8 @@ type Player struct {
 	health                   atomic.Int64
 	money                    atomic.Int64
 	killstreak               atomic.Int64
-	*PlayerStats
+	PlayerStats
+	SyncMenuList
 }
 
 type PlayerStats struct {
@@ -255,12 +256,36 @@ func updateEntireExistingScreen(player *Player) {
 	player.updates <- entireScreenAsSwaps(player)
 }
 
+const bottomTextTemplate = `
+<div id="bottom_text">
+	&nbsp;&nbsp;> %s
+</div>`
+
+const bottomTextEmpty = `
+<div id="bottom_text">
+</div>`
+
 func (player *Player) updateBottomText(message string) {
-	msg := fmt.Sprintf(`
-			<div id="bottom_text">
-				&nbsp;&nbsp;> %s
-			</div>`, processStringForColors(message))
-	updateOne(msg, player)
+	msg := fmt.Sprintf(bottomTextTemplate, processStringForColors(message))
+	updateOne(msg, player) // Potential to send on closed ?
+	player.textUpdatesInFlight.Add(1)
+	go tryClearBottomTextAfter(player, 5000)
+}
+
+func tryClearBottomTextAfter(player *Player, delay int) {
+	time.Sleep(time.Millisecond * time.Duration(delay))
+	if player.textUpdatesInFlight.Add(-1) == 0 {
+		ownLock := player.tangibilityLock.TryLock()
+		if !ownLock {
+			return
+		}
+		defer player.tangibilityLock.Unlock()
+		if !player.tangible {
+			return
+		}
+
+		updateOne(bottomTextEmpty, player)
+	}
 }
 
 func (player *Player) updatePlayerHud() {
@@ -283,10 +308,13 @@ func updateIconForAll(player *Player) {
 func updateIconForAllIfTangible(player *Player) {
 	player.setIcon()
 	ownLock := player.tangibilityLock.TryLock()
-	if !ownLock || !player.tangible {
+	if !ownLock {
 		return
 	}
 	defer player.tangibilityLock.Unlock()
+	if !player.tangible {
+		return
+	}
 	tile := player.getTileSync()
 	tile.stage.updateAll(characterBox(tile))
 }

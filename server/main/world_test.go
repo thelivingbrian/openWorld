@@ -247,6 +247,90 @@ func TestMostDangerous(t *testing.T) {
 		t.Error("Invalid leader should be p1")
 	}
 
+	// Cleanup / Prevent send on closed
+	p1.tangible, p2.tangible, p3.tangible = false, false, false
+}
+
+func TestNewPlayerFromRecord(t *testing.T) {
+	world, shutdown := createWorldForTesting()
+	defer shutdown()
+
+	tests := []struct {
+		name          string
+		rec           PlayerRecord
+		wantTeam      string
+		wantAccompLen int
+	}{
+		{
+			name:          "explicit team retained",
+			rec:           createPlayerRecordForTesting("Alice", "red"),
+			wantTeam:      "red",
+			wantAccompLen: 1,
+		},
+		{
+			name:          "blank team gets default",
+			rec:           createPlayerRecordForTesting("Bob", ""),
+			wantTeam:      "sky-blue",
+			wantAccompLen: 1,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc // capture
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			player := world.newPlayerFromRecord(tc.rec, "id‑123")
+
+			if player == nil {
+				t.Fatalf("expected player, got nil")
+			}
+			if got := player.id; got != "id‑123" {
+				t.Errorf("id: got %q want %q", got, "id‑123")
+			}
+			if got := player.username; got != tc.rec.Username {
+				t.Errorf("username: got %q want %q", got, tc.rec.Username)
+			}
+			if got := player.team; got != tc.wantTeam {
+				t.Errorf("team: got %q want %q", got, tc.wantTeam)
+			}
+			if got := player.health.Load(); got != tc.rec.Health {
+				t.Errorf("health: got %d want %d", got, tc.rec.Health)
+			}
+			if got := player.money.Load(); got != tc.rec.Money {
+				t.Errorf("money: got %d want %d", got, tc.rec.Money)
+			}
+			if got := len(player.accomplishments.Accomplishments); got != tc.wantAccompLen {
+				t.Errorf("accomplishments length: got %d want %d", got, tc.wantAccompLen)
+			}
+
+			// Ensure Stats are assigned
+			statCases := []struct {
+				name string
+				got  int64
+				want int64
+			}{
+				{"Check for killCount", player.PlayerStats.killCount.Load(), tc.rec.Stats.KillCount},
+				{"Check for killCountNpc", player.PlayerStats.killCountNpc.Load(), tc.rec.Stats.KillCountNpc},
+				{"Check for deathCount", player.PlayerStats.deathCount.Load(), tc.rec.Stats.DeathCount},
+				{"Check for goalsScored", player.PlayerStats.goalsScored.Load(), tc.rec.Stats.GoalsScored},
+				{"Check for peakKillStreak", player.PlayerStats.peakKillStreak.Load(), tc.rec.Stats.PeakKillStreak},
+				{"Check for peakWealth", player.PlayerStats.peakWealth.Load(), tc.rec.Stats.PeakWealth},
+			}
+			for _, sc := range statCases {
+				if sc.got != sc.want {
+					t.Errorf("%s: got %d want %d", sc.name, sc.got, sc.want)
+				}
+			}
+
+			// channel created?
+			select {
+			case <-player.updates:
+				t.Error("updates channel should be empty immediately after creation")
+			default:
+			}
+		})
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -287,6 +371,30 @@ func loadStageByName(world *World, name string) *Stage {
 		world.wStageMutex.Unlock()
 	}
 	return stage
+}
+
+//////////// Record /////////////
+
+func createPlayerRecordForTesting(username, team string) PlayerRecord {
+	now := time.Unix(1_700_000_000, 0) // deterministic
+	return PlayerRecord{
+		Username: username,
+		Team:     team,
+		Health:   88,
+		Money:    42_000,
+		HatList:  HatList{},
+		Accomplishments: map[string]Accomplishment{
+			"fresh‑spawn": {Name: "fresh‑spawn", AcquiredAt: now},
+		},
+		Stats: PlayerStatsRecord{
+			KillCount:      50,
+			KillCountNpc:   51,
+			PeakKillStreak: 10,
+			DeathCount:     5,
+			GoalsScored:    2,
+			PeakWealth:     50_000,
+		},
+	}
 }
 
 /////////// Socket /////////////////

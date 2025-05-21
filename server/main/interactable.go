@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"time"
 )
 
 type Interactable struct {
@@ -28,7 +29,7 @@ func init() {
 		"black-hole": {
 			{ReactsWith: interactableHasName("ball-fuchsia"), Reaction: hideByTeam("fuchsia")},
 			{ReactsWith: interactableHasName("ball-sky-blue"), Reaction: hideByTeam("sky-blue")},
-			{ReactsWith: everything, Reaction: eat}, // reduces number of rings
+			{ReactsWith: everything, Reaction: eat},
 		},
 		"goal-sky-blue": {
 			{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: scoreGoalForTeam("sky-blue")},
@@ -48,11 +49,11 @@ func init() {
 			{ReactsWith: everything, Reaction: eat},
 		},
 		"tutorial-goal-sky-blue": {
-			{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: destroyEveryotherInteractable},
+			{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: finishTutorial},
 			{ReactsWith: PlayerAndTeamMatchButDifferentBall("sky-blue"), Reaction: notifyAndPass("Try using the matching ball.")},
 		},
 		"tutorial-goal-fuchsia": {
-			{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: destroyEveryotherInteractable},
+			{ReactsWith: playerTeamAndBallNameMatch("fuchsia"), Reaction: finishTutorial},
 			{ReactsWith: PlayerAndTeamMatchButDifferentBall("fuchsia"), Reaction: notifyAndPass("Try using the matching ball.")},
 		},
 		"gold-target": {
@@ -60,6 +61,12 @@ func init() {
 		},
 		"set-team-wild-text-and-delete": {
 			{ReactsWith: interactableIsNil, Reaction: setTeamWildText},
+		},
+		"tutorial-exchange": {
+			{ReactsWith: interactableIsARing, Reaction: tutorialExchange},
+		},
+		"teleport-home": {
+			{ReactsWith: interactableIsNil, Reaction: teleportHomeInteraction},
 		},
 
 		////////////////////////////////////////////////////////////////
@@ -265,6 +272,25 @@ func spawnMoney(amounts []int) func(*Interactable, *Player, *Tile) (*Interactabl
 	}
 }
 
+func finishTutorial(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	destroyEveryotherInteractable(i, p, t)
+	p.goalsScored.CompareAndSwap(0, 1)
+	p.updateBottomText("You scored a goal! View stats in menu... ")
+	go func() {
+		time.Sleep(time.Millisecond * time.Duration(1600))
+		ownLock := p.tangibilityLock.TryLock()
+		if !ownLock {
+			return
+		}
+		defer p.tangibilityLock.Unlock()
+		if !p.tangible {
+			return
+		}
+		openStatsMenu(p)
+	}()
+	return nil, false
+}
+
 func destroyEveryotherInteractable(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	tiles := everyOtherTileOnStage(t)
 	for i := range tiles {
@@ -328,11 +354,9 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 		scoreOpposing := p.world.leaderBoard.scoreboard.GetScore(oppositeTeamName)
 
 		// Award hat
-		totalGoals := p.incrementGoalsScored()
-		if totalGoals == 1 {
-			p.addHatByName("score-1-goal", true)
-			p.addAccomplishmentByName(scoreAGoal)
-		}
+		p.incrementGoalsScored()
+		p.addHatByName("score-1-goal", true)
+		p.addAccomplishmentByName(scoreAGoal)
 
 		// Database
 		p.updateRecord()
@@ -510,6 +534,54 @@ func damageAndSpawn(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 		spawnPowerup(t.stage)
 	}
 	return nil, false
+}
+
+func tutorialExchange(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	y := rand.Intn(len(t.stage.tiles))
+	x := rand.Intn(len(t.stage.tiles[y]))
+	epicenter := t.stage.tiles[y][x]
+	dmg := 50
+	powerToSpawn := 2
+	go damageWithinRadius(epicenter, p.world, 4, dmg, p.id)
+	t.stage.updateAll(soundTriggerByName("explosion"))
+	addMoneyToStage(t.stage, 1)
+	addMoneyToStage(t.stage, 1)
+	addMoneyToStage(t.stage, 1)
+	for i := 0; i < powerToSpawn; i++ {
+		spawnPowerupShort(t.stage)
+	}
+	p.updateBottomText("*[red] berries grant you destructive powers")
+	return nil, false
+}
+
+func teleportHomeInteraction(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	teleport := makeHomeTeleport(p)
+	if teleport == nil {
+		return nil, false
+	}
+	p.setMenu("teleport", exitTutorial(teleport))
+	turnMenuOnByName(p, "teleport")
+	return nil, false
+}
+
+func makeHomeTeleport(p *Player) *Teleport {
+	team := p.getTeamNameSync()
+	stage := ""
+	switch team {
+	case "fuchsia":
+		stage = "team-fuchsia:4-3"
+	case "sky-blue":
+		stage = "team-blue:3-4"
+	default:
+		return nil
+	}
+	return &Teleport{
+		destStage:          stage,
+		destY:              7,
+		destX:              7,
+		confirmation:       true,
+		rejectInteractable: true,
+	}
 }
 
 func addMoneyToStage(stage *Stage, amount int) {

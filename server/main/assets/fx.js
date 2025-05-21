@@ -16,7 +16,8 @@ const sounds = {
 };
 
 // Mixing
-sounds["power-up-space"].volume = 0.4;
+sounds["explosion"].volume = 0.5;
+sounds["power-up-space"].volume = 0.3;
 sounds["water-splash"].volume = 0.7;
 
 function playSound(soundName) {

@@ -1,12 +1,14 @@
 {{define "world-select"}}
-<div id="page" hx-swap-oob="true">
-    {{template "logo-small"}}
-    <div id="landing">   
-        {{range  $i, $domain := .}}
-        <div id="world-display" class="rounded-cyan-border center-horizontally" hx-get="{{$domain}}/status" hx-trigger="load">
-            <span id="status-{{$i}}" hx-get="/unavailable" hx-trigger="load delay:2s">Loading . . .</span>
+<div id="page" class="center-vertically" hx-swap-oob="true">
+    <div id="container"> 
+        {{template "logo-small"}}
+        <div id="landing">   
+            {{range  $i, $domain := .}}
+            <div id="world-display" class="rounded-cyan-border center-horizontally" hx-get="{{$domain}}/status" hx-trigger="load">
+                <span id="status-{{$i}}" hx-get="/unavailable" hx-trigger="load delay:2s">Loading . . .</span>
+            </div>
+            {{end}}
         </div>
-        {{end}}
     </div>
 </div>
 {{end}}
@@ -29,14 +31,14 @@
 {{end}}
 
 {{define "log-out"}}
-<div id="page">
-    <div id="logo">
-        <img src="/assets/blooplogo2.webp" width="400" height="400" alt="Welcome to bloopworld"><br />
-    </div>
-    <div id="landing">   
-        <span>{{.Text}}</span><br />
-        <a class="large-font" href="#" hx-post="{{.Domain}}/play" hx-target="#page">Resume</a><br />
-        <a class="large-font" href="/" >Exit</a><br />
+<div id="page" class="center-vertically">
+    <div id="container">
+        {{template "logo-small"}}
+        <div id="landing">   
+            <span>{{.Text}}</span><br />
+            <a class="large-font" href="#" hx-post="{{.Domain}}/play" hx-target="#page">Resume</a><br />
+            <a class="large-font" href="/" >Exit</a><br />
+        </div>
     </div>
 </div>
 {{end}}

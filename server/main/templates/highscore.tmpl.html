@@ -3,12 +3,14 @@
 <html>
     {{template "score-header"}}
     <body>
-        <div id="page">
-            {{template "logo-small"}}
-            <div id="highscore">
-                {{template "highscore-list" .}}
+        <div id="page" class="center-vertically">
+            <div id="container">
+                {{template "logo-small"}}
+                <div id="highscore">
+                    {{template "highscore-list" .}}
+                </div>
+                {{ template "social" }}
             </div>
-            {{ template "social" }}
         </div>
     </body>
 </html>
@@ -16,7 +18,7 @@
 
 {{define "score-header"}}
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width">
     <script src="/assets/htmx.min.js"></script>
     <script src="/assets/ws.js"></script>
     <script src="/assets/fx.js"></script>
@@ -26,7 +28,7 @@
 {{end}}
 
 {{ define "highscore-list" }}
-<div class="highscore-list {{.BorderColor}}-b thick" >
+<div class="highscore-list gradient-bg" >
     <h2>{{.Category}} High Scores</h2>
 
     {{ if not (eq (len .Entries) 0) }}

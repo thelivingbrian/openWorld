@@ -2,11 +2,13 @@ package main
 
 import (
 	"math/rand"
+	"strconv"
+	"time"
 )
 
 type SpawnAction struct {
 	Should func(*Player, *Stage) bool
-	Action func(*Player) // func of player?
+	Action func(*Player)
 }
 
 func (s *SpawnAction) activateFor(player *Player, stage *Stage) {
@@ -24,10 +26,28 @@ var spawnActions = map[string][]SpawnAction{
 		{Should: always, Action: onCurrentStage(basicSpawnNoRing)},
 	},
 	"basic-ring": {
-		{Should: always, Action: basicSpawnWithRing},
+		{Should: always, Action: basicSpawnWithRingAndNPCs},
+	},
+	"basic-weak": {
+		{Should: always, Action: onCurrentStage(basicSpawnWeak)},
 	},
 	"tutorial-boost": {
 		{Should: always, Action: onCurrentStage(tutorialBoost())},
+	},
+	"tutorial-1-skip": {
+		{Should: both(checkYCoord(3), checkXCoord(3)), Action: openNamedMenuAfterDelay("skip", 0)},
+	},
+	"tutorial-1-menu": {
+		{Should: checkYCoord(0), Action: openNamedMenuAfterDelay("pause", 1600)},
+	},
+	"tutorial-1-boost": {
+		{Should: checkXCoord(0), Action: tutorial1Boost},
+	},
+	"tutorial-1-ring": {
+		{Should: always, Action: tutorial1Ring},
+	},
+	"tutorial-1-npc": {
+		{Should: always, Action: tutorial1Npc},
 	},
 	"tutorial-power": {
 		{Should: always, Action: onCurrentStage(tutorialPower)},
@@ -93,6 +113,18 @@ func min(vals ...int) int {
 	return minVal
 }
 
+func checkYCoord(check int) func(p *Player, s *Stage) bool {
+	return func(p *Player, s *Stage) bool {
+		return p.getTileSync().y == check
+	}
+}
+
+func checkXCoord(check int) func(p *Player, s *Stage) bool {
+	return func(p *Player, s *Stage) bool {
+		return p.getTileSync().x == check
+	}
+}
+
 /////////////////////////////////////////////
 //  Actions
 
@@ -113,6 +145,105 @@ func tutorialBoost() func(stage *Stage) {
 	return addBoostsAt(8, 8)
 }
 
+func tutorial1Boost(player *Player) {
+	stage := player.getTileSync().stage
+	stage.tiles[7][4].addBoostsAndNotifyAll()
+}
+
+func tutorial1Npc(player *Player) {
+	stage := player.getTileSync().stage
+	tiles0 := getRegion(stage.tiles, Rect{2, 5, 5, 6})
+	tiles1 := getRegion(stage.tiles, Rect{6, 7, 2, 4})
+	tiles := append(tiles0, tiles1...)
+	tile, ok := pickOne(tiles)
+	if !ok {
+		return
+	}
+	randStr := strconv.Itoa(rand.Intn(16))
+	spawnNewNPCDoingAction(player, randStr, 110, 60, moveAgressiveRand(shortShapes), tile)
+}
+
+type Rect struct {
+	MinY, MaxY int
+	MinX, MaxX int
+}
+
+func getRegion[T any](grid [][]T, r Rect) []T {
+	var out []T
+	for y := r.MinY; y <= r.MaxY; y++ {
+		if y < 0 || y >= len(grid) {
+			continue
+		}
+		row := grid[y]
+		minX := clamp(r.MinX, 0, len(row)-1)
+		maxX := clamp(r.MaxX, 0, len(row)-1)
+		if maxX < minX {
+			continue
+		}
+		out = append(out, row[minX:maxX+1]...)
+	}
+	return out
+}
+
+func clamp(v, lo, hi int) int {
+	if v < lo {
+		return lo
+	}
+	if v > hi {
+		return hi
+	}
+	return v
+}
+
+// ok is false when the slice is empty.
+func pickOne[T any](items []T) (item T, ok bool) {
+	if len(items) == 0 {
+		return
+	}
+	item = items[rand.Intn(len(items))]
+	ok = true
+	return
+}
+
+func tutorial1Ring(player *Player) {
+	stage := player.getTileSync().stage
+	tiles := []*Tile{
+		stage.tiles[2][2],
+		stage.tiles[13][2],
+		stage.tiles[2][13],
+	}
+	n := rand.Intn(len(tiles))
+	n2 := mod(n+1, len(tiles))
+	tile := tiles[n]
+	tile2 := tiles[n2]
+	ring := Interactable{
+		name:     "ring-big",
+		cssClass: "gold-b thick r1",
+		pushable: true,
+		fragile:  true,
+	}
+	copy := ring
+	trySetInteractable(tile, &ring)
+	trySetInteractable(tile2, &copy)
+}
+
+func openNamedMenuAfterDelay(name string, delay int) func(*Player) {
+	return func(p *Player) {
+		go func() {
+			time.Sleep(time.Millisecond * time.Duration(delay))
+			ownLock := p.tangibilityLock.TryLock()
+			if !ownLock {
+				return
+			}
+			defer p.tangibilityLock.Unlock()
+			if !p.tangible {
+				return
+			}
+			turnMenuOnByName(p, name)
+		}()
+	}
+}
+
 func tutorial2Boost() func(stage *Stage) {
 	return addBoostsAt(10, 11)
 }
@@ -127,19 +258,42 @@ func spawnBoosts(stage *Stage) {
 	tile.addBoostsAndNotifyAll()
 }
 
+var shortShapes = [][][2]int{
+	grid3x3,
+	grid5x5,
+	jumpCross(),
+	x(),
+}
+
+var weakShapes = [][][2]int{
+	grid3x3, grid3x3,
+	cross(),
+	jumpCross(), jumpCross(),
+	x(),
+}
+
+var standardShapes = [][][2]int{
+	diagonalBlock(true, 2), diagonalBlock(false, 2),
+	diagonalBlock(true, 3), diagonalBlock(false, 3),
+	grid3x3, grid3x3,
+	grid5x5, grid5x5, grid5x5,
+	grid7x7, grid7x7,
+	grid9x9,
+	jumpCross(),
+	longCross(5),
+	longCross(3),
+	x(),
+}
+
+func spawnPowerupShort(stage *Stage) {
+	spawnPowerupFromSet(stage, shortShapes)
+}
+
 func spawnPowerup(stage *Stage) {
-	shapes := [][][2]int{
-		diagonalBlock(true, 2), diagonalBlock(false, 2),
-		diagonalBlock(true, 3), diagonalBlock(false, 3),
-		grid3x3, grid3x3,
-		grid5x5, grid5x5, grid5x5,
-		grid7x7, grid7x7,
-		grid9x9,
-		jumpCross(),
-		longCross(5),
-		longCross(3),
-		x(),
-	}
+	spawnPowerupFromSet(stage, standardShapes)
+}
+
+func spawnPowerupFromSet(stage *Stage, shapes [][][2]int) {
 	index := rand.Intn(len(shapes))
 	tiles, uncoveredTiles := sortWalkableTiles(stage.tiles)
 	tiles = append(tiles, uncoveredTiles...)
@@ -181,7 +335,7 @@ func basicSpawnOld(stage *Stage) {
 	}
 }
 
-func basicSpawnWithRing(p *Player) {
+func basicSpawnWithRingAndNPCs(p *Player) {
 	determination := rand.Intn(1000)
 	if determination < 350 {
 		// Do nothing
@@ -197,13 +351,14 @@ func basicSpawnWithRing(p *Player) {
 	}
 
 	determination2 := rand.Intn(16)
+	lifeInSeconds := 450
 	if determination2%8 == 0 {
 		spawnPowerup(stage)
-		spawnNewNPCDoingAction(p, 105, moveRandomlyAndActivatePower, false)
+		spawnNewNPCDoingAction(p, "npc", 105, lifeInSeconds, moveRandomlyAndActivatePower, nil)
 	}
 	if determination2 == 0 {
 		spawnPowerup(stage)
-		npc := spawnNewNPCDoingAction(p, 95, moveAggressively, false)
+		npc := spawnNewNPCDoingAction(p, "npc", 95, lifeInSeconds, moveAgressiveRand(shapesNpc), nil)
 		npc.money.Add(int64(125))
 	}
 
@@ -217,6 +372,17 @@ func basicSpawnNoRing(stage *Stage) {
 		spawnBoosts(stage)
 	} else {
 		spawnPowerup(stage)
+	}
+}
+
+func basicSpawnWeak(stage *Stage) {
+	determination := rand.Intn(1000)
+	if determination < 400 {
+		// Do nothing
+	} else if determination < 750 {
+		spawnBoosts(stage)
+	} else {
+		spawnPowerupFromSet(stage, weakShapes)
 	}
 }
 

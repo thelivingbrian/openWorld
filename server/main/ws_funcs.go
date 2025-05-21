@@ -188,7 +188,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	case "menuUp":
 		menuUp(player, *event)
 	case "menuClick":
-		if menu, ok := player.menues[event.MenuName]; ok {
+		if menu, ok := player.getMenu(event.MenuName); ok {
 			menu.attemptClick(player, *event)
 		}
 	default:
