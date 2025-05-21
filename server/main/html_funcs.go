@@ -262,12 +262,12 @@ func divModalDisabled() string {
 
 func divInput() string {
 	// uses ws bypass to function
-	return `[~ id="Lx1-0-0" class="container"][~ id="Lx1-0-1" class="container hidden"]`
+	return `[~ id="dpad" class="container"][~ id="dpad-shift" class="container hidden"]`
 }
 
 func divInputShift() string {
 	// uses ws bypass to function
-	return `[~ id="Lx1-0-0" class="container hidden"][~ id="Lx1-0-1" class="container"]`
+	return `[~ id="dpad" class="container hidden"][~ id="dpad-shift" class="container"]`
 }
 
 func divInputDisabled() string {
