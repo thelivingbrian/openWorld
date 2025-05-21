@@ -496,7 +496,7 @@ fill-opacity: 0.6;
         position: fixed;
         z-index: 101;
         left: 0;
-        bottom: 80;
+        bottom: 10%;
         width: 100%;
     }
     .dpad-container {
