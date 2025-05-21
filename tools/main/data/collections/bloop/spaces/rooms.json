@@ -4731,7 +4731,7 @@
       "transports": [],
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": ""
+      "spawnStrategy": "none"
     },
     {
       "name": "test-walls-interactable",
