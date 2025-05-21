@@ -36,7 +36,7 @@
 - [-] Seperate homepage from game server
 - [-] Add sound fx
 - [ ] Canvas based interactive/realtime stage map? 
-- [ ] Shift support for arrow keys 
+- [-] Shift support for arrow keys 
 
 ## Integration 
 - [ ] Bot AI
@@ -298,7 +298,9 @@
   - [-] Teleport Home
 - [-] Skip tutorial option
 - [-] New players start in new tutorial
-- [ ] Old player records are updated
+- [-] Old player records are updated
+  - [-] Local
+  - [-] s0/cactus
 
 ## Bugs
  - [-] test remove damage tangibility check
