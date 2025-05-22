@@ -93,13 +93,13 @@
     <input id="sShift" type="hidden" ws-send hx-trigger="click from:#but-sShift" name="eventname" value="S" />
     <input id="dShift" type="hidden" ws-send hx-trigger="click from:#but-dShift" name="eventname" value="D" />
 
-    <input id="menuOn" type="hidden" ws-send hx-trigger="click from:#but-m" name="eventname" value="menuOn" />
-    <input id="space-on" type="hidden" ws-send hx-trigger="click from:#but-space" name="eventname" value="Space-On" />
+    <input id="menuOn" type="hidden" ws-send hx-trigger="click from:#but-m,click from:#but-m-shift" name="eventname" value="menuOn" />
+    <input id="space-on" type="hidden" ws-send hx-trigger="click from:#but-space,click from:#but-space-shift" name="eventname" value="Space-On" />
     <input id="shift-on" type="hidden" ws-send hx-trigger="click from:#but-shift-on" name="eventname" value="Shift-On" />
     <input id="shift-off" type="hidden" ws-send hx-trigger="click from:#but-shift-off" name="eventname" value="Shift-Off" />
 
-    <div id="Lx1-0-0" class="container">
-        <div id="dpad" class="dpad-container">
+    <div id="dpad" class="container">
+        <div class="dpad-container">
             <button id="but-w" class="button borderless up">w  &#9650;</button>
             <button id="but-a" class="button borderless left">&#9666; a</button>
             <button class="button middle"></button>
@@ -114,8 +114,8 @@
             <button id="but-shift-on" class="button borderless B">Shift</button>
         </div>
     </div>
-    <div id="Lx1-0-1" class="container hidden">
-        <div id="dpad" class="dpad-container">
+    <div id="dpad-shift" class="container hidden">
+        <div class="dpad-container">
             <button id="but-wShift" class="button shift up">W&#9650;</button>
             <button id="but-aShift" class="button shift med left">&#9666;A</button>
             <button class="button middle"></button>
@@ -123,10 +123,10 @@
             <button id="but-sShift" class="button shift med down">S&#9660;</button>
         </div>
         <div class="center-container">
-            <button id="but-m" class="half-button">menu</button>
+            <button id="but-m-shift" class="half-button">menu</button>
         </div>
         <div class="a-b-container">
-            <button id="but-space" class="button borderless A">Space</button>
+            <button id="but-space-shift" class="button borderless A">Space</button>
             <button id="but-shift-off" class="button shift B">Shift</button>
         </div>
     </div>

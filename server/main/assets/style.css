@@ -96,6 +96,11 @@ a {
     justify-content: center;
 }
 
+#bottom_text {
+    z-index: 100;
+    pointer-events: none; 
+}
+
 
 #main_view {
     width:100%;
@@ -494,9 +499,9 @@ fill-opacity: 0.6;
         grid-template-columns: 2fr 1fr 2fr;
         gap: 6px;
         position: fixed;
-        z-index: 101;
+        z-index: 10;
         left: 0;
-        bottom: 80;
+        bottom: 10%;
         width: 100%;
     }
     .dpad-container {
