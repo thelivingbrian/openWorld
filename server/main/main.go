@@ -72,7 +72,7 @@ func main() {
 		// Game Fucntionality
 		mux.HandleFunc("/status", world.statusHandler)
 		mux.HandleFunc("/play", world.playHandler)
-		mux.HandleFunc("/images/", imageHandler) // note:0 trailing '/'
+		mux.HandleFunc("/images/", imageHandler) // note: trailing '/'
 
 		// REST helper endpoints
 		mux.HandleFunc("/insert", world.postHorribleBypass)
