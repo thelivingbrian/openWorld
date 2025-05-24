@@ -46,7 +46,7 @@ func main() {
 		mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
 
 		// Pages
-		mux.HandleFunc("/{$}", homeHandler)
+		mux.HandleFunc("/", homeHandler) // "/{$}" c43bd8b “end‑of‑path” anchor go 1.22
 		mux.HandleFunc("/about", aboutHandler)
 		mux.HandleFunc("/highscore", hub.highscoreHandler)
 
