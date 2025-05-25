@@ -135,7 +135,9 @@ func (app *App) guestsHandler(w http.ResponseWriter, r *http.Request) {
 		tmpl.ExecuteTemplate(w, "guests", nil)
 	case "POST":
 		app.storeNewGuestSession(w, r)
-		http.Redirect(w, r, "/", http.StatusFound)
+		w.Header().Set("HX-Redirect", "/")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Request was successful - Redirecting"))
 	}
 }
 
@@ -154,7 +156,7 @@ func (app *App) storeNewGuestSession(w http.ResponseWriter, r *http.Request) {
 	// Capcha check
 	// Rate limiter
 
-	record := createNewPlayerRecord(username, team)
+	record := createNewGuestPlayerRecord(username, team)
 	err = app.db.InsertPlayerRecord(record)
 	if err != nil {
 		io.WriteString(w, divBottomInvalid("Error saving new player"))
