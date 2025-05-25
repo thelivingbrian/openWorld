@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	mrand "math/rand"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -134,11 +135,27 @@ func (app *App) guestsHandler(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		tmpl.ExecuteTemplate(w, "guests", nil)
 	case "POST":
+		if !app.AllowGuest(clientIP(r)) {
+			w.WriteHeader(http.StatusTooManyRequests)
+			return
+		}
 		app.storeNewGuestSession(w, r)
 		w.Header().Set("HX-Redirect", "/")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Request was successful - Redirecting"))
 	}
+}
+
+func clientIP(r *http.Request) string {
+	// Honour X‑Forwarded‑For / X‑Real‑IP if you’re behind a reverse proxy.
+	if fwd := r.Header.Get("X-Forwarded-For"); fwd != "" {
+		return strings.Split(fwd, ",")[0]
+	}
+	if real := r.Header.Get("X-Real-Ip"); real != "" {
+		return real
+	}
+	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+	return ip
 }
 
 func (app *App) storeNewGuestSession(w http.ResponseWriter, r *http.Request) {

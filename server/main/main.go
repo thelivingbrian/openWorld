@@ -6,6 +6,8 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
@@ -16,11 +18,30 @@ import (
 
 var tmpl = template.Must(template.ParseGlob("templates/*.tmpl.html"))
 var logger = zerolog.New(os.Stdout).With().Timestamp().Logger()
-var store *sessions.CookieStore
+var store *sessions.CookieStore // Move in app?
 
 type App struct {
-	db     *DB
-	config *Configuration
+	db           *DB
+	config       *Configuration
+	guestLimiter *GuestLimiter
+}
+
+type GuestLimiter struct {
+	seen sync.Map // key -> time.Time
+}
+
+const GUEST_WINDOW = time.Hour
+
+func (app *App) AllowGuest(key string) bool {
+	if app.guestLimiter == nil {
+		return true
+	}
+	now := time.Now()
+	if v, ok := app.guestLimiter.seen.Load(key); ok && now.Sub(v.(time.Time)) < GUEST_WINDOW {
+		return false
+	}
+	app.guestLimiter.seen.Store(key, now)
+	return true
 }
 
 func main() {
@@ -45,7 +66,7 @@ func main() {
 
 	if config.isHub {
 		logger.Info().Msg("Setting up hub...")
-		app := App{db, config}
+		app := App{db, config, &GuestLimiter{}}
 		hub := createDefaultHub(db) // rename to LeaderBoards?
 
 		// Static Assets
