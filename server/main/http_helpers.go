@@ -10,6 +10,7 @@ import (
 //////////////////////////////////////////////////////////
 // Forms
 
+// Replace this with r.ParseForm() / r.FormValue and/or r.Form
 func requestToProperties(r *http.Request) (map[string]string, bool) {
 	// Works on standard htmx form post
 	body, err := io.ReadAll(r.Body)

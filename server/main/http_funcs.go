@@ -226,6 +226,7 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 
 	tmpl.ExecuteTemplate(w, "post-play-on-load", desiredHost)
 }
+
 func createNewPlayerRecord(username, team string) PlayerRecord {
 	return PlayerRecord{
 		Username:  username,
@@ -244,7 +245,12 @@ func validUsername(username string) bool {
 		return false
 	}
 
-	var invalidChars = []string{"{", "}", "\"", "'", "`", "/", "[", "]", "<", ">", "\\", "\n", "\t"}
+	if strings.HasPrefix(username, "#") {
+		// "#" is guest prefix
+		return false
+	}
+
+	var invalidChars = []string{"{", "}", "\"", "'", "`", "/", "[", "]", "<", ">", "\\", "\n", "\t", "#"}
 	for _, char := range invalidChars {
 		if strings.Contains(username, char) {
 			return false

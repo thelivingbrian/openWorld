@@ -18,6 +18,11 @@ var tmpl = template.Must(template.ParseGlob("templates/*.tmpl.html"))
 var logger = zerolog.New(os.Stdout).With().Timestamp().Logger()
 var store *sessions.CookieStore
 
+type App struct {
+	db     *DB
+	config *Configuration
+}
+
 func main() {
 	logger.Info().Msg("Initializing...")
 	config := getConfiguration()
@@ -40,19 +45,21 @@ func main() {
 
 	if config.isHub {
 		logger.Info().Msg("Setting up hub...")
-		hub := createDefaultHub(db)
+		app := App{db, config}
+		hub := createDefaultHub(db) // rename to LeaderBoards?
 
 		// Static Assets
 		mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
 
 		// Pages
-		mux.HandleFunc("/", homeHandler) // "/{$}" c43bd8b “end‑of‑path” anchor go 1.22
+		mux.HandleFunc("/", app.homeHandler) // "/{$}" c43bd8b “end‑of‑path” anchor go 1.22
 		mux.HandleFunc("/about", aboutHandler)
 		mux.HandleFunc("/highscore", hub.highscoreHandler)
 
 		// Oauth
 		mux.HandleFunc("/auth", auth)
 		mux.HandleFunc("/callback", db.callback)
+		mux.HandleFunc("/guests", app.guestsHandler)
 
 		// Select World
 		mux.HandleFunc("/worlds", createWorldSelectHandler(config))

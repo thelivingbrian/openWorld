@@ -9,13 +9,12 @@
                     <img class="logo-img" src="/assets/bloopworld.png" width="80%" alt="Welcome to bloopworld"><br />
                 </div>
                 <div id="landing">
+                    <a class="large-font" href="/auth?provider=google">Sign in with Google</a><br />
                     {{ if . }}
-                        <a class="large-font" href="#" hx-get="/worlds" hx-target="#landing">Select World</a><br />
-                    {{ else }}
-                        <a class="large-font" href="/auth?provider=google">Sign in with Google</a><br />
+                        <a class="large-font" href="#" hx-get="/guests" hx-target="#landing">Continue as guest</a><br />
                     {{ end }}
-                    <a class="large-font" href="/highscore?category=richest">High-Scores</a><br />
                     <a class="large-font" href="/about" > About </a><br />
+                    <a class="large-font" href="/highscore?category=richest">High-Scores</a><br />
                 </div>
                 {{ template "social" }}
             </div>
@@ -23,6 +22,53 @@
         <div id="sound-trigger" class="invisible"><div id="sound"></div></div>
     </body>
 </html>
+{{ end }}
+
+{{ define "homepage-signed-in" }}
+<!DOCTYPE html>
+<html>
+    {{template "page-header"}}
+    <body>
+        <div id="page" class="center-vertically">
+            <div id="container">
+                <div id="logo">
+                    <img class="logo-img" src="/assets/bloopworld.png" width="80%" alt="Welcome to bloopworld"><br />
+                </div>
+                <div id="landing">
+                    <a class="large-font" href="#" hx-get="/worlds" hx-target="#landing">Select World</a><br />
+                    <a class="large-font" href="/about" > About </a><br />
+                    <a class="large-font" href="/highscore?category=richest">High-Scores</a><br />
+                </div>
+                {{ template "social" }}
+            </div>
+        </div>
+        <div id="sound-trigger" class="invisible"><div id="sound"></div></div>
+    </body>
+</html>
+{{ end }}
+
+{{ define "guests" }}
+
+        <div id="page" class="center-vertically" hx-swap-oob="true">
+            <div id="container">
+                <div id="logo">
+                    <img class="logo-img" src="/assets/bloopworld.png" width="80%" alt="Welcome to bloopworld"><br />
+                </div>
+                <div id="landing">
+                    <p>
+                        Note: Guest progress can not be resumed later!<br />
+                        High-scores will be periodically wiped.<br />
+                        <br/>
+                        For best experience - consider "sign in with google". 
+                    </p>
+                    <br />
+                    <a href="#" hx-post="/guests" hx-swap="none">Continue as guest</a><br />
+                    <a href="/" hx-swap="none">Go Back</a>
+                </div>
+                {{ template "social" }}
+            </div>
+        </div>
+
 {{ end }}
 
 {{define "about"}}

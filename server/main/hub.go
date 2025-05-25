@@ -1,7 +1,11 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
+	"io"
+	mrand "math/rand"
 	"net/http"
 	"strconv"
 	"strings"
@@ -11,6 +15,10 @@ import (
 
 const HIGHSCORE_CHECK_INTERVAL_IN_SECONDS = 15
 
+// Name arguably makes sense a level up - e.g. the hub is the central id authoritity that sends users to satalite bloop worlds
+//
+//	but this is not that thing. This is just a subset of that specific to highscores.
+//	new name? RankingManager, Rankings?
 type Hub struct {
 	richest, deadliest, mvp *HighScoreListSync
 	db                      RankingProvider
@@ -23,7 +31,7 @@ type HighScoreListSync struct {
 }
 
 type HighScoreList struct {
-	BorderColor string
+	BorderColor string // unused
 	Category    string
 	Entries     []HighScoreEntry
 }
@@ -72,12 +80,16 @@ func createDefaultHub(db RankingProvider) *Hub {
 //////////////////////////////////////////////////////////
 // Site Handlers
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
+func (app *App) homeHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Info().Msg("Home page accessed.") // Replace with metric
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	_, identifierFound := getUserIdFromSession(r)
-	tmpl.ExecuteTemplate(w, "homepage", identifierFound)
+	if identifierFound {
+		tmpl.ExecuteTemplate(w, "homepage-signed-in", nil)
+		return
+	}
+	tmpl.ExecuteTemplate(w, "homepage", app.config.guestsEnabled.Load())
 }
 
 func aboutHandler(w http.ResponseWriter, r *http.Request) {
@@ -107,6 +119,73 @@ func (hub *Hub) highscoreHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	tmpl.ExecuteTemplate(w, "highscore", scores)
+}
+
+//////////////////////////////////////////////////////////////////
+// Guests
+
+func (app *App) guestsHandler(w http.ResponseWriter, r *http.Request) {
+	if !app.config.guestsEnabled.Load() {
+		tmpl.ExecuteTemplate(w, "homepage", app.config.guestsEnabled.Load())
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	switch r.Method {
+	case "GET":
+		tmpl.ExecuteTemplate(w, "guests", nil)
+	case "POST":
+		app.storeNewGuestSession(w, r)
+		http.Redirect(w, r, "/", http.StatusFound)
+	}
+}
+
+func (app *App) storeNewGuestSession(w http.ResponseWriter, r *http.Request) {
+	hexid, err := randomHex16()
+	if err != nil {
+		return
+	}
+	identifier := "guest:" + hexid
+	username := "#" + hexid
+	team := "sky-blue"
+	if mrand.Intn(2) == 1 {
+		team = "fuchsia"
+	}
+
+	// Capcha check
+	// Rate limiter
+
+	record := createNewPlayerRecord(username, team)
+	err = app.db.InsertPlayerRecord(record)
+	if err != nil {
+		io.WriteString(w, divBottomInvalid("Error saving new player"))
+		return
+	}
+
+	session, err := store.Get(r, "user-session")
+	if err != nil {
+		logger.Warn().Msg("Error getting new session?")
+	}
+	session.Values["identifier"] = identifier
+	err = session.Save(r, w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func randomHex16() (string, error) {
+	b := make([]byte, 8) // 8 bytes × 2 hex chars/byte = 16 hex chars
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("failed to read random bytes: %w", err)
+	}
+	return hex.EncodeToString(b), nil
+}
+
+func createNewGuestPlayerRecord(username, team string) PlayerRecord {
+	record := createNewPlayerRecord(username, team)
+	timestamp := time.Now()
+	record.GuestCreateTime = &timestamp
+	return record
 }
 
 //////////////////////////////////////////////////////////////////

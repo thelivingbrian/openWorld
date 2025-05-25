@@ -1,7 +1,7 @@
 {{ define "player-page" }}
 <div id="page" hx-swap-oob="true">
     <div id="main_view">
-        <div id="info" hx-swap-oob="true">
+        <div id="info">
             <b>
                 {{.LoginRequest.Record.Username}} <span id="hearts">{{.LoginRequest.Record.HeartsFromRecord}}</span> <br />
                 <span id="streak" class="red">Streak 0</span> | <span id="boosts" class="blue">^ 0</span>  | <span id="money" class="dark-green">$ {{.LoginRequest.Record.Money}}</span><span id="power"></span>

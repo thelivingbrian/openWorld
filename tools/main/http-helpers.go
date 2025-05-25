@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// Replace this with r.ParseForm() / r.FormValue and/or r.Form
 func requestToProperties(r *http.Request) (map[string]string, bool) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -27,6 +28,7 @@ func requestToProperties(r *http.Request) (map[string]string, bool) {
 	return bodyStringToProperties(bodyS), true
 }
 
+// Replace this with r.ParseForm() / r.FormValue and/or r.Form
 func bodyStringToProperties(body string) map[string]string {
 	propMap := make(map[string]string)
 	props := strings.Split(body, "&")

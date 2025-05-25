@@ -18,8 +18,7 @@ const SESSION_SNAPSHOT_INTERVAL_IN_MIN = 30
 var CAPACITY_PER_TEAM = 128 // Is modified by test => not const
 
 type World struct {
-	db                  *DB
-	config              *Configuration
+	App
 	worldPlayers        map[string]*Player
 	wPlayerMutex        sync.Mutex
 	teamQuantities      map[string]int
@@ -60,8 +59,10 @@ type WorldSessionData struct {
 
 func createGameWorld(db *DB, config *Configuration) *World {
 	out := &World{
-		db:                  db,
-		config:              config,
+		App: App{
+			db:     db,
+			config: config,
+		},
 		worldPlayers:        make(map[string]*Player),
 		wPlayerMutex:        sync.Mutex{},
 		teamQuantities:      map[string]int{},

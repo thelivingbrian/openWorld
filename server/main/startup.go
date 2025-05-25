@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync/atomic"
 
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
@@ -73,6 +74,11 @@ type Configuration struct {
 	serverName         string
 	domainName         string
 	loadPreviousState  bool
+	RuntimeConfiguration
+}
+
+type RuntimeConfiguration struct {
+	guestsEnabled atomic.Bool
 }
 
 func getConfiguration() *Configuration {
@@ -108,6 +114,9 @@ func getConfiguration() *Configuration {
 		domainName:         os.Getenv("DOMAIN_NAME"),
 		loadPreviousState:  strings.ToUpper(os.Getenv("LOAD_PEVIOUS_STATE")) == "TRUE",
 	}
+
+	// Runtime configuration
+	config.guestsEnabled.Store(strings.ToUpper(os.Getenv("GUESTS_ENABLED")) == "TRUE")
 
 	if environmentName == "prod" {
 		log.Fatal("No Prod Environment")
