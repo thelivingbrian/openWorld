@@ -133,10 +133,12 @@ func (app *App) guestsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	switch r.Method {
 	case "GET":
-		tmpl.ExecuteTemplate(w, "guests", nil)
+		allowAttempt := app.peekPermission(clientIP(r))
+		tmpl.ExecuteTemplate(w, "guests", allowAttempt)
 	case "POST":
 		if !app.AllowGuest(clientIP(r)) {
 			w.WriteHeader(http.StatusTooManyRequests)
+			tmpl.ExecuteTemplate(w, "guests-limited", nil)
 			return
 		}
 		app.storeNewGuestSession(w, r)

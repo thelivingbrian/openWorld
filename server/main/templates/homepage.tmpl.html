@@ -48,27 +48,45 @@
 {{ end }}
 
 {{ define "guests" }}
-
-        <div id="page" class="center-vertically" hx-swap-oob="true">
-            <div id="container">
-                <div id="logo">
-                    <img class="logo-img" src="/assets/bloopworld.png" width="80%" alt="Welcome to bloopworld"><br />
-                </div>
-                <div id="landing">
-                    <p>
-                        Note: Guest progress can not be resumed later!<br />
-                        High-scores will be periodically wiped.<br />
-                        <br/>
-                        For best experience - consider "sign in with google". 
-                    </p>
-                    <br />
-                    <a href="#" hx-post="/guests" hx-swap="none">Continue as guest</a><br />
-                    <a href="/" hx-swap="none">Go Back</a>
-                </div>
-                {{ template "social" }}
-            </div>
+<div id="page" class="center-vertically" hx-swap-oob="true">
+    <div id="container" hx-ext="response-targets">
+        <div id="logo">
+            <img class="logo-img" src="/assets/bloopworld.png" width="80%" alt="Welcome to bloopworld"><br />
         </div>
+        {{ if . }}
+            {{ template "guests-landing" }}
+        {{ else }}
+            {{ template "guests-limited" }}
+        {{ end }}
+        {{ template "social" }}
+    </div>
+</div>
+{{ end }}
 
+{{ define "guests-landing" }}
+<div id="landing">
+    <p>
+        Note: Guest progress can not be resumed later!<br />
+        High-scores will be periodically wiped.<br />
+        <br/>
+        For best experience - consider "sign in with google". 
+    </p>
+    <br />
+    <a href="#" hx-post="/guests" hx-target="#landing" hx-target-429="#landing">Continue as guest</a><br />
+    <a href="/" hx-swap="none">Go Back</a>
+</div>
+{{ end }}
+
+{{ define "guests-limited" }}
+<div id="landing" hx-swap-oob="true">
+    <p>
+        Too many guest sign in requests (Max one per hour).<br />
+        <br />
+        Try again later. 
+    </p>
+    <br />
+    <a href="/" hx-swap="none">Go Back</a>
+</div>
 {{ end }}
 
 {{define "about"}}
@@ -142,6 +160,7 @@
     <script src="/assets/htmx.min.js"></script>
     <script src="/assets/ws.js"></script>
     <script src="/assets/fx.js"></script>
+    <script src="/assets/response-targets.min.js"></script>
     <link rel="stylesheet" href="/assets/style.css">
     <link rel="stylesheet" href="/assets/colors.css">
 </head>

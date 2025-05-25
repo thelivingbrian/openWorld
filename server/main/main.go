@@ -44,6 +44,17 @@ func (app *App) AllowGuest(key string) bool {
 	return true
 }
 
+func (app *App) peekPermission(key string) bool {
+	if app.guestLimiter == nil {
+		return true
+	}
+	now := time.Now()
+	if v, ok := app.guestLimiter.seen.Load(key); ok && now.Sub(v.(time.Time)) < GUEST_WINDOW {
+		return false
+	}
+	return true
+}
+
 func main() {
 	logger.Info().Msg("Initializing...")
 	config := getConfiguration()

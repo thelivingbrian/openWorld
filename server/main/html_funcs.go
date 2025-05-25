@@ -290,3 +290,15 @@ func divLogOutResume(text, domain string) []byte {
 	tmpl.ExecuteTemplate(&buf, "log-out", data)
 	return buf.Bytes()
 }
+
+func divTooManyRequests() string {
+	return `
+	<div id="landing" hx-swap-oob="true">
+		<p>
+			Too many guest sign in requests. Try again later. 
+		</p>
+		<br />
+		<a href="/" hx-swap="none">Go Back</a>
+	</div>
+	`
+}
