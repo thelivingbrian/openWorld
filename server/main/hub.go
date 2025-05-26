@@ -166,7 +166,7 @@ func (app *App) storeNewGuestSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	identifier := "guest:" + hexid
-	username := "#" + hexid
+	//username := "#" + hexid
 	team := "sky-blue"
 	if mrand.Intn(2) == 1 {
 		team = "fuchsia"
@@ -175,7 +175,7 @@ func (app *App) storeNewGuestSession(w http.ResponseWriter, r *http.Request) {
 	// Capcha check
 	// Rate limiter
 
-	record := createNewGuestPlayerRecord(username, team)
+	record := createNewGuestPlayerRecord(identifier, team)
 	err = app.db.InsertPlayerRecord(record)
 	if err != nil {
 		io.WriteString(w, divBottomInvalid("Error saving new player"))
