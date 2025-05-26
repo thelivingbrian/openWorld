@@ -61,8 +61,8 @@ func (app *App) guestsHandler(w http.ResponseWriter, r *http.Request) {
 
 		app.storeNewGuestSession(w, r)
 
-		w.WriteHeader(http.StatusOK)
 		w.Header().Set("HX-Redirect", "/")
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Request was successful - Redirecting"))
 	}
 }

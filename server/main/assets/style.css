@@ -101,6 +101,13 @@ a {
     pointer-events: none; 
 }
 
+#hearts {
+    display: inline-block;
+}
+
+#power {
+    display: inline-block;
+}
 
 #main_view {
     width:100%;
