@@ -30,7 +30,7 @@ type GuestLimiter struct {
 	seen sync.Map // key -> time.Time
 }
 
-const GUEST_WINDOW = time.Hour
+const GUEST_WINDOW = 2 * time.Minute
 
 func (app *App) AllowGuest(key string) bool {
 	if app.guestLimiter == nil {
