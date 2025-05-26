@@ -92,6 +92,7 @@ func main() {
 		mux.HandleFunc("/auth", auth)
 		mux.HandleFunc("/callback", db.callback)
 		mux.HandleFunc("/guests", app.guestsHandler)
+		mux.HandleFunc("/signout", signOutHandler)
 
 		// Select World
 		mux.HandleFunc("/worlds", createWorldSelectHandler(config))
