@@ -166,14 +166,12 @@ func (app *App) storeNewGuestSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	identifier := "guest:" + hexid
-	//username := "#" + hexid
 	team := "sky-blue"
 	if mrand.Intn(2) == 1 {
 		team = "fuchsia"
 	}
 
-	// Capcha check
-	// Rate limiter
+	// Add Capcha check
 
 	record := createNewGuestPlayerRecord(identifier, team)
 	err = app.db.InsertPlayerRecord(record)

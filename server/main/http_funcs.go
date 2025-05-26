@@ -158,12 +158,9 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "Unable to sign in")
 		return
 	}
-	// loginRequest := createLoginRequest(record)
-	// world.addIncoming(loginRequest)
 
 	receipt := world.initiateLogin(record)
 	tmpl.ExecuteTemplate(w, "player-page", receipt)
-
 }
 
 type LoginReceipt struct {
