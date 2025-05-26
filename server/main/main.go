@@ -6,8 +6,6 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"strconv"
-	"sync"
-	"time"
 
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
@@ -24,35 +22,6 @@ type App struct {
 	db           *DB
 	config       *Configuration
 	guestLimiter *GuestLimiter
-}
-
-type GuestLimiter struct {
-	seen sync.Map // key -> time.Time
-}
-
-const GUEST_WINDOW = 2 * time.Minute
-
-func (app *App) AllowGuest(key string) bool {
-	if app.guestLimiter == nil {
-		return true
-	}
-	now := time.Now()
-	if v, ok := app.guestLimiter.seen.Load(key); ok && now.Sub(v.(time.Time)) < GUEST_WINDOW {
-		return false
-	}
-	app.guestLimiter.seen.Store(key, now)
-	return true
-}
-
-func (app *App) peekPermission(key string) bool {
-	if app.guestLimiter == nil {
-		return true
-	}
-	now := time.Now()
-	if v, ok := app.guestLimiter.seen.Load(key); ok && now.Sub(v.(time.Time)) < GUEST_WINDOW {
-		return false
-	}
-	return true
 }
 
 func main() {
@@ -78,13 +47,13 @@ func main() {
 	if config.isHub {
 		logger.Info().Msg("Setting up hub...")
 		app := App{db, config, &GuestLimiter{}}
-		hub := createDefaultHub(db) // rename to LeaderBoards?
+		hub := createDefaultHub(db) // rename ?
 
 		// Static Assets
 		mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
 
 		// Pages
-		mux.HandleFunc("/", app.homeHandler) // "/{$}" c43bd8b “end‑of‑path” anchor go 1.22
+		mux.HandleFunc("/", app.homeHandler) // "/{$}" end‑of‑path anchor go 1.22
 		mux.HandleFunc("/about", aboutHandler)
 		mux.HandleFunc("/highscore", hub.highscoreHandler)
 
