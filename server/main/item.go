@@ -286,6 +286,16 @@ var standardShapes = [][][2]int{
 	x(),
 }
 
+var goodShapes = [][][2]int{
+	grid5x5, grid5x5, grid5x5,
+	grid7x7, grid7x7,
+	grid9x9,
+}
+
+func spawnPowerupGood(stage *Stage) {
+	spawnPowerupFromSet(stage, shortShapes)
+}
+
 func spawnPowerupShort(stage *Stage) {
 	spawnPowerupFromSet(stage, shortShapes)
 }
@@ -354,12 +364,26 @@ func basicSpawnWithRingAndNPCs(p *Player) {
 	determination2 := rand.Intn(16)
 	lifeInSeconds := 450
 	if determination2%8 == 0 {
+		spawnPowerupGood(stage)
+		spawnNewNPCDoingAction(p, "npc", 105, lifeInSeconds, moveRandomlyAndActivatePower, nil)
+	}
+	if determination2%4 == 1 {
 		spawnPowerup(stage)
+		spawnPowerupGood(stage)
 		spawnNewNPCDoingAction(p, "npc", 105, lifeInSeconds, moveRandomlyAndActivatePower, nil)
 	}
 	if determination2 == 0 {
 		spawnPowerup(stage)
 		npc := spawnNewNPCDoingAction(p, "npc", 95, lifeInSeconds, moveAgressiveRand(shapesNpc), nil)
+		npc.money.Add(int64(125))
+	}
+
+	determination3 := rand.Intn(24)
+	if determination3 == 1 {
+		tryPlaceInteractableOnStage(stage, createRing())
+		tryPlaceInteractableOnStage(stage, createRing())
+		tryPlaceInteractableOnStage(stage, createRing())
+		npc := spawnNewNPCDoingAction(p, "npc", 95, lifeInSeconds, moveAgressiveRand(shortShapes), nil)
 		npc.money.Add(int64(125))
 	}
 
