@@ -27,6 +27,7 @@ type PlayerRecord struct {
 	LastLogin  time.Time `bson:"lastLogin,omitempty"`
 	LastLogout time.Time `bson:"lastLogout,omitempty"`
 	// total logins / cumulative play time
+	GuestCreateTime *time.Time `bson:"guestCreateTime,omitempty"`
 
 	// World Location
 	StageName string `bson:"stagename"`

@@ -9,13 +9,12 @@
                     <img class="logo-img" src="/assets/bloopworld.png" width="80%" alt="Welcome to bloopworld"><br />
                 </div>
                 <div id="landing">
+                    <a class="large-font" href="/auth?provider=google">Sign in with Google</a><br />
                     {{ if . }}
-                        <a class="large-font" href="#" hx-get="/worlds" hx-target="#landing">Select World</a><br />
-                    {{ else }}
-                        <a class="large-font" href="/auth?provider=google">Sign in with Google</a><br />
+                        <a class="large-font" href="#" hx-get="/guests" hx-target="#landing">Continue as guest</a><br />
                     {{ end }}
-                    <a class="large-font" href="/highscore?category=richest">High-Scores</a><br />
                     <a class="large-font" href="/about" > About </a><br />
+                    <a class="large-font" href="/highscore?category=richest">High-Scores</a><br />
                 </div>
                 {{ template "social" }}
             </div>
@@ -25,45 +24,29 @@
 </html>
 {{ end }}
 
-{{define "about"}}
+{{ define "homepage-signed-in" }}
 <!DOCTYPE html>
 <html>
     {{template "page-header"}}
     <body>
-        <div id="about-page" >
-            {{template "logo-small"}}
-            <div id="about">   
-                <p>
-                    Development of the Bloopworld engine started in December of 2023.
-                </p><br />
-                <p>
-                    Currently, in bloopworld, the internet can compete in a game of capture the flag - First team to 100 wins!
-                </p><br />
-                <p>
-                    I'm not a game developer - Bloopworld is partly an experiment taken too far, partly a love letter to the web stack.
-                </p><br />
-                <p> 
-                    If you like Bloopworld check out the <a href="https://bloopworldgame.blogspot.com/">Blog</a>!
-                </p><br />
-                <p>
-                    <strong>Thanks anyone who is kind enough to play / contribute / provide feedback!</strong>
-                </p><br />
-                <p>
-                    <span style='color:red'>&gt;Disclaimers</span> <br />
-                    - Bloopworld is a game and has flashing lights. <br />
-                    - Bloopworld uses cookies as needed for authentication <br />
-                    - By creating an account you are sharing your email with bloopworld, we will never contact you<br />
-                    - <a href="/assets/privacy.html">Privacy</a> | <a href="/assets/terms.html">Terms of Service</a>
-                    <br />
-                    <br />
-                    <a href="/">Back</a>
-                </p>
+        <div id="page" class="center-vertically">
+            <div id="container">
+                <div id="logo">
+                    <img class="logo-img" src="/assets/bloopworld.png" width="80%" alt="Welcome to bloopworld"><br />
+                </div>
+                <div id="landing">
+                    <a class="large-font" href="#" hx-get="/worlds" hx-target="#landing">Select World</a><br />
+                    <a class="large-font" href="#" hx-post="/signout">Sign out</a><br />
+                    <a class="large-font" href="/about" > About </a><br />
+                    <a class="large-font" href="/highscore?category=richest">High-Scores</a><br />
+                </div>
+                {{ template "social" }}
             </div>
-            {{ template "social" }}
         </div>
+        <div id="sound-trigger" class="invisible"><div id="sound"></div></div>
     </body>
 </html>
-{{end}}
+{{ end }}
 
 {{define "logo-small"}}
 <div id="logo">
@@ -96,6 +79,7 @@
     <script src="/assets/htmx.min.js"></script>
     <script src="/assets/ws.js"></script>
     <script src="/assets/fx.js"></script>
+    <script src="/assets/response-targets.min.js"></script>
     <link rel="stylesheet" href="/assets/style.css">
     <link rel="stylesheet" href="/assets/colors.css">
 </head>

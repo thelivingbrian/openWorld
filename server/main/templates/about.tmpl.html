@@ -1,0 +1,39 @@
+{{define "about"}}
+<!DOCTYPE html>
+<html>
+    {{template "page-header"}}
+    <body>
+        <div id="about-page" >
+            {{template "logo-small"}}
+            <div id="about">   
+                <p>
+                    Development of the Bloopworld engine started in December of 2023.
+                </p><br />
+                <p>
+                    Currently, in bloopworld, the internet can compete in a game of capture the flag - First team to 100 wins!
+                </p><br />
+                <p>
+                    I'm not a game developer - Bloopworld is partly an experiment taken too far, partly a love letter to the web stack.
+                </p><br />
+                <p> 
+                    If you like Bloopworld check out the <a href="https://bloopworldgame.blogspot.com/">Blog</a>!
+                </p><br />
+                <p>
+                    <strong>Thanks anyone who is kind enough to play / contribute / provide feedback!</strong>
+                </p><br />
+                <p>
+                    <span style='color:red'>&gt;Disclaimers</span> <br />
+                    - Bloopworld is a game and has flashing lights. <br />
+                    - Bloopworld uses cookies as needed for authentication <br />
+                    - By creating an account you are sharing your email with bloopworld, we will never contact you<br />
+                    - <a href="/assets/privacy.html">Privacy</a> | <a href="/assets/terms.html">Terms of Service</a>
+                    <br />
+                    <br />
+                    <a href="/">Back</a>
+                </p>
+            </div>
+            {{ template "social" }}
+        </div>
+    </body>
+</html>
+{{end}}

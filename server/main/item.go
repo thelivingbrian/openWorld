@@ -239,6 +239,7 @@ func openNamedMenuAfterDelay(name string, delay int) func(*Player) {
 			if !p.tangible {
 				return
 			}
+			p.addMoneyAndUpdate(0) // Set Peak Wealth
 			turnMenuOnByName(p, name)
 		}()
 	}

@@ -55,9 +55,13 @@ func (world *World) statusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
-	_, ok := getUserIdFromSession(r)
+	id, ok := getUserIdFromSession(r)
 	if !ok {
 		io.WriteString(w, "<div>Invalid Sign in</div>")
+		return
+	}
+	if !world.config.guestsEnabled.Load() && idBelongsToGuest(id) {
+		io.WriteString(w, "<div>Guests not allowed in server "+world.config.serverName+"</div>")
 		return
 	}
 	world.teamPlayerStatus.Lock()
@@ -77,6 +81,10 @@ func (world *World) getStatus(w http.ResponseWriter, r *http.Request) {
 		Vacancy:      vacancyOfLockedWorldStatus(&world.teamPlayerStatus),
 	}
 	tmpl.ExecuteTemplate(w, "world-status", statusDiv)
+}
+
+func idBelongsToGuest(id string) bool {
+	return strings.HasPrefix(id, "guest:")
 }
 
 func vacancyOfLockedWorldStatus(status *TeamPlayerStatus) bool {
@@ -120,9 +128,14 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 		tmpl.ExecuteTemplate(w, "homepage", false)
 		return
 	}
-	userRecord := world.db.getAuthorizedUserById(id)
+	var userRecord *UserRecord
+	if idBelongsToGuest(id) {
+		world.postPlayAsGuest(w, r)
+		return
+	}
+	userRecord = world.db.getAuthorizedUserById(id)
 	if userRecord == nil {
-		// Could imply hacked cookie?
+		// Could imply tampered/invalid cookie.
 		// Has happened when db record is lost/destroyed
 		// Is confusing if this happens because you get a blank page with no explanation
 		return
@@ -137,27 +150,56 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 			SuggestedUsername: world.db.UniqueName(),
 		}
 		tmpl.ExecuteTemplate(w, "choose-your-color", colorPage)
-	} else {
-		record, err := world.db.getPlayerRecord(userRecord.Username)
-		if err != nil {
-			logger.Warn().Msg("User: " + id + " found but not corresponding Player with username: " + userRecord.Username)
-			io.WriteString(w, "Unable to sign in")
-			return
-		}
-		loginRequest := createLoginRequest(record)
-		world.addIncoming(loginRequest)
-
-		s := struct {
-			LoginRequest *LoginRequest
-			DomainName   string
-		}{
-			LoginRequest: loginRequest,
-			DomainName:   world.config.domainName,
-		}
-
-		logger.Info().Msg("loginRequest for: " + loginRequest.Record.Username)
-		tmpl.ExecuteTemplate(w, "player-page", s)
 	}
+
+	record, err := world.db.getPlayerRecord(userRecord.Username)
+	if err != nil {
+		logger.Warn().Msg("User: " + id + " found but not corresponding Player with username: " + userRecord.Username)
+		io.WriteString(w, "Unable to sign in")
+		return
+	}
+
+	receipt := world.initiateLogin(record)
+	tmpl.ExecuteTemplate(w, "player-page", receipt)
+}
+
+type LoginReceipt struct {
+	LoginRequest *LoginRequest
+	DomainName   string
+}
+
+func (w *World) initiateLogin(record PlayerRecord) *LoginReceipt {
+	loginReq := createLoginRequest(record)
+	w.addIncoming(loginReq)
+	logger.Info().Msg("loginRequest for: " + loginReq.Record.Username)
+	return &LoginReceipt{
+		LoginRequest: loginReq,
+		DomainName:   w.config.domainName,
+	}
+}
+
+func (world *World) postPlayAsGuest(w http.ResponseWriter, r *http.Request) {
+	if !world.config.guestsEnabled.Load() {
+		io.WriteString(w, "Guests prohibited.")
+		return
+	}
+	id, ok := getUserIdFromSession(r)
+	if !ok {
+		io.WriteString(w, "Unexpected Error.")
+		return
+	}
+	if !idBelongsToGuest(id) {
+		io.WriteString(w, "Unexpected Error.")
+		return
+	}
+	record, err := world.db.getPlayerRecord(id)
+	if err != nil {
+		logger.Warn().Msg("Record for guest with id: " + id + " not found.")
+		io.WriteString(w, "Unable to sign in")
+		return
+	}
+	receipt := world.initiateLogin(record)
+	tmpl.ExecuteTemplate(w, "player-page", receipt)
 }
 
 func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
@@ -226,6 +268,7 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 
 	tmpl.ExecuteTemplate(w, "post-play-on-load", desiredHost)
 }
+
 func createNewPlayerRecord(username, team string) PlayerRecord {
 	return PlayerRecord{
 		Username:  username,
@@ -244,7 +287,11 @@ func validUsername(username string) bool {
 		return false
 	}
 
-	var invalidChars = []string{"{", "}", "\"", "'", "`", "/", "[", "]", "<", ">", "\\", "\n", "\t"}
+	if strings.HasPrefix(username, "guest:") {
+		return false
+	}
+
+	var invalidChars = []string{"{", "}", "\"", "'", "`", "/", "[", "]", "<", ">", "\\", "\n", "\t", ":"}
 	for _, char := range invalidChars {
 		if strings.Contains(username, char) {
 			return false

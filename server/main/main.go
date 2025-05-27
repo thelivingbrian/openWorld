@@ -16,7 +16,13 @@ import (
 
 var tmpl = template.Must(template.ParseGlob("templates/*.tmpl.html"))
 var logger = zerolog.New(os.Stdout).With().Timestamp().Logger()
-var store *sessions.CookieStore
+var store *sessions.CookieStore // Move in app?
+
+type App struct {
+	db           *DB
+	config       *Configuration
+	guestLimiter *GuestLimiter
+}
 
 func main() {
 	logger.Info().Msg("Initializing...")
@@ -40,19 +46,22 @@ func main() {
 
 	if config.isHub {
 		logger.Info().Msg("Setting up hub...")
-		hub := createDefaultHub(db)
+		app := App{db, config, &GuestLimiter{}}
+		hub := createDefaultHub(db) // rename ?
 
 		// Static Assets
 		mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
 
 		// Pages
-		mux.HandleFunc("/{$}", homeHandler)
+		mux.HandleFunc("/", app.homeHandler) // "/{$}" end‑of‑path anchor go 1.22
 		mux.HandleFunc("/about", aboutHandler)
 		mux.HandleFunc("/highscore", hub.highscoreHandler)
 
 		// Oauth
 		mux.HandleFunc("/auth", auth)
 		mux.HandleFunc("/callback", db.callback)
+		mux.HandleFunc("/guests", app.guestsHandler)
+		mux.HandleFunc("/signout", signOutHandler)
 
 		// Select World
 		mux.HandleFunc("/worlds", createWorldSelectHandler(config))
@@ -72,7 +81,7 @@ func main() {
 		// Game Fucntionality
 		mux.HandleFunc("/status", world.statusHandler)
 		mux.HandleFunc("/play", world.playHandler)
-		mux.HandleFunc("/images/", imageHandler) // note:0 trailing '/'
+		mux.HandleFunc("/images/", imageHandler) // note: trailing '/'
 
 		// REST helper endpoints
 		mux.HandleFunc("/insert", world.postHorribleBypass)

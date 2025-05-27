@@ -11,6 +11,10 @@ import (
 
 const HIGHSCORE_CHECK_INTERVAL_IN_SECONDS = 15
 
+// Name arguably makes sense a level up - e.g. the hub is the central id authoritity that sends users to satalite bloop worlds
+//
+//	but this is not that thing. This is just a subset of that specific to highscores.
+//	new name? RankingManager, Rankings?
 type Hub struct {
 	richest, deadliest, mvp *HighScoreListSync
 	db                      RankingProvider
@@ -23,7 +27,7 @@ type HighScoreListSync struct {
 }
 
 type HighScoreList struct {
-	BorderColor string
+	BorderColor string // unused
 	Category    string
 	Entries     []HighScoreEntry
 }
@@ -72,12 +76,16 @@ func createDefaultHub(db RankingProvider) *Hub {
 //////////////////////////////////////////////////////////
 // Site Handlers
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
+func (app *App) homeHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Info().Msg("Home page accessed.") // Replace with metric
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	_, identifierFound := getUserIdFromSession(r)
-	tmpl.ExecuteTemplate(w, "homepage", identifierFound)
+	if identifierFound {
+		tmpl.ExecuteTemplate(w, "homepage-signed-in", nil)
+		return
+	}
+	tmpl.ExecuteTemplate(w, "homepage", app.config.guestsEnabled.Load())
 }
 
 func aboutHandler(w http.ResponseWriter, r *http.Request) {

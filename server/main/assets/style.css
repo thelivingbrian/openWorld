@@ -101,6 +101,13 @@ a {
     pointer-events: none; 
 }
 
+#hearts {
+    display: inline-block;
+}
+
+#power {
+    display: inline-block;
+}
 
 #main_view {
     width:100%;
@@ -122,6 +129,7 @@ a {
 
 #landing {
     text-align: center;
+    padding: 2rem 0;
 }
 
 #social {
@@ -151,8 +159,8 @@ a {
 .gradient-bg {
   background: linear-gradient(
     135deg,
-    rgba(48, 152, 240, 0.5),          /* sky‑blue @ 50 % opacity */
-    rgba(253, 52, 172, 0.5)           /* fuchsia  @ 50 % opacity */
+    rgba(48, 152, 240, 0.5),
+    rgba(253, 52, 172, 0.5)
   );
 }
 

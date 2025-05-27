@@ -58,7 +58,7 @@ func divPlayerInformation(player *Player) string {
 
 func playerInformation(player *Player) string {
 	hearts := getHeartsFromHealth(player.health.Load())
-	return fmt.Sprintf(`%s %s<br />%s | %s | %s %s`, player.username, hearts, spanStreak(player.killstreak.Load()), spanBoosts(player.getBoostCountSync()), spanMoney(player.money.Load()), spanPower(player.actions.spaceStack.count()))
+	return fmt.Sprintf(`%s %s<br />%s | %s | %s &#20 %s`, player.username, hearts, spanStreak(player.killstreak.Load()), spanBoosts(player.getBoostCountSync()), spanMoney(player.money.Load()), spanPower(player.actions.spaceStack.count()))
 }
 
 func spanPower(quantity int) string {
