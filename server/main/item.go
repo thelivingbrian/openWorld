@@ -353,9 +353,9 @@ func basicSpawnWithRingAndNPCs(p *Player) {
 		return
 	}
 	stage := p.getTileSync().stage
-	if determination < 665 {
+	if determination < 650 {
 		spawnBoosts(stage)
-	} else if determination < 925 {
+	} else if determination < 910 {
 		spawnPowerup(stage)
 	} else if determination < 975 {
 		tryPlaceInteractableOnStage(stage, createRing())
