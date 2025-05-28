@@ -215,6 +215,11 @@ img {
     image-rendering: pixelated; 
 }
 
+.player-accomplishments {
+  max-height: 60vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;   
+}
 
 /* Grid */
 
