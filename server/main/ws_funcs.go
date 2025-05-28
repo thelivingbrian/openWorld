@@ -170,7 +170,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	case "g":
 		makeHallucinate(player)
 	case "h":
-		player.cycleHats()
+		//player.cycleHats()
 	case "q":
 		// Unimplemented
 	case "e":

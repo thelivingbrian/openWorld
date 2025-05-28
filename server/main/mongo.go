@@ -226,13 +226,13 @@ func (db *DB) addAccomplishmentToPlayer(username string, key string, value Accom
 
 func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 	return bson.M{
-		"x":               pTile.x,
-		"y":               pTile.y,
-		"health":          p.health.Load(),
-		"stagename":       pTile.stage.name,
-		"money":           p.money.Load(),
-		"stats":           statsRecordFromPlayerStats(&p.PlayerStats),
-		"hatList.current": p.hatList.indexSync(), // Can be wrong if wearing temp hat
+		"x":         pTile.x,
+		"y":         pTile.y,
+		"health":    p.health.Load(),
+		"stagename": pTile.stage.name,
+		"money":     p.money.Load(),
+		"stats":     statsRecordFromPlayerStats(&p.PlayerStats),
+		//"hatList.current": p.hatList.indexSync(), // Can be wrong if wearing temp hat
 	}
 }
 

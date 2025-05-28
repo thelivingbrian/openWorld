@@ -375,7 +375,7 @@ func basicSpawnWithRingAndNPCs(p *Player) {
 	if determination2 == 0 {
 		spawnPowerup(stage)
 		npc := spawnNewNPCDoingAction(p, "npc", 95, lifeInSeconds, moveAgressiveRand(shapesNpc), nil)
-		npc.money.Add(int64(125))
+		npc.money.Add(int64(200))
 	}
 
 	determination3 := rand.Intn(24)
@@ -384,7 +384,7 @@ func basicSpawnWithRingAndNPCs(p *Player) {
 		tryPlaceInteractableOnStage(stage, createRing())
 		tryPlaceInteractableOnStage(stage, createRing())
 		npc := spawnNewNPCDoingAction(p, "npc", 95, lifeInSeconds, moveAgressiveRand(shortShapes), nil)
-		npc.money.Add(int64(125))
+		npc.money.Add(int64(200))
 	}
 
 }

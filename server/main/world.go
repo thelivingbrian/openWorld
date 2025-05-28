@@ -340,8 +340,8 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		world:                    world,
 		playerStages:             make(map[string]*Stage),
 		team:                     record.Team,
-		hatList:                  SyncHatList{HatList: record.HatList},
-		accomplishments:          SyncAccomplishmentList{Accomplishments: record.Accomplishments},
+		//hatList:                  SyncHatList{HatList: record.HatList},
+		accomplishments: SyncAccomplishmentList{Accomplishments: record.Accomplishments},
 		SyncMenuList: SyncMenuList{
 			menues: map[string]Menu{
 				"pause":           pauseMenu,

@@ -18,6 +18,7 @@ type Player struct {
 	username                 string
 	team                     string
 	icon                     string
+	hat                      string
 	viewLock                 sync.Mutex
 	world                    *World
 	tile                     *Tile
@@ -32,11 +33,11 @@ type Player struct {
 	actions                  *Actions
 	playerStages             map[string]*Stage
 	pStageMutex              sync.Mutex
-	hatList                  SyncHatList
-	accomplishments          SyncAccomplishmentList
-	health                   atomic.Int64
-	money                    atomic.Int64
-	killstreak               atomic.Int64
+	//hatList                  SyncHatList
+	accomplishments SyncAccomplishmentList
+	health          atomic.Int64
+	money           atomic.Int64
+	killstreak      atomic.Int64
 	PlayerStats
 	SyncMenuList
 }
@@ -91,6 +92,8 @@ func handleDeath(player *Player) {
 	player.incrementDeathCount()
 	player.resetHealth()
 	player.zeroKillStreak()
+	player.setHat("")
+	player.setIcon()
 	player.actions = createDefaultActions() // problematic, -> setDefaultActions(player)
 
 	stage := player.fetchStageSync(infirmaryStagenameForPlayer(player))
@@ -373,21 +376,36 @@ func getStageByNameOrGetDefault(player *Player, stagename string) *Stage {
 /////////////////////////////////////////////////////////////
 //  Hats
 
-func (player *Player) addHatByName(hatName string, persist bool) {
-	hat := player.hatList.addByName(hatName)
-	if hat == nil {
+func (player *Player) addHatByName(hatName string, _ bool) {
+	hat, ok := HAT_NAME_TO_TRIM[hatName]
+	if !ok {
 		return
 	}
-	if persist {
-		player.world.db.addHatToPlayer(player.username, *hat)
-	}
+	player.setHat(hat)
+	/*
+		hat := player.hatList.addByName(hatName)
+		if hat == nil {
+			return
+		}
+		if persist {
+			player.world.db.addHatToPlayer(player.username, *hat)
+		}
+	*/
 	updateIconForAllIfTangible(player) // May not originate from click hence check tangible
 }
 
+func (player *Player) setHat(hat string) {
+	player.viewLock.Lock()
+	defer player.viewLock.Unlock()
+	player.hat = hat
+}
+
+/*
 func (player *Player) cycleHats() {
 	player.hatList.nextValid()
 	updateIconForAll(player)
 }
+*/
 
 /////////////////////////////////////////////////////////////
 //  Accomplishments
@@ -412,10 +430,10 @@ func (player *Player) setIcon() string {
 	player.viewLock.Lock()
 	defer player.viewLock.Unlock()
 	if player.health.Load() <= 50 {
-		player.icon = "dim-" + player.team + " " + player.hatList.currentTrim() + " r0"
+		player.icon = "dim-" + player.team + " " + player.hat + " r0"
 		return player.icon
 	} else {
-		player.icon = player.team + " " + player.hatList.currentTrim() + " r0"
+		player.icon = player.team + " " + player.hat + " r0"
 		return player.icon
 	}
 }

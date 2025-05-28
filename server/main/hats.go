@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-var EVERY_HAT_NAME_TO_TRIM map[string]string = map[string]string{
+var HAT_NAME_TO_TRIM map[string]string = map[string]string{
 	"score-1-goal":   "black-b med",
 	"winning-team":   "black-b thick",
 	"most-dangerous": "red-b thick",
@@ -106,7 +106,7 @@ func (hatList *SyncHatList) currentTrim() string {
 		return ""
 	}
 	hatName := hat.Name
-	trim, ok := EVERY_HAT_NAME_TO_TRIM[hatName]
+	trim, ok := HAT_NAME_TO_TRIM[hatName]
 	if !ok {
 		logger.Warn().Msg("INVALID HATNAME: " + hatName)
 		return ""
