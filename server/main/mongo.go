@@ -198,21 +198,6 @@ func (db *DB) updatePlayerRecordOnLogout(p *Player, pTile *Tile) error {
 	return err
 }
 
-/*
-func (db *DB) addHatToPlayer(username string, newHat Hat) error {
-	_, err := db.playerRecords.UpdateOne(
-		context.TODO(),
-		bson.M{"username": username},
-		bson.M{
-			"$push": bson.M{
-				"hatList.hats": newHat,
-			},
-		},
-	)
-	return err
-}
-*/
-
 func (db *DB) addAccomplishmentToPlayer(username string, key string, value Accomplishment) error {
 	_, err := db.playerRecords.UpdateOne(
 		context.TODO(),
@@ -234,7 +219,6 @@ func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 		"stagename": pTile.stage.name,
 		"money":     p.money.Load(),
 		"stats":     statsRecordFromPlayerStats(&p.PlayerStats),
-		//"hatList.current": p.hatList.indexSync(), // Can be wrong if wearing temp hat
 	}
 }
 

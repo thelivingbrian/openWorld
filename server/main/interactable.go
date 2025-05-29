@@ -355,7 +355,7 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 
 		// Award hat
 		p.incrementGoalsScored()
-		p.addHatByName("score-1-goal", true)
+		p.setHatByName("score-a-goal", true)
 		p.addAccomplishmentByName(scoreAGoal)
 
 		// Database
@@ -650,7 +650,7 @@ func checkSolveAndRemoveInteractable(i *Interactable, p *Player, t *Tile) (*Inte
 
 func awardPuzzleHat(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	// Awards
-	p.addHatByName("puzzle-solve", false) // worth having hat for puzzles?
+	p.setHatByName("puzzle-solve", false) // worth having hat for puzzles?
 	p.addAccomplishmentByName(puzzle0)
 
 	// add boost 13,5

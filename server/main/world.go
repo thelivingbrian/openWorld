@@ -340,8 +340,7 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		world:                    world,
 		playerStages:             make(map[string]*Stage),
 		team:                     record.Team,
-		//hatList:                  SyncHatList{HatList: record.HatList},
-		accomplishments: SyncAccomplishmentList{Accomplishments: record.Accomplishments},
+		accomplishments:          SyncAccomplishmentList{Accomplishments: record.Accomplishments},
 		SyncMenuList: SyncMenuList{
 			menues: map[string]Menu{
 				"pause":           pauseMenu,
@@ -646,7 +645,7 @@ func crownMostDangerousById(world *World, streakEvent PlayerStreakRecord) {
 	if player == nil {
 		return
 	}
-	player.addHatByName("most-dangerous", false)
+	player.setHatByName("most-dangerous", false)
 	player.addAccomplishmentByName(becomeMostDangerous)
 	player.world.notifyChangeInMostDangerous(streakEvent)
 }
@@ -689,7 +688,7 @@ func awardHatByTeam(world *World, team, hat string, persist bool) {
 	defer world.wPlayerMutex.Unlock()
 	for _, p := range world.worldPlayers {
 		if p.getTeamNameSync() == team {
-			p.addHatByName(hat, persist)
+			p.setHatByName(hat, persist)
 		}
 	}
 }
