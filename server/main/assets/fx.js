@@ -73,15 +73,9 @@ const width = 16
 
 var cells = undefined
 
-function swapChildClasses(a, b) {
+function shiftChildClasses(a, b) {
   for (let i = 0; i < a.children.length; i++) {
-    // Weird modular effects 
-    const tmp = a.children[i].className;
-    a.children[i].className = b.children[i].className;
-    b.children[i].className = tmp;
-    
-    // Correct logic - Shift 
-    //b.children[i].className = a.children[i].className;
+    b.children[i].className = a.children[i].className;
   }
 }
 
@@ -105,7 +99,7 @@ function shiftGrid(dir) {
     for (let c = colStart; c !== colEnd; c += Math.sign(colEnd - colStart || 1)) {
       const here = cells[r][c];
       const there = cells[r + dr][c + dc];
-      swapChildClasses(here, there);
+      shiftChildClasses(here, there);
     }
   }
 }
