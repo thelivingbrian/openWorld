@@ -15,7 +15,7 @@ import (
 
 const SESSION_SNAPSHOT_INTERVAL_IN_MIN = 30
 
-var CAPACITY_PER_TEAM = 128 // Is modified by test => not const
+var CAPACITY_PER_TEAM = 200 // Is modified by test => not const
 
 type World struct {
 	App

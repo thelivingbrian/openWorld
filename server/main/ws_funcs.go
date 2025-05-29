@@ -169,11 +169,15 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 		updateEntireExistingScreen(player)
 	case "g":
 		makeHallucinate(player)
+		updateOne(`[~ id="shift" class="down"]`, player)
 	case "h":
+		updateOne(`[~ id="shift" class="up"]`, player)
 		//player.cycleHats()
 	case "q":
+		updateOne(`[~ id="shift" class="left"]`, player)
 		// Unimplemented
 	case "e":
+		updateOne(`[~ id="shift" class="right"]`, player)
 		// Unimplemented
 	case "Shift-On":
 		updateOne(divInputShift(), player)

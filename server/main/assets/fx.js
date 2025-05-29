@@ -67,3 +67,45 @@ async function flashBg(color){
     await sleep(10)
     document.body.className="night"
 }
+
+const height = 16
+const width = 16
+
+var cells = undefined
+
+function swapChildClasses(a, b) {
+  for (let i = 0; i < a.children.length; i++) {
+    // Weird modular effects 
+    const tmp = a.children[i].className;
+    a.children[i].className = b.children[i].className;
+    b.children[i].className = tmp;
+    
+    // Correct logic - Shift 
+    //b.children[i].className = a.children[i].className;
+  }
+}
+
+function shiftGrid(dir) {
+  const { dr, dc, rowStart, rowEnd, colStart, colEnd } = {
+    left:  { dr: 0, dc:-1, rowStart: 0,         rowEnd: height, colStart: 1,        colEnd: width   },
+    right: { dr: 0, dc: 1, rowStart: 0,         rowEnd: height, colStart: width-2,  colEnd:-1 },
+    up:    { dr:-1, dc: 0, rowStart: 1,         rowEnd: height, colStart: 0,        colEnd: width   },
+    down:  { dr: 1, dc: 0, rowStart: height-2,  rowEnd:-1,      colStart: 0,        colEnd: width   }
+  }[dir];
+
+  if (!cells) {
+    cells = Array.from({ length: height }, (_, r) =>
+                Array.from({ length: width }, (_, c) =>
+                    document.getElementById(`c${r}-${c}`)
+                )
+            );
+  }
+
+  for (let r = rowStart; r !== rowEnd; r += Math.sign(rowEnd - rowStart || 1)) {
+    for (let c = colStart; c !== colEnd; c += Math.sign(colEnd - colStart || 1)) {
+      const here = cells[r][c];
+      const there = cells[r + dr][c + dc];
+      swapChildClasses(here, there);
+    }
+  }
+}

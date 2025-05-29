@@ -176,6 +176,10 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 			if (match) {
 				const id = match[1];
 				const classes = match[2];
+				if (id === "shift") {
+					shiftGrid(classes)
+					continue
+				}
 				target = document.getElementById(id);
 				target.className = classes;
 			}
