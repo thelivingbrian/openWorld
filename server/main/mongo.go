@@ -41,7 +41,6 @@ type PlayerRecord struct {
 	Stats  PlayerStatsRecord `bson:"stats"`
 
 	// Unlocks
-	// HatList         HatList                   `bson:"hatList,omitempty"`
 	Accomplishments map[string]Accomplishment `bson:"accomplishments,omitempty"`
 }
 
