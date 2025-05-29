@@ -41,7 +41,7 @@ type PlayerRecord struct {
 	Stats  PlayerStatsRecord `bson:"stats"`
 
 	// Unlocks
-	HatList         HatList                   `bson:"hatList,omitempty"`
+	// HatList         HatList                   `bson:"hatList,omitempty"`
 	Accomplishments map[string]Accomplishment `bson:"accomplishments,omitempty"`
 }
 
@@ -198,6 +198,7 @@ func (db *DB) updatePlayerRecordOnLogout(p *Player, pTile *Tile) error {
 	return err
 }
 
+/*
 func (db *DB) addHatToPlayer(username string, newHat Hat) error {
 	_, err := db.playerRecords.UpdateOne(
 		context.TODO(),
@@ -210,6 +211,7 @@ func (db *DB) addHatToPlayer(username string, newHat Hat) error {
 	)
 	return err
 }
+*/
 
 func (db *DB) addAccomplishmentToPlayer(username string, key string, value Accomplishment) error {
 	_, err := db.playerRecords.UpdateOne(

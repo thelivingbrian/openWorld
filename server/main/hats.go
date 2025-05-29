@@ -1,10 +1,5 @@
 package main
 
-import (
-	"sync"
-	"time"
-)
-
 var HAT_NAME_TO_TRIM map[string]string = map[string]string{
 	"score-1-goal":   "black-b med",
 	"winning-team":   "black-b thick",
@@ -13,6 +8,7 @@ var HAT_NAME_TO_TRIM map[string]string = map[string]string{
 	"contributor":    "gold-b thick",
 }
 
+/*
 type HatList struct {
 	Hats    []Hat `bson:"hats"`
 	Current *int  `bson:"current"`
@@ -23,10 +19,12 @@ type Hat struct {
 	ToggleDisabled bool      `bson:"toggleDisabled"`
 	UnlockedAt     time.Time `bson:"unlockedAt"`
 }
+*/
 
 ///////////////////////////////////////////////////
 //  Player HatList (SyncHatList)
 
+/*
 type SyncHatList struct {
 	sync.Mutex
 	HatList
@@ -113,3 +111,4 @@ func (hatList *SyncHatList) currentTrim() string {
 	}
 	return trim
 }
+*/

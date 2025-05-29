@@ -382,7 +382,7 @@ func createPlayerRecordForTesting(username, team string) PlayerRecord {
 		Team:     team,
 		Health:   88,
 		Money:    42_000,
-		HatList:  HatList{},
+		//HatList:  HatList{},
 		Accomplishments: map[string]Accomplishment{
 			"fresh‑spawn": {Name: "fresh‑spawn", AcquiredAt: now},
 		},

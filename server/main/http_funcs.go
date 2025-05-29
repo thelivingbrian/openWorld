@@ -278,7 +278,7 @@ func createNewPlayerRecord(username, team string) PlayerRecord {
 		X:         3,
 		Y:         3,
 		Money:     80,
-		HatList:   HatList{Current: nil, Hats: make([]Hat, 0)},
+		//HatList:   HatList{Current: nil, Hats: make([]Hat, 0)},
 	}
 }
 
