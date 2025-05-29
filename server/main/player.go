@@ -375,7 +375,7 @@ func getStageByNameOrGetDefault(player *Player, stagename string) *Stage {
 /////////////////////////////////////////////////////////////
 //  Hats
 
-func (player *Player) setHatByName(hatName string, _ bool) {
+func (player *Player) setHatByName(hatName string) {
 	hat, ok := HAT_NAME_TO_TRIM[hatName]
 	if !ok {
 		return
