@@ -94,19 +94,22 @@ func generateDivs(frame int) string {
 				color = col2
 			}
 
-			sb.WriteString(fmt.Sprintf(`[~ id="Lw1-%d-%d" class="box zw %s"]`+"\n", i, j, color))
+			sb.WriteString(fmt.Sprintf(`[~ id="Lw1" y="%d" x="%d" class="box zw %s"]`+"\n", i, j, color))
 		}
 	}
 
 	return sb.String()
 }
 
+/////////////////////////////////////////////////////////////////////////
+// Everything below this point moderately invalid?
+
 func generateWeatherSolid(color string) string {
 	var sb strings.Builder
 
 	for i := 0; i < 16; i++ {
 		for j := 0; j < 16; j++ {
-			sb.WriteString(fmt.Sprintf(`[~ id="w%d-%d" class="box zw %s"]`+"\n", i, j, color))
+			sb.WriteString(fmt.Sprintf(`[~ id="w" y="%d" x="%d" class="box zw %s"]`+"\n", i, j, color))
 		}
 	}
 
@@ -118,7 +121,7 @@ func generateWeatherSolidByteBuffer(color string) []byte {
 
 	for i := 0; i < 16; i++ {
 		for j := 0; j < 16; j++ {
-			fmt.Fprintf(buf, `[~ id="w%d-%d" class="box zw %s"]`, i, j, color)
+			fmt.Fprintf(buf, `[~ id="w" y="%d" x="%d" class="box zw %s"]`, i, j, color)
 		}
 	}
 
@@ -130,7 +133,7 @@ func generateWeatherDumb(color string) string {
 
 	for i := 0; i < 16; i++ {
 		for j := 0; j < 16; j++ {
-			out += fmt.Sprintf(`[~ id="w%d-%d" class="box zw %s"]`, i, j, color)
+			out += fmt.Sprintf(`[~ id="w" y="%d" x="%d" class="box zw %s"]`, i, j, color)
 		}
 	}
 

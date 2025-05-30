@@ -150,11 +150,14 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 		moveNorth(player)
 	case "a":
 		tryJukeWest(previous, player)
+		// More "correct" order
 		moveWest(player)
+		updateOne(`[~ id="shift" y="" x="" class="right"]`, player)
 	case "s":
 		tryJukeSouth(previous, player)
 		moveSouth(player)
 	case "d":
+		updateOne(`[~ id="shift" y="" x="" class="left"]`, player)
 		tryJukeEast(previous, player)
 		moveEast(player)
 	case "W":
@@ -169,15 +172,15 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 		updateEntireExistingScreen(player)
 	case "g":
 		makeHallucinate(player)
-		updateOne(`[~ id="shift" class="down"]`, player)
+		updateOne(`[~ id="shift" y="" x="" class="down"]`, player)
 	case "h":
-		updateOne(`[~ id="shift" class="up"]`, player)
+		updateOne(`[~ id="shift" y="" x="" class="up"]`, player)
 		//player.cycleHats()
 	case "q":
-		updateOne(`[~ id="shift" class="left"]`, player)
+		updateOne(`[~ id="shift" y="" x="" class="left"]`, player)
 		// Unimplemented
 	case "e":
-		updateOne(`[~ id="shift" class="right"]`, player)
+		updateOne(`[~ id="shift" y="" x="" class="right"]`, player)
 		// Unimplemented
 	case "Shift-On":
 		updateOne(divInputShift(), player)

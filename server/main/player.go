@@ -51,6 +51,21 @@ type PlayerStats struct {
 	peakWealth     atomic.Int64
 }
 
+type Camera struct {
+	height, width      int
+	viewPort           [][]*Tile
+	topLeftY, topLeftx int // No need? maybe on client
+	positionLock       sync.Mutex
+	incoming           chan CameraEvent
+	outgoing           chan []byte // rename to "updates" and embed could read like old
+}
+
+type CameraEvent struct {
+	y, x       int
+	idTemplate string // break template out by name? - could be const var to avoid hop
+	cssClass   string
+}
+
 ////////////////////////////////////////////////////////////
 //  Special Movement
 

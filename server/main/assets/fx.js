@@ -68,6 +68,8 @@ async function flashBg(color){
     document.body.className="night"
 }
 
+var topLeftY = 0
+var topLeftX = 0
 const height = 16
 const width = 16
 
@@ -94,6 +96,10 @@ function shiftGrid(dir) {
                 )
             );
   }
+
+  topLeftX -= dc
+  topLeftY -= dr
+
 
   for (let r = rowStart; r !== rowEnd; r += Math.sign(rowEnd - rowStart || 1)) {
     for (let c = colStart; c !== colEnd; c += Math.sign(colEnd - colStart || 1)) {
