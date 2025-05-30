@@ -150,9 +150,11 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 		moveNorth(player)
 	case "a":
 		tryJukeWest(previous, player)
-		// More "correct" order
+		// Order no longer significant - in terms of getting correct one off updates
 		moveWest(player)
+		// Pan/Track camera (Split by up/down and left/right?) (Better for pan to occur before or after? )
 		updateOne(`[~ id="shift" y="" x="" class="right"]`, player)
+
 	case "s":
 		tryJukeSouth(previous, player)
 		moveSouth(player)

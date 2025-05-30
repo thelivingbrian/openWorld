@@ -70,7 +70,7 @@ async function flashBg(color){
 
 var topLeftY = 0
 var topLeftX = 0
-const height = 16
+const height = 16 // Camera height and Camera Width 
 const width = 16
 
 var cells = undefined

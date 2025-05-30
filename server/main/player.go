@@ -52,12 +52,12 @@ type PlayerStats struct {
 }
 
 type Camera struct {
-	height, width      int
-	viewPort           [][]*Tile
-	topLeftY, topLeftx int // No need? maybe on client
-	positionLock       sync.Mutex
-	incoming           chan CameraEvent
-	outgoing           chan []byte // rename to "updates" and embed could read like old
+	height, width int
+	viewPort      [][]*Tile
+	//topLeftY, topLeftx int // No need? maybe on client
+	positionLock sync.Mutex
+	incoming     chan CameraEvent
+	outgoing     chan []byte // rename to "updates" and embed could read like old
 }
 
 type CameraEvent struct {
