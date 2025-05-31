@@ -53,9 +53,9 @@ type PlayerStats struct {
 }
 
 type Camera struct {
-	height, width int
-	positionLock  sync.Mutex
-	topLeft       *Tile
+	height, width, padding int
+	positionLock           sync.Mutex
+	topLeft                *Tile
 
 	outgoing chan []byte // is player.updates
 }
@@ -80,15 +80,26 @@ func (player *Player) tryTrack() {
 func (camera *Camera) track(character Character) {
 	focus := character.getTileSync()
 	stageH, stageW := len(focus.stage.tiles), len(focus.stage.tiles[0])
-	newY, newX := topLeft(stageH, stageW, camera.height, camera.width, focus.y, focus.x)
+	//newY, newX := topLeft(stageH, stageW, camera.height, camera.width, focus.y, focus.x)
 	camera.positionLock.Lock()
 	defer camera.positionLock.Unlock()
 	oldTopLeft := camera.topLeft
+
+	/*
+		dy := oldTopLeft.y - newY
+		dx := oldTopLeft.x - newX
+		if dx == 0 && dy == 0 {
+			return
+		}
+	*/
+	newY := axisAdjust(focus.y, camera.topLeft.y, camera.height, stageH, camera.padding)
+	newX := axisAdjust(focus.x, camera.topLeft.x, camera.width, stageW, camera.padding)
 	dy := oldTopLeft.y - newY
 	dx := oldTopLeft.x - newX
 	if dx == 0 && dy == 0 {
 		return
 	}
+
 	camera.topLeft = focus.stage.tiles[newY][newX]
 	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="shift" y="%d" x="%d" class=""]`, dy, dx))
 	// In focus.stage [][]*tile
@@ -187,6 +198,34 @@ func topLeft(gridHeight, gridWidth, viewHeight, viewWidth, y, x int) (row, col i
 		col = gridWidth - viewWidth
 	}
 	return
+}
+
+func axisAdjust(pos, oldBoundary, viewLength, gridLength, padding int) int {
+	// Nothing to do if the view already covers the whole axis.
+	if viewLength >= gridLength {
+		return 0
+	}
+
+	lo := oldBoundary + padding                  // nearest allowed position inside view
+	hi := oldBoundary + viewLength - padding - 1 // farthest allowed position inside view
+
+	newBoundary := oldBoundary
+	switch {
+	case pos < lo: // too close to the top/left edge
+		newBoundary -= lo - pos // shift up/left just enough
+	case pos > hi: // too close to the bottom/right edge
+		newBoundary += pos - hi // shift down/right just enough
+	}
+
+	// Clamp to grid.
+	if newBoundary < 0 {
+		newBoundary = 0
+	}
+	max := gridLength - viewLength
+	if newBoundary > max {
+		newBoundary = max
+	}
+	return newBoundary
 }
 
 ////////////////////////////////////////////////////////////

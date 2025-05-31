@@ -299,6 +299,7 @@ func newCamera(playerUpdates chan []byte) *Camera {
 	cam := Camera{
 		height:   VIEW_HEIGHT,
 		width:    VIEW_WIDTH,
+		padding:  2,
 		topLeft:  nil,
 		outgoing: playerUpdates,
 	}
