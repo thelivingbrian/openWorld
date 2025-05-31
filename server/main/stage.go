@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"sync"
 )
@@ -89,18 +88,14 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 		log.Fatal("Fatal: Invalid coords to place on stage.")
 	}
 
-	fmt.Println(50)
 	stage.addLockedPlayer(p) // Still needed?
 	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
 	spawnItemsFor(p, stage) // check updates
 
-	fmt.Println(01)
 	p.setSpaceHighlights()
 
-	fmt.Println(20)
 	viewport := p.camera.setView(y, x, stage)
 
-	fmt.Println(30)
 	p.updates <- []byte(highlightBoxesForPlayer(p, viewport))
 
 	//updateEntireExistingScreen(p) // Can't do this, sends entire stage
