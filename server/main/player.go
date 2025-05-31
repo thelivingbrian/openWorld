@@ -56,7 +56,6 @@ type Camera struct {
 	height, width int
 	positionLock  sync.Mutex
 	topLeft       *Tile
-	//viewPort     map[*Tile]struct{}
 
 	outgoing chan []byte // is player.updates
 }
@@ -131,6 +130,17 @@ func (camera *Camera) track(character Character) {
 			}
 		}
 	}
+}
+
+func (camera *Camera) drop() {
+	camera.positionLock.Lock()
+	defer camera.positionLock.Unlock()
+
+	region := getRegion(camera.topLeft.stage.tiles, Rect{camera.topLeft.y, camera.topLeft.y + camera.height, camera.topLeft.x, camera.topLeft.x + camera.width})
+	for _, tile := range region {
+		removeCamera(tile, camera)
+	}
+	camera.topLeft = nil
 }
 
 func attachCamera(tile *Tile, cam *Camera) {

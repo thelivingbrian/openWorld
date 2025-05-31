@@ -723,6 +723,9 @@ func cycleForward(path []*Tile, index, depth int) (bool, *Interactable, int) {
 }
 
 func swapIfEmpty(source, target *Tile) bool {
+	if source == nil || target == nil {
+		return false
+	}
 	ownSource := source.interactableMutex.TryLock()
 	if !ownSource {
 		return false
