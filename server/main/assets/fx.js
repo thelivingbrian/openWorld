@@ -76,6 +76,7 @@ const width = 16
 var cells = undefined
 
 function setGrid(y, x) {
+  cells = undefined 
   topLeftY = Number(y)
   topLeftX = Number(x)
 }
