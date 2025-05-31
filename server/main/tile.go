@@ -25,6 +25,8 @@ type Tile struct {
 	boosts            int
 	quickSwapTemplate string
 	bottomText        string
+	cameras           map[*Camera]struct{}
+	camerasLock       sync.Mutex
 }
 
 type Teleport struct {
@@ -52,6 +54,7 @@ func newTile(mat Material, y int, x int) *Tile {
 		money:             0,
 		quickSwapTemplate: makeQuickSwapTemplate(mat, y, x),
 		bottomText:        mat.DisplayText, // Pre-process needed *String to have option of null?
+		cameras:           make(map[*Camera]struct{}),
 	}
 }
 
@@ -91,7 +94,8 @@ func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
 	player.tileLock.Lock()
 	defer player.tileLock.Unlock()
 	tile.addLockedPlayerToTile(player)
-	tile.stage.updateAllExcept(characterBox(tile), player)
+	//tile.stage.updateAllExcept(characterBox(tile), player)
+	tile.updateAll(characterBox(tile))
 }
 
 func (tile *Tile) addLockedPlayerToTile(player *Player) {
@@ -222,6 +226,30 @@ func (tile *Tile) getACharacter() Character {
 		return player
 	}
 	return nil
+}
+
+/////////////////////////////////////////////////////////////////////
+// Updates
+
+func (tile *Tile) updateAll(update string) {
+	tile.updateAllExcept(update, nil)
+}
+
+func (tile *Tile) updateAllExcept(update string, ignore *Player) {
+	updateAsBytes := []byte(update)
+	tile.camerasLock.Lock()
+	defer tile.camerasLock.Unlock()
+	for camera := range tile.cameras {
+		// No longer needed / conceptually valid?
+		// if player == ignore {
+		// 	continue
+		// }
+		camera.outgoing <- updateAsBytes
+	}
+}
+
+func (tile *Tile) updateAllWithSound(soundName string) {
+	tile.updateAll(soundTriggerByName(soundName))
 }
 
 /////////////////////////////////////////////////////////////////////

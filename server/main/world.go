@@ -253,6 +253,7 @@ func createRandomToken() string {
 }
 
 func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Player {
+	fmt.Println("Joining " + incoming.Record.Username)
 	if world.isLoggedInAlready(incoming.Record.Username) {
 		sendUnableToJoinMessage(conn, "You are already logged in.")
 		logger.Warn().Msg("User attempting to log in but is logged in already: " + incoming.Record.Username)
@@ -267,26 +268,41 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 		return nil
 	}
 
-	newPlayer.updateRecordOnLogin()
-	stage := getStageByNameOrGetDefault(newPlayer, incoming.Record.StageName)
-	if !validCoordinate(incoming.Record.Y, incoming.Record.X, stage) {
-		logger.Error().Msg("WARN: Player " + newPlayer.username + " on unloadable stage: " + incoming.Record.StageName)
-		return nil
-	}
-
-	emptyScreen := emptyScreenForStage(stage)
+	camera := newCamera(newPlayer.updates)
+	emptyScreen := emptyScreenBySize(camera.height, camera.width)
 	if !sendInitialScreen(conn, emptyScreen) {
 		return nil
 	}
+	newPlayer.camera = camera
 
+	newPlayer.updateRecordOnLogin()
 	newPlayer.conn = conn
 	go newPlayer.sendUpdates()
 
 	count := world.addPlayer(newPlayer)
 	trySetPeakPlayerCount(world, count)
 
+	stage := getStageByNameOrGetDefault(newPlayer, incoming.Record.StageName)
+	if !validCoordinate(incoming.Record.Y, incoming.Record.X, stage) {
+		logger.Error().Msg("WARN: Player " + newPlayer.username + " on unloadable stage: " + incoming.Record.StageName)
+		return nil
+	}
+
 	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
 	return newPlayer
+}
+
+const VIEW_HEIGHT = 16
+const VIEW_WIDTH = 16
+
+func newCamera(playerUpdates chan []byte) *Camera {
+	cam := Camera{
+		height:   VIEW_HEIGHT,
+		width:    VIEW_WIDTH,
+		topLeft:  nil,
+		outgoing: playerUpdates,
+	}
+	return &cam
 }
 
 const unableToJoin = `

@@ -20,9 +20,31 @@ func emptyScreenForStage(stage *Stage) []byte {
 	return buf.Bytes()
 }
 
+func emptyScreenBySize(height, width int) []byte {
+	var buf bytes.Buffer
+	err := tmpl.ExecuteTemplate(&buf, "player-screen", NewEmptyGrid(height, width))
+	if err != nil {
+		panic(err)
+	}
+
+	return buf.Bytes()
+}
+
+func NewEmptyGrid(n, m int) [][]struct{} {
+	grid := make([][]struct{}, n)
+	for i := range grid {
+		grid[i] = make([]struct{}, m)
+	}
+	return grid
+}
+
 func entireScreenAsSwaps(player *Player) []byte {
 	currentTile := player.getTileSync()
 	return swapsForTilesWithHighlights(currentTile.stage.tiles, duplicateMapOfHighlights(player))
+}
+
+func regionAsSwaps(player *Player, region [][]*Tile) []byte {
+	return swapsForTilesWithHighlights(region, duplicateMapOfHighlights(player))
 }
 
 func swapsForTilesWithHighlights(tiles [][]*Tile, highlights map[*Tile]bool) []byte {
@@ -34,16 +56,21 @@ func swapsForTilesWithHighlights(tiles [][]*Tile, highlights map[*Tile]bool) []b
 			if found {
 				highlightColor = spaceHighlighter()
 			}
-			tileSwaps := swapsForTile(tiles[y][x], highlightColor)
+			tileSwaps := swapsForTileWithHighlight(tiles[y][x], highlightColor)
 			buf.WriteString(tileSwaps)
 		}
 	}
 	return buf.Bytes()
 }
 
-func swapsForTile(tile *Tile, highlight string) string {
+func swapsForTileWithHighlight(tile *Tile, highlight string) string {
 	svgtag := svgFromTile(tile)
 	return fmt.Sprintf(tile.quickSwapTemplate, characterBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x, tile.stage.weather), oobHighlightBox(tile, highlight))
+}
+
+func swapsForTileNoHighlight(tile *Tile) string {
+	svgtag := svgFromTile(tile)
+	return fmt.Sprintf(tile.quickSwapTemplate, characterBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x, tile.stage.weather), "")
 }
 
 ////////////////////////////////////////////////////////////
@@ -163,6 +190,7 @@ func emptyWeatherBox(y, x int, weather string) string {
 	return fmt.Sprintf(`[~ id="Lw1" y="%d" x="%d" class="box zw %s"]`, y, x, weather)
 }
 
+// Return []byte
 func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 	highlights := ""
 
@@ -175,8 +203,8 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 			continue
 		}
 
-		_, impactsHud := playerHighlightCopy[tile]
-		if impactsHud {
+		_, shouldBeHighlighted := playerHighlightCopy[tile]
+		if shouldBeHighlighted {
 			highlights += oobHighlightBox(tile, spaceHighlighter())
 			continue
 		}

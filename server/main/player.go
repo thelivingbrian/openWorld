@@ -40,6 +40,7 @@ type Player struct {
 	killstreak      atomic.Int64
 	PlayerStats
 	SyncMenuList
+	camera *Camera
 }
 
 type PlayerStats struct {
@@ -53,17 +54,129 @@ type PlayerStats struct {
 
 type Camera struct {
 	height, width int
-	viewPort      [][]*Tile
-	//topLeftY, topLeftx int // No need? maybe on client
-	positionLock sync.Mutex
-	incoming     chan CameraEvent
-	outgoing     chan []byte // rename to "updates" and embed could read like old
+	positionLock  sync.Mutex
+	topLeft       *Tile
+	//viewPort     map[*Tile]struct{}
+
+	outgoing chan []byte // is player.updates
 }
 
-type CameraEvent struct {
-	y, x       int
-	idTemplate string // break template out by name? - could be const var to avoid hop
-	cssClass   string
+func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
+	y, x := topLeft(len(stage.tiles), len(stage.tiles[0]), camera.height, camera.width, posY, posX)
+	region := getRegion(stage.tiles, Rect{y, y + camera.height, x, x + camera.width})
+	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="set" y="%d" x="%d" class=""]`, y, x))
+	for _, tile := range region {
+		attachCamera(tile, camera)
+	}
+	camera.positionLock.Lock()
+	defer camera.positionLock.Unlock()
+	camera.topLeft = region[0]
+	return region
+}
+
+func (player *Player) tryTrack() {
+	player.camera.track(player)
+}
+
+func (camera *Camera) track(character Character) {
+	focus := character.getTileSync()
+	stageH, stageW := len(focus.stage.tiles), len(focus.stage.tiles[0])
+	newY, newX := topLeft(stageH, stageW, camera.height, camera.width, focus.y, focus.x)
+	camera.positionLock.Lock()
+	defer camera.positionLock.Unlock()
+	oldTopLeft := camera.topLeft
+	dy := oldTopLeft.y - newY
+	dx := oldTopLeft.x - newX
+	if dx == 0 && dy == 0 {
+		return
+	}
+	camera.topLeft = focus.stage.tiles[newY][newX]
+	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="shift" y="%d" x="%d" class=""]`, dy, dx))
+	// In focus.stage [][]*tile
+	//   newly in view tiles call attachCamera(tile, camera)
+	//   no longer in view tiles call removeCamera(tile, camera)
+	stage := focus.stage
+
+	oldY0, oldY1 := oldTopLeft.y, oldTopLeft.y+camera.height-1
+	oldX0, oldX1 := oldTopLeft.x, oldTopLeft.x+camera.width-1
+	newY0, newY1 := newY, newY+camera.height-1
+	newX0, newX1 := newX, newX+camera.width-1
+
+	// Tiles that dropped *out* of view.
+	for y := oldY0; y <= oldY1; y++ {
+		if y < 0 || y >= stageH {
+			continue
+		}
+		for x := oldX0; x <= oldX1; x++ {
+			if x < 0 || x >= stageW {
+				continue
+			}
+			if y < newY0 || y > newY1 || x < newX0 || x > newX1 {
+				removeCamera(stage.tiles[y][x], camera)
+			}
+		}
+	}
+
+	// Tiles that came *into* view.
+	for y := newY0; y <= newY1; y++ {
+		if y < 0 || y >= stageH {
+			continue
+		}
+		for x := newX0; x <= newX1; x++ {
+			if x < 0 || x >= stageW {
+				continue
+			}
+			if y < oldY0 || y > oldY1 || x < oldX0 || x > oldX1 {
+				attachCamera(stage.tiles[y][x], camera)
+			}
+		}
+	}
+}
+
+func attachCamera(tile *Tile, cam *Camera) {
+	addCamera(tile, cam)
+	cam.outgoing <- []byte(swapsForTileNoHighlight(tile))
+}
+
+func addCamera(tile *Tile, cam *Camera) {
+	tile.camerasLock.Lock()
+	defer tile.camerasLock.Unlock()
+	tile.cameras[cam] = struct{}{}
+}
+
+func removeCamera(tile *Tile, cam *Camera) {
+	tile.camerasLock.Lock()
+	defer tile.camerasLock.Unlock()
+	delete(tile.cameras, cam)
+}
+
+func topLeft(gridHeight, gridWidth, viewHeight, viewWidth, y, x int) (row, col int) {
+	// clamp the requested window
+	if viewHeight > gridHeight {
+		viewHeight = gridHeight
+	}
+	if viewWidth > gridWidth {
+		viewWidth = gridWidth
+	}
+
+	// Ideal top‑left: put (r,c) at ⌊n/2⌋, ⌊m/2⌋ inside the window.
+	row = y - viewHeight/2
+	col = x - viewWidth/2
+
+	// Clamp to the valid range 0 … rows‑n and 0 … cols‑m.
+	if row < 0 {
+		row = 0
+	}
+	if col < 0 {
+		col = 0
+	}
+	if row > gridHeight-viewHeight {
+		row = gridHeight - viewHeight
+	}
+	if col > gridWidth-viewWidth {
+		col = gridWidth - viewWidth
+	}
+	return
 }
 
 ////////////////////////////////////////////////////////////

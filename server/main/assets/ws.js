@@ -118,7 +118,7 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 	  })
   
 	  //const quickSwapRegex = /\[~\s+id="([^"]+)"\s+class="([^"]+)"/;
-	  const quickSwapRegex = /\[~\s+id="([^"]+)"\s+y="([^"]*)"\s+x="([^"]*)"\s+class="([^"]+)"/;
+	  const quickSwapRegex = /\[~\s+id="([^"]+)"\s+y="([^"]*)"\s+x="([^"]*)"\s+class="([^"]*)"/;
 
 	  socketWrapper.addEventListener('message', function(event) {
 		if (maybeCloseWebSocketSource(socketElt)) {
@@ -179,8 +179,12 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 				const yStr = match[2];
 				const xStr = match[3];
 				const classes = match[4];
+				if (id === "set") {
+					setGrid(yStr, xStr)
+					continue
+				}
 				if (id === "shift") {
-					shiftGrid(classes)
+					shiftGrid(Number(yStr), Number(xStr))
 					continue
 				}
 				if (yStr === "") {

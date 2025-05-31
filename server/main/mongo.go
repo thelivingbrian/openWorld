@@ -179,7 +179,7 @@ func (db *DB) updateLoginForPlayer(p *Player) error {
 		bson.M{
 			"$set": bson.M{
 				"lastLogin": time.Now(),
-			},
+			}, // Increment a counter?
 		},
 	)
 	return err
