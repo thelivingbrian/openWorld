@@ -113,6 +113,10 @@ func spawnItemsFor(p *Player, stage *Stage) {
 //////////////////////////////////////////////////
 // Send Updates
 
+/*
+
+// May be worth leaving implemented for niche cases?
+
 func (stage *Stage) updateAll(update string) {
 	stage.updateAllExcept(update, nil)
 }
@@ -132,7 +136,7 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 func (stage *Stage) updateAllWithSound(soundName string) {
 	stage.updateAll(soundTriggerByName(soundName))
 }
-
+*/
 /////////////////////////////////////////////////////////////
 // Utilities
 

@@ -251,7 +251,8 @@ func playSoundForInitiator(soundName string) func(*Interactable, *Player, *Tile)
 
 func playSoundForAll(soundName string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-		t.stage.updateAll(soundTriggerByName(soundName))
+		t.updateAll(soundTriggerByName(soundName))
+		//t.stage.updateAll(soundTriggerByName(soundName))
 		return nil, false
 	}
 }
@@ -482,8 +483,9 @@ func moveInitiatorPushSurrounding(yOff, xOff int) func(*Interactable, *Player, *
 			p.push(tile, nil, yOff, xOff)
 		}
 		move(p, yOff, xOff)
-		sendSoundToPlayer(p, "wind-swoosh")
-		t.stage.updateAllExcept(soundTriggerByName("woody-swoosh"), p)
+		//sendSoundToPlayer(p, "wind-swoosh")
+		//t.stage.updateAllExcept(soundTriggerByName("woody-swoosh"), p)
+		t.updateAll(soundTriggerByName("wind-swoosh")) // non trivial to do different sounds?
 		return nil, false
 	}
 }
@@ -509,7 +511,7 @@ func makeDangerousForOtherTeam(i *Interactable, p *Player, t *Tile) (*Interactab
 	}
 	t.interactable.cssClass = initiatorTeam + "-b thick r0"
 	t.interactable.reactions = newReactions
-	t.stage.updateAll(interactableBoxSpecific(t.y, t.x, t.interactable))
+	t.updateAll(interactableBoxSpecific(t.y, t.x, t.interactable))
 	addMoneyToStage(t.stage, 50)
 	addMoneyToStage(t.stage, dmg)
 	return nil, false
@@ -526,7 +528,7 @@ func damageAndSpawn(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 		powerToSpawn = 5
 	}
 	go damageWithinRadius(epicenter, p.world, 4, dmg, p.id)
-	t.stage.updateAll(soundTriggerByName("explosion"))
+	t.updateAll(soundTriggerByName("explosion"))
 	addMoneyToStage(t.stage, dmg/5)
 	addMoneyToStage(t.stage, dmg/5)
 	addMoneyToStage(t.stage, dmg/2)
@@ -543,7 +545,7 @@ func tutorialExchange(i *Interactable, p *Player, t *Tile) (*Interactable, bool)
 	dmg := 50
 	powerToSpawn := 2
 	go damageWithinRadius(epicenter, p.world, 4, dmg, p.id)
-	t.stage.updateAll(soundTriggerByName("explosion"))
+	t.updateAll(soundTriggerByName("explosion"))
 	addMoneyToStage(t.stage, 1)
 	addMoneyToStage(t.stage, 1)
 	addMoneyToStage(t.stage, 1)
@@ -617,7 +619,7 @@ func damageWithinRadiusAndReset(radius, dmg int, ownerId string) func(i *Interac
 		tryPlaceInteractableOnStage(t.stage, createRing())
 		t.interactable.cssClass = "white trsp20 r0"
 		t.interactable.reactions = interactableReactions["lily-pad"]
-		t.stage.updateAll(interactableBoxSpecific(t.y, t.x, t.interactable) + soundTriggerByName("explosion"))
+		t.updateAll(interactableBoxSpecific(t.y, t.x, t.interactable) + soundTriggerByName("explosion"))
 		return nil, false
 	}
 }
@@ -714,7 +716,7 @@ func openAirlockDoors(i *Interactable, p *Player, t *Tile) (*Interactable, bool)
 		if tile.interactable != nil && tile.interactable.name == "airlock-door" {
 			tile.interactable.walkable = true
 			tile.interactable.cssClass = ""
-			tile.stage.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
+			tile.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
 		}
 		if tile.interactable != nil && tile.interactable.name == "airlock-close-switch" {
 			tile.interactable.reactions[0].ReactsWith = never
@@ -773,7 +775,7 @@ func closeAirlockDoors(i *Interactable, p *Player, t *Tile) (*Interactable, bool
 		if tile.interactable != nil && tile.interactable.name == "airlock-door" {
 			tile.interactable.walkable = false
 			tile.interactable.cssClass = "s-hoz chocolate-b thick no-lr"
-			tile.stage.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
+			tile.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
 		}
 	}
 

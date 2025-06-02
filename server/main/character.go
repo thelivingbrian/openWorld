@@ -470,7 +470,7 @@ func dropMoneyAndUpdate(npc *NonPlayer) {
 	if money != 0 {
 		tile.addMoneyAndNotifyAll(int(money))
 	}
-	tile.stage.updateAllWithSound("clink")
+	tile.updateAll(soundTriggerByName("clink"))
 }
 
 func removeNpcFromTile(npc *NonPlayer) {
@@ -480,7 +480,7 @@ func removeNpcFromTile(npc *NonPlayer) {
 		//logger.Error().Msg("Error - FAILED TO REMOVE NPC") // Normal if dead already
 		return
 	}
-	npc.tile.stage.updateAll(characterBox(npc.tile))
+	npc.tile.updateAll(characterBox(npc.tile))
 }
 
 func (npc *NonPlayer) incrementKillCount() int64 {

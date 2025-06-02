@@ -57,15 +57,21 @@ type Camera struct {
 	positionLock           sync.Mutex
 	topLeft                *Tile
 
-	outgoing chan []byte // is player.updates
+	// Only for B
+	ref *atomic.Pointer[Camera]
+
+	// is == player.updates
+	outgoing chan []byte
 }
 
 func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
 	y, x := topLeft(len(stage.tiles), len(stage.tiles[0]), camera.height, camera.width, posY, posX)
 	region := getRegion(stage.tiles, Rect{y, y + camera.height, x, x + camera.width})
 	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="set" y="%d" x="%d" class=""]`, y, x))
+	newRef := &atomic.Pointer[Camera]{}
+	newRef.Store(camera)
 	for _, tile := range region {
-		attachCamera(tile, camera)
+		attachCameraPtr(tile, newRef)
 	}
 	camera.positionLock.Lock()
 	defer camera.positionLock.Unlock()
@@ -80,32 +86,91 @@ func (player *Player) tryTrack() {
 func (camera *Camera) track(character Character) {
 	focus := character.getTileSync()
 	stageH, stageW := len(focus.stage.tiles), len(focus.stage.tiles[0])
-	//newY, newX := topLeft(stageH, stageW, camera.height, camera.width, focus.y, focus.x)
 	camera.positionLock.Lock()
 	defer camera.positionLock.Unlock()
-	oldTopLeft := camera.topLeft
+	//oldTopLeft := camera.topLeft
 
-	/*
-		dy := oldTopLeft.y - newY
-		dx := oldTopLeft.x - newX
-		if dx == 0 && dy == 0 {
-			return
-		}
-	*/
+	//newY, newX := topLeft(stageH, stageW, camera.height, camera.width, focus.y, focus.x)
 	newY := axisAdjust(focus.y, camera.topLeft.y, camera.height, stageH, camera.padding)
 	newX := axisAdjust(focus.x, camera.topLeft.x, camera.width, stageW, camera.padding)
-	dy := oldTopLeft.y - newY
-	dx := oldTopLeft.x - newX
+	dy := camera.topLeft.y - newY
+	dx := camera.topLeft.x - newX
 	if dx == 0 && dy == 0 {
 		return
 	}
 
-	camera.topLeft = focus.stage.tiles[newY][newX]
+	//camera.topLeft = focus.stage.tiles[newY][newX]
 	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="shift" y="%d" x="%d" class=""]`, dy, dx))
+
+	updateTiles(camera, newY, newX)
+	//camera.topLeft = focus.stage.tiles[newY][newX]
+
+	// "remove" all of the old camera
+	// camera.ref.Store(nil)
+
+	// newRef := &atomic.Pointer[Camera]{}
+	// newRef.Store(camera)
+
+	// for y := newY; y < newY+camera.height; y++ {
+	// 	for x := newX; x < newX+camera.width; x++ {
+	// 		attachCameraPtr(camera.topLeft.stage.tiles[y][x], newRef)
+	// 	}
+	// }
+
 	// In focus.stage [][]*tile
 	//   newly in view tiles call attachCamera(tile, camera)
 	//   no longer in view tiles call removeCamera(tile, camera)
-	stage := focus.stage
+	/*
+		stage := focus.stage
+		oldTopLeft := camera.topLeft
+		camera.topLeft = focus.stage.tiles[newY][newX]
+
+		oldY0, oldY1 := oldTopLeft.y, oldTopLeft.y+camera.height-1
+		oldX0, oldX1 := oldTopLeft.x, oldTopLeft.x+camera.width-1
+		newY0, newY1 := newY, newY+camera.height-1
+		newX0, newX1 := newX, newX+camera.width-1
+
+		// Tiles that dropped *out* of view.
+		for y := oldY0; y <= oldY1; y++ {
+			if y < 0 || y >= stageH {
+				continue
+			}
+			for x := oldX0; x <= oldX1; x++ {
+				if x < 0 || x >= stageW {
+					continue
+				}
+				if y < newY0 || y > newY1 || x < newX0 || x > newX1 {
+					removeCamera(stage.tiles[y][x], camera)
+				}
+			}
+		}
+
+		// Tiles that came *into* view.
+		for y := newY0; y <= newY1; y++ {
+			if y < 0 || y >= stageH {
+				continue
+			}
+			for x := newX0; x <= newX1; x++ {
+				if x < 0 || x >= stageW {
+					continue
+				}
+				if y < oldY0 || y > oldY1 || x < oldX0 || x > oldX1 {
+					attachCamera(stage.tiles[y][x], camera)
+				}
+			}
+		}
+	*/
+}
+
+func updateTiles(camera *Camera, newY, newX int) {
+	updateTilesB(camera, newY, newX)
+}
+
+func updateTilesA(camera *Camera, newY, newX int) {
+	oldTopLeft := camera.topLeft
+	camera.topLeft = oldTopLeft.stage.tiles[newY][newX]
+	stage := oldTopLeft.stage
+	stageH, stageW := len(oldTopLeft.stage.tiles), len(oldTopLeft.stage.tiles[0])
 
 	oldY0, oldY1 := oldTopLeft.y, oldTopLeft.y+camera.height-1
 	oldX0, oldX1 := oldTopLeft.x, oldTopLeft.x+camera.width-1
@@ -143,16 +208,24 @@ func (camera *Camera) track(character Character) {
 	}
 }
 
-func (camera *Camera) drop() {
-	camera.positionLock.Lock()
-	defer camera.positionLock.Unlock()
+func updateTilesB(camera *Camera, newY, newX int) {
+	camera.topLeft = camera.topLeft.stage.tiles[newY][newX]
 
-	region := getRegion(camera.topLeft.stage.tiles, Rect{camera.topLeft.y, camera.topLeft.y + camera.height, camera.topLeft.x, camera.topLeft.x + camera.width})
-	for _, tile := range region {
-		removeCamera(tile, camera)
+	// "remove" all of the old camera
+	camera.ref.Store(nil)
+
+	newRef := &atomic.Pointer[Camera]{}
+	newRef.Store(camera)
+
+	for y := newY; y < newY+camera.height; y++ {
+		for x := newX; x < newX+camera.width; x++ {
+			attachCameraPtr(camera.topLeft.stage.tiles[y][x], newRef)
+		}
 	}
-	camera.topLeft = nil
 }
+
+///////////////
+// A
 
 func attachCamera(tile *Tile, cam *Camera) {
 	addCamera(tile, cam)
@@ -169,6 +242,36 @@ func removeCamera(tile *Tile, cam *Camera) {
 	tile.camerasLock.Lock()
 	defer tile.camerasLock.Unlock()
 	delete(tile.cameras, cam)
+}
+
+func (camera *Camera) drop() {
+	camera.positionLock.Lock()
+	defer camera.positionLock.Unlock()
+
+	region := getRegion(camera.topLeft.stage.tiles, Rect{camera.topLeft.y, camera.topLeft.y + camera.height, camera.topLeft.x, camera.topLeft.x + camera.width})
+	for _, tile := range region {
+		removeCamera(tile, camera)
+	}
+	camera.topLeft = nil
+}
+
+/////////////////
+// B
+
+func attachCameraPtr(tile *Tile, camRef *atomic.Pointer[Camera]) {
+	addCameraPtr(tile, camRef)
+	camera := camRef.Load()
+	if camera == nil {
+		return
+	}
+	// filter ?
+	camera.outgoing <- []byte(swapsForTileNoHighlight(tile))
+}
+
+func addCameraPtr(tile *Tile, camRef *atomic.Pointer[Camera]) {
+	tile.camerasLock.Lock()
+	defer tile.camerasLock.Unlock()
+	tile.cameraPtrs[camRef] = struct{}{}
 }
 
 func topLeft(gridHeight, gridWidth, viewHeight, viewWidth, y, x int) (row, col int) {
@@ -286,7 +389,7 @@ func popAndDropMoney(player *Player) {
 	tile.addMoneyAndNotifyAllExcept(moneyToAdd, player)
 
 	pop := soundTriggerByName("pop-death")
-	tile.stage.updateAllExcept(pop, player)
+	tile.updateAll(pop)
 }
 
 func halveMoneyOf(player *Player) int {
@@ -303,7 +406,7 @@ func respawnOnStage(player *Player, stage *Stage) {
 	}
 
 	placePlayerOnStageAt(player, stage, 2, 2)
-	sendSoundToPlayer(player, soundTriggerByName("pop-death"))
+	//sendSoundToPlayer(player, soundTriggerByName("pop-death"))
 	player.updatePlayerHud()
 	player.updateBottomText("You have died.")
 }
@@ -405,13 +508,13 @@ func sendUpdate(player *Player, update []byte) error {
 
 // Updates - Enqueue
 func updateOthersAfterMovement(player *Player, current, previous *Tile) {
-	previous.stage.updateAllExcept(characterBox(previous), player)
-	current.stage.updateAllExcept(characterBox(current), player)
+	previous.updateAll(characterBox(previous))
+	current.updateAll(characterBox(current))
 }
 
 func updateAllAfterMovement(current, previous *Tile) {
-	previous.stage.updateAll(characterBox(previous))
-	current.stage.updateAll(characterBox(current))
+	previous.updateAll(characterBox(previous))
+	current.updateAll(characterBox(current))
 }
 
 func updatePlayerAfterMovement(player *Player, current, previous *Tile) {
@@ -482,9 +585,10 @@ func (player *Player) updatePlayerBox() {
 func updateIconForAll(player *Player) {
 	player.setIcon()
 	tile := player.getTileSync()
-	tile.stage.updateAll(characterBox(tile))
+	tile.updateAll(characterBox(tile))
 }
 
+// Still an issue re updates and tangibility?
 func updateIconForAllIfTangible(player *Player) {
 	player.setIcon()
 	ownLock := player.tangibilityLock.TryLock()
@@ -496,7 +600,7 @@ func updateIconForAllIfTangible(player *Player) {
 		return
 	}
 	tile := player.getTileSync()
-	tile.stage.updateAll(characterBox(tile))
+	tile.updateAll(characterBox(tile))
 }
 
 func sendSoundToPlayer(player *Player, soundName string) {

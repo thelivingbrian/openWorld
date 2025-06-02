@@ -299,9 +299,10 @@ func newCamera(playerUpdates chan []byte) *Camera {
 	cam := Camera{
 		height:   VIEW_HEIGHT,
 		width:    VIEW_WIDTH,
-		padding:  2,
+		padding:  1,
 		topLeft:  nil,
 		outgoing: playerUpdates,
+		ref:      &atomic.Pointer[Camera]{},
 	}
 	return &cam
 }
@@ -423,7 +424,8 @@ func initiateLogout(player *Player) {
 	logger.Info().Msg("initate logout: " + player.username)
 	//   Add time delay to prevent rage quit ? - Consequence of intangibility in this window?
 	removeFromTileAndStage(player)
-	player.camera.drop()
+	//player.camera.drop()
+	player.camera.ref.Store(nil)
 
 	player.world.playersToLogout <- player
 
