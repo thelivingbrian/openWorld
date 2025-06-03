@@ -41,7 +41,6 @@ type PlayerRecord struct {
 	Stats  PlayerStatsRecord `bson:"stats"`
 
 	// Unlocks
-	HatList         HatList                   `bson:"hatList,omitempty"`
 	Accomplishments map[string]Accomplishment `bson:"accomplishments,omitempty"`
 }
 
@@ -198,19 +197,6 @@ func (db *DB) updatePlayerRecordOnLogout(p *Player, pTile *Tile) error {
 	return err
 }
 
-func (db *DB) addHatToPlayer(username string, newHat Hat) error {
-	_, err := db.playerRecords.UpdateOne(
-		context.TODO(),
-		bson.M{"username": username},
-		bson.M{
-			"$push": bson.M{
-				"hatList.hats": newHat,
-			},
-		},
-	)
-	return err
-}
-
 func (db *DB) addAccomplishmentToPlayer(username string, key string, value Accomplishment) error {
 	_, err := db.playerRecords.UpdateOne(
 		context.TODO(),
@@ -226,13 +212,12 @@ func (db *DB) addAccomplishmentToPlayer(username string, key string, value Accom
 
 func createPlayerSnapShot(p *Player, pTile *Tile) bson.M {
 	return bson.M{
-		"x":               pTile.x,
-		"y":               pTile.y,
-		"health":          p.health.Load(),
-		"stagename":       pTile.stage.name,
-		"money":           p.money.Load(),
-		"stats":           statsRecordFromPlayerStats(&p.PlayerStats),
-		"hatList.current": p.hatList.indexSync(), // Can be wrong if wearing temp hat
+		"x":         pTile.x,
+		"y":         pTile.y,
+		"health":    p.health.Load(),
+		"stagename": pTile.stage.name,
+		"money":     p.money.Load(),
+		"stats":     statsRecordFromPlayerStats(&p.PlayerStats),
 	}
 }
 

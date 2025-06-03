@@ -18,17 +18,19 @@ type Accomplishment struct {
 // Changing name invalidates previous accomplishment - Add ID?
 // difficulty levels ?
 const (
-	becomeMostDangerous = "Become most dangerous"
-	scoreAGoal          = "Score a goal (outside tutorial)"
-	winningAGame        = "Score game winning goal"
-	defeatPlayer        = "Defeat another player"
-	tenKillStreak       = "10 Kill streak"
-	hundredKillStreak   = "100 Kill streak"
-	oneThousandMoney    = "1,000 money"
-	fiftyThousandMoney  = "50,000 money"
-	doubleKill          = "Double kill"
-	tripleKill          = "Triple kill"
-	puzzle0             = "Puzzle 0"
+	becomeMostDangerous  = "Become most dangerous"
+	scoreAGoal           = "Score a goal (outside tutorial)"
+	winningAGame         = "Score game winning goal"
+	defeatPlayer         = "Defeat another player"
+	tenKillStreak        = "10 Kill streak"
+	twentyFiveKillStreak = "25 Kill streak"
+	hundredKillStreak    = "100 Kill streak"
+	oneThousandMoney     = "1,000 money"
+	tenThousandMoney     = "10,000 money"
+	fiftyThousandMoney   = "50,000 money"
+	doubleKill           = "Double kill"
+	tripleKill           = "Triple kill"
+	puzzle0              = "Puzzle 0"
 )
 
 var everyAccomplishment = []string{
@@ -37,8 +39,10 @@ var everyAccomplishment = []string{
 	winningAGame,
 	defeatPlayer,
 	tenKillStreak,
+	twentyFiveKillStreak,
 	hundredKillStreak,
 	oneThousandMoney,
+	tenThousandMoney,
 	fiftyThousandMoney,
 	doubleKill,
 	tripleKill,
@@ -73,16 +77,22 @@ func checkStreakAccomplishments(player *Player, streak int) {
 	if streak >= 10 {
 		player.addAccomplishmentByName(tenKillStreak)
 	}
+	if streak >= 25 {
+		player.addAccomplishmentByName(twentyFiveKillStreak)
+	}
 	if streak >= 100 {
 		player.addAccomplishmentByName(hundredKillStreak)
 	}
 }
 
 func checkMoneyAccomplishments(player *Player, money int) {
-	if money >= 1000 {
+	if money >= 1_000 {
 		player.addAccomplishmentByName(oneThousandMoney)
 	}
-	if money >= 50000 {
+	if money >= 10_000 {
+		player.addAccomplishmentByName(tenThousandMoney)
+	}
+	if money >= 50_000 {
 		player.addAccomplishmentByName(fiftyThousandMoney)
 	}
 }

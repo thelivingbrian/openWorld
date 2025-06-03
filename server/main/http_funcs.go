@@ -125,7 +125,7 @@ func (world *World) playHandler(w http.ResponseWriter, r *http.Request) {
 func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 	id, ok := getUserIdFromSession(r)
 	if !ok {
-		tmpl.ExecuteTemplate(w, "homepage", false)
+		tmpl.ExecuteTemplate(w, "homepage", world.config.guestsEnabled.Load())
 		return
 	}
 	var userRecord *UserRecord
@@ -278,7 +278,6 @@ func createNewPlayerRecord(username, team string) PlayerRecord {
 		X:         3,
 		Y:         3,
 		Money:     80,
-		HatList:   HatList{Current: nil, Hats: make([]Hat, 0)},
 	}
 }
 
