@@ -1,7 +1,7 @@
 # Todo List
 
 ## Engine
-- [ ] Update player view refactor
+- [-] Update player view refactor
   - [-] Empty boost swaps 
 - [ ] Admin screen
  - [-] Player / Team count
@@ -37,6 +37,11 @@
 - [-] Add sound fx
 - [ ] Canvas based interactive/realtime stage map? 
 - [-] Shift support for arrow keys 
+- [ ] Alternate camera
+  - [ ] Prototype
+    - [ ] Client 
+    - [ ] Server 
+      - [ ] Geospacial hash 
 
 ## Integration 
 - [ ] Bot AI
@@ -161,7 +166,8 @@
     - [ ] Package executable in with tools? soft-deploy and run
     - [ ] level player (e.g. live stage demo) ^ same as above
   - [ ] Save All/Everything button 
-    - [ ] Cannot compile without save
+    - [ ] Cannot compile without save 
+      - [ ] is this still true? test
     - [-] Save space 
   - [-] NSEW buttons on sides of area display 
   - [-] Clean up 
@@ -190,9 +196,13 @@
     - [-] clean up collection logic
     - [-] add cli  
   - [-] get rid of proc folder?
-- [ ] Bugs: 
-  - [ ] New color will output to local file but deploying requires application restart.
-  - [ ] New areas are always "unsafe"
+- [ ] Editor color for interactable
+- [ ] Performance on large stages is slow
+
+
+## Workspace Bugs 
+- [ ] New color will output to local file but deploying requires application restart.
+- [ ] New areas are always "unsafe"
 
 
 ## Mobile
@@ -229,7 +239,7 @@
 ## Bottom text
  - [-] Trigger
  - [ ] Display as "!" Notification in mobile instead of on screen
- - [ ] Fade with time
+ - [-] Fade with time
  - [ ] Deault bottom text on load
  - [ ] Game tips
 
@@ -238,9 +248,9 @@
  - [ ] DB stuff 
    - [-] Total kills
    - [-] Total Deaths
-   - [ ] Highest Streak
+   - [-] Highest Streak
    - [ ] Time alive/In Danger ?
-- [ ] Test conconcurrency
+- [-] Test conconcurrency
 - [-] Add trim reward
 
 ## Metrics
@@ -301,6 +311,11 @@
 - [-] Old player records are updated
   - [-] Local
   - [-] s0/cactus
+- [ ] Prevent interactable overlaps teleport 
+  - [-] Can prevent manually with "pass-all" interactable
+  - [-] is applied in tutorial 
+  - [ ] Apply to rest of world
+  - [ ] Include automatically via engine? 
 
 ## Bugs
  - [-] test remove damage tangibility check
