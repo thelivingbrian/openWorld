@@ -104,6 +104,11 @@ func init() {
 			{ReactsWith: interactableIsARing, Reaction: damageAndSpawn},
 		},
 
+		// Prevent teleport overlap
+		"pass-all": {
+			{ReactsWith: everything, Reaction: pass},
+		},
+
 		////////////////////////////////////////////////////////////////
 		// Puzzles:
 
