@@ -270,6 +270,7 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	newPlayer.updateRecordOnLogin()
 	stage := getStageByNameOrGetDefault(newPlayer, incoming.Record.StageName)
 	if !validCoordinate(incoming.Record.Y, incoming.Record.X, stage) {
+		// Could be an invalid coordianate too - not just unloadable stage
 		logger.Error().Msg("WARN: Player " + newPlayer.username + " on unloadable stage: " + incoming.Record.StageName)
 		return nil
 	}
