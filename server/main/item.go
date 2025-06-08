@@ -298,7 +298,7 @@ var greatShapes = [][][2]int{
 }
 
 func spawnPowerupGood(stage *Stage) {
-	spawnPowerupFromSet(stage, shortShapes)
+	spawnPowerupFromSet(stage, goodShapes)
 }
 
 func spawnPowerupGreat(stage *Stage) {
