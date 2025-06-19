@@ -67,3 +67,67 @@ async function flashBg(color){
     await sleep(10)
     document.body.className="night"
 }
+
+
+///////////////////////////////////////////////////////////////
+//  Mobile Controls 
+
+/*
+function enableKeyRepeat(delay = 300, period = 60) {
+    console.log("Hello, enabling key repeat");
+    buttons = document.querySelectorAll('#dpad button, #dpad-shift button')
+    buttons.forEach(btn => {
+    let delayId, repeatId;
+
+    const stop = () => {
+      clearTimeout(delayId);
+      clearInterval(repeatId);
+    };
+
+    btn.addEventListener('pointerdown', e => {
+      e.preventDefault();           // don’t focus / scroll
+      //btn.click();                  
+
+      delayId = setTimeout(() => {  
+        repeatId = setInterval(() => btn.click(), period);
+      }, delay);
+    });
+
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(type =>
+      btn.addEventListener(type, stop)
+    );
+  });
+}
+  */
+
+function addRepeater(btn) {
+    let delay = 300, period = 55
+    let delayId, repeatId;
+
+    const stop = () => {
+        clearTimeout(delayId);
+        clearInterval(repeatId);
+    };
+
+    const fire = () => {
+        btn.dispatchEvent(new CustomEvent('fire', { bubbles: true }));
+    }
+
+    btn.addEventListener('pointerdown', e => {
+        e.preventDefault();   // stop scroll / focus
+
+        fire();               // first hit right away
+
+        delayId = setTimeout(
+            () => { repeatId = setInterval(fire, period); },
+            delay
+        );
+    });
+
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => btn.addEventListener(t, stop));
+}
+
+function enableKeyRepeat() {
+    document.querySelectorAll('#dpad button, #dpad-shift button')
+        .forEach(addRepeater);
+}

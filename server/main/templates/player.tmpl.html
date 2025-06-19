@@ -84,17 +84,17 @@
         <input id="space-onKey" type="hidden" ws-send hx-trigger="keydown[key==' '] from:body" name="eventname" value="Space-On" />
     </div>
 
-    <input id="w" type="hidden" ws-send hx-trigger="click from:#but-w" name="eventname" value="w" />
-    <input id="a" type="hidden" ws-send hx-trigger="click from:#but-a" name="eventname" value="a" />
-    <input id="s" type="hidden" ws-send hx-trigger="click from:#but-s" name="eventname" value="s" />
-    <input id="d" type="hidden" ws-send hx-trigger="click from:#but-d" name="eventname" value="d" />
-    <input id="wShift" type="hidden" ws-send hx-trigger="click from:#but-wShift" name="eventname" value="W" />
-    <input id="aShift" type="hidden" ws-send hx-trigger="click from:#but-aShift" name="eventname" value="A" />
-    <input id="sShift" type="hidden" ws-send hx-trigger="click from:#but-sShift" name="eventname" value="S" />
-    <input id="dShift" type="hidden" ws-send hx-trigger="click from:#but-dShift" name="eventname" value="D" />
+    <input id="w" type="hidden" ws-send hx-trigger="fire from:#but-w" name="eventname" value="w" />
+    <input id="a" type="hidden" ws-send hx-trigger="fire from:#but-a" name="eventname" value="a" />
+    <input id="s" type="hidden" ws-send hx-trigger="fire from:#but-s" name="eventname" value="s" />
+    <input id="d" type="hidden" ws-send hx-trigger="fire from:#but-d" name="eventname" value="d" />
+    <input id="wShift" type="hidden" ws-send hx-trigger="fire from:#but-wShift" name="eventname" value="W" />
+    <input id="aShift" type="hidden" ws-send hx-trigger="fire from:#but-aShift" name="eventname" value="A" />
+    <input id="sShift" type="hidden" ws-send hx-trigger="fire from:#but-sShift" name="eventname" value="S" />
+    <input id="dShift" type="hidden" ws-send hx-trigger="fire from:#but-dShift" name="eventname" value="D" />
 
     <input id="menuOn" type="hidden" ws-send hx-trigger="click from:#but-m,click from:#but-m-shift" name="eventname" value="menuOn" />
-    <input id="space-on" type="hidden" ws-send hx-trigger="click from:#but-space,click from:#but-space-shift" name="eventname" value="Space-On" />
+    <input id="space-on" type="hidden" ws-send hx-trigger="fire from:#but-space,click from:#but-space-shift" name="eventname" value="Space-On" />
     <input id="shift-on" type="hidden" ws-send hx-trigger="click from:#but-shift-on" name="eventname" value="Shift-On" />
     <input id="shift-off" type="hidden" ws-send hx-trigger="click from:#but-shift-off" name="eventname" value="Shift-Off" />
 
@@ -130,5 +130,8 @@
             <button id="but-shift-off" class="button shift B">Shift</button>
         </div>
     </div>
+    <script>
+        enableKeyRepeat()
+    </script>
 </div>
 {{end}}
