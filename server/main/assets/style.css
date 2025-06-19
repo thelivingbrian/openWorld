@@ -573,7 +573,6 @@ fill-opacity: 0.6;
     .A { grid-area: a; }
     .B { grid-area: b; }
     
-   
     #dpad button,
     #dpad-shift button {
     touch-action: none;          /* kills long-press context menu / drag-scroll */
