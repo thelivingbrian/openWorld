@@ -521,22 +521,34 @@ func makeDangerousForOtherTeam(i *Interactable, p *Player, t *Tile) (*Interactab
 }
 
 func damageAndSpawn(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-	y := rand.Intn(len(t.stage.tiles))
-	x := rand.Intn(len(t.stage.tiles[y]))
-	epicenter := t.stage.tiles[y][x]
 	dmg := 50
 	powerToSpawn := 3
 	if i.name == "ring-big" {
 		dmg = 100
 		powerToSpawn = 5
 	}
+
+	// Find Epicenter
+	y := rand.Intn(len(t.stage.tiles))
+	x := rand.Intn(len(t.stage.tiles[y]))
+	epicenter := t.stage.tiles[y][x]
+
+	// Damage
 	go damageWithinRadius(epicenter, p.world, 4, dmg, p.id)
 	t.stage.updateAll(soundTriggerByName("explosion"))
+
+	// Add money
 	addMoneyToStage(t.stage, dmg/5)
 	addMoneyToStage(t.stage, dmg/5)
 	addMoneyToStage(t.stage, dmg/2)
+
+	// Add power
 	for i := 0; i < powerToSpawn; i++ {
-		spawnPowerup(t.stage)
+		if rand.Intn(10) == 0 {
+			spawnPowerupGreat(t.stage)
+			continue
+		}
+		spawnPowerupGood(t.stage)
 	}
 	return nil, false
 }

@@ -292,8 +292,17 @@ var goodShapes = [][][2]int{
 	grid9x9,
 }
 
+var greatShapes = [][][2]int{
+	grid9x9,
+	grid11x11, grid11x11,
+}
+
 func spawnPowerupGood(stage *Stage) {
-	spawnPowerupFromSet(stage, shortShapes)
+	spawnPowerupFromSet(stage, goodShapes)
+}
+
+func spawnPowerupGreat(stage *Stage) {
+	spawnPowerupFromSet(stage, greatShapes)
 }
 
 func spawnPowerupShort(stage *Stage) {
@@ -356,7 +365,7 @@ func basicSpawnWithRingAndNPCs(p *Player) {
 	if determination < 650 {
 		spawnBoosts(stage)
 	} else if determination < 910 {
-		spawnPowerup(stage)
+		spawnPowerupGood(stage)
 	} else if determination < 975 {
 		tryPlaceInteractableOnStage(stage, createRing())
 	}
@@ -373,7 +382,8 @@ func basicSpawnWithRingAndNPCs(p *Player) {
 		spawnNewNPCDoingAction(p, "npc", 105, lifeInSeconds, moveRandomlyAndActivatePower, nil)
 	}
 	if determination2 == 0 {
-		spawnPowerup(stage)
+		spawnPowerupGood(stage)
+		spawnPowerupGood(stage)
 		npc := spawnNewNPCDoingAction(p, "npc", 95, lifeInSeconds, moveAgressiveRand(shapesNpc), nil)
 		npc.money.Add(int64(200))
 	}

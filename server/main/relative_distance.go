@@ -51,6 +51,7 @@ var grid3x3 [][2]int = createOddGrid(1) // Precompute others? var = [][]int{0,1,
 var grid5x5 [][2]int = createOddGrid(2)
 var grid7x7 [][2]int = createOddGrid(3)
 var grid9x9 [][2]int = createOddGrid(4)
+var grid11x11 [][2]int = createOddGrid(5)
 
 func createOddGrid(n int) [][2]int {
 	var points [][2]int
