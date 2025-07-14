@@ -51,6 +51,82 @@ func makeHallucinate(player *Player) {
 	}()
 }
 
+func oldFx(player *Player) {
+	go func() {
+		ownLock := player.tangibilityLock.TryLock()
+		if !ownLock {
+			return
+		}
+		defer player.tangibilityLock.Unlock()
+		if !player.tangible {
+			return
+		}
+		updateOne(generateDivs2("blue", 0, 2), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("blue", 1, 2), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("blue", 0, 3), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("blue", 1, 3), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("blue", 2, 3), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("green", 0, 4), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("green", 1, 4), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("green", 2, 4), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("green", 3, 4), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("green", 0, 5), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("green", 1, 5), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("green", 2, 5), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 0, 2), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 1, 2), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 0, 3), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 1, 3), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 2, 3), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 0, 4), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 1, 4), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 2, 4), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 3, 4), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 0, 5), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 1, 5), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 2, 5), player)
+	}()
+}
+
+func generateDivs2(color string, check int, check2 int) string {
+	var sb strings.Builder
+
+	for i := 0; i < 16; i++ {
+		for j := 0; j < 16; j++ {
+			setColor := color
+			if (i+j)%check2 == check {
+				setColor = "ice"
+			}
+			sb.WriteString(fmt.Sprintf(`[~ id="Lw1" y="%d" x="%d" class="box zw %s"]`+"\n", i, j, setColor))
+		}
+	}
+
+	return sb.String()
+}
+
 // //////////////////////////////////////////////////////////
 // Generators
 func generateDivs(frame int) string {

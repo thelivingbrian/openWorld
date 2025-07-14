@@ -177,8 +177,9 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	case "f":
 		updateEntireExistingScreen(player)
 	case "g":
-		makeHallucinate(player)
-		updateOne(`[~ id="shift" y="" x="" class="down"]`, player)
+		//makeHallucinate(player)
+		oldFx(player)
+		//updateOne(`[~ id="shift" y="" x="" class="down"]`, player)
 	case "h":
 		updateOne(`[~ id="shift" y="" x="" class="up"]`, player)
 		//player.cycleHats()
