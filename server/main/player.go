@@ -103,67 +103,10 @@ func (camera *Camera) track(character Character) {
 	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="shift" y="%d" x="%d" class=""]`, dy, dx))
 
 	updateTiles(camera, newY, newX)
-	//camera.topLeft = focus.stage.tiles[newY][newX]
-
-	// "remove" all of the old camera
-	// camera.ref.Store(nil)
-
-	// newRef := &atomic.Pointer[Camera]{}
-	// newRef.Store(camera)
-
-	// for y := newY; y < newY+camera.height; y++ {
-	// 	for x := newX; x < newX+camera.width; x++ {
-	// 		attachCameraPtr(camera.topLeft.stage.tiles[y][x], newRef)
-	// 	}
-	// }
-
-	// In focus.stage [][]*tile
-	//   newly in view tiles call attachCamera(tile, camera)
-	//   no longer in view tiles call removeCamera(tile, camera)
-	/*
-		stage := focus.stage
-		oldTopLeft := camera.topLeft
-		camera.topLeft = focus.stage.tiles[newY][newX]
-
-		oldY0, oldY1 := oldTopLeft.y, oldTopLeft.y+camera.height-1
-		oldX0, oldX1 := oldTopLeft.x, oldTopLeft.x+camera.width-1
-		newY0, newY1 := newY, newY+camera.height-1
-		newX0, newX1 := newX, newX+camera.width-1
-
-		// Tiles that dropped *out* of view.
-		for y := oldY0; y <= oldY1; y++ {
-			if y < 0 || y >= stageH {
-				continue
-			}
-			for x := oldX0; x <= oldX1; x++ {
-				if x < 0 || x >= stageW {
-					continue
-				}
-				if y < newY0 || y > newY1 || x < newX0 || x > newX1 {
-					removeCamera(stage.tiles[y][x], camera)
-				}
-			}
-		}
-
-		// Tiles that came *into* view.
-		for y := newY0; y <= newY1; y++ {
-			if y < 0 || y >= stageH {
-				continue
-			}
-			for x := newX0; x <= newX1; x++ {
-				if x < 0 || x >= stageW {
-					continue
-				}
-				if y < oldY0 || y > oldY1 || x < oldX0 || x > oldX1 {
-					attachCamera(stage.tiles[y][x], camera)
-				}
-			}
-		}
-	*/
 }
 
 func updateTiles(camera *Camera, newY, newX int) {
-	updateTilesB(camera, newY, newX)
+	updateTilesA(camera, newY, newX)
 }
 
 func updateTilesA(camera *Camera, newY, newX int) {
@@ -232,6 +175,7 @@ func attachCamera(tile *Tile, cam *Camera) {
 	cam.outgoing <- []byte(swapsForTileNoHighlight(tile))
 }
 
+// Honestly unsurprising that this add/remove strategy would leave zombie cameras
 func addCamera(tile *Tile, cam *Camera) {
 	tile.camerasLock.Lock()
 	defer tile.camerasLock.Unlock()
