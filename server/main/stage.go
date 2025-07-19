@@ -6,7 +6,11 @@ import (
 )
 
 type Stage struct {
-	tiles              [][]*Tile
+	tiles [][]*Tile
+	// Divide into regions
+	// region has a map of cameras
+	// tile can locate region using math tilex // camerasize , tiley // camerasize
+	// When camera new topleft is in a new requion, do CASlike swap into other map
 	playerMap          map[string]*Player // Only used for updates
 	playerMutex        sync.RWMutex
 	name               string

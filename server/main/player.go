@@ -68,11 +68,14 @@ func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
 	y, x := topLeft(len(stage.tiles), len(stage.tiles[0]), camera.height, camera.width, posY, posX)
 	region := getRegion(stage.tiles, Rect{y, y + camera.height, x, x + camera.width})
 	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="set" y="%d" x="%d" class=""]`, y, x))
+
+	// B
 	newRef := &atomic.Pointer[Camera]{}
 	newRef.Store(camera)
 	for _, tile := range region {
 		attachCameraPtr(tile, newRef)
 	}
+
 	camera.positionLock.Lock()
 	defer camera.positionLock.Unlock()
 	camera.topLeft = region[0]
@@ -86,9 +89,8 @@ func (player *Player) tryTrack() {
 func (camera *Camera) track(character Character) {
 	focus := character.getTileSync()
 	stageH, stageW := len(focus.stage.tiles), len(focus.stage.tiles[0])
-	camera.positionLock.Lock()
+	camera.positionLock.Lock() // :( ?
 	defer camera.positionLock.Unlock()
-	//oldTopLeft := camera.topLeft
 
 	//newY, newX := topLeft(stageH, stageW, camera.height, camera.width, focus.y, focus.x)
 	newY := axisAdjust(focus.y, camera.topLeft.y, camera.height, stageH, camera.padding)
@@ -99,7 +101,6 @@ func (camera *Camera) track(character Character) {
 		return
 	}
 
-	//camera.topLeft = focus.stage.tiles[newY][newX]
 	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="shift" y="%d" x="%d" class=""]`, dy, dx))
 
 	updateTiles(camera, newY, newX)
