@@ -245,6 +245,8 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 	}
 
 	source.stage.removeLockedPlayerById(p.id)
+	p.camera.drop2()
+	p.camera.setView(dest.y, dest.x, dest.stage)
 
 	dest.stage.addLockedPlayer(p)
 	dest.addLockedPlayerToTile(p)

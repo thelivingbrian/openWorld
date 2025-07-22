@@ -78,6 +78,12 @@ func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
 
 	camera.positionLock.Lock()
 	defer camera.positionLock.Unlock()
+	if camera.topLeft == nil { // It is nil because this is setView not track
+		region[0].primarySection.camerasLock.Lock()
+		defer region[0].primarySection.camerasLock.Unlock()
+		region[0].primarySection.activeCameras[camera] = struct{}{}
+	}
+
 	camera.topLeft = region[0]
 	return region
 }
@@ -107,7 +113,7 @@ func (camera *Camera) track(character Character) {
 }
 
 func updateTiles(camera *Camera, newY, newX int) {
-	updateTilesA(camera, newY, newX)
+	updateTilesC(camera, newY, newX)
 }
 
 func updateTilesA(camera *Camera, newY, newX int) {
@@ -168,6 +174,51 @@ func updateTilesB(camera *Camera, newY, newX int) {
 	}
 }
 
+func updateTilesC(camera *Camera, newY, newX int) {
+	oldTopLeft := camera.topLeft
+	newTopLeft := oldTopLeft.stage.tiles[newY][newX]
+
+	if oldTopLeft.primarySection != newTopLeft.primarySection {
+		camera.topLeft.primarySection.camerasLock.Lock()
+		defer camera.topLeft.primarySection.camerasLock.Unlock()
+		_, ok := camera.topLeft.primarySection.activeCameras[camera]
+		if !ok {
+			fmt.Println("ERROR: Camera not found in old section, cannot add to new section")
+			return // Cannot add to a new section without removing existing
+			// Although if this lookup failed it indicates erroneous add already occurred?
+		}
+		delete(camera.topLeft.primarySection.activeCameras, camera)
+		newTopLeft.primarySection.camerasLock.Lock() // Could deadlock via somebody doing reverse transfer?
+		defer newTopLeft.primarySection.camerasLock.Unlock()
+		newTopLeft.primarySection.activeCameras[camera] = struct{}{}
+	}
+
+	camera.topLeft = newTopLeft
+
+	stage := oldTopLeft.stage
+	stageH, stageW := len(oldTopLeft.stage.tiles), len(oldTopLeft.stage.tiles[0])
+
+	oldY0, oldY1 := oldTopLeft.y, oldTopLeft.y+camera.height-1
+	oldX0, oldX1 := oldTopLeft.x, oldTopLeft.x+camera.width-1
+	newY0, newY1 := newY, newY+camera.height-1
+	newX0, newX1 := newX, newX+camera.width-1
+
+	// Tiles that came into view.
+	for y := newY0; y <= newY1; y++ {
+		if y < 0 || y >= stageH {
+			continue
+		}
+		for x := newX0; x <= newX1; x++ {
+			if x < 0 || x >= stageW {
+				continue
+			}
+			if y < oldY0 || y > oldY1 || x < oldX0 || x > oldX1 {
+				camera.outgoing <- []byte(swapsForTileNoHighlight(stage.tiles[y][x]))
+			}
+		}
+	}
+}
+
 ///////////////
 // A
 
@@ -197,6 +248,17 @@ func (camera *Camera) drop() {
 	for _, tile := range region {
 		removeCamera(tile, camera)
 	}
+	camera.topLeft = nil
+}
+
+func (camera *Camera) drop2() {
+	camera.positionLock.Lock()
+	defer camera.positionLock.Unlock()
+
+	camera.topLeft.primarySection.camerasLock.Lock()
+	defer camera.topLeft.primarySection.camerasLock.Unlock()
+	delete(camera.topLeft.primarySection.activeCameras, camera)
+
 	camera.topLeft = nil
 }
 
@@ -364,6 +426,7 @@ func removeFromTileAndStage(player *Player) {
 	}
 	player.tile.removePlayerAndNotifyOthers(player)
 	player.tile.stage.removeLockedPlayerById(player.id)
+	player.camera.drop2()
 }
 
 func infirmaryStagenameForPlayer(player *Player) string {

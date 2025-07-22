@@ -25,9 +25,15 @@ type Tile struct {
 	boosts            int
 	quickSwapTemplate string
 	bottomText        string
-	cameraPtrs        map[*atomic.Pointer[Camera]]struct{}
-	cameras           map[*Camera]struct{}
-	camerasLock       sync.Mutex
+
+	// Cameras attaching directly = Hard to keep track
+	cameraPtrs  map[*atomic.Pointer[Camera]]struct{}
+	cameras     map[*Camera]struct{}
+	camerasLock sync.Mutex
+
+	// Precomputed section for camera
+	primarySection   *Section
+	adjacentSections []*Section // Cameras in these sections can also see this tile
 }
 
 type Teleport struct {
@@ -234,7 +240,7 @@ func (tile *Tile) getACharacter() Character {
 // Updates
 
 func (tile *Tile) updateAll(update string) {
-	tile.updateAllA(update)
+	tile.updateAllC(update)
 }
 
 func (tile *Tile) updateAllA(update string) {
@@ -257,6 +263,22 @@ func (tile *Tile) updateAllB(update string) {
 			continue
 		}
 		camera.outgoing <- updateAsBytes
+	}
+}
+
+// Send to section and neighboring sections
+func (tile *Tile) updateAllC(update string) {
+	tile.primarySection.updateAll(update)
+	for _, section := range tile.adjacentSections {
+		section.updateAll(update)
+	}
+}
+
+func (section *Section) updateAll(update string) {
+	section.camerasLock.Lock()
+	defer section.camerasLock.Unlock()
+	for camera := range section.activeCameras {
+		camera.outgoing <- []byte(update)
 	}
 }
 

@@ -7,10 +7,11 @@ import (
 
 type Stage struct {
 	tiles [][]*Tile
-	// Divide into regions
-	// region has a map of cameras
-	// tile can locate region using math tilex // camerasize , tiley // camerasize
-	// When camera new topleft is in a new requion, do CASlike swap into other map
+	// Divide into sections
+	cameraSections [][]*Section
+	// section has a map of cameras
+	// tile can locate section using math tilex // camerasize , tiley // camerasize
+	// When camera new topleft is in a new requion, do CAS-like swap into other map
 	playerMap          map[string]*Player // Only used for updates
 	playerMutex        sync.RWMutex
 	name               string
@@ -22,6 +23,12 @@ type Stage struct {
 	spawn              []SpawnAction
 	broadcastGroupName string
 	weather            string
+}
+
+// Rename zone
+type Section struct {
+	activeCameras map[*Camera]struct{}
+	camerasLock   sync.RWMutex
 }
 
 ////////////////////////////////////////////////////
@@ -43,11 +50,40 @@ func createStageFromArea(area Area) *Stage {
 		broadcastGroupName: area.BroadcastGroup,
 		weather:            area.Weather,
 	}
+
+	// Initialize camera sections
+	sections := make([][]*Section, (len(area.Tiles)+VIEW_HEIGHT-1)/VIEW_HEIGHT)
+	for i := range sections {
+		sections[i] = make([]*Section, (len(area.Tiles[0])+VIEW_WIDTH-1)/VIEW_WIDTH)
+		for j := range sections[i] {
+			sections[i][j] = &Section{
+				activeCameras: make(map[*Camera]struct{}),
+				camerasLock:   sync.RWMutex{},
+			}
+		}
+	}
+	// Handle case where area.tiles is smaller than VIEW_HEIGHT or VIEW_WIDTH
+
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
 		for x := range outputStage.tiles[y] {
 			outputStage.tiles[y][x] = newTile(area.Tiles[y][x], y, x)
 			outputStage.tiles[y][x].stage = &outputStage
+
+			// Add zones to tile
+			zoneY, zoneX := y/VIEW_HEIGHT, x/VIEW_WIDTH
+			outputStage.tiles[y][x].primarySection = sections[zoneY][zoneX]
+			if zoneX > 0 {
+				outputStage.tiles[y][x].adjacentSections = append(outputStage.tiles[y][x].adjacentSections, sections[zoneY][zoneX-1])
+			}
+			if zoneY > 0 {
+				outputStage.tiles[y][x].adjacentSections = append(outputStage.tiles[y][x].adjacentSections, sections[zoneY-1][zoneX])
+			}
+			if zoneX > 0 && zoneY > 0 {
+				outputStage.tiles[y][x].adjacentSections = append(outputStage.tiles[y][x].adjacentSections, sections[zoneY-1][zoneX-1])
+			}
+
+			// setup interactables
 			if area.Interactables != nil && y < len(area.Interactables) && x < len(area.Interactables[y]) {
 				description := area.Interactables[y][x]
 				if description != nil {
