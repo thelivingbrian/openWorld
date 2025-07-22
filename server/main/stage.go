@@ -7,12 +7,13 @@ import (
 
 type Stage struct {
 	tiles [][]*Tile
-	// Divide into sections
-	cameraSections [][]*Section
-	// section has a map of cameras
-	// tile can locate section using math tilex // camerasize , tiley // camerasize
-	// When camera new topleft is in a new requion, do CAS-like swap into other map
-	playerMap          map[string]*Player // Only used for updates
+	// Divide into zones
+	cameraZones [][]*CameraZone
+	// each zone has a set of cameras
+	// tile is associated with a zone on stage creation
+	// When a camera's topleft changes zones, do CAS-like transfer between camera sets
+	// A tile can only be seen by a camera in its own zone, or a camera in up to three adjacent zones
+	playerMap          map[string]*Player // Only used for updates // Now unused ? (text or etc ? )
 	playerMutex        sync.RWMutex
 	name               string
 	north              string
@@ -25,8 +26,7 @@ type Stage struct {
 	weather            string
 }
 
-// Rename zone
-type Section struct {
+type CameraZone struct {
 	activeCameras map[*Camera]struct{}
 	camerasLock   sync.RWMutex
 }
@@ -51,18 +51,18 @@ func createStageFromArea(area Area) *Stage {
 		weather:            area.Weather,
 	}
 
-	// Initialize camera sections
-	sections := make([][]*Section, (len(area.Tiles)+VIEW_HEIGHT-1)/VIEW_HEIGHT)
-	for i := range sections {
-		sections[i] = make([]*Section, (len(area.Tiles[0])+VIEW_WIDTH-1)/VIEW_WIDTH)
-		for j := range sections[i] {
-			sections[i][j] = &Section{
+	// Initialize camera zones
+	zones := make([][]*CameraZone, (len(area.Tiles)+VIEW_HEIGHT-1)/VIEW_HEIGHT)
+	for i := range zones {
+		zones[i] = make([]*CameraZone, (len(area.Tiles[0])+VIEW_WIDTH-1)/VIEW_WIDTH)
+		for j := range zones[i] {
+			zones[i][j] = &CameraZone{
 				activeCameras: make(map[*Camera]struct{}),
 				camerasLock:   sync.RWMutex{},
 			}
 		}
 	}
-	// Handle case where area.tiles is smaller than VIEW_HEIGHT or VIEW_WIDTH
+	// This should handle case where area.tiles is smaller than VIEW_HEIGHT or VIEW_WIDTH
 
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
@@ -72,15 +72,15 @@ func createStageFromArea(area Area) *Stage {
 
 			// Add zones to tile
 			zoneY, zoneX := y/VIEW_HEIGHT, x/VIEW_WIDTH
-			outputStage.tiles[y][x].primarySection = sections[zoneY][zoneX]
+			outputStage.tiles[y][x].primaryZone = zones[zoneY][zoneX]
 			if zoneX > 0 {
-				outputStage.tiles[y][x].adjacentSections = append(outputStage.tiles[y][x].adjacentSections, sections[zoneY][zoneX-1])
+				outputStage.tiles[y][x].adjacentZones = append(outputStage.tiles[y][x].adjacentZones, zones[zoneY][zoneX-1])
 			}
 			if zoneY > 0 {
-				outputStage.tiles[y][x].adjacentSections = append(outputStage.tiles[y][x].adjacentSections, sections[zoneY-1][zoneX])
+				outputStage.tiles[y][x].adjacentZones = append(outputStage.tiles[y][x].adjacentZones, zones[zoneY-1][zoneX])
 			}
 			if zoneX > 0 && zoneY > 0 {
-				outputStage.tiles[y][x].adjacentSections = append(outputStage.tiles[y][x].adjacentSections, sections[zoneY-1][zoneX-1])
+				outputStage.tiles[y][x].adjacentZones = append(outputStage.tiles[y][x].adjacentZones, zones[zoneY-1][zoneX-1])
 			}
 
 			// setup interactables

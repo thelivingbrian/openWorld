@@ -67,6 +67,7 @@ type Camera struct {
 func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
 	y, x := topLeft(len(stage.tiles), len(stage.tiles[0]), camera.height, camera.width, posY, posX)
 	region := getRegion(stage.tiles, Rect{y, y + camera.height, x, x + camera.width})
+	newTopLeft := region[0]
 	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="set" y="%d" x="%d" class=""]`, y, x))
 
 	// B
@@ -78,13 +79,15 @@ func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
 
 	camera.positionLock.Lock()
 	defer camera.positionLock.Unlock()
-	if camera.topLeft == nil { // It is nil because this is setView not track
-		region[0].primarySection.camerasLock.Lock()
-		defer region[0].primarySection.camerasLock.Unlock()
-		region[0].primarySection.activeCameras[camera] = struct{}{}
+	if camera.topLeft != nil {
+		// Should be nil because this is setView not track
+		// Check if impossible, or handle by removing from previous zone
+		fmt.Println("ERROR: Camera topLeft not nil in setView")
+		return make([]*Tile, 0)
 	}
 
-	camera.topLeft = region[0]
+	newTopLeft.primaryZone.addCamera(camera)
+	camera.topLeft = newTopLeft
 	return region
 }
 
@@ -127,7 +130,7 @@ func updateTilesA(camera *Camera, newY, newX int) {
 	newY0, newY1 := newY, newY+camera.height-1
 	newX0, newX1 := newX, newX+camera.width-1
 
-	// Tiles that dropped *out* of view.
+	// Tiles that dropped out of view.
 	for y := oldY0; y <= oldY1; y++ {
 		if y < 0 || y >= stageH {
 			continue
@@ -142,7 +145,7 @@ func updateTilesA(camera *Camera, newY, newX int) {
 		}
 	}
 
-	// Tiles that came *into* view.
+	// Tiles that came in to view.
 	for y := newY0; y <= newY1; y++ {
 		if y < 0 || y >= stageH {
 			continue
@@ -178,19 +181,13 @@ func updateTilesC(camera *Camera, newY, newX int) {
 	oldTopLeft := camera.topLeft
 	newTopLeft := oldTopLeft.stage.tiles[newY][newX]
 
-	if oldTopLeft.primarySection != newTopLeft.primarySection {
-		camera.topLeft.primarySection.camerasLock.Lock()
-		defer camera.topLeft.primarySection.camerasLock.Unlock()
-		_, ok := camera.topLeft.primarySection.activeCameras[camera]
-		if !ok {
-			fmt.Println("ERROR: Camera not found in old section, cannot add to new section")
-			return // Cannot add to a new section without removing existing
-			// Although if this lookup failed it indicates erroneous add already occurred?
+	if oldTopLeft.primaryZone != newTopLeft.primaryZone {
+		if !oldTopLeft.primaryZone.tryRemoveCamera(camera) {
+			// Can this ever happen? Does it add security.
+			fmt.Println("ERROR: Camera not found section, cannot add to new section")
+			return
 		}
-		delete(camera.topLeft.primarySection.activeCameras, camera)
-		newTopLeft.primarySection.camerasLock.Lock() // Could deadlock via somebody doing reverse transfer?
-		defer newTopLeft.primarySection.camerasLock.Unlock()
-		newTopLeft.primarySection.activeCameras[camera] = struct{}{}
+		newTopLeft.primaryZone.addCamera(camera)
 	}
 
 	camera.topLeft = newTopLeft
@@ -219,6 +216,23 @@ func updateTilesC(camera *Camera, newY, newX int) {
 	}
 }
 
+func (zone *CameraZone) tryRemoveCamera(camera *Camera) bool {
+	zone.camerasLock.Lock()
+	defer zone.camerasLock.Unlock()
+	_, ok := zone.activeCameras[camera]
+	if !ok {
+		return false
+	}
+	delete(camera.topLeft.primaryZone.activeCameras, camera)
+	return true
+}
+
+func (zone *CameraZone) addCamera(camera *Camera) {
+	zone.camerasLock.Lock()
+	defer zone.camerasLock.Unlock()
+	zone.activeCameras[camera] = struct{}{}
+}
+
 ///////////////
 // A
 
@@ -228,6 +242,7 @@ func attachCamera(tile *Tile, cam *Camera) {
 }
 
 // Honestly unsurprising that this add/remove strategy would leave zombie cameras
+// But why exactly for version A?
 func addCamera(tile *Tile, cam *Camera) {
 	tile.camerasLock.Lock()
 	defer tile.camerasLock.Unlock()
@@ -255,9 +270,9 @@ func (camera *Camera) drop2() {
 	camera.positionLock.Lock()
 	defer camera.positionLock.Unlock()
 
-	camera.topLeft.primarySection.camerasLock.Lock()
-	defer camera.topLeft.primarySection.camerasLock.Unlock()
-	delete(camera.topLeft.primarySection.activeCameras, camera)
+	camera.topLeft.primaryZone.camerasLock.Lock()
+	defer camera.topLeft.primaryZone.camerasLock.Unlock()
+	delete(camera.topLeft.primaryZone.activeCameras, camera)
 
 	camera.topLeft = nil
 }

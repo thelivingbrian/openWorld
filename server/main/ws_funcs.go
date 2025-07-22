@@ -179,15 +179,13 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	case "g":
 		//makeHallucinate(player)
 		oldFx(player)
-		//updateOne(`[~ id="shift" y="" x="" class="down"]`, player)
 	case "h":
-		updateOne(`[~ id="shift" y="" x="" class="up"]`, player)
+		updateOne(`[~ id="shift" y="1" x="1" class=""]`, player)
 		//player.cycleHats()
 	case "q":
-		updateOne(`[~ id="shift" y="" x="" class="left"]`, player)
+		spawnNewPlayerWithRandomMovement(player, 100)
 		// Unimplemented
 	case "e":
-		updateOne(`[~ id="shift" y="" x="" class="right"]`, player)
 		// Unimplemented
 	case "Shift-On":
 		updateOne(divInputShift(), player)
@@ -239,7 +237,7 @@ func (m *MockConn) SetReadDeadline(t time.Time) error {
 func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, context.CancelFunc) {
 	username := "user-" + uuid.New().String()
 	refTile := ref.getTileSync()
-	record := PlayerRecord{Username: username, Health: 50, StageName: refTile.stage.name, X: refTile.x, Y: refTile.y, Team: "test-team-2"}
+	record := PlayerRecord{Username: username, Health: 50, StageName: refTile.stage.name, X: refTile.x, Y: refTile.y, Team: " cinnamon"}
 	loginRequest := createLoginRequest(record)
 	ref.world.addIncoming(loginRequest)
 	newPlayer := ref.world.join(loginRequest, &MockConn{})

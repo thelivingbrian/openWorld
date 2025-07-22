@@ -31,9 +31,8 @@ type Tile struct {
 	cameras     map[*Camera]struct{}
 	camerasLock sync.Mutex
 
-	// Precomputed section for camera
-	primarySection   *Section
-	adjacentSections []*Section // Cameras in these sections can also see this tile
+	primaryZone   *CameraZone   // Zone tile belongs to (Can see tile by defalt)
+	adjacentZones []*CameraZone // Cameras in these zones only can also see this tile
 }
 
 type Teleport struct {
@@ -257,7 +256,7 @@ func (tile *Tile) updateAllB(update string) {
 	tile.camerasLock.Lock()
 	defer tile.camerasLock.Unlock()
 	for cameraPtr := range tile.cameraPtrs {
-		camera := cameraPtr.Load()
+		camera := cameraPtr.Load() // Channel could close after this load -> send on close
 		if camera == nil {
 			delete(tile.cameraPtrs, cameraPtr)
 			continue
@@ -268,21 +267,23 @@ func (tile *Tile) updateAllB(update string) {
 
 // Send to section and neighboring sections
 func (tile *Tile) updateAllC(update string) {
-	tile.primarySection.updateAll(update)
-	for _, section := range tile.adjacentSections {
+	tile.primaryZone.updateAll(update)
+	for _, section := range tile.adjacentZones {
 		section.updateAll(update)
 	}
 }
 
-func (section *Section) updateAll(update string) {
-	section.camerasLock.Lock()
-	defer section.camerasLock.Unlock()
-	for camera := range section.activeCameras {
+func (zone *CameraZone) updateAll(update string) {
+	// Consider RLock
+	zone.camerasLock.Lock()
+	defer zone.camerasLock.Unlock()
+	for camera := range zone.activeCameras {
 		camera.outgoing <- []byte(update)
 	}
 }
 
 /*
+// Difficult to implement without a reference from camera to its player
 func (tile *Tile) updateAllExcept(update string, ignore *Player) {
 	updateAsBytes := []byte(update)
 	tile.camerasLock.Lock()
