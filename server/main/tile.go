@@ -237,7 +237,7 @@ func (tile *Tile) getACharacter() Character {
 // Updates
 
 func (tile *Tile) updateAll(update string) {
-	tile.updateAllA(update)
+	tile.updateAllC(update)
 }
 
 func (tile *Tile) updateAllA(update string) {

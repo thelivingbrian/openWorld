@@ -60,7 +60,7 @@ func (camera *Camera) track(character Character) {
 }
 
 func updateTiles(camera *Camera, newY, newX int) {
-	updateTilesA(camera, newY, newX)
+	updateTilesC(camera, newY, newX)
 }
 
 func updateTilesA(camera *Camera, newY, newX int) {
