@@ -18,6 +18,7 @@ func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
 
 	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="set" y="%d" x="%d" class=""]`, y, x))
 	for _, tile := range region {
+		//addCamera(tile, camera) // Causes send on closed for some reason
 		camera.outgoing <- []byte(swapsForTileNoHighlight(tile))
 	}
 	newTopLeft := region[0]
@@ -60,7 +61,7 @@ func (camera *Camera) track(character Character) {
 }
 
 func updateTiles(camera *Camera, newY, newX int) {
-	updateTilesC(camera, newY, newX)
+	updateTilesA(camera, newY, newX)
 }
 
 func updateTilesA(camera *Camera, newY, newX int) {
