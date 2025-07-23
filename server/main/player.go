@@ -141,11 +141,7 @@ func removeFromTileAndStage(player *Player) {
 	player.tile.removePlayerAndNotifyOthers(player)
 	player.tile.stage.removeLockedPlayerById(player.id)
 
-	// A
 	player.camera.drop()
-
-	// C
-	// player.camera.drop2()
 }
 
 func infirmaryStagenameForPlayer(player *Player) string {

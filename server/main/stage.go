@@ -7,12 +7,11 @@ import (
 
 type Stage struct {
 	tiles [][]*Tile
-	// Divide into zones
-	cameraZones [][]*CameraZone
 	// each zone has a set of cameras
 	// tile is associated with a zone on stage creation
 	// When a camera's topleft changes zones, do CAS-like transfer between camera sets
 	// A tile can only be seen by a camera in its own zone, or a camera in up to three adjacent zones
+	cameraZones        [][]*CameraZone
 	playerMap          map[string]*Player // Only used for updates // Now unused ? (text or etc ? )
 	playerMutex        sync.RWMutex
 	name               string
@@ -32,9 +31,8 @@ type CameraZone struct {
 }
 
 func (zone *CameraZone) updateAll(update string) {
-	// Consider RLock
-	zone.camerasLock.Lock()
-	defer zone.camerasLock.Unlock()
+	zone.camerasLock.RLock()
+	defer zone.camerasLock.RUnlock()
 	for camera := range zone.activeCameras {
 		camera.outgoing <- []byte(update)
 	}
@@ -96,7 +94,7 @@ func createStageFromArea(area Area) *Stage {
 			outputStage.tiles[y][x] = newTile(area.Tiles[y][x], y, x)
 			outputStage.tiles[y][x].stage = &outputStage
 
-			// Add zones to tile
+			// Add zones to tile (Missing micro-optimization, certain tiles can only be seen by one or two zones)
 			zoneY, zoneX := y/VIEW_HEIGHT, x/VIEW_WIDTH
 			outputStage.tiles[y][x].primaryZone = zones[zoneY][zoneX]
 			if zoneX > 0 {

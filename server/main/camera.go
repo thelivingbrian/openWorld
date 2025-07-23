@@ -5,6 +5,10 @@ import (
 	"sync"
 )
 
+// Odd grid size allows centering player with padding - Has problems with smaller grid
+const VIEW_HEIGHT = 17
+const VIEW_WIDTH = 17
+
 type Camera struct {
 	height, width, padding int
 	positionLock           sync.Mutex
@@ -26,7 +30,6 @@ func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
 
 	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="set" y="%d" x="%d" class=""]`, y, x))
 	for _, tile := range region {
-		addCamera(tile, camera)
 		camera.outgoing <- []byte(swapsForTileNoHighlight(tile))
 	}
 
@@ -44,8 +47,13 @@ func (player *Player) tryTrack() {
 func (camera *Camera) track(character Character) {
 	focus := character.getTileSync()
 	stageH, stageW := len(focus.stage.tiles), len(focus.stage.tiles[0])
-	camera.positionLock.Lock() // :( ?
+	camera.positionLock.Lock()
 	defer camera.positionLock.Unlock()
+	if camera.topLeft == nil {
+		// This has Occurred. Unsure why.
+		fmt.Println("WARN: Camera topLeft is nil in track")
+		return
+	}
 
 	newY := axisAdjust(focus.y, camera.topLeft.y, camera.height, stageH, camera.padding)
 	newX := axisAdjust(focus.x, camera.topLeft.x, camera.width, stageW, camera.padding)
@@ -61,52 +69,6 @@ func (camera *Camera) track(character Character) {
 }
 
 func updateTiles(camera *Camera, newY, newX int) {
-	updateTilesA(camera, newY, newX)
-}
-
-func updateTilesA(camera *Camera, newY, newX int) {
-	oldTopLeft := camera.topLeft
-	camera.topLeft = oldTopLeft.stage.tiles[newY][newX]
-	stage := oldTopLeft.stage
-	stageH, stageW := len(oldTopLeft.stage.tiles), len(oldTopLeft.stage.tiles[0])
-
-	oldY0, oldY1 := oldTopLeft.y, oldTopLeft.y+camera.height-1
-	oldX0, oldX1 := oldTopLeft.x, oldTopLeft.x+camera.width-1
-	newY0, newY1 := newY, newY+camera.height-1
-	newX0, newX1 := newX, newX+camera.width-1
-
-	// Tiles that dropped out of view.
-	for y := oldY0; y <= oldY1; y++ {
-		if y < 0 || y >= stageH {
-			continue
-		}
-		for x := oldX0; x <= oldX1; x++ {
-			if x < 0 || x >= stageW {
-				continue
-			}
-			if y < newY0 || y > newY1 || x < newX0 || x > newX1 {
-				removeCamera(stage.tiles[y][x], camera)
-			}
-		}
-	}
-
-	// Tiles that came in to view.
-	for y := newY0; y <= newY1; y++ {
-		if y < 0 || y >= stageH {
-			continue
-		}
-		for x := newX0; x <= newX1; x++ {
-			if x < 0 || x >= stageW {
-				continue
-			}
-			if y < oldY0 || y > oldY1 || x < oldX0 || x > oldX1 {
-				attachCamera(stage.tiles[y][x], camera)
-			}
-		}
-	}
-}
-
-func updateTilesC(camera *Camera, newY, newX int) {
 	oldTopLeft := camera.topLeft
 	newTopLeft := oldTopLeft.stage.tiles[newY][newX]
 
@@ -148,43 +110,17 @@ func updateTilesC(camera *Camera, newY, newX int) {
 func (camera *Camera) drop() {
 	camera.positionLock.Lock()
 	defer camera.positionLock.Unlock()
-
-	region := getRegion(camera.topLeft.stage.tiles, Rect{camera.topLeft.y, camera.topLeft.y + camera.height, camera.topLeft.x, camera.topLeft.x + camera.width})
-	for _, tile := range region {
-		removeCamera(tile, camera)
+	if camera.topLeft == nil {
+		// This has happenned. Not sure why.
+		fmt.Println("WARN: Camera topLeft is nil in drop")
+		return
 	}
-	camera.topLeft = nil
-}
-
-func (camera *Camera) drop2() {
-	camera.positionLock.Lock()
-	defer camera.positionLock.Unlock()
 
 	camera.topLeft.primaryZone.camerasLock.Lock()
 	defer camera.topLeft.primaryZone.camerasLock.Unlock()
 	delete(camera.topLeft.primaryZone.activeCameras, camera)
 
 	camera.topLeft = nil
-}
-
-///////////////
-// A: fine - but option C is better
-
-func attachCamera(tile *Tile, cam *Camera) {
-	addCamera(tile, cam)
-	cam.outgoing <- []byte(swapsForTileNoHighlight(tile))
-}
-
-func addCamera(tile *Tile, cam *Camera) {
-	tile.camerasLock.Lock()
-	defer tile.camerasLock.Unlock()
-	tile.cameras[cam] = struct{}{}
-}
-
-func removeCamera(tile *Tile, cam *Camera) {
-	tile.camerasLock.Lock()
-	defer tile.camerasLock.Unlock()
-	delete(tile.cameras, cam)
 }
 
 func topLeft(gridHeight, gridWidth, viewHeight, viewWidth, y, x int) (row, col int) {

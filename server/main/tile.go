@@ -25,13 +25,8 @@ type Tile struct {
 	boosts            int
 	quickSwapTemplate string
 	bottomText        string
-
-	// Cameras attaching directly = Hard to keep track
-	cameras     map[*Camera]struct{}
-	camerasLock sync.Mutex
-
-	primaryZone   *CameraZone   // Zone tile belongs to (Can see tile by defalt)
-	adjacentZones []*CameraZone // Cameras in these zones only can also see this tile
+	primaryZone       *CameraZone   // Zone tile belongs to (Can see tile by defalt)
+	adjacentZones     []*CameraZone // Cameras in these zones only can also see this tile
 }
 
 type Teleport struct {
@@ -59,7 +54,6 @@ func newTile(mat Material, y int, x int) *Tile {
 		money:             0,
 		quickSwapTemplate: makeQuickSwapTemplate(mat, y, x),
 		bottomText:        mat.DisplayText, // Pre-process needed *String to have option of null?
-		cameras:           make(map[*Camera]struct{}),
 	}
 }
 
@@ -237,19 +231,6 @@ func (tile *Tile) getACharacter() Character {
 // Updates
 
 func (tile *Tile) updateAll(update string) {
-	tile.updateAllA(update)
-}
-
-func (tile *Tile) updateAllA(update string) {
-	updateAsBytes := []byte(update)
-	tile.camerasLock.Lock()
-	defer tile.camerasLock.Unlock()
-	for camera := range tile.cameras {
-		camera.outgoing <- updateAsBytes
-	}
-}
-
-func (tile *Tile) updateAllC(update string) {
 	// Send to zone containing this tile and neighboring zones (Only cameras in these zones can see this tile)
 	tile.primaryZone.updateAll(update)
 	for _, section := range tile.adjacentZones {
