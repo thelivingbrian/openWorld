@@ -239,7 +239,7 @@ func (tile *Tile) getACharacter() Character {
 // Updates
 
 func (tile *Tile) updateAll(update string) {
-	tile.updateAllC(update)
+	tile.updateAllA(update)
 }
 
 func (tile *Tile) updateAllA(update string) {
@@ -265,20 +265,11 @@ func (tile *Tile) updateAllB(update string) {
 	}
 }
 
-// Send to section and neighboring sections
 func (tile *Tile) updateAllC(update string) {
+	// Send to zone containing this tile and neighboring zones (Only cameras in these zones can see this tile)
 	tile.primaryZone.updateAll(update)
 	for _, section := range tile.adjacentZones {
 		section.updateAll(update)
-	}
-}
-
-func (zone *CameraZone) updateAll(update string) {
-	// Consider RLock
-	zone.camerasLock.Lock()
-	defer zone.camerasLock.Unlock()
-	for camera := range zone.activeCameras {
-		camera.outgoing <- []byte(update)
 	}
 }
 

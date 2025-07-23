@@ -293,14 +293,14 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 }
 
 // Try odd grid size to center player with padding.
-const VIEW_HEIGHT = 16
-const VIEW_WIDTH = 16
+const VIEW_HEIGHT = 17
+const VIEW_WIDTH = 17
 
 func newCamera(playerUpdates chan []byte) *Camera {
 	cam := Camera{
 		height:   VIEW_HEIGHT,
 		width:    VIEW_WIDTH,
-		padding:  1,
+		padding:  8,
 		topLeft:  nil,
 		outgoing: playerUpdates,
 		ref:      &atomic.Pointer[Camera]{},
@@ -426,8 +426,6 @@ func initiateLogout(player *Player) {
 	logger.Info().Msg("initate logout: " + player.username)
 	//   Add time delay to prevent rage quit ? - Consequence of intangibility in this window?
 	removeFromTileAndStage(player)
-
-	player.camera.ref.Store(nil)
 
 	player.world.playersToLogout <- player
 }

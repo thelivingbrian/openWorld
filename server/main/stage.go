@@ -31,6 +31,32 @@ type CameraZone struct {
 	camerasLock   sync.RWMutex
 }
 
+func (zone *CameraZone) updateAll(update string) {
+	// Consider RLock
+	zone.camerasLock.Lock()
+	defer zone.camerasLock.Unlock()
+	for camera := range zone.activeCameras {
+		camera.outgoing <- []byte(update)
+	}
+}
+
+func (zone *CameraZone) tryRemoveCamera(camera *Camera) bool {
+	zone.camerasLock.Lock()
+	defer zone.camerasLock.Unlock()
+	_, ok := zone.activeCameras[camera]
+	if !ok {
+		return false
+	}
+	delete(camera.topLeft.primaryZone.activeCameras, camera)
+	return true
+}
+
+func (zone *CameraZone) addCamera(camera *Camera) {
+	zone.camerasLock.Lock()
+	defer zone.camerasLock.Unlock()
+	zone.activeCameras[camera] = struct{}{}
+}
+
 ////////////////////////////////////////////////////
 // Get / Create and Load Stage
 
