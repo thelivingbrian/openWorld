@@ -13,16 +13,6 @@ type Camera struct {
 }
 
 func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
-	y, x := topLeft(len(stage.tiles), len(stage.tiles[0]), camera.height, camera.width, posY, posX)
-	region := getRegion(stage.tiles, Rect{y, y + camera.height, x, x + camera.width})
-
-	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="set" y="%d" x="%d" class=""]`, y, x))
-	for _, tile := range region {
-		//addCamera(tile, camera) // Causes send on closed for some reason
-		camera.outgoing <- []byte(swapsForTileNoHighlight(tile))
-	}
-	newTopLeft := region[0]
-
 	camera.positionLock.Lock()
 	defer camera.positionLock.Unlock()
 	if camera.topLeft != nil {
@@ -31,6 +21,16 @@ func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
 		return make([]*Tile, 0)
 	}
 
+	y, x := topLeft(len(stage.tiles), len(stage.tiles[0]), camera.height, camera.width, posY, posX)
+	region := getRegion(stage.tiles, Rect{y, y + camera.height - 1, x, x + camera.width - 1})
+
+	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="set" y="%d" x="%d" class=""]`, y, x))
+	for _, tile := range region {
+		addCamera(tile, camera)
+		camera.outgoing <- []byte(swapsForTileNoHighlight(tile))
+	}
+
+	newTopLeft := region[0]
 	newTopLeft.primaryZone.addCamera(camera)
 	camera.topLeft = newTopLeft
 	return region
