@@ -3,39 +3,29 @@ package main
 import (
 	"fmt"
 	"sync"
-	"sync/atomic"
 )
 
 type Camera struct {
 	height, width, padding int
 	positionLock           sync.Mutex
 	topLeft                *Tile
-
-	// Only for B
-	ref *atomic.Pointer[Camera]
-
-	// is == player.updates
-	outgoing chan []byte
+	outgoing               chan []byte // is == player.updates
 }
 
 func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
 	y, x := topLeft(len(stage.tiles), len(stage.tiles[0]), camera.height, camera.width, posY, posX)
 	region := getRegion(stage.tiles, Rect{y, y + camera.height, x, x + camera.width})
-	newTopLeft := region[0]
-	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="set" y="%d" x="%d" class=""]`, y, x))
 
-	// B
-	newRef := &atomic.Pointer[Camera]{}
-	newRef.Store(camera)
+	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="set" y="%d" x="%d" class=""]`, y, x))
 	for _, tile := range region {
-		attachCameraPtr(tile, newRef)
+		camera.outgoing <- []byte(swapsForTileNoHighlight(tile))
 	}
+	newTopLeft := region[0]
 
 	camera.positionLock.Lock()
 	defer camera.positionLock.Unlock()
 	if camera.topLeft != nil {
-		// Should be nil because this is setView not track
-		// Check if impossible, or handle by removing from previous zone
+		// should be impossible? if needed handle by removing from previous zone
 		fmt.Println("ERROR: Camera topLeft not nil in setView")
 		return make([]*Tile, 0)
 	}
@@ -45,6 +35,7 @@ func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
 	return region
 }
 
+// Awkward?
 func (player *Player) tryTrack() {
 	player.camera.track(player)
 }
@@ -55,7 +46,6 @@ func (camera *Camera) track(character Character) {
 	camera.positionLock.Lock() // :( ?
 	defer camera.positionLock.Unlock()
 
-	//newY, newX := topLeft(stageH, stageW, camera.height, camera.width, focus.y, focus.x)
 	newY := axisAdjust(focus.y, camera.topLeft.y, camera.height, stageH, camera.padding)
 	newX := axisAdjust(focus.x, camera.topLeft.x, camera.width, stageW, camera.padding)
 	dy := camera.topLeft.y - newY
@@ -111,22 +101,6 @@ func updateTilesA(camera *Camera, newY, newX int) {
 			if y < oldY0 || y > oldY1 || x < oldX0 || x > oldX1 {
 				attachCamera(stage.tiles[y][x], camera)
 			}
-		}
-	}
-}
-
-func updateTilesB(camera *Camera, newY, newX int) {
-	camera.topLeft = camera.topLeft.stage.tiles[newY][newX]
-
-	// "remove" all of the old camera
-	camera.ref.Store(nil)
-
-	newRef := &atomic.Pointer[Camera]{}
-	newRef.Store(camera)
-
-	for y := newY; y < newY+camera.height; y++ {
-		for x := newX; x < newX+camera.width; x++ {
-			attachCameraPtr(camera.topLeft.stage.tiles[y][x], newRef)
 		}
 	}
 }
@@ -193,15 +167,13 @@ func (camera *Camera) drop2() {
 }
 
 ///////////////
-// A
+// A: fine - but option C is better
 
 func attachCamera(tile *Tile, cam *Camera) {
 	addCamera(tile, cam)
 	cam.outgoing <- []byte(swapsForTileNoHighlight(tile))
 }
 
-// Honestly unsurprising that this add/remove strategy would leave zombie cameras
-// But why exactly for version A?
 func addCamera(tile *Tile, cam *Camera) {
 	tile.camerasLock.Lock()
 	defer tile.camerasLock.Unlock()
@@ -212,25 +184,6 @@ func removeCamera(tile *Tile, cam *Camera) {
 	tile.camerasLock.Lock()
 	defer tile.camerasLock.Unlock()
 	delete(tile.cameras, cam)
-}
-
-/////////////////
-// B
-
-func attachCameraPtr(tile *Tile, camRef *atomic.Pointer[Camera]) {
-	addCameraPtr(tile, camRef)
-	camera := camRef.Load()
-	if camera == nil {
-		return
-	}
-	// filter ?
-	camera.outgoing <- []byte(swapsForTileNoHighlight(tile))
-}
-
-func addCameraPtr(tile *Tile, camRef *atomic.Pointer[Camera]) {
-	tile.camerasLock.Lock()
-	defer tile.camerasLock.Unlock()
-	tile.cameraPtrs[camRef] = struct{}{}
 }
 
 func topLeft(gridHeight, gridWidth, viewHeight, viewWidth, y, x int) (row, col int) {

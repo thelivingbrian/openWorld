@@ -27,7 +27,6 @@ type Tile struct {
 	bottomText        string
 
 	// Cameras attaching directly = Hard to keep track
-	cameraPtrs  map[*atomic.Pointer[Camera]]struct{}
 	cameras     map[*Camera]struct{}
 	camerasLock sync.Mutex
 
@@ -60,7 +59,6 @@ func newTile(mat Material, y int, x int) *Tile {
 		money:             0,
 		quickSwapTemplate: makeQuickSwapTemplate(mat, y, x),
 		bottomText:        mat.DisplayText, // Pre-process needed *String to have option of null?
-		cameraPtrs:        make(map[*atomic.Pointer[Camera]]struct{}),
 		cameras:           make(map[*Camera]struct{}),
 	}
 }
@@ -247,20 +245,6 @@ func (tile *Tile) updateAllA(update string) {
 	tile.camerasLock.Lock()
 	defer tile.camerasLock.Unlock()
 	for camera := range tile.cameras {
-		camera.outgoing <- updateAsBytes
-	}
-}
-
-func (tile *Tile) updateAllB(update string) {
-	updateAsBytes := []byte(update)
-	tile.camerasLock.Lock()
-	defer tile.camerasLock.Unlock()
-	for cameraPtr := range tile.cameraPtrs {
-		camera := cameraPtr.Load() // Channel could close after this load -> send on close
-		if camera == nil {
-			delete(tile.cameraPtrs, cameraPtr)
-			continue
-		}
 		camera.outgoing <- updateAsBytes
 	}
 }

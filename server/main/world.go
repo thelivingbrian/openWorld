@@ -292,7 +292,7 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	return newPlayer
 }
 
-// Try odd grid size to center player with padding.
+// Odd grid size allows centering player with padding - Has problems with smaller grid
 const VIEW_HEIGHT = 17
 const VIEW_WIDTH = 17
 
@@ -303,7 +303,6 @@ func newCamera(playerUpdates chan []byte) *Camera {
 		padding:  8,
 		topLeft:  nil,
 		outgoing: playerUpdates,
-		ref:      &atomic.Pointer[Camera]{},
 	}
 	return &cam
 }
