@@ -149,24 +149,15 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	case "w":
 		tryJukeNorth(previous, player)
 		moveNorth(player)
-		//player.tryTrack()
 	case "a":
 		tryJukeWest(previous, player)
-		// Order no longer significant - in terms of getting correct one off updates
 		moveWest(player)
-		// Pan/Track camera (Split by up/down and left/right?) (Better for pan to occur before or after? )
-		//updateOne(`[~ id="shift" y="" x="" class="right"]`, player)
-		//player.tryTrack()
-
 	case "s":
 		tryJukeSouth(previous, player)
 		moveSouth(player)
-		//player.tryTrack()
 	case "d":
-		//updateOne(`[~ id="shift" y="" x="" class="left"]`, player)
 		tryJukeEast(previous, player)
 		moveEast(player)
-		//player.tryTrack()
 	case "W":
 		player.moveNorthBoost()
 	case "A":
@@ -184,10 +175,11 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 		updateOne(`[~ id="shift" y="1" x="1" class=""]`, player)
 		//player.cycleHats()
 	case "q":
+		// Todo: replace w/ unimplemented
 		spawnNewPlayerWithRandomMovement(player, 100)
 	case "e":
+		// Todo: replace w/ Unimplemented
 		onCurrentStage(basicSpawnWeak)(player)
-		// Unimplemented
 	case "Shift-On":
 		updateOne(divInputShift(), player)
 	case "Shift-Off":
