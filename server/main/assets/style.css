@@ -572,6 +572,19 @@ fill-opacity: 0.6;
 
     .A { grid-area: a; }
     .B { grid-area: b; }
+    
+    #dpad button,
+    #dpad-shift button {
+    touch-action: none;          /* kills long-press context menu / drag-scroll */
+    user-select: none;           /* no text highlight */
+    -webkit-user-select: none;   /* Safari / older Chrome */
+    }
+
+    /* Remove the default long-tap highlight on iOS/Android */
+    #dpad button:active,
+    #dpad-shift button:active {
+    background: inherit;
+    }
 }
 
 

@@ -32,11 +32,10 @@ type Player struct {
 	actions                  *Actions
 	playerStages             map[string]*Stage
 	pStageMutex              sync.Mutex
-	//hatList                  SyncHatList
-	accomplishments SyncAccomplishmentList
-	health          atomic.Int64
-	money           atomic.Int64
-	killstreak      atomic.Int64
+	accomplishments          SyncAccomplishmentList
+	health                   atomic.Int64
+	money                    atomic.Int64
+	killstreak               atomic.Int64
 	PlayerStats
 	SyncMenuList
 	camera *Camera
@@ -391,21 +390,12 @@ func getStageByNameOrGetDefault(player *Player, stagename string) *Stage {
 /////////////////////////////////////////////////////////////
 //  Hats
 
-func (player *Player) addHatByName(hatName string, _ bool) {
+func (player *Player) setHatByName(hatName string) {
 	hat, ok := HAT_NAME_TO_TRIM[hatName]
 	if !ok {
 		return
 	}
 	player.setHat(hat)
-	/*
-		hat := player.hatList.addByName(hatName)
-		if hat == nil {
-			return
-		}
-		if persist {
-			player.world.db.addHatToPlayer(player.username, *hat)
-		}
-	*/
 	updateIconForAllIfTangible(player) // May not originate from click hence check tangible
 }
 
@@ -414,13 +404,6 @@ func (player *Player) setHat(hat string) {
 	defer player.viewLock.Unlock()
 	player.hat = hat
 }
-
-/*
-func (player *Player) cycleHats() {
-	player.hatList.nextValid()
-	updateIconForAll(player)
-}
-*/
 
 /////////////////////////////////////////////////////////////
 //  Accomplishments

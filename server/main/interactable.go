@@ -104,6 +104,11 @@ func init() {
 			{ReactsWith: interactableIsARing, Reaction: damageAndSpawn},
 		},
 
+		// Prevent teleport overlap
+		"pass-all": {
+			{ReactsWith: everything, Reaction: pass},
+		},
+
 		////////////////////////////////////////////////////////////////
 		// Puzzles:
 
@@ -356,7 +361,7 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 
 		// Award hat
 		p.incrementGoalsScored()
-		p.addHatByName("score-1-goal", true)
+		p.setHatByName("score-a-goal")
 		p.addAccomplishmentByName(scoreAGoal)
 
 		// Database
@@ -370,7 +375,7 @@ func scoreGoalForTeam(team string) func(*Interactable, *Player, *Tile) (outgoing
 			broadcastBottomText(p.world, message)
 		} else {
 			// Awards
-			awardHatByTeam(p.world, team, "winning-team", true)
+			awardHatByTeam(p.world, team, "winning-team")
 			p.addAccomplishmentByName(winningAGame)
 
 			// Games won stat?
@@ -518,22 +523,34 @@ func makeDangerousForOtherTeam(i *Interactable, p *Player, t *Tile) (*Interactab
 }
 
 func damageAndSpawn(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-	y := rand.Intn(len(t.stage.tiles))
-	x := rand.Intn(len(t.stage.tiles[y]))
-	epicenter := t.stage.tiles[y][x]
 	dmg := 50
 	powerToSpawn := 3
 	if i.name == "ring-big" {
 		dmg = 100
 		powerToSpawn = 5
 	}
+
+	// Find Epicenter
+	y := rand.Intn(len(t.stage.tiles))
+	x := rand.Intn(len(t.stage.tiles[y]))
+	epicenter := t.stage.tiles[y][x]
+
+	// Damage
 	go damageWithinRadius(epicenter, p.world, 4, dmg, p.id)
 	t.updateAll(soundTriggerByName("explosion"))
+
+	// Add money
 	addMoneyToStage(t.stage, dmg/5)
 	addMoneyToStage(t.stage, dmg/5)
 	addMoneyToStage(t.stage, dmg/2)
+
+	// Add power
 	for i := 0; i < powerToSpawn; i++ {
-		spawnPowerup(t.stage)
+		if rand.Intn(10) == 0 {
+			spawnPowerupGreat(t.stage)
+			continue
+		}
+		spawnPowerupGood(t.stage)
 	}
 	return nil, false
 }
@@ -652,7 +669,7 @@ func checkSolveAndRemoveInteractable(i *Interactable, p *Player, t *Tile) (*Inte
 
 func awardPuzzleHat(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	// Awards
-	p.addHatByName("puzzle-solve", false) // worth having hat for puzzles?
+	p.setHatByName("puzzle-solve") // worth having hat for puzzles?
 	p.addAccomplishmentByName(puzzle0)
 
 	// add boost 13,5

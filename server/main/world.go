@@ -284,6 +284,7 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 
 	stage := getStageByNameOrGetDefault(newPlayer, incoming.Record.StageName)
 	if !validCoordinate(incoming.Record.Y, incoming.Record.X, stage) {
+		// Could be an invalid coordianate too - not just unloadable stage
 		logger.Error().Msg("WARN: Player " + newPlayer.username + " on unloadable stage: " + incoming.Record.StageName)
 		return nil
 	}
@@ -354,8 +355,7 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		world:                    world,
 		playerStages:             make(map[string]*Stage),
 		team:                     record.Team,
-		//hatList:                  SyncHatList{HatList: record.HatList},
-		accomplishments: SyncAccomplishmentList{Accomplishments: record.Accomplishments},
+		accomplishments:          SyncAccomplishmentList{Accomplishments: record.Accomplishments},
 		SyncMenuList: SyncMenuList{
 			menues: map[string]Menu{
 				"pause":           pauseMenu,
@@ -660,7 +660,7 @@ func crownMostDangerousById(world *World, streakEvent PlayerStreakRecord) {
 	if player == nil {
 		return
 	}
-	player.addHatByName("most-dangerous", false)
+	player.setHatByName("most-dangerous")
 	player.addAccomplishmentByName(becomeMostDangerous)
 	player.world.notifyChangeInMostDangerous(streakEvent)
 }
@@ -698,12 +698,12 @@ func broadcastUpdate(world *World, message string) {
 	}
 }
 
-func awardHatByTeam(world *World, team, hat string, persist bool) {
+func awardHatByTeam(world *World, team, hatName string) {
 	world.wPlayerMutex.Lock()
 	defer world.wPlayerMutex.Unlock()
 	for _, p := range world.worldPlayers {
 		if p.getTeamNameSync() == team {
-			p.addHatByName(hat, persist)
+			p.setHatByName(hatName)
 		}
 	}
 }
