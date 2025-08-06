@@ -41,10 +41,11 @@ func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
 
 // Awkward?
 func (player *Player) tryTrack() {
-	player.camera.track(player)
+	newTiles := player.camera.track(player)
+	player.updates <- []byte(highlightBoxesForPlayer(player, newTiles))
 }
 
-func (camera *Camera) track(character Character) {
+func (camera *Camera) track(character Character) []*Tile {
 	focus := character.getTileSync()
 	stageH, stageW := len(focus.stage.tiles), len(focus.stage.tiles[0])
 	camera.positionLock.Lock()
@@ -52,7 +53,7 @@ func (camera *Camera) track(character Character) {
 	if camera.topLeft == nil {
 		// This has Occurred. Unsure why.
 		fmt.Println("WARN: Camera topLeft is nil in track")
-		return
+		return nil
 	}
 
 	newY := axisAdjust(focus.y, camera.topLeft.y, camera.height, stageH, camera.padding)
@@ -60,15 +61,15 @@ func (camera *Camera) track(character Character) {
 	dy := camera.topLeft.y - newY
 	dx := camera.topLeft.x - newX
 	if dx == 0 && dy == 0 {
-		return
+		return nil
 	}
 
 	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="shift" y="%d" x="%d" class=""]`, dy, dx))
 
-	updateTiles(camera, newY, newX)
+	return updateTiles(camera, newY, newX)
 }
 
-func updateTiles(camera *Camera, newY, newX int) {
+func updateTiles(camera *Camera, newY, newX int) []*Tile {
 	oldTopLeft := camera.topLeft
 	newTopLeft := oldTopLeft.stage.tiles[newY][newX]
 
@@ -76,7 +77,7 @@ func updateTiles(camera *Camera, newY, newX int) {
 		if !oldTopLeft.primaryZone.tryRemoveCamera(camera) {
 			// Can this ever happen? Does it add security.
 			fmt.Println("ERROR: Camera not found section, cannot add to new section")
-			return
+			return nil
 		}
 		newTopLeft.primaryZone.addCamera(camera)
 	}
@@ -92,6 +93,7 @@ func updateTiles(camera *Camera, newY, newX int) {
 	newX0, newX1 := newX, newX+camera.width-1
 
 	// Tiles that came into view.
+	newTiles := make([]*Tile, 0)
 	for y := newY0; y <= newY1; y++ {
 		if y < 0 || y >= stageH {
 			continue
@@ -101,10 +103,12 @@ func updateTiles(camera *Camera, newY, newX int) {
 				continue
 			}
 			if y < oldY0 || y > oldY1 || x < oldX0 || x > oldX1 {
+				newTiles = append(newTiles, stage.tiles[y][x])
 				camera.outgoing <- []byte(swapsForTileNoHighlight(stage.tiles[y][x]))
 			}
 		}
 	}
+	return newTiles
 }
 
 func (camera *Camera) drop() {

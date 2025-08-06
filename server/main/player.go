@@ -248,7 +248,8 @@ func sendUpdate(player *Player, update []byte) error {
 }
 
 // Updates - Enqueue
-func updateOthersAfterMovement(player *Player, current, previous *Tile) {
+// Same as updateAll now
+func updateOthersAfterMovement(_ *Player, current, previous *Tile) {
 	previous.updateAll(characterBox(previous))
 	current.updateAll(characterBox(current))
 }
@@ -261,14 +262,14 @@ func updateAllAfterMovement(current, previous *Tile) {
 func updatePlayerAfterMovement(player *Player, current, previous *Tile) {
 	impactedHighlights := player.updateSpaceHighlights()
 
-	playerIcon := playerBoxSpecifc(current.y, current.x, player.getIconSync())
+	// playerIcon := playerBoxSpecifc(current.y, current.x, player.getIconSync())
 
-	previousBoxes := ""
-	if previous != nil && previous.stage == current.stage {
-		previousBoxes += characterBox(previous)
-	}
+	// previousBoxes := ""
+	// if previous != nil && previous.stage == current.stage {
+	// 	previousBoxes += characterBox(previous)
+	// }
 
-	player.updates <- []byte(highlightBoxesForPlayer(player, impactedHighlights) + previousBoxes + playerIcon)
+	player.updates <- []byte(highlightBoxesForPlayer(player, impactedHighlights))
 }
 
 func updatePlayerAfterStageChange(p *Player) {

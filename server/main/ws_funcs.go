@@ -100,6 +100,7 @@ func handleNewPlayer(player *Player) {
 		lastRead = currentRead
 
 		player.handlePress(event, previous)
+		player.tryTrack()
 		previous = event.Name
 	}
 }
@@ -148,24 +149,24 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	case "w":
 		tryJukeNorth(previous, player)
 		moveNorth(player)
-		player.tryTrack()
+		//player.tryTrack()
 	case "a":
 		tryJukeWest(previous, player)
 		// Order no longer significant - in terms of getting correct one off updates
 		moveWest(player)
 		// Pan/Track camera (Split by up/down and left/right?) (Better for pan to occur before or after? )
 		//updateOne(`[~ id="shift" y="" x="" class="right"]`, player)
-		player.tryTrack()
+		//player.tryTrack()
 
 	case "s":
 		tryJukeSouth(previous, player)
 		moveSouth(player)
-		player.tryTrack()
+		//player.tryTrack()
 	case "d":
 		//updateOne(`[~ id="shift" y="" x="" class="left"]`, player)
 		tryJukeEast(previous, player)
 		moveEast(player)
-		player.tryTrack()
+		//player.tryTrack()
 	case "W":
 		player.moveNorthBoost()
 	case "A":
@@ -184,8 +185,8 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 		//player.cycleHats()
 	case "q":
 		spawnNewPlayerWithRandomMovement(player, 100)
-		// Unimplemented
 	case "e":
+		onCurrentStage(basicSpawnWeak)(player)
 		// Unimplemented
 	case "Shift-On":
 		updateOne(divInputShift(), player)
@@ -206,7 +207,6 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	default:
 		// Unrecognized input
 	}
-	// Try track here?
 }
 
 /////////////////////////////////////////////////////////////////////////
