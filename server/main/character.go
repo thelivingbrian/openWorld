@@ -213,13 +213,13 @@ func (player *Player) fetchStageSync(stagename string) *Stage {
 func (p *Player) transferBetween(source, dest *Tile) {
 	if source.stage == dest.stage {
 		if transferPlayerWithinStage(p, source, dest) {
-			updateOthersAfterMovement(p, dest, source)
-			updatePlayerAfterMovement(p, dest, source)
+			updateAllAfterMovement(dest, source)
+			updatePlayerHighlights(p, dest, source)
 		}
 	} else {
 		if transferPlayerAcrossStages(p, source, dest) {
+			updateAllAfterMovement(dest, source)
 			spawnItemsFor(p, dest.stage)
-			updateOthersAfterMovement(p, dest, source)
 			updatePlayerAfterStageChange(p)
 		}
 	}

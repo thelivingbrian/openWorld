@@ -242,8 +242,6 @@ func svgFromTile(tile *Tile) string {
 
 	template := `[~ id="Ls1" y="%d" x="%d" class="%s"]`
 
-	//svgId := fmt.Sprintf(`id="Ls1" y="%d" x="%d`, )
-
 	classes := "box zs "
 	if tile.powerUp != nil {
 		classes += "svgRed "
