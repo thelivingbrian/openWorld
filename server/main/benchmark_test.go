@@ -200,6 +200,7 @@ func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 			world:        &World{worldStages: make(map[string]*Stage)},
 			tangible:     false,
 			playerStages: map[string]*Stage{},
+			camera:       newCamera(updatesForPlayer),
 		}
 		players[i].health.Store(100)
 		players[i].placeOnStage(stage, 2, 2)

@@ -46,6 +46,7 @@ func createTestingPlayer(world *World, user string) *Player {
 		tangible:     true,
 		playerStages: map[string]*Stage{},
 		world:        world,
+		camera:       newCamera(updatesForPlayer),
 	}
 	tp.health.Store(100)
 	world.worldPlayers[id] = tp
