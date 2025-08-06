@@ -68,6 +68,10 @@ async function flashBg(color){
     document.body.className="night"
 }
 
+
+////////////////////////////////////////////////////////////////
+//  Camera
+
 var topLeftY = 0
 var topLeftX = 0
 const height = 16 // Camera height and Camera Width 
@@ -106,8 +110,8 @@ function shiftGrid(dy, dx) {
   /* ----------------------------------------------------------
    *  Determine safe traversal order so we never overwrite
    *  a source tile before we’ve copied out its contents.
-   *     – When shifting toward +y or +x we walk bottom‑right→top‑left
-   *     – When shifting toward –y or –x we walk top‑left→bottom‑right
+   *     – shifting toward +y or +x, walk bottom‑right → top‑left
+   *     – shifting toward –y or –x, walk top‑left → bottom‑right
    * -------------------------------------------------------- */
   const rowStep   = dy > 0 ? -1 : 1;
   const colStep   = dx > 0 ? -1 : 1;
@@ -131,40 +135,3 @@ function shiftChildClasses(a, b) {
     b.children[i].className = a.children[i].className;
   }
 }
-
-/*
-function shiftGrid(dir) {
-  const { dr, dc, rowStart, rowEnd, colStart, colEnd } = {
-    left:  { dr: 0, dc:-1, rowStart: 0,         rowEnd: height, colStart: 1,        colEnd: width   },
-    right: { dr: 0, dc: 1, rowStart: 0,         rowEnd: height, colStart: width-2,  colEnd:-1 },
-    up:    { dr:-1, dc: 0, rowStart: 1,         rowEnd: height, colStart: 0,        colEnd: width   },
-    down:  { dr: 1, dc: 0, rowStart: height-2,  rowEnd:-1,      colStart: 0,        colEnd: width   }
-  }[dir];
-
-  if (!cells) {
-    cells = Array.from({ length: height }, (_, r) =>
-                Array.from({ length: width }, (_, c) =>
-                    document.getElementById(`c${r}-${c}`)
-                )
-            );
-  }
-
-  topLeftX -= dc
-  topLeftY -= dr
-
-
-  for (let r = rowStart; r !== rowEnd; r += Math.sign(rowEnd - rowStart || 1)) {
-    for (let c = colStart; c !== colEnd; c += Math.sign(colEnd - colStart || 1)) {
-      const here = cells[r][c];
-      const there = cells[r + dr][c + dc];
-      shiftChildClasses(here, there);
-    }
-  }
-}
-
-function shiftChildClasses(a, b) {
-  for (let i = 0; i < a.children.length; i++) {
-    b.children[i].className = a.children[i].className;
-  }
-}
-*/
