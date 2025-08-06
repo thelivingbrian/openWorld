@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand/v2"
-	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -98,8 +97,9 @@ func handleDeath(player *Player) {
 	player.actions = createDefaultActions() // problematic, -> setDefaultActions(player)
 
 	stage := player.fetchStageSync(infirmaryStagenameForPlayer(player))
-	player.updateRecordOnDeath(stage.tiles[2][2])
-	respawnOnStage(player, stage)
+	y, x := infirmaryCoordsForPlayer(player)
+	player.updateRecordOnDeath(stage.tiles[y][x])
+	respawnOnStage(player, stage, y, x)
 }
 
 func popAndDropMoney(player *Player) {
@@ -119,14 +119,14 @@ func halveMoneyOf(player *Player) int {
 	return int(lost)
 }
 
-func respawnOnStage(player *Player, stage *Stage) {
+func respawnOnStage(player *Player, stage *Stage, y, x int) {
 	player.tangibilityLock.Lock()
 	defer player.tangibilityLock.Unlock()
 	if !player.tangible {
 		return
 	}
 
-	placePlayerOnStageAt(player, stage, 2, 2)
+	placePlayerOnStageAt(player, stage, y, x)
 
 	player.updatePlayerHud()
 	player.updateBottomText("You have died.")
@@ -149,15 +149,33 @@ func infirmaryStagenameForPlayer(player *Player) string {
 	if team != "sky-blue" && team != "fuchsia" {
 		return "clinic"
 	}
-	longitude := strconv.Itoa(rand.IntN(4))
-	latitude := ""
+	// longitude := strconv.Itoa(rand.IntN(4))
+	// latitude := ""
+	// if team == "fuchsia" {
+	// 	latitude = "0"
+	// }
+	// if team == "sky-blue" {
+	// 	latitude = "3"
+	// }
+	// return fmt.Sprintf("infirmary:%s-%s", latitude, longitude)
+	return "infirmary-flattened:0-0"
+}
+
+func infirmaryCoordsForPlayer(player *Player) (int, int) {
+	team := player.getTeamNameSync()
+	if team != "sky-blue" && team != "fuchsia" {
+		return 2, 2
+	}
+	y := 0
 	if team == "fuchsia" {
-		latitude = "0"
+		y = 2
 	}
 	if team == "sky-blue" {
-		latitude = "3"
+		y = 50
 	}
-	return fmt.Sprintf("infirmary:%s-%s", latitude, longitude)
+	longitude := rand.IntN(4)
+	x := (longitude * 16) + 2
+	return y, x
 }
 
 ////////////////////////////////////////////////////////////
