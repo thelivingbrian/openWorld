@@ -646,7 +646,7 @@ func damageWithinRadius(tile *Tile, world *World, radius, dmg int, ownerId strin
 	tiles := getTilesInRadius(tile, radius)
 	trapSetter := world.getPlayerById(ownerId)
 	if trapSetter != nil {
-		damageAndIndicate(tiles, trapSetter, tile.stage, dmg)
+		damageAndIndicate(tiles, trapSetter, dmg)
 	}
 }
 

@@ -7,11 +7,7 @@ import (
 
 type Stage struct {
 	tiles [][]*Tile
-	// each zone has a set of cameras
-	// tile is associated with a zone on stage creation
-	// When a camera's topleft changes zones, do CAS-like transfer between camera sets
-	// A tile can only be seen by a camera in its own zone, or a camera in up to three adjacent zones
-	cameraZones        [][]*CameraZone
+	//cameraZones        [][]*CameraZone  // Unused / Attached to tile, any use for reference?
 	playerMap          map[string]*Player // Only used for updates // Now unused ? (text or etc ? )
 	playerMutex        sync.RWMutex
 	name               string

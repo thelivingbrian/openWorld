@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
-	mrand "math/rand"
 	"net"
 	"net/http"
 	"strings"
@@ -86,7 +85,7 @@ func (app *App) storeNewGuestSession(w http.ResponseWriter, r *http.Request) {
 	}
 	identifier := "guest:" + hexid
 	team := "sky-blue"
-	if mrand.Intn(2) == 1 {
+	if rand.Intn(2) == 1 {
 		team = "fuchsia"
 	}
 

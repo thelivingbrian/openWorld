@@ -106,7 +106,7 @@ func popAndDropMoney(player *Player) {
 
 	playerLostMoney := halveMoneyOf(player)
 	moneyToAdd := max(playerLostMoney, 10)
-	tile.addMoneyAndNotifyAllExcept(moneyToAdd, player)
+	tile.addMoneyAndNotifyAll(moneyToAdd)
 
 	pop := soundTriggerByName("pop-death")
 	tile.updateAll(pop)
@@ -148,15 +148,7 @@ func infirmaryStagenameForPlayer(player *Player) string {
 	if team != "sky-blue" && team != "fuchsia" {
 		return "clinic"
 	}
-	// longitude := strconv.Itoa(rand.IntN(4))
-	// latitude := ""
-	// if team == "fuchsia" {
-	// 	latitude = "0"
-	// }
-	// if team == "sky-blue" {
-	// 	latitude = "3"
-	// }
-	// return fmt.Sprintf("infirmary:%s-%s", latitude, longitude)
+
 	return "infirmary-flattened:0-0"
 }
 
@@ -165,12 +157,9 @@ func infirmaryCoordsForPlayer(player *Player) (int, int) {
 	if team != "sky-blue" && team != "fuchsia" {
 		return 2, 2
 	}
-	y := 0
-	if team == "fuchsia" {
-		y = 2
-	}
+	y := 2 // team is "fuchsia" if not "sky-blue"
 	if team == "sky-blue" {
-		y = 50
+		y = 50 // ( 3 * 16 ) + 2
 	}
 	longitude := rand.IntN(4)
 	x := (longitude * 16) + 2
@@ -247,18 +236,7 @@ func sendUpdate(player *Player, update []byte) error {
 }
 
 // Updates - Enqueue
-// Same as updateAll now
-// func updateOthersAfterMovement(_ *Player, current, previous *Tile) {
-// 	previous.updateAll(characterBox(previous))
-// 	current.updateAll(characterBox(current))
-// }
-
-func updateAllAfterMovement(current, previous *Tile) {
-	previous.updateAll(characterBox(previous))
-	current.updateAll(characterBox(current))
-}
-
-func updatePlayerHighlights(player *Player, current, previous *Tile) {
+func updatePlayerHighlights(player *Player) {
 	impactedTiles := player.updateSpaceHighlights()
 	player.updates <- []byte(highlightBoxesForPlayer(player, impactedTiles))
 }
@@ -313,12 +291,6 @@ func (player *Player) updatePlayerBox() {
 	icon := player.setIcon()
 	tile := player.getTileSync()
 	updateOne(playerBoxSpecifc(tile.y, tile.x, icon), player)
-}
-
-func updateIconForAll(player *Player) {
-	player.setIcon()
-	tile := player.getTileSync()
-	tile.updateAll(characterBox(tile))
 }
 
 // Still an issue re updates and tangibility?

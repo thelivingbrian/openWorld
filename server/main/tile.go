@@ -238,19 +238,7 @@ func (tile *Tile) updateAll(update string) {
 	}
 }
 
-/*
-// Difficult to implement without a reference from camera to its player
-func (tile *Tile) updateAllExcept(update string, ignore *Player) {
-	updateAsBytes := []byte(update)
-	tile.camerasLock.Lock()
-	defer tile.camerasLock.Unlock()
-	for camera := range tile.cameras {
-		// No longer needed / conceptually valid?
-		// if player == ignore {
-		// 	continue
-}
-*/
-
+// Unused ?
 func (tile *Tile) updateAllWithSound(soundName string) {
 	tile.updateAll(soundTriggerByName(soundName))
 }
@@ -258,7 +246,7 @@ func (tile *Tile) updateAllWithSound(soundName string) {
 /////////////////////////////////////////////////////////////////////
 // Damage
 
-func damageAndIndicate(tiles []*Tile, initiator Character, stage *Stage, damage int) int {
+func damageAndIndicate(tiles []*Tile, initiator Character, damage int) int {
 	fatalities := 0
 	color := randomFieryColor()
 	for _, tile := range tiles {
@@ -268,13 +256,6 @@ func damageAndIndicate(tiles []*Tile, initiator Character, stage *Stage, damage 
 		tile.updateAll(weatherBox(tile, color) + soundTriggerByName("explosion"))
 		go tile.tryToNotifyAfter(100)
 	}
-	//damageBoxes := sliceOfTileToWeatherBoxes(tiles, randomFieryColor())
-
-	// Could technically still do it this way at the stage level and the extra would get
-	// trimmed by the camera... but also adds a lot of client spam
-
-	// Or premptively get a set of all the cameras
-	//stage.updateAll(damageBoxes + soundTriggerByName("explosion"))
 	return fatalities
 }
 
@@ -455,6 +436,7 @@ func mapOfTileToArray(m map[*Tile]bool) []*Tile {
 	return out
 }
 
+/*
 func sliceOfTileToWeatherBoxes(tiles []*Tile, cssClass string) string {
 	html := ``
 	for _, tile := range tiles {
@@ -462,6 +444,7 @@ func sliceOfTileToWeatherBoxes(tiles []*Tile, cssClass string) string {
 	}
 	return html
 }
+*/
 
 func sliceOfTileToHighlightBoxes(tiles []*Tile, cssClass string) string {
 	html := ``
@@ -543,10 +526,6 @@ func (tile *Tile) addBoosts(amount int) {
 }
 
 func (tile *Tile) addMoneyAndNotifyAll(amount int) {
-	tile.addMoneyAndNotifyAllExcept(amount, nil)
-}
-
-func (tile *Tile) addMoneyAndNotifyAllExcept(amount int, player *Player) {
 	tile.addMoney(amount)
 	tile.updateAll(svgFromTile(tile))
 }

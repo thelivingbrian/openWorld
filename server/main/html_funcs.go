@@ -10,6 +10,7 @@ import (
 ////////////////////////////////////////////////////////////
 // Quickswaps / screen
 
+/*
 func emptyScreenForStage(stage *Stage) []byte {
 	var buf bytes.Buffer
 	err := tmpl.ExecuteTemplate(&buf, "player-screen", stage.tiles)
@@ -19,6 +20,7 @@ func emptyScreenForStage(stage *Stage) []byte {
 
 	return buf.Bytes()
 }
+*/
 
 func emptyScreenBySize(height, width int) []byte {
 	var buf bytes.Buffer
@@ -41,10 +43,6 @@ func NewEmptyGrid(n, m int) [][]struct{} {
 func entireScreenAsSwaps(player *Player) []byte {
 	currentTile := player.getTileSync()
 	return swapsForTilesWithHighlights(currentTile.stage.tiles, duplicateMapOfHighlights(player))
-}
-
-func regionAsSwaps(player *Player, region [][]*Tile) []byte {
-	return swapsForTilesWithHighlights(region, duplicateMapOfHighlights(player))
 }
 
 func swapsForTilesWithHighlights(tiles [][]*Tile, highlights map[*Tile]bool) []byte {

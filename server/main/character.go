@@ -214,7 +214,7 @@ func (p *Player) transferBetween(source, dest *Tile) {
 	if source.stage == dest.stage {
 		if transferPlayerWithinStage(p, source, dest) {
 			updateAllAfterMovement(dest, source)
-			updatePlayerHighlights(p, dest, source)
+			updatePlayerHighlights(p)
 		}
 	} else {
 		if transferPlayerAcrossStages(p, source, dest) {
@@ -252,6 +252,11 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 
 	dest.addLockedPlayerToTile(p)
 	return true
+}
+
+func updateAllAfterMovement(current, previous *Tile) {
+	previous.updateAll(characterBox(previous))
+	current.updateAll(characterBox(current))
 }
 
 func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool { // Returns if given interacable successfully pushed
@@ -647,7 +652,7 @@ func activatePower(npc *NonPlayer, shapes [][][2]int) {
 			tiles = append(tiles, tile)
 		}
 	}
-	damageAndIndicate(tiles, npc, currentTile.stage, 50)
+	damageAndIndicate(tiles, npc, 50)
 }
 
 //////////////////////////////////////////////////////////////////////
