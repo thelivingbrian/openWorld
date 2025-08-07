@@ -149,7 +149,7 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 	}
 
 	stage.addLockedPlayer(p) // Still needed?
-	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
+	stage.tiles[y][x].addPlayerAndNotifyAll(p)
 	spawnItemsFor(p, stage) // check updates
 
 	p.setSpaceHighlights()

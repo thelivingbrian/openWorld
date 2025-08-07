@@ -445,8 +445,9 @@ func placeInteractableOnStagePriorityCovered(stage *Stage, interactable *Interac
 	tiles := append([]*Tile(nil), covered...)
 	for {
 		if len(tiles) == 0 {
+			// Weird logic - keep in mind tiles is shrinking with each loop
 			tiles = append([]*Tile(nil), uncovered...)
-			tiles = append([]*Tile(nil), covered...)
+			tiles = append(tiles, covered...)
 		}
 		index := rand.Intn(len(tiles))
 		if trySetInteractable(tiles[index], interactable) {
@@ -488,9 +489,11 @@ func moveInitiatorPushSurrounding(yOff, xOff int) func(*Interactable, *Player, *
 			p.push(tile, nil, yOff, xOff)
 		}
 		move(p, yOff, xOff)
-		//sendSoundToPlayer(p, "wind-swoosh")
-		//t.stage.updateAllExcept(soundTriggerByName("woody-swoosh"), p)
-		t.updateAll(soundTriggerByName("wind-swoosh")) // non trivial to do different sounds?
+		// non-trivial to do different sounds to different players?
+		//   sendSoundToPlayer(p, "wind-swoosh")
+		//   sendSoundToOthers("soundXYZ")
+		// etc.
+		t.updateAllWithSound("wind-swoosh")
 		return nil, false
 	}
 }

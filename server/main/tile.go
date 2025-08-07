@@ -89,11 +89,10 @@ func swapToken(y, x int, prefix, zIndex, color string) string {
 
 // Player
 
-func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
+func (tile *Tile) addPlayerAndNotifyAll(player *Player) {
 	player.tileLock.Lock()
 	defer player.tileLock.Unlock()
 	tile.addLockedPlayerToTile(player)
-	//tile.stage.updateAllExcept(characterBox(tile), player)
 	tile.updateAll(characterBox(tile))
 }
 
@@ -238,7 +237,6 @@ func (tile *Tile) updateAll(update string) {
 	}
 }
 
-// Unused ?
 func (tile *Tile) updateAllWithSound(soundName string) {
 	tile.updateAll(soundTriggerByName(soundName))
 }
