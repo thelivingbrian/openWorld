@@ -219,8 +219,8 @@ func (p *Player) transferBetween(source, dest *Tile) {
 	} else {
 		if transferPlayerAcrossStages(p, source, dest) {
 			updateAllAfterMovement(dest, source)
-			spawnItemsFor(p, dest.stage)
 			updatePlayerAfterStageChange(p)
+			spawnItemsFor(p, dest.stage)
 		}
 	}
 }
