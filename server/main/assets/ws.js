@@ -117,7 +117,7 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 		return htmx.createWebSocket(wssSource)
 	  })
   
-	  //const quickSwapRegex = /\[~\s+id="([^"]+)"\s+class="([^"]+)"/;
+	  // matches [~ id=". . ." y="0" x="0" class=""]
 	  const quickSwapRegex = /\[~\s+id="([^"]+)"\s+y="([^"]*)"\s+x="([^"]*)"\s+class="([^"]*)"/;
 
 	  socketWrapper.addEventListener('message', function(event) {
@@ -140,7 +140,7 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 		var settleInfo = api.makeSettleInfo(socketElt)
 
 		// Scan the incoming message: 
-		//   swap [~ id="" class=""] will bypass htmx
+		//   swap [~ id="{1}" y="{2}" x="{3}" class="{4}"] will bypass htmx
 		//   html <elements> are saved for htmx
 		let position = 0;
 		let htmlPart = "";
