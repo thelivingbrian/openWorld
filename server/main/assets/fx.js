@@ -85,14 +85,6 @@ function setGrid(y, x) {
   topLeftX = Number(x)
 }
 
-/**
- * Shift the visible grid by (dy, dx) cells.
- *  •  dy  < 0  →  move view *up*    (copy rows upward)
- *  •  dy  > 0  →  move view *down*  (copy rows downward)
- *  •  dx  < 0  →  move view *left*  (copy cols leftward)
- *  •  dx  > 0  →  move view *right* (copy cols rightward)
- *
- */
 function shiftGrid(dy, dx) {
   if (dy === 0 && dx === 0) return;
 
