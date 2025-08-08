@@ -35,6 +35,7 @@ func BenchmarkMoveTwice(b *testing.B) {
 	}
 }
 
+// Todo: Need more realistic bench? (including camera tracking etc.)
 func BenchmarkMoveAllTwice(b *testing.B) {
 	loadFromJson()
 	for _, stageName := range stageNames {

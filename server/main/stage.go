@@ -26,11 +26,11 @@ type CameraZone struct {
 	camerasLock   sync.RWMutex
 }
 
-func (zone *CameraZone) updateAll(update string) {
+func (zone *CameraZone) updateAll(update []byte) {
 	zone.camerasLock.RLock()
 	defer zone.camerasLock.RUnlock()
 	for camera := range zone.activeCameras {
-		camera.outgoing <- []byte(update)
+		camera.outgoing <- update
 	}
 }
 
