@@ -297,30 +297,12 @@ func finishTutorial(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	return nil, false
 }
 
-func destroyEveryotherInteractable(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+func destroyEveryotherInteractable(_ *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	tiles := everyOtherTileOnStage(t)
 	for i := range tiles {
 		go destroyInteractable(tiles[i], p)
 	}
 	return nil, false
-}
-
-func destroyInRange(yMin, xMin, yMax, xMax int) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
-	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-		tiles := t.stage.tiles
-		if yMin >= len(tiles) || yMax >= len(tiles) {
-			return nil, false
-		}
-		if xMin >= len(tiles[yMin]) || xMax >= len(tiles[yMin]) {
-			return nil, false
-		}
-		for i := yMin; i <= yMax; i++ {
-			for j := xMin; j <= xMax; j++ {
-				go destroyInteractable(tiles[i][j], p)
-			}
-		}
-		return nil, false
-	}
 }
 
 func destroyInRangeSkipingSelf(yMin, xMin, yMax, xMax int) func(*Interactable, *Player, *Tile) (*Interactable, bool) {

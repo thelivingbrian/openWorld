@@ -157,8 +157,6 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 	viewport := p.camera.setView(y, x, stage)
 
 	p.updates <- []byte(highlightBoxesForPlayer(p, viewport))
-
-	//updateEntireExistingScreen(p) // Can't do this, sends entire stage
 }
 
 ///////////////////////////////////////////////////

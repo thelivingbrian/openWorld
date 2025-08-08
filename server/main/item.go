@@ -128,10 +128,6 @@ func checkXCoord(check int) func(p *Player, s *Stage) bool {
 /////////////////////////////////////////////
 //  Actions
 
-func doNothing(*Stage) {
-
-}
-
 func addBoostsAt(y, x int) func(stage *Stage) {
 	return func(stage *Stage) {
 		if y >= len(stage.tiles) || x >= len(stage.tiles[y]) {
@@ -321,6 +317,7 @@ func spawnPowerupFromSet(stage *Stage, shapes [][][2]int) {
 	tile.addPowerUpAndNotifyAll(shapes[index])
 }
 
+/*
 func basicSpawnOld(stage *Stage) {
 	// Very basic spawn algorithm
 	// Will spawn on convered tiles with higher freq. than uncovered
@@ -354,6 +351,7 @@ func basicSpawnOld(stage *Stage) {
 		}
 	}
 }
+*/
 
 func basicSpawnWithRingAndNPCs(p *Player) {
 	determination := rand.Intn(1000)

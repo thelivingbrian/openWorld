@@ -169,7 +169,7 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	case "f":
 		updateEntireExistingScreen(player)
 	case "g":
-		//makeHallucinate(player)
+		makeHallucinate(player)
 		oldFx(player)
 	case "h":
 		updateOne(`[~ id="shift" y="1" x="1" class=""]`, player)

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -30,7 +29,7 @@ func TestMoveBoostWithHandlePress(t *testing.T) {
 	player.handlePress(eventWithName("W"), "")
 
 	if player.tile != testStage.tiles[5][12] {
-		t.Error(fmt.Sprintf("Incorrect movement. Expected y5-x12 Player at Y:%d, X:%d ", player.tile.y, player.tile.x))
+		t.Errorf("Incorrect movement. Expected y5-x12 Player at Y:%d, X:%d ", player.tile.y, player.tile.x)
 	}
 	if testStage.tiles[1][12].interactable != nil {
 		t.Error("Interactable should not have moved")
@@ -65,7 +64,7 @@ func TestJukeRightFromEveryDirection(t *testing.T) {
 	// Act
 	player.handlePress(eventWithName("w"), "")
 	if player.tile != testStage.tiles[9][11] {
-		t.Error(fmt.Sprintf("Incorrect movement. Expected y9-x11 Player at Y:%d, X:%d ", player.tile.y, player.tile.x))
+		t.Errorf("Incorrect movement. Expected y9-x11 Player at Y:%d, X:%d ", player.tile.y, player.tile.x)
 	}
 	if testStage.tiles[8][11].interactable != nil {
 		t.Error("Juke should not occur without previous - Interactable should not have moved")
@@ -74,13 +73,13 @@ func TestJukeRightFromEveryDirection(t *testing.T) {
 	player.handlePress(eventWithName("a"), "w")
 	player.handlePress(eventWithName("s"), "a")
 	if player.tile != testStage.tiles[10][10] {
-		t.Error(fmt.Sprintf("Incorrect movement. Expected y10-x10 Player at Y:%d, X:%d ", player.tile.y, player.tile.x))
+		t.Errorf("Incorrect movement. Expected y10-x10 Player at Y:%d, X:%d ", player.tile.y, player.tile.x)
 	}
 
 	player.handlePress(eventWithName("d"), "s")
 	player.handlePress(eventWithName("w"), "d")
 	if player.tile != testStage.tiles[9][11] {
-		t.Error(fmt.Sprintf("Incorrect movement. Expected y9-x11 Player at Y:%d, X:%d ", player.tile.y, player.tile.x))
+		t.Errorf("Incorrect movement. Expected y9-x11 Player at Y:%d, X:%d ", player.tile.y, player.tile.x)
 	}
 	if testStage.tiles[8][11].interactable == nil {
 		t.Error("Interactable should have justed to y8:x10")
@@ -88,7 +87,7 @@ func TestJukeRightFromEveryDirection(t *testing.T) {
 
 	player.handlePress(eventWithName("a"), "w")
 	if player.tile != testStage.tiles[9][10] {
-		t.Error(fmt.Sprintf("Incorrect movement. Expected y9-x10 Player at Y:%d, X:%d ", player.tile.y, player.tile.x))
+		t.Errorf("Incorrect movement. Expected y9-x10 Player at Y:%d, X:%d ", player.tile.y, player.tile.x)
 	}
 	if testStage.tiles[9][9].interactable == nil {
 		t.Error("Interactable should have justed to y9:x9")
@@ -96,7 +95,7 @@ func TestJukeRightFromEveryDirection(t *testing.T) {
 
 	player.handlePress(eventWithName("s"), "a")
 	if player.tile != testStage.tiles[10][10] {
-		t.Error(fmt.Sprintf("Incorrect movement. Expected y9-x11 Player at Y:%d, X:%d ", player.tile.y, player.tile.x))
+		t.Errorf("Incorrect movement. Expected y9-x11 Player at Y:%d, X:%d ", player.tile.y, player.tile.x)
 	}
 	if testStage.tiles[11][10].interactable == nil {
 		t.Error("Interactable should have justed to y11:x10")
@@ -104,7 +103,7 @@ func TestJukeRightFromEveryDirection(t *testing.T) {
 
 	player.handlePress(eventWithName("d"), "s")
 	if player.tile != testStage.tiles[10][11] {
-		t.Error(fmt.Sprintf("Incorrect movement. Expected y9-x11 Player at Y:%d, X:%d ", player.tile.y, player.tile.x))
+		t.Errorf("Incorrect movement. Expected y9-x11 Player at Y:%d, X:%d ", player.tile.y, player.tile.x)
 	}
 	if testStage.tiles[10][12].interactable == nil {
 		t.Error("Interactable should have justed to y10:x12")
@@ -112,7 +111,7 @@ func TestJukeRightFromEveryDirection(t *testing.T) {
 
 	player.handlePress(eventWithName("a"), "d")
 	if player.tile != testStage.tiles[10][10] {
-		t.Error(fmt.Sprintf("Incorrect movement. Expected y9-x11 Player at Y:%d, X:%d ", player.tile.y, player.tile.x))
+		t.Errorf("Incorrect movement. Expected y9-x11 Player at Y:%d, X:%d ", player.tile.y, player.tile.x)
 	}
 	if testStage.tiles[10][12].interactable == nil {
 		t.Error("Juke should not occur when moving backwards")
@@ -142,12 +141,12 @@ func TestJukeLeftFromEveryDirection(t *testing.T) {
 	// Act
 	player.handlePress(eventWithName("d"), "")
 	if player.tile != testStage.tiles[10][11] {
-		t.Error(fmt.Sprintf("Incorrect movement. Expected y10-x11 Player at Y:%d, X:%d ", player.tile.y, player.tile.x))
+		t.Errorf("Incorrect movement. Expected y10-x11 Player at Y:%d, X:%d ", player.tile.y, player.tile.x)
 	}
 
 	player.handlePress(eventWithName("s"), "d")
 	if player.tile != testStage.tiles[11][11] {
-		t.Error(fmt.Sprintf("Incorrect movement. Expected y11-x11 Player at Y:%d, X:%d ", player.tile.y, player.tile.x))
+		t.Errorf("Incorrect movement. Expected y11-x11 Player at Y:%d, X:%d ", player.tile.y, player.tile.x)
 	}
 	if testStage.tiles[12][11].interactable == nil {
 		t.Error("Interactable should have justed to y12:x11")
@@ -155,7 +154,7 @@ func TestJukeLeftFromEveryDirection(t *testing.T) {
 
 	player.handlePress(eventWithName("a"), "s")
 	if player.tile != testStage.tiles[11][10] {
-		t.Error(fmt.Sprintf("Incorrect movement. Expected y11-x10 Player at Y:%d, X:%d ", player.tile.y, player.tile.x))
+		t.Errorf("Incorrect movement. Expected y11-x10 Player at Y:%d, X:%d ", player.tile.y, player.tile.x)
 	}
 	if testStage.tiles[11][9].interactable == nil {
 		t.Error("Interactable should have justed to y11:x9")
@@ -163,7 +162,7 @@ func TestJukeLeftFromEveryDirection(t *testing.T) {
 
 	player.handlePress(eventWithName("w"), "a")
 	if player.tile != testStage.tiles[10][10] {
-		t.Error(fmt.Sprintf("Incorrect movement. Expected y10-x10 Player at Y:%d, X:%d ", player.tile.y, player.tile.x))
+		t.Errorf("Incorrect movement. Expected y10-x10 Player at Y:%d, X:%d ", player.tile.y, player.tile.x)
 	}
 	if testStage.tiles[9][10].interactable == nil {
 		t.Error("Interactable should have justed to y9:x10")
@@ -171,7 +170,7 @@ func TestJukeLeftFromEveryDirection(t *testing.T) {
 
 	player.handlePress(eventWithName("d"), "w")
 	if player.tile != testStage.tiles[10][11] {
-		t.Error(fmt.Sprintf("Incorrect movement. Expected y10-x11 Player at Y:%d, X:%d ", player.tile.y, player.tile.x))
+		t.Errorf("Incorrect movement. Expected y10-x11 Player at Y:%d, X:%d ", player.tile.y, player.tile.x)
 	}
 	if testStage.tiles[10][12].interactable == nil {
 		t.Error("Interactable should have justed to y10:x12")
@@ -179,7 +178,7 @@ func TestJukeLeftFromEveryDirection(t *testing.T) {
 
 	player.handlePress(eventWithName("a"), "d")
 	if player.tile != testStage.tiles[10][10] {
-		t.Error(fmt.Sprintf("Incorrect movement. Expected y10-x10 Player at Y:%d, X:%d ", player.tile.y, player.tile.x))
+		t.Errorf("Incorrect movement. Expected y10-x10 Player at Y:%d, X:%d ", player.tile.y, player.tile.x)
 	}
 	if testStage.tiles[10][12].interactable == nil {
 		t.Error("Juke should not occur when moving backwards")

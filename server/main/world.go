@@ -253,7 +253,7 @@ func createRandomToken() string {
 }
 
 func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Player {
-	fmt.Println("Joining " + incoming.Record.Username)
+	// fmt.Println("Joining " + incoming.Record.Username)
 	if world.isLoggedInAlready(incoming.Record.Username) {
 		sendUnableToJoinMessage(conn, "You are already logged in.")
 		logger.Warn().Msg("User attempting to log in but is logged in already: " + incoming.Record.Username)
