@@ -13,7 +13,7 @@ type Camera struct {
 	height, width, padding int
 	positionLock           sync.Mutex
 	topLeft                *Tile
-	outgoing               chan []byte // is == player.updates
+	outgoing               chan<- []byte // Send only: is == player.updates
 }
 
 func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {

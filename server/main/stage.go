@@ -26,11 +26,12 @@ type CameraZone struct {
 	camerasLock   sync.RWMutex
 }
 
-func (zone *CameraZone) updateAll(update []byte) {
+func (zone *CameraZone) updateAll(update string) {
+	updateAsBytes := []byte(update)
 	zone.camerasLock.RLock()
 	defer zone.camerasLock.RUnlock()
 	for camera := range zone.activeCameras {
-		camera.outgoing <- update
+		camera.outgoing <- updateAsBytes
 	}
 }
 
@@ -171,8 +172,6 @@ func spawnItemsFor(p *Player, stage *Stage) {
 //////////////////////////////////////////////////
 // Send Updates
 
-/*
-
 // May be worth leaving implemented for niche cases?
 
 func (stage *Stage) updateAll(update string) {
@@ -194,7 +193,7 @@ func (stage *Stage) updateAllExcept(update string, ignore *Player) {
 func (stage *Stage) updateAllWithSound(soundName string) {
 	stage.updateAll(soundTriggerByName(soundName))
 }
-*/
+
 /////////////////////////////////////////////////////////////
 // Utilities
 

@@ -257,7 +257,6 @@ func playSoundForInitiator(soundName string) func(*Interactable, *Player, *Tile)
 func playSoundForAll(soundName string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
 	return func(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 		t.updateAll(soundTriggerByName(soundName))
-		//t.stage.updateAll(soundTriggerByName(soundName))
 		return nil, false
 	}
 }

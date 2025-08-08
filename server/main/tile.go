@@ -231,10 +231,9 @@ func (tile *Tile) getACharacter() Character {
 
 func (tile *Tile) updateAll(update string) {
 	// Send to zone containing this tile and neighboring zones (Only cameras in these zones can see this tile)
-	casted := []byte(update)
-	tile.primaryZone.updateAll(casted)
+	tile.primaryZone.updateAll(update)
 	for _, section := range tile.adjacentZones {
-		section.updateAll(casted)
+		section.updateAll(update)
 	}
 }
 
