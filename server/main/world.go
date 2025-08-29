@@ -15,7 +15,8 @@ import (
 
 const SESSION_SNAPSHOT_INTERVAL_IN_MIN = 30
 
-var CAPACITY_PER_TEAM = 128 // Is modified by test => not const
+// Should be in env file?
+var CAPACITY_PER_TEAM = 200 // Is modified by test => not const
 
 type World struct {
 	App
@@ -253,6 +254,7 @@ func createRandomToken() string {
 }
 
 func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Player {
+	// fmt.Println("Joining " + incoming.Record.Username)
 	if world.isLoggedInAlready(incoming.Record.Username) {
 		sendUnableToJoinMessage(conn, "You are already logged in.")
 		logger.Warn().Msg("User attempting to log in but is logged in already: " + incoming.Record.Username)
@@ -267,7 +269,20 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 		return nil
 	}
 
+	camera := newCamera(newPlayer.updates)
+	emptyScreen := emptyScreenBySize(camera.height, camera.width)
+	if !sendInitialScreen(conn, emptyScreen) {
+		return nil
+	}
+	newPlayer.camera = camera
+
 	newPlayer.updateRecordOnLogin()
+	newPlayer.conn = conn
+	go newPlayer.sendUpdates()
+
+	count := world.addPlayer(newPlayer)
+	trySetPeakPlayerCount(world, count)
+
 	stage := getStageByNameOrGetDefault(newPlayer, incoming.Record.StageName)
 	if !validCoordinate(incoming.Record.Y, incoming.Record.X, stage) {
 		// Could be an invalid coordianate too - not just unloadable stage
@@ -275,19 +290,19 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 		return nil
 	}
 
-	emptyScreen := emptyScreenForStage(stage)
-	if !sendInitialScreen(conn, emptyScreen) {
-		return nil
-	}
-
-	newPlayer.conn = conn
-	go newPlayer.sendUpdates()
-
-	count := world.addPlayer(newPlayer)
-	trySetPeakPlayerCount(world, count)
-
 	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
 	return newPlayer
+}
+
+func newCamera(playerUpdates chan []byte) *Camera {
+	cam := Camera{
+		height:   VIEW_HEIGHT,
+		width:    VIEW_WIDTH,
+		padding:  5,
+		topLeft:  nil,
+		outgoing: playerUpdates,
+	}
+	return &cam
 }
 
 const unableToJoin = `
@@ -398,6 +413,7 @@ func processLogouts(players chan *Player) {
 		completeLogout(player)
 	}
 }
+
 func initiateLogout(player *Player) {
 	player.tangibilityLock.Lock()
 	defer player.tangibilityLock.Unlock()
@@ -408,7 +424,6 @@ func initiateLogout(player *Player) {
 	removeFromTileAndStage(player)
 
 	player.world.playersToLogout <- player
-
 }
 
 func completeLogout(player *Player) {

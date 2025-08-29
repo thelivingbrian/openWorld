@@ -35,6 +35,7 @@ func BenchmarkMoveTwice(b *testing.B) {
 	}
 }
 
+// Todo: Need more realistic bench? (including camera tracking etc.)
 func BenchmarkMoveAllTwice(b *testing.B) {
 	loadFromJson()
 	for _, stageName := range stageNames {
@@ -200,6 +201,7 @@ func placeNPlayersOnStage(n int, stage *Stage) []*Player {
 			world:        &World{worldStages: make(map[string]*Stage)},
 			tangible:     false,
 			playerStages: map[string]*Stage{},
+			camera:       newCamera(updatesForPlayer),
 		}
 		players[i].health.Store(100)
 		players[i].placeOnStage(stage, 2, 2)

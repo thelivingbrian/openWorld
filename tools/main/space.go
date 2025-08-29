@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	"image/color"
@@ -770,3 +771,233 @@ func (space *Space) isSimplyTiled() bool {
 		fusia.getAreaByName(coordToFusia(i, 0)).West = coordToBlue(i, 7)
 	}
 */
+
+func (c Context) spaceFlattenHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		c.postSpaceFlatten(w, r)
+	}
+}
+
+func (c Context) postSpaceFlatten(w http.ResponseWriter, r *http.Request) {
+	properties, _ := requestToProperties(r)
+	colName := properties["currentCollection"]
+	spaceName := properties["currentSpace"]
+	col, ok := c.Collections[colName]
+	if !ok {
+		return
+	}
+	space, ok := col.Spaces[spaceName]
+	if !ok {
+		return
+	}
+	fmt.Println("Collection Name: " + col.Name)
+	fmt.Println("Space Name Name: " + space.Name)
+
+	flattened, err := Flatten(*space)
+	if err != nil {
+		io.WriteString(w, "<h3>Flatten failed: "+err.Error()+"</h3>")
+		return
+	}
+	fmt.Println("Flattened Space Name " + flattened.Name)
+
+	// Todo: Don't save if no changes ?
+	col.Spaces[flattened.Name] = &flattened
+	io.WriteString(w, "<h3>Space flattened successfully.</h3>")
+}
+
+func Flatten(s Space) (Space, error) {
+	if s.Topology != "plane" && s.Topology != "torus" {
+		// Todo return empty space and/or error
+		return s, nil
+	}
+	if len(s.Areas) == 0 {
+		return s, nil
+	}
+
+	// Determine per-area height/width (in tiles) and the overall grid (lat/long)
+	areaH, areaW := s.AreaHeight, s.AreaWidth
+	if areaH <= 0 || areaW <= 0 {
+		// Fall back to the first area's blueprint (if present)
+		first := s.Areas[0]
+		if first.Blueprint == nil || len(first.Blueprint.Tiles) == 0 || len(first.Blueprint.Tiles[0]) == 0 {
+			return s, errors.New("cannot infer AreaHeight/AreaWidth: missing Space.AreaHeight/AreaWidth and first area blueprint is empty")
+		}
+		areaH = len(first.Blueprint.Tiles)
+		areaW = len(first.Blueprint.Tiles[0])
+	}
+
+	lat, lon := s.Latitude, s.Longitude
+	if lat <= 0 || lon <= 0 {
+		// area names of form "<base>:Y-X"
+		maxY, maxX := 0, 0
+		for _, a := range s.Areas {
+			y, x, ok := parseAreaYX(a.Name)
+			if !ok {
+				return s, errors.New("cannot infer (Latitude, Longitude); provide them on Space or ensure area names are 'name:Y-X'")
+			}
+			if y > maxY {
+				maxY = y
+			}
+			if x > maxX {
+				maxX = x
+			}
+		}
+		lat = maxY + 1
+		lon = maxX + 1
+	}
+
+	totalH := areaH * lat
+	totalW := areaW * lon
+
+	bigTiles := make([][]TileData, totalH)
+	for i := range bigTiles {
+		bigTiles[i] = make([]TileData, totalW)
+	}
+
+	var bigGround [][]Cell
+	var haveGround bool
+
+	var instructions []Instruction
+	var transports []Transport
+
+	allSafe := true
+	firstArea := s.Areas[0]
+
+	// Merge default colors from the first area’s blueprint (if present)
+	defaultTileColor := ""
+	defaultTileColor1 := ""
+
+	// Todo: init ground every time?
+	initGround := func() {
+		if haveGround {
+			return
+		}
+		bigGround = make([][]Cell, totalH)
+		for i := range bigGround {
+			bigGround[i] = make([]Cell, totalW)
+		}
+		haveGround = true
+	}
+
+	for _, a := range s.Areas {
+		if !a.Safe {
+			allSafe = false
+		}
+		if a.Blueprint == nil {
+			// No blueprint ?
+			continue
+		}
+
+		// Pull defaults from the first non-nil blueprint
+		if defaultTileColor == "" && a.Blueprint.DefaultTileColor != "" {
+			defaultTileColor = a.Blueprint.DefaultTileColor
+		}
+		if defaultTileColor1 == "" && a.Blueprint.DefaultTileColor1 != "" {
+			defaultTileColor1 = a.Blueprint.DefaultTileColor1
+		}
+
+		yIdx, xIdx, ok := parseAreaYX(a.Name)
+		if !ok {
+			return s, fmt.Errorf("area name %q doesn't match `...:Y-X`", a.Name)
+		}
+
+		yOff := yIdx * areaH
+		xOff := xIdx * areaW
+
+		// Copy tiles
+		for r := 0; r < len(a.Blueprint.Tiles); r++ {
+			row := a.Blueprint.Tiles[r]
+			for c := 0; c < len(row); c++ {
+				globalR := yOff + r
+				globalC := xOff + c
+				if globalR < 0 || globalR >= totalH || globalC < 0 || globalC >= totalW {
+					return s, fmt.Errorf("area %q tile (%d,%d) out of flattened bounds", a.Name, globalR, globalC)
+				}
+				bigTiles[globalR][globalC] = row[c]
+			}
+		}
+
+		// Copy ground (if present); expand lazily
+		if len(a.Blueprint.Ground) > 0 {
+			initGround()
+			for r := 0; r < len(a.Blueprint.Ground); r++ {
+				row := a.Blueprint.Ground[r]
+				for c := 0; c < len(row); c++ {
+					globalR := yOff + r
+					globalC := xOff + c
+					if globalR < 0 || globalR >= totalH || globalC < 0 || globalC >= totalW {
+						return s, fmt.Errorf("area %q ground (%d,%d) out of flattened bounds", a.Name, globalR, globalC)
+					}
+					bigGround[globalR][globalC] = row[c]
+				}
+			}
+		}
+
+		// Copy instructions (shift coords)
+		for _, instr := range a.Blueprint.Instructions {
+			instr.Y += yOff
+			instr.X += xOff
+			instructions = append(instructions, instr)
+		}
+
+		// Copy transports (shift coords)
+		for _, tr := range a.Transports {
+			tr.SourceY += yOff
+			tr.SourceX += xOff
+			transports = append(transports, tr)
+		}
+	}
+
+	flatArea := AreaDescription{
+		Name:          fmt.Sprintf("%s-flattened:0-0", s.Name),
+		Safe:          allSafe,
+		MapId:         firstArea.MapId,
+		LoadStrategy:  firstArea.LoadStrategy,
+		SpawnStrategy: firstArea.SpawnStrategy,
+		Weather:       firstArea.Weather,
+		Blueprint: &Blueprint{
+			Tiles:             bigTiles,
+			Instructions:      instructions,
+			Ground:            bigGround,
+			DefaultTileColor:  defaultTileColor,
+			DefaultTileColor1: defaultTileColor1,
+		},
+		Transports: transports,
+	}
+
+	out := s
+	out.Name = fmt.Sprintf("%s-flattened", s.Name)
+	out.Latitude = 1
+	out.Longitude = 1
+	out.AreaHeight = totalH
+	out.AreaWidth = totalW
+	out.Areas = []AreaDescription{flatArea}
+
+	if out.Topology == "torus" {
+		out.Areas[0].North = out.Name
+		out.Areas[0].South = out.Name
+		out.Areas[0].East = out.Name
+		out.Areas[0].West = out.Name
+	}
+
+	return out, nil
+}
+
+func parseAreaYX(name string) (y, x int, ok bool) {
+	// expects something like "<anything>:Y-X"
+	colon := strings.LastIndex(name, ":")
+	if colon == -1 {
+		return 0, 0, false
+	}
+	coord := name[colon+1:]
+	parts := strings.Split(coord, "-")
+	if len(parts) != 2 {
+		return 0, 0, false
+	}
+	yy, err1 := strconv.Atoi(parts[0])
+	xx, err2 := strconv.Atoi(parts[1])
+	if err1 != nil || err2 != nil {
+		return 0, 0, false
+	}
+	return yy, xx, true
+}

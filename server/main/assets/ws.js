@@ -117,7 +117,8 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 		return htmx.createWebSocket(wssSource)
 	  })
   
-	  const quickSwapRegex = /\[~\s+id="([^"]+)"\s+class="([^"]+)"/;
+	  // matches [~ id=". . ." y="0" x="0" class=""]
+	  const quickSwapRegex = /\[~\s+id="([^"]+)"\s+y="([^"]*)"\s+x="([^"]*)"\s+class="([^"]*)"/;
 
 	  socketWrapper.addEventListener('message', function(event) {
 		if (maybeCloseWebSocketSource(socketElt)) {
@@ -139,7 +140,7 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 		var settleInfo = api.makeSettleInfo(socketElt)
 
 		// Scan the incoming message: 
-		//   swap [~ id="" class=""] will bypass htmx
+		//   swap [~ id="{1}" y="{2}" x="{3}" class="{4}"] will bypass htmx
 		//   html <elements> are saved for htmx
 		let position = 0;
 		let htmlPart = "";
@@ -175,9 +176,27 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 			const match = quickSwapRegex.exec(swaps[i]);
 			if (match) {
 				const id = match[1];
-				const classes = match[2];
-				target = document.getElementById(id);
-				target.className = classes;
+				const yStr = match[2];
+				const xStr = match[3];
+				const classes = match[4];
+				if (id === "set") {
+					setGrid(yStr, xStr)
+					continue
+				}
+				if (id === "shift") {
+					shiftGrid(Number(yStr), Number(xStr))
+					continue
+				}
+				if (yStr === "") {
+					target = document.getElementById(id);
+					target.className = classes;
+				}
+				const y = Number(yStr) - topLeftY
+				const x = Number(xStr) - topLeftX
+				if ((y >= 0) && (y<height) && (x>=0) && (x<width)) {
+					target = document.getElementById(`${id}-${y}-${x}`);
+					target.className = classes;
+				}
 			}
 		}
 

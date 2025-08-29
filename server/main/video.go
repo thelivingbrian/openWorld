@@ -51,8 +51,6 @@ func makeHallucinate(player *Player) {
 	}()
 }
 
-// //////////////////////////////////////////////////////////
-// Generators
 func generateDivs(frame int) string {
 	var sb strings.Builder
 
@@ -94,19 +92,98 @@ func generateDivs(frame int) string {
 				color = col2
 			}
 
-			sb.WriteString(fmt.Sprintf(`[~ id="Lw1-%d-%d" class="box zw %s"]`+"\n", i, j, color))
+			sb.WriteString(fmt.Sprintf(`[~ id="Lw1" y="%d" x="%d" class="box zw %s"]`+"\n", i, j, color))
 		}
 	}
 
 	return sb.String()
 }
 
+func oldFx(player *Player) {
+	go func() {
+		ownLock := player.tangibilityLock.TryLock()
+		if !ownLock {
+			return
+		}
+		defer player.tangibilityLock.Unlock()
+		if !player.tangible {
+			return
+		}
+		updateOne(generateDivs2("blue", 0, 2), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("blue", 1, 2), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("blue", 0, 3), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("blue", 1, 3), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("blue", 2, 3), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("green", 0, 4), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("green", 1, 4), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("green", 2, 4), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("green", 3, 4), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("green", 0, 5), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("green", 1, 5), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("green", 2, 5), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 0, 2), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 1, 2), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 0, 3), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 1, 3), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 2, 3), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 0, 4), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 1, 4), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 2, 4), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 3, 4), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 0, 5), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 1, 5), player)
+		time.Sleep(20 * time.Millisecond)
+		updateOne(generateDivs2("red", 2, 5), player)
+	}()
+}
+
+func generateDivs2(color string, check int, check2 int) string {
+	var sb strings.Builder
+
+	for i := 0; i < 16; i++ {
+		for j := 0; j < 16; j++ {
+			setColor := color
+			if (i+j)%check2 == check {
+				setColor = "ice"
+			}
+			sb.WriteString(fmt.Sprintf(`[~ id="Lw1" y="%d" x="%d" class="box zw %s"]`+"\n", i, j, setColor))
+		}
+	}
+
+	return sb.String()
+}
+
+/////////////////////////////////////////////////////////////////////////
+// Everything below this point moderately invalid?
+
 func generateWeatherSolid(color string) string {
 	var sb strings.Builder
 
 	for i := 0; i < 16; i++ {
 		for j := 0; j < 16; j++ {
-			sb.WriteString(fmt.Sprintf(`[~ id="w%d-%d" class="box zw %s"]`+"\n", i, j, color))
+			sb.WriteString(fmt.Sprintf(`[~ id="w" y="%d" x="%d" class="box zw %s"]`+"\n", i, j, color))
 		}
 	}
 
@@ -118,7 +195,7 @@ func generateWeatherSolidByteBuffer(color string) []byte {
 
 	for i := 0; i < 16; i++ {
 		for j := 0; j < 16; j++ {
-			fmt.Fprintf(buf, `[~ id="w%d-%d" class="box zw %s"]`, i, j, color)
+			fmt.Fprintf(buf, `[~ id="w" y="%d" x="%d" class="box zw %s"]`, i, j, color)
 		}
 	}
 
@@ -130,7 +207,7 @@ func generateWeatherDumb(color string) string {
 
 	for i := 0; i < 16; i++ {
 		for j := 0; j < 16; j++ {
-			out += fmt.Sprintf(`[~ id="w%d-%d" class="box zw %s"]`, i, j, color)
+			out += fmt.Sprintf(`[~ id="w" y="%d" x="%d" class="box zw %s"]`, i, j, color)
 		}
 	}
 
@@ -177,57 +254,4 @@ func generateWeatherSolidBytes(color string) []byte {
 	}
 
 	return b
-}
-
-func generateWeatherDynamic(getColor func(i, j int) string) []byte {
-	estCap := 256 * 60
-	b := make([]byte, 0, estCap)
-
-	prefix := []byte(`<div id="w`)
-	sep := []byte(`-`)
-	cls := []byte(`" class="box zw `)
-	suffix := []byte(`"></div>`)
-
-	for i := 0; i < 16; i++ {
-		for j := 0; j < 16; j++ {
-			b = append(b, prefix...)
-			b = strconv.AppendInt(b, int64(i), 10)
-			b = append(b, sep...)
-			b = strconv.AppendInt(b, int64(j), 10)
-			b = append(b, cls...)
-			b = append(b, getColor(i, j)...)
-			b = append(b, suffix...)
-		}
-	}
-	return b
-}
-
-func twoColorParity(c1, c2, t string) func(i, j int) string {
-	return func(i, j int) string {
-		if (i+j)%2 == 0 {
-			return c1 + "-b thick " + c2 + " " + t
-		} else {
-			return c2 + "-b thick " + c1 + " " + t
-
-		}
-	}
-}
-
-func generateDivs3(frame int) string {
-	var sb strings.Builder
-
-	// Define a set of colors to cycle through
-	colors := []string{"red", "blue", "green", "gold", "white", "black", "half-gray"}
-
-	for i := 0; i < 16; i++ {
-		for j := 0; j < 16; j++ {
-			// Compute color based on i, j, and the current frame.
-			// This will cause the color pattern to "shift" each frame.
-			color := colors[(i+j+frame)%len(colors)]
-
-			sb.WriteString(fmt.Sprintf(`<div id="t%d-%d" class="box top %s"></div>`+"\n", i, j, color))
-		}
-	}
-
-	return sb.String()
 }

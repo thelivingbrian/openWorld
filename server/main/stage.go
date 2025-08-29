@@ -7,7 +7,7 @@ import (
 
 type Stage struct {
 	tiles              [][]*Tile
-	playerMap          map[string]*Player // Only used for updates
+	playerMap          map[string]*Player // Previously used for updates - Now unused.
 	playerMutex        sync.RWMutex
 	name               string
 	north              string
@@ -18,6 +18,37 @@ type Stage struct {
 	spawn              []SpawnAction
 	broadcastGroupName string
 	weather            string
+}
+
+type CameraZone struct {
+	activeCameras map[*Camera]struct{}
+	camerasLock   sync.RWMutex
+}
+
+func (zone *CameraZone) updateAll(update string) {
+	updateAsBytes := []byte(update)
+	zone.camerasLock.RLock()
+	defer zone.camerasLock.RUnlock()
+	for camera := range zone.activeCameras {
+		camera.outgoing <- updateAsBytes
+	}
+}
+
+func (zone *CameraZone) tryRemoveCamera(camera *Camera) bool {
+	zone.camerasLock.Lock()
+	defer zone.camerasLock.Unlock()
+	_, ok := zone.activeCameras[camera]
+	if !ok {
+		return false
+	}
+	delete(camera.topLeft.primaryZone.activeCameras, camera)
+	return true
+}
+
+func (zone *CameraZone) addCamera(camera *Camera) {
+	zone.camerasLock.Lock()
+	defer zone.camerasLock.Unlock()
+	zone.activeCameras[camera] = struct{}{}
 }
 
 ////////////////////////////////////////////////////
@@ -39,11 +70,39 @@ func createStageFromArea(area Area) *Stage {
 		broadcastGroupName: area.BroadcastGroup,
 		weather:            area.Weather,
 	}
+
+	// Initialize camera zones
+	zones := make([][]*CameraZone, (len(area.Tiles)+VIEW_HEIGHT-1)/VIEW_HEIGHT)
+	for i := range zones {
+		zones[i] = make([]*CameraZone, (len(area.Tiles[0])+VIEW_WIDTH-1)/VIEW_WIDTH)
+		for j := range zones[i] {
+			zones[i][j] = &CameraZone{
+				activeCameras: make(map[*Camera]struct{}),
+				camerasLock:   sync.RWMutex{},
+			}
+		}
+	}
+
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
 		for x := range outputStage.tiles[y] {
 			outputStage.tiles[y][x] = newTile(area.Tiles[y][x], y, x)
 			outputStage.tiles[y][x].stage = &outputStage
+
+			// Add zones to tile (Missing micro-optimization, certain tiles can only be seen by one or two zones)
+			zoneY, zoneX := y/VIEW_HEIGHT, x/VIEW_WIDTH
+			outputStage.tiles[y][x].primaryZone = zones[zoneY][zoneX]
+			if zoneX > 0 {
+				outputStage.tiles[y][x].adjacentZones = append(outputStage.tiles[y][x].adjacentZones, zones[zoneY][zoneX-1])
+			}
+			if zoneY > 0 {
+				outputStage.tiles[y][x].adjacentZones = append(outputStage.tiles[y][x].adjacentZones, zones[zoneY-1][zoneX])
+			}
+			if zoneX > 0 && zoneY > 0 {
+				outputStage.tiles[y][x].adjacentZones = append(outputStage.tiles[y][x].adjacentZones, zones[zoneY-1][zoneX-1])
+			}
+
+			// setup interactables
 			if area.Interactables != nil && y < len(area.Interactables) && x < len(area.Interactables[y]) {
 				description := area.Interactables[y][x]
 				if description != nil {
@@ -89,10 +148,13 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 	}
 
 	stage.addLockedPlayer(p)
-	stage.tiles[y][x].addPlayerAndNotifyOthers(p)
+	stage.tiles[y][x].addPlayerAndNotifyAll(p)
 	spawnItemsFor(p, stage)
+
 	p.setSpaceHighlights()
-	updateEntireExistingScreen(p)
+
+	viewport := p.camera.setView(y, x, stage)
+	p.updates <- highlightBoxesForPlayer(p, viewport)
 }
 
 ///////////////////////////////////////////////////
@@ -102,29 +164,6 @@ func spawnItemsFor(p *Player, stage *Stage) {
 	for i := range stage.spawn {
 		stage.spawn[i].activateFor(p, stage)
 	}
-}
-
-//////////////////////////////////////////////////
-// Send Updates
-
-func (stage *Stage) updateAll(update string) {
-	stage.updateAllExcept(update, nil)
-}
-
-func (stage *Stage) updateAllExcept(update string, ignore *Player) {
-	updateAsBytes := []byte(update)
-	stage.playerMutex.RLock()
-	defer stage.playerMutex.RUnlock()
-	for _, player := range stage.playerMap {
-		if player == ignore {
-			continue
-		}
-		player.updates <- updateAsBytes
-	}
-}
-
-func (stage *Stage) updateAllWithSound(soundName string) {
-	stage.updateAll(soundTriggerByName(soundName))
 }
 
 /////////////////////////////////////////////////////////////

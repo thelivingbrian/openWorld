@@ -25,6 +25,7 @@ func main() {
 	http.HandleFunc("/space/structures", c.spaceStructuresHandler)
 	http.HandleFunc("/space/structure", c.spaceStructureHandler)
 	http.HandleFunc("/space/modify", c.spaceModifyHandler)
+	http.HandleFunc("/space/flatten", c.spaceFlattenHandler)
 	http.HandleFunc("/structure", c.structureHandler)
 	http.HandleFunc("/areas", c.areasHandler)
 	http.HandleFunc("/areas/new", c.newAreaHandler)

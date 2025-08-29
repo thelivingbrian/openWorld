@@ -74,11 +74,11 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 
 // rewrite as tryActivate for atomicity.
 func (player *Player) activatePower() {
-	stage := player.getTileSync().stage
-	stage.updateAll(soundTriggerByName("explosion"))
+	tile := player.getTileSync()
+	tile.updateAll(soundTriggerByName("explosion"))
 
 	playerHighlights := highlightMapToSlice(player)
-	fatalities := damageAndIndicate(playerHighlights, player, stage, 50)
+	fatalities := damageAndIndicate(playerHighlights, player, 50)
 	checkFatalityAccomplishments(player, fatalities)
 	updateOne(sliceOfTileToHighlightBoxes(playerHighlights, ""), player)
 

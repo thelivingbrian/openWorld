@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand/v2"
-	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -27,7 +26,7 @@ type Player struct {
 	sessionTimeOutViolations atomic.Int32
 	textUpdatesInFlight      atomic.Int32
 	conn                     WebsocketConnection
-	connLock                 sync.RWMutex
+	connLock                 sync.RWMutex // Never RLocks?
 	tangible                 bool
 	tangibilityLock          sync.Mutex
 	actions                  *Actions
@@ -39,6 +38,7 @@ type Player struct {
 	killstreak               atomic.Int64
 	PlayerStats
 	SyncMenuList
+	camera *Camera
 }
 
 type PlayerStats struct {
@@ -96,8 +96,9 @@ func handleDeath(player *Player) {
 	player.actions = createDefaultActions() // problematic, -> setDefaultActions(player)
 
 	stage := player.fetchStageSync(infirmaryStagenameForPlayer(player))
-	player.updateRecordOnDeath(stage.tiles[2][2])
-	respawnOnStage(player, stage)
+	y, x := infirmaryCoordsForPlayer(player)
+	player.updateRecordOnDeath(stage.tiles[y][x])
+	respawnOnStage(player, stage, y, x)
 }
 
 func popAndDropMoney(player *Player) {
@@ -105,10 +106,10 @@ func popAndDropMoney(player *Player) {
 
 	playerLostMoney := halveMoneyOf(player)
 	moneyToAdd := max(playerLostMoney, 10)
-	tile.addMoneyAndNotifyAllExcept(moneyToAdd, player)
+	tile.addMoneyAndNotifyAll(moneyToAdd)
 
 	pop := soundTriggerByName("pop-death")
-	tile.stage.updateAllExcept(pop, player)
+	tile.updateAll(pop)
 }
 
 func halveMoneyOf(player *Player) int {
@@ -117,15 +118,15 @@ func halveMoneyOf(player *Player) int {
 	return int(lost)
 }
 
-func respawnOnStage(player *Player, stage *Stage) {
+func respawnOnStage(player *Player, stage *Stage, y, x int) {
 	player.tangibilityLock.Lock()
 	defer player.tangibilityLock.Unlock()
 	if !player.tangible {
 		return
 	}
 
-	placePlayerOnStageAt(player, stage, 2, 2)
-	sendSoundToPlayer(player, soundTriggerByName("pop-death"))
+	placePlayerOnStageAt(player, stage, y, x)
+
 	player.updatePlayerHud()
 	player.updateBottomText("You have died.")
 }
@@ -138,6 +139,8 @@ func removeFromTileAndStage(player *Player) {
 	}
 	player.tile.removePlayerAndNotifyOthers(player)
 	player.tile.stage.removeLockedPlayerById(player.id)
+
+	player.camera.drop()
 }
 
 func infirmaryStagenameForPlayer(player *Player) string {
@@ -145,15 +148,22 @@ func infirmaryStagenameForPlayer(player *Player) string {
 	if team != "sky-blue" && team != "fuchsia" {
 		return "clinic"
 	}
-	longitude := strconv.Itoa(rand.IntN(4))
-	latitude := ""
-	if team == "fuchsia" {
-		latitude = "0"
+
+	return "infirmary-flattened:0-0"
+}
+
+func infirmaryCoordsForPlayer(player *Player) (int, int) {
+	team := player.getTeamNameSync()
+	if team != "sky-blue" && team != "fuchsia" {
+		return 2, 2
 	}
+	y := 2 // team is "fuchsia" if not "sky-blue"
 	if team == "sky-blue" {
-		latitude = "3"
+		y = 50 // ( 3 * 16 ) + 2
 	}
-	return fmt.Sprintf("infirmary:%s-%s", latitude, longitude)
+	longitude := rand.IntN(4)
+	x := (longitude * 16) + 2
+	return y, x
 }
 
 ////////////////////////////////////////////////////////////
@@ -226,27 +236,9 @@ func sendUpdate(player *Player, update []byte) error {
 }
 
 // Updates - Enqueue
-func updateOthersAfterMovement(player *Player, current, previous *Tile) {
-	previous.stage.updateAllExcept(characterBox(previous), player)
-	current.stage.updateAllExcept(characterBox(current), player)
-}
-
-func updateAllAfterMovement(current, previous *Tile) {
-	previous.stage.updateAll(characterBox(previous))
-	current.stage.updateAll(characterBox(current))
-}
-
-func updatePlayerAfterMovement(player *Player, current, previous *Tile) {
-	impactedHighlights := player.updateSpaceHighlights()
-
-	playerIcon := playerBoxSpecifc(current.y, current.x, player.getIconSync())
-
-	previousBoxes := ""
-	if previous != nil && previous.stage == current.stage {
-		previousBoxes += characterBox(previous)
-	}
-
-	player.updates <- []byte(highlightBoxesForPlayer(player, impactedHighlights) + previousBoxes + playerIcon)
+func updatePlayerHighlights(player *Player) {
+	impactedTiles := player.updateSpaceHighlights()
+	player.updates <- highlightBoxesForPlayer(player, impactedTiles)
 }
 
 func updatePlayerAfterStageChange(p *Player) {
@@ -299,26 +291,6 @@ func (player *Player) updatePlayerBox() {
 	icon := player.setIcon()
 	tile := player.getTileSync()
 	updateOne(playerBoxSpecifc(tile.y, tile.x, icon), player)
-}
-
-func updateIconForAll(player *Player) {
-	player.setIcon()
-	tile := player.getTileSync()
-	tile.stage.updateAll(characterBox(tile))
-}
-
-func updateIconForAllIfTangible(player *Player) {
-	player.setIcon()
-	ownLock := player.tangibilityLock.TryLock()
-	if !ownLock {
-		return
-	}
-	defer player.tangibilityLock.Unlock()
-	if !player.tangible {
-		return
-	}
-	tile := player.getTileSync()
-	tile.stage.updateAll(characterBox(tile))
 }
 
 func sendSoundToPlayer(player *Player, soundName string) {
@@ -382,6 +354,20 @@ func (player *Player) setHatByName(hatName string) {
 	}
 	player.setHat(hat)
 	updateIconForAllIfTangible(player) // May not originate from click hence check tangible
+}
+
+func updateIconForAllIfTangible(player *Player) {
+	player.setIcon()
+	ownLock := player.tangibilityLock.TryLock()
+	if !ownLock {
+		return
+	}
+	defer player.tangibilityLock.Unlock()
+	if !player.tangible {
+		return
+	}
+	tile := player.getTileSync()
+	tile.updateAll(characterBox(tile))
 }
 
 func (player *Player) setHat(hat string) {

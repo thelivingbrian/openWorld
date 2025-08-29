@@ -100,6 +100,7 @@ func handleNewPlayer(player *Player) {
 		lastRead = currentRead
 
 		player.handlePress(event, previous)
+		player.tryTrack()
 		previous = event.Name
 	}
 }
@@ -170,11 +171,11 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	case "g":
 		makeHallucinate(player)
 	case "h":
-		// Unimplemented
+		oldFx(player)
 	case "q":
-		// Unimplemented
+		// unimplemented
 	case "e":
-		// Unimplemented
+		// unimplemented
 	case "Shift-On":
 		updateOne(divInputShift(), player)
 	case "Shift-Off":
@@ -225,7 +226,7 @@ func (m *MockConn) SetReadDeadline(t time.Time) error {
 func spawnNewPlayerWithRandomMovement(ref *Player, interval int) (*Player, context.CancelFunc) {
 	username := "user-" + uuid.New().String()
 	refTile := ref.getTileSync()
-	record := PlayerRecord{Username: username, Health: 50, StageName: refTile.stage.name, X: refTile.x, Y: refTile.y, Team: "test-team-2"}
+	record := PlayerRecord{Username: username, Health: 50, StageName: refTile.stage.name, X: refTile.x, Y: refTile.y, Team: " cinnamon"}
 	loginRequest := createLoginRequest(record)
 	ref.world.addIncoming(loginRequest)
 	newPlayer := ref.world.join(loginRequest, &MockConn{})

@@ -10,14 +10,22 @@ import (
 ////////////////////////////////////////////////////////////
 // Quickswaps / screen
 
-func emptyScreenForStage(stage *Stage) []byte {
+func emptyScreenBySize(height, width int) []byte {
 	var buf bytes.Buffer
-	err := tmpl.ExecuteTemplate(&buf, "player-screen", stage.tiles)
+	err := tmpl.ExecuteTemplate(&buf, "player-screen", NewEmptyGrid(height, width))
 	if err != nil {
 		panic(err)
 	}
 
 	return buf.Bytes()
+}
+
+func NewEmptyGrid(n, m int) [][]struct{} {
+	grid := make([][]struct{}, n)
+	for i := range grid {
+		grid[i] = make([]struct{}, m)
+	}
+	return grid
 }
 
 func entireScreenAsSwaps(player *Player) []byte {
@@ -34,16 +42,21 @@ func swapsForTilesWithHighlights(tiles [][]*Tile, highlights map[*Tile]bool) []b
 			if found {
 				highlightColor = spaceHighlighter()
 			}
-			tileSwaps := swapsForTile(tiles[y][x], highlightColor)
+			tileSwaps := swapsForTileWithHighlight(tiles[y][x], highlightColor)
 			buf.WriteString(tileSwaps)
 		}
 	}
 	return buf.Bytes()
 }
 
-func swapsForTile(tile *Tile, highlight string) string {
+func swapsForTileWithHighlight(tile *Tile, highlight string) string {
 	svgtag := svgFromTile(tile)
 	return fmt.Sprintf(tile.quickSwapTemplate, characterBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x, tile.stage.weather), oobHighlightBox(tile, highlight))
+}
+
+func swapsForTileNoHighlight(tile *Tile) string {
+	svgtag := svgFromTile(tile)
+	return fmt.Sprintf(tile.quickSwapTemplate, characterBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x, tile.stage.weather), "")
 }
 
 ////////////////////////////////////////////////////////////
@@ -129,7 +142,7 @@ func divBottomInvalid(s string) string {
 // Boxes
 
 func playerBoxSpecifc(y, x int, icon string) string {
-	return fmt.Sprintf(`[~ id="Lp1-%d-%d" class="box zp %s"]`, y, x, icon)
+	return fmt.Sprintf(`[~ id="Lp1" y="%d" x="%d" class="box zp %s"]`, y, x, icon)
 }
 
 func characterBox(tile *Tile) string {
@@ -145,7 +158,7 @@ func interactableBoxSpecific(y, x int, interactable *Interactable) string {
 	if interactable != nil {
 		indicator = interactable.cssClass
 	}
-	return fmt.Sprintf(`[~ id="Li1-%d-%d" class="box zi %s"]`, y, x, indicator)
+	return fmt.Sprintf(`[~ id="Li1" y="%d" x="%d" class="box zi %s"]`, y, x, indicator)
 }
 
 func interactableBox(tile *Tile) string {
@@ -155,15 +168,16 @@ func interactableBox(tile *Tile) string {
 	if tile.interactable != nil {
 		indicator = tile.interactable.cssClass
 	}
-	return fmt.Sprintf(`[~ id="Li1-%d-%d" class="box zi %s"]`, tile.y, tile.x, indicator)
+	return fmt.Sprintf(`[~ id="Li1" y="%d" x="%d" class="box zi %s"]`, tile.y, tile.x, indicator)
 }
 
 func emptyWeatherBox(y, x int, weather string) string {
 	//  blue trsp20 for gloom
-	return fmt.Sprintf(`[~ id="Lw1-%d-%d" class="box zw %s"]`, y, x, weather)
+	return fmt.Sprintf(`[~ id="Lw1" y="%d" x="%d" class="box zw %s"]`, y, x, weather)
 }
 
-func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
+// Return []byte
+func highlightBoxesForPlayer(player *Player, tiles []*Tile) []byte {
 	highlights := ""
 
 	playerHighlightCopy := duplicateMapOfHighlights(player)
@@ -175,8 +189,8 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 			continue
 		}
 
-		_, impactsHud := playerHighlightCopy[tile]
-		if impactsHud {
+		_, shouldBeHighlighted := playerHighlightCopy[tile]
+		if shouldBeHighlighted {
 			highlights += oobHighlightBox(tile, spaceHighlighter())
 			continue
 		}
@@ -184,7 +198,7 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 		highlights += oobHighlightBox(tile, "")
 	}
 
-	return highlights
+	return []byte(highlights)
 }
 
 func duplicateMapOfHighlights(player *Player) map[*Tile]bool {
@@ -199,12 +213,12 @@ func duplicateMapOfHighlights(player *Player) map[*Tile]bool {
 }
 
 func oobHighlightBox(tile *Tile, cssClass string) string {
-	template := `[~ id="Lt1-%d-%d" class="box top %s"]`
+	template := `[~ id="Lt1" y="%d" x="%d" class="box top %s"]`
 	return fmt.Sprintf(template, tile.y, tile.x, cssClass)
 }
 
 func weatherBox(tile *Tile, cssClass string) string {
-	template := `[~ id="Lw1-%d-%d" class="box zw %s"]`
+	template := `[~ id="Lw1" y="%d" x="%d" class="box zw %s"]`
 	return fmt.Sprintf(template, tile.y, tile.x, cssClass)
 }
 
@@ -212,9 +226,7 @@ func svgFromTile(tile *Tile) string {
 	tile.itemMutex.Lock()
 	defer tile.itemMutex.Unlock()
 
-	template := `[~ id="%s" class="%s"]`
-
-	svgId := fmt.Sprintf("Ls1-%d-%d", tile.y, tile.x)
+	template := `[~ id="Ls1" y="%d" x="%d" class="%s"]`
 
 	classes := "box zs "
 	if tile.powerUp != nil {
@@ -227,7 +239,7 @@ func svgFromTile(tile *Tile) string {
 		classes += "svgBlue "
 	}
 
-	return fmt.Sprintf(template, svgId, classes)
+	return fmt.Sprintf(template, tile.y, tile.x, classes)
 }
 
 ///////////////////////////////////////////
@@ -262,12 +274,12 @@ func divModalDisabled() string {
 
 func divInput() string {
 	// uses ws bypass to function
-	return `[~ id="dpad" class="container"][~ id="dpad-shift" class="container hidden"]`
+	return `[~ id="dpad" y="" x="" class="container"][~ id="dpad-shift" y="" x="" class="container hidden"]`
 }
 
 func divInputShift() string {
 	// uses ws bypass to function
-	return `[~ id="dpad" class="container hidden"][~ id="dpad-shift" class="container"]`
+	return `[~ id="dpad" y="" x="" class="container hidden"][~ id="dpad-shift" y="" x="" class="container"]`
 }
 
 func divInputDisabled() string {

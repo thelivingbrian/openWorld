@@ -118,13 +118,14 @@ func getConfiguration() *Configuration {
 	// Runtime configuration
 	config.guestsEnabled.Store(strings.ToUpper(os.Getenv("GUESTS_ENABLED")) == "TRUE")
 
-	if environmentName == "prod" {
+	switch environmentName {
+	case "prod":
 		log.Fatal("No Prod Environment")
-	} else if environmentName == "test" {
+	case "test":
 		// Nothing to do
-	} else if environmentName == "dev" {
+	case "dev":
 		config.usesTLS = false
-	} else {
+	default:
 		log.Fatal("No Configuration, exiting")
 	}
 

@@ -25,6 +25,8 @@ type Tile struct {
 	boosts            int
 	quickSwapTemplate string
 	bottomText        string
+	primaryZone       *CameraZone   // Zone tile belongs to (Can see tile by defalt)
+	adjacentZones     []*CameraZone // Cameras in these zones only can also see this tile
 }
 
 type Teleport struct {
@@ -79,7 +81,7 @@ func makeQuickSwapTemplate(mat Material, y, x int) string {
 }
 
 func swapToken(y, x int, prefix, zIndex, color string) string {
-	return fmt.Sprintf(`[~ id="%s-%d-%d" class="box %s %s"]`, prefix, y, x, zIndex, color)
+	return fmt.Sprintf(`[~ id="%s" y="%d" x="%d" class="box %s %s"]`, prefix, y, x, zIndex, color)
 }
 
 ////////////////////////////////////////////////////////////
@@ -87,11 +89,11 @@ func swapToken(y, x int, prefix, zIndex, color string) string {
 
 // Player
 
-func (tile *Tile) addPlayerAndNotifyOthers(player *Player) {
+func (tile *Tile) addPlayerAndNotifyAll(player *Player) {
 	player.tileLock.Lock()
 	defer player.tileLock.Unlock()
 	tile.addLockedPlayerToTile(player)
-	tile.stage.updateAllExcept(characterBox(tile), player)
+	tile.updateAll(characterBox(tile))
 }
 
 func (tile *Tile) addLockedPlayerToTile(player *Player) {
@@ -105,7 +107,7 @@ func (tile *Tile) addLockedPlayerToTile(player *Player) {
 
 	if tile.collectItemsForPlayer(player) {
 		sendSoundToPlayer(player, "money")
-		tile.stage.updateAll(svgFromTile(tile))
+		tile.updateAll(svgFromTile(tile))
 	}
 
 	// player's tile lock should be held
@@ -153,14 +155,14 @@ func addNPCAndNotifyOthers(npc *NonPlayer, tile *Tile) {
 	npc.tileLock.Lock()
 	defer npc.tileLock.Unlock()
 	addLockedNPCToTile(npc, tile)
-	tile.stage.updateAll(characterBox(tile))
+	tile.updateAll(characterBox(tile))
 }
 
 func addLockedNPCToTile(npc *NonPlayer, tile *Tile) {
 	tile.CharacterMutex.Lock()
 	defer tile.CharacterMutex.Unlock()
 	if collectItemNPC(tile, npc) {
-		tile.stage.updateAll(svgFromTile(tile))
+		tile.updateAll(svgFromTile(tile))
 	}
 	tile.characterMap[npc.id] = npc
 	npc.tile = tile
@@ -193,7 +195,7 @@ func collectItemNPC(tile *Tile, npc *NonPlayer) bool {
 func (tile *Tile) removePlayerAndNotifyOthers(player *Player) (success bool) {
 	success = tryRemoveCharacterById(tile, player.id)
 	if success {
-		tile.stage.updateAllExcept(characterBox(tile), player)
+		tile.updateAll(characterBox(tile))
 	} else {
 		// Possible under what circumstance :
 		//   Handle death can race with logout to produce this (harmlessly?)
@@ -225,18 +227,33 @@ func (tile *Tile) getACharacter() Character {
 }
 
 /////////////////////////////////////////////////////////////////////
+// Updates
+
+func (tile *Tile) updateAll(update string) {
+	// Send to zone containing this tile and neighboring zones (Only cameras in these zones can see this tile)
+	tile.primaryZone.updateAll(update)
+	for _, section := range tile.adjacentZones {
+		section.updateAll(update)
+	}
+}
+
+func (tile *Tile) updateAllWithSound(soundName string) {
+	tile.updateAll(soundTriggerByName(soundName))
+}
+
+/////////////////////////////////////////////////////////////////////
 // Damage
 
-func damageAndIndicate(tiles []*Tile, initiator Character, stage *Stage, damage int) int {
+func damageAndIndicate(tiles []*Tile, initiator Character, damage int) int {
 	fatalities := 0
+	color := randomFieryColor()
 	for _, tile := range tiles {
 		fatalities += tile.damageAll(damage, initiator)
 		destroyFragileInteractable(tile, initiator)
 		tile.eventsInFlight.Add(1)
+		tile.updateAll(weatherBox(tile, color) + soundTriggerByName("explosion"))
 		go tile.tryToNotifyAfter(100)
 	}
-	damageBoxes := sliceOfTileToWeatherBoxes(tiles, randomFieryColor())
-	stage.updateAll(damageBoxes + soundTriggerByName("explosion"))
 	return fatalities
 }
 
@@ -248,7 +265,7 @@ func (tile *Tile) damageAll(dmg int, initiator Character) int {
 			fatalities++
 		}
 	}
-	tile.stage.updateAll(characterBox(tile))
+	tile.updateAll(characterBox(tile))
 	return fatalities
 }
 
@@ -317,7 +334,7 @@ func (tile *Tile) tryToNotifyAfter(delay int) {
 	time.Sleep(time.Millisecond * time.Duration(delay))
 	if tile.eventsInFlight.Add(-1) == 0 {
 		// blue trsp20 for gloom
-		tile.stage.updateAll(weatherBox(tile, tile.stage.weather))
+		tile.updateAll(weatherBox(tile, tile.stage.weather))
 	}
 }
 
@@ -338,7 +355,7 @@ func replaceNilInteractable(tile *Tile, incoming *Interactable) bool {
 
 func setLockedInteractableAndUpdate(tile *Tile, incoming *Interactable) {
 	tile.interactable = incoming
-	tile.stage.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
+	tile.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
 }
 
 func destroyInteractable(tile *Tile, _ *Player) {
@@ -347,7 +364,7 @@ func destroyInteractable(tile *Tile, _ *Player) {
 	defer tile.interactableMutex.Unlock()
 	if tile.interactable != nil {
 		tile.interactable = nil
-		tile.stage.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
+		tile.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
 	}
 }
 
@@ -357,7 +374,7 @@ func destroyFragileInteractable(tile *Tile, _ Character) {
 	defer tile.interactableMutex.Unlock()
 	if tile.interactable != nil && tile.interactable.fragile {
 		tile.interactable = nil
-		tile.stage.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
+		tile.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
 	}
 }
 
@@ -415,14 +432,6 @@ func mapOfTileToArray(m map[*Tile]bool) []*Tile {
 		out = append(out, tile)
 	}
 	return out
-}
-
-func sliceOfTileToWeatherBoxes(tiles []*Tile, cssClass string) string {
-	html := ``
-	for _, tile := range tiles {
-		html += weatherBox(tile, cssClass)
-	}
-	return html
 }
 
 func sliceOfTileToHighlightBoxes(tiles []*Tile, cssClass string) string {
@@ -484,7 +493,7 @@ func getTilesInRadius(tile *Tile, r int) []*Tile {
 
 func (tile *Tile) addPowerUpAndNotifyAll(shape [][2]int) {
 	tile.addPowerUp(shape)
-	tile.stage.updateAll(svgFromTile(tile))
+	tile.updateAll(svgFromTile(tile))
 }
 
 func (tile *Tile) addPowerUp(shape [][2]int) {
@@ -495,7 +504,7 @@ func (tile *Tile) addPowerUp(shape [][2]int) {
 
 func (tile *Tile) addBoostsAndNotifyAll() {
 	tile.addBoosts(10)
-	tile.stage.updateAll(svgFromTile(tile))
+	tile.updateAll(svgFromTile(tile))
 }
 
 func (tile *Tile) addBoosts(amount int) {
@@ -505,12 +514,8 @@ func (tile *Tile) addBoosts(amount int) {
 }
 
 func (tile *Tile) addMoneyAndNotifyAll(amount int) {
-	tile.addMoneyAndNotifyAllExcept(amount, nil)
-}
-
-func (tile *Tile) addMoneyAndNotifyAllExcept(amount int, player *Player) {
 	tile.addMoney(amount)
-	tile.stage.updateAllExcept(svgFromTile(tile), player)
+	tile.updateAll(svgFromTile(tile))
 }
 
 func (tile *Tile) addMoney(amount int) {

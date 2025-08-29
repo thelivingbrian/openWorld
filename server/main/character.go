@@ -212,14 +212,14 @@ func (player *Player) fetchStageSync(stagename string) *Stage {
 func (p *Player) transferBetween(source, dest *Tile) {
 	if source.stage == dest.stage {
 		if transferPlayerWithinStage(p, source, dest) {
-			updateOthersAfterMovement(p, dest, source)
-			updatePlayerAfterMovement(p, dest, source)
+			updateAllAfterMovement(dest, source)
+			updatePlayerHighlights(p)
 		}
 	} else {
 		if transferPlayerAcrossStages(p, source, dest) {
-			spawnItemsFor(p, dest.stage)
-			updateOthersAfterMovement(p, dest, source)
+			updateAllAfterMovement(dest, source)
 			updatePlayerAfterStageChange(p)
+			spawnItemsFor(p, dest.stage)
 		}
 	}
 }
@@ -244,10 +244,18 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 	}
 
 	source.stage.removeLockedPlayerById(p.id)
+	p.camera.drop()
 
 	dest.stage.addLockedPlayer(p)
+	p.camera.setView(dest.y, dest.x, dest.stage)
+
 	dest.addLockedPlayerToTile(p)
 	return true
+}
+
+func updateAllAfterMovement(current, previous *Tile) {
+	previous.updateAll(characterBox(previous))
+	current.updateAll(characterBox(current))
 }
 
 func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool { // Returns if given interacable successfully pushed
@@ -469,7 +477,7 @@ func dropMoneyAndUpdate(npc *NonPlayer) {
 	if money != 0 {
 		tile.addMoneyAndNotifyAll(int(money))
 	}
-	tile.stage.updateAllWithSound("clink")
+	tile.updateAll(soundTriggerByName("clink"))
 }
 
 func removeNpcFromTile(npc *NonPlayer) {
@@ -479,7 +487,7 @@ func removeNpcFromTile(npc *NonPlayer) {
 		//logger.Error().Msg("Error - FAILED TO REMOVE NPC") // Normal if dead already
 		return
 	}
-	npc.tile.stage.updateAll(characterBox(npc.tile))
+	npc.tile.updateAll(characterBox(npc.tile))
 }
 
 func (npc *NonPlayer) incrementKillCount() int64 {
@@ -643,7 +651,7 @@ func activatePower(npc *NonPlayer, shapes [][][2]int) {
 			tiles = append(tiles, tile)
 		}
 	}
-	damageAndIndicate(tiles, npc, currentTile.stage, 50)
+	damageAndIndicate(tiles, npc, 50)
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -722,6 +730,9 @@ func cycleForward(path []*Tile, index, depth int) (bool, *Interactable, int) {
 }
 
 func swapIfEmpty(source, target *Tile) bool {
+	if source == nil || target == nil {
+		return false
+	}
 	ownSource := source.interactableMutex.TryLock()
 	if !ownSource {
 		return false
