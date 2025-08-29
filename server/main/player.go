@@ -26,7 +26,7 @@ type Player struct {
 	sessionTimeOutViolations atomic.Int32
 	textUpdatesInFlight      atomic.Int32
 	conn                     WebsocketConnection
-	connLock                 sync.RWMutex
+	connLock                 sync.RWMutex // Never RLocks?
 	tangible                 bool
 	tangibilityLock          sync.Mutex
 	actions                  *Actions
@@ -293,21 +293,6 @@ func (player *Player) updatePlayerBox() {
 	updateOne(playerBoxSpecifc(tile.y, tile.x, icon), player)
 }
 
-// Still an issue re updates and tangibility?
-func updateIconForAllIfTangible(player *Player) {
-	player.setIcon()
-	ownLock := player.tangibilityLock.TryLock()
-	if !ownLock {
-		return
-	}
-	defer player.tangibilityLock.Unlock()
-	if !player.tangible {
-		return
-	}
-	tile := player.getTileSync()
-	tile.updateAll(characterBox(tile))
-}
-
 func sendSoundToPlayer(player *Player, soundName string) {
 	updateOne(soundTriggerByName(soundName), player)
 }
@@ -369,6 +354,20 @@ func (player *Player) setHatByName(hatName string) {
 	}
 	player.setHat(hat)
 	updateIconForAllIfTangible(player) // May not originate from click hence check tangible
+}
+
+func updateIconForAllIfTangible(player *Player) {
+	player.setIcon()
+	ownLock := player.tangibilityLock.TryLock()
+	if !ownLock {
+		return
+	}
+	defer player.tangibilityLock.Unlock()
+	if !player.tangible {
+		return
+	}
+	tile := player.getTileSync()
+	tile.updateAll(characterBox(tile))
 }
 
 func (player *Player) setHat(hat string) {
