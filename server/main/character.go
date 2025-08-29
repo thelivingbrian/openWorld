@@ -131,7 +131,6 @@ func jukeRight(yOff, xOff int, character Character) {
 }
 func jukeLeft(yOff, xOff int, character Character) {
 	rel, rot, current := getRelativeAndRotate(yOff, xOff, character, false)
-	// nil check
 	if !swapIfEmpty(rel, rot) {
 		swapIfEmpty(rel, current)
 	}
