@@ -973,11 +973,12 @@ func Flatten(s Space) (Space, error) {
 	out.AreaWidth = totalW
 	out.Areas = []AreaDescription{flatArea}
 
-	// Todo: set neighbors to self if torus
-	out.Areas[0].North = ""
-	out.Areas[0].South = ""
-	out.Areas[0].East = ""
-	out.Areas[0].West = ""
+	if out.Topology == "torus" {
+		out.Areas[0].North = out.Name
+		out.Areas[0].South = out.Name
+		out.Areas[0].East = out.Name
+		out.Areas[0].West = out.Name
+	}
 
 	return out, nil
 }
