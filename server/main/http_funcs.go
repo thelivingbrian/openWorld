@@ -275,7 +275,7 @@ func createNewPlayerRecord(username, team string) PlayerRecord {
 		Username:  username,
 		Team:      team,
 		Health:    100,
-		StageName: "camera-test", // Todo : Change back to tutorial entry or accept as parameter
+		StageName: "tutorial1:0-0",
 		X:         3,
 		Y:         3,
 		Money:     80,
