@@ -255,17 +255,8 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 }
 
 func updateAllAfterMovement(current, previous *Tile) {
-	updateAllAfterMovementA(current, previous)
-}
-
-func updateAllAfterMovementA(current, previous *Tile) {
 	previous.updateAll(characterBox(previous))
 	current.updateAll(characterBox(current))
-}
-
-func updateAllAfterMovementB(current, previous *Tile) {
-	previous.stage.updateAll(characterBox(previous))
-	current.stage.updateAll(characterBox(current))
 }
 
 func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool { // Returns if given interacable successfully pushed
