@@ -278,7 +278,7 @@ func spawnMoney(amounts []int) func(*Interactable, *Player, *Tile) (*Interactabl
 }
 
 func finishTutorial(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-	destroyEveryotherInteractable(i, p, t)
+	destroyEveryOtherInteractable(i, p, t)
 	p.goalsScored.CompareAndSwap(0, 1)
 	p.updateBottomText("You scored a goal! View stats in menu... ")
 	go func() {
@@ -296,7 +296,7 @@ func finishTutorial(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	return nil, false
 }
 
-func destroyEveryotherInteractable(_ *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+func destroyEveryOtherInteractable(_ *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	tiles := everyOtherTileOnStage(t)
 	for i := range tiles {
 		go destroyInteractable(tiles[i], p)

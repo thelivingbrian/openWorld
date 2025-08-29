@@ -125,7 +125,7 @@ func (world *World) playHandler(w http.ResponseWriter, r *http.Request) {
 func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 	id, ok := getUserIdFromSession(r)
 	if !ok {
-		// Redirect to "/" to match homeserver guest config (?)
+		// Redirect to "/" to match homeserver guest config (As opposed to this world's config)
 		tmpl.ExecuteTemplate(w, "homepage", world.config.guestsEnabled.Load())
 		return
 	}

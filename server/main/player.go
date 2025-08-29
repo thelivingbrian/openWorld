@@ -238,7 +238,7 @@ func sendUpdate(player *Player, update []byte) error {
 // Updates - Enqueue
 func updatePlayerHighlights(player *Player) {
 	impactedTiles := player.updateSpaceHighlights()
-	player.updates <- []byte(highlightBoxesForPlayer(player, impactedTiles))
+	player.updates <- highlightBoxesForPlayer(player, impactedTiles)
 }
 
 func updatePlayerAfterStageChange(p *Player) {

@@ -42,7 +42,7 @@ func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
 // Awkward?
 func (player *Player) tryTrack() {
 	newTiles := player.camera.track(player)
-	player.updates <- []byte(highlightBoxesForPlayer(player, newTiles))
+	player.updates <- highlightBoxesForPlayer(player, newTiles)
 }
 
 func (camera *Camera) track(character Character) []*Tile {
@@ -51,7 +51,6 @@ func (camera *Camera) track(character Character) []*Tile {
 	camera.positionLock.Lock()
 	defer camera.positionLock.Unlock()
 	if camera.topLeft == nil {
-		// This has Occurred. Unsure why.
 		fmt.Println("WARN: Camera topLeft is nil in track")
 		return nil
 	}
@@ -75,7 +74,7 @@ func updateTiles(camera *Camera, newY, newX int) []*Tile {
 
 	if oldTopLeft.primaryZone != newTopLeft.primaryZone {
 		if !oldTopLeft.primaryZone.tryRemoveCamera(camera) {
-			// Can this ever happen? Does it add security.
+			// Can this ever happen?
 			fmt.Println("ERROR: Camera not found section, cannot add to new section")
 			return nil
 		}
@@ -115,7 +114,6 @@ func (camera *Camera) drop() {
 	camera.positionLock.Lock()
 	defer camera.positionLock.Unlock()
 	if camera.topLeft == nil {
-		// This has happenned. Not sure why.
 		fmt.Println("WARN: Camera topLeft is nil in drop")
 		return
 	}
@@ -128,7 +126,6 @@ func (camera *Camera) drop() {
 }
 
 func topLeft(gridHeight, gridWidth, viewHeight, viewWidth, y, x int) (row, col int) {
-	// clamp the requested window
 	if viewHeight > gridHeight {
 		viewHeight = gridHeight
 	}
@@ -157,7 +154,6 @@ func topLeft(gridHeight, gridWidth, viewHeight, viewWidth, y, x int) (row, col i
 }
 
 func axisAdjust(pos, oldBoundary, viewLength, gridLength, padding int) int {
-	// Nothing to do if the view already covers the whole axis.
 	if viewLength >= gridLength {
 		return 0
 	}

@@ -10,18 +10,6 @@ import (
 ////////////////////////////////////////////////////////////
 // Quickswaps / screen
 
-/*
-func emptyScreenForStage(stage *Stage) []byte {
-	var buf bytes.Buffer
-	err := tmpl.ExecuteTemplate(&buf, "player-screen", stage.tiles)
-	if err != nil {
-		panic(err)
-	}
-
-	return buf.Bytes()
-}
-*/
-
 func emptyScreenBySize(height, width int) []byte {
 	var buf bytes.Buffer
 	err := tmpl.ExecuteTemplate(&buf, "player-screen", NewEmptyGrid(height, width))
@@ -189,7 +177,7 @@ func emptyWeatherBox(y, x int, weather string) string {
 }
 
 // Return []byte
-func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
+func highlightBoxesForPlayer(player *Player, tiles []*Tile) []byte {
 	highlights := ""
 
 	playerHighlightCopy := duplicateMapOfHighlights(player)
@@ -210,7 +198,7 @@ func highlightBoxesForPlayer(player *Player, tiles []*Tile) string {
 		highlights += oobHighlightBox(tile, "")
 	}
 
-	return highlights
+	return []byte(highlights)
 }
 
 func duplicateMapOfHighlights(player *Player) map[*Tile]bool {

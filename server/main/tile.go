@@ -434,16 +434,6 @@ func mapOfTileToArray(m map[*Tile]bool) []*Tile {
 	return out
 }
 
-/*
-func sliceOfTileToWeatherBoxes(tiles []*Tile, cssClass string) string {
-	html := ``
-	for _, tile := range tiles {
-		html += weatherBox(tile, cssClass)
-	}
-	return html
-}
-*/
-
 func sliceOfTileToHighlightBoxes(tiles []*Tile, cssClass string) string {
 	html := ``
 	for _, tile := range tiles {

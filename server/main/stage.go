@@ -6,9 +6,8 @@ import (
 )
 
 type Stage struct {
-	tiles [][]*Tile
-	//cameraZones        [][]*CameraZone  // Unused / Attached to tile, any use for reference?
-	playerMap          map[string]*Player // Only used for updates // Now unused ? (text or etc ? )
+	tiles              [][]*Tile
+	playerMap          map[string]*Player // Previously used for updates - Now unused.
 	playerMutex        sync.RWMutex
 	name               string
 	north              string
@@ -83,7 +82,6 @@ func createStageFromArea(area Area) *Stage {
 			}
 		}
 	}
-	// This should handle case where area.tiles is smaller than VIEW_HEIGHT or VIEW_WIDTH
 
 	for y := range outputStage.tiles {
 		outputStage.tiles[y] = make([]*Tile, len(area.Tiles[y]))
@@ -149,15 +147,14 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 		log.Fatal("Fatal: Invalid coords to place on stage.")
 	}
 
-	stage.addLockedPlayer(p) // Still needed?
+	stage.addLockedPlayer(p)
 	stage.tiles[y][x].addPlayerAndNotifyAll(p)
-	spawnItemsFor(p, stage) // check updates
+	spawnItemsFor(p, stage)
 
 	p.setSpaceHighlights()
 
 	viewport := p.camera.setView(y, x, stage)
-
-	p.updates <- []byte(highlightBoxesForPlayer(p, viewport))
+	p.updates <- highlightBoxesForPlayer(p, viewport)
 }
 
 ///////////////////////////////////////////////////
@@ -167,31 +164,6 @@ func spawnItemsFor(p *Player, stage *Stage) {
 	for i := range stage.spawn {
 		stage.spawn[i].activateFor(p, stage)
 	}
-}
-
-//////////////////////////////////////////////////
-// Send Updates
-
-// May be worth leaving implemented for niche cases?
-
-func (stage *Stage) updateAll(update string) {
-	stage.updateAllExcept(update, nil)
-}
-
-func (stage *Stage) updateAllExcept(update string, ignore *Player) {
-	updateAsBytes := []byte(update)
-	stage.playerMutex.RLock()
-	defer stage.playerMutex.RUnlock()
-	for _, player := range stage.playerMap {
-		if player == ignore {
-			continue
-		}
-		player.updates <- updateAsBytes
-	}
-}
-
-func (stage *Stage) updateAllWithSound(soundName string) {
-	stage.updateAll(soundTriggerByName(soundName))
 }
 
 /////////////////////////////////////////////////////////////

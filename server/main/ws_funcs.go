@@ -170,16 +170,12 @@ func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 		updateEntireExistingScreen(player)
 	case "g":
 		makeHallucinate(player)
-		oldFx(player)
 	case "h":
-		updateOne(`[~ id="shift" y="1" x="1" class=""]`, player)
-		//player.cycleHats()
+		oldFx(player)
 	case "q":
-		// Todo: replace w/ unimplemented
-		spawnNewPlayerWithRandomMovement(player, 100)
+		// unimplemented
 	case "e":
-		// Todo: replace w/ Unimplemented
-		onCurrentStage(basicSpawnWeak)(player)
+		// unimplemented
 	case "Shift-On":
 		updateOne(divInputShift(), player)
 	case "Shift-Off":
