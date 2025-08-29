@@ -5,7 +5,6 @@ import (
 	"sync"
 )
 
-// Odd grid size allows centering player with padding - Has problems with smaller grid
 const VIEW_HEIGHT = 16
 const VIEW_WIDTH = 16
 
