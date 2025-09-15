@@ -340,6 +340,16 @@ Enter here
 
 One way or two way.
 
+-goals (new): 
+  - add tests for camera
+    - Count number of updates? 
+  - choose license
+    - AGPLv3 
+    - FSL-1.1-MIT ? 
+  - modularize interactions
+  - better workspace css 
+  - Highscore from menu
+  - Horizontal mobile
 
 -goals:
 
