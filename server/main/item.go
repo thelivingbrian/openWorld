@@ -219,8 +219,10 @@ func tutorial1Ring(player *Player) {
 		fragile:  true,
 	}
 	copy := ring
-	trySetInteractable(tile, &ring)
+	trySetInteractable(tile, &ring) // Spawns are invisible
+	tile.updateAll(interactableBox(tile))
 	trySetInteractable(tile2, &copy)
+	tile2.updateAll(interactableBox(tile2))
 }
 
 func openNamedMenuAfterDelay(name string, delay int) func(*Player) {
