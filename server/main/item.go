@@ -220,7 +220,9 @@ func tutorial1Ring(player *Player) {
 	}
 	copy := ring
 	trySetInteractable(tile, &ring)
+	tile.updateAll(interactableBox(tile))
 	trySetInteractable(tile2, &copy)
+	tile2.updateAll(interactableBox(tile2))
 }
 
 func openNamedMenuAfterDelay(name string, delay int) func(*Player) {

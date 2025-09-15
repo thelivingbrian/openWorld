@@ -190,6 +190,7 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 				if (yStr === "") {
 					target = document.getElementById(id);
 					target.className = classes;
+					continue
 				}
 				const y = Number(yStr) - topLeftY
 				const x = Number(xStr) - topLeftX
