@@ -219,7 +219,7 @@ func tutorial1Ring(player *Player) {
 		fragile:  true,
 	}
 	copy := ring
-	trySetInteractable(tile, &ring) // Spawns are invisible
+	trySetInteractable(tile, &ring)
 	tile.updateAll(interactableBox(tile))
 	trySetInteractable(tile2, &copy)
 	tile2.updateAll(interactableBox(tile2))
