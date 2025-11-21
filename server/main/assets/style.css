@@ -60,6 +60,34 @@ body {
     margin-top: 6;
 }
 
+#game {
+    position: relative;
+    width: 480px;
+    height: 480px;
+}
+
+/* Make all canvases overlap in the same spot */
+#game canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;     /* avoid weird inline spacing */
+}
+
+/* Optional: control layer order */
+#g1  { z-index: 1; }
+#g2  { z-index: 2; }
+#f1  { z-index: 3; }
+#f2  { z-index: 4; }
+#p   { z-index: 5; }
+#i   { z-index: 6; }
+#s   { z-index: 7; }
+#c1  { z-index: 8; }
+#c2  { z-index: 9; }
+#w   { z-index: 10; }
+#top { z-index: 11; }
+
+
 .center-vertically {
     display: flex;
     align-items: center;

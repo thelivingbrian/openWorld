@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"time"
@@ -34,7 +35,7 @@ var (
 	}
 )
 
-const MAX_IDLE_IN_SECONDS = 600 * time.Second
+const MAX_IDLE_IN_SECONDS = 60 * time.Second
 
 func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -76,6 +77,7 @@ func handleNewPlayer(player *Player) {
 		_, msg, err := player.conn.ReadMessage()
 		if err != nil {
 			// break will initiate logout:
+			fmt.Println("Signing out")
 			sendUpdate(player, divLogOutResume("Inactive. Logging out", player.world.config.domainName))
 			break
 		}
