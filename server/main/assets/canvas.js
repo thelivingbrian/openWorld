@@ -130,33 +130,52 @@ function drawGridCell(id, y, x, classes) {
     const px = x * cellSize;
     const py = y * cellSize;
 
-    // Always clear the tile first
+    // always clear this tile first
     ctx.clearRect(px, py, cellSize, cellSize);
 
-    if (alpha === 0 || (!fillColor && !strokeColor)) {
-        return; // fully transparent / invisible
-    }
+    // fully transparent / invisible
+    if (alpha === 0 || (!fillColor && !strokeColor)) return;
 
     const radii = getCornerRadii(classes, cellSize);
 
     ctx.save();
     ctx.globalAlpha = alpha;
 
-    ctx.beginPath();
-    pathRoundedRect(ctx, px, py, cellSize, cellSize, radii);
-
-    // Fill
-    if (fillColor) {
-        ctx.fillStyle = fillColor;
+    // 1) Draw border as an outer filled rounded rect
+    if (strokeColor && borderWidth > 0) {
+        ctx.fillStyle = strokeColor;
+        ctx.beginPath();
+        pathRoundedRect(ctx, px, py, cellSize, cellSize, radii);
         ctx.fill();
     }
 
-    // Stroke
-    if (strokeColor && borderWidth > 0) {
-        ctx.lineWidth = borderWidth;
-        ctx.strokeStyle = strokeColor;
-        ctx.stroke();
+    // 2) Draw inner fill as a smaller rounded rect on top
+
+    const inset = borderWidth; // keep border entirely inside the tile
+    const innerX = px + inset;
+    const innerY = py + inset;
+    const innerW = cellSize - inset * 2;
+    const innerH = cellSize - inset * 2;
+
+    if (innerW > 0 && innerH > 0) {
+        const innerRadii = radii.map(r => Math.max(0, r - inset));
+        
+        ctx.beginPath();
+        pathRoundedRect(ctx, innerX, innerY, innerW, innerH, innerRadii);
+
+        ctx.save();
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.fillStyle = "rgba(0,0,0,1)";
+        ctx.fill();
+        ctx.restore();
+
+        if (fillColor) {
+            // Normal case: fill color exists
+            ctx.fillStyle = fillColor;
+            ctx.fill();
+        } 
     }
+    
 
     ctx.restore();
 }
