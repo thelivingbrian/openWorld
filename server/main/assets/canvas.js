@@ -9,29 +9,6 @@ const layerIds = [
     "Lt1",
 ];
 
-let gridCtx = {};          // id -> 2d context
-let cellSize   = 30;          // will match your grid / canvas size
-
-// full world state: world[layerId][worldY][worldX] = classes string
-// you size this however big your world is
-const maxStageHeight = 256;
-const maxStageWidth  = 256;
-
-let stage = {};
-for (const id of layerIds) {
-    stage[id] = Array.from({ length: maxStageHeight }, () =>
-        Array.from({ length: maxStageWidth }, () => "")
-    );
-}
-
-function getCtx(id) {
-    if (!gridCtx[id]) {
-        const canvas = document.getElementById(id);
-        gridCtx[id]  = canvas.getContext("2d");
-    }
-    return gridCtx[id];
-}
-
 const COLOR_MAP = {
     "invisible": "rgba(0, 0, 0, 0)",
     "day": "rgb(170, 255, 255)",
@@ -78,75 +55,44 @@ const COLOR_MAP = {
     "dark-lavender": "rgb(172, 152, 219)",
 };
 
-function getColorAndAlphaForClasses(classes) {
-    const tokens = classes.split(/\s+/);
+const BORDER_WIDTH_MAP = {
+    thin: 1,
+    med:  2,
+    thick: 5,
+};
 
-    let baseColor = null;
-    let alpha = 1.0;
+let canvasLayers = {};          
+let cellSize   = 30;          
 
-    for (const token of tokens) {
-        // Handle transparency marker: trsp20, trsp40, trsp60, trsp80
-        const trsp = token.match(/^trsp(\d{2})$/);
-        if (trsp) {
-            const pct = Number(trsp[1]);     // e.g. 20
-            alpha = pct / 100.0;            // visibility: 0.2, 0.4, 0.6, 0.8
-            continue;
-        }
+const maxStageHeight = 256;
+const maxStageWidth  = 256;
 
-        // Strip -b / -t variants; we only care about base color class
-        const clean = token.replace(/-[bt]$/, "");
-
-        if (COLOR_MAP[clean]) {
-            baseColor = COLOR_MAP[clean];
-        }
-    }
-
-    // Special case: invisible class
-    if (tokens.includes("invisible")) {
-        return { baseColor: null, alpha: 0 }; // draw function will clearRect
-    }
-
-    // No recognized color → treat as fully transparent (don't draw)
-    if (!baseColor) {
-        return { baseColor: null, alpha: 0 };
-    }
-
-    return { baseColor, alpha };
+let stage = {};
+for (const id of layerIds) {
+    stage[id] = Array.from({ length: maxStageHeight }, () =>
+        Array.from({ length: maxStageWidth }, () => "")
+    );
 }
 
-function drawGridCell(id, y, x, classes) {
-    const ctx = getCtx(id);
-    if (!ctx) return;
-
-    const { baseColor, alpha } = getColorAndAlphaForClasses(classes);
-
-    const px = x * cellSize;
-    const py = y * cellSize;
-
-    // If no color or explicitly invisible → clear this tile on this canvas
-    if (!baseColor || classes.includes("invisible")) {
-        ctx.clearRect(px, py, cellSize, cellSize);
-        return;
+function getCanvasContextByLayerId(id) {
+    if (!canvasLayers[id]) {
+        const canvas = document.getElementById(id);
+        canvasLayers[id]  = canvas.getContext("2d");
     }
-
-    // Erase old contents of *this tile* before drawing new color
-    ctx.clearRect(px, py, cellSize, cellSize);
-
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.fillStyle = baseColor;
-    ctx.fillRect(px, py, cellSize, cellSize);
-    ctx.restore();
+    return canvasLayers[id];
 }
+
+// Redraw entire stage
 
 function redrawStage() {
     for (const id of layerIds) {
-        const ctx    = getCtx(id);
+        const ctx    = getCanvasContextByLayerId(id);
         const canvas = ctx.canvas;
 
         // clear this whole layer
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        if (!stage[id]) continue;
         // draw visible tiles for this layer
         for (let vy = 0; vy < height; vy++) {
             for (let vx = 0; vx < width; vx++) {
@@ -165,4 +111,176 @@ function redrawStage() {
             }
         }
     }
+}
+
+// Draw a single cell
+
+function drawGridCell(id, y, x, classes) {
+    const ctx = getCanvasContextByLayerId(id);
+    if (!ctx) return;
+
+    const { fillColor, strokeColor, alpha, borderWidth } =
+        getDrawingStyle(classes);
+
+    const px = x * cellSize;
+    const py = y * cellSize;
+
+    // Always clear the tile first
+    ctx.clearRect(px, py, cellSize, cellSize);
+
+    if (alpha === 0 || (!fillColor && !strokeColor)) {
+        return; // fully transparent / invisible
+    }
+
+    const radii = getCornerRadii(classes, cellSize);
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    ctx.beginPath();
+    pathRoundedRect(ctx, px, py, cellSize, cellSize, radii);
+
+    // Fill
+    if (fillColor) {
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+    }
+
+    // Stroke
+    if (strokeColor && borderWidth > 0) {
+        ctx.lineWidth = borderWidth;
+        ctx.strokeStyle = strokeColor;
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}
+
+function getCornerRadii(classes, cellSize) {
+    const tokens = classes.split(/\s+/);
+
+    // TL, TR, BR, BL
+    const radii = [0, 0, 0, 0];
+
+    // base radius percent if r0/r1/r2 present
+    let basePct = 0;
+
+    // first pass: find base r0 / r1 / r2
+    for (const token of tokens) {
+        if (token === "r0") basePct = 0.25;
+        if (token === "r1") basePct = 0.50;
+        if (token === "r2") basePct = 0.75;
+    }
+
+    if (basePct > 0) {
+        const baseRadius = basePct * cellSize;
+        radii[0] = baseRadius; // TL
+        radii[1] = baseRadius; // TR
+        radii[2] = baseRadius; // BR
+        radii[3] = baseRadius; // BL
+    }
+
+    // second pass: per-corner overrides like r0-bl, r1-tr, etc.
+    for (const token of tokens) {
+        const m = token.match(/^r([0-2])-(tl|tr|br|bl)$/);
+        if (!m) continue;
+
+        const level = Number(m[1]); // 0,1,2 → 25,50,75
+        const corner = m[2];
+
+        const pct = (level === 0 ? 0.25 : level === 1 ? 0.5 : 0.75);
+        const r = pct * cellSize;
+
+        const idx =
+            corner === "tl" ? 0 :
+            corner === "tr" ? 1 :
+            corner === "br" ? 2 : 3; // bl
+        radii[idx] = r;
+    }
+
+    return radii;
+}
+
+function getDrawingStyle(classes) {
+    const tokens = classes.split(/\s+/);
+
+    let fillColor   = null;
+    let strokeColor = null;
+    let alpha       = 1.0;
+    let borderWidth = 0;
+
+    // handle "invisible" explicitly
+    if (tokens.includes("invisible")) {
+        return { fillColor: null, strokeColor: null, alpha: 0, borderWidth: 0 };
+    }
+
+    for (const token of tokens) {
+        // 1. transparency: trsp20, trsp40, trsp60, trsp80
+        const trsp = token.match(/^trsp(\d{2})$/);
+        if (trsp) {
+            const pct = Number(trsp[1]); // e.g. 20 → 0.20 visible
+            alpha = pct / 100.0;
+            continue;
+        }
+
+        // 2. border thickness: thin, med, thick
+        if (BORDER_WIDTH_MAP[token]) {
+            borderWidth = BORDER_WIDTH_MAP[token];
+            continue;
+        }
+
+        // 3. color classes: like "grass", "grass-b", "grass-t"
+        const m = token.match(/^(.+?)(-[bt])?$/);
+        if (!m) continue;
+
+        const base   = m[1];      // "grass"
+        const suffix = m[2] || ""; // "", "-b", "-t"
+
+        const baseColor = COLOR_MAP[base];
+        if (!baseColor) continue;
+
+        if (suffix === "-b") {
+            strokeColor = baseColor;
+        } else if (suffix === "-t") {
+            // text color; we ignore this for tiles
+            continue;
+        } else {
+            // plain "grass" → fill color
+            fillColor = baseColor;
+        }
+    }
+
+    // If we have a stroke but no fill, that's okay (border-only tile)
+    // If we have neither, treat as fully transparent
+    if (!fillColor && !strokeColor) {
+        return { fillColor: null, strokeColor: null, alpha: 0, borderWidth: 0 };
+    }
+
+    return { fillColor, strokeColor, alpha, borderWidth };
+}
+
+function pathRoundedRect(ctx, x, y, w, h, radii) {
+    const [rtl, rtr, rbr, rbl] = radii.map(r => Math.max(0, r));
+
+    // Use native roundRect if present
+    if (typeof ctx.roundRect === "function") {
+        ctx.roundRect(x, y, w, h, [rtl, rtr, rbr, rbl]);
+        return;
+    }
+
+    // Manual path
+    ctx.beginPath();
+    ctx.moveTo(x + rtl, y);
+    ctx.lineTo(x + w - rtr, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + rtr);
+
+    ctx.lineTo(x + w, y + h - rbr);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - rbr, y + h);
+
+    ctx.lineTo(x + rbl, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - rbl);
+
+    ctx.lineTo(x, y + rtl);
+    ctx.quadraticCurveTo(x, y, x + rtl, y);
+    ctx.closePath();
 }
