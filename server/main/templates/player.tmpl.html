@@ -7,19 +7,7 @@
                 <span id="streak" class="red">Streak 0</span> | <span id="boosts" class="blue">^ 0</span>  | <span id="money" class="dark-green">$ {{.LoginRequest.Record.Money}}</span>&#20<span id="power"></span>
             </b>
         </div>
-        <div id="game">
-            <canvas id="Lg1"  width="480" height="480"></canvas>
-            <canvas id="Lg2"  width="480" height="480"></canvas>
-            <canvas id="Lf1"  width="480" height="480"></canvas>
-            <canvas id="Lf2"  width="480" height="480"></canvas>
-            <canvas id="Lp1"   width="480" height="480"></canvas>
-            <canvas id="Li1"   width="480" height="480"></canvas>
-            <canvas id="Ls1"   width="480" height="480"></canvas>
-            <canvas id="Lc1"  width="480" height="480"></canvas>
-            <canvas id="Lc2"  width="480" height="480"></canvas>
-            <canvas id="Lw1"   width="480" height="480"></canvas>
-            <canvas id="Lt1" width="480" height="480"></canvas>
-        </div>
+
         <div id="screen" class="grid">
             <div class="center-horizontally">
                 <br />
@@ -48,7 +36,20 @@
 
 {{ define "player-screen"}}
 <div id="screen" class="grid">
-	{{range $y, $row := .}}
+    <div id="game">
+        <canvas id="Lg1"  width="480" height="480"></canvas>
+        <canvas id="Lg2"  width="480" height="480"></canvas>
+        <canvas id="Lf1"  width="480" height="480"></canvas>
+        <canvas id="Lf2"  width="480" height="480"></canvas>
+        <canvas id="Lp1"   width="480" height="480"></canvas>
+        <canvas id="Li1"   width="480" height="480"></canvas>
+        <canvas id="Ls1"   width="480" height="480"></canvas>
+        <canvas id="Lc1"  width="480" height="480"></canvas>
+        <canvas id="Lc2"  width="480" height="480"></canvas>
+        <canvas id="Lw1"   width="480" height="480"></canvas>
+        <canvas id="Lt1" width="480" height="480"></canvas>
+    </div>
+	<!-- {{range $y, $row := .}}
 	<div class="grid-row">
 		{{range $x, $cell := $row}}
 		<div id="c{{$y}}-{{$x}}" class="grid-square">
@@ -72,7 +73,7 @@
 		</div>
 		{{end}}
 	</div>
-	{{end}}
+	{{end}} -->
 </div>
 {{ end }}
 

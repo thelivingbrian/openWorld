@@ -48,72 +48,68 @@ const COLOR_MAP = {
     "dark-lavender": "rgb(172, 152, 219)",
 };
 
-function getStyleForClasses(classes) {
+function getColorAndAlphaForClasses(classes) {
     const tokens = classes.split(/\s+/);
+
     let baseColor = null;
     let alpha = 1.0;
 
     for (const token of tokens) {
-
-        // 1. Transparency token? (trsp20 → alpha .80)
-        const match = token.match(/^trsp(\d{2})$/);
-        if (match) {
-            const pct = Number(match[1]);   // 20, 40, 60, 80
-            alpha = 1 - (pct / 100);
+        // Handle transparency marker: trsp20, trsp40, trsp60, trsp80
+        const trsp = token.match(/^trsp(\d{2})$/);
+        if (trsp) {
+            const pct = Number(trsp[1]);     // e.g. 20
+            alpha = pct / 100.0;            // visibility: 0.2, 0.4, 0.6, 0.8
             continue;
         }
 
-        // 2. Strip -b, -t suffixes
-        const cleanToken = token.replace(/-[bt]$/, "");
+        // Strip -b / -t variants; we only care about base color class
+        const clean = token.replace(/-[bt]$/, "");
 
-        // 3. Does it map to a known color?
-        if (COLOR_MAP[cleanToken]) {
-            baseColor = COLOR_MAP[cleanToken];
+        if (COLOR_MAP[clean]) {
+            baseColor = COLOR_MAP[clean];
         }
     }
 
-    // Default: full transparency
-    if (!baseColor) return "rgba(0,0,0,0)";
-
-    // If the color is RGB, convert to RGBA with computed alpha
-    if (baseColor.startsWith("rgb(")) {
-        const rgb = baseColor.slice(4, -1); // strip "rgb(" and ")"
-        return `rgba(${rgb}, ${alpha})`;
+    // Special case: invisible class
+    if (tokens.includes("invisible")) {
+        return { baseColor: null, alpha: 0 }; // draw function will clearRect
     }
 
-    // If the color is already rgba, just force new alpha
-    if (baseColor.startsWith("rgba(")) {
-        const parts = baseColor.slice(5, -1).split(",");
-        const rgb = parts.slice(0, 3).join(",");
-        return `rgba(${rgb}, ${alpha})`;
+    // No recognized color → treat as fully transparent (don't draw)
+    if (!baseColor) {
+        return { baseColor: null, alpha: 0 };
     }
 
-    // If it's a hex code, rely on canvas to apply alpha globally
-    return baseColor;
+    return { baseColor, alpha };
 }
 
-// Draw a single cell at local (y, x) in the current viewport
 function drawGridCell(id, y, x, classes) {
     if (!gridCtx[id]) {
-        const gridCanvas = document.getElementById(id);
-        if (!gridCanvas) {
-            console.warn(`drawGridCell: no canvas with id ${id}`);
-            return;
-        }
-        gridCtx[id] = gridCanvas.getContext("2d");
+        const canvas = document.getElementById(id);
+        gridCtx[id] = canvas.getContext("2d");
+    }
+    const ctx = gridCtx[id];
+
+    const { baseColor, alpha } = getColorAndAlphaForClasses(classes);
+
+    const px = x * cellSize;
+    const py = y * cellSize;
+
+    // If no color or explicitly invisible → clear this tile on this canvas
+    if (!baseColor || classes.includes("invisible")) {
+        ctx.clearRect(px, py, cellSize, cellSize);
+        return;
     }
 
-    const fill = getStyleForClasses(classes);
+    // Erase old contents of *this tile* before drawing new color
+    ctx.clearRect(px, py, cellSize, cellSize);
 
-    const ctx = gridCtx[id];
-    ctx.fillStyle = fill;
-
-    ctx.fillRect(
-        x * cellSize,
-        y * cellSize,
-        cellSize,
-        cellSize
-    );
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = baseColor;
+    ctx.fillRect(px, py, cellSize, cellSize);
+    ctx.restore();
 }
 
 // Optional: full redraw if setGrid/shiftGrid change the viewport
