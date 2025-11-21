@@ -92,7 +92,12 @@ function redrawStage() {
         // clear this whole layer
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        if (!stage[id]) continue;
+        if (!stage[id]) {
+            stage[id] = Array.from({ length: maxStageHeight }, () =>
+                Array.from({ length: maxStageWidth }, () => "")
+            );
+            continue;
+        }
         // draw visible tiles for this layer
         for (let vy = 0; vy < height; vy++) {
             for (let vx = 0; vx < width; vx++) {
