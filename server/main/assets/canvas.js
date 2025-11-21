@@ -1,6 +1,36 @@
-let gridCtx = {};
+const layerIds = [
+    "Lg1", "Lg2",
+    "Lf1", "Lf2",
+    "Lp1",
+    "Li1",
+    "Ls1",
+    "Lc1", "Lc2",
+    "Lw1",
+    "Lt1",
+];
 
-let cellSize = 30;
+let gridCtx = {};          // id -> 2d context
+let cellSize   = 30;          // will match your grid / canvas size
+
+// full world state: world[layerId][worldY][worldX] = classes string
+// you size this however big your world is
+const maxStageHeight = 256;
+const maxStageWidth  = 256;
+
+let stage = {};
+for (const id of layerIds) {
+    stage[id] = Array.from({ length: maxStageHeight }, () =>
+        Array.from({ length: maxStageWidth }, () => "")
+    );
+}
+
+function getCtx(id) {
+    if (!gridCtx[id]) {
+        const canvas = document.getElementById(id);
+        gridCtx[id]  = canvas.getContext("2d");
+    }
+    return gridCtx[id];
+}
 
 const COLOR_MAP = {
     "invisible": "rgba(0, 0, 0, 0)",
@@ -85,11 +115,8 @@ function getColorAndAlphaForClasses(classes) {
 }
 
 function drawGridCell(id, y, x, classes) {
-    if (!gridCtx[id]) {
-        const canvas = document.getElementById(id);
-        gridCtx[id] = canvas.getContext("2d");
-    }
-    const ctx = gridCtx[id];
+    const ctx = getCtx(id);
+    if (!ctx) return;
 
     const { baseColor, alpha } = getColorAndAlphaForClasses(classes);
 
@@ -112,9 +139,30 @@ function drawGridCell(id, y, x, classes) {
     ctx.restore();
 }
 
-// Optional: full redraw if setGrid/shiftGrid change the viewport
-function redrawGridFromModel() {
-	// You already have the world model on the client or can request it.
-	// Iterate through visible cells and call drawGridCell(y, x, classStr)
-	// based on your client-side state.
+function redrawStage() {
+    for (const id of layerIds) {
+        const ctx    = getCtx(id);
+        const canvas = ctx.canvas;
+
+        // clear this whole layer
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // draw visible tiles for this layer
+        for (let vy = 0; vy < height; vy++) {
+            for (let vx = 0; vx < width; vx++) {
+                const wy = topLeftY + vy;
+                const wx = topLeftX + vx;
+
+                // bounds check world
+                if (wy < 0 || wy >= maxStageHeight || wx < 0 || wx >= maxStageWidth) {
+                    continue;
+                }
+
+                const classes = stage[id][wy][wx];
+                if (!classes) continue;
+
+                drawGridCell(id, vy, vx, classes);
+            }
+        }
+    }
 }
