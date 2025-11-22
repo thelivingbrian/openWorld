@@ -211,7 +211,11 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 				const vx = x - topLeftX;
 
 				if (vy >= 0 && vy < height && vx >= 0 && vx < width) {
-					drawGridCell(id, vy, vx, classes);
+					if (id === "Ls1") {
+						drawSpriteCell(id, vy, vx, classes);
+					} else {
+						drawGridCell(id, vy, vx, classes);
+					}
 				}
 			}
 		}
@@ -552,20 +556,3 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 	  }
 	}
   })()
-
-
-HASH_TABLE_OF_COLORS = { "blue" : [33, 150, 243],
-					     "green": [76, 175, 80],
-}
-
-
-function getStyleForClasses(classes) {
-	// Example: classes might be "tile grass", "tile water", etc.
-	// You can make this as fancy as you want (sprites, gradients...)
-	if (classes.includes("water")) return "#2196f3";
-	if (classes.includes("grass")) return "#4caf50";
-	if (classes.includes("rock"))  return "#795548";
-	if (classes.includes("lava"))  return "#f44336";
-	// default fallback
-	return "#000000";
-}

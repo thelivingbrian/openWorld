@@ -286,7 +286,7 @@ function getDrawingStyle(classes) {
     let alpha       = 1.0;
     let borderWidth = 0;
 
-    // handle "invisible" explicitly
+    // handle "invisible" explicitly ?
     if (tokens.includes("invisible")) {
         return { fillColor: null, strokeColor: null, alpha: 0, borderWidth: 0 };
     }
@@ -360,4 +360,71 @@ function pathRoundedRect(ctx, x, y, w, h, radii) {
     ctx.lineTo(x, y + rtl);
     ctx.quadraticCurveTo(x, y, x + rtl, y);
     ctx.closePath();
+}
+
+////////////////////////////////////////////////////////////////
+// Sprites 
+
+const SPRITE_DRAWERS = {
+    svgRed:   drawCircle.bind(null, "red"),
+    svgGreen: drawCircle.bind(null, "green"),
+    svgBlue:  drawCircle.bind(null, "blue"),
+};
+
+function drawSpriteCell(id, y, x, classes) {
+    const ctx = getCanvasContextByLayerId(id);
+    if (!ctx) return;
+
+    const px = x * cellSize;
+    const py = y * cellSize;
+
+    ctx.clearRect(px, py, cellSize, cellSize);
+
+    const tokens = classes.split(/\s+/);
+
+    for (const token of tokens) {
+        const fn = SPRITE_DRAWERS[token];
+        if (fn) {
+            fn(ctx, px, py, cellSize);
+        }
+    }
+}
+
+function drawCircle(colorName, ctx, px, py, cellSize) {
+    // positions as fractions of a 22x22 square
+    const specByColor = {
+        red: {
+            cx: 7 / 22,
+            cy: 7 / 22,
+            r:  7 / 22,
+            fill: "rgb(255, 105, 100)",
+        },
+        green: {
+            cx: 7 / 22,
+            cy: 14 / 22,
+            r:  7 / 22,
+            fill: "rgb(105, 255, 100)",
+        },
+        blue: {
+            cx: 14 / 22,
+            cy: 14 / 22,
+            r:  7 / 22,
+            fill: "rgb(15, 100, 255)",
+        },
+    };
+
+    const spec = specByColor[colorName];
+    if (!spec) return;
+
+    const cx = px + cellSize * spec.cx;
+    const cy = py + cellSize * spec.cy;
+    const r  = cellSize * spec.r;
+
+    ctx.save();
+    ctx.fillStyle = spec.fill;
+    ctx.globalAlpha = 0.6;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
 }

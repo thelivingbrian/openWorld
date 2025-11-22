@@ -35,7 +35,7 @@ var (
 	}
 )
 
-const MAX_IDLE_IN_SECONDS = 60 * time.Second
+const MAX_IDLE_IN_SECONDS = 450 * time.Second
 
 func (world *World) NewSocketConnection(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
