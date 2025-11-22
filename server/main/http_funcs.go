@@ -393,7 +393,7 @@ func (world *World) postHorribleBypass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if props["secret"] != secret {
-		logger.Warn().Msg("Bypass is disabled - but has been requested.")
+		logger.Warn().Msg("Bypass attempted with invalid secret")
 		return
 	}
 	countString := props["count"]
