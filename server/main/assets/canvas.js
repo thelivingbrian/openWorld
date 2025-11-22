@@ -23,6 +23,7 @@ const COLOR_MAP = {
     "dark-red": "rgb(139, 0, 0)",
     "blue": "rgb(72, 52, 238)",
     "fuchsia": "rgb(253, 52, 172)",
+    "dim-fuchsia": "rgb(89, 18, 60)",
     "pink": "rgb(253, 182, 215)",
     "salmon": "rgb(255, 165, 145)",
     "half-gray": "rgb(120, 120, 129)",
@@ -50,6 +51,7 @@ const COLOR_MAP = {
     "burgundy": "rgb(128, 0, 32)",
     "dark-grass": "rgb(160, 200, 130)",
     "sky-blue": "rgb(48, 152, 240)",
+    "dim-sky-blue": "rgb(17, 53, 84)",
     "black": "rgb(0, 0, 0)",
     "med-gray": "rgb(145, 145, 145)",
     "dark-lavender": "rgb(172, 152, 219)",
@@ -130,55 +132,52 @@ function drawGridCell(id, y, x, classes) {
     const px = x * cellSize;
     const py = y * cellSize;
 
-    // always clear this tile first
+    // Clear the tile first
     ctx.clearRect(px, py, cellSize, cellSize);
 
-    // fully transparent / invisible
-    if (alpha === 0 || (!fillColor && !strokeColor)) return;
+    if (!fillColor && !strokeColor) return;
 
     const radii = getCornerRadii(classes, cellSize);
 
-    ctx.save();
-    ctx.globalAlpha = alpha;
+    const inset   = borderWidth;
+    const innerX  = px + inset;
+    const innerY  = py + inset;
+    const innerW  = cellSize - inset * 2;
+    const innerH  = cellSize - inset * 2;
+    const innerR  = radii.map(r => Math.max(0, r - inset));
 
-    // 1) Draw border as an outer filled rounded rect
+    ctx.save();
+    ctx.globalAlpha = alpha;  // trspXX applies to both border and fill (like CSS opacity)
+
+    // 1) Fill interior (background) if there is a fillColor
+    if (fillColor && innerW > 0 && innerH > 0) {
+        ctx.fillStyle = fillColor;
+        ctx.beginPath();
+        pathRoundedRect(ctx, innerX, innerY, innerW, innerH, innerR);
+        ctx.fill();
+    }
+
+    // 2) Draw border as a ring (outer − inner, using even-odd rule)
     if (strokeColor && borderWidth > 0) {
         ctx.fillStyle = strokeColor;
         ctx.beginPath();
+        // outer path
         pathRoundedRect(ctx, px, py, cellSize, cellSize, radii);
-        ctx.fill();
-    }
 
-    // 2) Draw inner fill as a smaller rounded rect on top
-
-    const inset = borderWidth; // keep border entirely inside the tile
-    const innerX = px + inset;
-    const innerY = py + inset;
-    const innerW = cellSize - inset * 2;
-    const innerH = cellSize - inset * 2;
-
-    if (innerW > 0 && innerH > 0) {
-        const innerRadii = radii.map(r => Math.max(0, r - inset));
-        
-        ctx.beginPath();
-        pathRoundedRect(ctx, innerX, innerY, innerW, innerH, innerRadii);
-
-        ctx.save();
-        ctx.globalCompositeOperation = "destination-out";
-        ctx.fillStyle = "rgba(0,0,0,1)";
-        ctx.fill();
-        ctx.restore();
-
-        if (fillColor) {
-            // Normal case: fill color exists
-            ctx.fillStyle = fillColor;
+        if (innerW > 0 && innerH > 0) {
+            // inner path (hole)
+            pathRoundedRect(ctx, innerX, innerY, innerW, innerH, innerR);
+            ctx.fill("evenodd");   // fill ring only
+        } else {
+            // very small tiles / huge border: just fill outer shape
             ctx.fill();
-        } 
+        }
     }
-    
 
     ctx.restore();
 }
+
+
 
 function getCornerRadii(classes, cellSize) {
     const tokens = classes.split(/\s+/);

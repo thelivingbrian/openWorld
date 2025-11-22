@@ -255,6 +255,11 @@ img {
     display: grid;
   }
 
+#screen {
+    display: grid;
+    place-items: center; /* centers vertically + horizontally */
+}
+
 @media (orientation: landscape) {
   #screen {
      width: 40%
