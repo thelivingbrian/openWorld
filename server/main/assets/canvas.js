@@ -79,6 +79,7 @@ for (const id of layerIds) {
 function getCanvasContextByLayerId(id) {
     if (!canvasLayers[id]) {
         const canvas = document.getElementById(id);
+        if (!canvas) return null;
         canvasLayers[id]  = canvas.getContext("2d");
     }
     return canvasLayers[id];
@@ -120,6 +121,60 @@ function redrawStage() {
     }
 }
 
+function resizeStage() {
+    const game = document.getElementById("game");
+    if (!game) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const vw  = window.innerWidth;
+    const vh  = window.innerHeight;
+
+    // mimic your CSS: #screen is 40% wide in landscape, 87% in portrait
+    const landscape = vw >= vh;
+    const maxScreenWidth = landscape ? vw * 0.40 : vw * 0.87;
+    const maxScreenHeight = vh; // we don't restrict height as much
+
+    const avail = Math.min(maxScreenWidth, maxScreenHeight);
+
+    // tiles across (assuming square viewport); use width or height as needed
+    const maxCellsAcross = width;
+
+    // snap cell size to an integer so tiles land on whole pixels
+    const newCellSize = Math.max(1, Math.floor(avail / maxCellsAcross));
+    const stageCssSize = newCellSize * maxCellsAcross;  // exact integer
+
+    // update globals
+    cellSize = newCellSize;
+
+    // size #game container
+    game.style.width  = `${stageCssSize}px`;
+    game.style.height = `${stageCssSize}px`;
+
+    // resize each canvas backing store + CSS size
+    for (const id of layerIds) {
+        const canvas = document.getElementById(id);
+        if (!canvas) continue;
+
+        canvas.width  = stageCssSize * dpr;
+        canvas.height = stageCssSize * dpr;
+
+        canvas.style.width  = `${stageCssSize}px`;
+        canvas.style.height = `${stageCssSize}px`;
+
+        const ctx = getCanvasContextByLayerId(id);
+        if (!ctx) continue;
+
+        // normalize 0..stageCssSize coordinates in CSS pixels
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    redrawStage();
+}
+
+// call once on load, and on real window resizes
+window.addEventListener("load", resizeStage);
+window.addEventListener("resize", resizeStage);
+
 // Draw a single cell
 
 function drawGridCell(id, y, x, classes) {
@@ -152,6 +207,7 @@ function drawGridCell(id, y, x, classes) {
     // 1) Fill interior (background) if there is a fillColor
     if (fillColor && innerW > 0 && innerH > 0) {
         ctx.fillStyle = fillColor;
+        // one path - multiple subpaths 
         ctx.beginPath();
         pathRoundedRect(ctx, innerX, innerY, innerW, innerH, innerR);
         ctx.fill();
@@ -176,8 +232,6 @@ function drawGridCell(id, y, x, classes) {
 
     ctx.restore();
 }
-
-
 
 function getCornerRadii(classes, cellSize) {
     const tokens = classes.split(/\s+/);

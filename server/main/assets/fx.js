@@ -77,12 +77,10 @@ var topLeftX = 0
 const height = 16 // Camera height and Camera Width 
 const width = 16
 
-var cells = undefined
-
 function setGrid(y, x) {
     topLeftY = Number(y);
     topLeftX = Number(x);
-    redrawStage();   // clear all layers + repaint from world[]
+    redrawStage();   // clear all layers + repaint
 }
 
 function shiftGrid(dy, dx) {
@@ -91,7 +89,7 @@ function shiftGrid(dy, dx) {
     topLeftY -= dy;
     topLeftX -= dx;
 
-    redrawStage();   // full redraw from world[]
+    redrawStage();   // full redraw
 }
 
 ///////////////////////////////////////////////////////////////
