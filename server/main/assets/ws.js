@@ -195,21 +195,18 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 				const y = Number(yStr);
 				const x = Number(xStr);
 
-				// ignore out-of-world tiles if they show up
+				// if coordinate is valid - update stage model 
 				if (y < 0 || y >= maxStageHeight || x < 0 || x >= maxStageWidth) {
 					continue;
 				}
-
-				// update world model
 				if (!stage[id]) {
 					return;
 				}
 				stage[id][y][x] = classes;
 
-				// if it's currently in view, paint it immediately
+				// if currently in view - draw immediately
 				const vy = y - topLeftY;
 				const vx = x - topLeftX;
-
 				if (vy >= 0 && vy < height && vx >= 0 && vx < width) {
 					if (id === "Ls1") {
 						drawSpriteCell(id, vy, vx, classes);
