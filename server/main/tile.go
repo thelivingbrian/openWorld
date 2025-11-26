@@ -80,8 +80,8 @@ func makeQuickSwapTemplate(mat Material, y, x int) string {
 	return out
 }
 
-func swapToken(y, x int, prefix, zIndex, color string) string {
-	return fmt.Sprintf(`[~ id="%s" y="%d" x="%d" class="box %s %s"]`, prefix, y, x, zIndex, color)
+func swapToken(y, x int, prefix, _, color string) string {
+	return fmt.Sprintf(`[~ id="%s" y="%d" x="%d" class="%s"]`, prefix, y, x, color)
 }
 
 ////////////////////////////////////////////////////////////
