@@ -140,8 +140,7 @@ function resizeCanvas() {
     redrawStage();
 }
 
-// Dynamically resize canvas 
-window.addEventListener("load", resizeCanvas);
+// Dynamically resize canvas
 window.addEventListener("resize", resizeCanvas);
 
 /////////////////////////////////////////////////////////////////
