@@ -76,6 +76,11 @@ for (const id of layerIds) {
     );
 }
 
+function clearCanvasAndStage() {
+    canvasLayers = {};
+    stage = {};
+} 
+
 function getCanvasContextByLayerId(id) {
     if (!canvasLayers[id]) {
         const canvas = document.getElementById(id);
@@ -85,43 +90,7 @@ function getCanvasContextByLayerId(id) {
     return canvasLayers[id];
 }
 
-// Redraw entire stage
-
-function redrawStage() {
-    for (const id of layerIds) {
-        const ctx    = getCanvasContextByLayerId(id);
-        const canvas = ctx.canvas;
-
-        // clear this whole layer
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        if (!stage[id]) {
-            stage[id] = Array.from({ length: maxStageHeight }, () =>
-                Array.from({ length: maxStageWidth }, () => "")
-            );
-            continue;
-        }
-        // draw visible tiles for this layer
-        for (let vy = 0; vy < height; vy++) {
-            for (let vx = 0; vx < width; vx++) {
-                const wy = topLeftY + vy;
-                const wx = topLeftX + vx;
-
-                // bounds check world
-                if (wy < 0 || wy >= maxStageHeight || wx < 0 || wx >= maxStageWidth) {
-                    continue;
-                }
-
-                const classes = stage[id][wy][wx];
-                if (!classes) continue;
-
-                drawGridCell(id, vy, vx, classes);
-            }
-        }
-    }
-}
-
-function resizeStage() {
+function resizeCanvas() {
     const game = document.getElementById("game");
     if (!game) return;
 
@@ -129,7 +98,7 @@ function resizeStage() {
     const vw  = window.innerWidth;
     const vh  = window.innerHeight;
 
-    // mimic your CSS: #screen is 40% wide in landscape, 87% in portrait
+    // mimics previous CSS: #screen is 40% wide in landscape, 87% in portrait
     const landscape = vw >= vh;
     const maxScreenWidth = landscape ? vw * 0.40 : vw * 0.87;
     const maxScreenHeight = vh; // we don't restrict height as much
@@ -171,11 +140,46 @@ function resizeStage() {
     redrawStage();
 }
 
-// call once on load, and on real window resizes
-window.addEventListener("load", resizeStage);
-window.addEventListener("resize", resizeStage);
+// Dynamically resize canvas 
+window.addEventListener("load", resizeCanvas);
+window.addEventListener("resize", resizeCanvas);
 
-// Draw a single cell
+/////////////////////////////////////////////////////////////////
+//  Drawing 
+
+function redrawStage() {
+    for (const id of layerIds) {
+        const ctx    = getCanvasContextByLayerId(id);
+        const canvas = ctx.canvas;
+
+        // clear this whole layer
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (!stage[id]) {
+            stage[id] = Array.from({ length: maxStageHeight }, () =>
+                Array.from({ length: maxStageWidth }, () => "")
+            );
+            continue;
+        }
+        // draw visible tiles for this layer
+        for (let vy = 0; vy < height; vy++) {
+            for (let vx = 0; vx < width; vx++) {
+                const wy = topLeftY + vy;
+                const wx = topLeftX + vx;
+
+                // bounds check world
+                if (wy < 0 || wy >= maxStageHeight || wx < 0 || wx >= maxStageWidth) {
+                    continue;
+                }
+
+                const classes = stage[id][wy][wx];
+                if (!classes) continue;
+
+                drawGridCell(id, vy, vx, classes);
+            }
+        }
+    }
+}
 
 function drawGridCell(id, y, x, classes) {
     const ctx = getCanvasContextByLayerId(id);
@@ -204,10 +208,9 @@ function drawGridCell(id, y, x, classes) {
     ctx.save();
     ctx.globalAlpha = alpha;  // trspXX applies to both border and fill (like CSS opacity)
 
-    // 1) Fill interior (background) if there is a fillColor
+    // 1) Fill interior if there is a fillColor
     if (fillColor && innerW > 0 && innerH > 0) {
         ctx.fillStyle = fillColor;
-        // one path - multiple subpaths 
         ctx.beginPath();
         pathRoundedRect(ctx, innerX, innerY, innerW, innerH, innerR);
         ctx.fill();
@@ -216,6 +219,7 @@ function drawGridCell(id, y, x, classes) {
     // 2) Draw border as a ring (outer − inner, using even-odd rule)
     if (strokeColor && borderWidth > 0) {
         ctx.fillStyle = strokeColor;
+        // one path - multiple subpaths 
         ctx.beginPath();
         // outer path
         pathRoundedRect(ctx, px, py, cellSize, cellSize, radii);
@@ -239,7 +243,7 @@ function getCornerRadii(classes, cellSize) {
     // TL, TR, BR, BL
     const radii = [0, 0, 0, 0];
 
-    // base radius percent if r0/r1/r2 present
+    // base radius percent if no r0/r1/r2 present
     let basePct = 0;
 
     // first pass: find base r0 / r1 / r2

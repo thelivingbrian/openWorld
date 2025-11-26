@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"time"
@@ -77,7 +76,7 @@ func handleNewPlayer(player *Player) {
 		_, msg, err := player.conn.ReadMessage()
 		if err != nil {
 			// break will initiate logout:
-			fmt.Println("Signing out")
+			logger.Debug().Msg("Inactive logout for player: " + player.username)
 			sendUpdate(player, divLogOutResume("Inactive. Logging out", player.world.config.domainName))
 			break
 		}

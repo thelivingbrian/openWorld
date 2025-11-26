@@ -80,7 +80,7 @@ const width = 16
 function setGrid(y, x) {
     topLeftY = Number(y);
     topLeftX = Number(x);
-    redrawStage();   // clear all layers + repaint
+    redrawStage(); 
 }
 
 function shiftGrid(dy, dx) {
@@ -89,7 +89,7 @@ function shiftGrid(dy, dx) {
     topLeftY -= dy;
     topLeftX -= dx;
 
-    redrawStage();   // full redraw
+    redrawStage();
 }
 
 ///////////////////////////////////////////////////////////////
