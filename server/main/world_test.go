@@ -22,7 +22,7 @@ var testingConfig = Configuration{
 func TestSocketJoinAndMove(t *testing.T) {
 	loadFromJson()
 	world, _ := createWorldForTesting()
-	// unsafe concurrently (send on closed)
+	// unsafe concurrently e.g. without waitGroup to sync (send on closed)
 	// defer shutDown()
 
 	req := createLoginRequest(PlayerRecord{Username: "test1", Y: 2, X: 2, StageName: "test-large"})
@@ -42,16 +42,34 @@ func TestSocketJoinAndMove(t *testing.T) {
 
 	testingSocket.writeOrFatal(createSocketEventMessage("d"))
 
-	_ = testingSocket.readOrFatal() // reading more than once is a lock risk.
+	// After this is sent there is a window before the player is added
+	_ = testingSocket.readOrFatal() // reading more than once can deadlock
 
 	// Assert
-	if len(world.worldPlayers) != 1 {
-		t.Error("Incorrect number of players")
+	deadline := time.Now().Add(500 * time.Millisecond)
+	for {
+		world.wPlayerMutex.Lock()
+		got := len(world.worldPlayers)
+		world.wPlayerMutex.Unlock()
+
+		if got == 1 {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("timed out waiting for player; len(worldPlayers)=%d", got)
+		}
+		time.Sleep(1 * time.Millisecond)
 	}
 
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	if got := len(world.worldPlayers); got != 1 {
+		t.Fatalf("Incorrect number of players: got %d (expected 1)", got)
+	}
 	if world.leaderBoard.mostDangerous.Peek().username == req.Record.Username {
 		t.Error("New Player should not be most dangerous") // Minimum killstreak player prevents newly joining from being most dangerous
 	}
+	fmt.Println("test completed")
 }
 
 func TestLogoutAndDeath(t *testing.T) {
@@ -247,7 +265,7 @@ func TestMostDangerous(t *testing.T) {
 		t.Error("Invalid leader should be p1")
 	}
 
-	// Cleanup / Prevent send on closed
+	// Cleanup / Prevent send on closed (Time delayed updates may be sent)
 	p1.tangible, p2.tangible, p3.tangible = false, false, false
 }
 

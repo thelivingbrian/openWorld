@@ -12,20 +12,12 @@ import (
 
 func emptyScreenBySize(height, width int) []byte {
 	var buf bytes.Buffer
-	err := tmpl.ExecuteTemplate(&buf, "player-screen", NewEmptyGrid(height, width))
+	err := tmpl.ExecuteTemplate(&buf, "player-screen", nil)
 	if err != nil {
 		panic(err)
 	}
 
 	return buf.Bytes()
-}
-
-func NewEmptyGrid(n, m int) [][]struct{} {
-	grid := make([][]struct{}, n)
-	for i := range grid {
-		grid[i] = make([]struct{}, m)
-	}
-	return grid
 }
 
 func entireScreenAsSwaps(player *Player) []byte {
