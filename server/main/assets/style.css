@@ -419,7 +419,7 @@ img {
 /* Make touch controls adapt to device orientation.
    Portrait: keep controls along the bottom (default above).
    Landscape: move controls to the left and right sides so they
-   don't overlap the game canvas and remain reachable.
+   don't overlap the game canvas and keep the menu at the bottom.
 */
 @media (hover:none) and (orientation: landscape) {
     .container {
@@ -461,9 +461,11 @@ img {
         align-self: center;
     }
 
+    /* ⬇️ move menu (center-container / half-button) to the bottom */
     .center-container {
         justify-self: center;
-        align-self: center;
+        align-self: end;       /* stick menu to the bottom of the viewport */
+        margin-bottom: 12px;   /* bit of space from the screen edge */
     }
 
     /* Slightly increase button size for landscape reachability */
@@ -480,7 +482,6 @@ img {
     /* Keep invisible middle placeholders small */
     .middle { visibility: hidden; width: 1px; }
 }
-
 
 
 /* New Player */
