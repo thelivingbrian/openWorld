@@ -31,7 +31,7 @@ func createWorldSelectHandler(config *Configuration) func(w http.ResponseWriter,
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, ok := getUserIdFromSession(r)
 		if !ok {
-			tmpl.ExecuteTemplate(w, "homepage", false)
+			tmpl.ExecuteTemplate(w, "homepage", false) // this causes logo to duplicate
 			return
 		}
 		tmpl.ExecuteTemplate(w, "world-select", config.domains)

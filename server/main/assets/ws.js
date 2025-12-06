@@ -171,7 +171,7 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 			}
 		}
 
-		// Change CSS class w/o DOM rewrite or HTML parse 
+		// Change Canvas or CSS class w/o DOM rewrite or HTML parse 
 		for (let i = 0; i < swaps.length; i++) {
 			const match = quickSwapRegex.exec(swaps[i]);
 			if (match) {
@@ -192,11 +192,27 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 					target.className = classes;
 					continue
 				}
-				const y = Number(yStr) - topLeftY
-				const x = Number(xStr) - topLeftX
-				if ((y >= 0) && (y<height) && (x>=0) && (x<width)) {
-					target = document.getElementById(`${id}-${y}-${x}`);
-					target.className = classes;
+				const y = Number(yStr);
+				const x = Number(xStr);
+
+				// if coordinate is valid - update stage model 
+				if (y < 0 || y >= maxStageHeight || x < 0 || x >= maxStageWidth) {
+					continue;
+				}
+				if (!stage[id]) {
+					return;
+				}
+				stage[id][y][x] = classes;
+
+				// if currently in view - draw immediately
+				const vy = y - topLeftY;
+				const vx = x - topLeftX;
+				if (vy >= 0 && vy < height && vx >= 0 && vx < width) {
+					if (id === "Ls1") {
+						drawSpriteCell(id, vy, vx, classes);
+					} else {
+						drawGridCell(id, vy, vx, classes);
+					}
 				}
 			}
 		}
