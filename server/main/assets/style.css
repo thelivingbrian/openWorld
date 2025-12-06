@@ -416,6 +416,71 @@ img {
     }
 }
 
+/* Make touch controls adapt to device orientation.
+   Portrait: keep controls along the bottom (default above).
+   Landscape: move controls to the left and right sides so they
+   don't overlap the game canvas and remain reachable.
+*/
+@media (hover:none) and (orientation: landscape) {
+    .container {
+        /* occupy full viewport but split into left (dpad), center (screen), right (actions) */
+        position: fixed;
+        z-index: 10;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        display: grid;
+        grid-template-columns: 22% 1fr 22%;
+        grid-template-rows: 1fr;
+        gap: 12px;
+        align-items: center;
+        pointer-events: none; /* allow clicks to pass through center by default */
+        padding: 8px;
+    }
+
+    /* Each immediate container column should allow interaction */
+    .container > .dpad-container,
+    .container > .a-b-container,
+    .container > .center-container {
+        pointer-events: auto;
+        height: auto;
+    }
+
+    .dpad-container {
+        justify-self: start;
+        align-self: center;
+        display: grid;
+        grid-auto-rows: min-content;
+    }
+
+    .a-b-container {
+        justify-self: end;
+        align-self: center;
+    }
+
+    .center-container {
+        justify-self: center;
+        align-self: center;
+    }
+
+    /* Slightly increase button size for landscape reachability */
+    .button {
+        width: 64px;
+        height: 64px;
+        aspect-ratio: unset;
+    }
+    .half-button {
+        width: 96px;
+        height: 40px;
+    }
+
+    /* Keep invisible middle placeholders small */
+    .middle { visibility: hidden; width: 1px; }
+}
+
 
 
 /* New Player */
