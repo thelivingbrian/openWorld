@@ -245,6 +245,9 @@ a {
     width: 75%;
     position: relative;
     top: 10%;
+    max-height: 80vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 img {
@@ -267,7 +270,7 @@ img {
   }
 
   .modal_content {
-    width: 37%;
+    width: 60%;
   }
 }
 
