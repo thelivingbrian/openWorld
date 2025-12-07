@@ -69,6 +69,7 @@ type Configuration struct {
 	googleClientSecret string
 	googleCallbackUrl  string
 	rootDomain         string // root domain is used for cookie and CORS
+	corsPrefix         string // "http" or "https" (may not match usesTLS)
 	isHub              bool
 	domains            []string
 	serverName         string
@@ -87,14 +88,13 @@ func getConfiguration() *Configuration {
 		logger.Error().Err(err).Msg("Error loading .env file")
 	}
 
-	environmentName := os.Getenv("BLOOP_ENV")
 	hashKey, blockKey := retrieveKeys()
 
 	config := Configuration{
-		envName:            environmentName,
+		envName:            os.Getenv("BLOOP_ENV"),
 		logLevel:           os.Getenv("LOG_LEVEL"),
 		port:               os.Getenv("BLOOP_PORT"),
-		usesTLS:            true,
+		usesTLS:            strings.ToUpper(os.Getenv("USE_TLS")) == "TRUE",
 		tlsCertPath:        os.Getenv("BLOOP_TLS_CERT_PATH"),
 		tlsKeyPath:         os.Getenv("BLOOP_TLS_KEY_PATH"),
 		mongoHost:          os.Getenv("MONGO_HOST"),
@@ -112,19 +112,20 @@ func getConfiguration() *Configuration {
 		domains:            strings.Split(os.Getenv("DOMAINS"), ","),
 		serverName:         os.Getenv("SERVER_NAME"),
 		domainName:         os.Getenv("DOMAIN_NAME"),
+		corsPrefix:         os.Getenv("CORS_PREFIX"),
 		loadPreviousState:  strings.ToUpper(os.Getenv("LOAD_PEVIOUS_STATE")) == "TRUE",
 	}
 
 	// Runtime configuration
 	config.guestsEnabled.Store(strings.ToUpper(os.Getenv("GUESTS_ENABLED")) == "TRUE")
 
-	switch environmentName {
+	switch config.envName {
 	case "prod":
 		log.Fatal("No Prod Environment")
 	case "test":
 		// Nothing to do
 	case "dev":
-		config.usesTLS = false
+		// Nothing to do
 	default:
 		log.Fatal("No Configuration, exiting")
 	}
@@ -164,11 +165,7 @@ func (config *Configuration) isServer() bool {
 }
 
 func (config *Configuration) originForCORS() string {
-	prefix := "http://"
-	if config.usesTLS {
-		prefix = "https://"
-	}
-	return prefix + config.rootDomain
+	return config.corsPrefix + "://" + config.rootDomain
 }
 
 func retrieveKeys() (hashKey, blockKey []byte) {
