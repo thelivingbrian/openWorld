@@ -113,7 +113,7 @@ func getConfiguration() *Configuration {
 		serverName:         os.Getenv("SERVER_NAME"),
 		domainName:         os.Getenv("DOMAIN_NAME"),
 		corsPrefix:         os.Getenv("CORS_PREFIX"),
-		loadPreviousState:  strings.ToUpper(os.Getenv("LOAD_PEVIOUS_STATE")) == "TRUE",
+		loadPreviousState:  strings.ToUpper(os.Getenv("LOAD_PREVIOUS_STATE")) == "TRUE",
 	}
 
 	// Runtime configuration
