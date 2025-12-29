@@ -119,13 +119,18 @@ function resizeCanvas() {
     game.style.width  = `${stageCssSize}px`;
     game.style.height = `${stageCssSize}px`;
 
+    // calculate backing store size with integer dimensions to avoid sub-pixel issues
+    const backingWidth = Math.round(stageCssSize * dpr);
+    const backingHeight = Math.round(stageCssSize * dpr);
+    const scale = backingWidth / stageCssSize;
+
     // resize each canvas backing store + CSS size
     for (const id of layerIds) {
         const canvas = document.getElementById(id);
         if (!canvas) continue;
 
-        canvas.width  = stageCssSize * dpr;
-        canvas.height = stageCssSize * dpr;
+        canvas.width  = backingWidth;
+        canvas.height = backingHeight;
 
         canvas.style.width  = `${stageCssSize}px`;
         canvas.style.height = `${stageCssSize}px`;
@@ -134,7 +139,7 @@ function resizeCanvas() {
         if (!ctx) continue;
 
         // normalize 0..stageCssSize coordinates in CSS pixels
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.setTransform(scale, 0, 0, scale, 0, 0);
     }
 
     redrawStage();
@@ -187,8 +192,8 @@ function drawGridCell(id, y, x, classes) {
     const { fillColor, strokeColor, alpha, borderWidth } =
         getDrawingStyle(classes);
 
-    const px = x * cellSize;
-    const py = y * cellSize;
+    const px = Math.round(x * cellSize);
+    const py = Math.round(y * cellSize);
 
     // Clear the tile first
     ctx.clearRect(px, py, cellSize, cellSize);
@@ -378,8 +383,8 @@ function drawSpriteCell(id, y, x, classes) {
     const ctx = getCanvasContextByLayerId(id);
     if (!ctx) return;
 
-    const px = x * cellSize;
-    const py = y * cellSize;
+    const px = Math.round(x * cellSize);
+    const py = Math.round(y * cellSize);
 
     ctx.clearRect(px, py, cellSize, cellSize);
 
