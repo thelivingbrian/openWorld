@@ -94,7 +94,7 @@ function resizeCanvas() {
     const game = document.getElementById("game");
     if (!game) return;
 
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = 1; // don't even mess with window.devicePixelRatio -> is land mine 
     const vw  = window.innerWidth;
     const vh  = window.innerHeight;
 
@@ -119,10 +119,9 @@ function resizeCanvas() {
     game.style.width  = `${stageCssSize}px`;
     game.style.height = `${stageCssSize}px`;
 
-    // calculate backing store size with integer dimensions to avoid sub-pixel issues
+    // Assuming square canvases, Todo: DPR adds no value here 
     const backingWidth = Math.round(stageCssSize * dpr);
     const backingHeight = Math.round(stageCssSize * dpr);
-    const scale = backingWidth / stageCssSize;
 
     // resize each canvas backing store + CSS size
     for (const id of layerIds) {
@@ -139,7 +138,7 @@ function resizeCanvas() {
         if (!ctx) continue;
 
         // normalize 0..stageCssSize coordinates in CSS pixels
-        ctx.setTransform(scale, 0, 0, scale, 0, 0);
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     redrawStage();
