@@ -94,7 +94,7 @@ function resizeCanvas() {
     const game = document.getElementById("game");
     if (!game) return;
 
-    //const dpr = 1; // don't even mess with window.devicePixelRatio -> is land mine 
+    const dpr = 1; // don't even mess with window.devicePixelRatio -> is land mine 
     const vw  = window.innerWidth;
     const vh  = window.innerHeight;
 
@@ -104,22 +104,20 @@ function resizeCanvas() {
     const maxScreenHeight = vh; // we don't restrict height as much
 
     const avail = Math.min(maxScreenWidth, maxScreenHeight);
-    // Assuming square grid
+
+    // tiles across (assuming square viewport); use width or height as needed
     const maxCellsAcross = width;
 
-    const dpr = window.devicePixelRatio || 1;
+    // snap cell size to an integer so tiles land on whole pixels
+    const newCellSize = Math.max(1, Math.floor(avail / maxCellsAcross));
+    const stageCssSize = newCellSize * maxCellsAcross;  // exact integer
 
-    const targetCellSize = Math.max(1, Math.floor(avail / maxCellsAcross));
-    const newCellSize = alignedCellSize(targetCellSize, dpr);
-
-    const stageCssSize = newCellSize * maxCellsAcross;
-
-    // (optional but helps): ensure the overall stage also lands on device pixels
-    const stageCssSizeAligned = Math.round(stageCssSize * dpr) / dpr;
-
+    // update globals
     cellSize = newCellSize;
-    game.style.width  = `${stageCssSizeAligned}px`;
-    game.style.height = `${stageCssSizeAligned}px`;
+
+    // size #game container
+    game.style.width  = `${stageCssSize}px`;
+    game.style.height = `${stageCssSize}px`;
 
     // Assuming square canvases, Todo: DPR adds no value here 
     const backingWidth = Math.round(stageCssSize * dpr);
@@ -145,17 +143,6 @@ function resizeCanvas() {
 
     redrawStage();
 }
-
-function alignedCellSize(targetCellSize, dpr) {
-  // Find a nearby cellSize where cellSize*dpr is (almost) an integer.
-  // We search downward so we never exceed available space.
-  for (let cs = targetCellSize; cs >= 1; cs--) {
-    const v = cs * dpr;
-    if (Math.abs(v - Math.round(v)) < 1e-6) return cs;
-  }
-  return Math.max(1, Math.floor(targetCellSize));
-}
-
 
 // Dynamically resize canvas
 window.addEventListener("resize", resizeCanvas);
