@@ -1,0 +1,176 @@
+<main class="page">
+  @if (loading()) {
+    <p>Loading editor...</p>
+  } @else {
+    <section class="toolbar">
+      <label>
+        Collection
+        <select [(ngModel)]="collectionName" (ngModelChange)="onCollectionChange()">
+          @for (name of collectionNames(); track name) {
+            <option [value]="name">{{ name }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Space
+        <select [(ngModel)]="spaceName" (ngModelChange)="onSpaceChange()">
+          @for (name of spaceNames(); track name) {
+            <option [value]="name">{{ name }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Area
+        <select [(ngModel)]="areaName" (ngModelChange)="selection.set(undefined)">
+          @for (name of areaNames(); track name) {
+            <option [value]="name">{{ name }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Fixture
+        <select [(ngModel)]="fixture" (ngModelChange)="onFixtureChange()">
+          <option value="prototype">Prototypes</option>
+          <option value="fragment">Fragments</option>
+          <option value="interactable">Interactables</option>
+          <option value="transformation">Transformations</option>
+          <option value="ground">Ground</option>
+        </select>
+      </label>
+
+      @if (fixture() === 'prototype') {
+        <label>
+          Prototype Set
+          <select [(ngModel)]="prototypeSet" (ngModelChange)="onPrototypeSetChange()">
+            @for (name of prototypeSets(); track name) {
+              <option [value]="name">{{ name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Prototype
+          <select [(ngModel)]="selectedAssetId">
+            @for (prototype of prototypes(); track prototype.id) {
+              <option [value]="prototype.id">{{ prototype.commonName }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Tool
+          <select [(ngModel)]="tool">
+            <option value="select">Select</option>
+            <option value="replace">Replace</option>
+            <option value="fill">Fill</option>
+            <option value="between">Fill Between</option>
+            <option value="place-blueprint">Place on Blueprint</option>
+          </select>
+        </label>
+      }
+
+      @if (fixture() === 'fragment') {
+        <label>
+          Fragment Set
+          <select [(ngModel)]="fragmentSet" (ngModelChange)="onFragmentSetChange()">
+            @for (name of fragmentSets(); track name) {
+              <option [value]="name">{{ name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Fragment
+          <select [(ngModel)]="selectedAssetId">
+            @for (fragment of fragments(); track fragment.id) {
+              <option [value]="fragment.id">{{ fragment.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Tool
+          <select [(ngModel)]="tool">
+            <option value="place">Place</option>
+            <option value="place-blueprint">Place on Blueprint</option>
+          </select>
+        </label>
+      }
+
+      @if (fixture() === 'interactable') {
+        <label>
+          Interactable Set
+          <select [(ngModel)]="interactableSet" (ngModelChange)="onInteractableSetChange()">
+            @for (name of interactableSets(); track name) {
+              <option [value]="name">{{ name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Interactable
+          <select [(ngModel)]="selectedAssetId">
+            @for (interactable of interactables(); track interactable.id) {
+              <option [value]="interactable.id">{{ interactable.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Tool
+          <select [(ngModel)]="tool">
+            <option value="interactable-replace">Replace</option>
+            <option value="interactable-delete">Delete</option>
+          </select>
+        </label>
+      }
+
+      @if (fixture() === 'transformation') {
+        <label>
+          Tool
+          <select [(ngModel)]="tool">
+            <option value="select">Select</option>
+            <option value="rotate">Rotate</option>
+          </select>
+        </label>
+      }
+
+      @if (fixture() === 'ground') {
+        <label>
+          Tool
+          <select [(ngModel)]="tool">
+            <option value="select">Select</option>
+            <option value="toggle">Toggle</option>
+            <option value="toggle-fill">Toggle Fill</option>
+            <option value="toggle-between">Toggle Between</option>
+          </select>
+        </label>
+      }
+
+      <button (click)="saveSpace()">Save Space</button>
+      <button (click)="compileCollection()">Compile</button>
+      <button (click)="deployCollection()">Deploy</button>
+      <span>{{ status() }}</span>
+    </section>
+
+    <section class="grid-panel">
+      <div class="grid" id="screen">
+        @for (row of gridMaterials(); track $index; let y = $index) {
+          <div class="grid-row">
+            @for (material of row; track $index; let x = $index) {
+              <div class="grid-square" (click)="onGridClick(y, x)">
+                <div class="box ground1 {{ material.ground1css ?? '' }}"></div>
+                <div class="box ground2 {{ material.ground2css ?? '' }}"></div>
+                <div class="box floor1 {{ material.layer1css ?? '' }}"></div>
+                <div class="box floor2 {{ material.layer2css ?? '' }}"></div>
+                @if (gridInteractables()[y]?.[x]) {
+                  <div class="box zp {{ gridInteractables()[y]?.[x]?.cssClass ?? '' }}"></div>
+                }
+                <div class="box ceiling1 {{ material.ceiling1css ?? '' }}"></div>
+                <div class="box ceiling2 {{ material.ceiling2css ?? '' }}"></div>
+                <div class="box top" [class.red-b]="selection()?.y === y && selection()?.x === x" [class.med]="selection()?.y === y && selection()?.x === x"></div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+</main>
