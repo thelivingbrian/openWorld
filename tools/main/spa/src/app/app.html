@@ -56,33 +56,54 @@
           </label>
           <label>
             Area
-            <select [(ngModel)]="areaName" (ngModelChange)="selection.set(undefined)">
+            <select [(ngModel)]="areaName" (ngModelChange)="onAreaChange()">
               @for (name of areaNames(); track name) {
                 <option [value]="name">{{ name }}</option>
               }
             </select>
           </label>
+          @if (currentArea()) {
+            <div class="row gap panel__toggles">
+              <button
+                type="button"
+                class="panel__toggle"
+                [class.active]="showAreaDetails()"
+                (click)="toggleAreaDetails()"
+              >Edit Details</button>
+              <button
+                type="button"
+                class="panel__toggle"
+                [class.active]="showNeighbors()"
+                (click)="toggleNeighbors()"
+              >Edit Neighbors</button>
+            </div>
+          }
           <button (click)="saveSpace()">Save Space</button>
-          <button (click)="setViewMode('create')">Create Space/Area</button>
         </div>
 
         @if (currentArea()) {
-          <div class="row wrap gap">
-            <label>Name <input [(ngModel)]="currentArea()!.Name" /></label>
-            <label>Safe <input type="checkbox" [(ngModel)]="currentArea()!.Safe" /></label>
-            <label>Color0 <input [(ngModel)]="currentArea()!.Blueprint.DefaultTileColor" /></label>
-            <label>Color1 <input [(ngModel)]="currentArea()!.Blueprint.DefaultTileColor1" /></label>
-            <label>Weather <input [(ngModel)]="currentArea()!.Weather" /></label>
-            <label>Load <input [(ngModel)]="currentArea()!.LoadStrategy" /></label>
-            <label>Spawn <input [(ngModel)]="currentArea()!.SpawnStrategy" /></label>
-            <label>Broadcast <input [(ngModel)]="currentArea()!.BroadcastGroup" /></label>
-          </div>
-          <div class="row wrap gap">
-            <label>North <input [(ngModel)]="currentArea()!.North" /></label>
-            <label>South <input [(ngModel)]="currentArea()!.South" /></label>
-            <label>East <input [(ngModel)]="currentArea()!.East" /></label>
-            <label>West <input [(ngModel)]="currentArea()!.West" /></label>
-          </div>
+          @if (showAreaDetails()) {
+            <div class="row wrap gap">
+              <label>Name <input [(ngModel)]="currentArea()!.Name" /></label>
+              <label>Safe <input type="checkbox" [(ngModel)]="currentArea()!.Safe" /></label>
+              <div class="panel__break" aria-hidden="true"></div>
+              <label>Color0 <input [(ngModel)]="currentArea()!.Blueprint.DefaultTileColor" /></label>
+              <label>Color1 <input [(ngModel)]="currentArea()!.Blueprint.DefaultTileColor1" /></label>
+              <label>Weather <input [(ngModel)]="currentArea()!.Weather" /></label>
+              <div class="panel__break" aria-hidden="true"></div>
+              <label>Load <input [(ngModel)]="currentArea()!.LoadStrategy" /></label>
+              <label>Spawn <input [(ngModel)]="currentArea()!.SpawnStrategy" /></label>
+              <label>Broadcast <input [(ngModel)]="currentArea()!.BroadcastGroup" /></label>
+            </div>
+          }
+          @if (showNeighbors()) {
+            <div class="row wrap gap">
+              <label>North <input [(ngModel)]="currentArea()!.North" /></label>
+              <label>South <input [(ngModel)]="currentArea()!.South" /></label>
+              <label>East <input [(ngModel)]="currentArea()!.East" /></label>
+              <label>West <input [(ngModel)]="currentArea()!.West" /></label>
+            </div>
+          }
         }
       </section>
     }

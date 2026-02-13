@@ -6,6 +6,7 @@ import {
   AreaDescription,
   Blueprint,
   BootstrapResponse,
+  Cell,
   Collection,
   Color,
   Fragment,
@@ -42,6 +43,8 @@ export class App {
   protected readonly showNewCollection = signal(false);
   protected readonly spaceName = signal('');
   protected readonly areaName = signal('');
+  protected readonly showAreaDetails = signal(false);
+  protected readonly showNeighbors = signal(false);
 
   protected readonly fixture = signal<'prototype' | 'fragment' | 'interactable' | 'transformation' | 'ground'>('prototype');
   protected readonly tool = signal<Tool>('select');
@@ -218,10 +221,26 @@ export class App {
     this.viewMode.set(mode);
     this.gridTarget.set(mode === 'fragments' ? 'fragment' : 'area');
     this.selection.set(undefined);
+    if (mode !== 'world') {
+      this.resetAreaEditPanels();
+    }
   }
 
   protected setCreateTarget(target: 'space' | 'area'): void {
     this.createTarget.set(target);
+  }
+
+  protected toggleAreaDetails(): void {
+    this.showAreaDetails.update((value) => !value);
+  }
+
+  protected toggleNeighbors(): void {
+    this.showNeighbors.update((value) => !value);
+  }
+
+  protected resetAreaEditPanels(): void {
+    this.showAreaDetails.set(false);
+    this.showNeighbors.set(false);
   }
 
   protected onCollectionChange(): void {
@@ -238,6 +257,7 @@ export class App {
   }
 
   protected onSpaceChange(): void {
+    this.resetAreaEditPanels();
     this.areaName.set(this.areaNames()[0] ?? '');
     const area = this.currentArea();
     if (area) {
@@ -247,6 +267,11 @@ export class App {
         defaultTileColor1: area.Blueprint.DefaultTileColor1 || 'brown',
       });
     }
+    this.selection.set(undefined);
+  }
+
+  protected onAreaChange(): void {
+    this.resetAreaEditPanels();
     this.selection.set(undefined);
   }
 
@@ -681,10 +706,21 @@ export class App {
   }
 
   private normalizeBlueprint(input: any): Blueprint {
+    const ground = input?.Ground ?? input?.ground;
     return {
       Tiles: input?.Tiles ?? input?.tiles ?? [],
       Instructions: input?.Instructions ?? input?.instructions ?? [],
-      Ground: input?.Ground ?? input?.ground,
+      Ground: Array.isArray(ground)
+        ? ground.map((row: any[]) =>
+            row.map((cell: any): Cell => ({
+              status: Number(cell?.status ?? cell?.Status ?? 0),
+              topLeft: Boolean(cell?.topLeft ?? cell?.TopLeft),
+              topRight: Boolean(cell?.topRight ?? cell?.TopRight),
+              bottomLeft: Boolean(cell?.bottomLeft ?? cell?.BottomLeft),
+              bottomRight: Boolean(cell?.bottomRight ?? cell?.BottomRight),
+            })),
+          )
+        : undefined,
       DefaultTileColor: input?.DefaultTileColor ?? input?.defaultTileColor ?? 'white',
       DefaultTileColor1: input?.DefaultTileColor1 ?? input?.defaultTileColor1 ?? 'white',
     };
