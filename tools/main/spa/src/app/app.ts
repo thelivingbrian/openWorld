@@ -231,11 +231,19 @@ export class App {
   }
 
   protected toggleAreaDetails(): void {
-    this.showAreaDetails.update((value) => !value);
+    const next = !this.showAreaDetails();
+    if (next) {
+      this.showNeighbors.set(false);
+    }
+    this.showAreaDetails.set(next);
   }
 
   protected toggleNeighbors(): void {
-    this.showNeighbors.update((value) => !value);
+    const next = !this.showNeighbors();
+    if (next) {
+      this.showAreaDetails.set(false);
+    }
+    this.showNeighbors.set(next);
   }
 
   protected resetAreaEditPanels(): void {
