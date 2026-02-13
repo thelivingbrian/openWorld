@@ -7,6 +7,39 @@ import { BootstrapResponse, InteractableDescription, Prototype, Space, Color, Fr
 export class EditorApiService {
   private readonly http = inject(HttpClient);
 
+  createCollection(name: string): Promise<void> {
+    return firstValueFrom(this.http.post<void>('/api/collection', { name }));
+  }
+
+  createSpace(input: {
+    collectionName: string;
+    name: string;
+    topology: string;
+    latitude: number;
+    longitude: number;
+    areaWidth: number;
+    areaHeight: number;
+    tileColor: string;
+    tileColor1: string;
+    weather: string;
+    broadcastGroup: string;
+  }): Promise<void> {
+    return firstValueFrom(this.http.post<void>('/api/space/create', input));
+  }
+
+  createArea(input: {
+    collectionName: string;
+    spaceName: string;
+    name: string;
+    safe: boolean;
+    height: number;
+    width: number;
+    defaultTileColor: string;
+    defaultTileColor1: string;
+  }): Promise<void> {
+    return firstValueFrom(this.http.post<void>('/api/area/create', input));
+  }
+
   getBootstrap(): Promise<BootstrapResponse> {
     return firstValueFrom(this.http.get<BootstrapResponse>('/api/bootstrap'));
   }

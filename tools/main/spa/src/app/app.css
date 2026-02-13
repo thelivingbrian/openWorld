@@ -10,11 +10,38 @@
 	gap: 12px;
 }
 
-.toolbar {
+.topbar,
+.panel {
 	display: flex;
-	flex-wrap: wrap;
+	flex-direction: column;
 	gap: 8px;
+	border: 1px solid #d0d0d0;
+	padding: 8px;
+	background: #fff;
+}
+
+.mode-nav {
+	border: 1px solid #d0d0d0;
+	background: #fff;
+	padding: 8px;
+}
+
+.mode-nav button.active {
+	background: #0fcdfc; 
+	color: #fff;
+}
+
+.row {
+	display: flex;
 	align-items: end;
+}
+
+.wrap {
+	flex-wrap: wrap;
+}
+
+.gap {
+	gap: 8px;
 }
 
 label {
@@ -34,4 +61,5 @@ button {
 	max-width: 100%;
 	border: 1px solid #d0d0d0;
 	padding: 8px;
+	background: #fff;
 }

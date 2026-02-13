@@ -2,175 +2,461 @@
   @if (loading()) {
     <p>Loading editor...</p>
   } @else {
-    <section class="toolbar">
-      <label>
-        Collection
-        <select [(ngModel)]="collectionName" (ngModelChange)="onCollectionChange()">
-          @for (name of collectionNames(); track name) {
-            <option [value]="name">{{ name }}</option>
-          }
-        </select>
-      </label>
-
-      <label>
-        Space
-        <select [(ngModel)]="spaceName" (ngModelChange)="onSpaceChange()">
-          @for (name of spaceNames(); track name) {
-            <option [value]="name">{{ name }}</option>
-          }
-        </select>
-      </label>
-
-      <label>
-        Area
-        <select [(ngModel)]="areaName" (ngModelChange)="selection.set(undefined)">
-          @for (name of areaNames(); track name) {
-            <option [value]="name">{{ name }}</option>
-          }
-        </select>
-      </label>
-
-      <label>
-        Fixture
-        <select [(ngModel)]="fixture" (ngModelChange)="onFixtureChange()">
-          <option value="prototype">Prototypes</option>
-          <option value="fragment">Fragments</option>
-          <option value="interactable">Interactables</option>
-          <option value="transformation">Transformations</option>
-          <option value="ground">Ground</option>
-        </select>
-      </label>
-
-      @if (fixture() === 'prototype') {
+    <section class="topbar">
+      <div class="row gap">
         <label>
-          Prototype Set
-          <select [(ngModel)]="prototypeSet" (ngModelChange)="onPrototypeSetChange()">
-            @for (name of prototypeSets(); track name) {
+          Collection
+          <select [(ngModel)]="collectionName" (ngModelChange)="onCollectionChange()">
+            @for (name of collectionNames(); track name) {
               <option [value]="name">{{ name }}</option>
             }
           </select>
         </label>
-        <label>
-          Prototype
-          <select [(ngModel)]="selectedAssetId">
-            @for (prototype of prototypes(); track prototype.id) {
-              <option [value]="prototype.id">{{ prototype.commonName }}</option>
-            }
-          </select>
-        </label>
-        <label>
-          Tool
-          <select [(ngModel)]="tool">
-            <option value="select">Select</option>
-            <option value="replace">Replace</option>
-            <option value="fill">Fill</option>
-            <option value="between">Fill Between</option>
-            <option value="place-blueprint">Place on Blueprint</option>
-          </select>
-        </label>
+        <button (click)="compileCollection()">Compile</button>
+        <button (click)="deployCollection()">Deploy</button>
+        <button (click)="toggleNewCollectionForm()">New</button>
+      </div>
+      @if (showNewCollection()) {
+        <div class="row wrap gap">
+          <label>
+            New Collection
+            <input [(ngModel)]="newCollectionName" />
+          </label>
+          <button (click)="createCollection()">Create Collection</button>
+          <button (click)="hideNewCollectionForm()">Cancel</button>
+        </div>
       }
-
-      @if (fixture() === 'fragment') {
-        <label>
-          Fragment Set
-          <select [(ngModel)]="fragmentSet" (ngModelChange)="onFragmentSetChange()">
-            @for (name of fragmentSets(); track name) {
-              <option [value]="name">{{ name }}</option>
-            }
-          </select>
-        </label>
-        <label>
-          Fragment
-          <select [(ngModel)]="selectedAssetId">
-            @for (fragment of fragments(); track fragment.id) {
-              <option [value]="fragment.id">{{ fragment.name }}</option>
-            }
-          </select>
-        </label>
-        <label>
-          Tool
-          <select [(ngModel)]="tool">
-            <option value="place">Place</option>
-            <option value="place-blueprint">Place on Blueprint</option>
-          </select>
-        </label>
-      }
-
-      @if (fixture() === 'interactable') {
-        <label>
-          Interactable Set
-          <select [(ngModel)]="interactableSet" (ngModelChange)="onInteractableSetChange()">
-            @for (name of interactableSets(); track name) {
-              <option [value]="name">{{ name }}</option>
-            }
-          </select>
-        </label>
-        <label>
-          Interactable
-          <select [(ngModel)]="selectedAssetId">
-            @for (interactable of interactables(); track interactable.id) {
-              <option [value]="interactable.id">{{ interactable.name }}</option>
-            }
-          </select>
-        </label>
-        <label>
-          Tool
-          <select [(ngModel)]="tool">
-            <option value="interactable-replace">Replace</option>
-            <option value="interactable-delete">Delete</option>
-          </select>
-        </label>
-      }
-
-      @if (fixture() === 'transformation') {
-        <label>
-          Tool
-          <select [(ngModel)]="tool">
-            <option value="select">Select</option>
-            <option value="rotate">Rotate</option>
-          </select>
-        </label>
-      }
-
-      @if (fixture() === 'ground') {
-        <label>
-          Tool
-          <select [(ngModel)]="tool">
-            <option value="select">Select</option>
-            <option value="toggle">Toggle</option>
-            <option value="toggle-fill">Toggle Fill</option>
-            <option value="toggle-between">Toggle Between</option>
-          </select>
-        </label>
-      }
-
-      <button (click)="saveSpace()">Save Space</button>
-      <button (click)="compileCollection()">Compile</button>
-      <button (click)="deployCollection()">Deploy</button>
-      <span>{{ status() }}</span>
+      <div class="row">
+        <span>{{ status() }}</span>
+      </div>
     </section>
 
-    <section class="grid-panel">
-      <div class="grid" id="screen">
-        @for (row of gridMaterials(); track $index; let y = $index) {
-          <div class="grid-row">
-            @for (material of row; track $index; let x = $index) {
-              <div class="grid-square" (click)="onGridClick(y, x)">
-                <div class="box ground1 {{ material.ground1css ?? '' }}"></div>
-                <div class="box ground2 {{ material.ground2css ?? '' }}"></div>
-                <div class="box floor1 {{ material.layer1css ?? '' }}"></div>
-                <div class="box floor2 {{ material.layer2css ?? '' }}"></div>
-                @if (gridInteractables()[y]?.[x]) {
-                  <div class="box zp {{ gridInteractables()[y]?.[x]?.cssClass ?? '' }}"></div>
+    <section class="mode-nav">
+      <div class="row wrap gap">
+        <button type="button" (click)="setViewMode('world')" [class.active]="viewMode() === 'world'">World</button>
+        <button type="button" (click)="setViewMode('create')" [class.active]="viewMode() === 'create'">Create Space/Area</button>
+        <button type="button" (click)="setViewMode('prototypes')" [class.active]="viewMode() === 'prototypes'">Prototypes</button>
+        <button type="button" (click)="setViewMode('fragments')" [class.active]="viewMode() === 'fragments'">Fragments</button>
+        <button type="button" (click)="setViewMode('interactables')" [class.active]="viewMode() === 'interactables'">Interactables</button>
+        <button type="button" (click)="setViewMode('colors')" [class.active]="viewMode() === 'colors'">Colors</button>
+      </div>
+    </section>
+
+    @if (viewMode() === 'world') {
+      <section class="panel">
+        <h3>Space + Area</h3>
+        <div class="row wrap gap">
+          <label>
+            Space
+            <select [(ngModel)]="spaceName" (ngModelChange)="onSpaceChange()">
+              @for (name of spaceNames(); track name) {
+                <option [value]="name">{{ name }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            Area
+            <select [(ngModel)]="areaName" (ngModelChange)="selection.set(undefined)">
+              @for (name of areaNames(); track name) {
+                <option [value]="name">{{ name }}</option>
+              }
+            </select>
+          </label>
+          <button (click)="saveSpace()">Save Space</button>
+          <button (click)="setViewMode('create')">Create Space/Area</button>
+        </div>
+
+        @if (currentArea()) {
+          <div class="row wrap gap">
+            <label>Name <input [(ngModel)]="currentArea()!.Name" /></label>
+            <label>Safe <input type="checkbox" [(ngModel)]="currentArea()!.Safe" /></label>
+            <label>Color0 <input [(ngModel)]="currentArea()!.Blueprint.DefaultTileColor" /></label>
+            <label>Color1 <input [(ngModel)]="currentArea()!.Blueprint.DefaultTileColor1" /></label>
+            <label>Weather <input [(ngModel)]="currentArea()!.Weather" /></label>
+            <label>Load <input [(ngModel)]="currentArea()!.LoadStrategy" /></label>
+            <label>Spawn <input [(ngModel)]="currentArea()!.SpawnStrategy" /></label>
+            <label>Broadcast <input [(ngModel)]="currentArea()!.BroadcastGroup" /></label>
+          </div>
+          <div class="row wrap gap">
+            <label>North <input [(ngModel)]="currentArea()!.North" /></label>
+            <label>South <input [(ngModel)]="currentArea()!.South" /></label>
+            <label>East <input [(ngModel)]="currentArea()!.East" /></label>
+            <label>West <input [(ngModel)]="currentArea()!.West" /></label>
+          </div>
+        }
+      </section>
+    }
+
+    @if (viewMode() === 'create') {
+      <section class="panel">
+        <h3>Create</h3>
+        <div class="row gap">
+          <button (click)="setCreateTarget('space')">Space</button>
+          <button (click)="setCreateTarget('area')">Area</button>
+        </div>
+
+        @if (createTarget() === 'space') {
+          <div class="row wrap gap">
+            <label>New Space <input [(ngModel)]="newSpace().name" /></label>
+            <label>Topology
+              <select [(ngModel)]="newSpace().topology">
+                <option value="plane">plane</option>
+                <option value="torus">torus</option>
+                <option value="disconnected">disconnected</option>
+              </select>
+            </label>
+            <label>Lat <input type="number" [(ngModel)]="newSpace().latitude" /></label>
+            <label>Long <input type="number" [(ngModel)]="newSpace().longitude" /></label>
+            <label>Area W <input type="number" [(ngModel)]="newSpace().areaWidth" /></label>
+            <label>Area H <input type="number" [(ngModel)]="newSpace().areaHeight" /></label>
+            <label>Color0 <input [(ngModel)]="newSpace().tileColor" /></label>
+            <label>Color1 <input [(ngModel)]="newSpace().tileColor1" /></label>
+            <label>Weather <input [(ngModel)]="newSpace().weather" /></label>
+            <label>Broadcast <input [(ngModel)]="newSpace().broadcastGroup" /></label>
+            <button (click)="createSpace()">Create Space</button>
+          </div>
+        }
+
+        @if (createTarget() === 'area') {
+          <div class="row wrap gap">
+            <label>
+              Space
+              <select [(ngModel)]="spaceName" (ngModelChange)="onSpaceChange()">
+                @for (name of spaceNames(); track name) {
+                  <option [value]="name">{{ name }}</option>
                 }
-                <div class="box ceiling1 {{ material.ceiling1css ?? '' }}"></div>
-                <div class="box ceiling2 {{ material.ceiling2css ?? '' }}"></div>
-                <div class="box top" [class.red-b]="selection()?.y === y && selection()?.x === x" [class.med]="selection()?.y === y && selection()?.x === x"></div>
+              </select>
+            </label>
+            <label>New Area <input [(ngModel)]="newArea().name" /></label>
+            <label>W <input type="number" [(ngModel)]="newArea().width" /></label>
+            <label>H <input type="number" [(ngModel)]="newArea().height" /></label>
+            <label>Color0 <input [(ngModel)]="newArea().defaultTileColor" /></label>
+            <label>Color1 <input [(ngModel)]="newArea().defaultTileColor1" /></label>
+            <label>Safe <input type="checkbox" [(ngModel)]="newArea().safe" /></label>
+            <button (click)="createArea()">Create Area</button>
+          </div>
+        }
+      </section>
+    }
+
+    @if (viewMode() === 'prototypes') {
+      <section class="panel">
+        <h3>Prototypes</h3>
+        <div class="row wrap gap">
+          <label>Set
+            <select [(ngModel)]="prototypeSet" (ngModelChange)="onPrototypeSetChange()">
+              @for (name of prototypeSets(); track name) {
+                <option [value]="name">{{ name }}</option>
+              }
+            </select>
+          </label>
+          <label>New Set <input [(ngModel)]="newPrototypeSetName" /></label>
+          <button (click)="addPrototypeSet()">Add Set</button>
+          <button (click)="savePrototypeSet()">Save Set</button>
+          <button (click)="addPrototype()">Add Prototype</button>
+        </div>
+
+        <div class="row wrap gap">
+          <label>Prototype
+            <select [(ngModel)]="prototypeEditId">
+              @for (entry of prototypes(); track entry.id) {
+                <option [value]="entry.id">{{ entry.commonName }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        @if (editedPrototype()) {
+          <div class="row wrap gap">
+            <label>Name <input [(ngModel)]="editedPrototype()!.commonName" /></label>
+            <label>CssColor <input [(ngModel)]="editedPrototype()!.cssColor" /></label>
+            <label>Floor1 <input [(ngModel)]="editedPrototype()!.layer1css" /></label>
+            <label>Floor2 <input [(ngModel)]="editedPrototype()!.layer2css" /></label>
+            <label>Ceiling1 <input [(ngModel)]="editedPrototype()!.ceiling1css" /></label>
+            <label>Ceiling2 <input [(ngModel)]="editedPrototype()!.ceiling2css" /></label>
+            <label>MapColor <input [(ngModel)]="editedPrototype()!.mapColor" /></label>
+            <label>EditorColor <input [(ngModel)]="editedPrototype()!.editorColor" /></label>
+            <label>DisplayText <input [(ngModel)]="editedPrototype()!.displayText" /></label>
+            <label>Walkable <input type="checkbox" [(ngModel)]="editedPrototype()!.walkable" /></label>
+          </div>
+        }
+      </section>
+    }
+
+    @if (viewMode() === 'fragments') {
+      <section class="panel">
+        <h3>Fragments</h3>
+        <div class="row wrap gap">
+          <label>Set
+            <select [(ngModel)]="fragmentSet" (ngModelChange)="onFragmentSetChange()">
+              @for (name of fragmentSets(); track name) {
+                <option [value]="name">{{ name }}</option>
+              }
+            </select>
+          </label>
+          <label>New Set <input [(ngModel)]="newFragmentSetName" /></label>
+          <button (click)="addFragmentSet()">Add Set</button>
+          <button (click)="saveFragmentSet()">Save Set</button>
+          <button (click)="addFragment()">Add Fragment</button>
+        </div>
+
+        <div class="row wrap gap">
+          <label>Edit Fragment
+            <select [(ngModel)]="fragmentEditId" (ngModelChange)="selection.set(undefined)">
+              @for (entry of fragments(); track entry.id) {
+                <option [value]="entry.id">{{ entry.name }}</option>
+              }
+            </select>
+          </label>
+          @if (editedFragment()) {
+            <label>Name <input [(ngModel)]="editedFragment()!.name" /></label>
+          }
+        </div>
+      </section>
+    }
+
+    @if (viewMode() === 'interactables') {
+      <section class="panel">
+        <h3>Interactables</h3>
+        <div class="row wrap gap">
+          <label>Set
+            <select [(ngModel)]="interactableSet" (ngModelChange)="onInteractableSetChange()">
+              @for (name of interactableSets(); track name) {
+                <option [value]="name">{{ name }}</option>
+              }
+            </select>
+          </label>
+          <label>New Set <input [(ngModel)]="newInteractableSetName" /></label>
+          <button (click)="addInteractableSet()">Add Set</button>
+          <button (click)="saveInteractableSet()">Save Set</button>
+          <button (click)="addInteractable()">Add Interactable</button>
+        </div>
+
+        <div class="row wrap gap">
+          <label>Interactable
+            <select [(ngModel)]="interactableEditId">
+              @for (entry of interactables(); track entry.id) {
+                <option [value]="entry.id">{{ entry.name }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        @if (editedInteractable()) {
+          <div class="row wrap gap">
+            <label>Name <input [(ngModel)]="editedInteractable()!.name" /></label>
+            <label>CssClass <input [(ngModel)]="editedInteractable()!.cssClass" /></label>
+            <label>Pushable <input type="checkbox" [(ngModel)]="editedInteractable()!.pushable" /></label>
+            <label>Walkable <input type="checkbox" [(ngModel)]="editedInteractable()!.walkable" /></label>
+            <label>Fragile <input type="checkbox" [(ngModel)]="editedInteractable()!.fragile" /></label>
+            <label>Reactions <input [(ngModel)]="editedInteractable()!.reactions" /></label>
+          </div>
+        }
+      </section>
+    }
+
+    @if (viewMode() === 'colors') {
+      <section class="panel">
+        <h3>Colors</h3>
+        <div class="row wrap gap">
+          <label>Color
+            <select [(ngModel)]="colorEditIndex">
+              @for (entry of colors(); track entry.cssClassName; let i = $index) {
+                <option [value]="i">{{ entry.cssClassName }}</option>
+              }
+            </select>
+          </label>
+          <button (click)="saveColors()">Save Colors</button>
+        </div>
+
+        @if (editedColor()) {
+          <div class="row wrap gap">
+            <label>Name <input [(ngModel)]="editedColor()!.cssClassName" /></label>
+            <label>R <input type="number" [(ngModel)]="editedColor()!.R" /></label>
+            <label>G <input type="number" [(ngModel)]="editedColor()!.G" /></label>
+            <label>B <input type="number" [(ngModel)]="editedColor()!.B" /></label>
+            <label>A <input [(ngModel)]="editedColor()!.A" /></label>
+          </div>
+        }
+
+        <div class="row wrap gap">
+          <label>New Name <input [(ngModel)]="newColor().cssClassName" /></label>
+          <label>R <input type="number" [(ngModel)]="newColor().R" /></label>
+          <label>G <input type="number" [(ngModel)]="newColor().G" /></label>
+          <label>B <input type="number" [(ngModel)]="newColor().B" /></label>
+          <label>A <input [(ngModel)]="newColor().A" /></label>
+          <button (click)="addColor()">Add Color</button>
+        </div>
+      </section>
+    }
+
+    @if (viewMode() === 'world' || viewMode() === 'fragments') {
+      <section class="panel">
+        <h3>Grid Tools</h3>
+        <div class="row wrap gap">
+          <label>
+            Fixture
+            <select [(ngModel)]="fixture" (ngModelChange)="onFixtureChange()">
+              <option value="prototype">Prototypes</option>
+              <option value="fragment">Fragments</option>
+              <option value="interactable">Interactables</option>
+              <option value="transformation">Transformations</option>
+              <option value="ground">Ground</option>
+            </select>
+          </label>
+
+          @if (fixture() === 'prototype') {
+            <label>
+              Prototype Set
+              <select [(ngModel)]="prototypeSet" (ngModelChange)="onPrototypeSetChange()">
+                @for (name of prototypeSets(); track name) {
+                  <option [value]="name">{{ name }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              Prototype
+              <select [(ngModel)]="selectedAssetId">
+                @for (prototype of prototypes(); track prototype.id) {
+                  <option [value]="prototype.id">{{ prototype.commonName }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              Tool
+              <select [(ngModel)]="tool">
+                <option value="select">Select</option>
+                <option value="replace">Replace</option>
+                <option value="fill">Fill</option>
+                <option value="between">Fill Between</option>
+                <option value="place-blueprint">Place on Blueprint</option>
+              </select>
+            </label>
+          }
+
+          @if (fixture() === 'fragment') {
+            <label>
+              Fragment Set
+              <select [(ngModel)]="fragmentSet" (ngModelChange)="onFragmentSetChange()">
+                @for (name of fragmentSets(); track name) {
+                  <option [value]="name">{{ name }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              Fragment
+              <select [(ngModel)]="selectedAssetId">
+                @for (fragment of fragments(); track fragment.id) {
+                  <option [value]="fragment.id">{{ fragment.name }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              Tool
+              <select [(ngModel)]="tool">
+                <option value="place">Place</option>
+                <option value="place-blueprint">Place on Blueprint</option>
+              </select>
+            </label>
+          }
+
+          @if (fixture() === 'interactable') {
+            <label>
+              Interactable Set
+              <select [(ngModel)]="interactableSet" (ngModelChange)="onInteractableSetChange()">
+                @for (name of interactableSets(); track name) {
+                  <option [value]="name">{{ name }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              Interactable
+              <select [(ngModel)]="selectedAssetId">
+                @for (interactable of interactables(); track interactable.id) {
+                  <option [value]="interactable.id">{{ interactable.name }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              Tool
+              <select [(ngModel)]="tool">
+                <option value="interactable-replace">Replace</option>
+                <option value="interactable-delete">Delete</option>
+              </select>
+            </label>
+          }
+
+          @if (fixture() === 'transformation') {
+            <label>
+              Tool
+              <select [(ngModel)]="tool">
+                <option value="select">Select</option>
+                <option value="rotate">Rotate</option>
+              </select>
+            </label>
+          }
+
+          @if (fixture() === 'ground') {
+            <label>
+              Tool
+              <select [(ngModel)]="tool">
+                <option value="select">Select</option>
+                <option value="toggle">Toggle</option>
+                <option value="toggle-fill">Toggle Fill</option>
+                <option value="toggle-between">Toggle Between</option>
+              </select>
+            </label>
+          }
+        </div>
+      </section>
+
+      <section class="grid-panel">
+        @if (activeBlueprint()) {
+          <div class="grid" id="screen">
+            @for (row of gridMaterials(); track $index; let y = $index) {
+              <div class="grid-row">
+                @for (material of row; track $index; let x = $index) {
+                  <div class="grid-square" (click)="onGridClick(y, x)">
+                    <div class="box ground1 {{ material.ground1css ?? '' }}"></div>
+                    <div class="box ground2 {{ material.ground2css ?? '' }}"></div>
+                    <div class="box floor1 {{ material.layer1css ?? '' }}"></div>
+                    <div class="box floor2 {{ material.layer2css ?? '' }}"></div>
+                    @if (gridInteractables()[y]?.[x]) {
+                      <div class="box zp {{ gridInteractables()[y]?.[x]?.cssClass ?? '' }}"></div>
+                    }
+                    <div class="box ceiling1 {{ material.ceiling1css ?? '' }}"></div>
+                    <div class="box ceiling2 {{ material.ceiling2css ?? '' }}"></div>
+                    <div class="box top" [class.red-b]="selection()?.y === y && selection()?.x === x" [class.med]="selection()?.y === y && selection()?.x === x"></div>
+                  </div>
+                }
               </div>
             }
           </div>
+        } @else {
+          <p>No active grid target selected.</p>
         }
-      </div>
-    </section>
+      </section>
+
+      @if (activeBlueprint()) {
+        <section class="panel">
+          <h3>Blueprint Instructions</h3>
+          <div class="row wrap gap">
+            <button (click)="addInstruction()">Add Instruction (from selected asset)</button>
+          </div>
+          @for (instruction of activeBlueprint()!.Instructions; track instruction.ID; let i = $index) {
+            <div class="row wrap gap">
+              <span>#{{ i }}</span>
+              <label>Y <input type="number" [(ngModel)]="instruction.Y" /></label>
+              <label>X <input type="number" [(ngModel)]="instruction.X" /></label>
+              <label>Rot <input type="number" [(ngModel)]="instruction.ClockwiseRotations" /></label>
+              <label>Asset <input [(ngModel)]="instruction.GridAssetId" /></label>
+              <button (click)="showInstruction(i)">Show</button>
+              <button (click)="moveInstruction(i)">Order++</button>
+              <button (click)="deleteInstruction(i)">Delete</button>
+            </div>
+          }
+        </section>
+      }
+    }
   }
 </main>

@@ -42,6 +42,35 @@ type collectionCommandRequest struct {
 	CollectionName string `json:"collectionName"`
 }
 
+type createCollectionRequest struct {
+	Name string `json:"name"`
+}
+
+type createSpaceRequest struct {
+	CollectionName string `json:"collectionName"`
+	Name           string `json:"name"`
+	Topology       string `json:"topology"`
+	Latitude       int    `json:"latitude"`
+	Longitude      int    `json:"longitude"`
+	AreaWidth      int    `json:"areaWidth"`
+	AreaHeight     int    `json:"areaHeight"`
+	TileColor      string `json:"tileColor"`
+	TileColor1     string `json:"tileColor1"`
+	Weather        string `json:"weather"`
+	BroadcastGroup string `json:"broadcastGroup"`
+}
+
+type createAreaRequest struct {
+	CollectionName    string `json:"collectionName"`
+	SpaceName         string `json:"spaceName"`
+	Name              string `json:"name"`
+	Safe              bool   `json:"safe"`
+	Height            int    `json:"height"`
+	Width             int    `json:"width"`
+	DefaultTileColor  string `json:"defaultTileColor"`
+	DefaultTileColor1 string `json:"defaultTileColor1"`
+}
+
 func decodeJSONBody[T any](r *http.Request) (T, error) {
 	var body T
 	dec := json.NewDecoder(r.Body)
@@ -76,6 +105,37 @@ func (c *Context) apiBootstrapHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (c *Context) apiCollectionHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+
+	req, err := decodeJSONBody[createCollectionRequest](r)
+	if err != nil || strings.TrimSpace(req.Name) == "" {
+		writeJSONError(w, http.StatusBadRequest, "invalid request payload")
+		return
+	}
+
+	name := strings.ToLower(strings.TrimSpace(req.Name))
+	if c.Collections[name] != nil {
+		writeJSONError(w, http.StatusConflict, "collection already exists")
+		return
+	}
+
+	c.Collections[name] = &Collection{
+		Name:             name,
+		Spaces:           make(map[string]*Space),
+		Fragments:        make(map[string][]Fragment),
+		PrototypeSets:    make(map[string][]Prototype),
+		InteractableSets: make(map[string][]InteractableDescription),
+		StructureSets:    make(map[string][]Structure),
+	}
+	createCollectionDirectories(name)
+
+	encodeJSON(w, http.StatusCreated, map[string]string{"status": "created", "collectionName": name})
+}
+
 func (c *Context) apiSaveSpaceHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		writeJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
@@ -98,6 +158,99 @@ func (c *Context) apiSaveSpaceHandler(w http.ResponseWriter, r *http.Request) {
 	col.saveSpace(req.SpaceName)
 
 	encodeJSON(w, http.StatusOK, map[string]string{"status": "saved"})
+}
+
+func (c *Context) apiCreateSpaceHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+
+	req, err := decodeJSONBody[createSpaceRequest](r)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid request payload")
+		return
+	}
+
+	col := c.Collections[req.CollectionName]
+	if col == nil {
+		writeJSONError(w, http.StatusNotFound, "collection not found")
+		return
+	}
+	if strings.TrimSpace(req.Name) == "" {
+		writeJSONError(w, http.StatusBadRequest, "space name required")
+		return
+	}
+	if req.Latitude <= 0 || req.Longitude <= 0 || req.AreaWidth <= 0 || req.AreaHeight <= 0 {
+		writeJSONError(w, http.StatusBadRequest, "invalid dimensions")
+		return
+	}
+	if col.Spaces[req.Name] != nil {
+		writeJSONError(w, http.StatusConflict, "space already exists")
+		return
+	}
+
+	space := createSpace(
+		req.CollectionName,
+		req.Name,
+		req.Latitude,
+		req.Longitude,
+		req.Topology,
+		req.AreaHeight,
+		req.AreaWidth,
+		req.TileColor,
+		req.TileColor1,
+		req.Weather,
+		req.BroadcastGroup,
+	)
+	col.Spaces[req.Name] = &space
+	col.saveSpace(req.Name)
+
+	encodeJSON(w, http.StatusCreated, map[string]string{"status": "created", "spaceName": req.Name})
+}
+
+func (c *Context) apiCreateAreaHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+
+	req, err := decodeJSONBody[createAreaRequest](r)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid request payload")
+		return
+	}
+
+	col := c.Collections[req.CollectionName]
+	if col == nil {
+		writeJSONError(w, http.StatusNotFound, "collection not found")
+		return
+	}
+	space := col.Spaces[req.SpaceName]
+	if space == nil {
+		writeJSONError(w, http.StatusNotFound, "space not found")
+		return
+	}
+	if strings.TrimSpace(req.Name) == "" {
+		writeJSONError(w, http.StatusBadRequest, "area name required")
+		return
+	}
+	if req.Height <= 0 || req.Width <= 0 {
+		writeJSONError(w, http.StatusBadRequest, "invalid dimensions")
+		return
+	}
+	if getAreaByName(space.Areas, req.Name) != nil {
+		writeJSONError(w, http.StatusConflict, "area already exists")
+		return
+	}
+
+	area := createBaseArea(req.Height, req.Width, req.DefaultTileColor, req.DefaultTileColor1, "", "")
+	area.Name = req.Name
+	area.Safe = req.Safe
+	space.Areas = append(space.Areas, area)
+	col.saveSpace(req.SpaceName)
+
+	encodeJSON(w, http.StatusCreated, map[string]string{"status": "created", "areaName": req.Name})
 }
 
 func (c *Context) apiSaveFragmentSetHandler(w http.ResponseWriter, r *http.Request) {
@@ -233,6 +386,9 @@ func (c *Context) spaHandler(w http.ResponseWriter, r *http.Request) {
 	const distRoot = "./spa/dist/spa/browser"
 	rel := strings.TrimPrefix(r.URL.Path, "/app")
 	if rel == "" || rel == "/" {
+		w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
 		http.ServeFile(w, r, filepath.Join(distRoot, "index.html"))
 		return
 	}
@@ -244,5 +400,8 @@ func (c *Context) spaHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
 	http.ServeFile(w, r, filepath.Join(distRoot, "index.html"))
 }
