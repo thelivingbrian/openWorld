@@ -90,3 +90,17 @@ button {
 	flex-basis: 100%;
 	height: 0;
 }
+
+.fixture-preview {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.zp {
+	z-index: 20;
+}
+
+.ghost-layer {
+	pointer-events: none;
+}

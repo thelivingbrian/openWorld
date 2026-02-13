@@ -50,6 +50,7 @@ export class App {
   protected readonly tool = signal<Tool>('select');
   protected readonly selectedAssetId = signal('');
   protected readonly selection = signal<GridSelection | undefined>(undefined);
+  protected readonly hoverPosition = signal<GridSelection | undefined>(undefined);
 
   protected readonly prototypeSet = signal('');
   protected readonly fragmentSet = signal('');
@@ -212,6 +213,171 @@ export class App {
     return blueprint.Tiles.map((row) => row.map((tile) => this.interactablesById().get(tile.interactableId ?? '')));
   });
 
+  protected readonly fixturePreviewMaterials = computed<Material[][]>(() => {
+    const fixture = this.fixture();
+    const defaults = this.activeBlueprint();
+    const defaultColor0 = defaults?.DefaultTileColor ?? 'white';
+    const defaultColor1 = defaults?.DefaultTileColor1 ?? 'white';
+
+    if (fixture === 'prototype') {
+      const selectedId = this.selectedAssetId();
+      if (!selectedId) {
+        return [];
+      }
+      return generateMaterials(
+        {
+          Tiles: [[{ prototypeId: selectedId, interactableId: '' }]],
+          Instructions: [],
+          DefaultTileColor: defaultColor0,
+          DefaultTileColor1: defaultColor1,
+        },
+        this.prototypesById(),
+        false,
+      );
+    }
+
+    if (fixture === 'fragment') {
+      const fragment = this.fragmentsById().get(this.selectedAssetId());
+      if (!fragment) {
+        return [];
+      }
+      return generateMaterials(fragment.blueprint, this.prototypesById(), false);
+    }
+
+    if (fixture === 'interactable') {
+      return generateMaterials(
+        {
+          Tiles: [[{ prototypeId: '', interactableId: '' }]],
+          Instructions: [],
+          DefaultTileColor: defaultColor0,
+          DefaultTileColor1: defaultColor1,
+        },
+        this.prototypesById(),
+        true,
+      );
+    }
+
+    return [];
+  });
+
+  protected readonly fixturePreviewInteractables = computed(() => {
+    const fixture = this.fixture();
+
+    if (fixture === 'fragment') {
+      const fragment = this.fragmentsById().get(this.selectedAssetId());
+      if (!fragment) {
+        return [] as (InteractableDescription | undefined)[][];
+      }
+      return fragment.blueprint.Tiles.map((row) => row.map((tile) => this.interactablesById().get(tile.interactableId ?? '')));
+    }
+
+    if (fixture === 'interactable') {
+      return [[this.interactablesById().get(this.selectedAssetId())]];
+    }
+
+    return [] as (InteractableDescription | undefined)[][];
+  });
+
+  protected readonly ghostMaterials = computed(() => {
+    this.gridVersion();
+    const blueprint = this.activeBlueprint();
+    const hover = this.hoverPosition();
+    if (!blueprint || !hover) {
+      return [] as (Material | undefined)[][];
+    }
+
+    const out: (Material | undefined)[][] = blueprint.Tiles.map((row) => row.map(() => undefined));
+    const defaultColor0 = blueprint.DefaultTileColor ?? 'white';
+    const defaultColor1 = blueprint.DefaultTileColor1 ?? 'white';
+
+    if (this.fixture() === 'prototype') {
+      const selectedId = this.selectedAssetId();
+      if (!selectedId) {
+        return out;
+      }
+      const preview = generateMaterials(
+        {
+          Tiles: [[{ prototypeId: selectedId, interactableId: '' }]],
+          Instructions: [],
+          DefaultTileColor: defaultColor0,
+          DefaultTileColor1: defaultColor1,
+        },
+        this.prototypesById(),
+        false,
+      )[0]?.[0];
+      if (preview && hover.y >= 0 && hover.y < out.length && hover.x >= 0 && hover.x < out[hover.y].length) {
+        out[hover.y][hover.x] = preview;
+      }
+      return out;
+    }
+
+    if (this.fixture() === 'fragment') {
+      const fragment = this.fragmentsById().get(this.selectedAssetId());
+      if (!fragment) {
+        return out;
+      }
+      const ghostFragment = generateMaterials(fragment.blueprint, this.prototypesById(), false);
+      for (let y = 0; y < ghostFragment.length; y += 1) {
+        const targetY = hover.y + y;
+        if (targetY < 0 || targetY >= out.length) {
+          continue;
+        }
+        for (let x = 0; x < ghostFragment[y].length; x += 1) {
+          const targetX = hover.x + x;
+          if (targetX < 0 || targetX >= out[targetY].length) {
+            continue;
+          }
+          out[targetY][targetX] = ghostFragment[y][x];
+        }
+      }
+    }
+
+    return out;
+  });
+
+  protected readonly ghostInteractables = computed(() => {
+    this.gridVersion();
+    const blueprint = this.activeBlueprint();
+    const hover = this.hoverPosition();
+    if (!blueprint || !hover) {
+      return [] as (InteractableDescription | undefined)[][];
+    }
+
+    const out: (InteractableDescription | undefined)[][] = blueprint.Tiles.map((row) => row.map(() => undefined));
+
+    if (this.fixture() === 'interactable') {
+      const interactable = this.interactablesById().get(this.selectedAssetId());
+      if (interactable && hover.y >= 0 && hover.y < out.length && hover.x >= 0 && hover.x < out[hover.y].length) {
+        out[hover.y][hover.x] = interactable;
+      }
+      return out;
+    }
+
+    if (this.fixture() === 'fragment') {
+      const fragment = this.fragmentsById().get(this.selectedAssetId());
+      if (!fragment) {
+        return out;
+      }
+
+      for (let y = 0; y < fragment.blueprint.Tiles.length; y += 1) {
+        const targetY = hover.y + y;
+        if (targetY < 0 || targetY >= out.length) {
+          continue;
+        }
+        for (let x = 0; x < fragment.blueprint.Tiles[y].length; x += 1) {
+          const targetX = hover.x + x;
+          if (targetX < 0 || targetX >= out[targetY].length) {
+            continue;
+          }
+          const interactableId = fragment.blueprint.Tiles[y][x].interactableId ?? '';
+          out[targetY][targetX] = this.interactablesById().get(interactableId);
+        }
+      }
+    }
+
+    return out;
+  });
+
   constructor() {
     this.ensureLegacyStyles();
     void this.loadBootstrap();
@@ -276,15 +442,18 @@ export class App {
       });
     }
     this.selection.set(undefined);
+    this.hoverPosition.set(undefined);
   }
 
   protected onAreaChange(): void {
     this.resetAreaEditPanels();
     this.selection.set(undefined);
+    this.hoverPosition.set(undefined);
   }
 
   protected onFixtureChange(): void {
     this.selection.set(undefined);
+    this.hoverPosition.set(undefined);
     switch (this.fixture()) {
       case 'prototype':
         this.tool.set('select');
@@ -362,6 +531,14 @@ export class App {
 
     this.selection.set(nextSelection);
     this.touchBootstrap();
+  }
+
+  protected onGridHover(y: number, x: number): void {
+    this.hoverPosition.set({ y, x });
+  }
+
+  protected onGridLeave(): void {
+    this.hoverPosition.set(undefined);
   }
 
   protected addInstruction(): void {

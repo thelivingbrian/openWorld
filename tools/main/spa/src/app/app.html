@@ -429,6 +429,32 @@
             </label>
           }
         </div>
+
+        @if (fixturePreviewMaterials().length > 0) {
+          <div class="fixture-preview">
+            <strong>Selected Fixture Preview</strong>
+            <div class="grid">
+              @for (row of fixturePreviewMaterials(); track $index; let y = $index) {
+                <div class="grid-row">
+                  @for (material of row; track $index; let x = $index) {
+                    <div class="grid-square">
+                      <div class="box ground1 {{ material.ground1css ?? '' }}"></div>
+                      <div class="box ground2 {{ material.ground2css ?? '' }}"></div>
+                      <div class="box floor1 {{ material.layer1css ?? '' }}"></div>
+                      <div class="box floor2 {{ material.layer2css ?? '' }}"></div>
+                      @if (fixturePreviewInteractables()[y]?.[x]) {
+                        <div class="box zp {{ fixturePreviewInteractables()[y]?.[x]?.cssClass ?? '' }}"></div>
+                      }
+                      <div class="box ceiling1 {{ material.ceiling1css ?? '' }}"></div>
+                      <div class="box ceiling2 {{ material.ceiling2css ?? '' }}"></div>
+                      <div class="box top"></div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
       </section>
 
       <section class="grid-panel">
@@ -437,7 +463,7 @@
             @for (row of gridMaterials(); track $index; let y = $index) {
               <div class="grid-row">
                 @for (material of row; track $index; let x = $index) {
-                  <div class="grid-square" (click)="onGridClick(y, x)">
+                  <div class="grid-square" (click)="onGridClick(y, x)" (mouseenter)="onGridHover(y, x)" (mouseleave)="onGridLeave()">
                     <div class="box ground1 {{ material.ground1css ?? '' }}"></div>
                     <div class="box ground2 {{ material.ground2css ?? '' }}"></div>
                     <div class="box floor1 {{ material.layer1css ?? '' }}"></div>
@@ -445,9 +471,23 @@
                     @if (gridInteractables()[y]?.[x]) {
                       <div class="box zp {{ gridInteractables()[y]?.[x]?.cssClass ?? '' }}"></div>
                     }
+                    @if (ghostMaterials()[y]?.[x]) {
+                      <div class="box ground1 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ground1css ?? '' }}"></div>
+                      <div class="box ground2 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ground2css ?? '' }}"></div>
+                      <div class="box floor1 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.layer1css ?? '' }}"></div>
+                      <div class="box floor2 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.layer2css ?? '' }}"></div>
+                      <div class="box ceiling1 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ceiling1css ?? '' }}"></div>
+                      <div class="box ceiling2 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ceiling2css ?? '' }}"></div>
+                    }
+                    @if (ghostInteractables()[y]?.[x]) {
+                      <div class="box zp ghost-layer trsp60 {{ ghostInteractables()[y]?.[x]?.cssClass ?? '' }}"></div>
+                    }
                     <div class="box ceiling1 {{ material.ceiling1css ?? '' }}"></div>
                     <div class="box ceiling2 {{ material.ceiling2css ?? '' }}"></div>
-                    <div class="box top" [class.red-b]="selection()?.y === y && selection()?.x === x" [class.med]="selection()?.y === y && selection()?.x === x"></div>
+                    <div class="box top"
+                      [class.red-b]="selection()?.y === y && selection()?.x === x"
+                      [class.med]="selection()?.y === y && selection()?.x === x"
+                      [class.blue-b]="(ghostMaterials()[y]?.[x] || ghostInteractables()[y]?.[x]) && !(selection()?.y === y && selection()?.x === x)"></div>
                   </div>
                 }
               </div>
