@@ -46,6 +46,7 @@ export class App {
   protected readonly showGridTools = signal(true);
   protected readonly showAreaDetails = signal(false);
   protected readonly showNeighbors = signal(false);
+  protected readonly showBlueprintInstructions = signal(true);
 
   protected readonly fixture = signal<'prototype' | 'fragment' | 'interactable' | 'transformation' | 'ground'>('prototype');
   protected readonly tool = signal<Tool>('select');
@@ -615,6 +616,10 @@ export class App {
     }
     const instruction = blueprint.Instructions[index];
     this.selection.set({ y: instruction.Y, x: instruction.X });
+  }
+
+  protected toggleBlueprintInstructions(): void {
+    this.showBlueprintInstructions.update((value) => !value);
   }
 
   protected async createCollection(): Promise<void> {
