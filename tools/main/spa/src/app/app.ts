@@ -132,6 +132,28 @@ export class App {
     return this.currentSpace()?.Areas.find((area) => area.Name === this.areaName());
   });
 
+  protected readonly transportSourceKeys = computed(() => {
+    const area = this.currentArea();
+    const keys = new Set<string>();
+    if (!area) {
+      return keys;
+    }
+
+    for (const transport of area.Transports ?? []) {
+      const y = Number(transport.SourceY);
+      const x = Number(transport.SourceX);
+      if (Number.isInteger(y) && Number.isInteger(x)) {
+        keys.add(`${y}:${x}`);
+      }
+    }
+
+    return keys;
+  });
+
+  protected isTransportSourceTile(y: number, x: number): boolean {
+    return this.transportSourceKeys().has(`${y}:${x}`);
+  }
+
   protected readonly hasNavigationMap = computed(() => {
     const space = this.currentSpace();
     if (!space) {

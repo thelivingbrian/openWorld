@@ -431,8 +431,10 @@
                       <div class="box ceiling2 {{ material.ceiling2css ?? '' }}"></div>
                       <div class="box top"
                         [class.red-b]="selection()?.y === y && selection()?.x === x"
+                        [class.pink-b]="showTransports() && isTransportSourceTile(y, x) && !(selection()?.y === y && selection()?.x === x)"
+                        [class.thick]="showTransports() && isTransportSourceTile(y, x) && !(selection()?.y === y && selection()?.x === x)"
                         [class.med]="selection()?.y === y && selection()?.x === x"
-                        [class.blue-b]="(ghostMaterials()[y]?.[x] || ghostInteractables()[y]?.[x]) && !(selection()?.y === y && selection()?.x === x)"></div>
+                        [class.blue-b]="(ghostMaterials()[y]?.[x] || ghostInteractables()[y]?.[x]) && !(selection()?.y === y && selection()?.x === x) && !(showTransports() && isTransportSourceTile(y, x))"></div>
                     </div>
                   }
                 </div>
