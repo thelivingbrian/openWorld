@@ -438,7 +438,17 @@
         }
       </section>
 
-      <div class="grid-side-column">
+      <div
+        class="grid-resizer"
+        role="separator"
+        aria-orientation="vertical"
+        [attr.aria-valuenow]="sideColumnWidth()"
+        aria-valuemin="280"
+        aria-valuemax="760"
+        (pointerdown)="startSideColumnResize($event)">
+      </div>
+
+      <div class="grid-side-column" [class.resizing]="isResizingSideColumn()" [style.flex-basis.px]="sideColumnWidth()" [style.width.px]="sideColumnWidth()">
         <section class="panel grid-side-panel">
           @if (viewMode() === 'world' && currentArea() && showAreaDetails()) {
             <h3>Edit Details</h3>
@@ -607,6 +617,49 @@
             }
           }
         </section>
+
+        @if (viewMode() === 'world' && currentArea() && hasNavigationMap()) {
+          <section class="panel grid-side-panel">
+            <div class="section-header">
+              <h3>Navigation Map</h3>
+              <button
+                type="button"
+                class="collapse-toggle"
+                [attr.aria-expanded]="showNavigationMap()"
+                (click)="toggleNavigationMap()"
+              >{{ showNavigationMap() ? '-' : '+' }}</button>
+            </div>
+
+            @if (showNavigationMap()) {
+              <div class="navigation-map" role="grid" aria-label="Space navigation map">
+                @for (row of navigationMapRows(); track $index) {
+                  <div class="navigation-map__row" role="row">
+                    @for (cell of row; track cell.areaName) {
+                      <button
+                        type="button"
+                        class="navigation-map__cell"
+                        [class.active]="cell.isCurrent"
+                        [disabled]="!cell.exists"
+                        [attr.aria-label]="'Navigate to ' + cell.areaName"
+                        [title]="cell.areaName"
+                        (click)="goToArea(cell.areaName)">
+                        @if (cell.exists && !hasNavigationImageError(cell.areaName)) {
+                          <img
+                            class="navigation-map__cell-image"
+                            [src]="cell.imageUrl"
+                            [alt]="cell.areaName"
+                            (error)="onNavigationImageError(cell.areaName)" />
+                        } @else {
+                          <span class="navigation-map__cell-missing">{{ cell.row }}-{{ cell.column }}</span>
+                        }
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        }
 
         @if (activeBlueprint()) {
           <section class="panel grid-side-panel blueprint-panel">

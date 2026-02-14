@@ -21,6 +21,15 @@ import { applyGridTool, generateMaterials, Tool } from './grid-engine';
 type ViewMode = 'world' | 'create' | 'prototypes' | 'fragments' | 'interactables' | 'colors';
 type GridTarget = 'area' | 'fragment';
 
+interface NavigationMapCell {
+  areaName: string;
+  row: number;
+  column: number;
+  imageUrl: string;
+  exists: boolean;
+  isCurrent: boolean;
+}
+
 @Component({
   selector: 'app-root',
   imports: [CommonModule, FormsModule],
@@ -46,7 +55,11 @@ export class App {
   protected readonly showGridTools = signal(true);
   protected readonly showAreaDetails = signal(false);
   protected readonly showNeighbors = signal(false);
+  protected readonly showNavigationMap = signal(true);
   protected readonly showBlueprintInstructions = signal(true);
+  protected readonly sideColumnWidth = signal(360);
+  protected readonly isResizingSideColumn = signal(false);
+  protected readonly failedNavigationImageKeys = signal<Record<string, true>>({});
 
   protected readonly fixture = signal<'prototype' | 'fragment' | 'interactable' | 'transformation' | 'ground'>('prototype');
   protected readonly tool = signal<Tool>('select');
@@ -115,6 +128,45 @@ export class App {
 
   protected readonly currentArea = computed<AreaDescription | undefined>(() => {
     return this.currentSpace()?.Areas.find((area) => area.Name === this.areaName());
+  });
+
+  protected readonly hasNavigationMap = computed(() => {
+    const space = this.currentSpace();
+    if (!space) {
+      return false;
+    }
+    return this.isSimplyTiledSpace(space) && space.Latitude > 0 && space.Longitude > 0;
+  });
+
+  protected readonly navigationMapRows = computed<NavigationMapCell[][]>(() => {
+    const space = this.currentSpace();
+    const collectionName = this.collectionName();
+    if (!space || !this.hasNavigationMap()) {
+      return [];
+    }
+
+    const areaNames = new Set(space.Areas.map((area) => area.Name));
+    const selected = this.areaName();
+    const rows: NavigationMapCell[][] = [];
+
+    for (let row = 0; row < space.Latitude; row += 1) {
+      const mapRow: NavigationMapCell[] = [];
+      for (let column = 0; column < space.Longitude; column += 1) {
+        const areaName = `${space.Name}:${row}-${column}`;
+        const exists = areaNames.has(areaName);
+        mapRow.push({
+          areaName,
+          row,
+          column,
+          imageUrl: this.buildAreaImageUrl(space.Name, areaName, collectionName),
+          exists,
+          isCurrent: selected === areaName,
+        });
+      }
+      rows.push(mapRow);
+    }
+
+    return rows;
   });
 
   protected readonly prototypeSets = computed(() => Object.keys(this.currentCollection()?.PrototypeSets ?? {}));
@@ -456,6 +508,42 @@ export class App {
     this.showGridTools.set(next);
   }
 
+  protected toggleNavigationMap(): void {
+    this.showNavigationMap.update((value) => !value);
+  }
+
+  protected startSideColumnResize(event: PointerEvent): void {
+    event.preventDefault();
+    const startX = event.clientX;
+    const startWidth = this.sideColumnWidth();
+    this.isResizingSideColumn.set(true);
+
+    const onPointerMove = (moveEvent: PointerEvent) => {
+      const delta = startX - moveEvent.clientX;
+      const nextWidth = Math.max(280, Math.min(760, startWidth + delta));
+      this.sideColumnWidth.set(nextWidth);
+    };
+
+    const onPointerUp = () => {
+      this.isResizingSideColumn.set(false);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+    };
+
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+  }
+
+  protected hasNavigationImageError(areaName: string): boolean {
+    const key = this.navigationImageKey(areaName);
+    return Boolean(this.failedNavigationImageKeys()[key]);
+  }
+
+  protected onNavigationImageError(areaName: string): void {
+    const key = this.navigationImageKey(areaName);
+    this.failedNavigationImageKeys.update((entries) => ({ ...entries, [key]: true }));
+  }
+
   protected resetAreaEditPanels(): void {
     this.showGridTools.set(true);
     this.showAreaDetails.set(false);
@@ -478,6 +566,7 @@ export class App {
   protected onSpaceChange(): void {
     this.resetAreaEditPanels();
     this.areaName.set(this.areaNames()[0] ?? '');
+    this.failedNavigationImageKeys.set({});
     const area = this.currentArea();
     if (area) {
       this.newArea.set({
@@ -925,6 +1014,18 @@ export class App {
       return 1;
     }
     return Math.max(0, Math.min(1, parsed));
+  }
+
+  private isSimplyTiledSpace(space: Space): boolean {
+    return space.Topology === 'plane' || space.Topology === 'torus';
+  }
+
+  private buildAreaImageUrl(spaceName: string, areaName: string, collectionName: string): string {
+    return `/images/make/${encodeURIComponent(spaceName)}/${encodeURIComponent(areaName)}?currentCollection=${encodeURIComponent(collectionName)}`;
+  }
+
+  private navigationImageKey(areaName: string): string {
+    return `${this.collectionName()}::${this.spaceName()}::${areaName}`;
   }
 
   private ensureLegacyStyles(): void {
