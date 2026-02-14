@@ -57,13 +57,32 @@ button {
 }
 
 .grid-panel {
-	overflow: auto;
+	flex: 1 1 auto;
+	min-width: 0;
+	max-height: 72vh;
+	overflow-x: auto;
+	overflow-y: auto;
+	overscroll-behavior: contain;
 	max-width: 100%;
 	padding: 8px;
 }
 
+.grid-workspace {
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: flex-start;
+	gap: 12px;
+	overflow: hidden;
+}
+
+.grid-side-panel {
+	flex: 0 0 360px;
+	max-width: 100%;
+}
+
 .grid-window {
 	display: inline-block;
+	min-width: max-content;
 }
 
 .grid-window .navigator {
@@ -75,6 +94,10 @@ button {
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px;
+}
+
+.panel__toggles--right {
+	margin-left: auto;
 }
 
 .panel__toggle {

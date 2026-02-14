@@ -62,8 +62,9 @@
               }
             </select>
           </label>
+          <button (click)="saveSpace()">Save Space</button>
           @if (currentArea()) {
-            <div class="row gap panel__toggles">
+            <div class="row gap panel__toggles panel__toggles--right">
               <button
                 type="button"
                 class="panel__toggle"
@@ -73,38 +74,18 @@
               <button
                 type="button"
                 class="panel__toggle"
+                [class.active]="showGridTools()"
+                (click)="toggleGridTools()"
+              >Edit Grid</button>
+              <button
+                type="button"
+                class="panel__toggle"
                 [class.active]="showNeighbors()"
                 (click)="toggleNeighbors()"
               >Edit Neighbors</button>
             </div>
           }
-          <button (click)="saveSpace()">Save Space</button>
         </div>
-
-        @if (currentArea()) {
-          @if (showAreaDetails()) {
-            <div class="row wrap gap">
-              <label>Name <input [(ngModel)]="currentArea()!.Name" /></label>
-              <label>Safe <input type="checkbox" [(ngModel)]="currentArea()!.Safe" /></label>
-              <div class="panel__break" aria-hidden="true"></div>
-              <label>Color0 <input [(ngModel)]="currentArea()!.Blueprint.DefaultTileColor" /></label>
-              <label>Color1 <input [(ngModel)]="currentArea()!.Blueprint.DefaultTileColor1" /></label>
-              <label>Weather <input [(ngModel)]="currentArea()!.Weather" /></label>
-              <div class="panel__break" aria-hidden="true"></div>
-              <label>Load <input [(ngModel)]="currentArea()!.LoadStrategy" /></label>
-              <label>Spawn <input [(ngModel)]="currentArea()!.SpawnStrategy" /></label>
-              <label>Broadcast <input [(ngModel)]="currentArea()!.BroadcastGroup" /></label>
-            </div>
-          }
-          @if (showNeighbors()) {
-            <div class="row wrap gap">
-              <label>North <input [(ngModel)]="currentArea()!.North" /></label>
-              <label>South <input [(ngModel)]="currentArea()!.South" /></label>
-              <label>East <input [(ngModel)]="currentArea()!.East" /></label>
-              <label>West <input [(ngModel)]="currentArea()!.West" /></label>
-            </div>
-          }
-        }
       </section>
     }
 
@@ -312,151 +293,7 @@
     }
 
     @if (viewMode() === 'world' || viewMode() === 'fragments') {
-      <section class="panel">
-        <h3>Grid Tools</h3>
-        <div class="row wrap gap">
-          <label>
-            Fixture
-            <select [(ngModel)]="fixture" (ngModelChange)="onFixtureChange()">
-              <option value="prototype">Prototypes</option>
-              <option value="fragment">Fragments</option>
-              <option value="interactable">Interactables</option>
-              <option value="transformation">Transformations</option>
-              <option value="ground">Ground</option>
-            </select>
-          </label>
-
-          @if (fixture() === 'prototype') {
-            <label>
-              Prototype Set
-              <select [(ngModel)]="prototypeSet" (ngModelChange)="onPrototypeSetChange()">
-                @for (name of prototypeSets(); track name) {
-                  <option [value]="name">{{ name }}</option>
-                }
-              </select>
-            </label>
-            <label>
-              Prototype
-              <select [(ngModel)]="selectedAssetId">
-                @for (prototype of prototypes(); track prototype.id) {
-                  <option [value]="prototype.id">{{ prototype.commonName }}</option>
-                }
-              </select>
-            </label>
-            <label>
-              Tool
-              <select [(ngModel)]="tool">
-                <option value="select">Select</option>
-                <option value="replace">Replace</option>
-                <option value="fill">Fill</option>
-                <option value="between">Fill Between</option>
-                <option value="place-blueprint">Place on Blueprint</option>
-              </select>
-            </label>
-          }
-
-          @if (fixture() === 'fragment') {
-            <label>
-              Fragment Set
-              <select [(ngModel)]="fragmentSet" (ngModelChange)="onFragmentSetChange()">
-                @for (name of fragmentSets(); track name) {
-                  <option [value]="name">{{ name }}</option>
-                }
-              </select>
-            </label>
-            <label>
-              Fragment
-              <select [(ngModel)]="selectedAssetId">
-                @for (fragment of fragments(); track fragment.id) {
-                  <option [value]="fragment.id">{{ fragment.name }}</option>
-                }
-              </select>
-            </label>
-            <label>
-              Tool
-              <select [(ngModel)]="tool">
-                <option value="place">Place</option>
-                <option value="place-blueprint">Place on Blueprint</option>
-              </select>
-            </label>
-          }
-
-          @if (fixture() === 'interactable') {
-            <label>
-              Interactable Set
-              <select [(ngModel)]="interactableSet" (ngModelChange)="onInteractableSetChange()">
-                @for (name of interactableSets(); track name) {
-                  <option [value]="name">{{ name }}</option>
-                }
-              </select>
-            </label>
-            <label>
-              Interactable
-              <select [(ngModel)]="selectedAssetId">
-                @for (interactable of interactables(); track interactable.id) {
-                  <option [value]="interactable.id">{{ interactable.name }}</option>
-                }
-              </select>
-            </label>
-            <label>
-              Tool
-              <select [(ngModel)]="tool">
-                <option value="interactable-replace">Replace</option>
-                <option value="interactable-delete">Delete</option>
-              </select>
-            </label>
-          }
-
-          @if (fixture() === 'transformation') {
-            <label>
-              Tool
-              <select [(ngModel)]="tool">
-                <option value="select">Select</option>
-                <option value="rotate">Rotate</option>
-              </select>
-            </label>
-          }
-
-          @if (fixture() === 'ground') {
-            <label>
-              Tool
-              <select [(ngModel)]="tool">
-                <option value="select">Select</option>
-                <option value="toggle">Toggle</option>
-                <option value="toggle-fill">Toggle Fill</option>
-                <option value="toggle-between">Toggle Between</option>
-              </select>
-            </label>
-          }
-        </div>
-
-        @if (fixturePreviewMaterials().length > 0) {
-          <div class="fixture-preview">
-            <strong>Selected Fixture Preview</strong>
-            <div class="grid">
-              @for (row of fixturePreviewMaterials(); track $index; let y = $index) {
-                <div class="grid-row">
-                  @for (material of row; track $index; let x = $index) {
-                    <div class="grid-square">
-                      <div class="box ground1 {{ material.ground1css ?? '' }}"></div>
-                      <div class="box ground2 {{ material.ground2css ?? '' }}"></div>
-                      <div class="box floor1 {{ material.layer1css ?? '' }}"></div>
-                      <div class="box floor2 {{ material.layer2css ?? '' }}"></div>
-                      @if (fixturePreviewInteractables()[y]?.[x]) {
-                        <div class="box zp {{ fixturePreviewInteractables()[y]?.[x]?.cssClass ?? '' }}"></div>
-                      }
-                      <div class="box ceiling1 {{ material.ceiling1css ?? '' }}"></div>
-                      <div class="box ceiling2 {{ material.ceiling2css ?? '' }}"></div>
-                      <div class="box top"></div>
-                    </div>
-                  }
-                </div>
-              }
-            </div>
-          </div>
-        }
-      </section>
-
+      <section class="grid-workspace">
       <section class="grid-panel">
         @if (activeBlueprint()) {
           <div class="grid-window">
@@ -530,6 +367,176 @@
         } @else {
           <p>No active grid target selected.</p>
         }
+      </section>
+
+      <section class="panel grid-side-panel">
+        @if (viewMode() === 'world' && currentArea() && showAreaDetails()) {
+          <h3>Edit Details</h3>
+          <div class="row wrap gap">
+            <label>Name <input [(ngModel)]="currentArea()!.Name" /></label>
+            <label>Safe <input type="checkbox" [(ngModel)]="currentArea()!.Safe" /></label>
+            <div class="panel__break" aria-hidden="true"></div>
+            <label>Color0 <input [(ngModel)]="currentArea()!.Blueprint.DefaultTileColor" /></label>
+            <label>Color1 <input [(ngModel)]="currentArea()!.Blueprint.DefaultTileColor1" /></label>
+            <label>Weather <input [(ngModel)]="currentArea()!.Weather" /></label>
+            <div class="panel__break" aria-hidden="true"></div>
+            <label>Load <input [(ngModel)]="currentArea()!.LoadStrategy" /></label>
+            <label>Spawn <input [(ngModel)]="currentArea()!.SpawnStrategy" /></label>
+            <label>Broadcast <input [(ngModel)]="currentArea()!.BroadcastGroup" /></label>
+          </div>
+        } @else if (viewMode() === 'world' && currentArea() && showNeighbors()) {
+          <h3>Edit Neighbors</h3>
+          <div class="row wrap gap">
+            <label>North <input [(ngModel)]="currentArea()!.North" /></label>
+            <label>South <input [(ngModel)]="currentArea()!.South" /></label>
+            <label>East <input [(ngModel)]="currentArea()!.East" /></label>
+            <label>West <input [(ngModel)]="currentArea()!.West" /></label>
+          </div>
+        } @else {
+          <h3>Grid Tools</h3>
+          <div class="row wrap gap">
+            <label>
+              Fixture
+              <select [(ngModel)]="fixture" (ngModelChange)="onFixtureChange()">
+                <option value="prototype">Prototypes</option>
+                <option value="fragment">Fragments</option>
+                <option value="interactable">Interactables</option>
+                <option value="transformation">Transformations</option>
+                <option value="ground">Ground</option>
+              </select>
+            </label>
+
+            @if (fixture() === 'prototype') {
+              <label>
+                Prototype Set
+                <select [(ngModel)]="prototypeSet" (ngModelChange)="onPrototypeSetChange()">
+                  @for (name of prototypeSets(); track name) {
+                    <option [value]="name">{{ name }}</option>
+                  }
+                </select>
+              </label>
+              <label>
+                Prototype
+                <select [(ngModel)]="selectedAssetId">
+                  @for (prototype of prototypes(); track prototype.id) {
+                    <option [value]="prototype.id">{{ prototype.commonName }}</option>
+                  }
+                </select>
+              </label>
+              <label>
+                Tool
+                <select [(ngModel)]="tool">
+                  <option value="select">Select</option>
+                  <option value="replace">Replace</option>
+                  <option value="fill">Fill</option>
+                  <option value="between">Fill Between</option>
+                  <option value="place-blueprint">Place on Blueprint</option>
+                </select>
+              </label>
+            }
+
+            @if (fixture() === 'fragment') {
+              <label>
+                Fragment Set
+                <select [(ngModel)]="fragmentSet" (ngModelChange)="onFragmentSetChange()">
+                  @for (name of fragmentSets(); track name) {
+                    <option [value]="name">{{ name }}</option>
+                  }
+                </select>
+              </label>
+              <label>
+                Fragment
+                <select [(ngModel)]="selectedAssetId">
+                  @for (fragment of fragments(); track fragment.id) {
+                    <option [value]="fragment.id">{{ fragment.name }}</option>
+                  }
+                </select>
+              </label>
+              <label>
+                Tool
+                <select [(ngModel)]="tool">
+                  <option value="place">Place</option>
+                  <option value="place-blueprint">Place on Blueprint</option>
+                </select>
+              </label>
+            }
+
+            @if (fixture() === 'interactable') {
+              <label>
+                Interactable Set
+                <select [(ngModel)]="interactableSet" (ngModelChange)="onInteractableSetChange()">
+                  @for (name of interactableSets(); track name) {
+                    <option [value]="name">{{ name }}</option>
+                  }
+                </select>
+              </label>
+              <label>
+                Interactable
+                <select [(ngModel)]="selectedAssetId">
+                  @for (interactable of interactables(); track interactable.id) {
+                    <option [value]="interactable.id">{{ interactable.name }}</option>
+                  }
+                </select>
+              </label>
+              <label>
+                Tool
+                <select [(ngModel)]="tool">
+                  <option value="interactable-replace">Replace</option>
+                  <option value="interactable-delete">Delete</option>
+                </select>
+              </label>
+            }
+
+            @if (fixture() === 'transformation') {
+              <label>
+                Tool
+                <select [(ngModel)]="tool">
+                  <option value="select">Select</option>
+                  <option value="rotate">Rotate</option>
+                </select>
+              </label>
+            }
+
+            @if (fixture() === 'ground') {
+              <label>
+                Tool
+                <select [(ngModel)]="tool">
+                  <option value="select">Select</option>
+                  <option value="toggle">Toggle</option>
+                  <option value="toggle-fill">Toggle Fill</option>
+                  <option value="toggle-between">Toggle Between</option>
+                </select>
+              </label>
+            }
+          </div>
+
+          @if (fixturePreviewMaterials().length > 0) {
+            <div class="fixture-preview">
+              <strong>Selected Fixture Preview</strong>
+              <div class="grid">
+                @for (row of fixturePreviewMaterials(); track $index; let y = $index) {
+                  <div class="grid-row">
+                    @for (material of row; track $index; let x = $index) {
+                      <div class="grid-square">
+                        <div class="box ground1 {{ material.ground1css ?? '' }}"></div>
+                        <div class="box ground2 {{ material.ground2css ?? '' }}"></div>
+                        <div class="box floor1 {{ material.layer1css ?? '' }}"></div>
+                        <div class="box floor2 {{ material.layer2css ?? '' }}"></div>
+                        @if (fixturePreviewInteractables()[y]?.[x]) {
+                          <div class="box zp {{ fixturePreviewInteractables()[y]?.[x]?.cssClass ?? '' }}"></div>
+                        }
+                        <div class="box ceiling1 {{ material.ceiling1css ?? '' }}"></div>
+                        <div class="box ceiling2 {{ material.ceiling2css ?? '' }}"></div>
+                        <div class="box top"></div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        }
+      </section>
       </section>
 
       @if (activeBlueprint()) {

@@ -43,6 +43,7 @@ export class App {
   protected readonly showNewCollection = signal(false);
   protected readonly spaceName = signal('');
   protected readonly areaName = signal('');
+  protected readonly showGridTools = signal(true);
   protected readonly showAreaDetails = signal(false);
   protected readonly showNeighbors = signal(false);
 
@@ -399,7 +400,10 @@ export class App {
   protected toggleAreaDetails(): void {
     const next = !this.showAreaDetails();
     if (next) {
+      this.showGridTools.set(false);
       this.showNeighbors.set(false);
+    } else {
+      this.showGridTools.set(true);
     }
     this.showAreaDetails.set(next);
   }
@@ -407,12 +411,25 @@ export class App {
   protected toggleNeighbors(): void {
     const next = !this.showNeighbors();
     if (next) {
+      this.showGridTools.set(false);
       this.showAreaDetails.set(false);
+    } else {
+      this.showGridTools.set(true);
     }
     this.showNeighbors.set(next);
   }
 
+  protected toggleGridTools(): void {
+    const next = !this.showGridTools();
+    if (next) {
+      this.showAreaDetails.set(false);
+      this.showNeighbors.set(false);
+    }
+    this.showGridTools.set(next);
+  }
+
   protected resetAreaEditPanels(): void {
+    this.showGridTools.set(true);
     this.showAreaDetails.set(false);
     this.showNeighbors.set(false);
   }
