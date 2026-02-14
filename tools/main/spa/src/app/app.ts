@@ -451,6 +451,19 @@ export class App {
     this.hoverPosition.set(undefined);
   }
 
+  protected goToArea(targetAreaName: string | undefined, event?: Event): void {
+    event?.preventDefault();
+    const candidate = (targetAreaName ?? '').trim();
+    if (!candidate) {
+      return;
+    }
+    if (!this.areaNames().includes(candidate)) {
+      return;
+    }
+    this.areaName.set(candidate);
+    this.onAreaChange();
+  }
+
   protected onFixtureChange(): void {
     this.selection.set(undefined);
     this.hoverPosition.set(undefined);

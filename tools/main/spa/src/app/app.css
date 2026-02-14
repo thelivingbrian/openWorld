@@ -59,9 +59,16 @@ button {
 .grid-panel {
 	overflow: auto;
 	max-width: 100%;
-	border: 1px solid #d0d0d0;
 	padding: 8px;
-	background: #fff;
+}
+
+.grid-window {
+	display: inline-block;
+}
+
+.grid-window .navigator {
+	width: 100%;
+	margin-bottom: 8px;
 }
 
 .panel__toggles {
