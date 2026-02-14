@@ -181,6 +181,49 @@
             <label>DisplayText <input [(ngModel)]="editedPrototype()!.displayText" /></label>
             <label>Walkable <input type="checkbox" [(ngModel)]="editedPrototype()!.walkable" /></label>
           </div>
+          <div class="entity-preview">
+            <p class="entity-preview__title">Preview</p>
+            <div class="prototype-preview-flow">
+              <div class="prototype-preview" title="Layer inputs">
+                <div class="box {{ editedPrototype()!.cssColor }}"></div>
+                <div class="box {{ editedPrototype()!.layer1css }}"></div>
+                <div class="box {{ editedPrototype()!.layer2css }}"></div>
+                <div class="box {{ editedPrototype()!.ceiling1css }}"></div>
+                <div class="box {{ editedPrototype()!.ceiling2css }}"></div>
+                <div class="box {{ editedPrototype()!.mapColor }}"></div>
+              </div>
+
+              <button
+                type="button"
+                class="prototype-editor-toggle"
+                [class.active]="prototypePreviewUseEditorColor()"
+                [attr.aria-pressed]="prototypePreviewUseEditorColor()"
+                [disabled]="!editedPrototype()!.editorColor"
+                (click)="togglePrototypePreviewEditorColor()"
+                title="Use EditorColor as top layer (replaces Ceiling2 in combined preview)">
+                <div class="box {{ editedPrototype()!.editorColor }}"></div>
+                <span>EditorColor</span>
+              </button>
+
+              <span class="prototype-preview-arrow" aria-hidden="true">→</span>
+
+              <div class="prototype-preview-stack" title="Combined layers">
+                <div class="box {{ editedPrototype()!.cssColor }}"></div>
+                <div class="box {{ editedPrototype()!.layer1css }}"></div>
+                <div class="box {{ editedPrototype()!.layer2css }}"></div>
+                <div class="box {{ editedPrototype()!.ceiling1css }}"></div>
+                <div class="box {{ prototypePreviewCeiling2Class(editedPrototype()) }}"></div>
+              </div>
+            </div>
+            <p class="entity-preview__meta">
+              {{ editedPrototype()!.commonName || 'Unnamed prototype' }}
+              @if (editedPrototype()!.displayText) {
+                · {{ editedPrototype()!.displayText }}
+              }
+              · {{ prototypePreviewUseEditorColor() && editedPrototype()!.editorColor ? 'EditorColor replaces Ceiling2' : 'Ceiling2 active' }}
+              · {{ editedPrototype()!.walkable ? 'Walkable' : 'Blocked' }}
+            </p>
+          </div>
         }
       </section>
     }
@@ -253,6 +296,18 @@
             <label>Fragile <input type="checkbox" [(ngModel)]="editedInteractable()!.fragile" /></label>
             <label>Reactions <input [(ngModel)]="editedInteractable()!.reactions" /></label>
           </div>
+          <div class="entity-preview">
+            <p class="entity-preview__title">Preview</p>
+            <div class="interactable-preview">
+              <div class="box zp {{ editedInteractable()!.cssClass }}"></div>
+            </div>
+            <p class="entity-preview__meta">
+              {{ editedInteractable()!.name || 'Unnamed interactable' }}
+              · {{ editedInteractable()!.walkable ? 'Walkable' : 'Blocked' }}
+              · {{ editedInteractable()!.pushable ? 'Pushable' : 'Static' }}
+              · {{ editedInteractable()!.fragile ? 'Fragile' : 'Sturdy' }}
+            </p>
+          </div>
         }
       </section>
     }
@@ -279,6 +334,13 @@
             <label>B <input type="number" [(ngModel)]="editedColor()!.B" /></label>
             <label>A <input [(ngModel)]="editedColor()!.A" /></label>
           </div>
+          <div class="entity-preview">
+            <p class="entity-preview__title">Preview</p>
+            <div class="color-preview-row">
+              <div class="color-swatch" [ngStyle]="colorPreviewStyle(editedColor())"></div>
+              <div class="color-preview-label">.{{ editedColor()!.cssClassName || 'new-color' }}</div>
+            </div>
+          </div>
         }
 
         <div class="row wrap gap">
@@ -288,6 +350,13 @@
           <label>B <input type="number" [(ngModel)]="newColor().B" /></label>
           <label>A <input [(ngModel)]="newColor().A" /></label>
           <button (click)="addColor()">Add Color</button>
+        </div>
+        <div class="entity-preview">
+          <p class="entity-preview__title">New Color Preview</p>
+          <div class="color-preview-row">
+            <div class="color-swatch" [ngStyle]="colorPreviewStyle(newColor())"></div>
+            <div class="color-preview-label">.{{ newColor().cssClassName || 'new-color' }}</div>
+          </div>
         </div>
       </section>
     }

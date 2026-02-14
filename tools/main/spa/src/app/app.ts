@@ -62,6 +62,7 @@ export class App {
   protected readonly fragmentEditId = signal('');
   protected readonly interactableEditId = signal('');
   protected readonly colorEditIndex = signal(0);
+  protected readonly prototypePreviewUseEditorColor = signal(false);
 
   protected readonly newCollectionName = signal('');
   protected readonly newSpace = signal({
@@ -153,6 +154,32 @@ export class App {
     const idx = this.colorEditIndex();
     return this.colors()[idx];
   });
+
+  protected colorPreviewStyle(color: Color | undefined): Record<string, string> {
+    if (!color) {
+      return { background: 'transparent' };
+    }
+    const r = this.clampColorChannel(color.R);
+    const g = this.clampColorChannel(color.G);
+    const b = this.clampColorChannel(color.B);
+    const alpha = this.clampAlpha(color.A);
+    return { background: `rgba(${r}, ${g}, ${b}, ${alpha})` };
+  }
+
+  protected togglePrototypePreviewEditorColor(): void {
+    this.prototypePreviewUseEditorColor.update((value) => !value);
+  }
+
+  protected prototypePreviewCeiling2Class(prototype: Prototype | undefined): string {
+    if (!prototype) {
+      return '';
+    }
+    const editorColor = prototype.editorColor?.trim() ?? '';
+    if (this.prototypePreviewUseEditorColor() && editorColor) {
+      return editorColor;
+    }
+    return prototype.ceiling2css;
+  }
 
   protected readonly prototypesById = computed(() => {
     const map = new Map<string, Prototype>();
@@ -879,6 +906,25 @@ export class App {
     this.status.set('Deploying...');
     await this.api.deploy(colName);
     this.status.set('Deployed.');
+  }
+
+  private clampColorChannel(value: unknown): number {
+    const parsed = Number(value);
+    if (Number.isNaN(parsed)) {
+      return 0;
+    }
+    return Math.max(0, Math.min(255, Math.round(parsed)));
+  }
+
+  private clampAlpha(value: unknown): number {
+    if (value === null || value === undefined || value === '') {
+      return 1;
+    }
+    const parsed = Number(value);
+    if (Number.isNaN(parsed)) {
+      return 1;
+    }
+    return Math.max(0, Math.min(1, parsed));
   }
 
   private ensureLegacyStyles(): void {
