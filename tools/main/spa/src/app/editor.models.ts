@@ -44,7 +44,7 @@ export interface AreaDescription {
   Name: string;
   Safe: boolean;
   Blueprint: Blueprint;
-  Transports: unknown[];
+  Transports: Transport[];
   North?: string;
   South?: string;
   East?: string;
@@ -64,6 +64,16 @@ export interface Space {
   AreaHeight: number;
   AreaWidth: number;
   Areas: AreaDescription[];
+}
+
+export interface Transport {
+  SourceY: number;
+  SourceX: number;
+  DestY: number;
+  DestX: number;
+  DestStage: string;
+  Confirmation?: boolean;
+  RejectInteractable?: boolean;
 }
 
 export interface Prototype {

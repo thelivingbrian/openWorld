@@ -80,6 +80,12 @@
               <button
                 type="button"
                 class="panel__toggle"
+                [class.active]="showTransports()"
+                (click)="toggleTransports()"
+              >Edit Transports</button>
+              <button
+                type="button"
+                class="panel__toggle"
                 [class.active]="showNeighbors()"
                 (click)="toggleNeighbors()"
               >Edit Neighbors</button>
@@ -464,6 +470,34 @@
               <label>Spawn <input [(ngModel)]="currentArea()!.SpawnStrategy" /></label>
               <label>Broadcast <input [(ngModel)]="currentArea()!.BroadcastGroup" /></label>
             </div>
+          } @else if (viewMode() === 'world' && currentArea() && showTransports()) {
+            <h3>Edit Transports</h3>
+            <div class="row wrap gap">
+              <button type="button" (click)="addTransport()">New Transport</button>
+            </div>
+            @if (!currentArea()!.Transports.length) {
+              <p>No transports in this area.</p>
+            } @else {
+              @for (transport of currentArea()!.Transports; track $index; let i = $index) {
+                <div class="entity-preview">
+                  <p class="entity-preview__title">Transport {{ i + 1 }}</p>
+                  <div class="row wrap gap">
+                    <label>Dest Area <input [(ngModel)]="transport.DestStage" /></label>
+                    <label>Dest Y <input type="number" [(ngModel)]="transport.DestY" /></label>
+                    <label>Dest X <input type="number" [(ngModel)]="transport.DestX" /></label>
+                    <label>Source Y <input type="number" [(ngModel)]="transport.SourceY" /></label>
+                    <label>Source X <input type="number" [(ngModel)]="transport.SourceX" /></label>
+                    <label>Confirmation <input type="checkbox" [(ngModel)]="transport.Confirmation" /></label>
+                    <label>Reject Interactable <input type="checkbox" [(ngModel)]="transport.RejectInteractable" /></label>
+                  </div>
+                  <div class="row wrap gap">
+                    <button type="button" (click)="jumpToTransportDestination(transport.DestStage)">Jump to Destination</button>
+                    <button type="button" (click)="duplicateTransport(i)">Duplicate</button>
+                    <button type="button" (click)="deleteTransport(i)">Delete</button>
+                  </div>
+                </div>
+              }
+            }
           } @else if (viewMode() === 'world' && currentArea() && showNeighbors()) {
             <h3>Edit Neighbors</h3>
             <div class="row wrap gap">

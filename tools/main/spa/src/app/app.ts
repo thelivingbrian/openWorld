@@ -15,6 +15,7 @@ import {
   Material,
   Prototype,
   Space,
+  Transport,
 } from './editor.models';
 import { applyGridTool, generateMaterials, Tool } from './grid-engine';
 
@@ -54,6 +55,7 @@ export class App {
   protected readonly areaName = signal('');
   protected readonly showGridTools = signal(true);
   protected readonly showAreaDetails = signal(false);
+  protected readonly showTransports = signal(false);
   protected readonly showNeighbors = signal(false);
   protected readonly showNavigationMap = signal(true);
   protected readonly showBlueprintInstructions = signal(true);
@@ -481,6 +483,7 @@ export class App {
     const next = !this.showAreaDetails();
     if (next) {
       this.showGridTools.set(false);
+      this.showTransports.set(false);
       this.showNeighbors.set(false);
     } else {
       this.showGridTools.set(true);
@@ -488,11 +491,24 @@ export class App {
     this.showAreaDetails.set(next);
   }
 
+  protected toggleTransports(): void {
+    const next = !this.showTransports();
+    if (next) {
+      this.showGridTools.set(false);
+      this.showAreaDetails.set(false);
+      this.showNeighbors.set(false);
+    } else {
+      this.showGridTools.set(true);
+    }
+    this.showTransports.set(next);
+  }
+
   protected toggleNeighbors(): void {
     const next = !this.showNeighbors();
     if (next) {
       this.showGridTools.set(false);
       this.showAreaDetails.set(false);
+      this.showTransports.set(false);
     } else {
       this.showGridTools.set(true);
     }
@@ -503,9 +519,38 @@ export class App {
     const next = !this.showGridTools();
     if (next) {
       this.showAreaDetails.set(false);
+      this.showTransports.set(false);
       this.showNeighbors.set(false);
     }
     this.showGridTools.set(next);
+  }
+
+  protected addTransport(): void {
+    const area = this.currentArea();
+    if (!area) {
+      return;
+    }
+    area.Transports.push(this.createEmptyTransport());
+    this.touchBootstrap();
+  }
+
+  protected duplicateTransport(index: number): void {
+    const area = this.currentArea();
+    if (!area || index < 0 || index >= area.Transports.length) {
+      return;
+    }
+    const existing = area.Transports[index];
+    area.Transports.push({ ...existing });
+    this.touchBootstrap();
+  }
+
+  protected deleteTransport(index: number): void {
+    const area = this.currentArea();
+    if (!area || index < 0 || index >= area.Transports.length) {
+      return;
+    }
+    area.Transports.splice(index, 1);
+    this.touchBootstrap();
   }
 
   protected toggleNavigationMap(): void {
@@ -547,6 +592,7 @@ export class App {
   protected resetAreaEditPanels(): void {
     this.showGridTools.set(true);
     this.showAreaDetails.set(false);
+    this.showTransports.set(false);
     this.showNeighbors.set(false);
   }
 
@@ -580,9 +626,12 @@ export class App {
   }
 
   protected onAreaChange(): void {
-    this.resetAreaEditPanels();
     this.selection.set(undefined);
     this.hoverPosition.set(undefined);
+  }
+
+  protected jumpToTransportDestination(destinationAreaName: string | undefined): void {
+    this.goToArea(destinationAreaName);
   }
 
   protected goToArea(targetAreaName: string | undefined, event?: Event): void {
@@ -591,10 +640,15 @@ export class App {
     if (!candidate) {
       return;
     }
-    if (!this.areaNames().includes(candidate)) {
+    const destination = this.findAreaDestination(candidate);
+    if (!destination) {
       return;
     }
-    this.areaName.set(candidate);
+    if (this.spaceName() !== destination.spaceName) {
+      this.spaceName.set(destination.spaceName);
+      this.failedNavigationImageKeys.set({});
+    }
+    this.areaName.set(destination.areaName);
     this.onAreaChange();
   }
 
@@ -1093,6 +1147,55 @@ export class App {
     };
   }
 
+  private findAreaDestination(areaName: string): { spaceName: string; areaName: string } | undefined {
+    const collection = this.currentCollection();
+    if (!collection) {
+      return undefined;
+    }
+
+    const currentSpaceName = this.spaceName();
+    const currentSpace = collection.Spaces[currentSpaceName];
+    if (currentSpace?.Areas.some((area) => area.Name === areaName)) {
+      return { spaceName: currentSpaceName, areaName };
+    }
+
+    for (const spaceName of Object.keys(collection.Spaces)) {
+      if (spaceName === currentSpaceName) {
+        continue;
+      }
+      const space = collection.Spaces[spaceName];
+      if (space?.Areas.some((area) => area.Name === areaName)) {
+        return { spaceName, areaName };
+      }
+    }
+
+    return undefined;
+  }
+
+  private normalizeTransport(input: any): Transport {
+    return {
+      SourceY: Number(input?.SourceY ?? input?.sourceY ?? 0),
+      SourceX: Number(input?.SourceX ?? input?.sourceX ?? 0),
+      DestY: Number(input?.DestY ?? input?.destY ?? 0),
+      DestX: Number(input?.DestX ?? input?.destX ?? 0),
+      DestStage: input?.DestStage ?? input?.destStage ?? '',
+      Confirmation: Boolean(input?.Confirmation ?? input?.confirmation),
+      RejectInteractable: Boolean(input?.RejectInteractable ?? input?.rejectInteractable),
+    };
+  }
+
+  private createEmptyTransport(): Transport {
+    return {
+      SourceY: 0,
+      SourceX: 0,
+      DestY: 0,
+      DestX: 0,
+      DestStage: '',
+      Confirmation: false,
+      RejectInteractable: false,
+    };
+  }
+
   private normalizeBootstrap(raw: Record<string, unknown>): BootstrapResponse {
     const sourceCollections = (raw['collections'] ?? {}) as Record<string, any>;
     const outCollections: Record<string, Collection> = {};
@@ -1115,7 +1218,7 @@ export class App {
             Name: area.Name ?? area.name ?? '',
             Safe: area.Safe ?? area.safe ?? false,
             Blueprint: this.normalizeBlueprint(area.Blueprint ?? area.blueprint ?? {}),
-            Transports: area.Transports ?? area.transports ?? [],
+            Transports: (area.Transports ?? area.transports ?? []).map((transport: any) => this.normalizeTransport(transport)),
             North: area.North ?? area.north,
             South: area.South ?? area.south,
             East: area.East ?? area.east,
