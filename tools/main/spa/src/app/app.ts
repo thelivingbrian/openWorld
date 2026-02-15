@@ -19,8 +19,16 @@ import {
 } from './editor.models';
 import { applyGridTool, generateMaterials, Tool } from './grid-engine';
 
-type ViewMode = 'world' | 'create' | 'prototypes' | 'fragments' | 'interactables' | 'colors';
+type ViewMode = 'world' | 'create' | 'modify-space' | 'prototypes' | 'fragments' | 'interactables' | 'colors';
 type GridTarget = 'area' | 'fragment';
+type BulkAreaProperty =
+  | 'safe'
+  | 'defaultTileColor'
+  | 'defaultTileColor1'
+  | 'weather'
+  | 'loadStrategy'
+  | 'spawnStrategy'
+  | 'broadcastGroup';
 
 interface NavigationMapCell {
   areaName: string;
@@ -52,6 +60,7 @@ export class App {
   protected readonly collectionName = signal('');
   protected readonly showNewCollection = signal(false);
   protected readonly spaceName = signal('');
+  protected readonly modifySpaceName = signal('');
   protected readonly areaName = signal('');
   protected readonly showGridTools = signal(true);
   protected readonly showAreaDetails = signal(false);
@@ -76,6 +85,9 @@ export class App {
   protected readonly prototypeEditId = signal('');
   protected readonly fragmentEditId = signal('');
   protected readonly interactableEditId = signal('');
+  protected readonly bulkAreaProperty = signal<BulkAreaProperty>('safe');
+  protected readonly bulkAreaValueText = signal('');
+  protected readonly bulkAreaValueBoolean = signal(false);
   protected readonly colorEditIndex = signal(0);
   protected readonly prototypePreviewUseEditorColor = signal(false);
 
@@ -125,6 +137,16 @@ export class App {
     }
     return spaces[this.spaceName()];
   });
+
+  protected readonly modifyTargetSpace = computed<Space | undefined>(() => {
+    const spaces = this.currentCollection()?.Spaces;
+    if (!spaces) {
+      return undefined;
+    }
+    return spaces[this.modifySpaceName()];
+  });
+
+  protected readonly modifyTargetAreaCount = computed(() => this.modifyTargetSpace()?.Areas.length ?? 0);
 
   protected readonly areaNames = computed(() => this.currentSpace()?.Areas.map((area) => area.Name) ?? []);
 
@@ -620,6 +642,7 @@ export class App {
 
   protected onCollectionChange(): void {
     this.spaceName.set(this.spaceNames()[0] ?? '');
+    this.modifySpaceName.set(this.spaceNames()[0] ?? '');
     this.onSpaceChange();
 
     this.prototypeSet.set(this.prototypeSets()[0] ?? '');
@@ -868,6 +891,50 @@ export class App {
     this.newArea.set({ ...this.newArea(), name: '' });
     await this.loadBootstrap();
     this.status.set('Area created.');
+  }
+
+  protected async applyAreaPropertyToSpace(): Promise<void> {
+    const colName = this.collectionName();
+    const sName = this.modifySpaceName();
+    const space = this.modifyTargetSpace();
+    if (!colName || !sName || !space) {
+      return;
+    }
+
+    const property = this.bulkAreaProperty();
+    const textValue = this.bulkAreaValueText();
+    const boolValue = this.bulkAreaValueBoolean();
+
+    for (const area of space.Areas) {
+      switch (property) {
+        case 'safe':
+          area.Safe = boolValue;
+          break;
+        case 'defaultTileColor':
+          area.Blueprint.DefaultTileColor = textValue;
+          break;
+        case 'defaultTileColor1':
+          area.Blueprint.DefaultTileColor1 = textValue;
+          break;
+        case 'weather':
+          area.Weather = textValue;
+          break;
+        case 'loadStrategy':
+          area.LoadStrategy = textValue;
+          break;
+        case 'spawnStrategy':
+          area.SpawnStrategy = textValue;
+          break;
+        case 'broadcastGroup':
+          area.BroadcastGroup = textValue;
+          break;
+      }
+    }
+
+    this.touchBootstrap();
+    this.status.set('Saving space...');
+    await this.api.saveSpace(colName, sName, space);
+    this.status.set(`Updated ${space.Areas.length} areas in ${sName}.`);
   }
 
   protected addPrototypeSet(): void {
@@ -1133,6 +1200,7 @@ export class App {
 
     this.collectionName.set(this.collectionNames()[0] ?? '');
     this.spaceName.set(this.spaceNames()[0] ?? '');
+    this.modifySpaceName.set(this.spaceNames()[0] ?? '');
     this.areaName.set(this.areaNames()[0] ?? '');
 
     this.prototypeSet.set(this.prototypeSets()[0] ?? '');

@@ -35,6 +35,7 @@
       <div class="row wrap gap">
         <button type="button" (click)="setViewMode('world')" [class.active]="viewMode() === 'world'">World</button>
         <button type="button" (click)="setViewMode('create')" [class.active]="viewMode() === 'create'">Create Space/Area</button>
+        <button type="button" (click)="setViewMode('modify-space')" [class.active]="viewMode() === 'modify-space'">Modify Space</button>
         <button type="button" (click)="setViewMode('prototypes')" [class.active]="viewMode() === 'prototypes'">Prototypes</button>
         <button type="button" (click)="setViewMode('fragments')" [class.active]="viewMode() === 'fragments'">Fragments</button>
         <button type="button" (click)="setViewMode('interactables')" [class.active]="viewMode() === 'interactables'">Interactables</button>
@@ -144,6 +145,43 @@
             <button (click)="createArea()">Create Area</button>
           </div>
         }
+      </section>
+    }
+
+    @if (viewMode() === 'modify-space') {
+      <section class="panel">
+        <h3>Modify Space</h3>
+        <div class="row wrap gap">
+          <label>
+            Space
+            <select [(ngModel)]="modifySpaceName">
+              @for (name of spaceNames(); track name) {
+                <option [value]="name">{{ name }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            Property
+            <select [(ngModel)]="bulkAreaProperty">
+              <option value="safe">Safe</option>
+              <option value="defaultTileColor">Color0</option>
+              <option value="defaultTileColor1">Color1</option>
+              <option value="weather">Weather</option>
+              <option value="loadStrategy">Load</option>
+              <option value="spawnStrategy">Spawn</option>
+              <option value="broadcastGroup">Broadcast</option>
+            </select>
+          </label>
+
+          @if (bulkAreaProperty() === 'safe') {
+            <label>Value <input type="checkbox" [(ngModel)]="bulkAreaValueBoolean" /></label>
+          } @else {
+            <label>Value <input [(ngModel)]="bulkAreaValueText" /></label>
+          }
+
+          <button (click)="applyAreaPropertyToSpace()">Apply to All Areas</button>
+        </div>
+        <p>Target areas: {{ modifyTargetAreaCount() }}</p>
       </section>
     }
 
