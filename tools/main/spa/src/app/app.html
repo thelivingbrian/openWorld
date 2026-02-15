@@ -229,12 +229,12 @@
             <p class="entity-preview__title">Preview</p>
             <div class="prototype-preview-flow">
               <div class="prototype-preview" title="Layer inputs">
-                <div class="box {{ editedPrototype()!.cssColor }}"></div>
-                <div class="box {{ editedPrototype()!.layer1css }}"></div>
-                <div class="box {{ editedPrototype()!.layer2css }}"></div>
-                <div class="box {{ editedPrototype()!.ceiling1css }}"></div>
-                <div class="box {{ editedPrototype()!.ceiling2css }}"></div>
-                <div class="box {{ editedPrototype()!.mapColor }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.cssColor) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.layer1css) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.layer2css) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.ceiling1css) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.ceiling2css) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.mapColor) }}"></div>
               </div>
 
               <button
@@ -245,17 +245,17 @@
                 [disabled]="!editedPrototype()!.editorColor"
                 (click)="togglePrototypePreviewEditorColor()"
                 title="Use EditorColor as top layer (replaces Ceiling2 in combined preview)">
-                <div class="box {{ editedPrototype()!.editorColor }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.editorColor) }}"></div>
                 <span>EditorColor</span>
               </button>
 
               <span class="prototype-preview-arrow" aria-hidden="true">→</span>
 
               <div class="prototype-preview-stack" title="Combined layers">
-                <div class="box {{ editedPrototype()!.cssColor }}"></div>
-                <div class="box {{ editedPrototype()!.layer1css }}"></div>
-                <div class="box {{ editedPrototype()!.layer2css }}"></div>
-                <div class="box {{ editedPrototype()!.ceiling1css }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.cssColor) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.layer1css) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.layer2css) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.ceiling1css) }}"></div>
                 <div class="box {{ prototypePreviewCeiling2Class(editedPrototype()) }}"></div>
               </div>
             </div>

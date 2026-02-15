@@ -303,7 +303,8 @@ button {
 }
 
 .prototype-preview .box,
-.interactable-preview .box {
+.interactable-preview .box,
+.prototype-editor-toggle .box {
 	position: static;
 }
 

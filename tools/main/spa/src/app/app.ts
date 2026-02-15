@@ -274,9 +274,17 @@ export class App {
     }
     const editorColor = prototype.editorColor?.trim() ?? '';
     if (this.prototypePreviewUseEditorColor() && editorColor) {
-      return editorColor;
+      return this.prototypePreviewClass(editorColor);
     }
-    return prototype.ceiling2css;
+    return this.prototypePreviewClass(prototype.ceiling2css);
+  }
+
+  protected prototypePreviewClass(value: string | undefined): string {
+    const className = (value ?? '').trim();
+    if (!className) {
+      return '';
+    }
+    return className.replace(/\{[a-zA-Z0-9_-]+:([^}]+)\}/g, '$1').trim();
   }
 
   protected readonly prototypesById = computed(() => {
@@ -706,7 +714,7 @@ export class App {
         this.selectedAssetId.set(this.prototypes()[0]?.id ?? '');
         break;
       case 'fragment':
-        this.tool.set('place');
+        this.tool.set('place-blueprint');
         this.selectedAssetId.set(this.fragments()[0]?.id ?? '');
         break;
       case 'interactable':
