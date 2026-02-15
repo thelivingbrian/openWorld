@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { BootstrapResponse, InteractableDescription, Prototype, Space, Color, Fragment } from './editor.models';
+import { BootstrapResponse, InteractableDescription, Prototype, Space, Color, Fragment } from '../models/editor.models';
 
 @Injectable({ providedIn: 'root' })
 export class EditorApiService {

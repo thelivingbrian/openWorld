@@ -1,4 +1,4 @@
-import { Fragment, GridSelection, InteractableDescription, Material, Prototype, TileData, Transformation, Blueprint, Cell, Instruction } from './editor.models';
+import { Fragment, GridSelection, InteractableDescription, Material, Prototype, TileData, Transformation, Blueprint, Cell, Instruction } from '../../core/models/editor.models';
 
 export type Tool =
   | 'select'
