@@ -64,6 +64,7 @@
             </select>
           </label>
           <button (click)="saveSpace()">Save Space</button>
+          <button (click)="flattenSpace()" [disabled]="!canFlattenCurrentSpace()">Flatten Space</button>
           @if (currentArea()) {
             <div class="row gap panel__toggles panel__toggles--right">
               <button

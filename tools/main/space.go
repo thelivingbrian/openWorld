@@ -807,8 +807,7 @@ func (c Context) postSpaceFlatten(w http.ResponseWriter, r *http.Request) {
 
 func Flatten(s Space) (Space, error) {
 	if s.Topology != "plane" && s.Topology != "torus" {
-		// Todo return empty space and/or error
-		return s, nil
+		return s, errors.New("only simply tiled spaces may be flattened")
 	}
 	if len(s.Areas) == 0 {
 		return s, nil

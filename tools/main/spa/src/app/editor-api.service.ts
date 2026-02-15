@@ -48,6 +48,10 @@ export class EditorApiService {
     return firstValueFrom(this.http.put<void>('/api/space', { collectionName, spaceName, space }));
   }
 
+  flattenSpace(collectionName: string, spaceName: string): Promise<{ spaceName: string }> {
+    return firstValueFrom(this.http.post<{ spaceName: string }>('/api/space/flatten', { collectionName, spaceName }));
+  }
+
   savePrototypeSet(collectionName: string, setName: string, prototypes: Prototype[]): Promise<void> {
     return firstValueFrom(this.http.put<void>('/api/prototype-set', { collectionName, setName, prototypes }));
   }

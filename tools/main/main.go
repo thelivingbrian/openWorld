@@ -80,6 +80,7 @@ func main() {
 	http.HandleFunc("/api/bootstrap", c.apiBootstrapHandler)
 	http.HandleFunc("/api/collection", c.apiCollectionHandler)
 	http.HandleFunc("/api/space", c.apiSaveSpaceHandler)
+	http.HandleFunc("/api/space/flatten", c.apiFlattenSpaceHandler)
 	http.HandleFunc("/api/space/create", c.apiCreateSpaceHandler)
 	http.HandleFunc("/api/area/create", c.apiCreateAreaHandler)
 	http.HandleFunc("/api/fragment-set", c.apiSaveFragmentSetHandler)

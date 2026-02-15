@@ -71,6 +71,11 @@ type createAreaRequest struct {
 	DefaultTileColor1 string `json:"defaultTileColor1"`
 }
 
+type flattenSpaceRequest struct {
+	CollectionName string `json:"collectionName"`
+	SpaceName      string `json:"spaceName"`
+}
+
 func decodeJSONBody[T any](r *http.Request) (T, error) {
 	var body T
 	dec := json.NewDecoder(r.Body)
@@ -251,6 +256,55 @@ func (c *Context) apiCreateAreaHandler(w http.ResponseWriter, r *http.Request) {
 	col.saveSpace(req.SpaceName)
 
 	encodeJSON(w, http.StatusCreated, map[string]string{"status": "created", "areaName": req.Name})
+}
+
+func (c *Context) apiFlattenSpaceHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+
+	req, err := decodeJSONBody[flattenSpaceRequest](r)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid request payload")
+		return
+	}
+
+	collectionName := strings.TrimSpace(req.CollectionName)
+	spaceName := strings.TrimSpace(req.SpaceName)
+	if collectionName == "" || spaceName == "" {
+		writeJSONError(w, http.StatusBadRequest, "collectionName and spaceName are required")
+		return
+	}
+
+	col := c.Collections[collectionName]
+	if col == nil {
+		writeJSONError(w, http.StatusNotFound, "collection not found")
+		return
+	}
+
+	space := col.Spaces[spaceName]
+	if space == nil {
+		writeJSONError(w, http.StatusNotFound, "space not found")
+		return
+	}
+
+	if !space.isSimplyTiled() {
+		writeJSONError(w, http.StatusBadRequest, "only simply tiled spaces may be flattened")
+		return
+	}
+
+	flattened, err := Flatten(*space)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	flattened.CollectionName = collectionName
+	col.Spaces[flattened.Name] = &flattened
+	col.saveSpace(flattened.Name)
+
+	encodeJSON(w, http.StatusCreated, map[string]string{"status": "created", "spaceName": flattened.Name})
 }
 
 func (c *Context) apiSaveFragmentSetHandler(w http.ResponseWriter, r *http.Request) {

@@ -138,6 +138,11 @@ export class App {
     return spaces[this.spaceName()];
   });
 
+  protected readonly canFlattenCurrentSpace = computed(() => {
+    const space = this.currentSpace();
+    return Boolean(space && this.isSimplyTiledSpace(space));
+  });
+
   protected readonly modifyTargetSpace = computed<Space | undefined>(() => {
     const spaces = this.currentCollection()?.Spaces;
     if (!spaces) {
@@ -1126,6 +1131,28 @@ export class App {
     this.status.set('Saving space...');
     await this.api.saveSpace(colName, sName, space);
     this.status.set('Space saved.');
+  }
+
+  protected async flattenSpace(): Promise<void> {
+    const colName = this.collectionName();
+    const sName = this.spaceName();
+    const space = this.currentSpace();
+    if (!colName || !sName || !space) {
+      return;
+    }
+    if (!this.isSimplyTiledSpace(space)) {
+      this.status.set('Only simply tiled spaces may be flattened.');
+      return;
+    }
+
+    this.status.set('Flattening space...');
+    const result = await this.api.flattenSpace(colName, sName);
+    const flattenedName = result.spaceName;
+    await this.loadBootstrap();
+    this.spaceName.set(flattenedName);
+    this.modifySpaceName.set(flattenedName);
+    this.onSpaceChange();
+    this.status.set(`Space flattened into ${flattenedName}.`);
   }
 
   protected async compileCollection(): Promise<void> {
