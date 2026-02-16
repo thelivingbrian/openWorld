@@ -173,7 +173,9 @@ describe('grid-engine', () => {
     ]);
     const maps = buildInput(blueprint);
     maps.prototypesById.set('proto-1', makePrototype('proto-1'));
-    const randomSpy = spyOn(crypto, 'randomUUID').and.returnValue('00000000-0000-4000-8000-000000000001');
+    const randomSpy = jest
+      .spyOn(crypto, 'randomUUID')
+      .mockReturnValue('00000000-0000-4000-8000-000000000001');
 
     applyGridTool({
       ...maps,
@@ -187,6 +189,7 @@ describe('grid-engine', () => {
     expect(blueprint.Instructions.length).toBe(1);
     expect(blueprint.Instructions[0].ID).toBe('00000000-0000-4000-8000-000000000001');
     expect(blueprint.Tiles[1][0].prototypeId).toBe('proto-1');
+    randomSpy.mockRestore();
   });
 
   it('applyGridTool applies pre-existing instructions with 1, 2, and 3 clockwise rotations', () => {

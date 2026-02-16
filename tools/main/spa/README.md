@@ -44,10 +44,16 @@ npm run build -- --watch
 
 ## Running unit tests
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+To execute unit tests with Jest, use:
 
 ```bash
-ng test
+npm test
+```
+
+To run tests with coverage, use:
+
+```bash
+npm run test:coverage
 ```
 
 ## Running end-to-end tests

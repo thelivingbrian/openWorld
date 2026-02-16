@@ -6,36 +6,23 @@ import { BootstrapResponse, Space } from '../../core/models/editor.models';
 describe('EditorComponent', () => {
   let component: EditorComponent;
   let fixture: ComponentFixture<EditorComponent>;
-  let api: jasmine.SpyObj<EditorApiService>;
+  let api: jest.Mocked<EditorApiService>;
 
   beforeEach(async () => {
-    api = jasmine.createSpyObj<EditorApiService>('EditorApiService', [
-      'createCollection',
-      'createSpace',
-      'createArea',
-      'getBootstrap',
-      'saveSpace',
-      'flattenSpace',
-      'savePrototypeSet',
-      'saveFragmentSet',
-      'saveInteractableSet',
-      'saveColors',
-      'compile',
-      'deploy',
-    ]);
-
-    api.getBootstrap.and.callFake(async () => buildBootstrap());
-    api.createCollection.and.resolveTo();
-    api.createSpace.and.resolveTo();
-    api.createArea.and.resolveTo();
-    api.saveSpace.and.resolveTo();
-    api.flattenSpace.and.resolveTo({ spaceName: 'space-1-flat' });
-    api.savePrototypeSet.and.resolveTo();
-    api.saveFragmentSet.and.resolveTo();
-    api.saveInteractableSet.and.resolveTo();
-    api.saveColors.and.resolveTo();
-    api.compile.and.resolveTo();
-    api.deploy.and.resolveTo();
+    api = {
+      createCollection: jest.fn().mockResolvedValue(undefined),
+      createSpace: jest.fn().mockResolvedValue(undefined),
+      createArea: jest.fn().mockResolvedValue(undefined),
+      getBootstrap: jest.fn().mockImplementation(async () => buildBootstrap()),
+      saveSpace: jest.fn().mockResolvedValue(undefined),
+      flattenSpace: jest.fn().mockResolvedValue({ spaceName: 'space-1-flat' }),
+      savePrototypeSet: jest.fn().mockResolvedValue(undefined),
+      saveFragmentSet: jest.fn().mockResolvedValue(undefined),
+      saveInteractableSet: jest.fn().mockResolvedValue(undefined),
+      saveColors: jest.fn().mockResolvedValue(undefined),
+      compile: jest.fn().mockResolvedValue(undefined),
+      deploy: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<EditorApiService>;
 
     await TestBed.configureTestingModule({
       imports: [EditorComponent],
@@ -59,7 +46,7 @@ describe('EditorComponent', () => {
     const state = component as any;
 
     expect(api.getBootstrap).toHaveBeenCalled();
-    expect(state.loading()).toBeFalse();
+    expect(state.loading()).toBe(false);
     expect(state.collectionName()).toBe('alpha');
     expect(state.spaceName()).toBe('space-1');
     expect(state.modifySpaceName()).toBe('space-1');
@@ -83,10 +70,10 @@ describe('EditorComponent', () => {
 
     expect(state.viewMode()).toBe('create');
     expect(state.gridTarget()).toBe('area');
-    expect(state.showGridTools()).toBeTrue();
-    expect(state.showAreaDetails()).toBeFalse();
-    expect(state.showTransports()).toBeFalse();
-    expect(state.showNeighbors()).toBeFalse();
+    expect(state.showGridTools()).toBe(true);
+    expect(state.showAreaDetails()).toBe(false);
+    expect(state.showTransports()).toBe(false);
+    expect(state.showNeighbors()).toBe(false);
     expect(state.selection()).toBeUndefined();
   });
 
@@ -149,7 +136,7 @@ describe('EditorComponent', () => {
 
     expect(api.createSpace).toHaveBeenCalledTimes(1);
     expect(api.createSpace).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         collectionName: 'alpha',
         name: 'fresh-space',
       }),
@@ -167,9 +154,9 @@ describe('EditorComponent', () => {
     await state.applyAreaPropertyToSpace();
 
     expect(api.saveSpace).toHaveBeenCalledTimes(1);
-    const [, savedSpaceName, savedSpace] = api.saveSpace.calls.mostRecent().args;
+    const [, savedSpaceName, savedSpace] = api.saveSpace.mock.calls.at(-1)!;
     expect(savedSpaceName).toBe('space-1');
-    expect((savedSpace as Space).Areas.every((area) => area.Safe)).toBeTrue();
+    expect((savedSpace as Space).Areas.every((area) => area.Safe)).toBe(true);
     expect(state.status()).toBe('Updated 2 areas in space-1.');
   });
 
