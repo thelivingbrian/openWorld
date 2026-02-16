@@ -119,8 +119,8 @@
             <label>Long <input type="number" [(ngModel)]="newSpace().longitude" /></label>
             <label>Area W <input type="number" [(ngModel)]="newSpace().areaWidth" /></label>
             <label>Area H <input type="number" [(ngModel)]="newSpace().areaHeight" /></label>
-            <label>Color0 <input [(ngModel)]="newSpace().tileColor" /></label>
-            <label>Color1 <input [(ngModel)]="newSpace().tileColor1" /></label>
+            <label>Ground Color 0 <input [(ngModel)]="newSpace().tileColor" /></label>
+            <label>Ground Color 1 <input [(ngModel)]="newSpace().tileColor1" /></label>
             <label>Weather <input [(ngModel)]="newSpace().weather" /></label>
             <label>Broadcast <input [(ngModel)]="newSpace().broadcastGroup" /></label>
             <button (click)="createSpace()">Create Space</button>
@@ -140,8 +140,8 @@
             <label>New Area <input [(ngModel)]="newArea().name" /></label>
             <label>W <input type="number" [(ngModel)]="newArea().width" /></label>
             <label>H <input type="number" [(ngModel)]="newArea().height" /></label>
-            <label>Color0 <input [(ngModel)]="newArea().defaultTileColor" /></label>
-            <label>Color1 <input [(ngModel)]="newArea().defaultTileColor1" /></label>
+            <label>Ground Color 0 <input [(ngModel)]="newArea().defaultTileColor" /></label>
+            <label>Ground Color 1 <input [(ngModel)]="newArea().defaultTileColor1" /></label>
             <label>Safe <input type="checkbox" [(ngModel)]="newArea().safe" /></label>
             <button (click)="createArea()">Create Area</button>
           </div>
@@ -165,8 +165,8 @@
             Property
             <select [(ngModel)]="bulkAreaProperty">
               <option value="safe">Safe</option>
-              <option value="defaultTileColor">Color0</option>
-              <option value="defaultTileColor1">Color1</option>
+              <option value="defaultTileColor">Ground Color 0</option>
+              <option value="defaultTileColor1">Ground Color 1</option>
               <option value="weather">Weather</option>
               <option value="loadStrategy">Load</option>
               <option value="spawnStrategy">Spawn</option>
