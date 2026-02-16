@@ -104,6 +104,31 @@ describe('grid-engine', () => {
     expect(blueprint.Tiles[0][2].prototypeId).toBe('b');
   });
 
+  it('applyGridTool fill recurses through vertical and horizontal neighbors', () => {
+    const blueprint = makeBlueprint([
+      [{ prototypeId: 'a' }, { prototypeId: 'a' }, { prototypeId: 'b' }],
+      [{ prototypeId: 'b' }, { prototypeId: 'a' }, { prototypeId: 'b' }],
+      [{ prototypeId: 'b' }, { prototypeId: 'a' }, { prototypeId: 'a' }],
+    ]);
+    const maps = buildInput(blueprint);
+
+    applyGridTool({
+      ...maps,
+      y: 0,
+      x: 0,
+      tool: 'fill',
+      selectedAssetId: 'z',
+    });
+
+    expect(blueprint.Tiles[0][0].prototypeId).toBe('z');
+    expect(blueprint.Tiles[0][1].prototypeId).toBe('z');
+    expect(blueprint.Tiles[1][1].prototypeId).toBe('z');
+    expect(blueprint.Tiles[2][1].prototypeId).toBe('z');
+    expect(blueprint.Tiles[2][2].prototypeId).toBe('z');
+    expect(blueprint.Tiles[0][2].prototypeId).toBe('b');
+    expect(blueprint.Tiles[1][0].prototypeId).toBe('b');
+  });
+
   it('applyGridTool supports between selection rectangle', () => {
     const blueprint = makeBlueprint([
       [{}, {}, {}],
@@ -204,7 +229,7 @@ describe('grid-engine', () => {
       name: 'frag-rot',
       setName: 'set-a',
       blueprint: makeBlueprint([
-        [{ prototypeId: 'a' }, { prototypeId: 'b' }],
+        [{ prototypeId: 'a' }, { prototypeId: 'b', interactableId: 'int' }],
         [{ prototypeId: 'c' }, { prototypeId: 'd' }],
       ]),
     });
@@ -225,15 +250,20 @@ describe('grid-engine', () => {
 
     expect(blueprint.Tiles[0][0].prototypeId).toBe('c');
     expect(blueprint.Tiles[0][1].prototypeId).toBe('a');
+    expect(blueprint.Tiles[0][1].interactableId).toBe('');
     expect(blueprint.Tiles[1][0].prototypeId).toBe('d');
     expect(blueprint.Tiles[1][1].prototypeId).toBe('b');
+    expect(blueprint.Tiles[1][1].interactableId).toBe('int');
 
     expect(blueprint.Tiles[0][3].prototypeId).toBe('d');
     expect(blueprint.Tiles[0][4].prototypeId).toBe('c');
     expect(blueprint.Tiles[1][3].prototypeId).toBe('b');
+    expect(blueprint.Tiles[1][3].interactableId).toBe('int');
     expect(blueprint.Tiles[1][4].prototypeId).toBe('a');
 
     expect(blueprint.Tiles[0][6].prototypeId).toBe('b');
+    expect(blueprint.Tiles[0][6].interactableId).toBe('int');
+
     expect(blueprint.Tiles[0][7].prototypeId).toBe('d');
     expect(blueprint.Tiles[1][6].prototypeId).toBe('a');
     expect(blueprint.Tiles[1][7].prototypeId).toBe('c');
@@ -303,6 +333,85 @@ describe('grid-engine', () => {
     expect(blueprint.Ground?.[1][1].status).toBe(1);
   });
 
+  it('toggle smoothCorners handles count === 3 by marking only the zero-status corner', () => {
+    const blueprint = makeBlueprint([
+      [{}, {}],
+      [{}, {}],
+    ]);
+    blueprint.Ground = [
+      [{ status: 0 }, { status: 1 }],
+      [{ status: 1 }, { status: 0 }],
+    ];
+    const maps = buildInput(blueprint);
+
+    applyGridTool({
+      ...maps,
+      y: 1,
+      x: 1,
+      tool: 'toggle',
+      selectedAssetId: '',
+    });
+
+    expect(blueprint.Ground?.[0][0].bottomRight).toBe(true);
+    expect(blueprint.Ground?.[0][1].bottomLeft).toBe(false);
+    expect(blueprint.Ground?.[1][0].topRight).toBe(false);
+    expect(blueprint.Ground?.[1][1].topLeft).toBe(false);
+  });
+
+  it('toggle smoothCorners count === 2 diagonal uses Math.random < 0.5 path', () => {
+    const blueprint = makeBlueprint([
+      [{}, {}],
+      [{}, {}],
+    ]);
+    blueprint.Ground = [
+      [{ status: 1 }, { status: 0 }],
+      [{ status: 0 }, { status: 0 }],
+    ];
+    const maps = buildInput(blueprint);
+    const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.1);
+
+    applyGridTool({
+      ...maps,
+      y: 1,
+      x: 1,
+      tool: 'toggle',
+      selectedAssetId: '',
+    });
+
+    expect(blueprint.Ground?.[0][0].bottomRight).toBe(true);
+    expect(blueprint.Ground?.[1][1].topLeft).toBe(true);
+    expect(blueprint.Ground?.[0][1].bottomLeft).toBe(false);
+    expect(blueprint.Ground?.[1][0].topRight).toBe(false);
+    randomSpy.mockRestore();
+  });
+
+  it('toggle smoothCorners count === 2 diagonal uses Math.random >= 0.5 path', () => {
+    const blueprint = makeBlueprint([
+      [{}, {}],
+      [{}, {}],
+    ]);
+    blueprint.Ground = [
+      [{ status: 1 }, { status: 0 }],
+      [{ status: 0 }, { status: 0 }],
+    ];
+    const maps = buildInput(blueprint);
+    const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.9);
+
+    applyGridTool({
+      ...maps,
+      y: 1,
+      x: 1,
+      tool: 'toggle',
+      selectedAssetId: '',
+    });
+
+    expect(blueprint.Ground?.[0][1].bottomLeft).toBe(true);
+    expect(blueprint.Ground?.[1][0].topRight).toBe(true);
+    expect(blueprint.Ground?.[0][0].bottomRight).toBe(false);
+    expect(blueprint.Ground?.[1][1].topLeft).toBe(false);
+    randomSpy.mockRestore();
+  });
+
   it('applyGridTool toggle-between toggles a rectangular ground region', () => {
     const blueprint = makeBlueprint([
       [{}, {}, {}, {}],
@@ -359,5 +468,17 @@ describe('grid-engine', () => {
     expect(groundOnly[0][0].ground2css).toContain('c1');
     expect(groundOnly[0][0].ground2css).toContain('r0-tl');
     expect(groundOnly[0][0].ground1css).toBe('c0');
+  });
+
+  it('generateMaterials appends top-right and bottom corner CSS markers', () => {
+    const blueprint = makeBlueprint([[{}]]);
+    blueprint.Ground = [[{ status: 0, topRight: true, bottomLeft: true, bottomRight: true }]];
+
+    const groundOnly = generateMaterials(blueprint, new Map<string, Prototype>(), true);
+
+    expect(groundOnly[0][0].ground2css).toContain('r0-tr');
+    expect(groundOnly[0][0].ground2css).toContain('r0-bl');
+    expect(groundOnly[0][0].ground2css).toContain('r0-br');
+    expect(groundOnly[0][0].ground1css).toBe('c1');
   });
 });
