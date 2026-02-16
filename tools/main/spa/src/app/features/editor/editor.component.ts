@@ -12,6 +12,7 @@ import {
   Fragment,
   GridSelection,
   InteractableDescription,
+  Instruction,
   Material,
   Prototype,
   Space,
@@ -37,6 +38,15 @@ interface NavigationMapCell {
   imageUrl: string;
   exists: boolean;
   isCurrent: boolean;
+}
+
+type ResolvedAssetType = 'prototype' | 'fragment' | 'interactable';
+
+interface SelectedTileInstructionInfo {
+  instruction: Instruction;
+  index: number;
+  assetType?: ResolvedAssetType;
+  assetLabel: string;
 }
 
 @Component({
@@ -66,8 +76,9 @@ export class EditorComponent {
   protected readonly showAreaDetails = signal(false);
   protected readonly showTransports = signal(false);
   protected readonly showNeighbors = signal(false);
-  protected readonly showNavigationMap = signal(true);
-  protected readonly showBlueprintInstructions = signal(true);
+  protected readonly showNavigationMap = signal(false);
+  protected readonly showBlueprintInstructions = signal(false);
+  protected readonly showSelectedInformation = signal(false);
   protected readonly sideColumnWidth = signal(360);
   protected readonly isResizingSideColumn = signal(false);
   protected readonly failedNavigationImageKeys = signal<Record<string, true>>({});
@@ -330,6 +341,63 @@ export class EditorComponent {
       return this.editedFragment()?.blueprint;
     }
     return this.currentArea()?.Blueprint;
+  });
+
+  protected readonly selectedTile = computed(() => {
+    const blueprint = this.activeBlueprint();
+    const selection = this.selection();
+    if (!blueprint || !selection) {
+      return undefined;
+    }
+    const row = blueprint.Tiles[selection.y];
+    if (!row || selection.x < 0 || selection.x >= row.length) {
+      return undefined;
+    }
+    return row[selection.x];
+  });
+
+  protected readonly selectedTilePrototype = computed<Prototype | undefined>(() => {
+    const prototypeId = this.selectedTile()?.prototypeId?.trim() ?? '';
+    if (!prototypeId) {
+      return undefined;
+    }
+    return this.prototypesById().get(prototypeId);
+  });
+
+  protected readonly selectedTileInteractable = computed<InteractableDescription | undefined>(() => {
+    const interactableId = this.selectedTile()?.interactableId?.trim() ?? '';
+    if (!interactableId) {
+      return undefined;
+    }
+    return this.interactablesById().get(interactableId);
+  });
+
+  protected readonly selectedTileInstructions = computed<SelectedTileInstructionInfo[]>(() => {
+    const blueprint = this.activeBlueprint();
+    const selection = this.selection();
+    if (!blueprint || !selection) {
+      return [];
+    }
+    return (blueprint.Instructions ?? [])
+      .map((instruction, index) => ({ instruction, index }))
+      .filter(({ instruction }) => instruction.Y === selection.y && instruction.X === selection.x)
+      .map(({ instruction, index }) => {
+        const resolved = this.resolveAssetById(instruction.GridAssetId);
+        if (!resolved) {
+          return {
+            instruction,
+            index,
+            assetLabel: `Unknown asset (${instruction.GridAssetId || 'empty'})`,
+          };
+        }
+
+        return {
+          instruction,
+          index,
+          assetType: resolved.type,
+          assetLabel: this.assetDisplayName(resolved),
+        };
+      });
   });
 
   protected readonly gridMaterials = computed<Material[][]>(() => {
@@ -850,6 +918,60 @@ export class EditorComponent {
     this.showBlueprintInstructions.update((value) => !value);
   }
 
+  protected toggleSelectedInformation(): void {
+    this.showSelectedInformation.update((value) => !value);
+  }
+
+  protected openPrototypeDetails(prototypeId: string, event?: Event): void {
+    event?.preventDefault();
+    const prototype = this.prototypesById().get(prototypeId);
+    if (!prototype) {
+      return;
+    }
+    this.prototypeSet.set(prototype.setName);
+    this.onPrototypeSetChange();
+    this.prototypeEditId.set(prototype.id);
+    this.selectedAssetId.set(prototype.id);
+    this.setViewMode('prototypes');
+  }
+
+  protected openInteractableDetails(interactableId: string, event?: Event): void {
+    event?.preventDefault();
+    const interactable = this.interactablesById().get(interactableId);
+    if (!interactable) {
+      return;
+    }
+    this.interactableSet.set(interactable.setName);
+    this.onInteractableSetChange();
+    this.interactableEditId.set(interactable.id);
+    this.selectedAssetId.set(interactable.id);
+    this.setViewMode('interactables');
+  }
+
+  protected openInstructionAssetDetails(assetId: string, event?: Event): void {
+    event?.preventDefault();
+    const resolved = this.resolveAssetById(assetId);
+    if (!resolved) {
+      return;
+    }
+
+    if (resolved.type === 'prototype') {
+      this.openPrototypeDetails(resolved.asset.id);
+      return;
+    }
+
+    if (resolved.type === 'fragment') {
+      this.fragmentSet.set(resolved.asset.setName);
+      this.onFragmentSetChange();
+      this.fragmentEditId.set(resolved.asset.id);
+      this.selectedAssetId.set(resolved.asset.id);
+      this.setViewMode('fragments');
+      return;
+    }
+
+    this.openInteractableDetails(resolved.asset.id);
+  }
+
   protected async createCollection(): Promise<void> {
     if (!this.newCollectionName().trim()) {
       return;
@@ -1204,6 +1326,51 @@ export class EditorComponent {
 
   private navigationImageKey(areaName: string): string {
     return `${this.collectionName()}::${this.spaceName()}::${areaName}`;
+  }
+
+  private resolveAssetById(
+    assetId: string,
+  ):
+    | { type: 'prototype'; asset: Prototype }
+    | { type: 'fragment'; asset: Fragment }
+    | { type: 'interactable'; asset: InteractableDescription }
+    | undefined {
+    const trimmed = assetId.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+
+    const prototype = this.prototypesById().get(trimmed);
+    if (prototype) {
+      return { type: 'prototype', asset: prototype };
+    }
+
+    const fragment = this.fragmentsById().get(trimmed);
+    if (fragment) {
+      return { type: 'fragment', asset: fragment };
+    }
+
+    const interactable = this.interactablesById().get(trimmed);
+    if (interactable) {
+      return { type: 'interactable', asset: interactable };
+    }
+
+    return undefined;
+  }
+
+  private assetDisplayName(
+    resolved:
+      | { type: 'prototype'; asset: Prototype }
+      | { type: 'fragment'; asset: Fragment }
+      | { type: 'interactable'; asset: InteractableDescription },
+  ): string {
+    if (resolved.type === 'prototype') {
+      return `Prototype: ${resolved.asset.commonName || resolved.asset.id}`;
+    }
+    if (resolved.type === 'fragment') {
+      return `Fragment: ${resolved.asset.name || resolved.asset.id}`;
+    }
+    return `Interactable: ${resolved.asset.name || resolved.asset.id}`;
   }
 
   private ensureLegacyStyles(): void {

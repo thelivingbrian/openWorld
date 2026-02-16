@@ -184,6 +184,33 @@ button {
 	overflow-y: auto;
 }
 
+.selected-info-group {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-top: 8px;
+}
+
+.selected-info-group p {
+	margin: 0;
+}
+
+.selected-instruction-list {
+	max-height: 220px;
+	overflow-x: auto;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.selected-instruction-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
 .navigation-map {
 	display: block;
 	gap: 4px;

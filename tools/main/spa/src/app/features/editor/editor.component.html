@@ -737,6 +737,76 @@
         }
 
         @if (activeBlueprint()) {
+          <section class="panel grid-side-panel">
+            <div class="section-header">
+              <h3>Selected Information</h3>
+              <button
+                class="collapse-toggle"
+                type="button"
+                (click)="toggleSelectedInformation()"
+                [attr.aria-label]="showSelectedInformation() ? 'Collapse selected information' : 'Expand selected information'"
+                [attr.aria-expanded]="showSelectedInformation()">
+                {{ showSelectedInformation() ? '-' : '+' }}
+              </button>
+            </div>
+
+            @if (showSelectedInformation()) {
+              @if (!selection()) {
+                <p>Select a tile to view selected information.</p>
+              } @else {
+                <strong>Coordinates: (y {{ selection()!.y }}, x {{ selection()!.x }})</strong>
+
+                <div class="selected-info-group">
+                  <strong>Tile Assets</strong>
+
+                  @if (selectedTilePrototype()) {
+                    <p>
+                      Prototype:
+                      <a href="#" (click)="openPrototypeDetails(selectedTilePrototype()!.id, $event)">
+                        {{ selectedTilePrototype()!.commonName || selectedTilePrototype()!.id }}
+                      </a>
+                    </p>
+                  } @else {
+                    <p>Prototype: none</p>
+                  }
+
+                  @if (selectedTileInteractable()) {
+                    <p>
+                      Interactable:
+                      <a href="#" (click)="openInteractableDetails(selectedTileInteractable()!.id, $event)">
+                        {{ selectedTileInteractable()!.name || selectedTileInteractable()!.id }}
+                      </a>
+                    </p>
+                  } @else {
+                    <p>Interactable: none</p>
+                  }
+                </div>
+
+                <div class="selected-info-group">
+                  <strong>Instructions on this tile</strong>
+                  @if (!selectedTileInstructions().length) {
+                    <p>No instructions on this tile.</p>
+                  } @else {
+                    <div class="selected-instruction-list">
+                      @for (entry of selectedTileInstructions(); track entry.instruction.ID) {
+                        <div class="selected-instruction-row">
+                          <div>
+                            <strong>#{{ entry.index }}</strong>
+                            · {{ entry.assetLabel }}
+                            · Rot {{ entry.instruction.ClockwiseRotations }}
+                          </div>
+                          @if (entry.assetType) {
+                            <a href="#" (click)="openInstructionAssetDetails(entry.instruction.GridAssetId, $event)">Open asset details</a>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            }
+          </section>
+
           <section class="panel grid-side-panel blueprint-panel">
             <div class="section-header">
               <h3>Blueprint Instructions</h3>
@@ -746,7 +816,7 @@
                 (click)="toggleBlueprintInstructions()"
                 [attr.aria-label]="showBlueprintInstructions() ? 'Collapse blueprint instructions' : 'Expand blueprint instructions'"
                 [attr.aria-expanded]="showBlueprintInstructions()">
-                {{ showBlueprintInstructions() ? '▾' : '▸' }}
+                {{ showBlueprintInstructions() ? '-' : '+' }}
               </button>
             </div>
 
