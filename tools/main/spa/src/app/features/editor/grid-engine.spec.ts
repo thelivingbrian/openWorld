@@ -1,0 +1,273 @@
+import {
+  applyGridTool,
+  ensureGround,
+  generateMaterials,
+  normalizeTile,
+} from './grid-engine';
+import {
+  Blueprint,
+  Fragment,
+  InteractableDescription,
+  Prototype,
+  TileData,
+} from '../../core/models/editor.models';
+
+describe('grid-engine', () => {
+  function makeBlueprint(tiles: TileData[][]): Blueprint {
+    return {
+      Tiles: tiles,
+      Instructions: [],
+      DefaultTileColor: 'c0',
+      DefaultTileColor1: 'c1',
+    };
+  }
+
+  function makePrototype(id: string, layer1css = ''): Prototype {
+    return {
+      id,
+      commonName: id,
+      cssColor: `${id}-ground`,
+      walkable: true,
+      layer1css,
+      layer2css: '',
+      ceiling1css: '',
+      ceiling2css: 'base-ceiling',
+      setName: 'set-a',
+      mapColor: '#000000',
+      editorColor: '{rotate:tr}',
+      displayText: id,
+    };
+  }
+
+  function buildInput(blueprint: Blueprint) {
+    return {
+      blueprint,
+      prototypesById: new Map<string, Prototype>(),
+      fragmentsById: new Map<string, Fragment>(),
+      interactablesById: new Map<string, InteractableDescription>(),
+    };
+  }
+
+  it('normalizeTile fills missing values', () => {
+    const out = normalizeTile({});
+
+    expect(out).toEqual({
+      prototypeId: '',
+      interactableId: '',
+      transformation: { clockwiseRotations: 0 },
+    });
+  });
+
+  it('ensureGround initializes a ground grid only once', () => {
+    const blueprint = makeBlueprint([[{}, {}], [{}, {}]]);
+    ensureGround(blueprint);
+    const existingGround = blueprint.Ground;
+
+    ensureGround(blueprint);
+
+    expect(existingGround).toBeDefined();
+    expect(blueprint.Ground).toBe(existingGround);
+    expect(blueprint.Ground).toEqual([
+      [{ status: 0 }, { status: 0 }],
+      [{ status: 0 }, { status: 0 }],
+    ]);
+  });
+
+  it('applyGridTool replaces and fills contiguous tiles', () => {
+    const blueprint = makeBlueprint([
+      [{ prototypeId: 'a' }, { prototypeId: 'a' }, { prototypeId: 'b' }],
+      [{ prototypeId: 'a' }, { prototypeId: 'b' }, { prototypeId: 'b' }],
+      [{ prototypeId: 'b' }, { prototypeId: 'b' }, { prototypeId: 'a' }],
+    ]);
+    const maps = buildInput(blueprint);
+
+    applyGridTool({
+      ...maps,
+      y: 0,
+      x: 0,
+      tool: 'replace',
+      selectedAssetId: 'z',
+    });
+
+    expect(blueprint.Tiles[0][0].prototypeId).toBe('z');
+
+    applyGridTool({
+      ...maps,
+      y: 0,
+      x: 1,
+      tool: 'fill',
+      selectedAssetId: 'x',
+    });
+
+    expect(blueprint.Tiles[0][1].prototypeId).toBe('x');
+    expect(blueprint.Tiles[1][0].prototypeId).toBe('a');
+    expect(blueprint.Tiles[0][2].prototypeId).toBe('b');
+  });
+
+  it('applyGridTool supports between selection rectangle', () => {
+    const blueprint = makeBlueprint([
+      [{}, {}, {}],
+      [{}, {}, {}],
+      [{}, {}, {}],
+    ]);
+    const maps = buildInput(blueprint);
+
+    const selection = applyGridTool({
+      ...maps,
+      y: 0,
+      x: 0,
+      tool: 'between',
+      selectedAssetId: 'stone',
+      selected: { y: 1, x: 2 },
+    });
+
+    expect(selection).toEqual({ y: 0, x: 0 });
+    expect(blueprint.Tiles[0][0].prototypeId).toBe('stone');
+    expect(blueprint.Tiles[1][2].prototypeId).toBe('stone');
+    expect(blueprint.Tiles[2][2].prototypeId).toBe('');
+  });
+
+  it('applyGridTool places fragment tiles and rotates target cell', () => {
+    const blueprint = makeBlueprint([
+      [{ prototypeId: 'a' }, { prototypeId: 'a' }],
+      [{ prototypeId: 'a' }, { prototypeId: 'a' }],
+    ]);
+    const fragment: Fragment = {
+      id: 'frag-1',
+      name: 'frag-1',
+      setName: 'set-a',
+      blueprint: makeBlueprint([
+        [{ prototypeId: 'f1' }, { prototypeId: 'f2' }],
+        [{ prototypeId: 'f3' }, { prototypeId: 'f4' }],
+      ]),
+    };
+    const maps = buildInput(blueprint);
+    maps.fragmentsById.set(fragment.id, fragment);
+
+    applyGridTool({
+      ...maps,
+      y: 1,
+      x: 1,
+      tool: 'place',
+      selectedAssetId: 'frag-1',
+    });
+
+    expect(blueprint.Tiles[1][1].prototypeId).toBe('f1');
+    expect(blueprint.Tiles[0][0].prototypeId).toBe('a');
+
+    applyGridTool({
+      ...maps,
+      y: 1,
+      x: 1,
+      tool: 'rotate',
+      selectedAssetId: '',
+    });
+
+    expect(blueprint.Tiles[1][1].transformation?.clockwiseRotations).toBe(1);
+  });
+
+  it('applyGridTool places blueprint instructions and applies source grid', () => {
+    const blueprint = makeBlueprint([
+      [{}, {}],
+      [{}, {}],
+    ]);
+    const maps = buildInput(blueprint);
+    maps.prototypesById.set('proto-1', makePrototype('proto-1'));
+    const randomSpy = spyOn(crypto, 'randomUUID').and.returnValue('00000000-0000-4000-8000-000000000001');
+
+    applyGridTool({
+      ...maps,
+      y: 1,
+      x: 0,
+      tool: 'place-blueprint',
+      selectedAssetId: 'proto-1',
+    });
+
+    expect(randomSpy).toHaveBeenCalled();
+    expect(blueprint.Instructions.length).toBe(1);
+    expect(blueprint.Instructions[0].ID).toBe('00000000-0000-4000-8000-000000000001');
+    expect(blueprint.Tiles[1][0].prototypeId).toBe('proto-1');
+  });
+
+  it('applyGridTool sets and clears interactables', () => {
+    const blueprint = makeBlueprint([[{}]]);
+    const maps = buildInput(blueprint);
+    maps.interactablesById.set('door', {
+      id: 'door',
+      name: 'door',
+      setName: 'set-a',
+      cssClass: 'door-css',
+      pushable: false,
+      walkable: true,
+      fragile: false,
+      reactions: '',
+    });
+
+    applyGridTool({
+      ...maps,
+      y: 0,
+      x: 0,
+      tool: 'interactable-replace',
+      selectedAssetId: 'door',
+    });
+    expect(blueprint.Tiles[0][0].interactableId).toBe('door');
+
+    applyGridTool({
+      ...maps,
+      y: 0,
+      x: 0,
+      tool: 'interactable-delete',
+      selectedAssetId: '',
+    });
+    expect(blueprint.Tiles[0][0].interactableId).toBe('');
+  });
+
+  it('applyGridTool toggles single cells and fills connected ground', () => {
+    const blueprint = makeBlueprint([
+      [{}, {}, {}],
+      [{}, {}, {}],
+      [{}, {}, {}],
+    ]);
+    const maps = buildInput(blueprint);
+
+    applyGridTool({
+      ...maps,
+      y: 1,
+      x: 1,
+      tool: 'toggle',
+      selectedAssetId: '',
+    });
+
+    expect(blueprint.Ground?.[1][1].status).toBe(1);
+
+    applyGridTool({
+      ...maps,
+      y: 0,
+      x: 0,
+      tool: 'toggle-fill',
+      selectedAssetId: '',
+    });
+
+    expect(blueprint.Ground?.[0][0].status).toBe(1);
+    expect(blueprint.Ground?.[2][2].status).toBe(1);
+    expect(blueprint.Ground?.[1][1].status).toBe(1);
+  });
+
+  it('generateMaterials returns transformed prototype material and ground-only material', () => {
+    const blueprint = makeBlueprint([[{ prototypeId: 'proto-1', transformation: { clockwiseRotations: 1 } }]]);
+    blueprint.Ground = [[{ status: 1, topLeft: true }]];
+    const prototypesById = new Map<string, Prototype>();
+    prototypesById.set('proto-1', makePrototype('proto-1', '{rotate:tr}'));
+
+    const full = generateMaterials(blueprint, prototypesById, false);
+    const groundOnly = generateMaterials(blueprint, prototypesById, true);
+
+    expect(full[0][0].ground2css).toBe('proto-1-ground');
+    expect(full[0][0].layer1css).toBe('br');
+    expect(full[0][0].ceiling2css).toBe('br');
+
+    expect(groundOnly[0][0].ground2css).toContain('c1');
+    expect(groundOnly[0][0].ground2css).toContain('r0-tl');
+    expect(groundOnly[0][0].ground1css).toBe('c0');
+  });
+});
