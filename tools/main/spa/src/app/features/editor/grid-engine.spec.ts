@@ -189,6 +189,53 @@ describe('grid-engine', () => {
     expect(blueprint.Tiles[1][0].prototypeId).toBe('proto-1');
   });
 
+  it('applyGridTool applies pre-existing instructions with 1, 2, and 3 clockwise rotations', () => {
+    const blueprint = makeBlueprint([
+      [{}, {}, {}, {}, {}, {}, {}, {}],
+      [{}, {}, {}, {}, {}, {}, {}, {}],
+      [{}, {}, {}, {}, {}, {}, {}, {}],
+    ]);
+    const maps = buildInput(blueprint);
+    maps.fragmentsById.set('frag-rot', {
+      id: 'frag-rot',
+      name: 'frag-rot',
+      setName: 'set-a',
+      blueprint: makeBlueprint([
+        [{ prototypeId: 'a' }, { prototypeId: 'b' }],
+        [{ prototypeId: 'c' }, { prototypeId: 'd' }],
+      ]),
+    });
+
+    blueprint.Instructions = [
+      { ID: 'i1', X: 0, Y: 0, GridAssetId: 'frag-rot', ClockwiseRotations: 1 },
+      { ID: 'i2', X: 3, Y: 0, GridAssetId: 'frag-rot', ClockwiseRotations: 2 },
+      { ID: 'i3', X: 6, Y: 0, GridAssetId: 'frag-rot', ClockwiseRotations: 3 },
+    ];
+
+    applyGridTool({
+      ...maps,
+      y: 2,
+      x: 0,
+      tool: 'place-blueprint',
+      selectedAssetId: 'missing-asset',
+    });
+
+    expect(blueprint.Tiles[0][0].prototypeId).toBe('c');
+    expect(blueprint.Tiles[0][1].prototypeId).toBe('a');
+    expect(blueprint.Tiles[1][0].prototypeId).toBe('d');
+    expect(blueprint.Tiles[1][1].prototypeId).toBe('b');
+
+    expect(blueprint.Tiles[0][3].prototypeId).toBe('d');
+    expect(blueprint.Tiles[0][4].prototypeId).toBe('c');
+    expect(blueprint.Tiles[1][3].prototypeId).toBe('b');
+    expect(blueprint.Tiles[1][4].prototypeId).toBe('a');
+
+    expect(blueprint.Tiles[0][6].prototypeId).toBe('b');
+    expect(blueprint.Tiles[0][7].prototypeId).toBe('d');
+    expect(blueprint.Tiles[1][6].prototypeId).toBe('a');
+    expect(blueprint.Tiles[1][7].prototypeId).toBe('c');
+  });
+
   it('applyGridTool sets and clears interactables', () => {
     const blueprint = makeBlueprint([[{}]]);
     const maps = buildInput(blueprint);
@@ -251,6 +298,46 @@ describe('grid-engine', () => {
     expect(blueprint.Ground?.[0][0].status).toBe(1);
     expect(blueprint.Ground?.[2][2].status).toBe(1);
     expect(blueprint.Ground?.[1][1].status).toBe(1);
+  });
+
+  it('applyGridTool toggle-between toggles a rectangular ground region', () => {
+    const blueprint = makeBlueprint([
+      [{}, {}, {}, {}],
+      [{}, {}, {}, {}],
+      [{}, {}, {}, {}],
+    ]);
+    const maps = buildInput(blueprint);
+
+    const selection = applyGridTool({
+      ...maps,
+      y: 1,
+      x: 2,
+      tool: 'toggle-between',
+      selectedAssetId: '',
+      selected: { y: 0, x: 1 },
+    });
+
+    expect(selection).toEqual({ y: 1, x: 2 });
+    expect(blueprint.Ground?.[0][1].status).toBe(1);
+    expect(blueprint.Ground?.[0][2].status).toBe(1);
+    expect(blueprint.Ground?.[1][1].status).toBe(1);
+    expect(blueprint.Ground?.[1][2].status).toBe(1);
+    expect(blueprint.Ground?.[0][0].status).toBe(0);
+    expect(blueprint.Ground?.[2][3].status).toBe(0);
+
+    applyGridTool({
+      ...maps,
+      y: 1,
+      x: 2,
+      tool: 'toggle-between',
+      selectedAssetId: '',
+      selected: { y: 0, x: 1 },
+    });
+
+    expect(blueprint.Ground?.[0][1].status).toBe(0);
+    expect(blueprint.Ground?.[0][2].status).toBe(0);
+    expect(blueprint.Ground?.[1][1].status).toBe(0);
+    expect(blueprint.Ground?.[1][2].status).toBe(0);
   });
 
   it('generateMaterials returns transformed prototype material and ground-only material', () => {
