@@ -471,9 +471,10 @@
                       <div class="box top"
                         [class.red-b]="selection()?.y === y && selection()?.x === x"
                         [class.pink-b]="showTransports() && isTransportSourceTile(y, x) && !(selection()?.y === y && selection()?.x === x)"
+                        [class.white-b]="shouldShowSelectHover(y, x)"
                         [class.thick]="showTransports() && isTransportSourceTile(y, x) && !(selection()?.y === y && selection()?.x === x)"
-                        [class.med]="selection()?.y === y && selection()?.x === x"
-                        [class.blue-b]="(ghostMaterials()[y]?.[x] || ghostInteractables()[y]?.[x]) && !(selection()?.y === y && selection()?.x === x) && !(showTransports() && isTransportSourceTile(y, x))"></div>
+                        [class.med]="(selection()?.y === y && selection()?.x === x) || shouldShowSelectHover(y, x)"
+                        [class.blue-b]="(ghostMaterials()[y]?.[x] || ghostInteractables()[y]?.[x]) && !(selection()?.y === y && selection()?.x === x) && !(showTransports() && isTransportSourceTile(y, x)) && !(shouldShowSelectHover(y, x))"></div>
                     </div>
                   }
                 </div>

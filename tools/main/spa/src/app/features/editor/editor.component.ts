@@ -498,6 +498,10 @@ export class EditorComponent {
     const defaultColor0 = blueprint.DefaultTileColor ?? 'white';
     const defaultColor1 = blueprint.DefaultTileColor1 ?? 'white';
 
+    if (this.getEffectiveTool() === 'select') {
+      return out;
+    }
+
     if (this.fixture() === 'prototype') {
       const selectedId = this.selectedAssetId();
       if (!selectedId) {
@@ -553,6 +557,10 @@ export class EditorComponent {
 
     const out: (InteractableDescription | undefined)[][] = blueprint.Tiles.map((row) => row.map(() => undefined));
 
+    if (this.getEffectiveTool() === 'select') {
+      return out;
+    }
+
     if (this.fixture() === 'interactable') {
       const interactable = this.interactablesById().get(this.selectedAssetId());
       if (interactable && hover.y >= 0 && hover.y < out.length && hover.x >= 0 && hover.x < out[hover.y].length) {
@@ -585,6 +593,15 @@ export class EditorComponent {
 
     return out;
   });
+
+  protected isHoverTile(y: number, x: number): boolean {
+    const hover = this.hoverPosition();
+    return Boolean(hover && hover.y === y && hover.x === x);
+  }
+
+  protected shouldShowSelectHover(y: number, x: number): boolean {
+    return this.getEffectiveTool() === 'select' && this.isHoverTile(y, x);
+  }
 
   constructor() {
     this.ensureLegacyStyles();
