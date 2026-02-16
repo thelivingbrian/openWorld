@@ -471,6 +471,7 @@
                       <div class="box top"
                         [class.red-b]="selection()?.y === y && selection()?.x === x"
                         [class.pink-b]="showTransports() && isTransportSourceTile(y, x) && !(selection()?.y === y && selection()?.x === x)"
+                        [class.delete-overlay]="tool() === 'interactable-delete' && isHoverTile(y, x)"
                         [class.white-b]="shouldShowSelectHover(y, x)"
                         [class.thick]="showTransports() && isTransportSourceTile(y, x) && !(selection()?.y === y && selection()?.x === x)"
                         [class.med]="(selection()?.y === y && selection()?.x === x) || shouldShowSelectHover(y, x)"
@@ -637,6 +638,7 @@
                 <label>
                   Tool
                   <select [(ngModel)]="tool">
+                    <option value="select">Select</option>
                     <option value="interactable-replace">Replace</option>
                     <option value="interactable-delete">Delete</option>
                   </select>

@@ -561,6 +561,10 @@ export class EditorComponent {
       return out;
     }
 
+    if (this.getEffectiveTool() === 'interactable-delete') {
+      return out;
+    }
+
     if (this.fixture() === 'interactable') {
       const interactable = this.interactablesById().get(this.selectedAssetId());
       if (interactable && hover.y >= 0 && hover.y < out.length && hover.x >= 0 && hover.x < out[hover.y].length) {
