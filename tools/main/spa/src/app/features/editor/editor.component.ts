@@ -1382,6 +1382,38 @@ export class EditorComponent {
     this.status.set(`Space flattened into ${flattenedName}.`);
   }
 
+  protected async resetUnsavedChanges(): Promise<void> {
+    const previousCollectionName = this.collectionName();
+    const previousSpaceName = this.spaceName();
+    const previousAreaName = this.areaName();
+    if (!previousCollectionName || !previousSpaceName) {
+      return;
+    }
+
+    this.status.set('Resetting unsaved space changes...');
+    await this.loadBootstrap();
+
+    if (this.collectionNames().includes(previousCollectionName)) {
+      this.collectionName.set(previousCollectionName);
+      this.onCollectionChange();
+    }
+
+    if (this.spaceNames().includes(previousSpaceName)) {
+      this.spaceName.set(previousSpaceName);
+      this.modifySpaceName.set(previousSpaceName);
+      this.onSpaceChange();
+    }
+
+    if (this.areaNames().includes(previousAreaName)) {
+      this.areaName.set(previousAreaName);
+      this.onAreaChange();
+    }
+
+    this.instructionEditedIds.set({});
+
+    this.status.set(`Unsaved changes in ${previousSpaceName} reset.`);
+  }
+
   protected async compileCollection(): Promise<void> {
     const colName = this.collectionName();
     if (!colName) {

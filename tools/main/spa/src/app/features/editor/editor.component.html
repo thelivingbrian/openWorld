@@ -65,6 +65,7 @@
           </label>
           <button (click)="saveSpace()">Save Space</button>
           <button (click)="flattenSpace()" [disabled]="!canFlattenCurrentSpace()">Flatten Space</button>
+          <button (click)="resetUnsavedChanges()">Reset Changes</button>
           @if (currentArea()) {
             <div class="row gap panel__toggles panel__toggles--right">
               <button
@@ -826,7 +827,6 @@
             @if (showBlueprintInstructions()) {
               <div class="row wrap gap">
                 <button (click)="addInstruction()">Add Instruction (from selected asset)</button>
-                <span class="instruction-hint">Y/X/Rot are editable and apply immediately.</span>
               </div>
               <div class="instruction-list">
                 @for (instruction of activeBlueprint()!.Instructions; track instruction.ID; let i = $index) {

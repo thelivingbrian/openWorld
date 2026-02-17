@@ -181,6 +181,23 @@ describe('EditorComponent', () => {
     expect(state.modifySpaceName()).toBe('space-1-flat');
     expect(state.status()).toBe('Space flattened into space-1-flat.');
   });
+
+  it('resetUnsavedChanges reloads current space and discards local edits', async () => {
+    const state = component as any;
+    const area = state.currentArea();
+    area.Blueprint.DefaultTileColor = 'purple';
+    state.instructionEditedIds.set({ instructionA: true });
+    state.touchBootstrap();
+
+    await state.resetUnsavedChanges();
+
+    expect(api.getBootstrap).toHaveBeenCalledTimes(2);
+    expect(state.spaceName()).toBe('space-1');
+    expect(state.areaName()).toBe('space-1:0-0');
+    expect(state.currentArea().Blueprint.DefaultTileColor).toBe('green');
+    expect(state.instructionEditedIds()).toEqual({});
+    expect(state.status()).toBe('Unsaved changes in space-1 reset.');
+  });
 });
 
 function buildBootstrap(): BootstrapResponse {
