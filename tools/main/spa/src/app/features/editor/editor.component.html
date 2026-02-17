@@ -826,15 +826,22 @@
             @if (showBlueprintInstructions()) {
               <div class="row wrap gap">
                 <button (click)="addInstruction()">Add Instruction (from selected asset)</button>
+                <span class="instruction-hint">Y/X/Rot are editable and apply immediately.</span>
               </div>
               <div class="instruction-list">
                 @for (instruction of activeBlueprint()!.Instructions; track instruction.ID; let i = $index) {
-                  <div class="row gap instruction-row">
+                  <div class="row gap instruction-row" [class.instruction-row--edited]="instructionIsEdited(instruction.ID)">
                     <span>#{{ i }}</span>
-                    <label>Y <input class="instruction-axis-input" type="number" [(ngModel)]="instruction.Y" /></label>
-                    <label>X <input class="instruction-axis-input" type="number" [(ngModel)]="instruction.X" /></label>
-                    <label>Rot <input class="instruction-axis-input" type="number" [(ngModel)]="instruction.ClockwiseRotations" /></label>
-                    <label>Asset <input [(ngModel)]="instruction.GridAssetId" /></label>
+                    <label>Y <input class="instruction-axis-input instruction-axis-input--editable" type="number" [ngModel]="instruction.Y" (ngModelChange)="updateInstructionY(i, $event)" /></label>
+                    <label>X <input class="instruction-axis-input instruction-axis-input--editable" type="number" [ngModel]="instruction.X" (ngModelChange)="updateInstructionX(i, $event)" /></label>
+                    <label>Rot <input class="instruction-axis-input instruction-axis-input--editable" type="number" [ngModel]="instruction.ClockwiseRotations" (ngModelChange)="updateInstructionRotation(i, $event)" /></label>
+                    <label class="instruction-asset-label">Asset
+                      @if (instructionHasKnownAsset(instruction.GridAssetId)) {
+                        <a href="#" (click)="openInstructionAssetDetails(instruction.GridAssetId, $event)">{{ instructionAssetLabel(instruction.GridAssetId) }}</a>
+                      } @else {
+                        <span>{{ instructionAssetLabel(instruction.GridAssetId) }}</span>
+                      }
+                    </label>
                     <button (click)="showInstruction(i)">Show</button>
                     <button (click)="moveInstruction(i)">Order++</button>
                     <button (click)="deleteInstruction(i)">Delete</button>

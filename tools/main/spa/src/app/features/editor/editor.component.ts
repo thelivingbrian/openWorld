@@ -18,7 +18,15 @@ import {
   Space,
   Transport,
 } from '../../core/models/editor.models';
-import { applyGridTool, generateMaterials, Tool } from './grid-engine';
+import {
+  applyGridTool,
+  deleteInstructionAndReapply,
+  generateMaterials,
+  normalizeInstructionField,
+  reorderInstructionAndReapply,
+  Tool,
+  updateInstructionAndReapply,
+} from './grid-engine';
 
 type ViewMode = 'world' | 'create' | 'modify-space' | 'prototypes' | 'fragments' | 'interactables' | 'colors';
 type GridTarget = 'area' | 'fragment';
@@ -79,6 +87,7 @@ export class EditorComponent {
   protected readonly showNavigationMap = signal(false);
   protected readonly showBlueprintInstructions = signal(false);
   protected readonly showSelectedInformation = signal(false);
+  protected readonly instructionEditedIds = signal<Record<string, true>>({});
   protected readonly sideColumnWidth = signal(360);
   protected readonly isResizingSideColumn = signal(false);
   protected readonly failedNavigationImageKeys = signal<Record<string, true>>({});
@@ -902,6 +911,9 @@ export class EditorComponent {
       GridAssetId: this.selectedAssetId(),
       ClockwiseRotations: 0,
     });
+    const index = blueprint.Instructions.length - 1;
+    updateInstructionAndReapply(blueprint, index, {}, this.prototypesById(), this.fragmentsById());
+    this.markInstructionEdited(blueprint.Instructions[index].ID);
     this.touchBootstrap();
   }
 
@@ -910,10 +922,7 @@ export class EditorComponent {
     if (!blueprint || !blueprint.Instructions || blueprint.Instructions.length < 2) {
       return;
     }
-    const next = (index + 1) % blueprint.Instructions.length;
-    const hold = blueprint.Instructions[index];
-    blueprint.Instructions[index] = blueprint.Instructions[next];
-    blueprint.Instructions[next] = hold;
+    reorderInstructionAndReapply(blueprint, index, this.prototypesById(), this.fragmentsById());
     this.touchBootstrap();
   }
 
@@ -922,8 +931,83 @@ export class EditorComponent {
     if (!blueprint) {
       return;
     }
-    blueprint.Instructions.splice(index, 1);
+    const deletedId = blueprint.Instructions[index]?.ID;
+    deleteInstructionAndReapply(blueprint, index, this.prototypesById(), this.fragmentsById());
+    if (deletedId) {
+      this.instructionEditedIds.update((current) => {
+        const next = { ...current };
+        delete next[deletedId];
+        return next;
+      });
+    }
     this.touchBootstrap();
+  }
+
+  protected updateInstructionY(index: number, value: number | string): void {
+    const blueprint = this.activeBlueprint();
+    const instruction = blueprint?.Instructions[index];
+    if (!blueprint || !instruction) {
+      return;
+    }
+    updateInstructionAndReapply(
+      blueprint,
+      index,
+      { Y: normalizeInstructionField(value, instruction.Y) },
+      this.prototypesById(),
+      this.fragmentsById(),
+    );
+    this.markInstructionEdited(instruction.ID);
+    this.touchBootstrap();
+  }
+
+  protected updateInstructionX(index: number, value: number | string): void {
+    const blueprint = this.activeBlueprint();
+    const instruction = blueprint?.Instructions[index];
+    if (!blueprint || !instruction) {
+      return;
+    }
+    updateInstructionAndReapply(
+      blueprint,
+      index,
+      { X: normalizeInstructionField(value, instruction.X) },
+      this.prototypesById(),
+      this.fragmentsById(),
+    );
+    this.markInstructionEdited(instruction.ID);
+    this.touchBootstrap();
+  }
+
+  protected updateInstructionRotation(index: number, value: number | string): void {
+    const blueprint = this.activeBlueprint();
+    const instruction = blueprint?.Instructions[index];
+    if (!blueprint || !instruction) {
+      return;
+    }
+    updateInstructionAndReapply(
+      blueprint,
+      index,
+      { ClockwiseRotations: normalizeInstructionField(value, instruction.ClockwiseRotations) },
+      this.prototypesById(),
+      this.fragmentsById(),
+    );
+    this.markInstructionEdited(instruction.ID);
+    this.touchBootstrap();
+  }
+
+  protected instructionAssetLabel(assetId: string): string {
+    const resolved = this.resolveAssetById(assetId);
+    if (!resolved) {
+      return `Unknown asset (${assetId || 'empty'})`;
+    }
+    return this.assetDisplayName(resolved);
+  }
+
+  protected instructionHasKnownAsset(assetId: string): boolean {
+    return Boolean(this.resolveAssetById(assetId));
+  }
+
+  protected instructionIsEdited(instructionId: string): boolean {
+    return Boolean(this.instructionEditedIds()[instructionId]);
   }
 
   protected showInstruction(index: number): void {
@@ -1413,6 +1497,13 @@ export class EditorComponent {
   private touchBootstrap(): void {
     this.gridVersion.update((value) => value + 1);
     this.bootstrap.set({ ...(this.bootstrap() as BootstrapResponse) });
+  }
+
+  private markInstructionEdited(instructionId: string): void {
+    if (!instructionId) {
+      return;
+    }
+    this.instructionEditedIds.update((current) => ({ ...current, [instructionId]: true }));
   }
 
   private async loadBootstrap(): Promise<void> {

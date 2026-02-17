@@ -247,6 +247,22 @@ function pasteTiles(y: number, x: number, source: TileData[][], dest: TileData[]
   }
 }
 
+function clearTiles(y: number, x: number, height: number, width: number, source: TileData[][]): void {
+  for (let row = 0; row < height; row += 1) {
+    if (y + row < 0 || y + row >= source.length) {
+      continue;
+    }
+    for (let col = 0; col < width; col += 1) {
+      if (x + col < 0 || x + col >= source[y + row].length) {
+        continue;
+      }
+      source[y + row][x + col].prototypeId = '';
+      source[y + row][x + col].interactableId = '';
+      source[y + row][x + col].transformation = { clockwiseRotations: 0 };
+    }
+  }
+}
+
 function getTileGridByAssetId(assetId: string, prototypesById: Map<string, Prototype>, fragmentsById: Map<string, Fragment>): TileData[][] {
   const fragment = fragmentsById.get(assetId);
   if (fragment) {
@@ -268,6 +284,99 @@ function applyEveryInstruction(blueprint: Blueprint, prototypesById: Map<string,
   for (const instruction of blueprint.Instructions) {
     applyInstruction(blueprint.Tiles, instruction, prototypesById, fragmentsById);
   }
+}
+
+function clearInstructionFootprint(
+  tiles: TileData[][],
+  instruction: Instruction,
+  prototypesById: Map<string, Prototype>,
+  fragmentsById: Map<string, Fragment>
+): void {
+  const grid = rotateTimesN(getTileGridByAssetId(instruction.GridAssetId, prototypesById, fragmentsById), instruction.ClockwiseRotations);
+  if (!grid.length || !grid[0]?.length) {
+    return;
+  }
+  clearTiles(instruction.Y, instruction.X, grid.length, grid[0].length, tiles);
+}
+
+export function normalizeInstructionField(value: number | string, fallback = 0): number {
+  const parsed = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+  return Math.trunc(parsed);
+}
+
+export function updateInstructionAndReapply(
+  blueprint: Blueprint,
+  index: number,
+  nextValues: Partial<Pick<Instruction, 'Y' | 'X' | 'ClockwiseRotations' | 'GridAssetId'>>,
+  prototypesById: Map<string, Prototype>,
+  fragmentsById: Map<string, Fragment>
+): void {
+  const target = blueprint.Instructions[index];
+  if (!target) {
+    return;
+  }
+
+  const previous: Instruction = {
+    ID: target.ID,
+    X: target.X,
+    Y: target.Y,
+    GridAssetId: target.GridAssetId,
+    ClockwiseRotations: target.ClockwiseRotations,
+  };
+
+  clearInstructionFootprint(blueprint.Tiles, previous, prototypesById, fragmentsById);
+
+  if (nextValues.Y !== undefined) {
+    target.Y = normalizeInstructionField(nextValues.Y, target.Y);
+  }
+  if (nextValues.X !== undefined) {
+    target.X = normalizeInstructionField(nextValues.X, target.X);
+  }
+  if (nextValues.ClockwiseRotations !== undefined) {
+    target.ClockwiseRotations = mod(normalizeInstructionField(nextValues.ClockwiseRotations, target.ClockwiseRotations), 4);
+  }
+  if (nextValues.GridAssetId !== undefined) {
+    target.GridAssetId = nextValues.GridAssetId;
+  }
+
+  applyEveryInstruction(blueprint, prototypesById, fragmentsById);
+}
+
+export function deleteInstructionAndReapply(
+  blueprint: Blueprint,
+  index: number,
+  prototypesById: Map<string, Prototype>,
+  fragmentsById: Map<string, Fragment>
+): void {
+  const target = blueprint.Instructions[index];
+  if (!target) {
+    return;
+  }
+  clearInstructionFootprint(blueprint.Tiles, target, prototypesById, fragmentsById);
+  blueprint.Instructions.splice(index, 1);
+  applyEveryInstruction(blueprint, prototypesById, fragmentsById);
+}
+
+export function reorderInstructionAndReapply(
+  blueprint: Blueprint,
+  index: number,
+  prototypesById: Map<string, Prototype>,
+  fragmentsById: Map<string, Fragment>
+): void {
+  if (blueprint.Instructions.length < 2 || index < 0 || index >= blueprint.Instructions.length) {
+    return;
+  }
+  for (const instruction of blueprint.Instructions) {
+    clearInstructionFootprint(blueprint.Tiles, instruction, prototypesById, fragmentsById);
+  }
+  const next = (index + 1) % blueprint.Instructions.length;
+  const hold = blueprint.Instructions[index];
+  blueprint.Instructions[index] = blueprint.Instructions[next];
+  blueprint.Instructions[next] = hold;
+  applyEveryInstruction(blueprint, prototypesById, fragmentsById);
 }
 
 export function applyGridTool(input: {

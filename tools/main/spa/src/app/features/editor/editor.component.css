@@ -270,6 +270,18 @@ button {
 	margin-top: 8px;
 }
 
+.instruction-row--edited {
+	background: #f2fcff;
+	border: 1px solid #bdefff;
+	padding: 6px;
+	border-radius: 4px;
+}
+
+.instruction-hint {
+	font-size: 12px;
+	color: #4e5965;
+}
+
 .instruction-axis-input {
 	width: 2ch;
 	min-width: 2ch;
@@ -280,6 +292,20 @@ button {
 	box-sizing: content-box;
 	appearance: textfield;
 	-moz-appearance: textfield;
+}
+
+.instruction-axis-input--editable {
+	border: 1px solid #0fcdfc;
+	background: #f8feff;
+}
+
+.instruction-axis-input--editable:focus {
+	outline: 2px solid #0fcdfc;
+	outline-offset: 0;
+}
+
+.instruction-asset-label {
+	min-width: 220px;
 }
 
 .instruction-axis-input::-webkit-outer-spin-button,

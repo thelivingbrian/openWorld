@@ -1,8 +1,10 @@
 import {
   applyGridTool,
+  deleteInstructionAndReapply,
   ensureGround,
   generateMaterials,
   normalizeTile,
+  updateInstructionAndReapply,
 } from './grid-engine';
 import {
   Blueprint,
@@ -267,6 +269,57 @@ describe('grid-engine', () => {
     expect(blueprint.Tiles[0][7].prototypeId).toBe('d');
     expect(blueprint.Tiles[1][6].prototypeId).toBe('a');
     expect(blueprint.Tiles[1][7].prototypeId).toBe('c');
+  });
+
+  it('updateInstructionAndReapply moves instruction footprint when coordinates change', () => {
+    const blueprint = makeBlueprint([
+      [{}, {}, {}],
+      [{}, {}, {}],
+      [{}, {}, {}],
+    ]);
+    const maps = buildInput(blueprint);
+    maps.prototypesById.set('proto-1', makePrototype('proto-1'));
+
+    blueprint.Instructions = [{ ID: 'i1', X: 0, Y: 0, GridAssetId: 'proto-1', ClockwiseRotations: 0 }];
+    updateInstructionAndReapply(blueprint, 0, {}, maps.prototypesById, maps.fragmentsById);
+    expect(blueprint.Tiles[0][0].prototypeId).toBe('proto-1');
+
+    updateInstructionAndReapply(blueprint, 0, { Y: 1, X: 2 }, maps.prototypesById, maps.fragmentsById);
+
+    expect(blueprint.Tiles[0][0].prototypeId).toBe('');
+    expect(blueprint.Tiles[1][2].prototypeId).toBe('proto-1');
+  });
+
+  it('updateInstructionAndReapply and deleteInstructionAndReapply keep rotated fragment footprints in sync', () => {
+    const blueprint = makeBlueprint([
+      [{}, {}, {}],
+      [{}, {}, {}],
+      [{}, {}, {}],
+    ]);
+    const maps = buildInput(blueprint);
+    maps.prototypesById.set('a', makePrototype('a'));
+    maps.prototypesById.set('b', makePrototype('b'));
+    maps.fragmentsById.set('frag-1x2', {
+      id: 'frag-1x2',
+      name: 'frag-1x2',
+      setName: 'set-a',
+      blueprint: makeBlueprint([[{ prototypeId: 'a' }, { prototypeId: 'b' }]]),
+    });
+
+    blueprint.Instructions = [{ ID: 'i1', X: 0, Y: 0, GridAssetId: 'frag-1x2', ClockwiseRotations: 0 }];
+    updateInstructionAndReapply(blueprint, 0, {}, maps.prototypesById, maps.fragmentsById);
+    expect(blueprint.Tiles[0][0].prototypeId).toBe('a');
+    expect(blueprint.Tiles[0][1].prototypeId).toBe('b');
+
+    updateInstructionAndReapply(blueprint, 0, { ClockwiseRotations: 1 }, maps.prototypesById, maps.fragmentsById);
+    expect(blueprint.Tiles[0][1].prototypeId).toBe('');
+    expect(blueprint.Tiles[0][0].prototypeId).toBe('a');
+    expect(blueprint.Tiles[1][0].prototypeId).toBe('b');
+
+    deleteInstructionAndReapply(blueprint, 0, maps.prototypesById, maps.fragmentsById);
+    expect(blueprint.Instructions.length).toBe(0);
+    expect(blueprint.Tiles[0][0].prototypeId).toBe('');
+    expect(blueprint.Tiles[1][0].prototypeId).toBe('');
   });
 
   it('applyGridTool sets and clears interactables', () => {
