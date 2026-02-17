@@ -77,6 +77,20 @@ func main() {
 
 	http.HandleFunc("/deploy", c.deployHandler)
 	http.HandleFunc("/compile", c.compile)
+	http.HandleFunc("/api/bootstrap", c.apiBootstrapHandler)
+	http.HandleFunc("/api/collection", c.apiCollectionHandler)
+	http.HandleFunc("/api/space", c.apiSaveSpaceHandler)
+	http.HandleFunc("/api/space/flatten", c.apiFlattenSpaceHandler)
+	http.HandleFunc("/api/space/create", c.apiCreateSpaceHandler)
+	http.HandleFunc("/api/area/create", c.apiCreateAreaHandler)
+	http.HandleFunc("/api/fragment-set", c.apiSaveFragmentSetHandler)
+	http.HandleFunc("/api/prototype-set", c.apiSavePrototypeSetHandler)
+	http.HandleFunc("/api/interactable-set", c.apiSaveInteractableSetHandler)
+	http.HandleFunc("/api/colors", c.apiColorsHandler)
+	http.HandleFunc("/api/compile", c.apiCompileHandler)
+	http.HandleFunc("/api/deploy", c.apiDeployHandler)
+	http.HandleFunc("/app", c.spaHandler)
+	http.HandleFunc("/app/", c.spaHandler)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			http.NotFound(w, r)

@@ -1,0 +1,218 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`EditorComponent snapshots captures baseline area snapshots: baseline random-room 1`] = `
+"Name: random-room
+Safe: true
+North:  South:  East:  West: 
+Weather:  BroadcastGroup: 
+Transports: 0
+
+Instructions:
+(none)
+
+Material Grid (walk:css:txt):
+r00 T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0
+r01 T:white:0 | F:wall:0 | F:wall:0 | F:wall:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0
+r02 T:white:0 | T:white:0 | F:green:0 | F:green:0 | F:green:0 | T:white:0 | T:white:0 | T:white:0
+r03 T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0
+r04 T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0
+r05 T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0
+r06 T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0
+r07 T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0 | T:white:0
+
+Tile Grid (prototype/interactable/rotation):
+r00 p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0
+r01 p-white/-/0 | p-wall/-/0 | p-wall/-/0 | p-wall/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0
+r02 p-white/-/0 | p-white/-/0 | p-blue/-/0 | p-blue/-/0 | p-blue/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0
+r03 p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0
+r04 p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0
+r05 p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0
+r06 p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0
+r07 p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0 | p-white/-/0
+
+Interactables (resolved):
+r00 - | - | - | - | - | - | - | -
+r01 - | - | - | - | - | - | - | -
+r02 - | - | - | - | - | - | - | -
+r03 - | - | - | - | - | - | - | -
+r04 - | - | - | - | - | - | - | -
+r05 - | - | - | - | - | - | - | -
+r06 - | - | - | - | - | - | - | -
+r07 - | - | - | - | - | - | - | -
+
+Ground Grid:
+r00 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
+r01 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
+r02 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
+r03 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
+r04 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
+r05 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
+r06 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
+r07 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0"
+`;
+
+exports[`EditorComponent snapshots captures baseline area snapshots: baseline staged-room 1`] = `
+"Name: staged-room
+Safe: false
+North: random-room South: random-room East:  West: 
+Weather:  BroadcastGroup: 
+Transports: 1
+
+Instructions:
+(none)
+
+Material Grid (walk:css:txt):
+r00 T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0
+r01 T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0
+r02 T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0
+r03 T:grass:0 | T:grass:0 | T:grass:0 | F:red:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0
+r04 T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0
+r05 T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0
+r06 T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0
+r07 T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0 | T:grass:0
+
+Tile Grid (prototype/interactable/rotation):
+r00 p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0
+r01 p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0
+r02 p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0
+r03 p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-red/i-powder/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0
+r04 p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0
+r05 p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0
+r06 p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0
+r07 p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0 | p-grass/-/0
+
+Interactables (resolved):
+r00 - | - | - | - | - | - | - | -
+r01 - | - | - | - | - | - | - | -
+r02 - | - | - | - | - | - | - | -
+r03 - | - | - | PWDR | - | - | - | -
+r04 - | - | - | - | - | - | - | -
+r05 - | - | - | - | - | - | - | -
+r06 - | - | - | - | - | - | - | -
+r07 - | - | - | - | - | - | - | -
+
+Ground Grid:
+r00 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
+r01 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
+r02 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
+r03 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
+r04 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
+r05 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
+r06 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
+r07 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0"
+`;
+
+exports[`EditorComponent snapshots captures ghost highlight overlays for hover previews: ghost fragment hover 1`] = `
+"Fixture: fragment Tool: place Asset: frag-2x2
+Hover: 5,5
+Overlays:
+(5,5) m=F:red:0 i=PWDR
+(5,6) m=F:sand r1-tl  r:0 i=-
+(6,5) m=T:dark-grass:0 i=-
+(6,6) m=T:white:0 i=-
+SelectHover:
+(none)"
+`;
+
+exports[`EditorComponent snapshots captures ghost highlight overlays for hover previews: ghost interactable hover 1`] = `
+"Fixture: interactable Tool: interactable-replace Asset: i-powder
+Hover: 3,4
+Overlays:
+(3,4) m=- i=PWDR
+SelectHover:
+(none)"
+`;
+
+exports[`EditorComponent snapshots captures ghost highlight overlays for hover previews: ghost prototype hover 1`] = `
+"Fixture: prototype Tool: replace Asset: p-round
+Hover: 2,2
+Overlays:
+(2,2) m=F:sand r1-tl  r:0 i=-
+SelectHover:
+(none)"
+`;
+
+exports[`EditorComponent snapshots captures ghost highlight overlays for hover previews: ghost select hover-marker only 1`] = `
+"Fixture: prototype Tool: select Asset: p-round
+Hover: 1,6
+Overlays:
+(none)
+SelectHover:
+(1,6)"
+`;
+
+exports[`EditorComponent snapshots captures rounded-corner prototype rendering across rotations: rounded corners rotation 0 1`] = `
+"Probe: (4,4)
+Tile: p-round/-@0
+MaterialToken: F:sand r1-tl  r:0"
+`;
+
+exports[`EditorComponent snapshots captures rounded-corner prototype rendering across rotations: rounded corners rotation 1 1`] = `
+"Probe: (4,4)
+Tile: p-round/-@1
+MaterialToken: F:sand r1-tr  r:0"
+`;
+
+exports[`EditorComponent snapshots captures rounded-corner prototype rendering across rotations: rounded corners rotation 2 1`] = `
+"Probe: (4,4)
+Tile: p-round/-@2
+MaterialToken: F:sand r1-br  r:0"
+`;
+
+exports[`EditorComponent snapshots captures rounded-corner prototype rendering across rotations: rounded corners rotation 3 1`] = `
+"Probe: (4,4)
+Tile: p-round/-@3
+MaterialToken: F:sand r1-bl  r:0"
+`;
+
+exports[`EditorComponent snapshots captures snapshot after a sequence of editor UI actions: random-room after UI action sequence 1`] = `
+"Name: random-room
+Safe: true
+North:  South:  East:  West: 
+Weather:  BroadcastGroup: 
+Transports: 0
+
+Instructions:
+00: (6,2) frag-2x2 r0
+01: (5,2) p-blue r0
+
+Material Grid (walk:css:txt):
+r00 T:sand:0 | T:sand:0 | T:sand:0 | T:sand:0 | T:sand:0 | T:sand:0 | T:sand:0 | T:sand:0
+r01 T:sand:0 | F:wall:0 | F:wall:0 | F:wall:0 | F:wall:0 | F:wall:0 | F:wall:0 | F:wall:0
+r02 T:sand:0 | F:wall:0 | F:green red-b t:0 | F:green red-b t:0 | F:wall:0 | T:grass:0 | F:wall:0 | F:green red-b t:0
+r03 T:sand:0 | F:wall:0 | F:green red-b t:0 | F:green red-b t:0 | F:wall:0 | T:grass:0 | F:wall:0 | F:green red-b t:0
+r04 T:sand:0 | F:wall:0 | F:green red-b t:0 | F:wall:0 | F:wall:0 | F:wall:0 | F:wall:0 | F:green red-b t:0
+r05 T:sand:0 | F:wall:0 | F:green:0 | F:green red-b t:0 | F:green red-b t:0 | F:green red-b t:0 | F:green red-b t:0 | F:green red-b t:0
+r06 F:red:0 | F:sand r1-tl  r:0 | F:red:0 | F:sand r1-tl  r:0 | F:wall:0 | F:wall:0 | F:wall:0 | F:wall:0
+r07 T:dark-grass:0 | T:white:0 | T:dark-grass:0 | T:white:0 | T:sand:0 | T:sand:0 | T:sand:0 | T:sand:0
+
+Tile Grid (prototype/interactable/rotation):
+r00 p-sand/-/0 | p-sand/-/0 | p-sand/-/0 | p-sand/-/0 | p-sand/-/0 | p-sand/-/0 | p-sand/-/0 | p-sand/-/0
+r01 p-sand/-/0 | p-wall/-/0 | p-wall/-/0 | p-wall/-/0 | p-wall/-/0 | p-wall/-/0 | p-wall/-/0 | p-wall/-/0
+r02 p-sand/-/0 | p-wall/-/0 | -/-/0 | -/-/0 | p-wall/-/0 | p-grass/-/0 | p-wall/-/0 | -/-/0
+r03 p-sand/-/0 | p-wall/-/0 | -/-/0 | -/-/0 | p-wall/-/0 | p-grass/-/0 | p-wall/-/0 | -/-/0
+r04 p-sand/-/0 | p-wall/-/0 | -/-/0 | p-wall/-/0 | p-wall/-/0 | p-wall/-/0 | p-wall/-/0 | -/-/0
+r05 p-sand/-/0 | p-wall/-/0 | p-blue/-/1 | -/-/0 | -/-/0 | -/-/0 | -/-/0 | -/-/0
+r06 p-red/i-powder/0 | p-round/-/0 | p-red/i-powder/0 | p-round/-/0 | p-wall/-/0 | p-wall/-/0 | p-wall/-/0 | p-wall/-/0
+r07 p-dark-grass/-/0 | p-white/-/0 | p-dark-grass/-/0 | p-white/-/0 | p-sand/-/0 | p-sand/-/0 | p-sand/-/0 | p-sand/-/0
+
+Interactables (resolved):
+r00 - | - | - | - | - | - | - | -
+r01 - | - | - | - | - | - | - | -
+r02 - | - | - | - | - | - | - | -
+r03 - | - | - | - | - | - | - | -
+r04 - | - | - | - | - | - | - | -
+r05 - | - | - | - | - | - | - | -
+r06 PWDR | - | PWDR | - | - | - | - | -
+r07 - | - | - | - | - | - | - | -
+
+Ground Grid:
+r00 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1
+r01 1 | 0[tl] | 0 | 0[tr] | 1 | 1 | 1 | 1
+r02 1 | 0[bl] | 0 | 0[br] | 1 | 1 | 1 | 1
+r03 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1
+r04 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1
+r05 1 | 1 | 1 | 1 | 1 | 1 | 0[tl,tr,bl,br] | 1
+r06 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1
+r07 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1"
+`;

@@ -1,0 +1,858 @@
+<main class="page">
+  @if (loading()) {
+    <p>Loading editor...</p>
+  } @else {
+    <section class="topbar">
+      <div class="row gap">
+        <label>
+          Collection
+          <select [(ngModel)]="collectionName" (ngModelChange)="onCollectionChange()">
+            @for (name of collectionNames(); track name) {
+              <option [value]="name">{{ name }}</option>
+            }
+          </select>
+        </label>
+        <button (click)="compileCollection()">Compile</button>
+        <button (click)="deployCollection()">Deploy</button>
+        <button (click)="toggleNewCollectionForm()">New</button>
+      </div>
+      @if (showNewCollection()) {
+        <div class="row wrap gap">
+          <label>
+            New Collection
+            <input [(ngModel)]="newCollectionName" />
+          </label>
+          <button (click)="createCollection()">Create Collection</button>
+          <button (click)="hideNewCollectionForm()">Cancel</button>
+        </div>
+      }
+      <div class="row">
+        <span>{{ status() }}</span>
+      </div>
+    </section>
+
+    <section class="mode-nav">
+      <div class="row wrap gap">
+        <button type="button" (click)="setViewMode('world')" [class.active]="viewMode() === 'world'">World</button>
+        <button type="button" (click)="setViewMode('create')" [class.active]="viewMode() === 'create'">Create Space/Area</button>
+        <button type="button" (click)="setViewMode('modify-space')" [class.active]="viewMode() === 'modify-space'">Modify Space</button>
+        <button type="button" (click)="setViewMode('prototypes')" [class.active]="viewMode() === 'prototypes'">Prototypes</button>
+        <button type="button" (click)="setViewMode('fragments')" [class.active]="viewMode() === 'fragments'">Fragments</button>
+        <button type="button" (click)="setViewMode('interactables')" [class.active]="viewMode() === 'interactables'">Interactables</button>
+        <button type="button" (click)="setViewMode('colors')" [class.active]="viewMode() === 'colors'">Colors</button>
+      </div>
+    </section>
+
+    @if (viewMode() === 'world') {
+      <section class="panel">
+        <h3>Space + Area</h3>
+        <div class="row wrap gap">
+          <label>
+            Space
+            <select [(ngModel)]="spaceName" (ngModelChange)="onSpaceChange()">
+              @for (name of spaceNames(); track name) {
+                <option [value]="name">{{ name }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            Area
+            <select [(ngModel)]="areaName" (ngModelChange)="onAreaChange()">
+              @for (name of areaNames(); track name) {
+                <option [value]="name">{{ name }}</option>
+              }
+            </select>
+          </label>
+          <button (click)="saveSpace()">Save Space</button>
+          <button (click)="flattenSpace()" [disabled]="!canFlattenCurrentSpace()">Flatten Space</button>
+          <button (click)="resetUnsavedChanges()">Reset Changes</button>
+          @if (currentArea()) {
+            <div class="row gap panel__toggles panel__toggles--right">
+              <button
+                type="button"
+                class="panel__toggle"
+                [class.active]="showAreaDetails()"
+                (click)="toggleAreaDetails()"
+              >Edit Details</button>
+              <button
+                type="button"
+                class="panel__toggle"
+                [class.active]="showGridTools()"
+                (click)="toggleGridTools()"
+              >Edit Grid</button>
+              <button
+                type="button"
+                class="panel__toggle"
+                [class.active]="showTransports()"
+                (click)="toggleTransports()"
+              >Edit Transports</button>
+              <button
+                type="button"
+                class="panel__toggle"
+                [class.active]="showNeighbors()"
+                (click)="toggleNeighbors()"
+              >Edit Neighbors</button>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    @if (viewMode() === 'create') {
+      <section class="panel">
+        <h3>Create</h3>
+        <div class="row gap">
+          <button (click)="setCreateTarget('space')">Space</button>
+          <button (click)="setCreateTarget('area')">Area</button>
+        </div>
+
+        @if (createTarget() === 'space') {
+          <div class="row wrap gap">
+            <label>New Space <input [(ngModel)]="newSpace().name" /></label>
+            <label>Topology
+              <select [(ngModel)]="newSpace().topology">
+                <option value="plane">plane</option>
+                <option value="torus">torus</option>
+                <option value="disconnected">disconnected</option>
+              </select>
+            </label>
+            <label>Lat <input type="number" [(ngModel)]="newSpace().latitude" /></label>
+            <label>Long <input type="number" [(ngModel)]="newSpace().longitude" /></label>
+            <label>Area W <input type="number" [(ngModel)]="newSpace().areaWidth" /></label>
+            <label>Area H <input type="number" [(ngModel)]="newSpace().areaHeight" /></label>
+            <label>Ground Color 0 <input [(ngModel)]="newSpace().tileColor" /></label>
+            <label>Ground Color 1 <input [(ngModel)]="newSpace().tileColor1" /></label>
+            <label>Weather <input [(ngModel)]="newSpace().weather" /></label>
+            <label>Broadcast <input [(ngModel)]="newSpace().broadcastGroup" /></label>
+            <button (click)="createSpace()">Create Space</button>
+          </div>
+        }
+
+        @if (createTarget() === 'area') {
+          <div class="row wrap gap">
+            <label>
+              Space
+              <select [(ngModel)]="spaceName" (ngModelChange)="onSpaceChange()">
+                @for (name of spaceNames(); track name) {
+                  <option [value]="name">{{ name }}</option>
+                }
+              </select>
+            </label>
+            <label>New Area <input [(ngModel)]="newArea().name" /></label>
+            <label>W <input type="number" [(ngModel)]="newArea().width" /></label>
+            <label>H <input type="number" [(ngModel)]="newArea().height" /></label>
+            <label>Ground Color 0 <input [(ngModel)]="newArea().defaultTileColor" /></label>
+            <label>Ground Color 1 <input [(ngModel)]="newArea().defaultTileColor1" /></label>
+            <label>Safe <input type="checkbox" [(ngModel)]="newArea().safe" /></label>
+            <button (click)="createArea()">Create Area</button>
+          </div>
+        }
+      </section>
+    }
+
+    @if (viewMode() === 'modify-space') {
+      <section class="panel">
+        <h3>Modify Space</h3>
+        <div class="row wrap gap">
+          <label>
+            Space
+            <select [(ngModel)]="modifySpaceName">
+              @for (name of spaceNames(); track name) {
+                <option [value]="name">{{ name }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            Property
+            <select [(ngModel)]="bulkAreaProperty">
+              <option value="safe">Safe</option>
+              <option value="defaultTileColor">Ground Color 0</option>
+              <option value="defaultTileColor1">Ground Color 1</option>
+              <option value="weather">Weather</option>
+              <option value="loadStrategy">Load</option>
+              <option value="spawnStrategy">Spawn</option>
+              <option value="broadcastGroup">Broadcast</option>
+            </select>
+          </label>
+
+          @if (bulkAreaProperty() === 'safe') {
+            <label>Value <input type="checkbox" [(ngModel)]="bulkAreaValueBoolean" /></label>
+          } @else {
+            <label>Value <input [(ngModel)]="bulkAreaValueText" /></label>
+          }
+
+          <button (click)="applyAreaPropertyToSpace()">Apply to All Areas</button>
+        </div>
+        <p>Target areas: {{ modifyTargetAreaCount() }}</p>
+      </section>
+    }
+
+    @if (viewMode() === 'prototypes') {
+      <section class="panel">
+        <h3>Prototypes</h3>
+        <div class="row wrap gap">
+          <label>Set
+            <select [(ngModel)]="prototypeSet" (ngModelChange)="onPrototypeSetChange()">
+              @for (name of prototypeSets(); track name) {
+                <option [value]="name">{{ name }}</option>
+              }
+            </select>
+          </label>
+          <label>New Set <input [(ngModel)]="newPrototypeSetName" /></label>
+          <button (click)="addPrototypeSet()">Add Set</button>
+          <button (click)="savePrototypeSet()">Save Set</button>
+          <button (click)="addPrototype()">Add Prototype</button>
+        </div>
+
+        <div class="row wrap gap">
+          <label>Prototype
+            <select [(ngModel)]="prototypeEditId">
+              @for (entry of prototypes(); track entry.id) {
+                <option [value]="entry.id">{{ entry.commonName }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        @if (editedPrototype()) {
+          <div class="row wrap gap">
+            <label>Name <input [(ngModel)]="editedPrototype()!.commonName" /></label>
+            <label>CssColor <input [(ngModel)]="editedPrototype()!.cssColor" /></label>
+            <label>Floor1 <input [(ngModel)]="editedPrototype()!.layer1css" /></label>
+            <label>Floor2 <input [(ngModel)]="editedPrototype()!.layer2css" /></label>
+            <label>Ceiling1 <input [(ngModel)]="editedPrototype()!.ceiling1css" /></label>
+            <label>Ceiling2 <input [(ngModel)]="editedPrototype()!.ceiling2css" /></label>
+            <label>MapColor <input [(ngModel)]="editedPrototype()!.mapColor" /></label>
+            <label>EditorColor <input [(ngModel)]="editedPrototype()!.editorColor" /></label>
+            <label>DisplayText <input [(ngModel)]="editedPrototype()!.displayText" /></label>
+            <label>Walkable <input type="checkbox" [(ngModel)]="editedPrototype()!.walkable" /></label>
+          </div>
+          <div class="entity-preview">
+            <p class="entity-preview__title">Preview</p>
+            <div class="prototype-preview-flow">
+              <div class="prototype-preview" title="Layer inputs">
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.cssColor) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.layer1css) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.layer2css) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.ceiling1css) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.ceiling2css) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.mapColor) }}"></div>
+              </div>
+
+              <button
+                type="button"
+                class="prototype-editor-toggle"
+                [class.active]="prototypePreviewUseEditorColor()"
+                [attr.aria-pressed]="prototypePreviewUseEditorColor()"
+                [disabled]="!editedPrototype()!.editorColor"
+                (click)="togglePrototypePreviewEditorColor()"
+                title="Use EditorColor as top layer (replaces Ceiling2 in combined preview)">
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.editorColor) }}"></div>
+                <span>EditorColor</span>
+              </button>
+
+              <span class="prototype-preview-arrow" aria-hidden="true">→</span>
+
+              <div class="prototype-preview-stack" title="Combined layers">
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.cssColor) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.layer1css) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.layer2css) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.ceiling1css) }}"></div>
+                <div class="box {{ prototypePreviewCeiling2Class(editedPrototype()) }}"></div>
+              </div>
+            </div>
+            <p class="entity-preview__meta">
+              {{ editedPrototype()!.commonName || 'Unnamed prototype' }}
+              @if (editedPrototype()!.displayText) {
+                · {{ editedPrototype()!.displayText }}
+              }
+              · {{ prototypePreviewUseEditorColor() && editedPrototype()!.editorColor ? 'EditorColor replaces Ceiling2' : 'Ceiling2 active' }}
+              · {{ editedPrototype()!.walkable ? 'Walkable' : 'Blocked' }}
+            </p>
+          </div>
+        }
+      </section>
+    }
+
+    @if (viewMode() === 'fragments') {
+      <section class="panel">
+        <h3>Fragments</h3>
+        <div class="row wrap gap">
+          <label>Set
+            <select [(ngModel)]="fragmentSet" (ngModelChange)="onFragmentSetChange()">
+              @for (name of fragmentSets(); track name) {
+                <option [value]="name">{{ name }}</option>
+              }
+            </select>
+          </label>
+          <label>New Set <input [(ngModel)]="newFragmentSetName" /></label>
+          <button (click)="addFragmentSet()">Add Set</button>
+          <button (click)="saveFragmentSet()">Save Set</button>
+          <button (click)="addFragment()">Add Fragment</button>
+        </div>
+
+        <div class="row wrap gap">
+          <label>Edit Fragment
+            <select [(ngModel)]="fragmentEditId" (ngModelChange)="selection.set(undefined)">
+              @for (entry of fragments(); track entry.id) {
+                <option [value]="entry.id">{{ entry.name }}</option>
+              }
+            </select>
+          </label>
+          @if (editedFragment()) {
+            <label>Name <input [(ngModel)]="editedFragment()!.name" /></label>
+          }
+        </div>
+      </section>
+    }
+
+    @if (viewMode() === 'interactables') {
+      <section class="panel">
+        <h3>Interactables</h3>
+        <div class="row wrap gap">
+          <label>Set
+            <select [(ngModel)]="interactableSet" (ngModelChange)="onInteractableSetChange()">
+              @for (name of interactableSets(); track name) {
+                <option [value]="name">{{ name }}</option>
+              }
+            </select>
+          </label>
+          <label>New Set <input [(ngModel)]="newInteractableSetName" /></label>
+          <button (click)="addInteractableSet()">Add Set</button>
+          <button (click)="saveInteractableSet()">Save Set</button>
+          <button (click)="addInteractable()">Add Interactable</button>
+        </div>
+
+        <div class="row wrap gap">
+          <label>Interactable
+            <select [(ngModel)]="interactableEditId">
+              @for (entry of interactables(); track entry.id) {
+                <option [value]="entry.id">{{ entry.name }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        @if (editedInteractable()) {
+          <div class="row wrap gap">
+            <label>Name <input [(ngModel)]="editedInteractable()!.name" /></label>
+            <label>CssClass <input [(ngModel)]="editedInteractable()!.cssClass" /></label>
+            <label>Pushable <input type="checkbox" [(ngModel)]="editedInteractable()!.pushable" /></label>
+            <label>Walkable <input type="checkbox" [(ngModel)]="editedInteractable()!.walkable" /></label>
+            <label>Fragile <input type="checkbox" [(ngModel)]="editedInteractable()!.fragile" /></label>
+            <label>Reactions <input [(ngModel)]="editedInteractable()!.reactions" /></label>
+          </div>
+          <div class="entity-preview">
+            <p class="entity-preview__title">Preview</p>
+            <div class="interactable-preview">
+              <div class="box zp {{ editedInteractable()!.cssClass }}"></div>
+            </div>
+            <p class="entity-preview__meta">
+              {{ editedInteractable()!.name || 'Unnamed interactable' }}
+              · {{ editedInteractable()!.walkable ? 'Walkable' : 'Blocked' }}
+              · {{ editedInteractable()!.pushable ? 'Pushable' : 'Static' }}
+              · {{ editedInteractable()!.fragile ? 'Fragile' : 'Sturdy' }}
+            </p>
+          </div>
+        }
+      </section>
+    }
+
+    @if (viewMode() === 'colors') {
+      <section class="panel">
+        <h3>Colors</h3>
+        <div class="row wrap gap">
+          <label>Color
+            <select [(ngModel)]="colorEditIndex">
+              @for (entry of colors(); track entry.cssClassName; let i = $index) {
+                <option [value]="i">{{ entry.cssClassName }}</option>
+              }
+            </select>
+          </label>
+          <button (click)="saveColors()">Save Colors</button>
+        </div>
+
+        @if (editedColor()) {
+          <div class="row wrap gap">
+            <label>Name <input [(ngModel)]="editedColor()!.cssClassName" /></label>
+            <label>R <input type="number" [(ngModel)]="editedColor()!.R" /></label>
+            <label>G <input type="number" [(ngModel)]="editedColor()!.G" /></label>
+            <label>B <input type="number" [(ngModel)]="editedColor()!.B" /></label>
+            <label>A <input [(ngModel)]="editedColor()!.A" /></label>
+          </div>
+          <div class="entity-preview">
+            <p class="entity-preview__title">Preview</p>
+            <div class="color-preview-row">
+              <div class="color-swatch" [ngStyle]="colorPreviewStyle(editedColor())"></div>
+              <div class="color-preview-label">.{{ editedColor()!.cssClassName || 'new-color' }}</div>
+            </div>
+          </div>
+        }
+
+        <div class="row wrap gap">
+          <label>New Name <input [(ngModel)]="newColor().cssClassName" /></label>
+          <label>R <input type="number" [(ngModel)]="newColor().R" /></label>
+          <label>G <input type="number" [(ngModel)]="newColor().G" /></label>
+          <label>B <input type="number" [(ngModel)]="newColor().B" /></label>
+          <label>A <input [(ngModel)]="newColor().A" /></label>
+          <button (click)="addColor()">Add Color</button>
+        </div>
+        <div class="entity-preview">
+          <p class="entity-preview__title">New Color Preview</p>
+          <div class="color-preview-row">
+            <div class="color-swatch" [ngStyle]="colorPreviewStyle(newColor())"></div>
+            <div class="color-preview-label">.{{ newColor().cssClassName || 'new-color' }}</div>
+          </div>
+        </div>
+      </section>
+    }
+
+    @if (viewMode() === 'world' || viewMode() === 'fragments') {
+      <section class="grid-workspace">
+      <section class="grid-panel">
+        @if (activeBlueprint()) {
+          <div class="grid-window">
+            @if (viewMode() === 'world' && currentArea()) {
+              <p class="navigator">
+                <span class="left_text">
+                  @if (currentArea()!.West) {
+                    <a href="#" (click)="goToArea(currentArea()!.West, $event)">W</a>
+                  } @else {
+                    W
+                  }
+                </span>
+                <span class="center_text">
+                  @if (currentArea()!.North) {
+                    <a href="#" (click)="goToArea(currentArea()!.North, $event)">N</a>
+                  } @else {
+                    N
+                  }
+                  /
+                  @if (currentArea()!.South) {
+                    <a href="#" (click)="goToArea(currentArea()!.South, $event)">S</a>
+                  } @else {
+                    S
+                  }
+                </span>
+                <span class="right_text">
+                  @if (currentArea()!.East) {
+                    <a href="#" (click)="goToArea(currentArea()!.East, $event)">E</a>
+                  } @else {
+                    E
+                  }
+                </span>
+              </p>
+            }
+
+            <div class="grid" id="screen">
+              @for (row of gridMaterials(); track $index; let y = $index) {
+                <div class="grid-row">
+                  @for (material of row; track $index; let x = $index) {
+                    <div class="grid-square" (click)="onGridClick(y, x)" (mouseenter)="onGridHover(y, x)" (mouseleave)="onGridLeave()">
+                      <div class="box ground1 {{ material.ground1css ?? '' }}"></div>
+                      <div class="box ground2 {{ material.ground2css ?? '' }}"></div>
+                      <div class="box floor1 {{ material.layer1css ?? '' }}"></div>
+                      <div class="box floor2 {{ material.layer2css ?? '' }}"></div>
+                      @if (gridInteractables()[y]?.[x]) {
+                        <div class="box zp {{ gridInteractables()[y]?.[x]?.cssClass ?? '' }}"></div>
+                      }
+                      @if (ghostMaterials()[y]?.[x]) {
+                        <div class="box ground1 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ground1css ?? '' }}"></div>
+                        <div class="box ground2 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ground2css ?? '' }}"></div>
+                        <div class="box floor1 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.layer1css ?? '' }}"></div>
+                        <div class="box floor2 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.layer2css ?? '' }}"></div>
+                        <div class="box ceiling1 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ceiling1css ?? '' }}"></div>
+                        <div class="box ceiling2 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ceiling2css ?? '' }}"></div>
+                      }
+                      @if (ghostInteractables()[y]?.[x]) {
+                        <div class="box zp ghost-layer trsp60 {{ ghostInteractables()[y]?.[x]?.cssClass ?? '' }}"></div>
+                      }
+                      <div class="box ceiling1 {{ material.ceiling1css ?? '' }}"></div>
+                      <div class="box ceiling2 {{ material.ceiling2css ?? '' }}"></div>
+                      <div class="box top"
+                        [class.red-b]="selection()?.y === y && selection()?.x === x"
+                        [class.pink-b]="showTransports() && isTransportSourceTile(y, x) && !(selection()?.y === y && selection()?.x === x)"
+                        [class.delete-overlay]="tool() === 'interactable-delete' && isHoverTile(y, x)"
+                        [class.white-b]="shouldShowSelectHover(y, x)"
+                        [class.thick]="showTransports() && isTransportSourceTile(y, x) && !(selection()?.y === y && selection()?.x === x)"
+                        [class.med]="(selection()?.y === y && selection()?.x === x) || shouldShowSelectHover(y, x)"
+                        [class.blue-b]="(ghostMaterials()[y]?.[x] || ghostInteractables()[y]?.[x]) && !(selection()?.y === y && selection()?.x === x) && !(showTransports() && isTransportSourceTile(y, x)) && !(shouldShowSelectHover(y, x))"></div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        } @else {
+          <p>No active grid target selected.</p>
+        }
+      </section>
+
+      <div
+        class="grid-resizer"
+        role="separator"
+        aria-orientation="vertical"
+        [attr.aria-valuenow]="sideColumnWidth()"
+        aria-valuemin="280"
+        aria-valuemax="760"
+        (pointerdown)="startSideColumnResize($event)">
+      </div>
+
+      <div class="grid-side-column" [class.resizing]="isResizingSideColumn()" [style.flex-basis.px]="sideColumnWidth()" [style.width.px]="sideColumnWidth()">
+        <section class="panel grid-side-panel">
+          @if (viewMode() === 'world' && currentArea() && showAreaDetails()) {
+            <h3>Edit Details</h3>
+            <div class="row wrap gap">
+              <label>Name <input [(ngModel)]="currentArea()!.Name" /></label>
+              <label>Safe <input type="checkbox" [(ngModel)]="currentArea()!.Safe" /></label>
+              <div class="panel__break" aria-hidden="true"></div>
+              <label>Color0 <input [(ngModel)]="currentArea()!.Blueprint.DefaultTileColor" /></label>
+              <label>Color1 <input [(ngModel)]="currentArea()!.Blueprint.DefaultTileColor1" /></label>
+              <label>Weather <input [(ngModel)]="currentArea()!.Weather" /></label>
+              <div class="panel__break" aria-hidden="true"></div>
+              <label>Load <input [(ngModel)]="currentArea()!.LoadStrategy" /></label>
+              <label>Spawn <input [(ngModel)]="currentArea()!.SpawnStrategy" /></label>
+              <label>Broadcast <input [(ngModel)]="currentArea()!.BroadcastGroup" /></label>
+            </div>
+          } @else if (viewMode() === 'world' && currentArea() && showTransports()) {
+            <h3>Edit Transports</h3>
+            <div class="row wrap gap">
+              <button type="button" (click)="addTransport()">New Transport</button>
+            </div>
+            @if (!currentArea()!.Transports.length) {
+              <p>No transports in this area.</p>
+            } @else {
+              @for (transport of currentArea()!.Transports; track $index; let i = $index) {
+                <div class="entity-preview">
+                  <p class="entity-preview__title">Transport {{ i + 1 }}</p>
+                  <div class="row wrap gap">
+                    <label>Dest Area <input [(ngModel)]="transport.DestStage" /></label>
+                    <label>Dest Y <input type="number" [(ngModel)]="transport.DestY" /></label>
+                    <label>Dest X <input type="number" [(ngModel)]="transport.DestX" /></label>
+                    <label>Source Y <input type="number" [(ngModel)]="transport.SourceY" /></label>
+                    <label>Source X <input type="number" [(ngModel)]="transport.SourceX" /></label>
+                    <label>Confirmation <input type="checkbox" [(ngModel)]="transport.Confirmation" /></label>
+                    <label>Reject Interactable <input type="checkbox" [(ngModel)]="transport.RejectInteractable" /></label>
+                  </div>
+                  <div class="row wrap gap">
+                    <button type="button" (click)="jumpToTransportDestination(transport.DestStage)">Jump to Destination</button>
+                    <button type="button" (click)="duplicateTransport(i)">Duplicate</button>
+                    <button type="button" (click)="deleteTransport(i)">Delete</button>
+                  </div>
+                </div>
+              }
+            }
+          } @else if (viewMode() === 'world' && currentArea() && showNeighbors()) {
+            <h3>Edit Neighbors</h3>
+            <div class="row wrap gap">
+              <label>North <input [(ngModel)]="currentArea()!.North" /></label>
+              <label>South <input [(ngModel)]="currentArea()!.South" /></label>
+              <label>East <input [(ngModel)]="currentArea()!.East" /></label>
+              <label>West <input [(ngModel)]="currentArea()!.West" /></label>
+            </div>
+          } @else {
+            <h3>Grid Tools</h3>
+            <div class="row wrap gap">
+              <label>
+                Fixture
+                <select [(ngModel)]="fixture" (ngModelChange)="onFixtureChange()">
+                  <option value="prototype">Prototypes</option>
+                  <option value="fragment">Fragments</option>
+                  <option value="interactable">Interactables</option>
+                  <option value="transformation">Transformations</option>
+                  <option value="ground">Ground</option>
+                </select>
+              </label>
+
+              @if (fixture() === 'prototype') {
+                <label>
+                  Prototype Set
+                  <select [(ngModel)]="prototypeSet" (ngModelChange)="onPrototypeSetChange()">
+                    @for (name of prototypeSets(); track name) {
+                      <option [value]="name">{{ name }}</option>
+                    }
+                  </select>
+                </label>
+                <label>
+                  Prototype
+                  <select [(ngModel)]="selectedAssetId">
+                    @for (prototype of prototypes(); track prototype.id) {
+                      <option [value]="prototype.id">{{ prototype.commonName }}</option>
+                    }
+                  </select>
+                </label>
+                <label>
+                  Tool
+                  <select [(ngModel)]="tool">
+                    <option value="select">Select</option>
+                    <option value="replace">Replace</option>
+                    <option value="fill">Fill</option>
+                    <option value="between">Fill Between</option>
+                    <option value="place-blueprint">Place on Blueprint</option>
+                  </select>
+                </label>
+              }
+
+              @if (fixture() === 'fragment') {
+                <label>
+                  Fragment Set
+                  <select [(ngModel)]="fragmentSet" (ngModelChange)="onFragmentSetChange()">
+                    @for (name of fragmentSets(); track name) {
+                      <option [value]="name">{{ name }}</option>
+                    }
+                  </select>
+                </label>
+                <label>
+                  Fragment
+                  <select [(ngModel)]="selectedAssetId">
+                    @for (fragment of fragments(); track fragment.id) {
+                      <option [value]="fragment.id">{{ fragment.name }}</option>
+                    }
+                  </select>
+                </label>
+                <label>
+                  Tool
+                  <select [(ngModel)]="tool">
+                    <option value="place">Place</option>
+                    <option value="place-blueprint">Place on Blueprint</option>
+                  </select>
+                </label>
+              }
+
+              @if (fixture() === 'interactable') {
+                <label>
+                  Interactable Set
+                  <select [(ngModel)]="interactableSet" (ngModelChange)="onInteractableSetChange()">
+                    @for (name of interactableSets(); track name) {
+                      <option [value]="name">{{ name }}</option>
+                    }
+                  </select>
+                </label>
+                <label>
+                  Interactable
+                  <select [(ngModel)]="selectedAssetId">
+                    @for (interactable of interactables(); track interactable.id) {
+                      <option [value]="interactable.id">{{ interactable.name }}</option>
+                    }
+                  </select>
+                </label>
+                <label>
+                  Tool
+                  <select [(ngModel)]="tool">
+                    <option value="select">Select</option>
+                    <option value="interactable-replace">Replace</option>
+                    <option value="interactable-delete">Delete</option>
+                  </select>
+                </label>
+              }
+
+              @if (fixture() === 'transformation') {
+                <label>
+                  Tool
+                  <select [(ngModel)]="tool">
+                    <option value="select">Select</option>
+                    <option value="rotate">Rotate</option>
+                  </select>
+                </label>
+              }
+
+              @if (fixture() === 'ground') {
+                <label>
+                  Tool
+                  <select [(ngModel)]="tool">
+                    <option value="select">Select</option>
+                    <option value="toggle">Toggle</option>
+                    <option value="toggle-fill">Toggle Fill</option>
+                    <option value="toggle-between">Toggle Between</option>
+                  </select>
+                </label>
+              }
+            </div>
+
+            @if (fixturePreviewMaterials().length > 0) {
+              <div class="fixture-preview">
+                <strong>Selected Fixture Preview</strong>
+                <div class="grid">
+                  @for (row of fixturePreviewMaterials(); track $index; let y = $index) {
+                    <div class="grid-row">
+                      @for (material of row; track $index; let x = $index) {
+                        <div class="grid-square">
+                          <div class="box ground1 {{ material.ground1css ?? '' }}"></div>
+                          <div class="box ground2 {{ material.ground2css ?? '' }}"></div>
+                          <div class="box floor1 {{ material.layer1css ?? '' }}"></div>
+                          <div class="box floor2 {{ material.layer2css ?? '' }}"></div>
+                          @if (fixturePreviewInteractables()[y]?.[x]) {
+                            <div class="box zp {{ fixturePreviewInteractables()[y]?.[x]?.cssClass ?? '' }}"></div>
+                          }
+                          <div class="box ceiling1 {{ material.ceiling1css ?? '' }}"></div>
+                          <div class="box ceiling2 {{ material.ceiling2css ?? '' }}"></div>
+                          <div class="box top"></div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          }
+        </section>
+
+        @if (viewMode() === 'world' && currentArea() && hasNavigationMap()) {
+          <section class="panel grid-side-panel">
+            <div class="section-header">
+              <h3>Navigation Map</h3>
+              <button
+                type="button"
+                class="collapse-toggle"
+                [attr.aria-expanded]="showNavigationMap()"
+                (click)="toggleNavigationMap()"
+              >{{ showNavigationMap() ? '-' : '+' }}</button>
+            </div>
+
+            @if (showNavigationMap()) {
+              <div class="navigation-map" role="grid" aria-label="Space navigation map">
+                @for (row of navigationMapRows(); track $index) {
+                  <div class="navigation-map__row" role="row">
+                    @for (cell of row; track cell.areaName) {
+                      <button
+                        type="button"
+                        class="navigation-map__cell"
+                        [class.active]="cell.isCurrent"
+                        [disabled]="!cell.exists"
+                        [attr.aria-label]="'Navigate to ' + cell.areaName"
+                        [title]="cell.areaName"
+                        (click)="goToArea(cell.areaName)">
+                        @if (cell.exists && !hasNavigationImageError(cell.areaName)) {
+                          <img
+                            class="navigation-map__cell-image"
+                            [src]="cell.imageUrl"
+                            [alt]="cell.areaName"
+                            (error)="onNavigationImageError(cell.areaName)" />
+                        } @else {
+                          <span class="navigation-map__cell-missing">{{ cell.row }}-{{ cell.column }}</span>
+                        }
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        }
+
+        @if (activeBlueprint()) {
+          <section class="panel grid-side-panel">
+            <div class="section-header">
+              <h3>Selected Information</h3>
+              <button
+                class="collapse-toggle"
+                type="button"
+                (click)="toggleSelectedInformation()"
+                [attr.aria-label]="showSelectedInformation() ? 'Collapse selected information' : 'Expand selected information'"
+                [attr.aria-expanded]="showSelectedInformation()">
+                {{ showSelectedInformation() ? '-' : '+' }}
+              </button>
+            </div>
+
+            @if (showSelectedInformation()) {
+              @if (!selection()) {
+                <p>Select a tile to view selected information.</p>
+              } @else {
+                <strong>Coordinates: (y {{ selection()!.y }}, x {{ selection()!.x }})</strong>
+
+                <div class="selected-info-group">
+                  <strong>Tile Assets</strong>
+
+                  @if (selectedTilePrototype()) {
+                    <p>
+                      Prototype:
+                      <a href="#" (click)="openPrototypeDetails(selectedTilePrototype()!.id, $event)">
+                        {{ selectedTilePrototype()!.commonName || selectedTilePrototype()!.id }}
+                      </a>
+                    </p>
+                  } @else {
+                    <p>Prototype: none</p>
+                  }
+
+                  @if (selectedTileInteractable()) {
+                    <p>
+                      Interactable:
+                      <a href="#" (click)="openInteractableDetails(selectedTileInteractable()!.id, $event)">
+                        {{ selectedTileInteractable()!.name || selectedTileInteractable()!.id }}
+                      </a>
+                    </p>
+                  } @else {
+                    <p>Interactable: none</p>
+                  }
+                </div>
+
+                <div class="selected-info-group">
+                  <strong>Instructions on this tile</strong>
+                  @if (!selectedTileInstructions().length) {
+                    <p>No instructions on this tile.</p>
+                  } @else {
+                    <div class="selected-instruction-list">
+                      @for (entry of selectedTileInstructions(); track entry.instruction.ID) {
+                        <div class="selected-instruction-row">
+                          <div>
+                            <strong>#{{ entry.index }}</strong>
+                            · {{ entry.assetLabel }}
+                            · Rot {{ entry.instruction.ClockwiseRotations }}
+                          </div>
+                          @if (entry.assetType) {
+                            <a href="#" (click)="openInstructionAssetDetails(entry.instruction.GridAssetId, $event)">Open asset details</a>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            }
+          </section>
+
+          <section class="panel grid-side-panel blueprint-panel">
+            <div class="section-header">
+              <h3>Blueprint Instructions</h3>
+              <button
+                class="collapse-toggle"
+                type="button"
+                (click)="toggleBlueprintInstructions()"
+                [attr.aria-label]="showBlueprintInstructions() ? 'Collapse blueprint instructions' : 'Expand blueprint instructions'"
+                [attr.aria-expanded]="showBlueprintInstructions()">
+                {{ showBlueprintInstructions() ? '-' : '+' }}
+              </button>
+            </div>
+
+            @if (showBlueprintInstructions()) {
+              <div class="row wrap gap">
+                <button (click)="addInstruction()">Add Instruction (from selected asset)</button>
+              </div>
+              <div class="instruction-list">
+                @for (instruction of activeBlueprint()!.Instructions; track instruction.ID; let i = $index) {
+                  <div class="row gap instruction-row" [class.instruction-row--edited]="instructionIsEdited(instruction.ID)">
+                    <span>#{{ i }}</span>
+                    <label>Y <input class="instruction-axis-input instruction-axis-input--editable" type="number" [ngModel]="instruction.Y" (ngModelChange)="updateInstructionY(i, $event)" /></label>
+                    <label>X <input class="instruction-axis-input instruction-axis-input--editable" type="number" [ngModel]="instruction.X" (ngModelChange)="updateInstructionX(i, $event)" /></label>
+                    <label>Rot <input class="instruction-axis-input instruction-axis-input--editable" type="number" [ngModel]="instruction.ClockwiseRotations" (ngModelChange)="updateInstructionRotation(i, $event)" /></label>
+                    <label class="instruction-asset-label">Asset
+                      @if (instructionHasKnownAsset(instruction.GridAssetId)) {
+                        <a href="#" (click)="openInstructionAssetDetails(instruction.GridAssetId, $event)">{{ instructionAssetLabel(instruction.GridAssetId) }}</a>
+                      } @else {
+                        <span>{{ instructionAssetLabel(instruction.GridAssetId) }}</span>
+                      }
+                    </label>
+                    <button (click)="showInstruction(i)">Show</button>
+                    <button (click)="moveInstruction(i)">Order++</button>
+                    <button (click)="deleteInstruction(i)">Delete</button>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        }
+      </div>
+      </section>
+    }
+  }
+</main>

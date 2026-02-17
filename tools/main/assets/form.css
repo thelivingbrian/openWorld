@@ -43,6 +43,7 @@ div.notify-click a {
     display: block;
   }
   
+  /*
   input[type="submit"],
   button {
     background-color: #007bff;
@@ -58,6 +59,7 @@ div.notify-click a {
   button:hover {
     background-color: #0056b3;
   }
+    */
   
   label {
     margin-top: 10px;
