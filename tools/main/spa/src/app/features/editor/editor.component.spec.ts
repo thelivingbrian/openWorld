@@ -127,6 +127,90 @@ describe('EditorComponent', () => {
     expect(state.selectedAssetId()).toBe('');
   });
 
+  it('onGridClick expands selected information when a tile is selected', () => {
+    const state = component as any;
+    state.showSelectedInformation.set(false);
+
+    state.onGridClick(0, 0);
+
+    expect(state.selection()).toEqual({ y: 0, x: 0 });
+    expect(state.showSelectedInformation()).toBe(true);
+  });
+
+  it('onGridClick does not expand selected information when no tile selection is created', () => {
+    const state = component as any;
+    state.showSelectedInformation.set(false);
+    state.selection.set(undefined);
+    state.tool.set('replace');
+
+    state.onGridClick(0, 0);
+
+    expect(state.selection()).toBeUndefined();
+    expect(state.showSelectedInformation()).toBe(false);
+  });
+
+  it('selectedTile reads from area blueprint by default and fragment blueprint in fragments mode', () => {
+    const state = component as any;
+    const area = state.currentArea();
+    area.Blueprint.Tiles = [[{ prototypeId: 'proto-1' }]];
+    state.selection.set({ y: 0, x: 0 });
+
+    expect(state.selectedTile()?.prototypeId).toBe('proto-1');
+
+    state.setViewMode('fragments');
+    state.selection.set({ y: 0, x: 0 });
+    state.editedFragment().blueprint.Tiles = [[{ prototypeId: 'frag-proto' }]];
+
+    expect(state.selectedTile()?.prototypeId).toBe('frag-proto');
+  });
+
+  it('selectedTile returns undefined when selection is out of row bounds', () => {
+    const state = component as any;
+    const area = state.currentArea();
+    area.Blueprint.Tiles = [[{ prototypeId: 'proto-1' }]];
+    state.selection.set({ y: 0, x: 2 });
+
+    expect(state.selectedTile()).toBeUndefined();
+  });
+
+  it('selected tile asset computeds resolve trimmed prototype and interactable ids', () => {
+    const state = component as any;
+    const area = state.currentArea();
+    area.Blueprint.Tiles = [[{ prototypeId: '  proto-1  ', interactableId: '  inter-1  ' }]];
+    state.selection.set({ y: 0, x: 0 });
+
+    expect(state.selectedTilePrototype()?.id).toBe('proto-1');
+    expect(state.selectedTileInteractable()?.id).toBe('inter-1');
+  });
+
+  it('selectedTileInstructions filters by selected coordinate and maps known/unknown assets', () => {
+    const state = component as any;
+    const area = state.currentArea();
+    area.Blueprint.Instructions = [
+      { ID: 'i-1', X: 0, Y: 0, GridAssetId: 'proto-1', ClockwiseRotations: 0 },
+      { ID: 'i-2', X: 0, Y: 0, GridAssetId: 'missing-asset', ClockwiseRotations: 0 },
+      { ID: 'i-3', X: 1, Y: 0, GridAssetId: 'proto-1', ClockwiseRotations: 0 },
+    ];
+    state.selection.set({ y: 0, x: 0 });
+
+    const infos = state.selectedTileInstructions();
+    expect(infos).toHaveLength(2);
+    expect(infos[0]).toEqual(
+      expect.objectContaining({
+        index: 0,
+        assetType: 'prototype',
+        assetLabel: 'Prototype: stone',
+      }),
+    );
+    expect(infos[1]).toEqual(
+      expect.objectContaining({
+        index: 1,
+        assetLabel: 'Unknown asset (missing-asset)',
+      }),
+    );
+    expect(infos[1]).not.toHaveProperty('assetType');
+  });
+
   it('createSpace trims the name and sends payload to API', async () => {
     const state = component as any;
     const current = state.newSpace();

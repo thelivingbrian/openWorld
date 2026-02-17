@@ -887,6 +887,9 @@ export class EditorComponent {
     });
 
     this.selection.set(nextSelection);
+    if (nextSelection) {
+      this.showSelectedInformation.set(true);
+    }
     this.touchBootstrap();
   }
 
