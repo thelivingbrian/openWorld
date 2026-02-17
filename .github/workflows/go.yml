@@ -11,6 +11,8 @@ on:
 jobs:
   build-and-Test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     services:
       mongodb:
@@ -41,6 +43,8 @@ jobs:
 
   spa-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
     - uses: actions/checkout@v4
