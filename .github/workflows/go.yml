@@ -11,6 +11,8 @@ on:
 jobs:
   build-and-Test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     services:
       mongodb:
@@ -38,3 +40,37 @@ jobs:
       run: cd ./server/main && go test -v -bench=B*
       env:
         BLOOP_ENV: "dev"
+
+  spa-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Check for SPA changes
+      id: spa-changes
+      uses: dorny/paths-filter@v2
+      with:
+        filters: |
+          spa:
+            - 'tools/main/spa/**'
+
+    - name: Set up Node.js
+      if: steps.spa-changes.outputs.spa == 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: tools/main/spa/package-lock.json
+
+    - name: Install dependencies
+      if: steps.spa-changes.outputs.spa == 'true'
+      working-directory: tools/main/spa
+      run: npm ci
+
+    - name: Run SPA tests
+      if: steps.spa-changes.outputs.spa == 'true'
+      working-directory: tools/main/spa
+      run: npm run test:ci
