@@ -1,6 +1,9 @@
 package main
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
 
 type Prototype struct {
 	ID          string `json:"id"`
@@ -17,12 +20,6 @@ type Prototype struct {
 	DisplayText string `json:"displayText"`
 }
 
-type PrototypeSelectPage struct {
-	PrototypeSets []string
-	CurrentSet    string
-	Prototypes    []Prototype
-}
-
 func (proto *Prototype) applyTransform(transformation Transformation) Material {
 	return Material{
 		Walkable:    proto.Walkable,
@@ -33,6 +30,42 @@ func (proto *Prototype) applyTransform(transformation Transformation) Material {
 		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation),
 		DisplayText: proto.DisplayText,
 	}
+}
+
+func transformCss(input string, transformation Transformation) string {
+	// We are looking for {key:value} : key, value are strings
+	pattern := regexp.MustCompile(`{([^:]*):([^}]*)}`)
+
+	result := pattern.ReplaceAllStringFunc(input, func(s string) string {
+		matches := pattern.FindStringSubmatch(s)
+		// matches[0] is the full match, matches[1] is the key, matches[2] is the value
+		if len(matches) == 3 {
+			if matches[1] == "rotate" {
+				return rotateCss(matches[2], transformation.ClockwiseRotations)
+			}
+			return matches[2]
+		}
+		panic("Have match " + s + " But submatch behavior is undefined (submatches != 3)")
+	})
+	return result
+}
+
+func rotateCss(input string, clockwiseRotations int) string {
+	options := []string{"tr", "br", "bl", "tl"}
+	currentIndex := findIndex(input, options)
+	if currentIndex == -1 {
+		panic("invalid rotation attempted")
+	}
+	return options[mod(currentIndex+clockwiseRotations, 4)]
+}
+
+func findIndex(s string, list []string) int {
+	for i := range list {
+		if list[i] == s {
+			return i
+		}
+	}
+	return -1
 }
 
 func (c Context) getMapColorFromProto(proto Prototype) string {

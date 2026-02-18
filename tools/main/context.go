@@ -16,6 +16,14 @@ type Context struct {
 	colors      []Color
 }
 
+type Color struct {
+	CssClassName string `json:"cssClassName"`
+	R            int    `json:"R"`
+	G            int    `json:"G"`
+	B            int    `json:"B"`
+	A            string `json:"A"`
+}
+
 // Break everything out for compile (using funcs)
 // Deploy should only need base path because it is just a copy of compile ?
 const COMPILE_basePath = "./data/out"
@@ -239,6 +247,17 @@ func (col Collection) areaOutputFromDescription(desc AreaDescription, mapid stri
 	}
 }
 
+func (col *Collection) generateInteractables(tiles [][]TileData) [][]*InteractableDescription {
+	out := make([][]*InteractableDescription, len(tiles))
+	for i := range tiles {
+		out[i] = make([]*InteractableDescription, len(tiles[i]))
+		for j := range tiles[i] {
+			out[i][j] = col.findInteractableById(tiles[i][j].InteractableId)
+		}
+	}
+	return out
+}
+
 func (c Context) copyMapPNG(space *Space, area *AreaDescription) string {
 	src := filepath.Join(c.pathToMapsForSpace(space), areaToFilename(area))
 	id := uuid.New().String()
@@ -275,4 +294,35 @@ func (collection *Collection) compileMaterialsFromBlueprint(bp *Blueprint) ([][]
 		}
 	}
 	return outputTiles, nil
+}
+
+func addGroundToMaterial(material Material, cell *Cell, color0, color1 string) Material {
+	if cell == nil {
+		material.Ground1Css = color0
+		return material
+	}
+	if material.Ground2Css != "" {
+		return material
+	}
+	primary, secondary := color0, color1
+	if cell.Status != 0 {
+		primary, secondary = color1, color0
+	}
+	material.Ground2Css = primary
+	if cell.TopLeft || cell.TopRight || cell.BottomLeft || cell.BottomRight {
+		material.Ground1Css = secondary
+	}
+	if cell.TopLeft {
+		material.Ground2Css += " r0-tl"
+	}
+	if cell.TopRight {
+		material.Ground2Css += " r0-tr"
+	}
+	if cell.BottomLeft {
+		material.Ground2Css += " r0-bl"
+	}
+	if cell.BottomRight {
+		material.Ground2Css += " r0-br"
+	}
+	return material
 }

@@ -162,6 +162,16 @@ func (c Context) generateImgFromArea(area *AreaDescription, col Collection) *ima
 	return img
 }
 
+func groundCellByCoord(bp *Blueprint, y, x int) *Cell {
+	if bp == nil || bp.Ground == nil {
+		return nil
+	}
+	if y < 0 || x < 0 || y >= len(bp.Ground) || x >= len(bp.Ground[y]) {
+		return nil
+	}
+	return &bp.Ground[y][x]
+}
+
 func (c Context) generatePNGForEachArea(space *Space, img *image.RGBA) {
 	for k := 0; k < space.Latitude; k++ {
 		for j := 0; j < space.Longitude; j++ {
