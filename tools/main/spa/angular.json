@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "baseHref": "/app/",
+            "baseHref": "/",
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js"
@@ -60,7 +60,7 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
-            "servePath": "/app"
+            "servePath": "/"
           },
           "configurations": {
             "production": {
