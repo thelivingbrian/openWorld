@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -78,10 +77,6 @@ func writeJsonFile[T any](path string, entries T, pretty bool) error {
 	return nil
 }
 
-func colorName(c Color) string {
-	return c.CssClassName
-}
-
 func (c Context) writeColorsToLocalFile() error {
 	return writeJsonFile(COLOR_PATH, c.colors, true)
 }
@@ -134,7 +129,6 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 				Fragments:        make(map[string][]Fragment),
 				PrototypeSets:    make(map[string][]Prototype),
 				InteractableSets: make(map[string][]InteractableDescription),
-				StructureSets:    make(map[string][]Structure),
 			}
 
 			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
@@ -149,44 +143,12 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 			pathToInteractables := filepath.Join(collectionPath, entry.Name(), "interactables")
 			populateMaps(collection.InteractableSets, pathToInteractables)
 
-			pathToStructures := filepath.Join(collectionPath, entry.Name(), "structures")
-			populateMaps(collection.StructureSets, pathToStructures)
-
 			collections[entry.Name()] = &collection
 
 		}
 	}
 	return collections
 }
-
-/*
-func addSetNamesToFragments(fragmentMap map[string][]Fragment) map[string][]Fragment {
-	for setName := range fragmentMap {
-		for i := range fragmentMap[setName] {
-			fragmentMap[setName][i].SetName = setName
-		}
-	}
-	return fragmentMap
-}
-
-func (c Context) addSetNamesToProtypes(protoMap map[string][]Prototype) map[string][]Prototype {
-	out := make(map[string][]Prototype)
-	for setName := range protoMap {
-		arr := make([]Prototype, 0)
-		for i := range protoMap[setName] {
-			proto := protoMap[setName][i]
-			proto.SetName = setName
-
-			// Add map color for old protos
-			// proto.MapColor = c.getMapColorFromProto(proto)
-
-			arr = append(arr, proto)
-		}
-		out[setName] = arr
-	}
-	return out
-}
-*/
 
 func populateMaps[T any](m map[string]T, pathToJsonDirectory string) {
 	subEntries, err := os.ReadDir(pathToJsonDirectory)
@@ -209,21 +171,7 @@ func populateMaps[T any](m map[string]T, pathToJsonDirectory string) {
 	}
 }
 
-func (c Context) spaceFromNames(collectionName string, spaceName string) *Space {
-	collection, ok := c.Collections[collectionName]
-	if !ok {
-		return nil
-	}
-	return collection.Spaces[spaceName]
-}
-
 // DEPLOYMENT
-
-func (c Context) deployHandler(w http.ResponseWriter, r *http.Request) {
-	queryValues := r.URL.Query()
-	collectionName := queryValues.Get("currentCollection")
-	c.deploy(collectionName)
-}
 
 func (c Context) deploy(collectionName string) {
 	c.createCSSFile(DEPLOY_cssPath)
@@ -234,14 +182,6 @@ func (c Context) deploy(collectionName string) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func (c Context) compile(w http.ResponseWriter, r *http.Request) {
-	queryValues := r.URL.Query()
-	collectionName := queryValues.Get("currentCollection")
-	c.createCSSFile(CSS_PATH)
-	c.compileCollectionByName(collectionName)
-	fmt.Println("Done.")
 }
 
 func (c Context) compileCollectionByName(collectionName string) {

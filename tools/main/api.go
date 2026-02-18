@@ -134,7 +134,6 @@ func (c *Context) apiCollectionHandler(w http.ResponseWriter, r *http.Request) {
 		Fragments:        make(map[string][]Fragment),
 		PrototypeSets:    make(map[string][]Prototype),
 		InteractableSets: make(map[string][]InteractableDescription),
-		StructureSets:    make(map[string][]Structure),
 	}
 	createCollectionDirectories(name)
 

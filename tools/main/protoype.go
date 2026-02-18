@@ -23,14 +23,6 @@ type PrototypeSelectPage struct {
 	Prototypes    []Prototype
 }
 
-func (proto *Prototype) applyTransformForEditor(transformation Transformation) Material {
-	copy := *proto
-	if copy.EditorColor != "" {
-		copy.Ceiling2Css = copy.EditorColor
-	}
-	return copy.applyTransform(transformation)
-}
-
 func (proto *Prototype) applyTransform(transformation Transformation) Material {
 	return Material{
 		Walkable:    proto.Walkable,
@@ -40,24 +32,6 @@ func (proto *Prototype) applyTransform(transformation Transformation) Material {
 		Ceiling1Css: transformCss(proto.Ceiling1Css, transformation),
 		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation),
 		DisplayText: proto.DisplayText,
-	}
-}
-
-func (proto *Prototype) peekTransform(transformation Transformation) Prototype {
-	baseColor := proto.EditorColor
-	if baseColor == "" {
-		baseColor = proto.CssColor
-	}
-	return Prototype{
-		ID:          proto.ID,
-		SetName:     proto.SetName,
-		CommonName:  proto.CommonName,
-		Walkable:    proto.Walkable,
-		CssColor:    baseColor,
-		Floor1Css:   transformCss(proto.Floor1Css, transformation),
-		Floor2Css:   transformCss(proto.Floor2Css, transformation),
-		Ceiling1Css: transformCss(proto.Ceiling1Css, transformation),
-		Ceiling2Css: transformCss(proto.Ceiling2Css, transformation),
 	}
 }
 

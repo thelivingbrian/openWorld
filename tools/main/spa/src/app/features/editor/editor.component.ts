@@ -1687,7 +1687,6 @@ export class EditorComponent {
         Fragments: outFragments,
         PrototypeSets: (collection.PrototypeSets ?? collection.prototypeSets ?? {}) as Collection['PrototypeSets'],
         InteractableSets: (collection.InteractableSets ?? collection.interactableSets ?? {}) as Collection['InteractableSets'],
-        StructureSets: collection.StructureSets ?? collection.structureSets ?? {},
       };
     }
 

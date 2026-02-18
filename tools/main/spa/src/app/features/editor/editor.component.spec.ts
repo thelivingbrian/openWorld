@@ -427,7 +427,6 @@ function buildBootstrap(): BootstrapResponse {
             },
           ],
         },
-        StructureSets: {},
       },
     },
     colors: [{ cssClassName: 'green', R: 0, G: 128, B: 0, A: '1' }],

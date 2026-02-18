@@ -84,26 +84,6 @@ func getAreaByName(areas []AreaDescription, name string) *AreaDescription {
 	return nil
 }
 
-func getFragmentByName(fragments []Fragment, name string) *Fragment {
-	for i, fragment := range fragments {
-		if name == fragment.Name {
-			return &fragments[i]
-		}
-	}
-	return nil
-}
-
-func (col *Collection) getFragmentById(id string) *Fragment {
-	for _, set := range col.Fragments {
-		for i, fragment := range set {
-			if id == fragment.ID {
-				return &set[i]
-			}
-		}
-	}
-	return nil
-}
-
 func (c Context) generateAllPNGs(space *Space) {
 	if space.isSimplyTiled() {
 		img := c.generateImageFromSpace(space)
