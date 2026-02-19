@@ -1,0 +1,96 @@
+name: Deploy Server
+
+on:
+  workflow_run:
+    workflows: ["Go"]
+    types: [completed]
+    branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      go_run_id:
+        description: "GitHub Actions run ID from successful Go workflow (artifact source)"
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main') }}
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      actions: read
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Resolve artifact run id
+      id: artifact-run
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "run_id=${{ inputs.go_run_id }}" >> "$GITHUB_OUTPUT"
+        else
+          echo "run_id=${{ github.event.workflow_run.id }}" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Download build artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: openworld-server-release
+        run-id: ${{ steps.artifact-run.outputs.run_id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path: ./dist
+
+    - name: Add known hosts
+      run: |
+        mkdir -p ~/.ssh
+        chmod 700 ~/.ssh
+        printf "%s\n" "${{ secrets.DO_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+        chmod 600 ~/.ssh/known_hosts
+
+    - name: Upload release archive to droplet
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.DO_HOST }}
+        username: ${{ secrets.DO_USER }}
+        key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+        port: ${{ secrets.DO_SSH_PORT || 22 }}
+        source: "dist/openworld-server-*.tar.gz,dist/openworld-server-*.sha256"
+        target: "${{ vars.DO_RELEASE_DIR || '/tmp/openworld-release' }}"
+        overwrite: true
+
+    - name: Verify and deploy on droplet
+      uses: appleboy/ssh-action@v1.2.0
+      env:
+        APP_DIR: ${{ vars.DO_APP_DIR }}
+        RELEASE_DIR: ${{ vars.DO_RELEASE_DIR }}
+        SERVICE_NAME: ${{ vars.DO_SERVICE_NAME }}
+        SERVICE_USER: ${{ vars.DO_SERVICE_USER }}
+      with:
+        host: ${{ secrets.DO_HOST }}
+        username: ${{ secrets.DO_USER }}
+        key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+        port: ${{ secrets.DO_SSH_PORT || 22 }}
+        envs: APP_DIR,RELEASE_DIR,SERVICE_NAME,SERVICE_USER
+        script_stop: true
+        script: |
+          set -euo pipefail
+
+          APP_DIR="${APP_DIR:-/opt/openworld}"
+          RELEASE_DIR="${RELEASE_DIR:-/tmp/openworld-release}"
+          SERVICE_NAME="${SERVICE_NAME:-openworld}"
+          SERVICE_USER="${SERVICE_USER:-openworld}"
+
+          cd "$RELEASE_DIR"
+          SHA_FILE="$(ls -1 openworld-server-*.sha256 | head -n 1)"
+          TAR_FILE="$(ls -1 openworld-server-*.tar.gz | head -n 1)"
+
+          sha256sum -c "$SHA_FILE"
+
+          if [ ! -x "$APP_DIR/bin/deploy-openworld.sh" ]; then
+            echo "Missing droplet script: $APP_DIR/bin/deploy-openworld.sh"
+            echo "Install it from deploy/droplet/deploy-openworld.sh before using this workflow."
+            exit 1
+          fi
+
+          sudo APP_DIR="$APP_DIR" SERVICE_USER="$SERVICE_USER" "$APP_DIR/bin/deploy-openworld.sh" "$RELEASE_DIR/$TAR_FILE" "$SERVICE_NAME"

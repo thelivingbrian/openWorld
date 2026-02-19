@@ -1,0 +1,16 @@
+[Unit]
+Description=OpenWorld Server
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=__APP_DIR__/current
+EnvironmentFile=__APP_DIR__/shared/.env
+ExecStart=__APP_DIR__/current/openworld-server
+Restart=always
+RestartSec=5
+User=__SERVICE_USER__
+Group=__SERVICE_USER__
+
+[Install]
+WantedBy=multi-user.target
