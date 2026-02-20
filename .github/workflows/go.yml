@@ -44,12 +44,17 @@ jobs:
         cd ./server/main
         GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ../../dist/server-release/openworld-server .
 
+    - name: Generate bloop images
+      run: |
+        cd ./tools/main
+        go build
+        ./main deploy bloop
+
     - name: Stage runtime files
       run: |
         cp -R ./server/main/assets ./dist/server-release/assets
         cp -R ./server/main/templates ./dist/server-release/templates
         cp -R ./server/main/data ./dist/server-release/data
-        cp ./server/main/.env.example ./dist/server-release/.env.example
 
     - name: Create release archive
       run: |
