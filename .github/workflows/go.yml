@@ -1,6 +1,6 @@
 # This workflow will build and test bloop-world
 
-name: Go
+name: Go - Build and Test - Server 
 
 on:
   push:
