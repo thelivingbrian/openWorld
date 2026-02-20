@@ -42,6 +42,7 @@ jobs:
         path: ./dist
 
     - name: Verify and deploy on self-hosted runner
+      shell: bash
       env:
         APP_DIR: ${{ vars.DO_APP_DIR }}
         RELEASE_DIR: ${{ vars.DO_RELEASE_DIR }}
@@ -54,21 +55,22 @@ jobs:
         RELEASE_DIR="${RELEASE_DIR:-/tmp/openworld-release}"
         SERVICE_NAME="${SERVICE_NAME:-openworld}"
         SERVICE_USER="${SERVICE_USER:-openworld}"
-        DEPLOY_SCRIPT="${GITHUB_WORKSPACE}/deploy/droplet/deploy-openworld.sh"
+        DEPLOY_SCRIPT="${APP_DIR}/bin/deploy-openworld.sh"
 
+        rm -rf "$RELEASE_DIR"
         mkdir -p "$RELEASE_DIR"
-        cp ./dist/openworld-server-*.tar.gz "$RELEASE_DIR/"
-        cp ./dist/openworld-server-*.sha256 "$RELEASE_DIR/"
 
-        cd "$RELEASE_DIR"
+        # Verify in-place (sha file likely references paths under dist/)
+        cd ./dist
         SHA_FILE="$(ls -1 openworld-server-*.sha256 | head -n 1)"
-        TAR_FILE="$(ls -1 openworld-server-*.tar.gz | head -n 1)"
-
         sha256sum -c "$SHA_FILE"
 
-        if [ ! -x "$DEPLOY_SCRIPT" ]; then
-          echo "Missing deploy script at $DEPLOY_SCRIPT"
-          exit 1
-        fi
+        # Now copy to release dir
+        TAR_FILE="$(ls -1 openworld-server-*.tar.gz | head -n 1)"
+        cp "$TAR_FILE" "$RELEASE_DIR/"
+        cp "$SHA_FILE" "$RELEASE_DIR/"
+
+        cd "$RELEASE_DIR"
+        [[ -x "$DEPLOY_SCRIPT" ]] || { echo "Missing deploy script at $DEPLOY_SCRIPT"; exit 1; }
 
         sudo APP_DIR="$APP_DIR" SERVICE_USER="$SERVICE_USER" "$DEPLOY_SCRIPT" "$RELEASE_DIR/$TAR_FILE" "$SERVICE_NAME"
