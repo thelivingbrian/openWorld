@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
 
 ARCHIVE_PATH="${1:-}"
 SERVICE_NAME="${2:-openworld}"
-APP_DIR="${APP_DIR:-/opt/openworld}"
-SERVICE_USER="${SERVICE_USER:-openworld}"
+APP_DIR="${3:-/opt/openworld}"
+SERVICE_USER="${4:-openworld}"
+
 RELEASES_DIR="$APP_DIR/releases"
 CURRENT_LINK="$APP_DIR/current"
 

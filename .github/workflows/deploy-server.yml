@@ -74,5 +74,5 @@ jobs:
 
         sha256sum -c "$SHA_FILE"
 
-        sudo APP_DIR="$APP_DIR" SERVICE_USER="$SERVICE_USER" \
-          "$DEPLOY_SCRIPT" "$RELEASE_DIR/$TAR_FILE" "$SERVICE_NAME"
+        sudo "$DEPLOY_SCRIPT" "$RELEASE_DIR/$TAR_FILE" "$SERVICE_NAME" "$APP_DIR" "$SERVICE_USER"
+
