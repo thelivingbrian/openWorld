@@ -1,16 +1,16 @@
-name: SPA
+name: Tools - Build and Test 
 
 on:
   push:
     branches: [ "main" ]
     paths:
       - 'tools/main/spa/**'
-      - '.github/workflows/spa.yml'
+      - '.github/workflows/tools-build.yml'
   pull_request:
     branches: [ "main" ]
     paths:
       - 'tools/main/spa/**'
-      - '.github/workflows/spa.yml'
+      - '.github/workflows/tools-build.yml'
 
 jobs:
   spa-test:

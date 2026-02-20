@@ -1,6 +1,6 @@
 server/main/main
 server/main/cert/*
-server/main/data/images/
+server/main/data/*
 tools/main/main
 tools/main/data/out**
 integration/main/main
