@@ -55,7 +55,7 @@ jobs:
       run: |
         mkdir -p ./dist/release
         tar -C ./dist/server-release -czf ./dist/release/openworld-server-${{ github.sha }}.tar.gz .
-        sha256sum ./dist/release/openworld-server-${{ github.sha }}.tar.gz > ./dist/release/openworld-server-${{ github.sha }}.sha256
+        (cd ./dist/release && sha256sum "openworld-server-${{ github.sha }}.tar.gz" > "openworld-server-${{ github.sha }}.sha256")
 
     - name: Test
       run: cd ./server/main && go test -v -bench=B*
