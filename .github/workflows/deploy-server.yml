@@ -57,7 +57,7 @@ jobs:
         SERVICE_USER="${SERVICE_USER:-openworld}"
         DEPLOY_SCRIPT="${APP_DIR}/bin/deploy-openworld.sh"
 
-        [[ -x "$DEPLOY_SCRIPT" ]] || { echo "Missing deploy script at $DEPLOY_SCRIPT"; exit 1; }
+        [[ -f "$DEPLOY_SCRIPT" ]] || { echo "Missing deploy script at $DEPLOY_SCRIPT"; exit 1; }
 
         rm -rf "$RELEASE_DIR"
         mkdir -p "$RELEASE_DIR"
