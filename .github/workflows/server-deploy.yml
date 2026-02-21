@@ -1,0 +1,78 @@
+name: Deploy Server
+
+on:
+  workflow_run:
+    workflows: ["Go"]
+    types: [completed]
+    branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      go_run_id:
+        description: "GitHub Actions run ID from successful Go workflow (artifact source)"
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main') }}
+    runs-on: [self-hosted, linux, x64]
+    environment: production
+    permissions:
+      contents: read
+      actions: read
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Resolve artifact run id
+      id: artifact-run
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "run_id=${{ inputs.go_run_id }}" >> "$GITHUB_OUTPUT"
+        else
+          echo "run_id=${{ github.event.workflow_run.id }}" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Download build artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: openworld-server-release
+        run-id: ${{ steps.artifact-run.outputs.run_id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path: ./dist
+
+    - name: Verify and deploy on self-hosted runner
+      shell: bash
+      env:
+        APP_DIR: ${{ vars.DO_APP_DIR }}
+        RELEASE_DIR: ${{ vars.DO_RELEASE_DIR }}
+        SERVICE_NAME: ${{ vars.DO_SERVICE_NAME }}
+        SERVICE_USER: ${{ vars.DO_SERVICE_USER }}
+      run: |
+        set -euo pipefail
+
+        APP_DIR="${APP_DIR:-/opt/openworld}"
+        RELEASE_DIR="${RELEASE_DIR:-/tmp/openworld-release}"
+        SERVICE_NAME="${SERVICE_NAME:-openworld}"
+        SERVICE_USER="${SERVICE_USER:-openworld}"
+        DEPLOY_SCRIPT="${APP_DIR}/bin/deploy-openworld.sh"
+
+        [[ -f "$DEPLOY_SCRIPT" ]] || { echo "Missing deploy script at $DEPLOY_SCRIPT"; exit 1; }
+
+        rm -rf "$RELEASE_DIR"
+        mkdir -p "$RELEASE_DIR"
+
+        # Copy artifact payload (download-artifact extracted it into ./dist)
+        cp ./dist/openworld-server-*.tar.gz  "$RELEASE_DIR/"
+        cp ./dist/openworld-server-*.sha256  "$RELEASE_DIR/"
+
+        cd "$RELEASE_DIR"
+
+        # Pick newest in case multiple exist
+        SHA_FILE="$(ls -1t openworld-server-*.sha256 | head -n 1)"
+        TAR_FILE="$(ls -1t openworld-server-*.tar.gz  | head -n 1)"
+
+        sha256sum -c "$SHA_FILE"
+
+        sudo "$DEPLOY_SCRIPT" "$RELEASE_DIR/$TAR_FILE" "$SERVICE_NAME" "$APP_DIR" "$SERVICE_USER"
+

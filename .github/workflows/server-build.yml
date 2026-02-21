@@ -1,0 +1,74 @@
+name: Server - Build and Test 
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-Test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    
+    services:
+      mongodb:
+        image: mongo:4.4.6
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd mongo
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22'
+
+    - name: Build
+      run: cd ./server/main && go build
+
+    - name: Build Linux release binary
+      run: |
+        mkdir -p ./dist/server-release
+        cd ./server/main
+        GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ../../dist/server-release/openworld-server .
+
+    - name: Generate bloop images
+      run: |
+        cd ./tools/main
+        go build
+        ./main deploy bloop
+
+    - name: Stage runtime files
+      run: |
+        cp -R ./server/main/assets ./dist/server-release/assets
+        cp -R ./server/main/templates ./dist/server-release/templates
+        cp -R ./server/main/data ./dist/server-release/data
+
+    - name: Create release archive
+      run: |
+        mkdir -p ./dist/release
+        tar -C ./dist/server-release -czf ./dist/release/openworld-server-${{ github.sha }}.tar.gz .
+        (cd ./dist/release && sha256sum "openworld-server-${{ github.sha }}.tar.gz" > "openworld-server-${{ github.sha }}.sha256")
+
+    - name: Test
+      run: cd ./server/main && go test -v -bench=B*
+      env:
+        BLOOP_ENV: "dev"
+
+    - name: Upload deployable artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: openworld-server-release
+        path: ./dist/release/*
+        if-no-files-found: error
+        retention-days: 14
