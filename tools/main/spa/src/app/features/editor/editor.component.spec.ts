@@ -424,6 +424,7 @@ function buildBootstrap(): BootstrapResponse {
               walkable: true,
               fragile: false,
               reactions: '',
+              reactionRules: [],
             },
           ],
         },

@@ -340,8 +340,64 @@
             <label>Pushable <input type="checkbox" [(ngModel)]="editedInteractable()!.pushable" /></label>
             <label>Walkable <input type="checkbox" [(ngModel)]="editedInteractable()!.walkable" /></label>
             <label>Fragile <input type="checkbox" [(ngModel)]="editedInteractable()!.fragile" /></label>
-            <label>Reactions <input [(ngModel)]="editedInteractable()!.reactions" /></label>
+            <label>Preset Reactions <input [(ngModel)]="editedInteractable()!.reactions" placeholder="e.g. black-hole (overridden by rules)" /></label>
           </div>
+
+          <div class="reaction-rules-editor">
+            <div class="row gap">
+              <strong>Reaction Rules</strong>
+              <button type="button" (click)="addReactionRule()">+ Add Rule</button>
+            </div>
+            @if (editedInteractable()!.reactionRules?.length) {
+              <p class="entity-preview__meta">Rules are evaluated top-to-bottom; first match wins. These override the preset above when present.</p>
+            } @else if (!editedInteractable()!.reactions) {
+              <p class="entity-preview__meta">No preset or rules defined. Add a rule or type a preset name above.</p>
+            } @else {
+              <p class="entity-preview__meta">Using preset "{{ editedInteractable()!.reactions }}". Add rules below to override it.</p>
+            }
+
+            @for (rule of editedInteractable()!.reactionRules; track $index; let i = $index) {
+              <div class="entity-preview reaction-rule-card">
+                <p class="entity-preview__title">Rule {{ i + 1 }}</p>
+
+                <div class="row wrap gap">
+                  <label>ReactsWith
+                    <select [ngModel]="rule.reactsWith" (ngModelChange)="onReactsWithChange(rule, $event)">
+                      @for (entry of reactsWithRegistry; track entry.key) {
+                        <option [value]="entry.key">{{ entry.label }}</option>
+                      }
+                    </select>
+                  </label>
+                  @for (arg of reactsWithArgsFor(rule.reactsWith); track $index; let ai = $index) {
+                    <label>{{ arg.name }}
+                      <input [(ngModel)]="rule.reactsWithArgs[ai]" [placeholder]="arg.placeholder" />
+                    </label>
+                  }
+                </div>
+
+                <div class="row wrap gap">
+                  <label>Reaction
+                    <select [ngModel]="rule.reaction" (ngModelChange)="onReactionChange(rule, $event)">
+                      @for (entry of reactionRegistry; track entry.key) {
+                        <option [value]="entry.key">{{ entry.label }}</option>
+                      }
+                    </select>
+                  </label>
+                  @for (arg of reactionArgsFor(rule.reaction); track $index; let ai = $index) {
+                    <label>{{ arg.name }}
+                      <input [(ngModel)]="rule.reactionArgs[ai]" [placeholder]="arg.placeholder" />
+                    </label>
+                  }
+                </div>
+
+                <div class="row gap">
+                  <button type="button" (click)="moveReactionRuleUp(i)" [disabled]="i === 0">Move Up</button>
+                  <button type="button" (click)="deleteReactionRule(i)">Delete</button>
+                </div>
+              </div>
+            }
+          </div>
+
           <div class="entity-preview">
             <p class="entity-preview__title">Preview</p>
             <div class="interactable-preview">
@@ -352,6 +408,7 @@
               · {{ editedInteractable()!.walkable ? 'Walkable' : 'Blocked' }}
               · {{ editedInteractable()!.pushable ? 'Pushable' : 'Static' }}
               · {{ editedInteractable()!.fragile ? 'Fragile' : 'Sturdy' }}
+              · {{ editedInteractable()!.reactionRules?.length ? (editedInteractable()!.reactionRules.length + ' rule(s)') : (editedInteractable()!.reactions || 'no reactions') }}
             </p>
           </div>
         }

@@ -536,6 +536,7 @@ function buildBootstrap(): BootstrapResponse {
               walkable: true,
               fragile: true,
               reactions: 'spark',
+              reactionRules: [],
             },
           ],
         },

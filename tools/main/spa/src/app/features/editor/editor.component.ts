@@ -15,9 +15,17 @@ import {
   Instruction,
   Material,
   Prototype,
+  ReactionRule,
   Space,
   Transport,
 } from '../../core/models/editor.models';
+import {
+  REACTS_WITH_REGISTRY,
+  REACTION_REGISTRY,
+  findReactsWithEntry,
+  findReactionEntry,
+  RegistryEntry,
+} from '../../core/models/reaction-registry';
 import {
   applyGridTool,
   deleteInstructionAndReapply,
@@ -137,6 +145,10 @@ export class EditorComponent {
   protected readonly newFragmentSetName = signal('');
   protected readonly newInteractableSetName = signal('');
   protected readonly newColor = signal({ cssClassName: '', R: 0, G: 0, B: 0, A: '' });
+
+  // Reaction rule registries exposed to the template
+  protected readonly reactsWithRegistry = REACTS_WITH_REGISTRY;
+  protected readonly reactionRegistry = REACTION_REGISTRY;
 
   protected readonly collectionNames = computed(() => Object.keys(this.bootstrap()?.collections ?? {}));
 
@@ -1307,6 +1319,7 @@ export class EditorComponent {
       walkable: false,
       fragile: false,
       reactions: '',
+      reactionRules: [],
     };
     collection.InteractableSets[setName].push(next);
     this.interactableEditId.set(next.id);
@@ -1323,6 +1336,60 @@ export class EditorComponent {
     this.status.set('Saving interactable set...');
     await this.api.saveInteractableSet(colName, setName, this.interactables());
     this.status.set('Interactable set saved.');
+  }
+
+  // ── Reaction rule helpers ────────────────────────────────────────────
+
+  protected addReactionRule(): void {
+    const interactable = this.editedInteractable();
+    if (!interactable) return;
+    if (!interactable.reactionRules) {
+      interactable.reactionRules = [];
+    }
+    interactable.reactionRules.push({
+      reactsWith: 'everything',
+      reactsWithArgs: [],
+      reaction: 'pass',
+      reactionArgs: [],
+    });
+    this.touchBootstrap();
+  }
+
+  protected deleteReactionRule(index: number): void {
+    const interactable = this.editedInteractable();
+    if (!interactable?.reactionRules) return;
+    interactable.reactionRules.splice(index, 1);
+    this.touchBootstrap();
+  }
+
+  protected moveReactionRuleUp(index: number): void {
+    const interactable = this.editedInteractable();
+    if (!interactable?.reactionRules || index <= 0) return;
+    const rules = interactable.reactionRules;
+    [rules[index - 1], rules[index]] = [rules[index], rules[index - 1]];
+    this.touchBootstrap();
+  }
+
+  protected onReactsWithChange(rule: ReactionRule, newKey: string): void {
+    rule.reactsWith = newKey;
+    const entry = findReactsWithEntry(newKey);
+    rule.reactsWithArgs = entry ? entry.args.map(() => '') : [];
+    this.touchBootstrap();
+  }
+
+  protected onReactionChange(rule: ReactionRule, newKey: string): void {
+    rule.reaction = newKey;
+    const entry = findReactionEntry(newKey);
+    rule.reactionArgs = entry ? entry.args.map(() => '') : [];
+    this.touchBootstrap();
+  }
+
+  protected reactsWithArgsFor(key: string): RegistryEntry['args'] {
+    return findReactsWithEntry(key)?.args ?? [];
+  }
+
+  protected reactionArgsFor(key: string): RegistryEntry['args'] {
+    return findReactionEntry(key)?.args ?? [];
   }
 
   protected addColor(): void {
@@ -1681,12 +1748,33 @@ export class EditorComponent {
         }));
       }
 
+      const outInteractableSets: Record<string, InteractableDescription[]> = {};
+      const sourceInteractableSets = (collection.InteractableSets ?? collection.interactableSets ?? {}) as Record<string, any[]>;
+      for (const setName of Object.keys(sourceInteractableSets)) {
+        outInteractableSets[setName] = (sourceInteractableSets[setName] ?? []).map((entry: any) => ({
+          id: entry.id ?? entry.ID ?? crypto.randomUUID(),
+          name: entry.name ?? entry.Name ?? '',
+          setName: entry.setName ?? entry.SetName ?? setName,
+          cssClass: entry.cssClass ?? entry.CssClass ?? '',
+          pushable: Boolean(entry.pushable ?? entry.Pushable),
+          walkable: Boolean(entry.walkable ?? entry.Walkable),
+          fragile: Boolean(entry.fragile ?? entry.Fragile),
+          reactions: entry.reactions ?? entry.Reactions ?? '',
+          reactionRules: (entry.reactionRules ?? entry.ReactionRules ?? []).map((rule: any) => ({
+            reactsWith: rule.reactsWith ?? '',
+            reactsWithArgs: rule.reactsWithArgs ?? [],
+            reaction: rule.reaction ?? '',
+            reactionArgs: rule.reactionArgs ?? [],
+          })),
+        }));
+      }
+
       outCollections[collectionName] = {
         Name: collection.Name ?? collection.name ?? collectionName,
         Spaces: spaces,
         Fragments: outFragments,
         PrototypeSets: (collection.PrototypeSets ?? collection.prototypeSets ?? {}) as Collection['PrototypeSets'],
-        InteractableSets: (collection.InteractableSets ?? collection.interactableSets ?? {}) as Collection['InteractableSets'],
+        InteractableSets: outInteractableSets,
       };
     }
 

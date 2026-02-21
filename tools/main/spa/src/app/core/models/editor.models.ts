@@ -98,6 +98,13 @@ export interface Fragment {
   blueprint: Blueprint;
 }
 
+export interface ReactionRule {
+  reactsWith: string;
+  reactsWithArgs: string[];
+  reaction: string;
+  reactionArgs: string[];
+}
+
 export interface InteractableDescription {
   id: string;
   name: string;
@@ -107,6 +114,7 @@ export interface InteractableDescription {
   walkable: boolean;
   fragile: boolean;
   reactions: string;
+  reactionRules: ReactionRule[];
 }
 
 export interface Collection {

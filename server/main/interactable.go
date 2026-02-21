@@ -130,6 +130,106 @@ func init() {
 
 }
 
+// Registries for composable reaction rules (design workspace).
+// Gates determine whether a reaction fires; reactions define the behavior.
+// Each factory accepts a slice of string arguments from the JSON description.
+
+var reactsWithRegistry map[string]func(args []string) func(*Interactable, *Player) bool
+var reactionRegistry map[string]func(args []string) func(*Interactable, *Player, *Tile) (*Interactable, bool)
+
+func init() {
+	reactsWithRegistry = map[string]func(args []string) func(*Interactable, *Player) bool{
+		"everything":          func(_ []string) func(*Interactable, *Player) bool { return everything },
+		"never":               func(_ []string) func(*Interactable, *Player) bool { return never },
+		"interactableIsNil":   func(_ []string) func(*Interactable, *Player) bool { return interactableIsNil },
+		"interactableIsABall": func(_ []string) func(*Interactable, *Player) bool { return interactableIsABall },
+		"interactableIsARing": func(_ []string) func(*Interactable, *Player) bool { return interactableIsARing },
+		"interactableHasName": func(a []string) func(*Interactable, *Player) bool { return interactableHasName(stringArg(a, 0, "")) },
+		"playerHasTeam":       func(a []string) func(*Interactable, *Player) bool { return playerHasTeam(stringArg(a, 0, "")) },
+		"playerTeamAndBallNameMatch": func(a []string) func(*Interactable, *Player) bool {
+			return playerTeamAndBallNameMatch(stringArg(a, 0, ""))
+		},
+		"PlayerAndTeamMatchButDifferentBall": func(a []string) func(*Interactable, *Player) bool {
+			return PlayerAndTeamMatchButDifferentBall(stringArg(a, 0, ""))
+		},
+	}
+
+	reactionRegistry = map[string]func(args []string) func(*Interactable, *Player, *Tile) (*Interactable, bool){
+		"eat":           func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) { return eat },
+		"pass":          func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) { return pass },
+		"killInstantly": func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) { return killInstantly },
+		"playSoundForAll": func(a []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return playSoundForAll(stringArg(a, 0, ""))
+		},
+		"playSoundForInitiator": func(a []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return playSoundForInitiator(stringArg(a, 0, ""))
+		},
+		"notifyAndPass": func(a []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return notifyAndPass(stringArg(a, 0, ""))
+		},
+		"hideByTeam": func(a []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return hideByTeam(stringArg(a, 0, ""))
+		},
+		"scoreGoalForTeam": func(a []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return scoreGoalForTeam(stringArg(a, 0, ""))
+		},
+		"showScoreToPlayer": func(a []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return showScoreToPlayer(stringArg(a, 0, ""))
+		},
+		"catapultWest":  func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) { return catapultWest },
+		"catapultEast":  func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) { return catapultEast },
+		"catapultNorth": func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) { return catapultNorth },
+		"catapultSouth": func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) { return catapultSouth },
+		"moveInitiator": func(a []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return moveInitiator(intArg(a, 0, 0), intArg(a, 1, 0))
+		},
+		"destroyInRangeSkipingSelf": func(a []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return destroyInRangeSkipingSelf(intArg(a, 0, 0), intArg(a, 1, 0), intArg(a, 2, 0), intArg(a, 3, 0))
+		},
+		"makeDangerousForOtherTeam": func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return makeDangerousForOtherTeam
+		},
+		"damageAndSpawn": func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) { return damageAndSpawn },
+		"teleportHomeInteraction": func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return teleportHomeInteraction
+		},
+	}
+}
+
+func stringArg(args []string, index int, fallback string) string {
+	if index < len(args) && args[index] != "" {
+		return args[index]
+	}
+	return fallback
+}
+
+func intArg(args []string, index int, fallback int) int {
+	if index < len(args) {
+		v := 0
+		fmt.Sscanf(args[index], "%d", &v)
+		return v
+	}
+	return fallback
+}
+
+// resolveReactionRules builds an []InteractableReaction from serialized ReactionRule descriptors.
+func resolveReactionRules(rules []ReactionRule) []InteractableReaction {
+	out := make([]InteractableReaction, 0, len(rules))
+	for _, rule := range rules {
+		gateFactory, gateOk := reactsWithRegistry[rule.ReactsWith]
+		reactionFactory, reactionOk := reactionRegistry[rule.Reaction]
+		if !gateOk || !reactionOk {
+			logger.Warn().Msgf("skipping unknown reaction rule: reactsWith=%q reaction=%q", rule.ReactsWith, rule.Reaction)
+			continue
+		}
+		out = append(out, InteractableReaction{
+			ReactsWith: gateFactory(rule.ReactsWithArgs),
+			Reaction:   reactionFactory(rule.ReactionArgs),
+		})
+	}
+	return out
+}
+
 func (source *Interactable) React(incoming *Interactable, initiator *Player, location *Tile, yOff, xOff int) bool {
 	if source.reactions == nil {
 		return false

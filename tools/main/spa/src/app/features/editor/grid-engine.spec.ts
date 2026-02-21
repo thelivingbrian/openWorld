@@ -334,6 +334,7 @@ describe('grid-engine', () => {
       walkable: true,
       fragile: false,
       reactions: '',
+      reactionRules: [],
     });
 
     applyGridTool({
