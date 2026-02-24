@@ -10,8 +10,6 @@
  - [ ] Observe stage / player 
 - [-] Test client
   - [-] integration client
-- [ ] Constant special area names in tests and game
-  - [ ] complete? e.g. clinic & test stages? 
 - [ ] Constant predefined interactables 
 - [-] Boosts not spawning at same rate?
 - [-] Instant kill button or key
@@ -37,11 +35,11 @@
 - [-] Add sound fx
 - [ ] Canvas based interactive/realtime stage map? 
 - [-] Shift support for arrow keys 
-- [ ] Alternate camera
-  - [ ] Prototype
-    - [ ] Client 
-    - [ ] Server 
-      - [ ] Geospacial hash 
+- [-] Alternate camera
+  - [-] Prototype
+    - [-] Client 
+    - [-] Server 
+      - [-] Geospacial hash 
 
 ## Integration 
 - [ ] Bot AI
@@ -130,11 +128,11 @@
   - [-] Cleanup 
     - [-] Restore tests
     - [-] Default areas and protos
-- [ ] Blueprint enhancements
-  - [ ] Grid updates from blueprint window
+- [-] Blueprint enhancements
+  - [-] Grid updates from blueprint window
     - [ ] Area updates with instruction  
-      - [ ] Update on rotation / deletion / addition of instruction 
-      - [ ] reload area-edit
+      - [-] Update on rotation / deletion / addition of instruction 
+      - [-] reload area-edit
       - [-] modular area-edit 
         - [-] Follow current page style with reload (blueprint etc) 
           - [-] Tiny nav only
@@ -142,7 +140,7 @@
       - [-] Select corner 
   - [-] Blueprint page for fragment is broken 
       - [-] Fragment can only view the modify window and blueprint is loading for the parent area
-  - [ ] Instruction human readable name
+  - [=] Instruction human readable name
 - [ ] Space Enhancements
   - [-] Default tile color control
   - [-] view map
@@ -151,8 +149,8 @@
   - [ ] Matrix for space 
     - [ ] Apply prototype via matrix 
 - [ ] Random
-  - [ ] Interactable "select" tool  does not work on main grid
-    = [ ] is umimpemented in general - could indicated selected ?
+  - [-] Interactable "select" tool  does not work on main grid
+    = [-] is umimpemented in general - could indicated selected ?
   - [ ] Space Topologies
     - [-] Plane
     - [-] Disconnected
@@ -197,11 +195,11 @@
     - [-] add cli  
   - [-] get rid of proc folder?
 - [ ] Editor color for interactable
-- [ ] Performance on large stages is slow
+- [/] Performance on large stages is slow
 
 
 ## Workspace Bugs 
-- [ ] New color will output to local file but deploying requires application restart.
+- [?] New color will output to local file but deploying requires application restart.
 - [ ] New areas are always "unsafe"
 
 
@@ -228,6 +226,7 @@
         - [-] info div
       - [-] Resize grid squares
   - [-] fix display of map
+  - [ ] Pause support? 
 
 ## Display 
 - [-] Highlights
