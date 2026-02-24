@@ -539,7 +539,6 @@ function buildBootstrap(): BootstrapResponse {
             },
           ],
         },
-        StructureSets: {},
       },
     },
     colors: [

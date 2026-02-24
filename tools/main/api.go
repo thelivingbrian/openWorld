@@ -134,7 +134,6 @@ func (c *Context) apiCollectionHandler(w http.ResponseWriter, r *http.Request) {
 		Fragments:        make(map[string][]Fragment),
 		PrototypeSets:    make(map[string][]Prototype),
 		InteractableSets: make(map[string][]InteractableDescription),
-		StructureSets:    make(map[string][]Structure),
 	}
 	createCollectionDirectories(name)
 
@@ -438,7 +437,7 @@ func (c *Context) spaHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	const distRoot = "./spa/dist/spa/browser"
-	rel := strings.TrimPrefix(r.URL.Path, "/app")
+	rel := strings.TrimPrefix(r.URL.Path, "/")
 	if rel == "" || rel == "/" {
 		w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
 		w.Header().Set("Pragma", "no-cache")

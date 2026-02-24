@@ -115,7 +115,6 @@ export interface Collection {
   Fragments: Record<string, Fragment[]>;
   PrototypeSets: Record<string, Prototype[]>;
   InteractableSets: Record<string, InteractableDescription[]>;
-  StructureSets: Record<string, unknown[]>;
 }
 
 export interface BootstrapResponse {
