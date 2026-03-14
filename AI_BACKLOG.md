@@ -25,7 +25,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 | AI-009 | TODO | P2 | Interactables | Allow rotation/scale of transmitted push vector | unassigned | 2026-03-14 | Decide transform syntax compatibility. |
 | AI-010 | TODO | P1 | Physics | Implement sticky blocks that stick together | unassigned | 2026-03-14 | Parent item for grouped movement. |
 | AI-011 | TODO | P1 | Physics | Add polyomino-based pushing logic | unassigned | 2026-03-14 | Core requirement for sticky groups. |
-| AI-012 | TODO | P2 | Interactables | Decide/implement pushable interactables behavior | unassigned | 2026-03-14 | Scoped as sub-task of polyomino push logic. |
+| AI-012 | TODO | P2 | Physics | Decide/implement pushable fragment behavior | unassigned | 2026-03-14 | Scoped as sub-task of polyomino push logic. |
 | AI-013 | TODO | P2 | Content | Create new puzzle space in `collection:escape` demonstrating features | unassigned | 2026-03-14 | Should showcase new state/transmit/sticky mechanics. |
 | AI-014 | DONE | P1 | Interactables | Interactable state as full configuration + per-tile state selection | copilot | 2026-03-14 | Added state-config model, per-tile state selection in editor grid, compile resolution, and server runtime application.
 | AI-015 | DONE | P1 | Tools | Fix interactable add-set UX and validation | copilot | 2026-03-14 | Reordered controls and added explicit blank/duplicate name validation + success feedback; added focused editor component tests. |
