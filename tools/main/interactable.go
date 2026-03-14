@@ -18,17 +18,17 @@ type InteractableStateDescription struct {
 }
 
 type InteractableDescription struct {
-	ID            string         `json:"id"`
-	Name          string         `json:"name"`
-	SetName       string         `json:"setName"`
-	State         string         `json:"state,omitempty"`
-	DefaultState  string         `json:"defaultState,omitempty"`
-	States        map[string]InteractableStateDescription `json:"states,omitempty"`
-	CssClass      string         `json:"cssClass"`
-	Pushable      bool           `json:"pushable"`
-	Walkable      bool           `json:"walkable"`
-	Fragile       bool           `json:"fragile"`
-	RejectTeleport bool          `json:"rejectTeleport,omitempty"`
-	Reactions     string         `json:"reactions"`
-	ReactionRules []ReactionRule `json:"reactionRules,omitempty"`
+	ID             string                                  `json:"id"`
+	Name           string                                  `json:"name"`
+	SetName        string                                  `json:"setName"`
+	State          string                                  `json:"state,omitempty"`
+	DefaultState   string                                  `json:"defaultState,omitempty"`
+	States         map[string]InteractableStateDescription `json:"states,omitempty"`
+	CssClass       string                                  `json:"cssClass"`
+	Pushable       bool                                    `json:"pushable"`
+	Walkable       bool                                    `json:"walkable"`
+	Fragile        bool                                    `json:"fragile"`
+	RejectTeleport bool                                    `json:"rejectTeleport,omitempty"`
+	Reactions      string                                  `json:"reactions"`
+	ReactionRules  []ReactionRule                          `json:"reactionRules,omitempty"`
 }
