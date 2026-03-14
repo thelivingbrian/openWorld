@@ -282,6 +282,30 @@ describe('EditorComponent', () => {
     expect(state.instructionEditedIds()).toEqual({});
     expect(state.status()).toBe('Unsaved changes in space-1 reset.');
   });
+
+  it('addInteractableSet adds a new set, selects it, and reports success', () => {
+    const state = component as any;
+
+    state.newInteractableSetName.set('advanced');
+    state.addInteractableSet();
+
+    expect(state.currentCollection().InteractableSets.advanced).toEqual([]);
+    expect(state.interactableSet()).toBe('advanced');
+    expect(state.newInteractableSetName()).toBe('');
+    expect(state.status()).toBe('Interactable set "advanced" added.');
+  });
+
+  it('addInteractableSet reports validation errors for blank and duplicate names', () => {
+    const state = component as any;
+
+    state.newInteractableSetName.set('   ');
+    state.addInteractableSet();
+    expect(state.status()).toBe('Interactable set name cannot be blank.');
+
+    state.newInteractableSetName.set('base-interactables');
+    state.addInteractableSet();
+    expect(state.status()).toBe('Interactable set "base-interactables" already exists.');
+  });
 });
 
 function buildBootstrap(): BootstrapResponse {

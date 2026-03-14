@@ -56,6 +56,7 @@ describe('grid-engine', () => {
     expect(out).toEqual({
       prototypeId: '',
       interactableId: '',
+      interactableState: '',
       transformation: { clockwiseRotations: 0 },
     });
   });

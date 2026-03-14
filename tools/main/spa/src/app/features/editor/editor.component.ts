@@ -1327,13 +1327,24 @@ export class EditorComponent {
   protected addInteractableSet(): void {
     const name = this.newInteractableSetName().trim();
     const collection = this.currentCollection();
-    if (!collection || !name || collection.InteractableSets[name]) {
+    if (!collection) {
+      this.status.set('Select a collection before adding an interactable set.');
+      return;
+    }
+    if (!name) {
+      this.status.set('Interactable set name cannot be blank.');
+      return;
+    }
+    if (collection.InteractableSets[name]) {
+      this.status.set(`Interactable set "${name}" already exists.`);
       return;
     }
     collection.InteractableSets[name] = [];
     this.interactableSet.set(name);
+    this.onInteractableSetChange();
     this.newInteractableSetName.set('');
     this.touchBootstrap();
+    this.status.set(`Interactable set "${name}" added.`);
   }
 
   protected addInteractable(): void {

@@ -320,3 +320,79 @@ func TestResolveReactionRulesWithStateGates(t *testing.T) {
 		t.Fatal("interactableStateContains rule should match substring")
 	}
 }
+
+func TestResolveReactionRulesWithTransmitPushAll(t *testing.T) {
+	rules := []ReactionRule{
+		{
+			ReactsWith: "interactableIsNil",
+			Reaction:   "transmitPushAll",
+		},
+	}
+
+	resolved := resolveReactionRules(rules)
+	if len(resolved) != 1 {
+		t.Fatalf("expected 1 resolved rule, got %d", len(resolved))
+	}
+	if resolved[0].ReactionWithOffset == nil {
+		t.Fatal("expected transmitPushAll to resolve as an offset-aware reaction")
+	}
+}
+
+func TestTransmitPushAllMovesOtherInteractables(t *testing.T) {
+	area := Area{
+		Name: "transmit-push-all-test",
+		Tiles: [][]Material{{
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			nil,
+			{
+				Name:     "transmitter",
+				CssClass: "transmitter",
+				Walkable: true,
+				ReactionRules: []ReactionRule{
+					{ReactsWith: "interactableIsNil", Reaction: "transmitPushAll"},
+				},
+			},
+			{
+				Name:     "box",
+				CssClass: "box",
+				Pushable: true,
+				Walkable: true,
+			},
+			nil,
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	if stage == nil {
+		t.Fatal("expected stage")
+	}
+
+	transmitterTile := stage.tiles[0][1]
+	transmitter := transmitterTile.interactable
+	if transmitter == nil {
+		t.Fatal("expected transmitter interactable at 0,1")
+	}
+
+	initiator := &Player{
+		world:        &World{worldStages: map[string]*Stage{}},
+		playerStages: map[string]*Stage{},
+	}
+	if !transmitter.React(nil, initiator, transmitterTile, 0, 1) {
+		t.Fatal("expected transmit reaction to trigger")
+	}
+
+	if stage.tiles[0][2].interactable != nil {
+		t.Fatal("expected box to be moved from source tile")
+	}
+	if stage.tiles[0][3].interactable == nil || stage.tiles[0][3].interactable.name != "box" {
+		t.Fatal("expected box to be transmitted one tile east")
+	}
+	if transmitterTile.interactable == nil || transmitterTile.interactable.name != "transmitter" {
+		t.Fatal("expected transmitter to remain in place")
+	}
+}

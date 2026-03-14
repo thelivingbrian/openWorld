@@ -30,8 +30,9 @@ type InteractableState struct {
 }
 
 type InteractableReaction struct {
-	ReactsWith func(incoming *Interactable, initiatior *Player) bool
-	Reaction   func(incoming *Interactable, initiatior *Player, location *Tile) (outgoing *Interactable, push bool) // rotate ?
+	ReactsWith         func(incoming *Interactable, initiatior *Player) bool
+	Reaction           func(incoming *Interactable, initiatior *Player, location *Tile) (outgoing *Interactable, push bool) // rotate ?
+	ReactionWithOffset func(incoming *Interactable, initiatior *Player, location *Tile, yOff, xOff int) (outgoing *Interactable, push bool)
 }
 
 var interactableReactions map[string][]InteractableReaction
@@ -149,6 +150,7 @@ func init() {
 
 var reactsWithRegistry map[string]func(args []string) func(*Interactable, *Player) bool
 var reactionRegistry map[string]func(args []string) func(*Interactable, *Player, *Tile) (*Interactable, bool)
+var reactionWithOffsetRegistry map[string]func(args []string) func(*Interactable, *Player, *Tile, int, int) (*Interactable, bool)
 
 func init() {
 	reactsWithRegistry = map[string]func(args []string) func(*Interactable, *Player) bool{
@@ -214,6 +216,12 @@ func init() {
 			return teleportHomeInteraction
 		},
 	}
+
+	reactionWithOffsetRegistry = map[string]func(args []string) func(*Interactable, *Player, *Tile, int, int) (*Interactable, bool){
+		"transmitPushAll": func(_ []string) func(*Interactable, *Player, *Tile, int, int) (*Interactable, bool) {
+			return transmitPushAll
+		},
+	}
 }
 
 func stringArg(args []string, index int, fallback string) string {
@@ -238,14 +246,23 @@ func resolveReactionRules(rules []ReactionRule) []InteractableReaction {
 	for _, rule := range rules {
 		gateFactory, gateOk := reactsWithRegistry[rule.ReactsWith]
 		reactionFactory, reactionOk := reactionRegistry[rule.Reaction]
-		if !gateOk || !reactionOk {
+		reactionWithOffsetFactory, reactionWithOffsetOk := reactionWithOffsetRegistry[rule.Reaction]
+		if !gateOk || (!reactionOk && !reactionWithOffsetOk) {
 			logger.Warn().Msgf("skipping unknown reaction rule: reactsWith=%q reaction=%q", rule.ReactsWith, rule.Reaction)
 			continue
 		}
-		out = append(out, InteractableReaction{
+
+		reaction := InteractableReaction{
 			ReactsWith: gateFactory(rule.ReactsWithArgs),
-			Reaction:   reactionFactory(rule.ReactionArgs),
-		})
+		}
+		if reactionOk {
+			reaction.Reaction = reactionFactory(rule.ReactionArgs)
+		}
+		if reactionWithOffsetOk {
+			reaction.ReactionWithOffset = reactionWithOffsetFactory(rule.ReactionArgs)
+		}
+
+		out = append(out, reaction)
 	}
 	return out
 }
@@ -256,7 +273,15 @@ func (source *Interactable) React(incoming *Interactable, initiator *Player, loc
 	}
 	for i := range source.reactions {
 		if source.reactions[i].ReactsWith != nil && source.reactions[i].ReactsWith(incoming, initiator) {
-			outgoing, push := source.reactions[i].Reaction(incoming, initiator, location)
+			var outgoing *Interactable
+			var push bool
+			if source.reactions[i].ReactionWithOffset != nil {
+				outgoing, push = source.reactions[i].ReactionWithOffset(incoming, initiator, location, yOff, xOff)
+			} else if source.reactions[i].Reaction != nil {
+				outgoing, push = source.reactions[i].Reaction(incoming, initiator, location)
+			} else {
+				return false
+			}
 			if push {
 				nextTile := getRelativeTile(location, yOff, xOff, initiator)
 				if nextTile == nil {
@@ -412,6 +437,24 @@ func eat(*Interactable, *Player, *Tile) (*Interactable, bool) {
 
 func pass(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	return i, true
+}
+
+func transmitPushAll(_ *Interactable, p *Player, t *Tile, yOff, xOff int) (*Interactable, bool) {
+	if p == nil || t == nil || t.stage == nil {
+		return nil, false
+	}
+
+	for row := range t.stage.tiles {
+		for col := range t.stage.tiles[row] {
+			tile := t.stage.tiles[row][col]
+			if tile == t || tile.interactable == nil {
+				continue
+			}
+			p.push(tile, nil, yOff, xOff)
+		}
+	}
+
+	return nil, false
 }
 
 func playSoundForInitiator(soundName string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
