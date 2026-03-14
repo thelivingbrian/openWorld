@@ -128,13 +128,12 @@ One way or two way.
 -goals (new): 
   - add tests for camera
     - Count number of updates? 
-  - choose license
-    - AGPLv3 
-    - FSL-1.1-MIT ? 
+  x choose license
+    x AGPLv3 
   - modularize interactions
-  - better workspace css 
+  x better workspace css 
   - Highscore from menu
-  - Horizontal mobile
+  x Horizontal mobile
 
 -goals:
 
@@ -144,41 +143,17 @@ One way or two way.
  - [ ] Weather type for area descriptions
    - [-] Static
    - [ ] Dynamic
- - [ ] Ground pattern for area description
-  - [-] Grid for editing ground pattern
-    - [-] toggle 
-    - [-] toggle between / toggle fill 
-    - [-] view ground from area edit
-    - [-] return to area edit not working
-  - [-] Ground is visible from map
-  - [-] Blueprint color1 and color2 
-    - [-] When creating space
-    - [-] Update for area
-    - [-] update for space 
-  - [ ] Add ground pattern using structure window 
-  - [ ] Add additional states for Cell ? 
-    - [ ] would need to extend smoothness algorithm 
- - [-] remove global variables
- - [-] update Area output to have materials by value
-   - [-] remove material output?  
-   - [-] compile / load successfully w/ ground
-   - [-] compile tests
-     - [-] Snapshots for grid actions 
-   - [ ] http writer - keep in handler instead of action funcs 
 
- - [-] Toroidal Woods - 12x12
-
- - [ ] Clean up, consolidate todo list? 
+ - [-] Clean up, consolidate todo list? 
 
  - [ ] Spawn NPCs 
    - [-] Basic
    - [ ] Clean up old spawns (e.g. method signature changes)
+   - [ ] from design workspace
  - [ ] Programmable interactable state 
 
 type []byte(update) 100 times
 
-[]byte(update)
-I will type []byte(update) 70 more times
-I will type []byte(update) 69 more times 
-I will type []byte(update) 68 more times
-
+[]byte(update) 
+I will type []byte(update) 56 more times 
+I will type []byte(update) 55 more times
