@@ -31,3 +31,15 @@ This project uses: https://github.com/gkampitakis/go-snaps
 To update snapshots once (Powershell) use:
 
     $env:UPDATE_SNAPS = 'true'; go test; Remove-Item Env:\UPDATE_SNAPS
+
+
+## AI orchestration
+
+- Stable instructions: `AGENTS.md`
+- Mutable agent notes: `.ai/notes.md`
+- Shared execution queue: `AI_BACKLOG.md`
+
+Suggested flow:
+1. Read `AGENTS.md`, then `AI_BACKLOG.md`, then `.ai/notes.md`
+2. Claim one task by setting it to `IN_PROGRESS` and filling owner/date
+3. Complete work, set task to `DONE`, and add key learnings to `.ai/notes.md`
