@@ -165,7 +165,7 @@ func init() {
 		"interactableStateContains": func(a []string) func(*Interactable, *Player) bool {
 			return interactableStateContains(stringArg(a, 0, ""))
 		},
-		"playerHasTeam":       func(a []string) func(*Interactable, *Player) bool { return playerHasTeam(stringArg(a, 0, "")) },
+		"playerHasTeam": func(a []string) func(*Interactable, *Player) bool { return playerHasTeam(stringArg(a, 0, "")) },
 		"playerTeamAndBallNameMatch": func(a []string) func(*Interactable, *Player) bool {
 			return playerTeamAndBallNameMatch(stringArg(a, 0, ""))
 		},
