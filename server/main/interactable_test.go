@@ -396,3 +396,113 @@ func TestTransmitPushAllMovesOtherInteractables(t *testing.T) {
 		t.Fatal("expected transmitter to remain in place")
 	}
 }
+
+func TestTransmitPushAllDoesNotDoublePushWhenMovingRight(t *testing.T) {
+	area := Area{
+		Name: "transmit-push-all-right-order",
+		Tiles: [][]Material{{
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			nil,
+			{
+				Name:     "transmitter",
+				CssClass: "transmitter",
+				Walkable: true,
+				ReactionRules: []ReactionRule{
+					{ReactsWith: "interactableIsNil", Reaction: "transmitPushAll"},
+				},
+			},
+			{
+				Name:     "box",
+				CssClass: "box",
+				Pushable: true,
+				Walkable: true,
+			},
+			nil,
+			nil,
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	if stage == nil {
+		t.Fatal("expected stage")
+	}
+
+	transmitterTile := stage.tiles[0][1]
+	transmitter := transmitterTile.interactable
+	if transmitter == nil {
+		t.Fatal("expected transmitter interactable at 0,1")
+	}
+
+	initiator := &Player{world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{}}
+	if !transmitter.React(nil, initiator, transmitterTile, 0, 1) {
+		t.Fatal("expected transmit reaction to trigger")
+	}
+
+	if stage.tiles[0][3].interactable == nil || stage.tiles[0][3].interactable.name != "box" {
+		t.Fatal("expected box to move one tile east to 0,3")
+	}
+	if stage.tiles[0][4].interactable != nil {
+		t.Fatal("expected box not to be pushed twice to 0,4")
+	}
+}
+
+func TestTransmitPushAllDoesNotDoublePushWhenMovingDown(t *testing.T) {
+	area := Area{
+		Name: "transmit-push-all-down-order",
+		Tiles: [][]Material{
+			{{Walkable: true}},
+			{{Walkable: true}},
+			{{Walkable: true}},
+			{{Walkable: true}},
+			{{Walkable: true}},
+		},
+		Interactables: [][]*InteractableDescription{
+			{nil},
+			{{
+				Name:     "transmitter",
+				CssClass: "transmitter",
+				Walkable: true,
+				ReactionRules: []ReactionRule{
+					{ReactsWith: "interactableIsNil", Reaction: "transmitPushAll"},
+				},
+			}},
+			{{
+				Name:     "box",
+				CssClass: "box",
+				Pushable: true,
+				Walkable: true,
+			}},
+			{nil},
+			{nil},
+		},
+	}
+
+	stage := createStageFromArea(area)
+	if stage == nil {
+		t.Fatal("expected stage")
+	}
+
+	transmitterTile := stage.tiles[1][0]
+	transmitter := transmitterTile.interactable
+	if transmitter == nil {
+		t.Fatal("expected transmitter interactable at 1,0")
+	}
+
+	initiator := &Player{world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{}}
+	if !transmitter.React(nil, initiator, transmitterTile, 1, 0) {
+		t.Fatal("expected transmit reaction to trigger")
+	}
+
+	if stage.tiles[3][0].interactable == nil || stage.tiles[3][0].interactable.name != "box" {
+		t.Fatal("expected box to move one tile south to 3,0")
+	}
+	if stage.tiles[4][0].interactable != nil {
+		t.Fatal("expected box not to be pushed twice to 4,0")
+	}
+}

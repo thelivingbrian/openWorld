@@ -8,7 +8,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 
 | Task ID | Title | Owner | Started | Notes |
 |---|---|---|---|---|
-| _none_ | _none_ | _unassigned_ | _n/a_ | Last complete: AI-018 (2026-03-14). Set next task to `IN_PROGRESS` and mirror it here. |
+| _none_ | _none_ | _unassigned_ | _n/a_ | Last complete: AI-007 (2026-03-14). Set next task to `IN_PROGRESS` and mirror it here. |
 
 ## Backlog
 
@@ -20,7 +20,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 | AI-004 | DONE | P1 | Tools | Support setting interactable `state` in design workspace | copilot | 2026-03-14 | Added tools model + SPA editing/normalization support for `state`. |
 | AI-005 | DONE | P1 | Interactables | Use `state` as `reactsWith` gate (`is`/`is not`/`contains`) | copilot | 2026-03-14 | Added new state gate functions, registry wiring, design registry entries, and focused tests. |
 | AI-006 | DONE | P1 | Interactables | Implement transmit push movement | copilot | 2026-03-14 | Added `transmitPushAll` reaction with offset-aware runtime wiring, editor registry entry, and focused tests. |
-| AI-007 | TODO | P2 | Interactables | Add transmit push reaction with `nil` | unassigned | 2026-03-14 | Clarify reset behavior on no reaction target. |
+| AI-007 | DONE | P2 | Interactables | Add transmit push reaction with `nil` | copilot | 2026-03-14 | Confirmed `interactableIsNil -> transmitPushAll` wiring and fixed right/down over-push bug by processing tiles in direction-aware order; added focused regressions. |
 | AI-008 | TODO | P1 | Interactables | Send push to other interactables by `state` or `type` | unassigned | 2026-03-14 | Requires target selection strategy. |
 | AI-009 | TODO | P2 | Interactables | Allow rotation/scale of transmitted push vector | unassigned | 2026-03-14 | Decide transform syntax compatibility. |
 | AI-010 | TODO | P1 | Physics | Implement sticky blocks that stick together | unassigned | 2026-03-14 | Parent item for grouped movement. |

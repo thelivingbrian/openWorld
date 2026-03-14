@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"sort"
 	"strings"
 	"time"
 )
@@ -444,14 +445,45 @@ func transmitPushAll(_ *Interactable, p *Player, t *Tile, yOff, xOff int) (*Inte
 		return nil, false
 	}
 
+	tilesToPush := make([]*Tile, 0)
 	for row := range t.stage.tiles {
 		for col := range t.stage.tiles[row] {
 			tile := t.stage.tiles[row][col]
 			if tile == t || tile.interactable == nil {
 				continue
 			}
-			p.push(tile, nil, yOff, xOff)
+			tilesToPush = append(tilesToPush, tile)
 		}
+	}
+
+	sort.Slice(tilesToPush, func(i, j int) bool {
+		a := tilesToPush[i]
+		b := tilesToPush[j]
+
+		if yOff > 0 && a.y != b.y {
+			return a.y > b.y
+		}
+		if yOff < 0 && a.y != b.y {
+			return a.y < b.y
+		}
+		if xOff > 0 && a.x != b.x {
+			return a.x > b.x
+		}
+		if xOff < 0 && a.x != b.x {
+			return a.x < b.x
+		}
+
+		if a.y != b.y {
+			return a.y < b.y
+		}
+		return a.x < b.x
+	})
+
+	for _, tile := range tilesToPush {
+		if tile.interactable == nil {
+			continue
+		}
+		p.push(tile, nil, yOff, xOff)
 	}
 
 	return nil, false
