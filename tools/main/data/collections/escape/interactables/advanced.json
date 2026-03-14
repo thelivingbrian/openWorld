@@ -1,0 +1,31 @@
+[
+  {
+    "id": "da68f885-e69b-4a45-a1f7-0e974ea6e1bd",
+    "name": "push-others",
+    "setName": "advanced",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "red blue-b thick",
+        "reactionRules": [
+          {
+            "reactsWith": "interactableIsNil",
+            "reaction": "transmitPushAll"
+          }
+        ]
+      }
+    },
+    "cssClass": "red blue-b thick",
+    "pushable": false,
+    "walkable": false,
+    "fragile": false,
+    "reactions": "",
+    "reactionRules": [
+      {
+        "reactsWith": "interactableIsNil",
+        "reaction": "transmitPushAll"
+      }
+    ]
+  }
+]

@@ -11216,7 +11216,9 @@
               "transformation": {}
             },
             {
-              "transformation": {}
+              "transformation": {},
+              "interactableId": "79178a88-99cf-4472-8789-ba914a08c5f2",
+              "interactableState": "default"
             },
             {
               "transformation": {}
@@ -11228,59 +11230,9 @@
               "transformation": {}
             },
             {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            }
-          ],
-          [
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
+              "transformation": {},
+              "interactableId": "79178a88-99cf-4472-8789-ba914a08c5f2",
+              "interactableState": "default"
             },
             {
               "transformation": {}
@@ -11372,7 +11324,9 @@
               "transformation": {}
             },
             {
-              "transformation": {}
+              "transformation": {},
+              "interactableId": "79178a88-99cf-4472-8789-ba914a08c5f2",
+              "interactableState": "default"
             },
             {
               "transformation": {}
@@ -11414,6 +11368,7 @@
           ],
           [
             {
+              "prototypeId": "6",
               "transformation": {}
             },
             {
@@ -11459,6 +11414,7 @@
               "transformation": {}
             },
             {
+              "prototypeId": "6",
               "transformation": {}
             }
           ],
@@ -11588,6 +11544,58 @@
               "transformation": {}
             },
             {
+              "transformation": {},
+              "interactableId": "da68f885-e69b-4a45-a1f7-0e974ea6e1bd",
+              "interactableState": "default"
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            }
+          ],
+          [
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
               "transformation": {}
             },
             {
@@ -11679,7 +11687,9 @@
               "transformation": {}
             },
             {
-              "transformation": {}
+              "transformation": {},
+              "interactableId": "7e600c46-99c0-4a82-9e79-d5dfb15379aa",
+              "interactableState": "default"
             },
             {
               "transformation": {}

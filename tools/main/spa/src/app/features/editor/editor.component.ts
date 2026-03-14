@@ -1380,6 +1380,7 @@ export class EditorComponent {
     collection.InteractableSets[setName].push(next);
     this.interactableEditId.set(next.id);
     this.selectedAssetId.set(next.id);
+    this.ensureEditedInteractableStateSelection();
     this.touchBootstrap();
   }
 
@@ -1908,7 +1909,29 @@ export class EditorComponent {
 
   private touchBootstrap(): void {
     this.gridVersion.update((value) => value + 1);
-    this.bootstrap.set({ ...(this.bootstrap() as BootstrapResponse) });
+    const current = this.bootstrap();
+    if (!current) {
+      return;
+    }
+
+    const collectionName = this.collectionName();
+    const collections = { ...current.collections };
+
+    if (collectionName && collections[collectionName]) {
+      const collection = collections[collectionName];
+      collections[collectionName] = {
+        ...collection,
+        Spaces: { ...collection.Spaces },
+        Fragments: { ...collection.Fragments },
+        PrototypeSets: { ...collection.PrototypeSets },
+        InteractableSets: { ...collection.InteractableSets },
+      };
+    }
+
+    this.bootstrap.set({
+      ...current,
+      collections,
+    });
   }
 
   private markInstructionEdited(instructionId: string): void {

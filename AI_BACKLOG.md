@@ -8,7 +8,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 
 | Task ID | Title | Owner | Started | Notes |
 |---|---|---|---|---|
-| _none_ | _none_ | _unassigned_ | _n/a_ | Last complete: AI-015 (2026-03-14). Set next task to `IN_PROGRESS` and mirror it here. |
+| _none_ | _none_ | _unassigned_ | _n/a_ | Last complete: AI-017 (2026-03-14). Set next task to `IN_PROGRESS` and mirror it here. |
 
 ## Backlog
 
@@ -30,6 +30,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 | AI-014 | DONE | P1 | Interactables | Interactable state as full configuration + per-tile state selection | copilot | 2026-03-14 | Added state-config model, per-tile state selection in editor grid, compile resolution, and server runtime application.
 | AI-015 | DONE | P1 | Tools | Fix interactable add-set UX and validation | copilot | 2026-03-14 | Reordered controls and added explicit blank/duplicate name validation + success feedback; added focused editor component tests. |
 | AI-016 | DONE | P2 | Tools | Fix stale grid-engine normalizeTile test expectation | copilot | 2026-03-14 | Updated spec to expect `interactableState` in normalized tile output; full SPA Jest suite passes. |
+| AI-017 | DONE | P1 | Tools | Fix SPA interactable set dropdown/update and new interactable editability | copilot | 2026-03-14 | Fixed `touchBootstrap` to clone current collection/maps so computed lists refresh, and fixed `addInteractable` to re-sync editable state selection; added focused editor component regressions. |
 
 ## Protocol
 - Pick one `TODO` item and set to `IN_PROGRESS`.

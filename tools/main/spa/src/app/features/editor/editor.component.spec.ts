@@ -290,9 +290,31 @@ describe('EditorComponent', () => {
     state.addInteractableSet();
 
     expect(state.currentCollection().InteractableSets.advanced).toEqual([]);
+    expect(state.interactableSets()).toEqual(expect.arrayContaining(['advanced']));
     expect(state.interactableSet()).toBe('advanced');
     expect(state.newInteractableSetName()).toBe('');
     expect(state.status()).toBe('Interactable set "advanced" added.');
+  });
+
+  it('addInteractable selects a new interactable and initializes editable default state', () => {
+    const state = component as any;
+
+    state.interactableSet.set('base-interactables');
+    state.onInteractableSetChange();
+    state.interactableStateEditName.set('missing-state');
+
+    state.addInteractable();
+
+    expect(state.editedInteractable()?.name).toBe('new-interactable');
+    expect(state.interactableStateEditName()).toBe('default');
+    expect(state.editedInteractableState()).toEqual(
+      expect.objectContaining({
+        cssClass: '',
+        pushable: false,
+        walkable: false,
+        fragile: false,
+      }),
+    );
   });
 
   it('addInteractableSet reports validation errors for blank and duplicate names', () => {
