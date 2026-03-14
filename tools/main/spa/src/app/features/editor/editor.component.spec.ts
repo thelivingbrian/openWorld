@@ -317,6 +317,22 @@ describe('EditorComponent', () => {
     );
   });
 
+  it('addInteractable immediately updates a newly created interactable set without switching sets', () => {
+    const state = component as any;
+
+    state.newInteractableSetName.set('example');
+    state.addInteractableSet();
+    expect(state.interactableSet()).toBe('example');
+    expect(state.interactables()).toHaveLength(0);
+
+    state.addInteractable();
+
+    expect(state.interactables()).toHaveLength(1);
+    expect(state.interactables()[0].name).toBe('new-interactable');
+    expect(state.interactableEditId()).toBe(state.interactables()[0].id);
+    expect(state.editedInteractable()?.id).toBe(state.interactables()[0].id);
+  });
+
   it('addInteractableSet reports validation errors for blank and duplicate names', () => {
     const state = component as any;
 

@@ -1377,7 +1377,7 @@ export class EditorComponent {
       reactions: '',
       reactionRules: [],
     };
-    collection.InteractableSets[setName].push(next);
+    collection.InteractableSets[setName] = [...(collection.InteractableSets[setName] ?? []), next];
     this.interactableEditId.set(next.id);
     this.selectedAssetId.set(next.id);
     this.ensureEditedInteractableStateSelection();
