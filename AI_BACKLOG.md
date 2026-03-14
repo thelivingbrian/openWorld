@@ -8,7 +8,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 
 | Task ID | Title | Owner | Started | Notes |
 |---|---|---|---|---|
-| _none_ | _none_ | _unassigned_ | _n/a_ | Set a backlog item to `IN_PROGRESS` and mirror it here. |
+| _none_ | _none_ | _unassigned_ | _n/a_ | Last complete: AI-003 (2026-03-14). Set next task to `IN_PROGRESS` and mirror it here. |
 
 ## Backlog
 
@@ -16,7 +16,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 |---|---|---|---|---|---|---|---|
 | AI-001 | DONE | P1 | Repo | Add AI orchestration docs (`AGENTS.md`, `.ai/notes.md`, `AI_BACKLOG.md`) | agent | 2026-03-14 | Initial scaffolding created. |
 | AI-002 | TODO | P2 | Process | Add first real engineering task for this workflow | unassigned | 2026-03-14 | Promote to `IN_PROGRESS` when started. |
-| AI-003 | TODO | P1 | Interactables | Add mutable `state` property for interactables | unassigned | 2026-03-14 | Parent item from `todo.md` Interactables and puzzles. |
+| AI-003 | DONE | P1 | Interactables | Add mutable `state` property for interactables | copilot | 2026-03-14 | Added server model+persistence support and test `TestCreateStageFromAreaLoadsMutableInteractableState`. |
 | AI-004 | TODO | P1 | Tools | Support setting interactable `state` in design workspace | unassigned | 2026-03-14 | Depends on AI-003 data model decisions. |
 | AI-005 | TODO | P1 | Interactables | Use `state` as `reactsWith` gate (`is`/`is not`/`contains`) | unassigned | 2026-03-14 | Define matching semantics and tests. |
 | AI-006 | TODO | P1 | Interactables | Implement transmit push movement | unassigned | 2026-03-14 | Parent item for chain push behavior. |

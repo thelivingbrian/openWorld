@@ -27,4 +27,40 @@ func TestEnsureClinicIsDefault(t *testing.T) {
 	}
 }
 
+func TestCreateStageFromAreaLoadsMutableInteractableState(t *testing.T) {
+	area := Area{
+		Name: "state-test",
+		Tiles: [][]Material{{
+			{Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			{
+				Name:     "stateful-block",
+				State:    "armed",
+				CssClass: "red",
+				Pushable: true,
+				Walkable: true,
+			},
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	if stage == nil {
+		t.Fatal("expected stage")
+	}
+
+	interactable := stage.tiles[0][0].interactable
+	if interactable == nil {
+		t.Fatal("expected interactable at 0,0")
+	}
+	if interactable.state != "armed" {
+		t.Fatalf("expected interactable state to load as 'armed', got %q", interactable.state)
+	}
+
+	interactable.state = "disarmed"
+	if stage.tiles[0][0].interactable.state != "disarmed" {
+		t.Fatalf("expected interactable state to be mutable and now 'disarmed', got %q", stage.tiles[0][0].interactable.state)
+	}
+}
+
 // Test personal / individual load types

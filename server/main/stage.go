@@ -112,7 +112,7 @@ func createStageFromArea(area Area) *Stage {
 					} else if description.Reactions != "" {
 						reaction = interactableReactions[description.Reactions]
 					}
-					outputStage.tiles[y][x].interactable = &Interactable{name: description.Name, cssClass: description.CssClass, pushable: description.Pushable, walkable: description.Walkable, fragile: description.Fragile, reactions: reaction}
+					outputStage.tiles[y][x].interactable = &Interactable{name: description.Name, state: description.State, cssClass: description.CssClass, pushable: description.Pushable, walkable: description.Walkable, fragile: description.Fragile, reactions: reaction}
 				}
 			}
 		}

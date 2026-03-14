@@ -8,6 +8,7 @@ import (
 
 type Interactable struct {
 	name           string
+	state          string
 	pushable       bool
 	walkable       bool
 	cssClass       string
