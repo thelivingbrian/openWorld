@@ -419,6 +419,7 @@ function buildBootstrap(): BootstrapResponse {
               id: 'inter-1',
               name: 'switch',
               setName: 'base-interactables',
+              state: '',
               cssClass: '',
               pushable: false,
               walkable: true,

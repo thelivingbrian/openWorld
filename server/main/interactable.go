@@ -9,11 +9,22 @@ import (
 type Interactable struct {
 	name           string
 	state          string
+	defaultState   string
+	states         map[string]InteractableState
 	pushable       bool
 	walkable       bool
 	cssClass       string
 	fragile        bool
 	reactions      []InteractableReaction // Lowest index match wins
+	rejectTeleport bool
+}
+
+type InteractableState struct {
+	cssClass       string
+	pushable       bool
+	walkable       bool
+	fragile        bool
+	reactions      []InteractableReaction
 	rejectTeleport bool
 }
 
@@ -249,6 +260,26 @@ func (source *Interactable) React(incoming *Interactable, initiator *Player, loc
 		}
 	}
 	return false
+}
+
+func (source *Interactable) applyState(stateName string) bool {
+	if source == nil || source.states == nil {
+		return false
+	}
+	state, ok := source.states[stateName]
+	if !ok {
+		return false
+	}
+
+	source.state = stateName
+	source.cssClass = state.cssClass
+	source.pushable = state.pushable
+	source.walkable = state.walkable
+	source.fragile = state.fragile
+	source.reactions = state.reactions
+	source.rejectTeleport = state.rejectTeleport
+
+	return true
 }
 
 ////////////////////////////////////////////////////////////////////////

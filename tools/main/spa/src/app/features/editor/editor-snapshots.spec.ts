@@ -531,6 +531,7 @@ function buildBootstrap(): BootstrapResponse {
               id: 'i-powder',
               name: 'PWDR',
               setName: 'base-interactables',
+              state: '',
               cssClass: 'powder-blue',
               pushable: true,
               walkable: true,

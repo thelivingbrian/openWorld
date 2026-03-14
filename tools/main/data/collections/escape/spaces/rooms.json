@@ -2715,7 +2715,17 @@
         "DefaultTileColor": "",
         "DefaultTileColor1": ""
       },
-      "transports": [],
+      "transports": [
+        {
+          "sourceY": 11,
+          "sourceX": 11,
+          "destY": 7,
+          "destX": 7,
+          "destStage": "arcade:0-2",
+          "confirmation": false,
+          "rejectInteractable": false
+        }
+      ],
       "mapId": "",
       "loadStrategy": "",
       "spawnStrategy": ""

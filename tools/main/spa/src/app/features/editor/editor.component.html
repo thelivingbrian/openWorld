@@ -325,7 +325,7 @@
 
         <div class="row wrap gap">
           <label>Interactable
-            <select [(ngModel)]="interactableEditId">
+            <select [(ngModel)]="interactableEditId" (ngModelChange)="ensureEditedInteractableStateSelection()">
               @for (entry of interactables(); track entry.id) {
                 <option [value]="entry.id">{{ entry.name }}</option>
               }
@@ -335,12 +335,33 @@
 
         @if (editedInteractable()) {
           <div class="row wrap gap">
+            <label>Default State
+              <select [(ngModel)]="editedInteractable()!.defaultState" (ngModelChange)="onEditedInteractableDefaultStateChange()">
+                @for (stateName of editedInteractableStateNames(); track stateName) {
+                  <option [value]="stateName">{{ stateName }}</option>
+                }
+              </select>
+            </label>
+            <label>Edit State
+              <select [(ngModel)]="interactableStateEditName" (ngModelChange)="onEditedInteractableStateNameChange()">
+                @for (stateName of editedInteractableStateNames(); track stateName) {
+                  <option [value]="stateName">{{ stateName }}</option>
+                }
+              </select>
+            </label>
+            <button type="button" (click)="addEditedInteractableState()">Add State</button>
+            <button type="button" (click)="deleteEditedInteractableState()" [disabled]="editedInteractableStateNames().length <= 1">Delete State</button>
+          </div>
+
+          @if (editedInteractableState()) {
+          <div class="row wrap gap">
             <label>Name <input [(ngModel)]="editedInteractable()!.name" /></label>
-            <label>CssClass <input [(ngModel)]="editedInteractable()!.cssClass" /></label>
-            <label>Pushable <input type="checkbox" [(ngModel)]="editedInteractable()!.pushable" /></label>
-            <label>Walkable <input type="checkbox" [(ngModel)]="editedInteractable()!.walkable" /></label>
-            <label>Fragile <input type="checkbox" [(ngModel)]="editedInteractable()!.fragile" /></label>
-            <label>Preset Reactions <input [(ngModel)]="editedInteractable()!.reactions" placeholder="e.g. black-hole (overridden by rules)" /></label>
+            <label>CssClass <input [(ngModel)]="editedInteractableState()!.cssClass" /></label>
+            <label>Pushable <input type="checkbox" [(ngModel)]="editedInteractableState()!.pushable" /></label>
+            <label>Walkable <input type="checkbox" [(ngModel)]="editedInteractableState()!.walkable" /></label>
+            <label>Fragile <input type="checkbox" [(ngModel)]="editedInteractableState()!.fragile" /></label>
+            <label>Reject Teleport <input type="checkbox" [(ngModel)]="editedInteractableState()!.rejectTeleport" /></label>
+            <label>Preset Reactions <input [(ngModel)]="editedInteractableState()!.reactions" placeholder="e.g. black-hole (overridden by rules)" /></label>
           </div>
 
           <div class="reaction-rules-editor">
@@ -348,15 +369,15 @@
               <strong>Reaction Rules</strong>
               <button type="button" (click)="addReactionRule()">+ Add Rule</button>
             </div>
-            @if (editedInteractable()!.reactionRules?.length) {
+            @if (editedInteractableState()!.reactionRules?.length) {
               <p class="entity-preview__meta">Rules are evaluated top-to-bottom; first match wins. These override the preset above when present.</p>
-            } @else if (!editedInteractable()!.reactions) {
+            } @else if (!editedInteractableState()!.reactions) {
               <p class="entity-preview__meta">No preset or rules defined. Add a rule or type a preset name above.</p>
             } @else {
-              <p class="entity-preview__meta">Using preset "{{ editedInteractable()!.reactions }}". Add rules below to override it.</p>
+              <p class="entity-preview__meta">Using preset "{{ editedInteractableState()!.reactions }}". Add rules below to override it.</p>
             }
 
-            @for (rule of editedInteractable()!.reactionRules; track $index; let i = $index) {
+            @for (rule of editedInteractableState()!.reactionRules; track $index; let i = $index) {
               <div class="entity-preview reaction-rule-card">
                 <p class="entity-preview__title">Rule {{ i + 1 }}</p>
 
@@ -405,12 +426,14 @@
             </div>
             <p class="entity-preview__meta">
               {{ editedInteractable()!.name || 'Unnamed interactable' }}
-              · {{ editedInteractable()!.walkable ? 'Walkable' : 'Blocked' }}
-              · {{ editedInteractable()!.pushable ? 'Pushable' : 'Static' }}
-              · {{ editedInteractable()!.fragile ? 'Fragile' : 'Sturdy' }}
-              · {{ editedInteractable()!.reactionRules?.length ? (editedInteractable()!.reactionRules.length + ' rule(s)') : (editedInteractable()!.reactions || 'no reactions') }}
+              · {{ interactableStateEditName() ? ('State: ' + interactableStateEditName()) : 'State: (empty)' }}
+              · {{ editedInteractableState()!.walkable ? 'Walkable' : 'Blocked' }}
+              · {{ editedInteractableState()!.pushable ? 'Pushable' : 'Static' }}
+              · {{ editedInteractableState()!.fragile ? 'Fragile' : 'Sturdy' }}
+              · {{ editedInteractableState()!.reactionRules?.length ? (editedInteractableState()!.reactionRules.length + ' rule(s)') : (editedInteractableState()!.reactions || 'no reactions') }}
             </p>
           </div>
+          }
         }
       </section>
     }
@@ -687,9 +710,17 @@
                 </label>
                 <label>
                   Interactable
-                  <select [(ngModel)]="selectedAssetId">
+                  <select [(ngModel)]="selectedAssetId" (ngModelChange)="onSelectedInteractableAssetChange()">
                     @for (interactable of interactables(); track interactable.id) {
                       <option [value]="interactable.id">{{ interactable.name }}</option>
+                    }
+                  </select>
+                </label>
+                <label>
+                  State
+                  <select [(ngModel)]="selectedInteractableState">
+                    @for (stateName of selectedInteractableAssetStateNames(); track stateName) {
+                      <option [value]="stateName">{{ stateName }}</option>
                     }
                   </select>
                 </label>
@@ -838,6 +869,16 @@
                         {{ selectedTileInteractable()!.name || selectedTileInteractable()!.id }}
                       </a>
                     </p>
+                    <label>
+                      Interactable State
+                      <select
+                        [ngModel]="selectedTileInteractable()!.state || selectedTileInteractable()!.defaultState || 'default'"
+                        (ngModelChange)="setSelectedTileInteractableState($event)">
+                        @for (stateName of selectedTileInteractableStateNames(); track stateName) {
+                          <option [value]="stateName">{{ stateName }}</option>
+                        }
+                      </select>
+                    </label>
                   } @else {
                     <p>Interactable: none</p>
                   }

@@ -112,7 +112,60 @@ func createStageFromArea(area Area) *Stage {
 					} else if description.Reactions != "" {
 						reaction = interactableReactions[description.Reactions]
 					}
-					outputStage.tiles[y][x].interactable = &Interactable{name: description.Name, state: description.State, cssClass: description.CssClass, pushable: description.Pushable, walkable: description.Walkable, fragile: description.Fragile, reactions: reaction}
+					interactable := &Interactable{
+						name:           description.Name,
+						state:          description.State,
+						defaultState:   description.DefaultState,
+						cssClass:       description.CssClass,
+						pushable:       description.Pushable,
+						walkable:       description.Walkable,
+						fragile:        description.Fragile,
+						reactions:      reaction,
+						rejectTeleport: description.RejectTeleport,
+					}
+
+					if interactable.defaultState == "" {
+						interactable.defaultState = "default"
+					}
+
+					if len(description.States) > 0 {
+						interactable.states = make(map[string]InteractableState, len(description.States))
+						for stateName, stateDescription := range description.States {
+							stateReactions := interactableReactions[stateDescription.Reactions]
+							if len(stateDescription.ReactionRules) > 0 {
+								stateReactions = resolveReactionRules(stateDescription.ReactionRules)
+							}
+							interactable.states[stateName] = InteractableState{
+								cssClass:       stateDescription.CssClass,
+								pushable:       stateDescription.Pushable,
+								walkable:       stateDescription.Walkable,
+								fragile:        stateDescription.Fragile,
+								reactions:      stateReactions,
+								rejectTeleport: stateDescription.RejectTeleport,
+							}
+						}
+
+						if _, ok := interactable.states[interactable.defaultState]; !ok {
+							interactable.states[interactable.defaultState] = InteractableState{
+								cssClass:       interactable.cssClass,
+								pushable:       interactable.pushable,
+								walkable:       interactable.walkable,
+								fragile:        interactable.fragile,
+								reactions:      interactable.reactions,
+								rejectTeleport: interactable.rejectTeleport,
+							}
+						}
+
+						selectedState := interactable.state
+						if selectedState == "" {
+							selectedState = interactable.defaultState
+						}
+						if !interactable.applyState(selectedState) {
+							interactable.applyState(interactable.defaultState)
+						}
+					}
+
+					outputStage.tiles[y][x].interactable = interactable
 				}
 			}
 		}

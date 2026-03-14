@@ -8,7 +8,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 
 | Task ID | Title | Owner | Started | Notes |
 |---|---|---|---|---|
-| _none_ | _none_ | _unassigned_ | _n/a_ | Last complete: AI-003 (2026-03-14). Set next task to `IN_PROGRESS` and mirror it here. |
+| _none_ | _none_ | _unassigned_ | _n/a_ | Last complete: AI-014 (2026-03-14). Set next task to `IN_PROGRESS` and mirror it here. |
 
 ## Backlog
 
@@ -17,7 +17,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 | AI-001 | DONE | P1 | Repo | Add AI orchestration docs (`AGENTS.md`, `.ai/notes.md`, `AI_BACKLOG.md`) | agent | 2026-03-14 | Initial scaffolding created. |
 | AI-002 | TODO | P2 | Process | Add first real engineering task for this workflow | unassigned | 2026-03-14 | Promote to `IN_PROGRESS` when started. |
 | AI-003 | DONE | P1 | Interactables | Add mutable `state` property for interactables | copilot | 2026-03-14 | Added server model+persistence support and test `TestCreateStageFromAreaLoadsMutableInteractableState`. |
-| AI-004 | TODO | P1 | Tools | Support setting interactable `state` in design workspace | unassigned | 2026-03-14 | Depends on AI-003 data model decisions. |
+| AI-004 | DONE | P1 | Tools | Support setting interactable `state` in design workspace | copilot | 2026-03-14 | Added tools model + SPA editing/normalization support for `state`. |
 | AI-005 | TODO | P1 | Interactables | Use `state` as `reactsWith` gate (`is`/`is not`/`contains`) | unassigned | 2026-03-14 | Define matching semantics and tests. |
 | AI-006 | TODO | P1 | Interactables | Implement transmit push movement | unassigned | 2026-03-14 | Parent item for chain push behavior. |
 | AI-007 | TODO | P2 | Interactables | Add transmit push reaction with `nil` | unassigned | 2026-03-14 | Clarify reset behavior on no reaction target. |
@@ -27,6 +27,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 | AI-011 | TODO | P1 | Physics | Add polyomino-based pushing logic | unassigned | 2026-03-14 | Core requirement for sticky groups. |
 | AI-012 | TODO | P2 | Interactables | Decide/implement pushable interactables behavior | unassigned | 2026-03-14 | Scoped as sub-task of polyomino push logic. |
 | AI-013 | TODO | P2 | Content | Create new puzzle space in `collection:escape` demonstrating features | unassigned | 2026-03-14 | Should showcase new state/transmit/sticky mechanics. |
+| AI-014 | DONE | P1 | Interactables | Interactable state as full configuration + per-tile state selection | copilot | 2026-03-14 | Added state-config model, per-tile state selection in editor grid, compile resolution, and server runtime application.
 
 ## Protocol
 - Pick one `TODO` item and set to `IN_PROGRESS`.
