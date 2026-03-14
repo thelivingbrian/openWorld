@@ -111,6 +111,7 @@ export class EditorComponent {
   protected readonly fragmentSet = signal('');
   protected readonly interactableSet = signal('');
   protected readonly interactableStateEditName = signal('default');
+  protected readonly interactableStateRenameName = signal('default');
   protected readonly selectedInteractableState = signal('default');
 
   protected readonly prototypeEditId = signal('');
@@ -1585,15 +1586,17 @@ export class EditorComponent {
     const interactable = this.editedInteractable();
     if (!interactable) {
       this.interactableStateEditName.set('default');
+      this.interactableStateRenameName.set('default');
       return;
     }
     this.ensureInteractableStateModel(interactable);
     const candidate = this.interactableStateEditName() || interactable.defaultState || 'default';
     if (interactable.states?.[candidate]) {
       this.interactableStateEditName.set(candidate);
-      return;
+    } else {
+      this.interactableStateEditName.set(interactable.defaultState || 'default');
     }
-    this.interactableStateEditName.set(interactable.defaultState || 'default');
+    this.interactableStateRenameName.set(this.interactableStateEditName());
   }
 
   protected addEditedInteractableState(): void {
@@ -1611,8 +1614,7 @@ export class EditorComponent {
       nextName = `${baseName}-${index}`;
     }
 
-    interactable.states![nextName] = {
-      ...(interactable.states?.[interactable.defaultState || 'default'] ?? {
+    const sourceState = interactable.states?.[interactable.defaultState || 'default'] ?? {
         cssClass: '',
         pushable: false,
         walkable: false,
@@ -1620,12 +1622,57 @@ export class EditorComponent {
         rejectTeleport: false,
         reactions: '',
         reactionRules: [],
-      }),
-    };
+      };
+
+    interactable.states![nextName] = this.cloneInteractableStateConfig(sourceState);
 
     this.interactableStateEditName.set(nextName);
+    this.interactableStateRenameName.set(nextName);
     this.syncTopLevelFromCurrentState(interactable);
     this.touchBootstrap();
+  }
+
+  protected renameEditedInteractableState(): void {
+    const interactable = this.editedInteractable();
+    if (!interactable) {
+      return;
+    }
+    this.ensureInteractableStateModel(interactable);
+
+    const currentName = this.interactableStateEditName();
+    const nextName = this.interactableStateRenameName().trim();
+    if (!currentName || !interactable.states?.[currentName]) {
+      return;
+    }
+    if (!nextName) {
+      this.status.set('State name cannot be blank.');
+      this.interactableStateRenameName.set(currentName);
+      return;
+    }
+    if (nextName === currentName) {
+      return;
+    }
+    if (interactable.states[nextName]) {
+      this.status.set(`State "${nextName}" already exists.`);
+      return;
+    }
+
+    const stateConfig = interactable.states[currentName];
+    delete interactable.states[currentName];
+    interactable.states[nextName] = stateConfig;
+
+    if (interactable.defaultState === currentName) {
+      interactable.defaultState = nextName;
+    }
+    if (interactable.state === currentName) {
+      interactable.state = nextName;
+    }
+
+    this.interactableStateEditName.set(nextName);
+    this.interactableStateRenameName.set(nextName);
+    this.syncTopLevelFromCurrentState(interactable);
+    this.touchBootstrap();
+    this.status.set(`State renamed to "${nextName}".`);
   }
 
   protected deleteEditedInteractableState(): void {
@@ -1647,6 +1694,7 @@ export class EditorComponent {
     }
 
     this.interactableStateEditName.set(interactable.defaultState || 'default');
+    this.interactableStateRenameName.set(this.interactableStateEditName());
     this.syncTopLevelFromCurrentState(interactable);
     this.touchBootstrap();
   }
@@ -1657,6 +1705,7 @@ export class EditorComponent {
       return;
     }
     this.ensureInteractableStateModel(interactable);
+    this.interactableStateRenameName.set(this.interactableStateEditName());
     this.syncTopLevelFromCurrentState(interactable);
     this.touchBootstrap();
   }
@@ -1739,7 +1788,7 @@ export class EditorComponent {
         fragile: Boolean(interactable.fragile),
         rejectTeleport: Boolean(interactable.rejectTeleport),
         reactions: interactable.reactions ?? '',
-        reactionRules: interactable.reactionRules ?? [],
+        reactionRules: this.cloneReactionRules(interactable.reactionRules),
       };
     }
 
@@ -1778,6 +1827,31 @@ export class EditorComponent {
         state.reactionRules = [];
       }
     }
+  }
+
+  private cloneReactionRule(rule: ReactionRule): ReactionRule {
+    return {
+      reactsWith: rule.reactsWith,
+      reactsWithArgs: [...(rule.reactsWithArgs ?? [])],
+      reaction: rule.reaction,
+      reactionArgs: [...(rule.reactionArgs ?? [])],
+    };
+  }
+
+  private cloneReactionRules(rules: ReactionRule[] | undefined): ReactionRule[] {
+    return (rules ?? []).map((rule) => this.cloneReactionRule(rule));
+  }
+
+  private cloneInteractableStateConfig(state: InteractableStateDescription): InteractableStateDescription {
+    return {
+      cssClass: state.cssClass,
+      pushable: state.pushable,
+      walkable: state.walkable,
+      fragile: state.fragile,
+      rejectTeleport: state.rejectTeleport,
+      reactions: state.reactions,
+      reactionRules: this.cloneReactionRules(state.reactionRules),
+    };
   }
 
   private resolveInteractableForAssetAndState(interactableId: string, tileStateName?: string): InteractableDescription | undefined {

@@ -333,6 +333,57 @@ describe('EditorComponent', () => {
     expect(state.editedInteractable()?.id).toBe(state.interactables()[0].id);
   });
 
+  it('can rename an edited interactable state', () => {
+    const state = component as any;
+
+    state.interactableSet.set('base-interactables');
+    state.onInteractableSetChange();
+    state.addInteractable();
+    state.addEditedInteractableState();
+    expect(state.editedInteractableStateNames()).toEqual(expect.arrayContaining(['state-1']));
+
+    state.interactableStateRenameName.set('armed');
+    state.renameEditedInteractableState();
+
+    expect(state.editedInteractableStateNames()).toEqual(expect.arrayContaining(['default', 'armed']));
+    expect(state.editedInteractableStateNames()).not.toEqual(expect.arrayContaining(['state-1']));
+    expect(state.interactableStateEditName()).toBe('armed');
+    expect(state.interactableStateRenameName()).toBe('armed');
+    expect(state.status()).toBe('State renamed to "armed".');
+  });
+
+  it('addEditedInteractableState clones reaction rules instead of sharing references', () => {
+    const state = component as any;
+
+    state.interactableSet.set('base-interactables');
+    state.onInteractableSetChange();
+    state.addInteractable();
+
+    const interactable = state.editedInteractable();
+    interactable.states.default.reactionRules = [
+      {
+        reactsWith: 'everything',
+        reactsWithArgs: ['a'],
+        reaction: 'pass',
+        reactionArgs: ['b'],
+      },
+    ];
+
+    state.addEditedInteractableState();
+    const newStateName = state.interactableStateEditName();
+    const defaultRules = interactable.states.default.reactionRules;
+    const newRules = interactable.states[newStateName].reactionRules;
+
+    expect(newRules).not.toBe(defaultRules);
+    expect(newRules[0]).not.toBe(defaultRules[0]);
+
+    newRules[0].reaction = 'eat';
+    newRules[0].reactionArgs.push('c');
+
+    expect(interactable.states.default.reactionRules[0].reaction).toBe('pass');
+    expect(interactable.states.default.reactionRules[0].reactionArgs).toEqual(['b']);
+  });
+
   it('addInteractableSet reports validation errors for blank and duplicate names', () => {
     const state = component as any;
 

@@ -45,6 +45,8 @@ export const REACTION_REGISTRY: RegistryEntry[] = [
   { key: 'eat',                  label: 'Eat (discard incoming)',                     args: [] },
   { key: 'pass',                 label: 'Pass (push through)',                        args: [] },
   { key: 'transmitPushAll',      label: 'Transmit push to all interactables',         args: [] },
+  { key: 'transmitPushByState',  label: 'Transmit push by interactable state',        args: [{ name: 'state', placeholder: 'e.g. armed' }] },
+  { key: 'transmitPushByName',   label: 'Transmit push by interactable name',         args: [{ name: 'name', placeholder: 'e.g. box' }] },
   { key: 'killInstantly',        label: 'Kill player instantly',                      args: [] },
   { key: 'playSoundForAll',      label: 'Play sound for all nearby',                  args: [{ name: 'soundName', placeholder: 'e.g. explosion' }] },
   { key: 'playSoundForInitiator', label: 'Play sound for initiator',                  args: [{ name: 'soundName', placeholder: 'e.g. water-splash' }] },

@@ -339,6 +339,29 @@ func TestResolveReactionRulesWithTransmitPushAll(t *testing.T) {
 	}
 }
 
+func TestResolveReactionRulesWithFilteredTransmitPush(t *testing.T) {
+	rules := []ReactionRule{
+		{
+			ReactsWith:   "interactableIsNil",
+			Reaction:     "transmitPushByState",
+			ReactionArgs: []string{"armed"},
+		},
+		{
+			ReactsWith:   "interactableIsNil",
+			Reaction:     "transmitPushByName",
+			ReactionArgs: []string{"box"},
+		},
+	}
+
+	resolved := resolveReactionRules(rules)
+	if len(resolved) != 2 {
+		t.Fatalf("expected 2 resolved rules, got %d", len(resolved))
+	}
+	if resolved[0].ReactionWithOffset == nil || resolved[1].ReactionWithOffset == nil {
+		t.Fatal("expected filtered transmit push reactions to resolve as offset-aware reactions")
+	}
+}
+
 func TestTransmitPushAllMovesOtherInteractables(t *testing.T) {
 	area := Area{
 		Name: "transmit-push-all-test",
@@ -505,6 +528,136 @@ func TestTransmitPushAllDoesNotDoublePushWhenMovingDown(t *testing.T) {
 	}
 	if stage.tiles[4][0].interactable != nil {
 		t.Fatal("expected box not to be pushed twice to 4,0")
+	}
+}
+
+func TestTransmitPushByStateMovesOnlyMatchingState(t *testing.T) {
+	area := Area{
+		Name: "transmit-push-by-state",
+		Tiles: [][]Material{ {
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			nil,
+			{
+				Name:     "transmitter",
+				CssClass: "transmitter",
+				Walkable: true,
+				ReactionRules: []ReactionRule{
+					{ReactsWith: "interactableIsNil", Reaction: "transmitPushByState", ReactionArgs: []string{"armed"}},
+				},
+			},
+			{
+				Name:     "armed-box",
+				State:    "armed",
+				CssClass: "box",
+				Pushable: true,
+				Walkable: true,
+			},
+			nil,
+			{
+				Name:     "idle-box",
+				State:    "idle",
+				CssClass: "box",
+				Pushable: true,
+				Walkable: true,
+			},
+			nil,
+			nil,
+			nil,
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	if stage == nil {
+		t.Fatal("expected stage")
+	}
+
+	transmitterTile := stage.tiles[0][1]
+	transmitter := transmitterTile.interactable
+	if transmitter == nil {
+		t.Fatal("expected transmitter interactable at 0,1")
+	}
+
+	initiator := &Player{world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{}}
+	if !transmitter.React(nil, initiator, transmitterTile, 0, 1) {
+		t.Fatal("expected transmit reaction to trigger")
+	}
+
+	if stage.tiles[0][3].interactable == nil || stage.tiles[0][3].interactable.name != "armed-box" {
+		t.Fatal("expected armed-box to move one tile east")
+	}
+	if stage.tiles[0][4].interactable == nil || stage.tiles[0][4].interactable.name != "idle-box" {
+		t.Fatal("expected idle-box to remain in place")
+	}
+}
+
+func TestTransmitPushByNameMovesOnlyMatchingName(t *testing.T) {
+	area := Area{
+		Name: "transmit-push-by-type",
+		Tiles: [][]Material{{
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			nil,
+			{
+				Name:     "transmitter",
+				CssClass: "transmitter",
+				Walkable: true,
+				ReactionRules: []ReactionRule{
+					{ReactsWith: "interactableIsNil", Reaction: "transmitPushByName", ReactionArgs: []string{"box"}},
+				},
+			},
+			{
+				Name:     "box",
+				CssClass: "box",
+				Pushable: true,
+				Walkable: true,
+			},
+			nil,
+			{
+				Name:     "barrel",
+				CssClass: "barrel",
+				Pushable: true,
+				Walkable: true,
+			},
+			nil,
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	if stage == nil {
+		t.Fatal("expected stage")
+	}
+
+	transmitterTile := stage.tiles[0][1]
+	transmitter := transmitterTile.interactable
+	if transmitter == nil {
+		t.Fatal("expected transmitter interactable at 0,1")
+	}
+
+	initiator := &Player{world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{}}
+	if !transmitter.React(nil, initiator, transmitterTile, 0, 1) {
+		t.Fatal("expected transmit reaction to trigger")
+	}
+
+	if stage.tiles[0][3].interactable == nil || stage.tiles[0][3].interactable.name != "box" {
+		t.Fatal("expected box to move one tile east")
+	}
+	if stage.tiles[0][4].interactable == nil || stage.tiles[0][4].interactable.name != "barrel" {
+		t.Fatal("expected barrel to remain in place")
 	}
 }
 

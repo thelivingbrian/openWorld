@@ -3,6 +3,18 @@
     "id": "79178a88-99cf-4472-8789-ba914a08c5f2",
     "name": "basic-push",
     "setName": "basic",
+    "state": "state-1",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "gold",
+        "pushable": true
+      },
+      "state-1": {
+        "cssClass": "blue",
+        "pushable": true
+      }
+    },
     "cssClass": "gold",
     "pushable": true,
     "walkable": false,
@@ -13,6 +25,14 @@
     "id": "5ca4451e-2f93-4af2-b4f3-2942247d0b26",
     "name": "basic-fragile",
     "setName": "basic",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "chocolate",
+        "fragile": true
+      }
+    },
     "cssClass": "chocolate",
     "pushable": false,
     "walkable": false,
@@ -23,6 +43,14 @@
     "id": "7e600c46-99c0-4a82-9e79-d5dfb15379aa",
     "name": "black-hole",
     "setName": "basic",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "black white-b thin",
+        "reactions": "black-hole"
+      }
+    },
     "cssClass": "black white-b thin",
     "pushable": false,
     "walkable": false,
@@ -33,6 +61,15 @@
     "id": "a17c9b2d-93c0-4c71-a1df-328fcf851aaf",
     "name": "fragile-push",
     "setName": "basic",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "cinnamon",
+        "pushable": true,
+        "fragile": true
+      }
+    },
     "cssClass": "cinnamon",
     "pushable": true,
     "walkable": false,
@@ -43,6 +80,14 @@
     "id": "58523125-b6b2-4e53-91d0-2200899c187f",
     "name": "ring-small",
     "setName": "basic",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "gold-b med r1",
+        "pushable": true
+      }
+    },
     "cssClass": "gold-b med r1",
     "pushable": true,
     "walkable": false,
@@ -53,6 +98,14 @@
     "id": "600aab97-1fad-48e9-8fb2-16a00855aeb0",
     "name": "ring-big",
     "setName": "basic",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "gold-b thick r1",
+        "pushable": true
+      }
+    },
     "cssClass": "gold-b thick r1",
     "pushable": true,
     "walkable": false,
@@ -63,6 +116,14 @@
     "id": "be52229e-8852-4f41-87f1-25fb5cbe1a58",
     "name": "exchange-ring",
     "setName": "basic",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "chocolate gold-b thin",
+        "reactions": "exchange-ring"
+      }
+    },
     "cssClass": "chocolate gold-b thin",
     "pushable": false,
     "walkable": false,
@@ -73,6 +134,14 @@
     "id": "782c3255-dfd3-47a9-9c55-6c1bc39f635c",
     "name": "pass-all",
     "setName": "basic",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "walkable": true,
+        "reactions": "pass-all"
+      }
+    },
     "cssClass": "",
     "pushable": false,
     "walkable": true,

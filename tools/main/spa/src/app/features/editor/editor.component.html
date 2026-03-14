@@ -349,6 +349,8 @@
                 }
               </select>
             </label>
+            <label>State Name <input [(ngModel)]="interactableStateRenameName" /></label>
+            <button type="button" (click)="renameEditedInteractableState()">Rename State</button>
             <button type="button" (click)="addEditedInteractableState()">Add State</button>
             <button type="button" (click)="deleteEditedInteractableState()" [disabled]="editedInteractableStateNames().length <= 1">Delete State</button>
           </div>

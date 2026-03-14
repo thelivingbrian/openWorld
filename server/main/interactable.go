@@ -222,6 +222,12 @@ func init() {
 		"transmitPushAll": func(_ []string) func(*Interactable, *Player, *Tile, int, int) (*Interactable, bool) {
 			return transmitPushAll
 		},
+		"transmitPushByState": func(a []string) func(*Interactable, *Player, *Tile, int, int) (*Interactable, bool) {
+			return transmitPushByState(stringArg(a, 0, ""))
+		},
+		"transmitPushByName": func(a []string) func(*Interactable, *Player, *Tile, int, int) (*Interactable, bool) {
+			return transmitPushByName(stringArg(a, 0, ""))
+		},
 	}
 }
 
@@ -441,6 +447,34 @@ func pass(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 }
 
 func transmitPushAll(_ *Interactable, p *Player, t *Tile, yOff, xOff int) (*Interactable, bool) {
+	return transmitPushMatching(p, t, yOff, xOff, func(*Interactable) bool { return true })
+}
+
+func transmitPushByState(state string) func(*Interactable, *Player, *Tile, int, int) (*Interactable, bool) {
+	targetState := strings.TrimSpace(state)
+	return func(_ *Interactable, p *Player, t *Tile, yOff, xOff int) (*Interactable, bool) {
+		if targetState == "" {
+			return nil, false
+		}
+		return transmitPushMatching(p, t, yOff, xOff, func(i *Interactable) bool {
+			return i != nil && i.state == targetState
+		})
+	}
+}
+
+func transmitPushByName(targetName string) func(*Interactable, *Player, *Tile, int, int) (*Interactable, bool) {
+	name := strings.TrimSpace(targetName)
+	return func(_ *Interactable, p *Player, t *Tile, yOff, xOff int) (*Interactable, bool) {
+		if name == "" {
+			return nil, false
+		}
+		return transmitPushMatching(p, t, yOff, xOff, func(i *Interactable) bool {
+			return i != nil && i.name == name
+		})
+	}
+}
+
+func transmitPushMatching(p *Player, t *Tile, yOff, xOff int, include func(*Interactable) bool) (*Interactable, bool) {
 	if p == nil || t == nil || t.stage == nil {
 		return nil, false
 	}
@@ -449,7 +483,7 @@ func transmitPushAll(_ *Interactable, p *Player, t *Tile, yOff, xOff int) (*Inte
 	for row := range t.stage.tiles {
 		for col := range t.stage.tiles[row] {
 			tile := t.stage.tiles[row][col]
-			if tile == t || tile.interactable == nil {
+			if tile == t || tile.interactable == nil || !include(tile.interactable) {
 				continue
 			}
 			tilesToPush = append(tilesToPush, tile)

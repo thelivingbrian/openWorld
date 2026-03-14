@@ -8,7 +8,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 
 | Task ID | Title | Owner | Started | Notes |
 |---|---|---|---|---|
-| _none_ | _none_ | _unassigned_ | _n/a_ | Last complete: AI-019 (2026-03-14). Set next task to `IN_PROGRESS` and mirror it here. |
+| _none_ | _none_ | _unassigned_ | _n/a_ | Last complete: AI-020 (2026-03-14). Set next task to `IN_PROGRESS` and mirror it here. |
 
 ## Backlog
 
@@ -21,7 +21,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 | AI-005 | DONE | P1 | Interactables | Use `state` as `reactsWith` gate (`is`/`is not`/`contains`) | copilot | 2026-03-14 | Added new state gate functions, registry wiring, design registry entries, and focused tests. |
 | AI-006 | DONE | P1 | Interactables | Implement transmit push movement | copilot | 2026-03-14 | Added `transmitPushAll` reaction with offset-aware runtime wiring, editor registry entry, and focused tests. |
 | AI-007 | DONE | P2 | Interactables | Add transmit push reaction with `nil` | copilot | 2026-03-14 | Confirmed `interactableIsNil -> transmitPushAll` wiring and fixed right/down over-push bug by processing tiles in direction-aware order; added focused regressions. |
-| AI-008 | TODO | P1 | Interactables | Send push to other interactables by `state` or `type` | unassigned | 2026-03-14 | Requires target selection strategy. |
+| AI-008 | DONE | P1 | Interactables | Send push to other interactables by `state` or `name` | copilot | 2026-03-14 | Added `transmitPushByState` and `transmitPushByName` reactions (direction-safe ordering retained), wired SPA registry entries, and added focused server tests for resolution and selective movement. |
 | AI-009 | TODO | P2 | Interactables | Allow rotation/scale of transmitted push vector | unassigned | 2026-03-14 | Decide transform syntax compatibility. |
 | AI-010 | TODO | P1 | Physics | Implement sticky blocks that stick together | unassigned | 2026-03-14 | Parent item for grouped movement. |
 | AI-011 | TODO | P1 | Physics | Add polyomino-based pushing logic | unassigned | 2026-03-14 | Core requirement for sticky groups. |
@@ -33,6 +33,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 | AI-017 | DONE | P1 | Tools | Fix SPA interactable set dropdown/update and new interactable editability | copilot | 2026-03-14 | Fixed `touchBootstrap` to clone current collection/maps so computed lists refresh, and fixed `addInteractable` to re-sync editable state selection; added focused editor component regressions. |
 | AI-018 | DONE | P1 | Tools | Fix first interactable visibility in brand-new set | copilot | 2026-03-14 | Changed `addInteractable` to replace set array immutably (instead of in-place push), so first interactable appears immediately; added focused regression test. |
 | AI-019 | DONE | P2 | Interactables | Verify transmitPushAll concurrency safety | copilot | 2026-03-14 | Added concurrent deadlock-focused `transmitPushAll` test (simultaneous opposite directions) and targeted transmit tests pass; `-race` requires local `gcc` toolchain (not available in current env). |
+| AI-020 | DONE | P1 | Tools | Fix SPA interactable state editing UX | copilot | 2026-03-14 | Added state rename control/action in editor and fixed cross-state reaction rule coupling by deep-cloning state config/rule arrays when creating new states; added focused SPA regression tests. |
 
 ## Protocol
 - Pick one `TODO` item and set to `IN_PROGRESS`.

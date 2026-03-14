@@ -3,20 +3,32 @@
     "id": "da68f885-e69b-4a45-a1f7-0e974ea6e1bd",
     "name": "push-others",
     "setName": "advanced",
-    "state": "default",
+    "state": "state-1",
     "defaultState": "default",
     "states": {
       "default": {
-        "cssClass": "red blue-b thick",
+        "cssClass": "red blue-b thick r0",
         "reactionRules": [
           {
             "reactsWith": "interactableIsNil",
             "reaction": "transmitPushAll"
           }
         ]
+      },
+      "state-1": {
+        "cssClass": "gold blue-b thick r0",
+        "reactionRules": [
+          {
+            "reactsWith": "interactableIsNil",
+            "reaction": "transmitPushByState",
+            "reactionArgs": [
+              "state-1"
+            ]
+          }
+        ]
       }
     },
-    "cssClass": "red blue-b thick",
+    "cssClass": "gold blue-b thick r0",
     "pushable": false,
     "walkable": false,
     "fragile": false,
@@ -24,7 +36,10 @@
     "reactionRules": [
       {
         "reactsWith": "interactableIsNil",
-        "reaction": "transmitPushAll"
+        "reaction": "transmitPushByState",
+        "reactionArgs": [
+          "state-1"
+        ]
       }
     ]
   }
