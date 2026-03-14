@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 	"testing"
+	"time"
 )
 
 func TestEnsureInteractableWillPush(t *testing.T) {
@@ -504,5 +505,100 @@ func TestTransmitPushAllDoesNotDoublePushWhenMovingDown(t *testing.T) {
 	}
 	if stage.tiles[4][0].interactable != nil {
 		t.Fatal("expected box not to be pushed twice to 4,0")
+	}
+}
+
+func TestTransmitPushAllConcurrentDirectionsCompletesWithoutDeadlock(t *testing.T) {
+	area := Area{
+		Name: "transmit-push-all-concurrency",
+		Tiles: [][]Material{
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+		},
+		Interactables: [][]*InteractableDescription{
+			{nil, nil, nil, nil, nil},
+			{nil, nil, nil, nil, nil},
+			{nil, nil, {
+				Name:     "transmitter",
+				CssClass: "transmitter",
+				Walkable: true,
+				ReactionRules: []ReactionRule{
+					{ReactsWith: "interactableIsNil", Reaction: "transmitPushAll"},
+				},
+			}, {
+				Name:     "box-east",
+				CssClass: "box",
+				Pushable: true,
+				Walkable: true,
+			}, nil},
+			{nil, nil, {
+				Name:     "box-south",
+				CssClass: "box",
+				Pushable: true,
+				Walkable: true,
+			}, nil, nil},
+			{nil, nil, nil, nil, nil},
+		},
+	}
+
+	stage := createStageFromArea(area)
+	if stage == nil {
+		t.Fatal("expected stage")
+	}
+
+	transmitterTile := stage.tiles[2][2]
+	transmitter := transmitterTile.interactable
+	if transmitter == nil {
+		t.Fatal("expected transmitter interactable at 2,2")
+	}
+
+	const workerCount = 8
+	const iterations = 150
+	directions := [][2]int{{0, 1}, {1, 0}, {0, -1}, {-1, 0}}
+
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+	errCh := make(chan string, workerCount)
+
+	for i := 0; i < workerCount; i++ {
+		yOff := directions[i%len(directions)][0]
+		xOff := directions[i%len(directions)][1]
+		wg.Add(1)
+		go func(index, yOff, xOff int) {
+			defer wg.Done()
+			<-start
+			initiator := &Player{world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{}}
+			for j := 0; j < iterations; j++ {
+				if !transmitter.React(nil, initiator, transmitterTile, yOff, xOff) {
+					errCh <- fmt.Sprintf("worker %d: transmit reaction did not trigger", index)
+					return
+				}
+			}
+		}(i, yOff, xOff)
+	}
+
+	close(start)
+
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		close(errCh)
+		for err := range errCh {
+			t.Fatal(err)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("concurrent transmitPushAll appears deadlocked or stalled")
+	}
+
+	if transmitterTile.interactable == nil || transmitterTile.interactable.name != "transmitter" {
+		t.Fatal("expected transmitter to remain at source after concurrent pushes")
 	}
 }
