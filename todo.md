@@ -11,8 +11,19 @@
 - [ ] Canvas based interactive/realtime stage map? 
 
 ## Interactables and puzzles
-- [ ] mirror push movement
-- [ ] sticky
+- [ ] mutable 'state' property for interactables
+  - [ ] can be set in design workspace 
+  - [ ] can be used as 'reactsWith' gate (e.g. state is/is not/contains)
+- [ ] transmit push movement
+  - [ ] reaction with nil
+  - [ ] sends push to other interactables by state or type
+  - [ ] allow for rotation or scale of push vector
+- [ ] sticky blocks 
+  - [ ] will stick together
+  - [ ] requires polyomino based pushing logic
+    - [ ] pushable interactables? 
+- [ ] new puzzle
+  - [ ] new space in collection:escape demonstrating the new functionality 
 
 ## Integration 
 - [ ] Python rewrite
