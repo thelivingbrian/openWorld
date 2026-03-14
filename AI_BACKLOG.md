@@ -8,7 +8,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 
 | Task ID | Title | Owner | Started | Notes |
 |---|---|---|---|---|
-| _none_ | _none_ | _unassigned_ | _n/a_ | Last complete: AI-020 (2026-03-14). Set next task to `IN_PROGRESS` and mirror it here. |
+| _none_ | _none_ | _unassigned_ | _n/a_ | Last complete: AI-021 (2026-03-14). Set next task to `IN_PROGRESS` and mirror it here. |
 
 ## Backlog
 
@@ -34,6 +34,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 | AI-018 | DONE | P1 | Tools | Fix first interactable visibility in brand-new set | copilot | 2026-03-14 | Changed `addInteractable` to replace set array immutably (instead of in-place push), so first interactable appears immediately; added focused regression test. |
 | AI-019 | DONE | P2 | Interactables | Verify transmitPushAll concurrency safety | copilot | 2026-03-14 | Added concurrent deadlock-focused `transmitPushAll` test (simultaneous opposite directions) and targeted transmit tests pass; `-race` requires local `gcc` toolchain (not available in current env). |
 | AI-020 | DONE | P1 | Tools | Fix SPA interactable state editing UX | copilot | 2026-03-14 | Added state rename control/action in editor and fixed cross-state reaction rule coupling by deep-cloning state config/rule arrays when creating new states; added focused SPA regression tests. |
+| AI-021 | DONE | P1 | Tools | Fix deploy default interactable state precedence | copilot | 2026-03-14 | Compiler now prioritizes tile `interactableState` then `defaultState` (not stale base `state`); added resolver regression tests in `tools/main/context_test.go`. |
 
 ## Protocol
 - Pick one `TODO` item and set to `IN_PROGRESS`.

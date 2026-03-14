@@ -274,9 +274,6 @@ func (col *Collection) resolveInteractableByTile(tile TileData) *InteractableDes
 
 	stateName := tile.InteractableState
 	if stateName == "" {
-		stateName = out.State
-	}
-	if stateName == "" {
 		stateName = out.DefaultState
 	}
 	if stateName == "" {
