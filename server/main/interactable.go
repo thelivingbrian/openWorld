@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -157,6 +158,13 @@ func init() {
 		"interactableIsABall": func(_ []string) func(*Interactable, *Player) bool { return interactableIsABall },
 		"interactableIsARing": func(_ []string) func(*Interactable, *Player) bool { return interactableIsARing },
 		"interactableHasName": func(a []string) func(*Interactable, *Player) bool { return interactableHasName(stringArg(a, 0, "")) },
+		"interactableStateIs": func(a []string) func(*Interactable, *Player) bool { return interactableStateIs(stringArg(a, 0, "")) },
+		"interactableStateIsNot": func(a []string) func(*Interactable, *Player) bool {
+			return interactableStateIsNot(stringArg(a, 0, ""))
+		},
+		"interactableStateContains": func(a []string) func(*Interactable, *Player) bool {
+			return interactableStateContains(stringArg(a, 0, ""))
+		},
 		"playerHasTeam":       func(a []string) func(*Interactable, *Player) bool { return playerHasTeam(stringArg(a, 0, "")) },
 		"playerTeamAndBallNameMatch": func(a []string) func(*Interactable, *Player) bool {
 			return playerTeamAndBallNameMatch(stringArg(a, 0, ""))
@@ -318,6 +326,33 @@ func interactableHasName(name string) func(*Interactable, *Player) bool {
 			return false
 		}
 		return i.name == name
+	}
+}
+
+func interactableStateIs(state string) func(*Interactable, *Player) bool {
+	return func(i *Interactable, _ *Player) bool {
+		if i == nil || state == "" {
+			return false
+		}
+		return i.state == state
+	}
+}
+
+func interactableStateIsNot(state string) func(*Interactable, *Player) bool {
+	return func(i *Interactable, _ *Player) bool {
+		if i == nil || state == "" {
+			return false
+		}
+		return i.state != state
+	}
+}
+
+func interactableStateContains(fragment string) func(*Interactable, *Player) bool {
+	return func(i *Interactable, _ *Player) bool {
+		if i == nil || fragment == "" {
+			return false
+		}
+		return strings.Contains(i.state, fragment)
 	}
 }
 

@@ -28,3 +28,4 @@ Working memory for AI agents. This file is intentionally editable by agents.
 - 2026-03-14: Completed AI-003 by adding interactable `state` to server runtime + JSON description load path and added focused test coverage.
 - 2026-03-14: Completed AI-004 by adding tools+SPA support to set/edit interactable `state` and persist it through interactable set save/load.
 - 2026-03-14: Completed AI-014 by making interactable states full configuration sets, adding per-tile state selection in grid place/view, and resolving selected/default state during compile + server stage creation.
+- 2026-03-14: Completed AI-005 by adding `reactsWith` gates `interactableStateIs`, `interactableStateIsNot`, and `interactableStateContains` in server runtime + rule registries, with focused tests and editor registry entries.

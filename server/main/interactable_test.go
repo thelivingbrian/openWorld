@@ -260,3 +260,63 @@ func TestEnsureNoInteractableDuplication(t *testing.T) {
 		t.Errorf("Expected 11 interactables on the stage, found %d", totalInteractables)
 	}
 }
+
+func TestInteractableStateGates(t *testing.T) {
+	incoming := &Interactable{state: "door-open"}
+
+	if !interactableStateIs("door-open")(incoming, nil) {
+		t.Fatal("interactableStateIs should match exact incoming state")
+	}
+	if interactableStateIs("door-closed")(incoming, nil) {
+		t.Fatal("interactableStateIs should fail when states differ")
+	}
+	if !interactableStateIsNot("door-closed")(incoming, nil) {
+		t.Fatal("interactableStateIsNot should pass when states differ")
+	}
+	if interactableStateIsNot("door-open")(incoming, nil) {
+		t.Fatal("interactableStateIsNot should fail when states are equal")
+	}
+	if !interactableStateContains("open")(incoming, nil) {
+		t.Fatal("interactableStateContains should match substring")
+	}
+	if interactableStateContains("sealed")(incoming, nil) {
+		t.Fatal("interactableStateContains should fail for missing substring")
+	}
+
+	if interactableStateIs("door-open")(nil, nil) {
+		t.Fatal("state gates should not match nil incoming interactable")
+	}
+	if interactableStateIs("")(incoming, nil) || interactableStateIsNot("")(incoming, nil) || interactableStateContains("")(incoming, nil) {
+		t.Fatal("state gates should not match empty configured state fragments")
+	}
+}
+
+func TestResolveReactionRulesWithStateGates(t *testing.T) {
+	rules := []ReactionRule{
+		{
+			ReactsWith:     "interactableStateIs",
+			ReactsWithArgs: []string{"armed"},
+			Reaction:       "pass",
+		},
+		{
+			ReactsWith:     "interactableStateContains",
+			ReactsWithArgs: []string{"open"},
+			Reaction:       "pass",
+		},
+	}
+
+	resolved := resolveReactionRules(rules)
+	if len(resolved) != 2 {
+		t.Fatalf("expected 2 resolved rules, got %d", len(resolved))
+	}
+
+	if !resolved[0].ReactsWith(&Interactable{state: "armed"}, nil) {
+		t.Fatal("interactableStateIs rule should match expected state")
+	}
+	if resolved[0].ReactsWith(&Interactable{state: "disarmed"}, nil) {
+		t.Fatal("interactableStateIs rule should fail on non-matching state")
+	}
+	if !resolved[1].ReactsWith(&Interactable{state: "airlock-open"}, nil) {
+		t.Fatal("interactableStateContains rule should match substring")
+	}
+}
