@@ -534,7 +534,7 @@ func TestTransmitPushAllDoesNotDoublePushWhenMovingDown(t *testing.T) {
 func TestTransmitPushByStateMovesOnlyMatchingState(t *testing.T) {
 	area := Area{
 		Name: "transmit-push-by-state",
-		Tiles: [][]Material{ {
+		Tiles: [][]Material{{
 			{Walkable: true},
 			{Walkable: true},
 			{Walkable: true},
