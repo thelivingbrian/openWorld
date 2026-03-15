@@ -84,7 +84,7 @@
 
 ## Workspace Bugs 
 - [ ] New areas are always "unsafe"
-
+- [ ] Can not choose new fragment size 
 
 ## Mobile
   - [-] Controls

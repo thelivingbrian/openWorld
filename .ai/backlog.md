@@ -14,8 +14,8 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 
 | Task ID | Status | Priority | Area | Title | Owner | Updated | Notes |
 |---|---|---|---|---|---|---|---|
-| AI-001 | DONE | P1 | Repo | Add AI orchestration docs (`AGENTS.md`, `.ai/notes.md`, `AI_BACKLOG.md`) | agent | 2026-03-14 | Initial scaffolding created. |
-| AI-002 | TODO | P2 | Process | Add first real engineering task for this workflow | unassigned | 2026-03-14 | Promote to `IN_PROGRESS` when started. |
+| AI-001 | DONE | P1 | Repo | Add AI orchestration docs (`.ai/AGENTS.md`, `.ai/notes.md`, `.ai/backlog.md`) | agent | 2026-03-14 | Initial scaffolding created. |
+| AI-002 | DONE | P2 | Process | Add first real engineering task for this workflow | unassigned | 2026-03-14 | Promote to `IN_PROGRESS` when started. |
 | AI-003 | DONE | P1 | Interactables | Add mutable `state` property for interactables | copilot | 2026-03-14 | Added server model+persistence support and test `TestCreateStageFromAreaLoadsMutableInteractableState`. |
 | AI-004 | DONE | P1 | Tools | Support setting interactable `state` in design workspace | copilot | 2026-03-14 | Added tools model + SPA editing/normalization support for `state`. |
 | AI-005 | DONE | P1 | Interactables | Use `state` as `reactsWith` gate (`is`/`is not`/`contains`) | copilot | 2026-03-14 | Added new state gate functions, registry wiring, design registry entries, and focused tests. |

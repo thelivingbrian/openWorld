@@ -35,11 +35,11 @@ To update snapshots once (Powershell) use:
 
 ## AI orchestration
 
-- Stable instructions: `AGENTS.md`
+- Stable instructions: `.ai/AGENTS.md`
 - Mutable agent notes: `.ai/notes.md`
-- Shared execution queue: `AI_BACKLOG.md`
+- Shared execution queue: `.ai/backlog.md`
 
 Suggested flow:
-1. Read `AGENTS.md`, then `AI_BACKLOG.md`, then `.ai/notes.md`
+1. Read `.ai/AGENTS.md`, then `.ai/backlog.md`, then `.ai/notes.md`
 2. Claim one task by setting it to `IN_PROGRESS` and filling owner/date
 3. Complete work, set task to `DONE`, and add key learnings to `.ai/notes.md`
