@@ -16,12 +16,11 @@ Check out: https://bloopworld.co - For live demo
         - Compile executable with go & run 
         - Angular SPA editor (new):
             - Build client: `cd tools/main/spa && npm install && npm run build`
-            - Start tools server from `tools/main` and open `http://localhost:4444/app`
-            - Existing HTMX editor remains at `http://localhost:4444/`
+            - Start tools server from `tools/main` and open `http://localhost:4444``
         - Deploy changes:
-            -Web: visit localhost:4444 with application running
-            -linux: go build && ./main deploy bloop
-            -powershell: go build; .\main.exe deploy bloop
+            -Web: visit localhost:4444 with application running, view chosen collection and click 'deploy' at top
+            -linux: go build && ./main deploy [collection name]
+            -powershell: go build; .\main.exe deploy [collection name]
         - Track changes using git 
 
 
