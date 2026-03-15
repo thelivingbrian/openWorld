@@ -120,6 +120,7 @@ func createStageFromArea(area Area) *Stage {
 						pushable:       description.Pushable,
 						walkable:       description.Walkable,
 						fragile:        description.Fragile,
+						sticky:         description.Sticky,
 						reactions:      reaction,
 						rejectTeleport: description.RejectTeleport,
 					}
@@ -136,11 +137,10 @@ func createStageFromArea(area Area) *Stage {
 								stateReactions = resolveReactionRules(stateDescription.ReactionRules)
 							}
 							interactable.states[stateName] = InteractableState{
-								cssClass:       stateDescription.CssClass,
-								pushable:       stateDescription.Pushable,
-								walkable:       stateDescription.Walkable,
-								fragile:        stateDescription.Fragile,
-								reactions:      stateReactions,
+								cssClass: stateDescription.CssClass,
+								pushable: stateDescription.Pushable,
+								walkable: stateDescription.Walkable,
+								fragile:  stateDescription.Fragile, sticky: stateDescription.Sticky, reactions: stateReactions,
 								rejectTeleport: stateDescription.RejectTeleport,
 							}
 						}
@@ -151,6 +151,7 @@ func createStageFromArea(area Area) *Stage {
 								pushable:       interactable.pushable,
 								walkable:       interactable.walkable,
 								fragile:        interactable.fragile,
+								sticky:         interactable.sticky,
 								reactions:      interactable.reactions,
 								rejectTeleport: interactable.rejectTeleport,
 							}

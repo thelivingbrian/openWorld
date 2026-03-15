@@ -1366,6 +1366,7 @@ export class EditorComponent {
           pushable: false,
           walkable: false,
           fragile: false,
+          sticky: false,
           rejectTeleport: false,
           reactions: '',
           reactionRules: [],
@@ -1375,6 +1376,7 @@ export class EditorComponent {
       pushable: false,
       walkable: false,
       fragile: false,
+      sticky: false,
       reactions: '',
       reactionRules: [],
     };
@@ -1619,6 +1621,7 @@ export class EditorComponent {
         pushable: false,
         walkable: false,
         fragile: false,
+        sticky: false,
         rejectTeleport: false,
         reactions: '',
         reactionRules: [],
@@ -1750,6 +1753,7 @@ export class EditorComponent {
           pushable: false,
           walkable: false,
           fragile: false,
+          sticky: false,
           rejectTeleport: false,
           reactions: '',
           reactionRules: [],
@@ -1786,6 +1790,7 @@ export class EditorComponent {
         pushable: Boolean(interactable.pushable),
         walkable: Boolean(interactable.walkable),
         fragile: Boolean(interactable.fragile),
+        sticky: Boolean(interactable.sticky),
         rejectTeleport: Boolean(interactable.rejectTeleport),
         reactions: interactable.reactions ?? '',
         reactionRules: this.cloneReactionRules(interactable.reactionRules),
@@ -1812,6 +1817,7 @@ export class EditorComponent {
     interactable.pushable = config.pushable;
     interactable.walkable = config.walkable;
     interactable.fragile = config.fragile;
+    interactable.sticky = config.sticky;
     interactable.rejectTeleport = config.rejectTeleport;
     interactable.reactions = config.reactions;
     interactable.reactionRules = config.reactionRules;
@@ -1848,6 +1854,7 @@ export class EditorComponent {
       pushable: state.pushable,
       walkable: state.walkable,
       fragile: state.fragile,
+      sticky: state.sticky,
       rejectTeleport: state.rejectTeleport,
       reactions: state.reactions,
       reactionRules: this.cloneReactionRules(state.reactionRules),
@@ -1875,6 +1882,7 @@ export class EditorComponent {
       pushable: config.pushable,
       walkable: config.walkable,
       fragile: config.fragile,
+      sticky: config.sticky,
       rejectTeleport: config.rejectTeleport,
       reactions: config.reactions,
       reactionRules: config.reactionRules,
@@ -2175,6 +2183,7 @@ export class EditorComponent {
               pushable: Boolean(state.pushable ?? state.Pushable),
               walkable: Boolean(state.walkable ?? state.Walkable),
               fragile: Boolean(state.fragile ?? state.Fragile),
+              sticky: Boolean(state.sticky ?? state.Sticky),
               rejectTeleport: Boolean(state.rejectTeleport ?? state.RejectTeleport),
               reactions: state.reactions ?? state.Reactions ?? '',
               reactionRules: (state.reactionRules ?? state.ReactionRules ?? []).map((rule: any) => ({
@@ -2193,6 +2202,7 @@ export class EditorComponent {
               pushable: Boolean(entry.pushable ?? entry.Pushable),
               walkable: Boolean(entry.walkable ?? entry.Walkable),
               fragile: Boolean(entry.fragile ?? entry.Fragile),
+              sticky: Boolean(entry.sticky ?? entry.Sticky),
               rejectTeleport: Boolean(entry.rejectTeleport ?? entry.RejectTeleport),
               reactions: entry.reactions ?? entry.Reactions ?? '',
               reactionRules: legacyRules,
@@ -2213,6 +2223,7 @@ export class EditorComponent {
             pushable: selectedConfig.pushable,
             walkable: selectedConfig.walkable,
             fragile: selectedConfig.fragile,
+            sticky: selectedConfig.sticky,
             rejectTeleport: selectedConfig.rejectTeleport,
             reactions: selectedConfig.reactions,
             reactionRules: selectedConfig.reactionRules,

@@ -362,6 +362,7 @@
             <label>Pushable <input type="checkbox" [(ngModel)]="editedInteractableState()!.pushable" /></label>
             <label>Walkable <input type="checkbox" [(ngModel)]="editedInteractableState()!.walkable" /></label>
             <label>Fragile <input type="checkbox" [(ngModel)]="editedInteractableState()!.fragile" /></label>
+            <label>Sticky <input type="checkbox" [(ngModel)]="editedInteractableState()!.sticky" /></label>
             <label>Reject Teleport <input type="checkbox" [(ngModel)]="editedInteractableState()!.rejectTeleport" /></label>
             <label>Preset Reactions <input [(ngModel)]="editedInteractableState()!.reactions" placeholder="e.g. black-hole (overridden by rules)" /></label>
           </div>
@@ -432,6 +433,7 @@
               · {{ editedInteractableState()!.walkable ? 'Walkable' : 'Blocked' }}
               · {{ editedInteractableState()!.pushable ? 'Pushable' : 'Static' }}
               · {{ editedInteractableState()!.fragile ? 'Fragile' : 'Sturdy' }}
+              · {{ editedInteractableState()!.sticky ? 'Sticky' : '' }}
               · {{ editedInteractableState()!.reactionRules?.length ? (editedInteractableState()!.reactionRules.length + ' rule(s)') : (editedInteractableState()!.reactions || 'no reactions') }}
             </p>
           </div>

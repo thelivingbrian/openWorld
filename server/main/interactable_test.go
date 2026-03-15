@@ -755,3 +755,460 @@ func TestTransmitPushAllConcurrentDirectionsCompletesWithoutDeadlock(t *testing.
 		t.Fatal("expected transmitter to remain at source after concurrent pushes")
 	}
 }
+
+///////////////////////////////////////////////////////////////////
+// Sticky Group (Polyomino) Push Tests
+
+func TestStickyPairPushesEast(t *testing.T) {
+	// [_] [A] [B] [_]  -- push east -->  [_] [_] [A] [B]
+	area := Area{
+		Name: "sticky-pair-east",
+		Tiles: [][]Material{{
+			{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			nil,
+			{Name: "sA", CssClass: "a", Sticky: true},
+			{Name: "sB", CssClass: "b", Sticky: true},
+			nil,
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	ch := make(chan []byte, 128)
+	defer close(ch)
+	go drainChannel(ch)
+
+	p := &Player{
+		id: "tp", updates: ch, actions: createDefaultActions(),
+		tangible: true, camera: newCamera(ch),
+		world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{},
+	}
+	p.placeOnStage(stage, 0, 0)
+	moveEast(p)
+
+	if stage.tiles[0][1].interactable != nil {
+		t.Fatal("expected tile 0,1 to be empty after push")
+	}
+	if ia := stage.tiles[0][2].interactable; ia == nil || ia.name != "sA" {
+		t.Fatal("expected sA at 0,2")
+	}
+	if ia := stage.tiles[0][3].interactable; ia == nil || ia.name != "sB" {
+		t.Fatal("expected sB at 0,3")
+	}
+}
+
+func TestStickyPairPushesWest(t *testing.T) {
+	// [_] [A] [B] [_]  -- push west <--  [A] [B] [_] [_]
+	area := Area{
+		Name: "sticky-pair-west",
+		Tiles: [][]Material{{
+			{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			nil,
+			{Name: "sA", CssClass: "a", Sticky: true},
+			{Name: "sB", CssClass: "b", Sticky: true},
+			nil,
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	ch := make(chan []byte, 128)
+	defer close(ch)
+	go drainChannel(ch)
+
+	p := &Player{
+		id: "tp", updates: ch, actions: createDefaultActions(),
+		tangible: true, camera: newCamera(ch),
+		world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{},
+	}
+	p.placeOnStage(stage, 0, 3)
+	moveWest(p)
+
+	if ia := stage.tiles[0][0].interactable; ia == nil || ia.name != "sA" {
+		t.Fatal("expected sA at 0,0")
+	}
+	if ia := stage.tiles[0][1].interactable; ia == nil || ia.name != "sB" {
+		t.Fatal("expected sB at 0,1")
+	}
+	if stage.tiles[0][2].interactable != nil {
+		t.Fatal("expected tile 0,2 to be empty after push")
+	}
+}
+
+func TestStickyLShapePushesSouth(t *testing.T) {
+	// L-shape: A at (0,1), B at (1,1), C at (1,2)
+	// Push south from (0,0)->moveEast onto A
+	//
+	// Before:        After:
+	//  _ A _ _        _ _ _ _
+	//  _ B C _        _ A _ _
+	//  _ _ _ _        _ B C _
+	//  _ _ _ _        _ _ _ _
+	area := Area{
+		Name: "sticky-L-south",
+		Tiles: [][]Material{
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+		},
+		Interactables: [][]*InteractableDescription{
+			{nil, {Name: "sA", CssClass: "a", Sticky: true}, nil, nil},
+			{nil, {Name: "sB", CssClass: "b", Sticky: true}, {Name: "sC", CssClass: "c", Sticky: true}, nil},
+			{nil, nil, nil, nil},
+			{nil, nil, nil, nil},
+		},
+	}
+
+	stage := createStageFromArea(area)
+	ch := make(chan []byte, 128)
+	defer close(ch)
+	go drainChannel(ch)
+
+	// Player pushes south from above A
+	p := &Player{
+		id: "tp", updates: ch, actions: createDefaultActions(),
+		tangible: true, camera: newCamera(ch),
+		world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{},
+	}
+
+	// Place player at (0,0), then push towards A via moving east (which triggers push on A's tile)
+	// Actually, to push south, player needs to be north of A and move south.
+	// A is at (0,1). We can't be at (-1,1). Let's rearrange.
+	// Put player at (0,2) and have it push west into C. But we want south push.
+
+	// Let's test via direct push call instead:
+	aTile := stage.tiles[0][1]
+	p.placeOnStage(stage, 0, 0)
+
+	// Direct push: push A's tile southward
+	result := p.push(aTile, nil, 1, 0)
+	if !result {
+		t.Fatal("expected sticky L-shape push south to succeed")
+	}
+
+	if stage.tiles[0][1].interactable != nil {
+		t.Fatal("expected 0,1 to be empty")
+	}
+	if ia := stage.tiles[1][1].interactable; ia == nil || ia.name != "sA" {
+		t.Fatal("expected sA at 1,1")
+	}
+	if ia := stage.tiles[2][1].interactable; ia == nil || ia.name != "sB" {
+		t.Fatal("expected sB at 2,1")
+	}
+	if ia := stage.tiles[2][2].interactable; ia == nil || ia.name != "sC" {
+		t.Fatal("expected sC at 2,2")
+	}
+}
+
+func TestStickyGroupBlockedByWall(t *testing.T) {
+	// [wall] [A] [B] [_]  -- push west should fail (wall blocks A)
+	area := Area{
+		Name: "sticky-blocked-wall",
+		Tiles: [][]Material{{
+			{Walkable: false}, {Walkable: true}, {Walkable: true}, {Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			nil,
+			{Name: "sA", CssClass: "a", Sticky: true},
+			{Name: "sB", CssClass: "b", Sticky: true},
+			nil,
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	ch := make(chan []byte, 128)
+	defer close(ch)
+	go drainChannel(ch)
+
+	p := &Player{
+		id: "tp", updates: ch, actions: createDefaultActions(),
+		tangible: true, camera: newCamera(ch),
+		world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{},
+	}
+	p.placeOnStage(stage, 0, 3)
+	moveWest(p)
+
+	// Group should NOT have moved
+	if ia := stage.tiles[0][1].interactable; ia == nil || ia.name != "sA" {
+		t.Fatal("expected sA to remain at 0,1 (blocked by wall)")
+	}
+	if ia := stage.tiles[0][2].interactable; ia == nil || ia.name != "sB" {
+		t.Fatal("expected sB to remain at 0,2 (blocked by wall)")
+	}
+}
+
+func TestStickyGroupBlockedByOccupiedTile(t *testing.T) {
+	// [_] [A] [B] [nonSticky] -- push east should fail (static block blocks B)
+	area := Area{
+		Name: "sticky-blocked-occupied",
+		Tiles: [][]Material{{
+			{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			nil,
+			{Name: "sA", CssClass: "a", Sticky: true},
+			{Name: "sB", CssClass: "b", Sticky: true},
+			{Name: "blocker", CssClass: "x"},
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	ch := make(chan []byte, 128)
+	defer close(ch)
+	go drainChannel(ch)
+
+	p := &Player{
+		id: "tp", updates: ch, actions: createDefaultActions(),
+		tangible: true, camera: newCamera(ch),
+		world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{},
+	}
+	p.placeOnStage(stage, 0, 0)
+	moveEast(p)
+
+	// Group should NOT have moved
+	if ia := stage.tiles[0][1].interactable; ia == nil || ia.name != "sA" {
+		t.Fatal("expected sA to remain at 0,1")
+	}
+	if ia := stage.tiles[0][2].interactable; ia == nil || ia.name != "sB" {
+		t.Fatal("expected sB to remain at 0,2")
+	}
+	if ia := stage.tiles[0][3].interactable; ia == nil || ia.name != "blocker" {
+		t.Fatal("expected blocker to remain at 0,3")
+	}
+}
+
+func TestStickyGroupBlockedByEdge(t *testing.T) {
+	// [A] [B] -- push west should fail (edge of stage blocks A)
+	area := Area{
+		Name: "sticky-blocked-edge",
+		Tiles: [][]Material{{
+			{Walkable: true}, {Walkable: true}, {Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			{Name: "sA", CssClass: "a", Sticky: true},
+			{Name: "sB", CssClass: "b", Sticky: true},
+			nil,
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	ch := make(chan []byte, 128)
+	defer close(ch)
+	go drainChannel(ch)
+
+	p := &Player{
+		id: "tp", updates: ch, actions: createDefaultActions(),
+		tangible: true, camera: newCamera(ch),
+		world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{},
+	}
+	p.placeOnStage(stage, 0, 2)
+	moveWest(p)
+
+	// Group should NOT have moved
+	if ia := stage.tiles[0][0].interactable; ia == nil || ia.name != "sA" {
+		t.Fatal("expected sA to remain at 0,0")
+	}
+	if ia := stage.tiles[0][1].interactable; ia == nil || ia.name != "sB" {
+		t.Fatal("expected sB to remain at 0,1")
+	}
+}
+
+func TestBallPushesIntoStickyGroup(t *testing.T) {
+	// [_] [ball] [sA] [sB] [_]  -- push east -->  [_] [_] [ball] [sA] [sB]
+	area := Area{
+		Name: "ball-into-sticky",
+		Tiles: [][]Material{{
+			{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			nil,
+			{Name: "ball", CssClass: "ball", Pushable: true},
+			{Name: "sA", CssClass: "a", Sticky: true},
+			{Name: "sB", CssClass: "b", Sticky: true},
+			nil,
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	ch := make(chan []byte, 128)
+	defer close(ch)
+	go drainChannel(ch)
+
+	p := &Player{
+		id: "tp", updates: ch, actions: createDefaultActions(),
+		tangible: true, camera: newCamera(ch),
+		world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{},
+	}
+	p.placeOnStage(stage, 0, 0)
+	moveEast(p)
+
+	if stage.tiles[0][1].interactable != nil {
+		t.Fatal("expected tile 0,1 to be empty")
+	}
+	if ia := stage.tiles[0][2].interactable; ia == nil || ia.name != "ball" {
+		t.Fatal("expected ball at 0,2")
+	}
+	if ia := stage.tiles[0][3].interactable; ia == nil || ia.name != "sA" {
+		t.Fatal("expected sA at 0,3")
+	}
+	if ia := stage.tiles[0][4].interactable; ia == nil || ia.name != "sB" {
+		t.Fatal("expected sB at 0,4")
+	}
+}
+
+func TestNonStickyDoesNotJoinGroup(t *testing.T) {
+	// [_] [sA] [pushable] [sB] [_]
+	// pushable is NOT sticky, so sA and sB should move independently
+	area := Area{
+		Name: "non-sticky-gap",
+		Tiles: [][]Material{{
+			{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			nil,
+			{Name: "sA", CssClass: "a", Sticky: true},
+			{Name: "mid", CssClass: "m", Pushable: true},
+			{Name: "sB", CssClass: "b", Sticky: true},
+			nil,
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	ch := make(chan []byte, 128)
+	defer close(ch)
+	go drainChannel(ch)
+
+	p := &Player{
+		id: "tp", updates: ch, actions: createDefaultActions(),
+		tangible: true, camera: newCamera(ch),
+		world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{},
+	}
+	p.placeOnStage(stage, 0, 0)
+	moveEast(p)
+
+	// sA is alone (not connected to sB because mid is not sticky).
+	// sA pushes east, pushing mid ahead of it? No — sticky group push doesn't
+	// chain-push non-group members. It fails if any dest is occupied.
+	// So sA can't move because mid is in its way.
+	// Actually: sA's destination is 0,2 where mid sits (non-group). Push fails.
+	if ia := stage.tiles[0][1].interactable; ia == nil || ia.name != "sA" {
+		t.Fatal("expected sA to remain at 0,1 (blocked by non-sticky mid)")
+	}
+	if ia := stage.tiles[0][2].interactable; ia == nil || ia.name != "mid" {
+		t.Fatal("expected mid to remain at 0,2")
+	}
+}
+
+func TestStickyStateSwitchWithStates(t *testing.T) {
+	// Verify that sticky propagates through interactable states.
+	area := Area{
+		Name: "sticky-state-test",
+		Tiles: [][]Material{{
+			{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			nil,
+			{
+				Name:         "sA",
+				CssClass:     "a",
+				Sticky:       true,
+				DefaultState: "default",
+				States: map[string]InteractableStateDescription{
+					"default": {CssClass: "a", Sticky: true},
+					"inert":   {CssClass: "a-off", Sticky: false},
+				},
+			},
+			{Name: "sB", CssClass: "b", Sticky: true},
+			nil,
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	sATile := stage.tiles[0][1]
+	sA := sATile.interactable
+	if sA == nil || !sA.sticky {
+		t.Fatal("expected sA to be sticky in default state")
+	}
+
+	// Switch to inert state
+	sA.applyState("inert")
+	if sA.sticky {
+		t.Fatal("expected sA to NOT be sticky in inert state")
+	}
+
+	// Push should treat sA as non-sticky (and it's not pushable either in inert state)
+	ch := make(chan []byte, 128)
+	defer close(ch)
+	go drainChannel(ch)
+
+	p := &Player{
+		id: "tp", updates: ch, actions: createDefaultActions(),
+		tangible: true, camera: newCamera(ch),
+		world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{},
+	}
+	p.placeOnStage(stage, 0, 0)
+	moveEast(p)
+
+	// sA should be blocking (not pushable, not sticky, not walkable in inert)
+	if ia := stage.tiles[0][1].interactable; ia == nil || ia.name != "sA" {
+		t.Fatal("expected inert sA to remain at 0,1")
+	}
+}
+
+func TestStickySquarePushesNorth(t *testing.T) {
+	// 2x2 square of sticky blocks pushed north
+	//  _ _ _ _       _ _ _ _
+	//  _ _ _ _  -->  _ A B _
+	//  _ A B _       _ C D _
+	//  _ C D _       _ _ _ _
+	//  _ _ _ _       _ _ _ _
+	area := Area{
+		Name: "sticky-square-north",
+		Tiles: [][]Material{
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+		},
+		Interactables: [][]*InteractableDescription{
+			{nil, nil, nil, nil},
+			{nil, nil, nil, nil},
+			{nil, {Name: "sA", CssClass: "a", Sticky: true}, {Name: "sB", CssClass: "b", Sticky: true}, nil},
+			{nil, {Name: "sC", CssClass: "c", Sticky: true}, {Name: "sD", CssClass: "d", Sticky: true}, nil},
+			{nil, nil, nil, nil},
+		},
+	}
+
+	stage := createStageFromArea(area)
+	ch := make(chan []byte, 128)
+	defer close(ch)
+	go drainChannel(ch)
+
+	p := &Player{
+		id: "tp", updates: ch, actions: createDefaultActions(),
+		tangible: true, camera: newCamera(ch),
+		world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{},
+	}
+	p.placeOnStage(stage, 4, 1)
+	moveNorth(p) // push into sC at (3,1)
+
+	if ia := stage.tiles[1][1].interactable; ia == nil || ia.name != "sA" {
+		t.Fatalf("expected sA at 1,1, got %v", ia)
+	}
+	if ia := stage.tiles[1][2].interactable; ia == nil || ia.name != "sB" {
+		t.Fatalf("expected sB at 1,2, got %v", ia)
+	}
+	if ia := stage.tiles[2][1].interactable; ia == nil || ia.name != "sC" {
+		t.Fatalf("expected sC at 2,1, got %v", ia)
+	}
+	if ia := stage.tiles[2][2].interactable; ia == nil || ia.name != "sD" {
+		t.Fatalf("expected sD at 2,2, got %v", ia)
+	}
+	if stage.tiles[3][1].interactable != nil || stage.tiles[3][2].interactable != nil {
+		t.Fatal("expected old positions (3,1) and (3,2) to be empty")
+	}
+}

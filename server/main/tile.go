@@ -413,7 +413,7 @@ func walkable(tile *Tile) bool {
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
 	if tile.interactable != nil {
-		return tile.interactable.pushable || tile.interactable.walkable
+		return tile.interactable.pushable || tile.interactable.walkable || tile.interactable.sticky
 
 	}
 	return true

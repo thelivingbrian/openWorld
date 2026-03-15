@@ -2815,7 +2815,17 @@
         "DefaultTileColor": "",
         "DefaultTileColor1": ""
       },
-      "transports": [],
+      "transports": [
+        {
+          "sourceY": 13,
+          "sourceX": 13,
+          "destY": 1,
+          "destX": 1,
+          "destStage": "sticky-l-group",
+          "confirmation": false,
+          "rejectInteractable": false
+        }
+      ],
       "south": "arcade:1-0",
       "east": "arcade:0-1",
       "mapId": "",
