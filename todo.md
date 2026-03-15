@@ -9,6 +9,8 @@
 - [-] Minimum streak for most dangerous (Possibly just for award but possibly for inclusion in heap as well)
   - [ ] Do not award new most dangerous on logout? - No Ties but legitmate person may get overlooked even with continued steeak
 - [ ] Canvas based interactive/realtime stage map? 
+- [ ] Smaller than 16 x 16 stage/area occupies only part of screen
+- [ ] thin lines behind tiles with ground on some screens 
 
 ## Interactables and puzzles
 - [-] mutable 'state' property for interactables
@@ -16,14 +18,17 @@
   - [-] can be used as 'reactsWith' gate (e.g. state is/is not/contains)
 - [-] transmit push movement
   - [-] reaction with nil
-  - [ ] sends push to other interactables by state or type
+  - [-] sends push to other interactables by state or type
   - [ ] allow for rotation or scale of push vector
-- [ ] sticky blocks 
-  - [ ] will stick together
-  - [ ] requires polyomino based pushing logic
-    - [ ] pushable fragments? 
-- [ ] new puzzle
-  - [ ] new space in collection:escape demonstrating the new functionality 
+- [-] sticky blocks 
+  - [-] will stick together
+  - [-] requires polyomino based pushing logic
+  - [ ] do not juke sticky in a group 
+  - [ ] QUESTION: Can sticky blocks be non-walkable / non-pushable
+- [ ] pushable fragments
+  - [ ] use polyomino pushing logic but are not inherently sticky
+- [-] new puzzle
+  - [-] new space in collection:escape demonstrating the new functionality 
 
 ## Integration 
 - [ ] Python rewrite
@@ -113,6 +118,7 @@
   - [-] Can prevent manually with "pass-all" interactable
   - [-] is applied in tutorial 
   - [ ] Apply to rest of world
+  - [ ] can occur with juke 
   - [ ] Include automatically via engine? 
 
 ## Bugs
@@ -141,7 +147,7 @@ One way or two way.
     - Count number of updates? 
   x choose license
     x AGPLv3 
-  - modularize interactions
+  x modularize interactions
   x better workspace css 
   - Highscore from menu
   x Horizontal mobile
@@ -161,7 +167,7 @@ One way or two way.
    - [-] Basic
    - [ ] Clean up old spawns (e.g. method signature changes)
    - [ ] from design workspace
- - [ ] Programmable interactable state 
+ - [-] Programmable interactable state 
 
 type []byte(update) 100 times
 
