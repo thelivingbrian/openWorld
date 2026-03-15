@@ -15,4 +15,5 @@ High-level architecture reference for agents and contributors.
 
 ## Operational Notes
 - Keep design changes in tools and runtime behavior changes in server aligned.
+- Server is used by multiple players concurrently, changes must prioritize stability then performance.
 - Prefer focused tests near changed packages before broad test runs.
