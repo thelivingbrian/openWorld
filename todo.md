@@ -1,4 +1,4 @@
-# Todo List (note: ai agents use ./.ai/backlog.md)
+# Todo List (note: ai agents use .ai/backlog.md)
 
 ## Engine
 - [ ] Admin screen
