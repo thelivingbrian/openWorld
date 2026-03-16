@@ -13,6 +13,7 @@ type InteractableStateDescription struct {
 	Walkable       bool           `json:"walkable,omitempty"`
 	Fragile        bool           `json:"fragile,omitempty"`
 	Sticky         bool           `json:"sticky,omitempty"`
+	StickyGroup    string         `json:"stickyGroup,omitempty"`
 	RejectTeleport bool           `json:"rejectTeleport,omitempty"`
 	Reactions      string         `json:"reactions,omitempty"`
 	ReactionRules  []ReactionRule `json:"reactionRules,omitempty"`
@@ -30,6 +31,7 @@ type InteractableDescription struct {
 	Walkable       bool                                    `json:"walkable"`
 	Fragile        bool                                    `json:"fragile"`
 	Sticky         bool                                    `json:"sticky"`
+	StickyGroup    string                                  `json:"stickyGroup,omitempty"`
 	RejectTeleport bool                                    `json:"rejectTeleport,omitempty"`
 	Reactions      string                                  `json:"reactions"`
 	ReactionRules  []ReactionRule                          `json:"reactionRules,omitempty"`

@@ -288,6 +288,10 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 		return pushStickyGroup(tile, incoming, yOff, xOff)
 	}
 
+	if tile.interactable.stickyGroup != "" {
+		return pushStickyGroupByProperty(tile, incoming, yOff, xOff)
+	}
+
 	if tile.interactable.pushable {
 		nextTile := getRelativeTile(tile, yOff, xOff, p)
 		if nextTile != nil {
@@ -446,6 +450,10 @@ func (npc *NonPlayer) push(tile *Tile, incoming *Interactable, yOff, xOff int) b
 		return pushStickyGroup(tile, incoming, yOff, xOff)
 	}
 
+	if tile.interactable.stickyGroup != "" {
+		return pushStickyGroupByProperty(tile, incoming, yOff, xOff)
+	}
+
 	if tile.interactable.pushable {
 		nextTile := getRelativeTile(tile, yOff, xOff, npc)
 		if nextTile != nil {
@@ -473,6 +481,27 @@ func (npc *NonPlayer) push(tile *Tile, incoming *Interactable, yOff, xOff int) b
 //     from damage (explosions) as usual.
 
 func pushStickyGroup(startTile *Tile, incoming *Interactable, yOff, xOff int) bool {
+	return pushConnectedGroup(startTile, incoming, yOff, xOff, shouldStickTogether)
+}
+
+func pushStickyGroupByProperty(startTile *Tile, incoming *Interactable, yOff, xOff int) bool {
+	return pushConnectedGroup(startTile, incoming, yOff, xOff, shouldStickTogether)
+}
+
+func shouldStickTogether(source, candidate *Interactable) bool {
+	if source == nil || candidate == nil {
+		return false
+	}
+	if source.sticky && candidate.sticky {
+		return true
+	}
+	if source.stickyGroup != "" && source.stickyGroup == candidate.stickyGroup {
+		return true
+	}
+	return false
+}
+
+func pushConnectedGroup(startTile *Tile, incoming *Interactable, yOff, xOff int, shouldLink func(*Interactable, *Interactable) bool) bool {
 	stage := startTile.stage
 	if stage == nil {
 		return false
@@ -495,12 +524,13 @@ func pushStickyGroup(startTile *Tile, incoming *Interactable, yOff, xOff int) bo
 
 			ownLock := neighbor.interactableMutex.TryLock()
 			if !ownLock {
-				// Tile is locked by another operation (likely the push chain
+				// Tile is locked by another operation (likely
+				// the push chain
 				// that invoked us). Skip – it can't be part of our group.
 				continue
 			}
 
-			if neighbor.interactable != nil && neighbor.interactable.sticky {
+			if cur.interactable != nil && neighbor.interactable != nil && shouldLink(cur.interactable, neighbor.interactable) {
 				group = append(group, neighbor)
 				inGroup[neighbor] = true
 				extraLocks = append(extraLocks, neighbor)
@@ -533,6 +563,15 @@ func pushStickyGroup(startTile *Tile, incoming *Interactable, yOff, xOff int) bo
 	}()
 
 	for _, src := range group {
+		if src.interactable == nil || !src.interactable.pushable {
+			return false
+		}
+		if hasCharacters(src) {
+			return false
+		}
+	}
+
+	for _, src := range group {
 		dy, dx := src.y+yOff, src.x+xOff
 		if !validCoordinate(dy, dx, stage) {
 			return false
@@ -554,6 +593,10 @@ func pushStickyGroup(startTile *Tile, incoming *Interactable, yOff, xOff int) bo
 			return false
 		}
 		destLocks = append(destLocks, dest)
+
+		if hasCharacters(dest) {
+			return false
+		}
 
 		if dest.interactable != nil {
 			return false // occupied by non-group interactable
@@ -885,7 +928,9 @@ func swapIfEmpty(source, target *Tile) bool {
 	if source.interactable == nil || !source.interactable.pushable {
 		return false
 	}
-	// Todo check here if interactable is in sticky group and reject if so ?
+	if source.interactable.sticky || source.interactable.stickyGroup != "" {
+		return false
+	}
 	ownTarget := target.interactableMutex.TryLock()
 	if !ownTarget {
 		return false

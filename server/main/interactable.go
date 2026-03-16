@@ -18,6 +18,7 @@ type Interactable struct {
 	cssClass       string
 	fragile        bool
 	sticky         bool
+	stickyGroup    string
 	reactions      []InteractableReaction // Lowest index match wins
 	rejectTeleport bool
 }
@@ -28,6 +29,7 @@ type InteractableState struct {
 	walkable       bool
 	fragile        bool
 	sticky         bool
+	stickyGroup    string
 	reactions      []InteractableReaction
 	rejectTeleport bool
 }
@@ -319,6 +321,7 @@ func (source *Interactable) applyState(stateName string) bool {
 	source.walkable = state.walkable
 	source.fragile = state.fragile
 	source.sticky = state.sticky
+	source.stickyGroup = state.stickyGroup
 	source.reactions = state.reactions
 	source.rejectTeleport = state.rejectTeleport
 

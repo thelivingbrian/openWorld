@@ -2,13 +2,13 @@
 
 Shared queue for human + agent execution.
 
-Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
+Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE` | `PAUSED`
 
 ## Current In-Progress (single primary)
 
 | Task ID | Title | Owner | Started | Notes |
 |---|---|---|---|---|
-| _none_ | _none_ | _unassigned_ | _n/a_ | Last complete: AI-013 (2026-03-14). Set next task to `IN_PROGRESS` and mirror it here. |
+| _none_ | _none_ | _unassigned_ | _n/a_ | Last complete: AI-025 (2026-03-15). Set next task to `IN_PROGRESS` and mirror it here. |
 
 ## Backlog
 
@@ -22,7 +22,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 | AI-006 | DONE | P1 | Interactables | Implement transmit push movement | copilot | 2026-03-14 | Added `transmitPushAll` reaction with offset-aware runtime wiring, editor registry entry, and focused tests. |
 | AI-007 | DONE | P2 | Interactables | Add transmit push reaction with `nil` | copilot | 2026-03-14 | Confirmed `interactableIsNil -> transmitPushAll` wiring and fixed right/down over-push bug by processing tiles in direction-aware order; added focused regressions. |
 | AI-008 | DONE | P1 | Interactables | Send push to other interactables by `state` or `name` | copilot | 2026-03-14 | Added `transmitPushByState` and `transmitPushByName` reactions (direction-safe ordering retained), wired SPA registry entries, and added focused server tests for resolution and selective movement. |
-| AI-009 | TODO | P2 | Interactables | Allow rotation/scale of transmitted push vector | unassigned | 2026-03-14 | Decide transform syntax compatibility. |
+| AI-009 | PAUSED | P2 | Interactables | Allow rotation/scale of transmitted push vector | unassigned | 2026-03-14 | Decide transform syntax compatibility. |
 | AI-010 | DONE | P1 | Physics | Implement sticky blocks that stick together | copilot | 2026-03-14 | Added `sticky` bool field across server Go (Interactable, InteractableState, startup descriptions, stage wiring), tools Go (InteractableDescription, InteractableStateDescription, compile pipeline), and SPA TypeScript (editor models, component, template). |
 | AI-011 | DONE | P1 | Physics | Add polyomino-based pushing logic | copilot | 2026-03-14 | Added `pushStickyGroup()` BFS-based group discovery with atomic multi-tile movement; integrated into Player.push/NonPlayer.push; wrote 10 focused tests covering pairs, L-shapes, squares, and edge cases. |
 | AI-012 | DONE | P2 | Physics | Decide/implement pushable fragment behavior | copilot | 2026-03-14 | Design decision: fragile members in sticky groups do NOT break on failed push; they only break from damage reactions. All group members must clear for push to succeed. |
@@ -35,6 +35,10 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE`
 | AI-019 | DONE | P2 | Interactables | Verify transmitPushAll concurrency safety | copilot | 2026-03-14 | Added concurrent deadlock-focused `transmitPushAll` test (simultaneous opposite directions) and targeted transmit tests pass; `-race` requires local `gcc` toolchain (not available in current env). |
 | AI-020 | DONE | P1 | Tools | Fix SPA interactable state editing UX | copilot | 2026-03-14 | Added state rename control/action in editor and fixed cross-state reaction rule coupling by deep-cloning state config/rule arrays when creating new states; added focused SPA regression tests. |
 | AI-021 | DONE | P1 | Tools | Fix deploy default interactable state precedence | copilot | 2026-03-14 | Compiler now prioritizes tile `interactableState` then `defaultState` (not stale base `state`); added resolver regression tests in `tools/main/context_test.go`. |
+| AI-022 | DONE | P1 | Physics | Prevent sticky-group juke movement | copilot | 2026-03-15 | `swapIfEmpty` now rejects sticky/grouped entities, preventing juke desync for sticky groups. |
+| AI-023 | DONE | P2 | Physics | Support non-walkable sticky blocks | copilot | 2026-03-15 | `walkable()` no longer treats `sticky` as implicitly walkable; added regressions for non-walkable sticky movement blocking and player occupancy blocking group moves. |
+| AI-024 | DONE | P2 | Physics | Support non-pushable sticky blocks in groups | copilot | 2026-03-15 | Sticky group pushes now require every connected member to be pushable; any non-pushable sticky member blocks the whole group push. |
+| AI-025 | DONE | P2 | Interactables | Add pushable fragments (non-sticky) | copilot | 2026-03-15 | Added fragment polyomino push for connected non-sticky pushables named `fragment-*` and covered with focused server tests. |
 
 ## Protocol
 - Pick one `TODO` item and set to `IN_PROGRESS`.

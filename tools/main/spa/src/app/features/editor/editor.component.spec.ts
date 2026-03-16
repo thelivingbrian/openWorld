@@ -313,6 +313,7 @@ describe('EditorComponent', () => {
         pushable: false,
         walkable: false,
         fragile: false,
+        stickyGroup: '',
       }),
     );
   });

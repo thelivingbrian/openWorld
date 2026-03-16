@@ -172,3 +172,57 @@ func TestEnsureCharacterCanRotateInteractables(t *testing.T) {
 		t.Error("Should be able to rotate off of non-walkable")
 	}
 }
+
+func TestSwapIfEmptyRejectsStickyInteractable(t *testing.T) {
+	area := Area{
+		Name: "sticky-no-juke",
+		Tiles: [][]Material{{
+			{Walkable: true}, {Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			{Name: "sA", CssClass: "a", Pushable: true, Sticky: true},
+			nil,
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	source := stage.tiles[0][0]
+	target := stage.tiles[0][1]
+
+	if swapIfEmpty(source, target) {
+		t.Fatal("expected juke swap to fail for sticky interactable")
+	}
+	if source.interactable == nil || source.interactable.name != "sA" {
+		t.Fatal("expected sticky interactable to remain on source tile")
+	}
+	if target.interactable != nil {
+		t.Fatal("expected target tile to remain empty")
+	}
+}
+
+func TestSwapIfEmptyRejectsStickyGroupInteractable(t *testing.T) {
+	area := Area{
+		Name: "sticky-group-no-juke",
+		Tiles: [][]Material{{
+			{Walkable: true}, {Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			{Name: "g1", CssClass: "a", Pushable: true, StickyGroup: "group-1"},
+			nil,
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	source := stage.tiles[0][0]
+	target := stage.tiles[0][1]
+
+	if swapIfEmpty(source, target) {
+		t.Fatal("expected juke swap to fail for sticky-group interactable")
+	}
+	if source.interactable == nil || source.interactable.name != "g1" {
+		t.Fatal("expected sticky-group interactable to remain on source tile")
+	}
+	if target.interactable != nil {
+		t.Fatal("expected target tile to remain empty")
+	}
+}
