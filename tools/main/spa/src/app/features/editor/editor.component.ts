@@ -1367,8 +1367,7 @@ export class EditorComponent {
           pushable: false,
           walkable: false,
           fragile: false,
-          sticky: false,
-          stickyGroup: '',
+          stickyGroups: [],
           rejectTeleport: false,
           reactions: '',
           reactionRules: [],
@@ -1378,8 +1377,7 @@ export class EditorComponent {
       pushable: false,
       walkable: false,
       fragile: false,
-      sticky: false,
-      stickyGroup: '',
+      stickyGroups: [],
       reactions: '',
       reactionRules: [],
     };
@@ -1628,8 +1626,7 @@ export class EditorComponent {
         pushable: false,
         walkable: false,
         fragile: false,
-        sticky: false,
-        stickyGroup: '',
+        stickyGroups: [],
         rejectTeleport: false,
         reactions: '',
         reactionRules: [],
@@ -1761,8 +1758,7 @@ export class EditorComponent {
           pushable: false,
           walkable: false,
           fragile: false,
-          sticky: false,
-          stickyGroup: '',
+          stickyGroups: [],
           rejectTeleport: false,
           reactions: '',
           reactionRules: [],
@@ -1799,8 +1795,7 @@ export class EditorComponent {
         pushable: Boolean(interactable.pushable),
         walkable: Boolean(interactable.walkable),
         fragile: Boolean(interactable.fragile),
-        sticky: Boolean(interactable.sticky),
-        stickyGroup: interactable.stickyGroup ?? '',
+        stickyGroups: this.normalizeStickyGroups(interactable.stickyGroups),
         rejectTeleport: Boolean(interactable.rejectTeleport),
         reactions: interactable.reactions ?? '',
         reactionRules: this.cloneReactionRules(interactable.reactionRules),
@@ -1827,8 +1822,7 @@ export class EditorComponent {
     interactable.pushable = config.pushable;
     interactable.walkable = config.walkable;
     interactable.fragile = config.fragile;
-    interactable.sticky = config.sticky;
-    interactable.stickyGroup = config.stickyGroup ?? '';
+    interactable.stickyGroups = this.normalizeStickyGroups(config.stickyGroups);
     interactable.rejectTeleport = config.rejectTeleport;
     interactable.reactions = config.reactions;
     interactable.reactionRules = config.reactionRules;
@@ -1859,14 +1853,52 @@ export class EditorComponent {
     return (rules ?? []).map((rule) => this.cloneReactionRule(rule));
   }
 
+  protected stickyGroupsDisplay(state: InteractableStateDescription): string {
+    return this.normalizeStickyGroups(state?.stickyGroups).join(',');
+  }
+
+  protected setStickyGroupsFromInput(state: InteractableStateDescription, input: string): void {
+    if (!state) {
+      return;
+    }
+    state.stickyGroups = this.normalizeStickyGroups(input);
+    const interactable = this.editedInteractable();
+    if (interactable) {
+      this.syncTopLevelFromCurrentState(interactable);
+    }
+    this.touchBootstrap();
+  }
+
+  private normalizeStickyGroups(value: unknown): string[] {
+    if (Array.isArray(value)) {
+      const normalized: string[] = [];
+      for (const entry of value) {
+        if (typeof entry !== 'string') {
+          continue;
+        }
+        const group = entry.trim();
+        if (!group || normalized.includes(group)) {
+          continue;
+        }
+        normalized.push(group);
+      }
+      return normalized;
+    }
+
+    if (typeof value === 'string') {
+      return this.normalizeStickyGroups(value.split(','));
+    }
+
+    return [];
+  }
+
   private cloneInteractableStateConfig(state: InteractableStateDescription): InteractableStateDescription {
     return {
       cssClass: state.cssClass,
       pushable: state.pushable,
       walkable: state.walkable,
       fragile: state.fragile,
-      sticky: state.sticky,
-      stickyGroup: state.stickyGroup ?? '',
+      stickyGroups: this.normalizeStickyGroups(state.stickyGroups),
       rejectTeleport: state.rejectTeleport,
       reactions: state.reactions,
       reactionRules: this.cloneReactionRules(state.reactionRules),
@@ -1894,8 +1926,7 @@ export class EditorComponent {
       pushable: config.pushable,
       walkable: config.walkable,
       fragile: config.fragile,
-      sticky: config.sticky,
-      stickyGroup: config.stickyGroup ?? '',
+      stickyGroups: this.normalizeStickyGroups(config.stickyGroups),
       rejectTeleport: config.rejectTeleport,
       reactions: config.reactions,
       reactionRules: config.reactionRules,
@@ -2217,8 +2248,7 @@ export class EditorComponent {
               pushable: Boolean(state.pushable ?? state.Pushable),
               walkable: Boolean(state.walkable ?? state.Walkable),
               fragile: Boolean(state.fragile ?? state.Fragile),
-              sticky: Boolean(state.sticky ?? state.Sticky),
-              stickyGroup: (state.stickyGroup ?? state.StickyGroup ?? '') as string,
+              stickyGroups: this.normalizeStickyGroups(state.stickyGroups ?? state.StickyGroups),
               rejectTeleport: Boolean(state.rejectTeleport ?? state.RejectTeleport),
               reactions: state.reactions ?? state.Reactions ?? '',
               reactionRules: (state.reactionRules ?? state.ReactionRules ?? []).map((rule: any) => ({
@@ -2237,8 +2267,7 @@ export class EditorComponent {
               pushable: Boolean(entry.pushable ?? entry.Pushable),
               walkable: Boolean(entry.walkable ?? entry.Walkable),
               fragile: Boolean(entry.fragile ?? entry.Fragile),
-              sticky: Boolean(entry.sticky ?? entry.Sticky),
-              stickyGroup: (entry.stickyGroup ?? entry.StickyGroup ?? '') as string,
+              stickyGroups: this.normalizeStickyGroups(entry.stickyGroups ?? entry.StickyGroups),
               rejectTeleport: Boolean(entry.rejectTeleport ?? entry.RejectTeleport),
               reactions: entry.reactions ?? entry.Reactions ?? '',
               reactionRules: legacyRules,
@@ -2259,8 +2288,7 @@ export class EditorComponent {
             pushable: selectedConfig.pushable,
             walkable: selectedConfig.walkable,
             fragile: selectedConfig.fragile,
-            sticky: selectedConfig.sticky,
-            stickyGroup: selectedConfig.stickyGroup ?? '',
+            stickyGroups: this.normalizeStickyGroups(selectedConfig.stickyGroups),
             rejectTeleport: selectedConfig.rejectTeleport,
             reactions: selectedConfig.reactions,
             reactionRules: selectedConfig.reactionRules,

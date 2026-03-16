@@ -241,8 +241,7 @@ type InteractableStateDescription struct {
 	Pushable       bool           `json:"pushable,omitempty"`
 	Walkable       bool           `json:"walkable,omitempty"`
 	Fragile        bool           `json:"fragile,omitempty"`
-	Sticky         bool           `json:"sticky,omitempty"`
-	StickyGroup    string         `json:"stickyGroup,omitempty"`
+	StickyGroups   []string       `json:"stickyGroups,omitempty"`
 	RejectTeleport bool           `json:"rejectTeleport,omitempty"`
 	Reactions      string         `json:"reactions,omitempty"`
 	ReactionRules  []ReactionRule `json:"reactionRules,omitempty"`
@@ -259,11 +258,30 @@ type InteractableDescription struct {
 	Pushable       bool                                    `json:"pushable"`
 	Walkable       bool                                    `json:"walkable"`
 	Fragile        bool                                    `json:"fragile"`
-	Sticky         bool                                    `json:"sticky"`
-	StickyGroup    string                                  `json:"stickyGroup,omitempty"`
+	StickyGroups   []string                                `json:"stickyGroups,omitempty"`
 	RejectTeleport bool                                    `json:"rejectTeleport,omitempty"`
 	Reactions      string                                  `json:"reactions"`
 	ReactionRules  []ReactionRule                          `json:"reactionRules,omitempty"`
+}
+
+func normalizeStickyGroups(stickyGroups []string) []string {
+	seen := map[string]bool{}
+	out := make([]string, 0)
+
+	add := func(v string) {
+		trimmed := strings.TrimSpace(v)
+		if trimmed == "" || seen[trimmed] {
+			return
+		}
+		seen[trimmed] = true
+		out = append(out, trimmed)
+	}
+
+	for _, group := range stickyGroups {
+		add(group)
+	}
+
+	return out
 }
 
 var (

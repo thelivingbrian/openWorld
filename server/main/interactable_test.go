@@ -756,6 +756,86 @@ func TestTransmitPushAllConcurrentDirectionsCompletesWithoutDeadlock(t *testing.
 	}
 }
 
+func TestTransmitPushStickyCollisionDoesNotCollapseInteractables(t *testing.T) {
+	area := Area{
+		Name: "transmit-push-sticky-collision",
+		Tiles: [][]Material{{
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+			{Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			nil,
+			{
+				Name:     "transmitter",
+				CssClass: "transmitter",
+				Walkable: true,
+				ReactionRules: []ReactionRule{
+					{ReactsWith: "interactableIsNil", Reaction: "transmitPushAll"},
+				},
+			},
+			{
+				Name:         "sticky-a",
+				CssClass:     "sticky",
+				Pushable:     true,
+				Walkable:     true,
+				StickyGroups: []string{"sticky"},
+			},
+			nil,
+			{
+				Name:         "sticky-b",
+				CssClass:     "sticky",
+				Pushable:     true,
+				Walkable:     true,
+				StickyGroups: []string{"sticky"},
+			},
+			{
+				Name:     "wall",
+				CssClass: "wall",
+				Pushable: false,
+				Walkable: false,
+			},
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	if stage == nil {
+		t.Fatal("expected stage")
+	}
+
+	transmitterTile := stage.tiles[0][1]
+	transmitter := transmitterTile.interactable
+	if transmitter == nil {
+		t.Fatal("expected transmitter interactable at 0,1")
+	}
+
+	initiator := &Player{world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{}}
+
+	if !transmitter.React(nil, initiator, transmitterTile, 0, 1) {
+		t.Fatal("expected first transmit reaction to trigger")
+	}
+	if !transmitter.React(nil, initiator, transmitterTile, 0, 1) {
+		t.Fatal("expected second transmit reaction to trigger")
+	}
+
+	stickyCount := 0
+	for _, tile := range stage.tiles[0] {
+		if tile.interactable != nil && (tile.interactable.name == "sticky-a" || tile.interactable.name == "sticky-b") {
+			stickyCount++
+		}
+	}
+
+	if stickyCount != 2 {
+		t.Fatalf("expected 2 sticky interactables after transmitted collision, got %d", stickyCount)
+	}
+	if stage.tiles[0][3].interactable == nil || stage.tiles[0][4].interactable == nil {
+		t.Fatal("expected sticky interactables to remain as two occupied tiles at 0,3 and 0,4")
+	}
+}
+
 ///////////////////////////////////////////////////////////////////
 // Sticky Group (Polyomino) Push Tests
 
@@ -768,8 +848,8 @@ func TestStickyPairPushesEast(t *testing.T) {
 		}},
 		Interactables: [][]*InteractableDescription{{
 			nil,
-			{Name: "sA", CssClass: "a", Pushable: true, Sticky: true},
-			{Name: "sB", CssClass: "b", Pushable: true, Sticky: true},
+			{Name: "sA", CssClass: "a", Pushable: true, StickyGroups: []string{"sticky"}},
+			{Name: "sB", CssClass: "b", Pushable: true, StickyGroups: []string{"sticky"}},
 			nil,
 		}},
 	}
@@ -798,6 +878,54 @@ func TestStickyPairPushesEast(t *testing.T) {
 	}
 }
 
+func TestStickyInteriorNilIncomingPushDoesNotDropMember(t *testing.T) {
+	area := Area{
+		Name: "sticky-interior-nil-incoming",
+		Tiles: [][]Material{
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+		},
+		Interactables: [][]*InteractableDescription{
+			{{Name: "a", CssClass: "a", Pushable: true, StickyGroups: []string{"sticky"}}, {Name: "b", CssClass: "b", Pushable: true, StickyGroups: []string{"sticky"}}, nil, nil},
+			{{Name: "c", CssClass: "c", Pushable: true, StickyGroups: []string{"sticky"}}, nil, nil, nil},
+		},
+	}
+
+	stage := createStageFromArea(area)
+	if stage == nil {
+		t.Fatal("expected stage")
+	}
+
+	p := &Player{world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{}}
+
+	// Start from interior tile b with nil incoming (transmit-style behavior).
+	if ok := p.push(stage.tiles[0][1], nil, 0, 1); !ok {
+		t.Fatal("expected interior nil-incoming sticky push east to succeed")
+	}
+
+	count := 0
+	for y := range stage.tiles {
+		for x := range stage.tiles[y] {
+			if stage.tiles[y][x].interactable != nil {
+				count++
+			}
+		}
+	}
+
+	if count != 3 {
+		t.Fatalf("expected all 3 sticky members to remain after push, got %d", count)
+	}
+	if ia := stage.tiles[0][1].interactable; ia == nil || ia.name != "a" {
+		t.Fatal("expected a at 0,1")
+	}
+	if ia := stage.tiles[0][2].interactable; ia == nil || ia.name != "b" {
+		t.Fatal("expected b at 0,2")
+	}
+	if ia := stage.tiles[1][1].interactable; ia == nil || ia.name != "c" {
+		t.Fatal("expected c at 1,1")
+	}
+}
+
 func TestStickyPairPushesWest(t *testing.T) {
 	// [_] [A] [B] [_]  -- push west <--  [A] [B] [_] [_]
 	area := Area{
@@ -807,8 +935,8 @@ func TestStickyPairPushesWest(t *testing.T) {
 		}},
 		Interactables: [][]*InteractableDescription{{
 			nil,
-			{Name: "sA", CssClass: "a", Pushable: true, Sticky: true},
-			{Name: "sB", CssClass: "b", Pushable: true, Sticky: true},
+			{Name: "sA", CssClass: "a", Pushable: true, StickyGroups: []string{"sticky"}},
+			{Name: "sB", CssClass: "b", Pushable: true, StickyGroups: []string{"sticky"}},
 			nil,
 		}},
 	}
@@ -855,8 +983,8 @@ func TestStickyLShapePushesSouth(t *testing.T) {
 			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
 		},
 		Interactables: [][]*InteractableDescription{
-			{nil, {Name: "sA", CssClass: "a", Pushable: true, Sticky: true}, nil, nil},
-			{nil, {Name: "sB", CssClass: "b", Pushable: true, Sticky: true}, {Name: "sC", CssClass: "c", Pushable: true, Sticky: true}, nil},
+			{nil, {Name: "sA", CssClass: "a", Pushable: true, StickyGroups: []string{"sticky"}}, nil, nil},
+			{nil, {Name: "sB", CssClass: "b", Pushable: true, StickyGroups: []string{"sticky"}}, {Name: "sC", CssClass: "c", Pushable: true, StickyGroups: []string{"sticky"}}, nil},
 			{nil, nil, nil, nil},
 			{nil, nil, nil, nil},
 		},
@@ -912,8 +1040,8 @@ func TestStickyGroupBlockedByWall(t *testing.T) {
 		}},
 		Interactables: [][]*InteractableDescription{{
 			nil,
-			{Name: "sA", CssClass: "a", Pushable: true, Sticky: true},
-			{Name: "sB", CssClass: "b", Pushable: true, Sticky: true},
+			{Name: "sA", CssClass: "a", Pushable: true, StickyGroups: []string{"sticky"}},
+			{Name: "sB", CssClass: "b", Pushable: true, StickyGroups: []string{"sticky"}},
 			nil,
 		}},
 	}
@@ -949,8 +1077,8 @@ func TestStickyGroupBlockedByOccupiedTile(t *testing.T) {
 		}},
 		Interactables: [][]*InteractableDescription{{
 			nil,
-			{Name: "sA", CssClass: "a", Pushable: true, Sticky: true},
-			{Name: "sB", CssClass: "b", Pushable: true, Sticky: true},
+			{Name: "sA", CssClass: "a", Pushable: true, StickyGroups: []string{"sticky"}},
+			{Name: "sB", CssClass: "b", Pushable: true, StickyGroups: []string{"sticky"}},
 			{Name: "blocker", CssClass: "x"},
 		}},
 	}
@@ -988,8 +1116,8 @@ func TestStickyGroupBlockedByEdge(t *testing.T) {
 			{Walkable: true}, {Walkable: true}, {Walkable: true},
 		}},
 		Interactables: [][]*InteractableDescription{{
-			{Name: "sA", CssClass: "a", Pushable: true, Sticky: true},
-			{Name: "sB", CssClass: "b", Pushable: true, Sticky: true},
+			{Name: "sA", CssClass: "a", Pushable: true, StickyGroups: []string{"sticky"}},
+			{Name: "sB", CssClass: "b", Pushable: true, StickyGroups: []string{"sticky"}},
 			nil,
 		}},
 	}
@@ -1025,8 +1153,8 @@ func TestStickyGroupCrossesStageBoundaryEast(t *testing.T) {
 		}},
 		Interactables: [][]*InteractableDescription{{
 			nil,
-			{Name: "sA", CssClass: "a", Pushable: true, Sticky: true},
-			{Name: "sB", CssClass: "b", Pushable: true, Sticky: true},
+			{Name: "sA", CssClass: "a", Pushable: true, StickyGroups: []string{"sticky"}},
+			{Name: "sB", CssClass: "b", Pushable: true, StickyGroups: []string{"sticky"}},
 		}},
 	}
 
@@ -1084,8 +1212,8 @@ func TestBallPushesIntoStickyGroup(t *testing.T) {
 		Interactables: [][]*InteractableDescription{{
 			nil,
 			{Name: "ball", CssClass: "ball", Pushable: true},
-			{Name: "sA", CssClass: "a", Pushable: true, Sticky: true},
-			{Name: "sB", CssClass: "b", Pushable: true, Sticky: true},
+			{Name: "sA", CssClass: "a", Pushable: true, StickyGroups: []string{"sticky"}},
+			{Name: "sB", CssClass: "b", Pushable: true, StickyGroups: []string{"sticky"}},
 			nil,
 		}},
 	}
@@ -1117,6 +1245,49 @@ func TestBallPushesIntoStickyGroup(t *testing.T) {
 	}
 }
 
+func TestBallPushesIntoStickyGroupWest(t *testing.T) {
+	// [_] [sA] [sB] [ball] [_]  -- push west -->  [sA] [sB] [ball] [_] [_]
+	area := Area{
+		Name: "ball-into-sticky-west",
+		Tiles: [][]Material{{
+			{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			nil,
+			{Name: "sA", CssClass: "a", Pushable: true, StickyGroups: []string{"sticky"}},
+			{Name: "sB", CssClass: "b", Pushable: true, StickyGroups: []string{"sticky"}},
+			{Name: "ball", CssClass: "ball", Pushable: true},
+			nil,
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	ch := make(chan []byte, 128)
+	defer close(ch)
+	go drainChannel(ch)
+
+	p := &Player{
+		id: "tp", updates: ch, actions: createDefaultActions(),
+		tangible: true, camera: newCamera(ch),
+		world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{},
+	}
+	p.placeOnStage(stage, 0, 4)
+	moveWest(p)
+
+	if stage.tiles[0][3].interactable != nil {
+		t.Fatal("expected tile 0,3 to be empty")
+	}
+	if ia := stage.tiles[0][2].interactable; ia == nil || ia.name != "ball" {
+		t.Fatal("expected ball at 0,2")
+	}
+	if ia := stage.tiles[0][1].interactable; ia == nil || ia.name != "sB" {
+		t.Fatal("expected sB at 0,1")
+	}
+	if ia := stage.tiles[0][0].interactable; ia == nil || ia.name != "sA" {
+		t.Fatal("expected sA at 0,0")
+	}
+}
+
 func TestNonStickyDoesNotJoinGroup(t *testing.T) {
 	// [_] [sA] [pushable] [sB] [_]
 	// pushable is NOT sticky, so sA and sB should move independently
@@ -1127,9 +1298,9 @@ func TestNonStickyDoesNotJoinGroup(t *testing.T) {
 		}},
 		Interactables: [][]*InteractableDescription{{
 			nil,
-			{Name: "sA", CssClass: "a", Pushable: true, Sticky: true},
+			{Name: "sA", CssClass: "a", Pushable: true, StickyGroups: []string{"sticky"}},
 			{Name: "mid", CssClass: "m", Pushable: true},
-			{Name: "sB", CssClass: "b", Pushable: true, Sticky: true},
+			{Name: "sB", CssClass: "b", Pushable: true, StickyGroups: []string{"sticky"}},
 			nil,
 		}},
 	}
@@ -1173,14 +1344,14 @@ func TestStickyStateSwitchWithStates(t *testing.T) {
 				Name:         "sA",
 				CssClass:     "a",
 				Pushable:     true,
-				Sticky:       true,
+				StickyGroups: []string{"sticky"},
 				DefaultState: "default",
 				States: map[string]InteractableStateDescription{
-					"default": {CssClass: "a", Pushable: true, Sticky: true},
-					"inert":   {CssClass: "a-off", Pushable: false, Sticky: false},
+					"default": {CssClass: "a", Pushable: true, StickyGroups: []string{"sticky"}},
+					"inert":   {CssClass: "a-off", Pushable: false},
 				},
 			},
-			{Name: "sB", CssClass: "b", Pushable: true, Sticky: true},
+			{Name: "sB", CssClass: "b", Pushable: true, StickyGroups: []string{"sticky"}},
 			nil,
 		}},
 	}
@@ -1188,13 +1359,13 @@ func TestStickyStateSwitchWithStates(t *testing.T) {
 	stage := createStageFromArea(area)
 	sATile := stage.tiles[0][1]
 	sA := sATile.interactable
-	if sA == nil || !sA.sticky {
+	if sA == nil || len(sA.stickGroups) == 0 {
 		t.Fatal("expected sA to be sticky in default state")
 	}
 
 	// Switch to inert state
 	sA.applyState("inert")
-	if sA.sticky {
+	if len(sA.stickGroups) > 0 {
 		t.Fatal("expected sA to NOT be sticky in inert state")
 	}
 
@@ -1236,8 +1407,8 @@ func TestStickySquarePushesNorth(t *testing.T) {
 		Interactables: [][]*InteractableDescription{
 			{nil, nil, nil, nil},
 			{nil, nil, nil, nil},
-			{nil, {Name: "sA", CssClass: "a", Pushable: true, Sticky: true}, {Name: "sB", CssClass: "b", Pushable: true, Sticky: true}, nil},
-			{nil, {Name: "sC", CssClass: "c", Pushable: true, Sticky: true}, {Name: "sD", CssClass: "d", Pushable: true, Sticky: true}, nil},
+			{nil, {Name: "sA", CssClass: "a", Pushable: true, StickyGroups: []string{"sticky"}}, {Name: "sB", CssClass: "b", Pushable: true, StickyGroups: []string{"sticky"}}, nil},
+			{nil, {Name: "sC", CssClass: "c", Pushable: true, StickyGroups: []string{"sticky"}}, {Name: "sD", CssClass: "d", Pushable: true, StickyGroups: []string{"sticky"}}, nil},
 			{nil, nil, nil, nil},
 		},
 	}
@@ -1280,8 +1451,8 @@ func TestStickyGroupBlockedByNonPushableMember(t *testing.T) {
 		}},
 		Interactables: [][]*InteractableDescription{{
 			nil,
-			{Name: "sA", CssClass: "a", Pushable: true, Sticky: true},
-			{Name: "sB", CssClass: "b", Pushable: false, Sticky: true},
+			{Name: "sA", CssClass: "a", Pushable: true, StickyGroups: []string{"sticky"}},
+			{Name: "sB", CssClass: "b", Pushable: false, StickyGroups: []string{"sticky"}},
 			nil,
 		}},
 	}
@@ -1315,7 +1486,7 @@ func TestNonWalkableStickyBlocksMovement(t *testing.T) {
 		}},
 		Interactables: [][]*InteractableDescription{{
 			nil,
-			{Name: "sA", CssClass: "a", Pushable: false, Walkable: false, Sticky: true},
+			{Name: "sA", CssClass: "a", Pushable: false, Walkable: false, StickyGroups: []string{"sticky"}},
 		}},
 	}
 
@@ -1348,8 +1519,8 @@ func TestStickyGroupBlockedByPlayerOccupant(t *testing.T) {
 		}},
 		Interactables: [][]*InteractableDescription{{
 			nil,
-			{Name: "sA", CssClass: "a", Pushable: true, Sticky: true},
-			{Name: "sB", CssClass: "b", Pushable: true, Sticky: true},
+			{Name: "sA", CssClass: "a", Pushable: true, StickyGroups: []string{"sticky"}},
+			{Name: "sB", CssClass: "b", Pushable: true, StickyGroups: []string{"sticky"}},
 			nil,
 		}},
 	}
@@ -1390,8 +1561,8 @@ func TestStickyGroupMovesAsPolyominoGroup(t *testing.T) {
 		}},
 		Interactables: [][]*InteractableDescription{{
 			nil,
-			{Name: "g1-a", CssClass: "f", Pushable: true, Sticky: false, StickyGroup: "g1"},
-			{Name: "g1-b", CssClass: "f", Pushable: true, Sticky: false, StickyGroup: "g1"},
+			{Name: "g1-a", CssClass: "f", Pushable: true, StickyGroups: []string{"g1"}},
+			{Name: "g1-b", CssClass: "f", Pushable: true, StickyGroups: []string{"g1"}},
 			nil,
 		}},
 	}
@@ -1428,8 +1599,8 @@ func TestStickyIgnoresGroupAndLinksOtherSticky(t *testing.T) {
 		}},
 		Interactables: [][]*InteractableDescription{{
 			nil,
-			{Name: "sticky-a", CssClass: "a", Pushable: true, Sticky: true, StickyGroup: "g1"},
-			{Name: "sticky-b", CssClass: "b", Pushable: true, Sticky: true, StickyGroup: "g2"},
+			{Name: "sticky-a", CssClass: "a", Pushable: true, StickyGroups: []string{"sticky", "g1"}},
+			{Name: "sticky-b", CssClass: "b", Pushable: true, StickyGroups: []string{"sticky", "g2"}},
 			nil,
 		}},
 	}
@@ -1455,5 +1626,48 @@ func TestStickyIgnoresGroupAndLinksOtherSticky(t *testing.T) {
 	}
 	if ia := stage.tiles[0][3].interactable; ia == nil || ia.name != "sticky-b" {
 		t.Fatal("expected sticky-b at 0,3")
+	}
+}
+
+func TestStickyGroupsSupportsMultipleMemberships(t *testing.T) {
+	// [_] [B:left] [A:left,right] [C:right] [_] -- push east --> [_] [_] [B] [A] [C]
+	area := Area{
+		Name: "stick-group-multi-membership",
+		Tiles: [][]Material{{
+			{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			nil,
+			{Name: "b", CssClass: "b", Pushable: true, StickyGroups: []string{"left"}},
+			{Name: "a", CssClass: "a", Pushable: true, StickyGroups: []string{"left", "right"}},
+			{Name: "c", CssClass: "c", Pushable: true, StickyGroups: []string{"right"}},
+			nil,
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	ch := make(chan []byte, 128)
+	defer close(ch)
+	go drainChannel(ch)
+
+	p := &Player{
+		id: "tp", updates: ch, actions: createDefaultActions(),
+		tangible: true, camera: newCamera(ch),
+		world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{},
+	}
+	p.placeOnStage(stage, 0, 0)
+	moveEast(p)
+
+	if stage.tiles[0][1].interactable != nil {
+		t.Fatal("expected original head tile to be empty")
+	}
+	if ia := stage.tiles[0][2].interactable; ia == nil || ia.name != "b" {
+		t.Fatal("expected b at 0,2")
+	}
+	if ia := stage.tiles[0][3].interactable; ia == nil || ia.name != "a" {
+		t.Fatal("expected a at 0,3")
+	}
+	if ia := stage.tiles[0][4].interactable; ia == nil || ia.name != "c" {
+		t.Fatal("expected c at 0,4")
 	}
 }

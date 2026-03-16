@@ -292,7 +292,7 @@ func (col *Collection) resolveInteractableByTile(tile TileData) *InteractableDes
 			Pushable:       out.Pushable,
 			Walkable:       out.Walkable,
 			Fragile:        out.Fragile,
-			Sticky:         out.Sticky,
+			StickyGroups:   append([]string(nil), out.StickyGroups...),
 			RejectTeleport: out.RejectTeleport,
 			Reactions:      out.Reactions,
 			ReactionRules:  out.ReactionRules,
@@ -310,7 +310,7 @@ func (col *Collection) resolveInteractableByTile(tile TileData) *InteractableDes
 	out.Pushable = selected.Pushable
 	out.Walkable = selected.Walkable
 	out.Fragile = selected.Fragile
-	out.Sticky = selected.Sticky
+	out.StickyGroups = append([]string(nil), selected.StickyGroups...)
 	out.RejectTeleport = selected.RejectTeleport
 	out.Reactions = selected.Reactions
 	out.ReactionRules = append([]ReactionRule(nil), selected.ReactionRules...)

@@ -180,7 +180,7 @@ func TestSwapIfEmptyRejectsStickyInteractable(t *testing.T) {
 			{Walkable: true}, {Walkable: true},
 		}},
 		Interactables: [][]*InteractableDescription{{
-			{Name: "sA", CssClass: "a", Pushable: true, Sticky: true},
+			{Name: "sA", CssClass: "a", Pushable: true, StickyGroups: []string{"sticky"}},
 			nil,
 		}},
 	}
@@ -207,7 +207,7 @@ func TestSwapIfEmptyRejectsStickyGroupInteractable(t *testing.T) {
 			{Walkable: true}, {Walkable: true},
 		}},
 		Interactables: [][]*InteractableDescription{{
-			{Name: "g1", CssClass: "a", Pushable: true, StickyGroup: "group-1"},
+			{Name: "g1", CssClass: "a", Pushable: true, StickyGroups: []string{"group-1"}},
 			nil,
 		}},
 	}

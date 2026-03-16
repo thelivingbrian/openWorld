@@ -17,8 +17,7 @@ type Interactable struct {
 	walkable       bool
 	cssClass       string
 	fragile        bool
-	sticky         bool
-	stickyGroup    string
+	stickGroups    []string
 	reactions      []InteractableReaction // Lowest index match wins
 	rejectTeleport bool
 }
@@ -28,8 +27,7 @@ type InteractableState struct {
 	pushable       bool
 	walkable       bool
 	fragile        bool
-	sticky         bool
-	stickyGroup    string
+	stickGroups    []string
 	reactions      []InteractableReaction
 	rejectTeleport bool
 }
@@ -48,7 +46,7 @@ func init() {
 		"black-hole": {
 			{ReactsWith: interactableHasName("ball-fuchsia"), Reaction: hideByTeam("fuchsia")},
 			{ReactsWith: interactableHasName("ball-sky-blue"), Reaction: hideByTeam("sky-blue")},
-			{ReactsWith: everything, Reaction: eat},
+			{ReactsWith: everythingButNil, Reaction: eat},
 		},
 		"goal-sky-blue": {
 			{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: scoreGoalForTeam("sky-blue")},
@@ -320,8 +318,7 @@ func (source *Interactable) applyState(stateName string) bool {
 	source.pushable = state.pushable
 	source.walkable = state.walkable
 	source.fragile = state.fragile
-	source.sticky = state.sticky
-	source.stickyGroup = state.stickyGroup
+	source.stickGroups = append([]string(nil), state.stickGroups...)
 	source.reactions = state.reactions
 	source.rejectTeleport = state.rejectTeleport
 
@@ -333,6 +330,10 @@ func (source *Interactable) applyState(stateName string) bool {
 
 func everything(*Interactable, *Player) bool {
 	return true
+}
+
+func everythingButNil(i *Interactable, _ *Player) bool {
+	return i != nil
 }
 
 func never(*Interactable, *Player) bool {
@@ -485,20 +486,25 @@ func transmitPushMatching(p *Player, t *Tile, yOff, xOff int, include func(*Inte
 		return nil, false
 	}
 
-	tilesToPush := make([]*Tile, 0)
+	type tilePushSnapshot struct {
+		tile         *Tile
+		interactable *Interactable
+	}
+
+	tilesToPush := make([]tilePushSnapshot, 0)
 	for row := range t.stage.tiles {
 		for col := range t.stage.tiles[row] {
 			tile := t.stage.tiles[row][col]
 			if tile == t || tile.interactable == nil || !include(tile.interactable) {
 				continue
 			}
-			tilesToPush = append(tilesToPush, tile)
+			tilesToPush = append(tilesToPush, tilePushSnapshot{tile: tile, interactable: tile.interactable})
 		}
 	}
 
 	sort.Slice(tilesToPush, func(i, j int) bool {
-		a := tilesToPush[i]
-		b := tilesToPush[j]
+		a := tilesToPush[i].tile
+		b := tilesToPush[j].tile
 
 		if yOff > 0 && a.y != b.y {
 			return a.y > b.y
@@ -519,11 +525,14 @@ func transmitPushMatching(p *Player, t *Tile, yOff, xOff int, include func(*Inte
 		return a.x < b.x
 	})
 
-	for _, tile := range tilesToPush {
-		if tile.interactable == nil {
+	for _, snapshot := range tilesToPush {
+		if snapshot.tile.interactable == nil {
 			continue
 		}
-		p.push(tile, nil, yOff, xOff)
+		if snapshot.tile.interactable != snapshot.interactable {
+			continue
+		}
+		p.push(snapshot.tile, nil, yOff, xOff)
 	}
 
 	return nil, false

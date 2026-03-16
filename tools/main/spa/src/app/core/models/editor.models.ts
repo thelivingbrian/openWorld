@@ -111,8 +111,7 @@ export interface InteractableStateDescription {
   pushable: boolean;
   walkable: boolean;
   fragile: boolean;
-  sticky: boolean;
-  stickyGroup?: string;
+  stickyGroups?: string[];
   rejectTeleport?: boolean;
   reactions: string;
   reactionRules: ReactionRule[];
@@ -129,8 +128,7 @@ export interface InteractableDescription {
   pushable: boolean;
   walkable: boolean;
   fragile: boolean;
-  sticky: boolean;
-  stickyGroup?: string;
+  stickyGroups?: string[];
   rejectTeleport?: boolean;
   reactions: string;
   reactionRules: ReactionRule[];

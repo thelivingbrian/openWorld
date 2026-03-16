@@ -16,7 +16,6 @@
     "pushable": true,
     "walkable": false,
     "fragile": true,
-    "sticky": false,
     "reactions": ""
   },
   {
@@ -36,7 +35,6 @@
     "pushable": true,
     "walkable": false,
     "fragile": true,
-    "sticky": false,
     "reactions": ""
   },
   {
@@ -55,7 +53,6 @@
     "pushable": false,
     "walkable": false,
     "fragile": false,
-    "sticky": false,
     "reactions": "target-lavender"
   },
   {
@@ -75,7 +72,6 @@
     "pushable": true,
     "walkable": false,
     "fragile": true,
-    "sticky": false,
     "reactions": ""
   },
   {
@@ -94,7 +90,6 @@
     "pushable": false,
     "walkable": false,
     "fragile": false,
-    "sticky": false,
     "reactions": "target-dark-lavender"
   },
   {
@@ -110,7 +105,6 @@
     "pushable": false,
     "walkable": false,
     "fragile": false,
-    "sticky": false,
     "reactions": ""
   },
   {
@@ -123,14 +117,18 @@
       "default": {
         "cssClass": "teal r0 white-b thin",
         "pushable": true,
-        "sticky": true
+        "stickyGroups": [
+          "sticky"
+        ]
       }
     },
     "cssClass": "teal r0 white-b thin",
     "pushable": true,
     "walkable": false,
     "fragile": false,
-    "sticky": true,
+    "stickyGroups": [
+      "sticky"
+    ],
     "reactions": ""
   },
   {
@@ -142,14 +140,20 @@
     "states": {
       "default": {
         "cssClass": "purple white-b thin",
-        "sticky": true
+        "stickyGroups": [
+          "sticky",
+          "magnetic"
+        ]
       }
     },
     "cssClass": "purple white-b thin",
     "pushable": false,
     "walkable": false,
     "fragile": false,
-    "sticky": true,
+    "stickyGroups": [
+      "sticky",
+      "magnetic"
+    ],
     "reactions": ""
   },
   {
@@ -162,14 +166,18 @@
       "default": {
         "cssClass": "half-gray r1",
         "pushable": true,
-        "stickyGroup": "magnetic"
+        "stickyGroups": [
+          "magnetic"
+        ]
       }
     },
-    "cssClass": "",
-    "pushable": false,
+    "cssClass": "half-gray r1",
+    "pushable": true,
     "walkable": false,
     "fragile": false,
-    "sticky": false,
+    "stickyGroups": [
+      "magnetic"
+    ],
     "reactions": ""
   }
 ]

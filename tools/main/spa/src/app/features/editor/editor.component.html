@@ -362,8 +362,7 @@
             <label>Pushable <input type="checkbox" [(ngModel)]="editedInteractableState()!.pushable" /></label>
             <label>Walkable <input type="checkbox" [(ngModel)]="editedInteractableState()!.walkable" /></label>
             <label>Fragile <input type="checkbox" [(ngModel)]="editedInteractableState()!.fragile" /></label>
-            <label>Sticky <input type="checkbox" [(ngModel)]="editedInteractableState()!.sticky" /></label>
-            <label>Sticky Group <input [(ngModel)]="editedInteractableState()!.stickyGroup" placeholder="e.g. blue-group" /></label>
+            <label>Sticky Groups <input [ngModel]="stickyGroupsDisplay(editedInteractableState()!)" (ngModelChange)="setStickyGroupsFromInput(editedInteractableState()!, $event)" placeholder="e.g. blue-group, magnetic" /></label>
             <label>Reject Teleport <input type="checkbox" [(ngModel)]="editedInteractableState()!.rejectTeleport" /></label>
             <label>Preset Reactions <input [(ngModel)]="editedInteractableState()!.reactions" placeholder="e.g. black-hole (overridden by rules)" /></label>
           </div>
@@ -434,8 +433,7 @@
               · {{ editedInteractableState()!.walkable ? 'Walkable' : 'Blocked' }}
               · {{ editedInteractableState()!.pushable ? 'Pushable' : 'Static' }}
               · {{ editedInteractableState()!.fragile ? 'Fragile' : 'Sturdy' }}
-              · {{ editedInteractableState()!.sticky ? 'Sticky' : '' }}
-              · {{ editedInteractableState()!.stickyGroup ? ('StickyGroup:' + editedInteractableState()!.stickyGroup) : '' }}
+              · {{ editedInteractableState()!.stickyGroups?.length ? ('StickyGroups:' + editedInteractableState()!.stickyGroups!.join(',')) : '' }}
               · {{ editedInteractableState()!.reactionRules?.length ? (editedInteractableState()!.reactionRules.length + ' rule(s)') : (editedInteractableState()!.reactions || 'no reactions') }}
             </p>
           </div>

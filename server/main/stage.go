@@ -106,6 +106,7 @@ func createStageFromArea(area Area) *Stage {
 			if area.Interactables != nil && y < len(area.Interactables) && x < len(area.Interactables[y]) {
 				description := area.Interactables[y][x]
 				if description != nil {
+					stickGroups := normalizeStickyGroups(description.StickyGroups)
 					var reaction []InteractableReaction
 					if len(description.ReactionRules) > 0 {
 						reaction = resolveReactionRules(description.ReactionRules)
@@ -120,8 +121,7 @@ func createStageFromArea(area Area) *Stage {
 						pushable:       description.Pushable,
 						walkable:       description.Walkable,
 						fragile:        description.Fragile,
-						sticky:         description.Sticky,
-						stickyGroup:    description.StickyGroup,
+						stickGroups:    stickGroups,
 						reactions:      reaction,
 						rejectTeleport: description.RejectTeleport,
 					}
@@ -133,6 +133,7 @@ func createStageFromArea(area Area) *Stage {
 					if len(description.States) > 0 {
 						interactable.states = make(map[string]InteractableState, len(description.States))
 						for stateName, stateDescription := range description.States {
+							stateStickGroups := normalizeStickyGroups(stateDescription.StickyGroups)
 							stateReactions := interactableReactions[stateDescription.Reactions]
 							if len(stateDescription.ReactionRules) > 0 {
 								stateReactions = resolveReactionRules(stateDescription.ReactionRules)
@@ -141,7 +142,7 @@ func createStageFromArea(area Area) *Stage {
 								cssClass: stateDescription.CssClass,
 								pushable: stateDescription.Pushable,
 								walkable: stateDescription.Walkable,
-								fragile:  stateDescription.Fragile, sticky: stateDescription.Sticky, stickyGroup: stateDescription.StickyGroup, reactions: stateReactions,
+								fragile:  stateDescription.Fragile, stickGroups: stateStickGroups, reactions: stateReactions,
 								rejectTeleport: stateDescription.RejectTeleport,
 							}
 						}
@@ -152,8 +153,7 @@ func createStageFromArea(area Area) *Stage {
 								pushable:       interactable.pushable,
 								walkable:       interactable.walkable,
 								fragile:        interactable.fragile,
-								sticky:         interactable.sticky,
-								stickyGroup:    interactable.stickyGroup,
+								stickGroups:    append([]string(nil), interactable.stickGroups...),
 								reactions:      interactable.reactions,
 								rejectTeleport: interactable.rejectTeleport,
 							}
