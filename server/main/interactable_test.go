@@ -1016,6 +1016,64 @@ func TestStickyGroupBlockedByEdge(t *testing.T) {
 	}
 }
 
+func TestStickyGroupCrossesStageBoundaryEast(t *testing.T) {
+	leftArea := Area{
+		Name: "sticky-boundary-left",
+		East: "sticky-boundary-right",
+		Tiles: [][]Material{{
+			{Walkable: true}, {Walkable: true}, {Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			nil,
+			{Name: "sA", CssClass: "a", Pushable: true, Sticky: true},
+			{Name: "sB", CssClass: "b", Pushable: true, Sticky: true},
+		}},
+	}
+
+	rightArea := Area{
+		Name: "sticky-boundary-right",
+		West: "sticky-boundary-left",
+		Tiles: [][]Material{{
+			{Walkable: true}, {Walkable: true}, {Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			nil, nil, nil,
+		}},
+	}
+
+	leftStage := createStageFromArea(leftArea)
+	rightStage := createStageFromArea(rightArea)
+
+	ch := make(chan []byte, 128)
+	defer close(ch)
+	go drainChannel(ch)
+
+	p := &Player{
+		id: "tp", updates: ch, actions: createDefaultActions(),
+		tangible: true, camera: newCamera(ch),
+		world: &World{worldStages: map[string]*Stage{
+			leftStage.name:  leftStage,
+			rightStage.name: rightStage,
+		}},
+		playerStages: map[string]*Stage{},
+	}
+	p.placeOnStage(leftStage, 0, 0)
+
+	if !p.push(leftStage.tiles[0][1], nil, 0, 1) {
+		t.Fatal("expected sticky push east across stage boundary to succeed")
+	}
+
+	if leftStage.tiles[0][1].interactable != nil {
+		t.Fatal("expected left stage tile 0,1 to be empty after boundary push")
+	}
+	if ia := leftStage.tiles[0][2].interactable; ia == nil || ia.name != "sA" {
+		t.Fatal("expected sA at left stage 0,2")
+	}
+	if ia := rightStage.tiles[0][0].interactable; ia == nil || ia.name != "sB" {
+		t.Fatal("expected sB at right stage 0,0")
+	}
+}
+
 func TestBallPushesIntoStickyGroup(t *testing.T) {
 	// [_] [ball] [sA] [sB] [_]  -- push east -->  [_] [_] [ball] [sA] [sB]
 	area := Area{

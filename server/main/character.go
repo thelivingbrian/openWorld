@@ -285,11 +285,11 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	}
 
 	if tile.interactable.sticky {
-		return pushStickyGroup(tile, incoming, yOff, xOff)
+		return pushStickyGroup(p, tile, incoming, yOff, xOff)
 	}
 
 	if tile.interactable.stickyGroup != "" {
-		return pushStickyGroupByProperty(tile, incoming, yOff, xOff)
+		return pushStickyGroupByProperty(p, tile, incoming, yOff, xOff)
 	}
 
 	if tile.interactable.pushable {
@@ -447,11 +447,11 @@ func (npc *NonPlayer) push(tile *Tile, incoming *Interactable, yOff, xOff int) b
 	}
 
 	if tile.interactable.sticky {
-		return pushStickyGroup(tile, incoming, yOff, xOff)
+		return pushStickyGroup(npc, tile, incoming, yOff, xOff)
 	}
 
 	if tile.interactable.stickyGroup != "" {
-		return pushStickyGroupByProperty(tile, incoming, yOff, xOff)
+		return pushStickyGroupByProperty(npc, tile, incoming, yOff, xOff)
 	}
 
 	if tile.interactable.pushable {
@@ -480,12 +480,12 @@ func (npc *NonPlayer) push(tile *Tile, incoming *Interactable, yOff, xOff int) b
 //   - Fragile members do NOT break on a failed push; they only break
 //     from damage (explosions) as usual.
 
-func pushStickyGroup(startTile *Tile, incoming *Interactable, yOff, xOff int) bool {
-	return pushConnectedGroup(startTile, incoming, yOff, xOff, shouldStickTogether)
+func pushStickyGroup(character Character, startTile *Tile, incoming *Interactable, yOff, xOff int) bool {
+	return pushConnectedGroup(character, startTile, incoming, yOff, xOff, shouldStickTogether)
 }
 
-func pushStickyGroupByProperty(startTile *Tile, incoming *Interactable, yOff, xOff int) bool {
-	return pushConnectedGroup(startTile, incoming, yOff, xOff, shouldStickTogether)
+func pushStickyGroupByProperty(character Character, startTile *Tile, incoming *Interactable, yOff, xOff int) bool {
+	return pushConnectedGroup(character, startTile, incoming, yOff, xOff, shouldStickTogether)
 }
 
 func shouldStickTogether(source, candidate *Interactable) bool {
@@ -501,9 +501,8 @@ func shouldStickTogether(source, candidate *Interactable) bool {
 	return false
 }
 
-func pushConnectedGroup(startTile *Tile, incoming *Interactable, yOff, xOff int, shouldLink func(*Interactable, *Interactable) bool) bool {
-	stage := startTile.stage
-	if stage == nil {
+func pushConnectedGroup(character Character, startTile *Tile, incoming *Interactable, yOff, xOff int, shouldLink func(*Interactable, *Interactable) bool) bool {
+	if character == nil || startTile == nil || startTile.stage == nil {
 		return false
 	}
 
@@ -517,7 +516,11 @@ func pushConnectedGroup(startTile *Tile, incoming *Interactable, yOff, xOff int,
 		cur := queue[0]
 		queue = queue[1:]
 
-		for _, neighbor := range getVanNeumannNeighborsOfTile(cur) {
+		for _, offset := range [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
+			neighbor := getRelativeTile(cur, offset[0], offset[1], character)
+			if neighbor == nil {
+				continue
+			}
 			if inGroup[neighbor] {
 				continue
 			}
@@ -572,11 +575,10 @@ func pushConnectedGroup(startTile *Tile, incoming *Interactable, yOff, xOff int,
 	}
 
 	for _, src := range group {
-		dy, dx := src.y+yOff, src.x+xOff
-		if !validCoordinate(dy, dx, stage) {
+		dest := getRelativeTile(src, yOff, xOff, character)
+		if dest == nil {
 			return false
 		}
-		dest := stage.tiles[dy][dx]
 
 		if inGroup[dest] {
 			// Destination is another group member – it will be vacated.
