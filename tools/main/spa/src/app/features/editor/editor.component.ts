@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { EditorApiService } from '../../core/services/editor-api.service';
@@ -1396,8 +1397,12 @@ export class EditorComponent {
       return;
     }
     this.status.set('Saving interactable set...');
-    await this.api.saveInteractableSet(colName, setName, this.interactables());
-    this.status.set('Interactable set saved.');
+    try {
+      await this.api.saveInteractableSet(colName, setName, this.interactables());
+      this.status.set('Interactable set saved.');
+    } catch (error) {
+      this.status.set(this.extractApiError(error, 'Failed to save interactable set.'));
+    }
   }
 
   // ── Reaction rule helpers ────────────────────────────────────────────
@@ -2029,6 +2034,27 @@ export class EditorComponent {
       return;
     }
     this.instructionEditedIds.update((current) => ({ ...current, [instructionId]: true }));
+  }
+
+  private extractApiError(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      if (typeof error.error === 'string' && error.error.trim()) {
+        return error.error;
+      }
+      if (error.error && typeof error.error === 'object') {
+        const message = (error.error as { error?: unknown }).error;
+        if (typeof message === 'string' && message.trim()) {
+          return message;
+        }
+      }
+      if (error.message) {
+        return error.message;
+      }
+    }
+    if (error instanceof Error && error.message.trim()) {
+      return error.message;
+    }
+    return fallback;
   }
 
   private async loadBootstrap(): Promise<void> {
