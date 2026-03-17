@@ -8,7 +8,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE` | `PAUSED`
 
 | Task ID | Title | Owner | Started | Notes |
 |---|---|---|---|---|
-| _none_ | _none_ | _unassigned_ | _n/a_ | Last complete: AI-025 (2026-03-15). Set next task to `IN_PROGRESS` and mirror it here. |
+| _none_ | _none_ | _unassigned_ | _n/a_ | Last complete: AI-026 (2026-03-17). Set next task to `IN_PROGRESS` and mirror it here. |
 
 ## Backlog
 
@@ -39,6 +39,7 @@ Status values: `TODO` | `IN_PROGRESS` | `BLOCKED` | `DONE` | `PAUSED`
 | AI-023 | DONE | P2 | Physics | Support non-walkable sticky blocks | copilot | 2026-03-15 | `walkable()` no longer treats `sticky` as implicitly walkable; added regressions for non-walkable sticky movement blocking and player occupancy blocking group moves. |
 | AI-024 | DONE | P2 | Physics | Support non-pushable sticky blocks in groups | copilot | 2026-03-15 | Sticky group pushes now require every connected member to be pushable; any non-pushable sticky member blocks the whole group push. |
 | AI-025 | DONE | P2 | Interactables | Add pushable fragments (non-sticky) | copilot | 2026-03-15 | Added fragment polyomino push for connected non-sticky pushables named `fragment-*` and covered with focused server tests. |
+| AI-026 | DONE | P1 | Physics | Lock sticky-group destination tiles during push commit | copilot | 2026-03-17 | Implemented lock-aware no-reaction destination handling in `pushConnectedGroup` to prevent destination races and reject non-empty destinations before atomic placement. |
 
 ## Protocol
 - Pick one `TODO` item and set to `IN_PROGRESS`.

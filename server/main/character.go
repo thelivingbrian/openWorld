@@ -19,7 +19,7 @@ type Character interface {
 	fetchStageSync(stagename string) *Stage
 	transferBetween(source, dest *Tile)
 	push(tile *Tile, incoming *Interactable, yOff, xOff int) bool
-	pushNoReaction(tile *Tile, incoming *Interactable, yOff, xOff int) bool
+	//pushNoReaction(tile *Tile, incoming *Interactable, yOff, xOff int) bool
 	takeDamageFrom(initiator Character, dmg int) bool
 	incrementKillCount() int64
 	incrementKillCountNpc() int64
@@ -259,15 +259,7 @@ func updateAllAfterMovement(current, previous *Tile) {
 	current.updateAll(characterBox(current))
 }
 
-func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
-	return pushReactionOptional(p, tile, incoming, yOff, xOff, false)
-}
-
-func (p *Player) pushNoReaction(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
-	return pushReactionOptional(p, tile, incoming, yOff, xOff, true)
-}
-
-func pushReactionOptional(p *Player, tile *Tile, incoming *Interactable, yOff, xOff int, preventReaction bool) bool { // Returns if given interacable successfully pushed
+func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool { // Returns if given interacable successfully pushed
 	// Do not nil check incoming interactable here.
 	// incoming = nil is valid and will continue a push chain
 	// e.g. by taking this tile's interactable and pushing it forward
@@ -289,15 +281,11 @@ func pushReactionOptional(p *Player, tile *Tile, incoming *Interactable, yOff, x
 		return replaceNilInteractable(tile, incoming)
 	}
 
-	if preventReaction && tile.interactable.reactions != nil {
-		return false
-	}
-
 	if tile.interactable.React(incoming, p, tile, yOff, xOff) {
 		return true
 	}
 
-	if hasStickGroup(tile.interactable) {
+	if hasStickyGroup(tile.interactable) {
 		return pushStickyGroup(p, tile, incoming, yOff, xOff)
 	}
 
@@ -431,11 +419,6 @@ func transferNPCBetweenTiles(npc *NonPlayer, source, dest *Tile) bool {
 	addLockedNPCToTile(npc, dest)
 	return true
 }
-
-func (npc *NonPlayer) pushNoReaction(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
-	return npc.push(tile, incoming, yOff, xOff)
-}
-
 func (npc *NonPlayer) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	if tile == nil { // incoming = nil is valid
 		return false
@@ -460,7 +443,7 @@ func (npc *NonPlayer) push(tile *Tile, incoming *Interactable, yOff, xOff int) b
 		return false
 	}
 
-	if hasStickGroup(tile.interactable) {
+	if hasStickyGroup(tile.interactable) {
 		return pushStickyGroup(npc, tile, incoming, yOff, xOff)
 	}
 
@@ -485,6 +468,10 @@ func (npc *NonPlayer) push(tile *Tile, incoming *Interactable, yOff, xOff int) b
 // being pushed).
 //.
 
+func hasStickyGroup(i *Interactable) bool {
+	return i != nil && len(i.stickyGroups) > 0
+}
+
 func pushStickyGroup(character Character, startTile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	return pushConnectedGroup(character, startTile, incoming, yOff, xOff, shouldStickTogether)
 }
@@ -506,10 +493,6 @@ func shouldStickTogether(source, candidate *Interactable) bool {
 		}
 	}
 	return false
-}
-
-func hasStickGroup(i *Interactable) bool {
-	return i != nil && len(i.stickyGroups) > 0
 }
 
 func pushConnectedGroup(character Character, startTile *Tile, incoming *Interactable, yOff, xOff int, shouldLink func(*Interactable, *Interactable) bool) bool {
@@ -568,6 +551,12 @@ func pushConnectedGroup(character Character, startTile *Tile, incoming *Interact
 		ia        *Interactable
 	}
 	moves := make([]stickyMove, 0, len(group))
+	destLocks := make([]*Tile, 0, len(group))
+	defer func() {
+		for _, t := range destLocks {
+			t.interactableMutex.Unlock()
+		}
+	}()
 
 	for _, src := range group {
 		if src.interactable == nil || !src.interactable.pushable {
@@ -599,14 +588,20 @@ func pushConnectedGroup(character Character, startTile *Tile, incoming *Interact
 			return false
 		}
 
-		result := character.pushNoReaction(dest, nil, yOff, xOff)
+		ownDest := dest.interactableMutex.TryLock()
+		if !ownDest {
+			return false
+		}
+		destLocks = append(destLocks, dest)
+
+		result := pushNoReactionLockedTile(character, dest, nil, yOff, xOff)
 		if !result {
 			return false
 		}
 
-		// dest is not locked, and tryLocking now might be too late
-		// Lock and reject if dest has interactable (unless it reacts?)
-		// could add new reactionWithGroupSize for reactions on entire groups
+		if dest.interactable != nil {
+			return false
+		}
 
 		moves = append(moves, stickyMove{src: src, dest: dest, ia: src.interactable})
 	}
@@ -645,6 +640,41 @@ func pushConnectedGroup(character Character, startTile *Tile, incoming *Interact
 	}
 
 	return true
+}
+
+// Todo: add group reaction type
+func pushNoReactionLockedTile(character Character, tile *Tile, incoming *Interactable, yOff, xOff int) bool {
+	if tile == nil {
+		return false
+	}
+
+	if hasTeleport(tile) {
+		return pushTeleport(character, tile, incoming, yOff, xOff)
+	}
+
+	if tile.interactable == nil {
+		return replaceNilInteractable(tile, incoming)
+	}
+
+	if tile.interactable.reactions != nil {
+		return false
+	}
+
+	if hasStickyGroup(tile.interactable) {
+		return pushStickyGroup(character, tile, incoming, yOff, xOff)
+	}
+
+	if tile.interactable.pushable {
+		nextTile := getRelativeTile(tile, yOff, xOff, character)
+		if nextTile != nil {
+			if character.push(nextTile, tile.interactable, yOff, xOff) {
+				setLockedInteractableAndUpdate(tile, incoming)
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func (npc *NonPlayer) takeDamageFrom(initiator Character, dmg int) bool {
@@ -939,7 +969,7 @@ func swapIfEmpty(source, target *Tile) bool {
 		return false
 	}
 	// Too agressive, only stickies that are actively in a group should be blocked
-	if hasStickGroup(source.interactable) {
+	if hasStickyGroup(source.interactable) {
 		return false
 	}
 	ownTarget := target.interactableMutex.TryLock()

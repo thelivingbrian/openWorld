@@ -19,9 +19,10 @@ Stable operating instructions for AI agents working in this repository.
 If instructions conflict, follow the higher-priority source.
 
 ## Working agreements
-- Make minimal, targeted changes.
+- Make targeted changes with terse, clever, readable code.
 - Fix root causes when practical; avoid cosmetic churn.
 - Preserve existing naming/style unless asked to refactor.
+- Define new go functions on lines below where they are first referenced 
 - Do not modify unrelated files.
 - Validate changes with focused tests when available.
 
