@@ -36,6 +36,7 @@
 - [-] new puzzle
   - [-] new space in collection:escape demonstrating the new functionality 
 - [ ] Reimplement an airlock in new system 
+- [ ] Group reaction? 
 
 ## Integration 
 - [ ] Python rewrite
