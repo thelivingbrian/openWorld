@@ -121,7 +121,7 @@ func createStageFromArea(area Area) *Stage {
 						pushable:       description.Pushable,
 						walkable:       description.Walkable,
 						fragile:        description.Fragile,
-						stickGroups:    stickGroups,
+						stickyGroups:   stickGroups,
 						reactions:      reaction,
 						rejectTeleport: description.RejectTeleport,
 					}
@@ -153,7 +153,7 @@ func createStageFromArea(area Area) *Stage {
 								pushable:       interactable.pushable,
 								walkable:       interactable.walkable,
 								fragile:        interactable.fragile,
-								stickGroups:    append([]string(nil), interactable.stickGroups...),
+								stickGroups:    append([]string(nil), interactable.stickyGroups...),
 								reactions:      interactable.reactions,
 								rejectTeleport: interactable.rejectTeleport,
 							}

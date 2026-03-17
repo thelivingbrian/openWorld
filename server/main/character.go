@@ -493,14 +493,14 @@ func shouldStickTogether(source, candidate *Interactable) bool {
 	if source == nil || candidate == nil {
 		return false
 	}
-	if len(source.stickGroups) == 0 || len(candidate.stickGroups) == 0 {
+	if len(source.stickyGroups) == 0 || len(candidate.stickyGroups) == 0 {
 		return false
 	}
-	groups := make(map[string]struct{}, len(source.stickGroups))
-	for _, group := range source.stickGroups {
+	groups := make(map[string]struct{}, len(source.stickyGroups))
+	for _, group := range source.stickyGroups {
 		groups[group] = struct{}{}
 	}
-	for _, group := range candidate.stickGroups {
+	for _, group := range candidate.stickyGroups {
 		if _, ok := groups[group]; ok {
 			return true
 		}
@@ -509,7 +509,7 @@ func shouldStickTogether(source, candidate *Interactable) bool {
 }
 
 func hasStickGroup(i *Interactable) bool {
-	return i != nil && len(i.stickGroups) > 0
+	return i != nil && len(i.stickyGroups) > 0
 }
 
 func pushConnectedGroup(character Character, startTile *Tile, incoming *Interactable, yOff, xOff int, shouldLink func(*Interactable, *Interactable) bool) bool {

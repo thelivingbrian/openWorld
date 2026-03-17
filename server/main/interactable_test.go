@@ -1355,13 +1355,13 @@ func TestStickyStateSwitchWithStates(t *testing.T) {
 	stage := createStageFromArea(area)
 	sATile := stage.tiles[0][1]
 	sA := sATile.interactable
-	if sA == nil || len(sA.stickGroups) == 0 {
+	if sA == nil || len(sA.stickyGroups) == 0 {
 		t.Fatal("expected sA to be sticky in default state")
 	}
 
 	// Switch to inert state
 	sA.applyState("inert")
-	if len(sA.stickGroups) > 0 {
+	if len(sA.stickyGroups) > 0 {
 		t.Fatal("expected sA to NOT be sticky in inert state")
 	}
 
