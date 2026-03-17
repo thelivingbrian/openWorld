@@ -1288,7 +1288,7 @@ func TestBallPushesIntoStickyGroupWest(t *testing.T) {
 	}
 }
 
-func TestNonStickyDoesNotJoinGroup(t *testing.T) {
+func TestPushableNonStickyPushedByGroup(t *testing.T) {
 	// [_] [sA] [pushable] [sB] [_]
 	// pushable is NOT sticky, so sA and sB should move independently
 	area := Area{
@@ -1318,16 +1318,12 @@ func TestNonStickyDoesNotJoinGroup(t *testing.T) {
 	p.placeOnStage(stage, 0, 0)
 	moveEast(p)
 
-	// sA is alone (not connected to sB because mid is not sticky).
-	// sA pushes east, pushing mid ahead of it? No — sticky group push doesn't
-	// chain-push non-group members. It fails if any dest is occupied.
-	// So sA can't move because mid is in its way.
-	// Actually: sA's destination is 0,2 where mid sits (non-group). Push fails.
-	if ia := stage.tiles[0][1].interactable; ia == nil || ia.name != "sA" {
-		t.Fatal("expected sA to remain at 0,1 (blocked by non-sticky mid)")
+	// Entire row should shift because mid is pushable.
+	if ia := stage.tiles[0][2].interactable; ia == nil || ia.name != "sA" {
+		t.Fatal("expected sA to shift to 0,2 (blocked by non-sticky mid)")
 	}
-	if ia := stage.tiles[0][2].interactable; ia == nil || ia.name != "mid" {
-		t.Fatal("expected mid to remain at 0,2")
+	if ia := stage.tiles[0][3].interactable; ia == nil || ia.name != "mid" {
+		t.Fatal("expected mid to remain at 0,3")
 	}
 }
 

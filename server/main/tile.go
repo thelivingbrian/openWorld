@@ -346,6 +346,9 @@ func replaceNilInteractable(tile *Tile, incoming *Interactable) bool {
 		return true
 	}
 	if tile.material.Walkable { // Prevents lock contention from using Walkable()
+		if !incoming.walkable && hasCharacters(tile) {
+			return false
+		}
 		setLockedInteractableAndUpdate(tile, incoming)
 		return true
 	}

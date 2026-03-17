@@ -3,12 +3,13 @@
     "id": "79178a88-99cf-4472-8789-ba914a08c5f2",
     "name": "basic-push",
     "setName": "basic",
-    "state": "state-1",
+    "state": "default",
     "defaultState": "default",
     "states": {
       "default": {
         "cssClass": "gold",
-        "pushable": true
+        "pushable": true,
+        "walkable": true
       },
       "state-1": {
         "cssClass": "blue",
@@ -17,7 +18,7 @@
     },
     "cssClass": "gold",
     "pushable": true,
-    "walkable": false,
+    "walkable": true,
     "fragile": false,
     "reactions": ""
   },
@@ -67,6 +68,7 @@
       "default": {
         "cssClass": "cinnamon",
         "pushable": true,
+        "walkable": true,
         "fragile": true
       }
     },
@@ -85,7 +87,8 @@
     "states": {
       "default": {
         "cssClass": "gold-b med r1",
-        "pushable": true
+        "pushable": true,
+        "walkable": true
       }
     },
     "cssClass": "gold-b med r1",
@@ -103,7 +106,8 @@
     "states": {
       "default": {
         "cssClass": "gold-b thick r1",
-        "pushable": true
+        "pushable": true,
+        "walkable": true
       }
     },
     "cssClass": "gold-b thick r1",

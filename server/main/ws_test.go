@@ -213,7 +213,7 @@ func TestNoJukeOnNonWalkable(t *testing.T) {
 		t.Error("Should not juke on walkable")
 	}
 	if testStage.tiles[4][5].interactable == nil {
-		t.Error("Contrained juke should leave interactable under player")
+		t.Error("Constrained juke should leave interactable under player")
 	}
 }
 

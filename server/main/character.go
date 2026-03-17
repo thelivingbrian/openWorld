@@ -260,14 +260,14 @@ func updateAllAfterMovement(current, previous *Tile) {
 }
 
 func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
-	return pushReactionSpecified(p, tile, incoming, yOff, xOff, false)
+	return pushReactionOptional(p, tile, incoming, yOff, xOff, false)
 }
 
 func (p *Player) pushNoReaction(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
-	return pushReactionSpecified(p, tile, incoming, yOff, xOff, true)
+	return pushReactionOptional(p, tile, incoming, yOff, xOff, true)
 }
 
-func pushReactionSpecified(p *Player, tile *Tile, incoming *Interactable, yOff, xOff int, preventReaction bool) bool { // Returns if given interacable successfully pushed
+func pushReactionOptional(p *Player, tile *Tile, incoming *Interactable, yOff, xOff int, preventReaction bool) bool { // Returns if given interacable successfully pushed
 	// Do not nil check incoming interactable here.
 	// incoming = nil is valid and will continue a push chain
 	// e.g. by taking this tile's interactable and pushing it forward
@@ -310,8 +310,6 @@ func pushReactionSpecified(p *Player, tile *Tile, incoming *Interactable, yOff, 
 			}
 		}
 	}
-
-	// Current logic does not prevent non-walkable pushable from being pushed on a tile with characters.
 
 	return false
 }
@@ -485,12 +483,7 @@ func (npc *NonPlayer) push(tile *Tile, incoming *Interactable, yOff, xOff int) b
 // interactables as a unit.  The caller MUST already hold
 // startTile.interactableMutex (the tile whose sticky interactable is
 // being pushed).
-//
-// Design notes (AI-012):
-//   - All group members must be able to move for the push to succeed.
-//   - If any destination is blocked, the entire push fails.
-//   - Fragile members do NOT break on a failed push; they only break
-//     from damage (explosions) as usual.
+//.
 
 func pushStickyGroup(character Character, startTile *Tile, incoming *Interactable, yOff, xOff int) bool {
 	return pushConnectedGroup(character, startTile, incoming, yOff, xOff, shouldStickTogether)
@@ -575,25 +568,12 @@ func pushConnectedGroup(character Character, startTile *Tile, incoming *Interact
 		ia        *Interactable
 	}
 	moves := make([]stickyMove, 0, len(group))
-	destLocks := make([]*Tile, 0) // non-group destination tiles we locked
-
-	defer func() {
-		for _, t := range destLocks {
-			t.interactableMutex.Unlock()
-		}
-	}()
 
 	for _, src := range group {
 		if src.interactable == nil || !src.interactable.pushable {
 			return false
 		}
-		// Questionable - this will prevent a group that overlaps a player from moving at all
-		if hasCharacters(src) {
-			return false
-		}
-	}
 
-	for _, src := range group {
 		dest := getRelativeTile(src, yOff, xOff, character)
 		if dest == nil {
 			return false
@@ -615,11 +595,18 @@ func pushConnectedGroup(character Character, startTile *Tile, incoming *Interact
 			return false
 		}
 
-		result := character.pushNoReaction(dest, nil, yOff, xOff)
-		if !result {
-			fmt.Println("failed to push non-group interactable - or blocked by a reaction")
+		if !src.interactable.walkable && hasCharacters(dest) {
 			return false
 		}
+
+		result := character.pushNoReaction(dest, nil, yOff, xOff)
+		if !result {
+			return false
+		}
+
+		// dest is not locked, and tryLocking now might be too late
+		// Lock and reject if dest has interactable (unless it reacts?)
+		// could add new reactionWithGroupSize for reactions on entire groups
 
 		moves = append(moves, stickyMove{src: src, dest: dest, ia: src.interactable})
 	}
