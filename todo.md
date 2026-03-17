@@ -23,16 +23,19 @@
 - [-] sticky blocks 
   - [-] will stick together
   - [-] requires polyomino based pushing logic
-  - [ ] do not juke sticky in a group 
-  - [ ] QUESTION: Can sticky blocks be non-walkable / non-pushable
-    - [ ] answer yes: non-walkable sticky blocks player movement and is blocked by players. non-pushable sticky will make others in sticky group unpushable 
-    - [ ] may need to generally make pushable non-walkable
-      - [ ] might be non-trivial, is walkability of tile assumed immutable - no. already checks interactable. 
-      - [ ] going to try it and keep in mind this could be a hassle in a multiplayer context via blocked movement etc.
-- [ ] pushable fragments
-  - [ ] use polyomino pushing logic but are not inherently sticky
+  - [-] do not juke sticky in a group 
+    - [ ] do juke sticky that is alone
+  - [-] QUESTION: Can sticky blocks be non-walkable / non-pushable
+    - [-] answer yes: non-walkable sticky blocks player movement and is blocked by players. non-pushable sticky will make others in sticky group unpushable 
+    - [-] may need to generally make pushable non-walkable
+      - [-] might be non-trivial, is walkability of tile assumed immutable - no. already checks interactable. 
+      - [-] going to try it and keep in mind this could be a hassle in a multiplayer context via blocked movement etc.
+- [-] pushable fragments
+  - [-] use polyomino pushing logic but are not inherently sticky
+  - [-] accomplished via many sticky groups per interactable
 - [-] new puzzle
   - [-] new space in collection:escape demonstrating the new functionality 
+- [ ] Reimplement an airlock in new system 
 
 ## Integration 
 - [ ] Python rewrite
