@@ -362,6 +362,202 @@ func TestResolveReactionRulesWithFilteredTransmitPush(t *testing.T) {
 	}
 }
 
+func TestResolveReactionRulesWithAirlockStateReactions(t *testing.T) {
+	rules := []ReactionRule{
+		{ReactsWith: "interactableIsNil", Reaction: "openConnectedAirlockDoors"},
+		{ReactsWith: "interactableIsNil", Reaction: "armConnectedAirlockCloseSwitches"},
+		{ReactsWith: "interactableIsNil", Reaction: "closeConnectedAirlockDoors"},
+	}
+
+	resolved := resolveReactionRules(rules)
+	if len(resolved) != 3 {
+		t.Fatalf("expected 3 resolved rules, got %d", len(resolved))
+	}
+	for i, reaction := range resolved {
+		if reaction.Reaction == nil {
+			t.Fatalf("expected airlock reaction %d to resolve as a standard reaction", i)
+		}
+	}
+}
+
+func makeAirlockTestSwitch(name, cssClass string, walkable bool, reaction string) *InteractableDescription {
+	return &InteractableDescription{
+		Name:         name,
+		CssClass:     cssClass,
+		Walkable:     walkable,
+		State:        "default",
+		DefaultState: "default",
+		States: map[string]InteractableStateDescription{
+			"default": {
+				CssClass: cssClass,
+				Walkable: walkable,
+				ReactionRules: []ReactionRule{
+					{ReactsWith: "interactableIsNil", Reaction: reaction},
+				},
+			},
+		},
+	}
+}
+
+func makeAirlockTestDoor() *InteractableDescription {
+	return &InteractableDescription{
+		Name:         "airlock-door",
+		CssClass:     "s-hoz chocolate-b thick no-lr",
+		State:        "closed",
+		DefaultState: "closed",
+		States: map[string]InteractableStateDescription{
+			"closed": {
+				CssClass: "s-hoz chocolate-b thick no-lr",
+			},
+			"open": {
+				CssClass: "",
+				Walkable: true,
+				ReactionRules: []ReactionRule{
+					{ReactsWith: "interactableIsNil", Reaction: "armConnectedAirlockCloseSwitches"},
+				},
+			},
+		},
+	}
+}
+
+func makeAirlockTestCloseSwitch() *InteractableDescription {
+	return &InteractableDescription{
+		Name:         "airlock-close-switch",
+		CssClass:     "",
+		Walkable:     true,
+		State:        "disarmed",
+		DefaultState: "disarmed",
+		States: map[string]InteractableStateDescription{
+			"disarmed": {
+				CssClass: "",
+				Walkable: true,
+			},
+			"armed": {
+				CssClass: "",
+				Walkable: true,
+				ReactionRules: []ReactionRule{
+					{ReactsWith: "interactableIsNil", Reaction: "closeConnectedAirlockDoors"},
+				},
+			},
+		},
+	}
+}
+
+func makeAirlockTestArmOnly() *InteractableDescription {
+	return &InteractableDescription{
+		Name:         "airlock-arm-only",
+		CssClass:     "",
+		Walkable:     true,
+		State:        "default",
+		DefaultState: "default",
+		States: map[string]InteractableStateDescription{
+			"default": {
+				CssClass: "",
+				Walkable: true,
+				ReactionRules: []ReactionRule{
+					{ReactsWith: "interactableIsNil", Reaction: "armConnectedAirlockCloseSwitches"},
+				},
+			},
+		},
+	}
+}
+
+func makeAirlockTestArea(oneWay bool) Area {
+	openSwitch := func() *InteractableDescription {
+		return makeAirlockTestSwitch("airlock-open-switch", "white-b thick", false, "openConnectedAirlockDoors")
+	}
+	closeSwitch := func() *InteractableDescription {
+		return makeAirlockTestCloseSwitch()
+	}
+	door := func() *InteractableDescription {
+		return makeAirlockTestDoor()
+	}
+	armOnly := func() *InteractableDescription {
+		return makeAirlockTestArmOnly()
+	}
+
+	bottomLeft := door()
+	bottomRight := door()
+	if oneWay {
+		bottomLeft = armOnly()
+		bottomRight = armOnly()
+	}
+
+	return Area{
+		Name: "airlock-state-test",
+		Tiles: [][]Material{
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+			{{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}},
+		},
+		Interactables: [][]*InteractableDescription{
+			{nil, openSwitch(), door(), door(), openSwitch(), nil},
+			{nil, nil, door(), door(), nil, nil},
+			{nil, nil, closeSwitch(), closeSwitch(), nil, nil},
+			{nil, nil, closeSwitch(), closeSwitch(), nil, nil},
+			{nil, nil, bottomLeft, bottomRight, nil, nil},
+			{nil, openSwitch(), bottomLeft, bottomRight, openSwitch(), nil},
+		},
+	}
+}
+
+func TestAirlockRulesOpenArmAndCloseConnectedDoors(t *testing.T) {
+	stage := createStageFromArea(makeAirlockTestArea(false))
+
+	openSwitch := stage.tiles[0][1]
+	if !openSwitch.interactable.React(nil, nil, openSwitch, 0, 0) {
+		t.Fatal("expected open switch reaction to fire")
+	}
+	if ia := stage.tiles[0][2].interactable; ia == nil || ia.state != "open" || !ia.walkable {
+		t.Fatal("expected top door to be open and walkable after opening")
+	}
+	if ia := stage.tiles[2][2].interactable; ia == nil || ia.state != "disarmed" {
+		t.Fatal("expected close switch to remain disarmed immediately after opening")
+	}
+
+	doorTile := stage.tiles[1][2]
+	if !doorTile.interactable.React(nil, nil, doorTile, 0, 0) {
+		t.Fatal("expected open door to arm close switches")
+	}
+	if ia := stage.tiles[2][2].interactable; ia == nil || ia.state != "armed" {
+		t.Fatal("expected close switch to become armed after traversing open door")
+	}
+
+	closeSwitch := stage.tiles[2][2]
+	if !closeSwitch.interactable.React(nil, nil, closeSwitch, 0, 0) {
+		t.Fatal("expected armed close switch reaction to fire")
+	}
+	if ia := stage.tiles[0][2].interactable; ia == nil || ia.state != "closed" || ia.walkable {
+		t.Fatal("expected top door to be closed and blocking after closing")
+	}
+	if ia := stage.tiles[2][2].interactable; ia == nil || ia.state != "disarmed" {
+		t.Fatal("expected close switch to reset to disarmed after closing")
+	}
+}
+
+func TestAirlockOneWayArmTilesArmCloseSwitches(t *testing.T) {
+	stage := createStageFromArea(makeAirlockTestArea(true))
+
+	openSwitch := stage.tiles[0][1]
+	if !openSwitch.interactable.React(nil, nil, openSwitch, 0, 0) {
+		t.Fatal("expected open switch reaction to fire")
+	}
+
+	armTile := stage.tiles[5][2]
+	if armTile.interactable == nil || armTile.interactable.name != "airlock-arm-only" {
+		t.Fatal("expected one-way airlock arm tile at 5,2")
+	}
+	if !armTile.interactable.React(nil, nil, armTile, 0, 0) {
+		t.Fatal("expected arm-only tile reaction to fire")
+	}
+	if ia := stage.tiles[2][2].interactable; ia == nil || ia.state != "armed" {
+		t.Fatal("expected close switch to arm from one-way airlock sensor tiles")
+	}
+}
+
 func TestTransmitPushAllMovesOtherInteractables(t *testing.T) {
 	area := Area{
 		Name: "transmit-push-all-test",

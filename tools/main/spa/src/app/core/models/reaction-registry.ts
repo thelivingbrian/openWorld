@@ -68,6 +68,10 @@ export const REACTION_REGISTRY: RegistryEntry[] = [
   { key: 'makeDangerousForOtherTeam', label: 'Make dangerous for other team',        args: [] },
   { key: 'damageAndSpawn',       label: 'Damage and spawn',                           args: [] },
   { key: 'teleportHomeInteraction', label: 'Teleport home interaction',               args: [] },
+  { key: 'openConnectedAirlockDoors', label: 'Open connected airlock doors',          args: [] },
+  { key: 'closeConnectedAirlockDoors', label: 'Close connected airlock doors',        args: [] },
+  { key: 'cycleConnectedAirlockDoors', label: 'Cycle connected airlock doors',        args: [] },
+  { key: 'armConnectedAirlockCloseSwitches', label: 'Arm connected airlock close switches', args: [] },
 ];
 
 /** Lookup helpers */

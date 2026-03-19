@@ -1,0 +1,354 @@
+[
+  {
+    "id": "0865a739-a06f-40fb-b8e0-9d5420ed1da6",
+    "name": "airlock",
+    "setName": "airlock",
+    "blueprint": {
+      "tiles": [
+        [
+          {
+            "prototypeId": "df8347c1-6204-4b12-b5f7-aea51fd6a137",
+            "transformation": {
+              "clockwiseRotations": 3
+            }
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {},
+            "interactableId": "85f4c7b4-d860-47e7-8a4a-28f558217145"
+          },
+          {
+            "transformation": {},
+            "interactableId": "a32b1ea0-6f53-48d4-8897-d5e0cf87ef77"
+          },
+          {
+            "transformation": {},
+            "interactableId": "a32b1ea0-6f53-48d4-8897-d5e0cf87ef77"
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {},
+            "interactableId": "85f4c7b4-d860-47e7-8a4a-28f558217145"
+          },
+          {
+            "prototypeId": "df8347c1-6204-4b12-b5f7-aea51fd6a137",
+            "transformation": {}
+          }
+        ],
+        [
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "transformation": {},
+            "interactableId": "a32b1ea0-6f53-48d4-8897-d5e0cf87ef77"
+          },
+          {
+            "transformation": {},
+            "interactableId": "a32b1ea0-6f53-48d4-8897-d5e0cf87ef77"
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          }
+        ],
+        [
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "transformation": {},
+            "interactableId": "9a8b2f6a-5a00-47e8-8996-2783b05b55db"
+          },
+          {
+            "transformation": {},
+            "interactableId": "9a8b2f6a-5a00-47e8-8996-2783b05b55db"
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          }
+        ],
+        [
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "transformation": {},
+            "interactableId": "9a8b2f6a-5a00-47e8-8996-2783b05b55db"
+          },
+          {
+            "transformation": {},
+            "interactableId": "9a8b2f6a-5a00-47e8-8996-2783b05b55db"
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          }
+        ],
+        [
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "transformation": {},
+            "interactableId": "a32b1ea0-6f53-48d4-8897-d5e0cf87ef77"
+          },
+          {
+            "transformation": {},
+            "interactableId": "a32b1ea0-6f53-48d4-8897-d5e0cf87ef77"
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          }
+        ],
+        [
+          {
+            "prototypeId": "df8347c1-6204-4b12-b5f7-aea51fd6a137",
+            "transformation": {
+              "clockwiseRotations": 2
+            }
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {},
+            "interactableId": "85f4c7b4-d860-47e7-8a4a-28f558217145"
+          },
+          {
+            "transformation": {},
+            "interactableId": "a32b1ea0-6f53-48d4-8897-d5e0cf87ef77"
+          },
+          {
+            "transformation": {},
+            "interactableId": "a32b1ea0-6f53-48d4-8897-d5e0cf87ef77"
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {},
+            "interactableId": "85f4c7b4-d860-47e7-8a4a-28f558217145"
+          },
+          {
+            "prototypeId": "df8347c1-6204-4b12-b5f7-aea51fd6a137",
+            "transformation": {
+              "clockwiseRotations": 1
+            }
+          }
+        ]
+      ],
+      "Instructions": []
+    }
+  },
+  {
+    "id": "4cd1152d-b772-4f1e-a867-31aa7fcf20b5",
+    "name": "airlock-one-way",
+    "setName": "airlock",
+    "blueprint": {
+      "tiles": [
+        [
+          {
+            "prototypeId": "df8347c1-6204-4b12-b5f7-aea51fd6a137",
+            "transformation": {
+              "clockwiseRotations": 3
+            }
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {},
+            "interactableId": "85f4c7b4-d860-47e7-8a4a-28f558217145"
+          },
+          {
+            "transformation": {},
+            "interactableId": "a32b1ea0-6f53-48d4-8897-d5e0cf87ef77"
+          },
+          {
+            "transformation": {},
+            "interactableId": "a32b1ea0-6f53-48d4-8897-d5e0cf87ef77"
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {},
+            "interactableId": "85f4c7b4-d860-47e7-8a4a-28f558217145"
+          },
+          {
+            "prototypeId": "df8347c1-6204-4b12-b5f7-aea51fd6a137",
+            "transformation": {}
+          }
+        ],
+        [
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "transformation": {},
+            "interactableId": "a32b1ea0-6f53-48d4-8897-d5e0cf87ef77"
+          },
+          {
+            "transformation": {},
+            "interactableId": "a32b1ea0-6f53-48d4-8897-d5e0cf87ef77"
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          }
+        ],
+        [
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "transformation": {},
+            "interactableId": "9a8b2f6a-5a00-47e8-8996-2783b05b55db"
+          },
+          {
+            "transformation": {},
+            "interactableId": "9a8b2f6a-5a00-47e8-8996-2783b05b55db"
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          }
+        ],
+        [
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "transformation": {},
+            "interactableId": "9a8b2f6a-5a00-47e8-8996-2783b05b55db"
+          },
+          {
+            "transformation": {},
+            "interactableId": "9a8b2f6a-5a00-47e8-8996-2783b05b55db"
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          }
+        ],
+        [
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "transformation": {},
+            "interactableId": "f3122c1b-65af-4125-a2a6-4d8bc9a3427f"
+          },
+          {
+            "transformation": {},
+            "interactableId": "f3122c1b-65af-4125-a2a6-4d8bc9a3427f"
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {}
+          }
+        ],
+        [
+          {
+            "prototypeId": "df8347c1-6204-4b12-b5f7-aea51fd6a137",
+            "transformation": {
+              "clockwiseRotations": 2
+            }
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {},
+            "interactableId": "85f4c7b4-d860-47e7-8a4a-28f558217145"
+          },
+          {
+            "transformation": {},
+            "interactableId": "f3122c1b-65af-4125-a2a6-4d8bc9a3427f"
+          },
+          {
+            "transformation": {},
+            "interactableId": "f3122c1b-65af-4125-a2a6-4d8bc9a3427f"
+          },
+          {
+            "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+            "transformation": {},
+            "interactableId": "85f4c7b4-d860-47e7-8a4a-28f558217145"
+          },
+          {
+            "prototypeId": "df8347c1-6204-4b12-b5f7-aea51fd6a137",
+            "transformation": {
+              "clockwiseRotations": 1
+            }
+          }
+        ]
+      ],
+      "Instructions": []
+    }
+  }
+]

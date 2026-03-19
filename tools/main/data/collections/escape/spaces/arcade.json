@@ -554,9 +554,7 @@
               "transformation": {}
             },
             {
-              "transformation": {
-                "clockwiseRotations": 1
-              }
+              "transformation": {}
             },
             {
               "transformation": {}
@@ -5775,7 +5773,9 @@
               "transformation": {}
             },
             {
-              "transformation": {}
+              "transformation": {},
+              "interactableId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+              "interactableState": "default"
             },
             {
               "transformation": {
@@ -8531,11 +8531,6 @@
               "transformation": {}
             },
             {
-              "transformation": {},
-              "interactableId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-              "interactableState": "default"
-            },
-            {
               "transformation": {}
             },
             {
@@ -8557,14 +8552,13 @@
               "transformation": {}
             },
             {
-              "transformation": {},
-              "interactableId": "69534b85-018f-41d7-a443-309d2a1ad37b",
-              "interactableState": "default"
+              "transformation": {}
             },
             {
-              "transformation": {},
-              "interactableId": "69534b85-018f-41d7-a443-309d2a1ad37b",
-              "interactableState": "default"
+              "transformation": {}
+            },
+            {
+              "transformation": {}
             },
             {
               "transformation": {}
@@ -8613,14 +8607,10 @@
               "transformation": {}
             },
             {
-              "transformation": {},
-              "interactableId": "69534b85-018f-41d7-a443-309d2a1ad37b",
-              "interactableState": "default"
+              "transformation": {}
             },
             {
-              "transformation": {},
-              "interactableId": "69534b85-018f-41d7-a443-309d2a1ad37b",
-              "interactableState": "default"
+              "transformation": {}
             },
             {
               "transformation": {}
@@ -8764,12 +8754,14 @@
               "transformation": {}
             },
             {
-              "prototypeId": "6",
-              "transformation": {}
+              "transformation": {},
+              "interactableId": "69534b85-018f-41d7-a443-309d2a1ad37b",
+              "interactableState": "default"
             },
             {
-              "prototypeId": "6",
-              "transformation": {}
+              "transformation": {},
+              "interactableId": "69534b85-018f-41d7-a443-309d2a1ad37b",
+              "interactableState": "default"
             },
             {
               "transformation": {}
@@ -8807,26 +8799,26 @@
               "transformation": {}
             },
             {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
               "transformation": {},
-              "interactableId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+              "interactableId": "69534b85-018f-41d7-a443-309d2a1ad37b",
               "interactableState": "default"
             },
             {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            },
-            {
-              "prototypeId": "6",
-              "transformation": {}
+              "transformation": {},
+              "interactableId": "69534b85-018f-41d7-a443-309d2a1ad37b",
+              "interactableState": "default"
             },
             {
               "transformation": {}
@@ -8864,11 +8856,6 @@
               "transformation": {}
             },
             {
-              "transformation": {},
-              "interactableId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-              "interactableState": "default"
-            },
-            {
               "transformation": {}
             },
             {
@@ -8903,61 +8890,8 @@
             },
             {
               "transformation": {}
-            }
-          ],
-          [
-            {
-              "prototypeId": "6",
-              "transformation": {}
             },
             {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {},
-              "interactableId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-              "interactableState": "default"
-            },
-            {
-              "transformation": {},
-              "interactableId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-              "interactableState": "default"
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "prototypeId": "6",
               "transformation": {}
             }
           ],
@@ -9049,9 +8983,59 @@
               "transformation": {}
             },
             {
-              "transformation": {},
-              "interactableId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
-              "interactableState": "default"
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "prototypeId": "6",
+              "transformation": {}
+            }
+          ],
+          [
+            {
+              "prototypeId": "6",
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
             },
             {
               "transformation": {}
@@ -9240,34 +9224,6 @@
             "X": 0,
             "Y": 0,
             "GridAssetId": "d98d177f-b1f9-4e60-93e3-5c82cdc0b6d2",
-            "ClockwiseRotations": 0
-          },
-          {
-            "ID": "feb601b6-345b-42b1-8a8c-5fa23326ed81",
-            "X": 7,
-            "Y": 7,
-            "GridAssetId": "6",
-            "ClockwiseRotations": 0
-          },
-          {
-            "ID": "eb3e285e-6b43-4dfa-8eee-caed4cc17ec0",
-            "X": 8,
-            "Y": 7,
-            "GridAssetId": "6",
-            "ClockwiseRotations": 0
-          },
-          {
-            "ID": "42e7f05f-5c46-426a-83c3-be71ca9b30da",
-            "X": 8,
-            "Y": 8,
-            "GridAssetId": "6",
-            "ClockwiseRotations": 0
-          },
-          {
-            "ID": "2197ba79-813c-4374-8c99-08a415a6e111",
-            "X": 7,
-            "Y": 8,
-            "GridAssetId": "6",
             "ClockwiseRotations": 0
           },
           {
@@ -11246,6 +11202,30 @@
               "transformation": {}
             },
             {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
               "transformation": {},
               "interactableId": "79178a88-99cf-4472-8789-ba914a08c5f2",
               "interactableState": "default"
@@ -11254,15 +11234,43 @@
               "transformation": {}
             },
             {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
               "transformation": {},
               "interactableId": "79178a88-99cf-4472-8789-ba914a08c5f2",
-              "interactableState": "default"
+              "interactableState": "state-1"
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "prototypeId": "6",
+              "transformation": {}
+            }
+          ],
+          [
+            {
+              "prototypeId": "6",
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
             },
             {
               "transformation": {}
@@ -11334,28 +11342,6 @@
               "transformation": {}
             },
             {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            }
-          ],
-          [
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
               "transformation": {},
               "interactableId": "79178a88-99cf-4472-8789-ba914a08c5f2",
               "interactableState": "default"
@@ -11364,36 +11350,6 @@
               "transformation": {}
             },
             {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
               "prototypeId": "6",
               "transformation": {}
             }
@@ -11567,6 +11523,196 @@
               "transformation": {}
             },
             {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            }
+          ],
+          [
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            }
+          ],
+          [
+            {
+              "prototypeId": "6",
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "prototypeId": "6",
+              "transformation": {}
+            }
+          ],
+          [
+            {
+              "prototypeId": "6",
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "prototypeId": "6",
+              "transformation": {}
+            }
+          ],
+          [
+            {
+              "prototypeId": "6",
               "transformation": {}
             },
             {
@@ -11579,200 +11725,6 @@
               "transformation": {},
               "interactableId": "da68f885-e69b-4a45-a1f7-0e974ea6e1bd",
               "interactableState": "default"
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            }
-          ],
-          [
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            }
-          ],
-          [
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            }
-          ],
-          [
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {},
-              "interactableId": "7e600c46-99c0-4a82-9e79-d5dfb15379aa",
-              "interactableState": "default"
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {},
-              "interactableId": "da68f885-e69b-4a45-a1f7-0e974ea6e1bd",
-              "interactableState": "state-1"
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            }
-          ],
-          [
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
             },
             {
               "transformation": {}
@@ -14229,11 +14181,9 @@
               "transformation": {}
             },
             {
-              "prototypeId": "6",
               "transformation": {}
             },
             {
-              "prototypeId": "6",
               "transformation": {}
             },
             {
@@ -14284,11 +14234,9 @@
               "transformation": {}
             },
             {
-              "prototypeId": "6",
               "transformation": {}
             },
             {
-              "prototypeId": "6",
               "transformation": {}
             },
             {
@@ -14698,34 +14646,6 @@
             "X": 0,
             "Y": 0,
             "GridAssetId": "d98d177f-b1f9-4e60-93e3-5c82cdc0b6d2",
-            "ClockwiseRotations": 0
-          },
-          {
-            "ID": "1713adb5-b539-4eba-9196-df4180cea7f6",
-            "X": 7,
-            "Y": 7,
-            "GridAssetId": "6",
-            "ClockwiseRotations": 0
-          },
-          {
-            "ID": "296fcb73-0246-4620-83b1-a534a901d956",
-            "X": 8,
-            "Y": 7,
-            "GridAssetId": "6",
-            "ClockwiseRotations": 0
-          },
-          {
-            "ID": "71830021-672f-41dc-83e2-6de0c053842f",
-            "X": 8,
-            "Y": 8,
-            "GridAssetId": "6",
-            "ClockwiseRotations": 0
-          },
-          {
-            "ID": "27b4a2f0-a734-4d0f-8062-9bcad6d43be0",
-            "X": 7,
-            "Y": 8,
-            "GridAssetId": "6",
             "ClockwiseRotations": 0
           },
           {
@@ -19599,73 +19519,31 @@
               "transformation": {}
             },
             {
-              "transformation": {}
+              "prototypeId": "df8347c1-6204-4b12-b5f7-aea51fd6a137",
+              "transformation": {
+                "clockwiseRotations": 3
+              }
             },
             {
-              "transformation": {}
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+              "transformation": {},
+              "interactableId": "85f4c7b4-d860-47e7-8a4a-28f558217145"
             },
             {
-              "transformation": {}
+              "transformation": {},
+              "interactableId": "a32b1ea0-6f53-48d4-8897-d5e0cf87ef77"
             },
             {
-              "transformation": {}
+              "transformation": {},
+              "interactableId": "a32b1ea0-6f53-48d4-8897-d5e0cf87ef77"
             },
             {
-              "transformation": {}
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+              "transformation": {},
+              "interactableId": "85f4c7b4-d860-47e7-8a4a-28f558217145"
             },
             {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            }
-          ],
-          [
-            {
-              "prototypeId": "6",
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
+              "prototypeId": "df8347c1-6204-4b12-b5f7-aea51fd6a137",
               "transformation": {}
             },
             {
@@ -19687,6 +19565,7 @@
           ],
           [
             {
+              "prototypeId": "6",
               "transformation": {}
             },
             {
@@ -19702,6 +19581,27 @@
               "transformation": {}
             },
             {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+              "transformation": {}
+            },
+            {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+              "transformation": {}
+            },
+            {
+              "transformation": {},
+              "interactableId": "a32b1ea0-6f53-48d4-8897-d5e0cf87ef77"
+            },
+            {
+              "transformation": {},
+              "interactableId": "a32b1ea0-6f53-48d4-8897-d5e0cf87ef77"
+            },
+            {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+              "transformation": {}
+            },
+            {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
               "transformation": {}
             },
             {
@@ -19717,21 +19617,7 @@
               "transformation": {}
             },
             {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
+              "prototypeId": "6",
               "transformation": {}
             }
           ],
@@ -19752,23 +19638,27 @@
               "transformation": {}
             },
             {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
               "transformation": {}
             },
             {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
               "transformation": {}
             },
             {
-              "prototypeId": "6",
+              "transformation": {},
+              "interactableId": "9a8b2f6a-5a00-47e8-8996-2783b05b55db"
+            },
+            {
+              "transformation": {},
+              "interactableId": "9a8b2f6a-5a00-47e8-8996-2783b05b55db"
+            },
+            {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
               "transformation": {}
             },
             {
-              "prototypeId": "6",
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
               "transformation": {}
             },
             {
@@ -19804,23 +19694,27 @@
               "transformation": {}
             },
             {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
               "transformation": {}
             },
             {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
               "transformation": {}
             },
             {
-              "prototypeId": "6",
+              "transformation": {},
+              "interactableId": "9a8b2f6a-5a00-47e8-8996-2783b05b55db"
+            },
+            {
+              "transformation": {},
+              "interactableId": "9a8b2f6a-5a00-47e8-8996-2783b05b55db"
+            },
+            {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
               "transformation": {}
             },
             {
-              "prototypeId": "6",
-              "transformation": {}
-            },
-            {
-              "transformation": {}
-            },
-            {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
               "transformation": {}
             },
             {
@@ -19856,6 +19750,27 @@
               "transformation": {}
             },
             {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+              "transformation": {}
+            },
+            {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+              "transformation": {}
+            },
+            {
+              "transformation": {},
+              "interactableId": "f3122c1b-65af-4125-a2a6-4d8bc9a3427f"
+            },
+            {
+              "transformation": {},
+              "interactableId": "f3122c1b-65af-4125-a2a6-4d8bc9a3427f"
+            },
+            {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+              "transformation": {}
+            },
+            {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
               "transformation": {}
             },
             {
@@ -19872,6 +19787,53 @@
             },
             {
               "transformation": {}
+            }
+          ],
+          [
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "transformation": {}
+            },
+            {
+              "prototypeId": "df8347c1-6204-4b12-b5f7-aea51fd6a137",
+              "transformation": {
+                "clockwiseRotations": 2
+              }
+            },
+            {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+              "transformation": {},
+              "interactableId": "85f4c7b4-d860-47e7-8a4a-28f558217145"
+            },
+            {
+              "transformation": {},
+              "interactableId": "f3122c1b-65af-4125-a2a6-4d8bc9a3427f"
+            },
+            {
+              "transformation": {},
+              "interactableId": "f3122c1b-65af-4125-a2a6-4d8bc9a3427f"
+            },
+            {
+              "prototypeId": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+              "transformation": {},
+              "interactableId": "85f4c7b4-d860-47e7-8a4a-28f558217145"
+            },
+            {
+              "prototypeId": "df8347c1-6204-4b12-b5f7-aea51fd6a137",
+              "transformation": {
+                "clockwiseRotations": 1
+              }
             },
             {
               "transformation": {}
@@ -20225,38 +20187,17 @@
             "ClockwiseRotations": 0
           },
           {
-            "ID": "397a6768-147f-4a19-93d0-0defc032206d",
-            "X": 7,
-            "Y": 7,
-            "GridAssetId": "6",
-            "ClockwiseRotations": 0
-          },
-          {
-            "ID": "29cfbe1f-7f47-4792-a4c1-05fa7add2481",
-            "X": 8,
-            "Y": 7,
-            "GridAssetId": "6",
-            "ClockwiseRotations": 0
-          },
-          {
-            "ID": "51651f1f-7c34-4d02-9e1b-b5ccd9861d7b",
-            "X": 8,
-            "Y": 8,
-            "GridAssetId": "6",
-            "ClockwiseRotations": 0
-          },
-          {
-            "ID": "fcb57e8e-3136-4664-896c-f30e279d3578",
-            "X": 7,
-            "Y": 8,
-            "GridAssetId": "6",
-            "ClockwiseRotations": 0
-          },
-          {
             "ID": "3c9cc6a5-fe96-4143-85e0-2b96e951e8de",
             "X": 6,
             "Y": 15,
             "GridAssetId": "52f3c76a-92ed-4f08-a42e-c616b8c2c9ce",
+            "ClockwiseRotations": 0
+          },
+          {
+            "ID": "a274dfe0-b8dc-49c2-89b4-3336d6f7159a",
+            "X": 5,
+            "Y": 4,
+            "GridAssetId": "4cd1152d-b772-4f1e-a867-31aa7fcf20b5",
             "ClockwiseRotations": 0
           }
         ],
@@ -22544,14 +22485,10 @@
               "transformation": {}
             },
             {
-              "transformation": {
-                "clockwiseRotations": 3
-              }
+              "transformation": {}
             },
             {
-              "transformation": {
-                "clockwiseRotations": 2
-              }
+              "transformation": {}
             },
             {
               "transformation": {
@@ -22612,14 +22549,10 @@
               "transformation": {}
             },
             {
-              "transformation": {
-                "clockwiseRotations": 2
-              }
+              "transformation": {}
             },
             {
-              "transformation": {
-                "clockwiseRotations": 2
-              }
+              "transformation": {}
             },
             {
               "transformation": {
