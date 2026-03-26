@@ -2814,7 +2814,7 @@
             }
           ]
         ],
-        "DefaultTileColor": "",
+        "DefaultTileColor": "grass",
         "DefaultTileColor1": ""
       },
       "transports": [
@@ -2832,7 +2832,8 @@
       "east": "arcade:0-1",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": ""
+      "spawnStrategy": "",
+      "weather": "blue trsp20 raining "
     },
     {
       "name": "arcade:0-1",
@@ -8350,8 +8351,7 @@
       "west": "arcade:0-1",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": "",
-      "weather": "blue trsp20 raining"
+      "spawnStrategy": ""
     },
     {
       "name": "arcade:1-0",
