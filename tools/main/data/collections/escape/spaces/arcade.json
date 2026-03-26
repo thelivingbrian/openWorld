@@ -8346,7 +8346,8 @@
       "west": "arcade:0-1",
       "mapId": "",
       "loadStrategy": "",
-      "spawnStrategy": ""
+      "spawnStrategy": "",
+      "weather": "blue trsp20 raining"
     },
     {
       "name": "arcade:1-0",

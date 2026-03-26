@@ -63,6 +63,20 @@ const BORDER_WIDTH_MAP = {
     thick: 5,
 };
 
+const WEATHER_MODE_RENDERERS = {
+    raining: drawRainingWeatherFrame,
+};
+
+const weatherRuntime = {
+    drops: [],
+    lastFrameAtMs: 0,
+    seededMode: "",
+    seededWidth: 0,
+    seededHeight: 0,
+};
+
+let weatherAnimationStarted = false;
+
 let canvasLayers = {};          
 let cellSize   = 30;          
 
@@ -182,6 +196,166 @@ function redrawStage() {
             }
         }
     }
+
+    ensureWeatherAnimationLoop();
+}
+
+function redrawWeatherLayerBase() {
+    const id = "Lw1";
+    const ctx = getCanvasContextByLayerId(id);
+    if (!ctx) return;
+
+    const canvas = ctx.canvas;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!stage[id]) {
+        stage[id] = Array.from({ length: maxStageHeight }, () =>
+            Array.from({ length: maxStageWidth }, () => "")
+        );
+        return;
+    }
+
+    for (let vy = 0; vy < height; vy++) {
+        for (let vx = 0; vx < width; vx++) {
+            const wy = topLeftY + vy;
+            const wx = topLeftX + vx;
+
+            if (wy < 0 || wy >= maxStageHeight || wx < 0 || wx >= maxStageWidth) {
+                continue;
+            }
+
+            const classes = stage[id][wy][wx];
+            if (!classes) continue;
+
+            drawGridCell(id, vy, vx, classes);
+        }
+    }
+}
+
+function ensureWeatherAnimationLoop() {
+    if (weatherAnimationStarted) return;
+
+    weatherAnimationStarted = true;
+    requestAnimationFrame(stepWeatherAnimation);
+}
+
+function stepWeatherAnimation(nowMs) {
+    const mode = getVisibleWeatherMode();
+    if (!mode) {
+        weatherRuntime.lastFrameAtMs = 0;
+        weatherRuntime.seededMode = "";
+        weatherRuntime.drops = [];
+        requestAnimationFrame(stepWeatherAnimation);
+        return;
+    }
+
+    const renderMode = WEATHER_MODE_RENDERERS[mode];
+    if (renderMode) {
+        const dt = weatherRuntime.lastFrameAtMs === 0
+            ? (1 / 60)
+            : Math.min(0.05, (nowMs - weatherRuntime.lastFrameAtMs) / 1000);
+
+        weatherRuntime.lastFrameAtMs = nowMs;
+        renderMode(dt);
+    }
+
+    requestAnimationFrame(stepWeatherAnimation);
+}
+
+function getVisibleWeatherMode() {
+    const weatherLayer = stage["Lw1"];
+    if (!weatherLayer) return "";
+
+    for (let vy = 0; vy < height; vy++) {
+        for (let vx = 0; vx < width; vx++) {
+            const wy = topLeftY + vy;
+            const wx = topLeftX + vx;
+
+            if (wy < 0 || wy >= maxStageHeight || wx < 0 || wx >= maxStageWidth) {
+                continue;
+            }
+
+            const classes = weatherLayer[wy][wx];
+            if (!classes) continue;
+
+            const tokens = classes.split(/\s+/);
+            for (const token of tokens) {
+                if (WEATHER_MODE_RENDERERS[token]) {
+                    return token;
+                }
+            }
+        }
+    }
+
+    return "";
+}
+
+function drawRainingWeatherFrame(dtSeconds) {
+    const ctx = getCanvasContextByLayerId("Lw1");
+    if (!ctx) return;
+
+    const canvas = ctx.canvas;
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    const targetDropCount = Math.max(48, Math.floor((canvasWidth * canvasHeight) / 4200));
+
+    if (
+        weatherRuntime.seededMode !== "raining" ||
+        weatherRuntime.seededWidth !== canvasWidth ||
+        weatherRuntime.seededHeight !== canvasHeight ||
+        weatherRuntime.drops.length !== targetDropCount
+    ) {
+        weatherRuntime.seededMode = "raining";
+        weatherRuntime.seededWidth = canvasWidth;
+        weatherRuntime.seededHeight = canvasHeight;
+        weatherRuntime.drops = Array.from(
+            { length: targetDropCount },
+            () => createRainDrop(canvasWidth, canvasHeight)
+        );
+    }
+
+    redrawWeatherLayerBase();
+
+    ctx.save();
+    ctx.strokeStyle = COLOR_MAP["white"];
+    ctx.lineWidth = Math.max(1, Math.round(cellSize * 0.06));
+    ctx.lineCap = "round";
+
+    for (const drop of weatherRuntime.drops) {
+        drop.x += drop.wind * dtSeconds;
+        drop.y += drop.speed * dtSeconds;
+
+        if (drop.y > canvasHeight + drop.length) {
+            drop.y = -drop.length;
+            drop.x = Math.random() * canvasWidth;
+        }
+        if (drop.x > canvasWidth + drop.length) {
+            drop.x = -drop.length;
+        }
+        if (drop.x < -drop.length) {
+            drop.x = canvasWidth + drop.length;
+        }
+
+        ctx.globalAlpha = drop.alpha;
+        ctx.beginPath();
+        ctx.moveTo(drop.x, drop.y);
+        ctx.lineTo(drop.x + drop.wind * 0.08, drop.y + drop.length);
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}
+
+function createRainDrop(canvasWidth, canvasHeight) {
+    const baseLength = Math.max(8, cellSize * 0.35);
+    return {
+        x: Math.random() * canvasWidth,
+        y: Math.random() * canvasHeight,
+        length: baseLength + Math.random() * (baseLength * 0.75),
+        speed: Math.max(160, cellSize * 18) + Math.random() * (cellSize * 8),
+        wind: (Math.random() * cellSize * 2.6) + (cellSize * 0.8),
+        alpha: 0.2 + (Math.random() * 0.35),
+    };
 }
 
 function drawGridCell(id, y, x, classes) {

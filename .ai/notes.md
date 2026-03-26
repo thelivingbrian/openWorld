@@ -44,3 +44,16 @@ Working memory for AI agents. This file is intentionally editable by agents.
 - 2026-03-14: Completed AI-011 by implementing `pushStickyGroup()` in character.go — BFS-based polyomino group discovery using TryLock for concurrency safety, with atomic multi-tile movement. Integrated sticky checks into Player.push()/NonPlayer.push(). Fixed TryLock contention bug where locked neighbors (from push chains) were causing false group-push failures by switching BFS to skip-on-failure instead of bail-on-failure. Added 10 focused tests: pairs, L-shapes, squares, walls, edges, occupied tiles, ball-into-group, non-sticky isolation, and state-switch scenarios.
 - 2026-03-14: Completed AI-012 with design decision: fragile blocks in sticky groups do NOT break on failed group push; they only break from damage reactions. All group members must be able to move for push to succeed. Documented in pushStickyGroup code comments.
 - 2026-03-14: Completed AI-013 by creating puzzle content: added `sticky-teal` and `sticky-purple` interactable definitions to `tools/main/data/collections/escape/interactables/puzzles.json`; created new `sticky.json` space in `tools/main/data/collections/escape/spaces/` with 3 rooms — sticky-pair (basic pair movement), sticky-l-group (L-shaped group with interior walls), sticky-transmit (transmitPushAll + sticky pair with corridor barriers).
+- 2026-03-26: Completed Cooler Visuals / Dynamic weather. Added tokenized dynamic weather mode support in `server/main/assets/canvas.js` with first implemented mode `raining`.
+	- Design decisions:
+		- Dynamic weather is client-rendered on the existing `Lw1` weather canvas layer; no server schema/message changes were required.
+		- Weather mode selection is token-based from existing weather class strings (example: `blue trsp20 raining`), preserving compatibility with color/transparency classes.
+		- Unknown weather tokens are ignored by the renderer so content can safely carry future mode tags before client support exists.
+	- Current limitations:
+		- Mode detection reads only currently visible `Lw1` tiles; mixed per-tile weather modes in a single camera view are not blended (first detected mode wins).
+		- Raining uses a single global drop style and fixed animation profile; there is no intensity token yet.
+		- Weather animation redraws only `Lw1` each frame for correctness, which is acceptable at current 16x16 view size but should be monitored if view area grows.
+	- Future expansion possibilities:
+		- Add tokens like `rain-light`, `rain-heavy`, `wind-left`, `wind-right` to parameterize density/speed/drift.
+		- Add additional mode renderers (`snowing`, `foggy`, `ash`, `sandstorm`) in the same token-renderer map.
+		- Extend mode resolution to support deterministic priority or blending when multiple mode tokens are present.
