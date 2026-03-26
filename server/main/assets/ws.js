@@ -211,7 +211,7 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 					if (id === "Ls1") {
 						drawSpriteCell(id, vy, vx, classes);
 					} else {
-						drawGridCell(id, vy, vx, classes);
+						drawGridCell(id, vy, vx, classes, performance.now(), y, x);
 					}
 				}
 			}

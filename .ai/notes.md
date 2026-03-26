@@ -57,3 +57,28 @@ Working memory for AI agents. This file is intentionally editable by agents.
 		- Add tokens like `rain-light`, `rain-heavy`, `wind-left`, `wind-right` to parameterize density/speed/drift.
 		- Add additional mode renderers (`snowing`, `foggy`, `ash`, `sandstorm`) in the same token-renderer map.
 		- Extend mode resolution to support deterministic priority or blending when multiple mode tokens are present.
+- 2026-03-26: Completed Cooler Visuals / Dynamic Tiles in `server/main/assets/canvas.js` and `server/main/assets/ws.js`.
+	- New tile tokens:
+		- `cycle(colorA,colorB)` animated fill cycling between two palette colors.
+		- `cycle-b(colorA,colorB)` animated border cycling between two palette colors.
+		- `rainbow` animated rainbow fill.
+		- `rainbow-b` animated rainbow border.
+		- `water` blue wave-like tile shading with soft border.
+		- `sparkle` procedural twinkle overlay.
+	- Design decisions:
+		- Reused class-string token model so new visuals can be authored without schema or websocket payload changes.
+		- Dynamic tiles and weather share a single animation loop so both effects can coexist and stay in sync.
+		- Redraw scope during animation is restricted to currently visible dynamic tiles (plus weather layer when active) for performance.
+	- Current limitations:
+		- No per-token speed/intensity parameters yet (fixed animation timings).
+		- `cycle(...)` and `cycle-b(...)` only accept named colors present in `COLOR_MAP`.
+		- Sparkles are deterministic per tile but use a simple procedural pattern; no authored sparkle masks yet.
+	- Future expansion possibilities:
+		- Add optional speed/intensity args (examples: `rainbow@slow`, `sparkle(heavy)`, `water(choppy)`).
+		- Add directional flow tokens for water (`water-east`, `water-west`) and foam edge modes.
+		- Extend dynamic token parsing into tools editor previews so authors can see animation while editing.
+- 2026-03-26: Added new escape prototype set `tools/main/data/collections/escape/prototypes/dynamic-tiles.json` with sample assets for all new dynamic tile tokens (`cycle`, `cycle-b`, `rainbow`, `rainbow-b`, `water`, `sparkle`) plus a combined `water-sparkle` tile.
+- 2026-03-26: Updated dynamic water behavior + content pass:
+	- `water` token in `server/main/assets/canvas.js` no longer auto-adds a dark border; water is now borderless unless an explicit border class is provided.
+	- Added `water-shimmer-corner` and `water-sparkle-corner` prototypes to `escape/prototypes/dynamic-tiles.json` and made `water-sparkle` borderless/non-walkable.
+	- Redesigned `escape/fragments/water.json` fragment `pond-bend` to use dynamic shimmer/sparkle water prototypes and new rounded-corner variants.

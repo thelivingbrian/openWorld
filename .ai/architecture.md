@@ -24,3 +24,7 @@ High-level architecture reference for agents and contributors.
 	- Static weather remains class-driven (`blue trsp20`, etc.) via existing color/transparency token parsing.
 	- Dynamic weather modes are token-driven extensions in the same weather string (example: `raining`) and rendered client-side by mode-specific frame functions.
 	- Current implementation redraws only `Lw1` during weather animation frames to avoid touching gameplay/entity layers.
+- Dynamic tile visuals are also class-token driven in `canvas.js` and rendered client-side:
+	- Tokens: `cycle(colorA,colorB)`, `cycle-b(colorA,colorB)`, `rainbow`, `rainbow-b`, `water`, `sparkle`.
+	- Runtime scans visible tiles for dynamic tokens and redraws only affected visible layers each frame.
+	- WebSocket immediate draws now pass world coordinates to tile draw calls so animated phase offsets remain stable on quick-swaps.

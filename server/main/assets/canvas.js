@@ -75,7 +75,7 @@ const weatherRuntime = {
     seededHeight: 0,
 };
 
-let weatherAnimationStarted = false;
+let visualEffectsAnimationStarted = false;
 
 let canvasLayers = {};          
 let cellSize   = 30;          
@@ -192,12 +192,12 @@ function redrawStage() {
                 const classes = stage[id][wy][wx];
                 if (!classes) continue;
 
-                drawGridCell(id, vy, vx, classes);
+                drawGridCell(id, vy, vx, classes, undefined, wy, wx);
             }
         }
     }
 
-    ensureWeatherAnimationLoop();
+    ensureVisualEffectsAnimationLoop();
 }
 
 function redrawWeatherLayerBase() {
@@ -227,39 +227,101 @@ function redrawWeatherLayerBase() {
             const classes = stage[id][wy][wx];
             if (!classes) continue;
 
-            drawGridCell(id, vy, vx, classes);
+            drawGridCell(id, vy, vx, classes, undefined, wy, wx);
         }
     }
 }
 
-function ensureWeatherAnimationLoop() {
-    if (weatherAnimationStarted) return;
+function ensureVisualEffectsAnimationLoop() {
+    if (visualEffectsAnimationStarted) return;
 
-    weatherAnimationStarted = true;
-    requestAnimationFrame(stepWeatherAnimation);
+    visualEffectsAnimationStarted = true;
+    requestAnimationFrame(stepVisualEffects);
 }
 
-function stepWeatherAnimation(nowMs) {
+function stepVisualEffects(nowMs) {
     const mode = getVisibleWeatherMode();
-    if (!mode) {
+    const dynamicLayerIds = getVisibleDynamicLayerIds();
+    const hasAnimatedTiles = dynamicLayerIds.length > 0;
+
+    if (!mode && !hasAnimatedTiles) {
         weatherRuntime.lastFrameAtMs = 0;
         weatherRuntime.seededMode = "";
         weatherRuntime.drops = [];
-        requestAnimationFrame(stepWeatherAnimation);
+        requestAnimationFrame(stepVisualEffects);
         return;
+    }
+
+    const dt = weatherRuntime.lastFrameAtMs === 0
+        ? (1 / 60)
+        : Math.min(0.05, (nowMs - weatherRuntime.lastFrameAtMs) / 1000);
+
+    weatherRuntime.lastFrameAtMs = nowMs;
+
+    if (hasAnimatedTiles) {
+        redrawDynamicLayers(dynamicLayerIds, nowMs);
     }
 
     const renderMode = WEATHER_MODE_RENDERERS[mode];
     if (renderMode) {
-        const dt = weatherRuntime.lastFrameAtMs === 0
-            ? (1 / 60)
-            : Math.min(0.05, (nowMs - weatherRuntime.lastFrameAtMs) / 1000);
-
-        weatherRuntime.lastFrameAtMs = nowMs;
-        renderMode(dt);
+        renderMode(dt, nowMs);
+    } else {
+        weatherRuntime.seededMode = "";
+        weatherRuntime.drops = [];
     }
 
-    requestAnimationFrame(stepWeatherAnimation);
+    requestAnimationFrame(stepVisualEffects);
+}
+
+function redrawDynamicLayers(layerIds, nowMs) {
+    for (const id of layerIds) {
+        const ctx = getCanvasContextByLayerId(id);
+        if (!ctx) continue;
+
+        for (let vy = 0; vy < height; vy++) {
+            for (let vx = 0; vx < width; vx++) {
+                const wy = topLeftY + vy;
+                const wx = topLeftX + vx;
+                if (wy < 0 || wy >= maxStageHeight || wx < 0 || wx >= maxStageWidth) {
+                    continue;
+                }
+
+                const classes = stage[id][wy][wx];
+                if (!classes || !hasDynamicTileToken(classes)) continue;
+
+                drawGridCell(id, vy, vx, classes, nowMs, wy, wx);
+            }
+        }
+    }
+}
+
+function getVisibleDynamicLayerIds() {
+    const out = [];
+
+    for (const id of layerIds) {
+        if (id === "Ls1" || id === "Lw1") continue;
+        if (!stage[id]) continue;
+
+        let found = false;
+        for (let vy = 0; vy < height && !found; vy++) {
+            for (let vx = 0; vx < width; vx++) {
+                const wy = topLeftY + vy;
+                const wx = topLeftX + vx;
+                if (wy < 0 || wy >= maxStageHeight || wx < 0 || wx >= maxStageWidth) {
+                    continue;
+                }
+
+                const classes = stage[id][wy][wx];
+                if (classes && hasDynamicTileToken(classes)) {
+                    out.push(id);
+                    found = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    return out;
 }
 
 function getVisibleWeatherMode() {
@@ -358,12 +420,16 @@ function createRainDrop(canvasWidth, canvasHeight) {
     };
 }
 
-function drawGridCell(id, y, x, classes) {
+function drawGridCell(id, y, x, classes, nowMs, worldY, worldX) {
     const ctx = getCanvasContextByLayerId(id);
     if (!ctx) return;
 
+    const renderTimeMs = nowMs ?? performance.now();
+    const tileWorldY = worldY ?? (topLeftY + y);
+    const tileWorldX = worldX ?? (topLeftX + x);
+
     const { fillColor, strokeColor, alpha, borderWidth } =
-        getDrawingStyle(classes);
+        getDrawingStyle(classes, renderTimeMs, tileWorldY, tileWorldX);
 
     const px = Math.round(x * cellSize);
     const py = Math.round(y * cellSize);
@@ -444,6 +510,35 @@ function drawGridCell(id, y, x, classes) {
                 borderLeft
             );
         }
+    }
+
+    ctx.restore();
+
+    drawSparkleOverlay(ctx, classes, outerX, outerY, outerW, outerH, alpha, renderTimeMs, tileWorldY, tileWorldX);
+}
+
+function drawSparkleOverlay(ctx, classes, x, y, w, h, alpha, timeMs, worldY, worldX) {
+    if (!classes.includes("sparkle")) return;
+
+    const t = timeMs / 1000;
+    const sparkleCount = 2;
+
+    ctx.save();
+    ctx.fillStyle = COLOR_MAP["white"];
+
+    for (let i = 0; i < sparkleCount; i++) {
+        const phase = hashFloat(worldY, worldX, i, 1) * Math.PI * 2;
+        const twinkle = Math.max(0, Math.sin(t * 4 + phase));
+        if (twinkle < 0.35) continue;
+
+        const px = x + w * (0.15 + (hashFloat(worldY, worldX, i, 2) * 0.7));
+        const py = y + h * (0.15 + (hashFloat(worldY, worldX, i, 3) * 0.7));
+        const radius = Math.max(1, cellSize * 0.05 * (0.8 + hashFloat(worldY, worldX, i, 4)));
+
+        ctx.globalAlpha = alpha * twinkle * 0.9;
+        ctx.beginPath();
+        ctx.arc(px, py, radius, 0, Math.PI * 2);
+        ctx.fill();
     }
 
     ctx.restore();
@@ -537,7 +632,7 @@ function getCornerRadii(classes, cellSize) {
     return radii;
 }
 
-function getDrawingStyle(classes) {
+function getDrawingStyle(classes, timeMs, worldY, worldX) {
     const tokens = classes.split(/\s+/);
 
     let fillColor   = null;
@@ -586,6 +681,53 @@ function getDrawingStyle(classes) {
         }
     }
 
+    for (const token of tokens) {
+        const cycleMatch = token.match(/^cycle\(([^,]+),([^)]+)\)$/);
+        if (cycleMatch) {
+            const colorA = COLOR_MAP[cycleMatch[1].trim()];
+            const colorB = COLOR_MAP[cycleMatch[2].trim()];
+            if (colorA && colorB) {
+                const mix = 0.5 + (0.5 * Math.sin((timeMs / 420) + ((worldY + worldX) * 0.3)));
+                fillColor = mixColor(colorA, colorB, mix);
+            }
+            continue;
+        }
+
+        const cycleBorderMatch = token.match(/^cycle-b\(([^,]+),([^)]+)\)$/);
+        if (cycleBorderMatch) {
+            const colorA = COLOR_MAP[cycleBorderMatch[1].trim()];
+            const colorB = COLOR_MAP[cycleBorderMatch[2].trim()];
+            if (colorA && colorB) {
+                const mix = 0.5 + (0.5 * Math.sin((timeMs / 420) + ((worldY + worldX) * 0.3)));
+                strokeColor = mixColor(colorA, colorB, mix);
+                if (borderWidth === 0) {
+                    borderWidth = BORDER_WIDTH_MAP.thin;
+                }
+            }
+            continue;
+        }
+
+        if (token === "rainbow") {
+            fillColor = rainbowColorAt(timeMs, (worldY + worldX) * 11);
+            continue;
+        }
+
+        if (token === "rainbow-b") {
+            strokeColor = rainbowColorAt(timeMs, (worldY + worldX) * 11);
+            if (borderWidth === 0) {
+                borderWidth = BORDER_WIDTH_MAP.thin;
+            }
+            continue;
+        }
+
+        if (token === "water") {
+            const wave = 0.5 + (0.5 * Math.sin((timeMs / 560) + (worldX * 0.7) + (worldY * 0.35)));
+            fillColor = mixColor(COLOR_MAP["blue"], COLOR_MAP["sky-blue"], wave);
+            alpha = Math.min(alpha, 0.92);
+            continue;
+        }
+    }
+
     // If we have a stroke but no fill, that's okay (border-only tile)
     // If we have neither, treat as fully transparent
     if (!fillColor && !strokeColor) {
@@ -593,6 +735,89 @@ function getDrawingStyle(classes) {
     }
 
     return { fillColor, strokeColor, alpha, borderWidth };
+}
+
+function hasDynamicTileToken(classes) {
+    if (!classes) return false;
+
+    return (
+        classes.includes("sparkle") ||
+        classes.includes("rainbow") ||
+        classes.includes("rainbow-b") ||
+        classes.includes("water") ||
+        classes.includes("cycle(") ||
+        classes.includes("cycle-b(")
+    );
+}
+
+function mixColor(colorA, colorB, amount) {
+    const a = parseRgbColor(colorA);
+    const b = parseRgbColor(colorB);
+    if (!a || !b) return colorA;
+
+    const t = Math.max(0, Math.min(1, amount));
+    const r = Math.round((a.r * (1 - t)) + (b.r * t));
+    const g = Math.round((a.g * (1 - t)) + (b.g * t));
+    const bCh = Math.round((a.b * (1 - t)) + (b.b * t));
+
+    return `rgb(${r}, ${g}, ${bCh})`;
+}
+
+function parseRgbColor(color) {
+    const match = color.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+    if (!match) return null;
+
+    return {
+        r: Number(match[1]),
+        g: Number(match[2]),
+        b: Number(match[3]),
+    };
+}
+
+function rainbowColorAt(timeMs, phase) {
+    const hue = ((timeMs / 14) + phase) % 360;
+    return hslToRgbString(hue, 0.85, 0.6);
+}
+
+function hslToRgbString(h, s, l) {
+    const hue = ((h % 360) + 360) % 360;
+    const c = (1 - Math.abs((2 * l) - 1)) * s;
+    const x = c * (1 - Math.abs(((hue / 60) % 2) - 1));
+    const m = l - (c / 2);
+
+    let rPrime = 0;
+    let gPrime = 0;
+    let bPrime = 0;
+
+    if (hue < 60) {
+        rPrime = c; gPrime = x;
+    } else if (hue < 120) {
+        rPrime = x; gPrime = c;
+    } else if (hue < 180) {
+        gPrime = c; bPrime = x;
+    } else if (hue < 240) {
+        gPrime = x; bPrime = c;
+    } else if (hue < 300) {
+        rPrime = x; bPrime = c;
+    } else {
+        rPrime = c; bPrime = x;
+    }
+
+    const r = Math.round((rPrime + m) * 255);
+    const g = Math.round((gPrime + m) * 255);
+    const b = Math.round((bPrime + m) * 255);
+
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
+function hashFloat(a, b, c, d) {
+    const seed =
+        (a * 12.9898) +
+        (b * 78.233) +
+        (c * 37.719) +
+        (d * 17.173);
+    const value = Math.sin(seed) * 43758.5453123;
+    return value - Math.floor(value);
 }
 
 function pathRoundedRect(ctx, x, y, w, h, radii) {
