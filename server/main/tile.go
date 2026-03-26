@@ -346,6 +346,9 @@ func replaceNilInteractable(tile *Tile, incoming *Interactable) bool {
 		return true
 	}
 	if tile.material.Walkable { // Prevents lock contention from using Walkable()
+		if !incoming.walkable && hasCharacters(tile) {
+			return false
+		}
 		setLockedInteractableAndUpdate(tile, incoming)
 		return true
 	}
@@ -413,10 +416,19 @@ func walkable(tile *Tile) bool {
 	tile.interactableMutex.Lock()
 	defer tile.interactableMutex.Unlock()
 	if tile.interactable != nil {
-		return tile.interactable.pushable || tile.interactable.walkable
+		return tile.interactable.walkable
 
 	}
 	return true
+}
+
+func hasCharacters(tile *Tile) bool {
+	if tile == nil {
+		return false
+	}
+	tile.CharacterMutex.Lock()
+	defer tile.CharacterMutex.Unlock()
+	return len(tile.characterMap) > 0
 }
 
 func hasTeleport(tile *Tile) bool {

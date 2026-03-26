@@ -56,6 +56,7 @@ describe('grid-engine', () => {
     expect(out).toEqual({
       prototypeId: '',
       interactableId: '',
+      interactableState: '',
       transformation: { clockwiseRotations: 0 },
     });
   });
@@ -334,6 +335,7 @@ describe('grid-engine', () => {
       walkable: true,
       fragile: false,
       reactions: '',
+      reactionRules: [],
     });
 
     applyGridTool({

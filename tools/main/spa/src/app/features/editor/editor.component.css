@@ -420,6 +420,23 @@ button {
 	font-size: 12px;
 }
 
+/* Reaction rules editor */
+.reaction-rules-editor {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.reaction-rule-card {
+	border-color: #b0cfe0;
+	background: #f5f9fc;
+}
+
+.reaction-rule-card select {
+	min-width: 180px;
+}
+
 a, a:visited, a:hover, a:active {
     color: #0fcdfc;
 }

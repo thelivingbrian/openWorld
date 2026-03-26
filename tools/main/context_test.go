@@ -30,6 +30,66 @@ func TestCompileSnap(t *testing.T) {
 
 }
 
+func TestResolveInteractableByTile_PrefersDefaultStateWhenTileStateBlank(t *testing.T) {
+	collection := &Collection{
+		InteractableSets: map[string][]InteractableDescription{
+			"default": {
+				{
+					ID:           "door-1",
+					Name:         "door",
+					State:        "state-1",
+					DefaultState: "default",
+					CssClass:     "legacy-css",
+					States: map[string]InteractableStateDescription{
+						"default": {CssClass: "door-closed", Walkable: false},
+						"state-1": {CssClass: "door-open", Walkable: true},
+					},
+				},
+			},
+		},
+	}
+
+	resolved := collection.resolveInteractableByTile(TileData{InteractableId: "door-1"})
+	if resolved == nil {
+		t.Fatal("expected interactable to resolve")
+	}
+	if resolved.State != "default" {
+		t.Fatalf("expected resolved state to be default, got %q", resolved.State)
+	}
+	if resolved.CssClass != "door-closed" {
+		t.Fatalf("expected css class from default state, got %q", resolved.CssClass)
+	}
+}
+
+func TestResolveInteractableByTile_UsesExplicitTileState(t *testing.T) {
+	collection := &Collection{
+		InteractableSets: map[string][]InteractableDescription{
+			"default": {
+				{
+					ID:           "door-1",
+					Name:         "door",
+					DefaultState: "default",
+					States: map[string]InteractableStateDescription{
+						"default": {CssClass: "door-closed", Walkable: false},
+						"state-1": {CssClass: "door-open", Walkable: true},
+					},
+				},
+			},
+		},
+	}
+
+	resolved := collection.resolveInteractableByTile(TileData{InteractableId: "door-1", InteractableState: "state-1"})
+	if resolved == nil {
+		t.Fatal("expected interactable to resolve")
+	}
+	if resolved.State != "state-1" {
+		t.Fatalf("expected resolved state to be tile override state-1, got %q", resolved.State)
+	}
+	if resolved.CssClass != "door-open" {
+		t.Fatalf("expected css class from state-1, got %q", resolved.CssClass)
+	}
+}
+
 // -----------------------------------------------------------------------------
 // Serialize for Snapshots
 // -----------------------------------------------------------------------------

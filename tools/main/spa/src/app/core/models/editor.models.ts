@@ -14,6 +14,7 @@ export interface TileData {
   prototypeId?: string;
   transformation?: Transformation;
   interactableId?: string;
+  interactableState?: string;
 }
 
 export interface Cell {
@@ -98,15 +99,39 @@ export interface Fragment {
   blueprint: Blueprint;
 }
 
-export interface InteractableDescription {
-  id: string;
-  name: string;
-  setName: string;
+export interface ReactionRule {
+  reactsWith: string;
+  reactsWithArgs: string[];
+  reaction: string;
+  reactionArgs: string[];
+}
+
+export interface InteractableStateDescription {
   cssClass: string;
   pushable: boolean;
   walkable: boolean;
   fragile: boolean;
+  stickyGroups?: string[];
+  rejectTeleport?: boolean;
   reactions: string;
+  reactionRules: ReactionRule[];
+}
+
+export interface InteractableDescription {
+  id: string;
+  name: string;
+  setName: string;
+  state: string;
+  defaultState?: string;
+  states?: Record<string, InteractableStateDescription>;
+  cssClass: string;
+  pushable: boolean;
+  walkable: boolean;
+  fragile: boolean;
+  stickyGroups?: string[];
+  rejectTeleport?: boolean;
+  reactions: string;
+  reactionRules: ReactionRule[];
 }
 
 export interface Collection {

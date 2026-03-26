@@ -1,0 +1,104 @@
+[
+  {
+    "id": "85f4c7b4-d860-47e7-8a4a-28f558217145",
+    "name": "airlock-open-switch",
+    "setName": "airlock",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "white-b thick",
+        "reactionRules": [
+          {
+            "reactsWith": "interactableIsNil",
+            "reaction": "openConnectedAirlockDoors"
+          }
+        ]
+      }
+    },
+    "cssClass": "white-b thick",
+    "pushable": false,
+    "walkable": false,
+    "fragile": false,
+    "reactions": ""
+  },
+  {
+    "id": "9a8b2f6a-5a00-47e8-8996-2783b05b55db",
+    "name": "airlock-close-switch",
+    "setName": "airlock",
+    "state": "disarmed",
+    "defaultState": "disarmed",
+    "states": {
+      "disarmed": {
+        "cssClass": "",
+        "walkable": true
+      },
+      "armed": {
+        "cssClass": "",
+        "walkable": true,
+        "reactionRules": [
+          {
+            "reactsWith": "interactableIsNil",
+            "reaction": "closeConnectedAirlockDoors"
+          }
+        ]
+      }
+    },
+    "cssClass": "",
+    "pushable": false,
+    "walkable": true,
+    "fragile": false,
+    "reactions": ""
+  },
+  {
+    "id": "a32b1ea0-6f53-48d4-8897-d5e0cf87ef77",
+    "name": "airlock-door",
+    "setName": "airlock",
+    "state": "closed",
+    "defaultState": "closed",
+    "states": {
+      "closed": {
+        "cssClass": "s-hoz chocolate-b thick no-lr"
+      },
+      "open": {
+        "cssClass": "",
+        "walkable": true,
+        "reactionRules": [
+          {
+            "reactsWith": "interactableIsNil",
+            "reaction": "armConnectedAirlockCloseSwitches"
+          }
+        ]
+      }
+    },
+    "cssClass": "s-hoz chocolate-b thick no-lr",
+    "pushable": false,
+    "walkable": false,
+    "fragile": false,
+    "reactions": ""
+  },
+  {
+    "id": "f3122c1b-65af-4125-a2a6-4d8bc9a3427f",
+    "name": "airlock-arm-only",
+    "setName": "airlock",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "",
+        "walkable": true,
+        "reactionRules": [
+          {
+            "reactsWith": "interactableIsNil",
+            "reaction": "armConnectedAirlockCloseSwitches"
+          }
+        ]
+      }
+    },
+    "cssClass": "",
+    "pushable": false,
+    "walkable": true,
+    "fragile": false,
+    "reactions": ""
+  }
+]

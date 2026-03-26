@@ -1,6 +1,10 @@
 package main
 
-import "testing"
+import (
+	"sync"
+	"testing"
+	"time"
+)
 
 func TestEnsureCharacterCanMoveOnWalkable(t *testing.T) {
 	loadFromJson()
@@ -170,5 +174,124 @@ func TestEnsureCharacterCanRotateInteractables(t *testing.T) {
 	rotate(npc, false)
 	if north.interactable != nil && west.interactable != int1 && south.interactable != int0 {
 		t.Error("Should be able to rotate off of non-walkable")
+	}
+}
+
+func TestSwapIfEmptyRejectsStickyInteractable(t *testing.T) {
+	area := Area{
+		Name: "sticky-no-juke",
+		Tiles: [][]Material{{
+			{Walkable: true}, {Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			{Name: "sA", CssClass: "a", Pushable: true, StickyGroups: []string{"sticky"}},
+			nil,
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	source := stage.tiles[0][0]
+	target := stage.tiles[0][1]
+
+	if swapIfEmpty(source, target) {
+		t.Fatal("expected juke swap to fail for sticky interactable")
+	}
+	if source.interactable == nil || source.interactable.name != "sA" {
+		t.Fatal("expected sticky interactable to remain on source tile")
+	}
+	if target.interactable != nil {
+		t.Fatal("expected target tile to remain empty")
+	}
+}
+
+func TestSwapIfEmptyRejectsStickyGroupInteractable(t *testing.T) {
+	area := Area{
+		Name: "sticky-group-no-juke",
+		Tiles: [][]Material{{
+			{Walkable: true}, {Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			{Name: "g1", CssClass: "a", Pushable: true, StickyGroups: []string{"group-1"}},
+			nil,
+		}},
+	}
+
+	stage := createStageFromArea(area)
+	source := stage.tiles[0][0]
+	target := stage.tiles[0][1]
+
+	if swapIfEmpty(source, target) {
+		t.Fatal("expected juke swap to fail for sticky-group interactable")
+	}
+	if source.interactable == nil || source.interactable.name != "g1" {
+		t.Fatal("expected sticky-group interactable to remain on source tile")
+	}
+	if target.interactable != nil {
+		t.Fatal("expected target tile to remain empty")
+	}
+}
+
+func TestOpposingStickyPushesDoNotDeadlock(t *testing.T) {
+	area := Area{
+		Name: "opposing-sticky-pushes",
+		Tiles: [][]Material{{
+			{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true},
+			{Walkable: true}, {Walkable: true}, {Walkable: true}, {Walkable: true},
+		}},
+		Interactables: [][]*InteractableDescription{{
+			nil,
+			nil,
+			{Name: "left-a", CssClass: "box", Pushable: true, Walkable: true, StickyGroups: []string{"left"}},
+			{Name: "left-b", CssClass: "box", Pushable: true, Walkable: true, StickyGroups: []string{"left"}},
+			nil,
+			{Name: "right-a", CssClass: "box", Pushable: true, Walkable: true, StickyGroups: []string{"right"}},
+			{Name: "right-b", CssClass: "box", Pushable: true, Walkable: true, StickyGroups: []string{"right"}},
+			nil,
+			nil,
+		}},
+	}
+
+	const iterations = 200
+	for i := 0; i < iterations; i++ {
+		stage := createStageFromArea(area)
+		if stage == nil {
+			t.Fatal("expected stage")
+		}
+
+		leftStart := stage.tiles[0][2]
+		rightStart := stage.tiles[0][6]
+		leftPlayer := &Player{world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{}}
+		rightPlayer := &Player{world: &World{worldStages: map[string]*Stage{}}, playerStages: map[string]*Stage{}}
+
+		start := make(chan struct{})
+		var wg sync.WaitGroup
+		wg.Add(2)
+
+		go func() {
+			defer wg.Done()
+			<-start
+			_ = leftPlayer.push(leftStart, nil, 0, 1)
+		}()
+
+		go func() {
+			defer wg.Done()
+			<-start
+			_ = rightPlayer.push(rightStart, nil, 0, -1)
+		}()
+
+		close(start)
+
+		done := make(chan struct{})
+		go func() {
+			wg.Wait()
+			close(done)
+		}()
+
+		select {
+		case <-done:
+			// success
+		case <-time.After(250 * time.Millisecond):
+			t.Fatalf("opposing sticky pushes stalled on iteration %d", i)
+		}
 	}
 }

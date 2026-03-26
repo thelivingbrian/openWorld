@@ -16,12 +16,11 @@ Check out: https://bloopworld.co - For live demo
         - Compile executable with go & run 
         - Angular SPA editor (new):
             - Build client: `cd tools/main/spa && npm install && npm run build`
-            - Start tools server from `tools/main` and open `http://localhost:4444/app`
-            - Existing HTMX editor remains at `http://localhost:4444/`
+            - Start tools server from `tools/main` and open `http://localhost:4444``
         - Deploy changes:
-            -Web: visit localhost:4444 with application running
-            -linux: go build && ./main deploy bloop
-            -powershell: go build; .\main.exe deploy bloop
+            -Web: visit localhost:4444 with application running, view chosen collection and click 'deploy' at top
+            -linux: go build && ./main deploy [collection name]
+            -powershell: go build; .\main.exe deploy [collection name]
         - Track changes using git 
 
 
@@ -31,3 +30,15 @@ This project uses: https://github.com/gkampitakis/go-snaps
 To update snapshots once (Powershell) use:
 
     $env:UPDATE_SNAPS = 'true'; go test; Remove-Item Env:\UPDATE_SNAPS
+
+
+## AI orchestration
+
+- Stable instructions: `.ai/AGENTS.md`
+- Mutable agent notes: `.ai/notes.md`
+- Shared execution queue: `.ai/backlog.md`
+
+Suggested flow:
+1. Read `.ai/AGENTS.md`, then `.ai/backlog.md`, then `.ai/notes.md`
+2. Claim one task by setting it to `IN_PROGRESS` and filling owner/date
+3. Complete work, set task to `DONE`, and add key learnings to `.ai/notes.md`

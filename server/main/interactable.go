@@ -3,22 +3,39 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"sort"
+	"strings"
 	"time"
 )
 
 type Interactable struct {
 	name           string
+	state          string
+	defaultState   string
+	states         map[string]InteractableState
 	pushable       bool
 	walkable       bool
 	cssClass       string
 	fragile        bool
+	stickyGroups   []string
 	reactions      []InteractableReaction // Lowest index match wins
 	rejectTeleport bool
 }
 
+type InteractableState struct {
+	cssClass       string
+	pushable       bool
+	walkable       bool
+	fragile        bool
+	stickGroups    []string
+	reactions      []InteractableReaction
+	rejectTeleport bool
+}
+
 type InteractableReaction struct {
-	ReactsWith func(incoming *Interactable, initiatior *Player) bool
-	Reaction   func(incoming *Interactable, initiatior *Player, location *Tile) (outgoing *Interactable, push bool) // rotate ?
+	ReactsWith         func(incoming *Interactable, initiatior *Player) bool
+	Reaction           func(incoming *Interactable, initiatior *Player, location *Tile) (outgoing *Interactable, push bool) // rotate ?
+	ReactionWithOffset func(incoming *Interactable, initiatior *Player, location *Tile, yOff, xOff int) (outgoing *Interactable, push bool)
 }
 
 var interactableReactions map[string][]InteractableReaction
@@ -29,7 +46,7 @@ func init() {
 		"black-hole": {
 			{ReactsWith: interactableHasName("ball-fuchsia"), Reaction: hideByTeam("fuchsia")},
 			{ReactsWith: interactableHasName("ball-sky-blue"), Reaction: hideByTeam("sky-blue")},
-			{ReactsWith: everything, Reaction: eat},
+			{ReactsWith: everythingButNil, Reaction: eat},
 		},
 		"goal-sky-blue": {
 			{ReactsWith: playerTeamAndBallNameMatch("sky-blue"), Reaction: scoreGoalForTeam("sky-blue")},
@@ -130,13 +147,162 @@ func init() {
 
 }
 
+// Registries for composable reaction rules (design workspace).
+// Gates determine whether a reaction fires; reactions define the behavior.
+// Each factory accepts a slice of string arguments from the JSON description.
+
+var reactsWithRegistry map[string]func(args []string) func(*Interactable, *Player) bool
+var reactionRegistry map[string]func(args []string) func(*Interactable, *Player, *Tile) (*Interactable, bool)
+var reactionWithOffsetRegistry map[string]func(args []string) func(*Interactable, *Player, *Tile, int, int) (*Interactable, bool)
+
+func init() {
+	reactsWithRegistry = map[string]func(args []string) func(*Interactable, *Player) bool{
+		"everything":          func(_ []string) func(*Interactable, *Player) bool { return everything },
+		"never":               func(_ []string) func(*Interactable, *Player) bool { return never },
+		"interactableIsNil":   func(_ []string) func(*Interactable, *Player) bool { return interactableIsNil },
+		"interactableIsABall": func(_ []string) func(*Interactable, *Player) bool { return interactableIsABall },
+		"interactableIsARing": func(_ []string) func(*Interactable, *Player) bool { return interactableIsARing },
+		"interactableHasName": func(a []string) func(*Interactable, *Player) bool { return interactableHasName(stringArg(a, 0, "")) },
+		"interactableStateIs": func(a []string) func(*Interactable, *Player) bool { return interactableStateIs(stringArg(a, 0, "")) },
+		"interactableStateIsNot": func(a []string) func(*Interactable, *Player) bool {
+			return interactableStateIsNot(stringArg(a, 0, ""))
+		},
+		"interactableStateContains": func(a []string) func(*Interactable, *Player) bool {
+			return interactableStateContains(stringArg(a, 0, ""))
+		},
+		"playerHasTeam": func(a []string) func(*Interactable, *Player) bool { return playerHasTeam(stringArg(a, 0, "")) },
+		"playerTeamAndBallNameMatch": func(a []string) func(*Interactable, *Player) bool {
+			return playerTeamAndBallNameMatch(stringArg(a, 0, ""))
+		},
+		"PlayerAndTeamMatchButDifferentBall": func(a []string) func(*Interactable, *Player) bool {
+			return PlayerAndTeamMatchButDifferentBall(stringArg(a, 0, ""))
+		},
+	}
+
+	reactionRegistry = map[string]func(args []string) func(*Interactable, *Player, *Tile) (*Interactable, bool){
+		"eat":           func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) { return eat },
+		"pass":          func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) { return pass },
+		"killInstantly": func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) { return killInstantly },
+		"playSoundForAll": func(a []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return playSoundForAll(stringArg(a, 0, ""))
+		},
+		"playSoundForInitiator": func(a []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return playSoundForInitiator(stringArg(a, 0, ""))
+		},
+		"notifyAndPass": func(a []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return notifyAndPass(stringArg(a, 0, ""))
+		},
+		"hideByTeam": func(a []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return hideByTeam(stringArg(a, 0, ""))
+		},
+		"scoreGoalForTeam": func(a []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return scoreGoalForTeam(stringArg(a, 0, ""))
+		},
+		"showScoreToPlayer": func(a []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return showScoreToPlayer(stringArg(a, 0, ""))
+		},
+		"catapultWest":  func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) { return catapultWest },
+		"catapultEast":  func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) { return catapultEast },
+		"catapultNorth": func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) { return catapultNorth },
+		"catapultSouth": func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) { return catapultSouth },
+		"moveInitiator": func(a []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return moveInitiator(intArg(a, 0, 0), intArg(a, 1, 0))
+		},
+		"destroyInRangeSkipingSelf": func(a []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return destroyInRangeSkipingSelf(intArg(a, 0, 0), intArg(a, 1, 0), intArg(a, 2, 0), intArg(a, 3, 0))
+		},
+		"makeDangerousForOtherTeam": func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return makeDangerousForOtherTeam
+		},
+		"damageAndSpawn": func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) { return damageAndSpawn },
+		"teleportHomeInteraction": func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return teleportHomeInteraction
+		},
+		"openConnectedAirlockDoors": func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return openConnectedAirlockDoors
+		},
+		"closeConnectedAirlockDoors": func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return closeConnectedAirlockDoors
+		},
+		"cycleConnectedAirlockDoors": func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return cycleConnectedAirlockDoors
+		},
+		"armConnectedAirlockCloseSwitches": func(_ []string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
+			return armConnectedAirlockCloseSwitches
+		},
+	}
+
+	reactionWithOffsetRegistry = map[string]func(args []string) func(*Interactable, *Player, *Tile, int, int) (*Interactable, bool){
+		"transmitPushAll": func(_ []string) func(*Interactable, *Player, *Tile, int, int) (*Interactable, bool) {
+			return transmitPushAll
+		},
+		"transmitPushByState": func(a []string) func(*Interactable, *Player, *Tile, int, int) (*Interactable, bool) {
+			return transmitPushByState(stringArg(a, 0, ""))
+		},
+		"transmitPushByName": func(a []string) func(*Interactable, *Player, *Tile, int, int) (*Interactable, bool) {
+			return transmitPushByName(stringArg(a, 0, ""))
+		},
+	}
+}
+
+func stringArg(args []string, index int, fallback string) string {
+	if index < len(args) && args[index] != "" {
+		return args[index]
+	}
+	return fallback
+}
+
+func intArg(args []string, index int, fallback int) int {
+	if index < len(args) {
+		v := 0
+		fmt.Sscanf(args[index], "%d", &v)
+		return v
+	}
+	return fallback
+}
+
+// resolveReactionRules builds an []InteractableReaction from serialized ReactionRule descriptors.
+func resolveReactionRules(rules []ReactionRule) []InteractableReaction {
+	out := make([]InteractableReaction, 0, len(rules))
+	for _, rule := range rules {
+		gateFactory, gateOk := reactsWithRegistry[rule.ReactsWith]
+		reactionFactory, reactionOk := reactionRegistry[rule.Reaction]
+		reactionWithOffsetFactory, reactionWithOffsetOk := reactionWithOffsetRegistry[rule.Reaction]
+		if !gateOk || (!reactionOk && !reactionWithOffsetOk) {
+			logger.Warn().Msgf("skipping unknown reaction rule: reactsWith=%q reaction=%q", rule.ReactsWith, rule.Reaction)
+			continue
+		}
+
+		reaction := InteractableReaction{
+			ReactsWith: gateFactory(rule.ReactsWithArgs),
+		}
+		if reactionOk {
+			reaction.Reaction = reactionFactory(rule.ReactionArgs)
+		}
+		if reactionWithOffsetOk {
+			reaction.ReactionWithOffset = reactionWithOffsetFactory(rule.ReactionArgs)
+		}
+
+		out = append(out, reaction)
+	}
+	return out
+}
+
 func (source *Interactable) React(incoming *Interactable, initiator *Player, location *Tile, yOff, xOff int) bool {
 	if source.reactions == nil {
 		return false
 	}
 	for i := range source.reactions {
 		if source.reactions[i].ReactsWith != nil && source.reactions[i].ReactsWith(incoming, initiator) {
-			outgoing, push := source.reactions[i].Reaction(incoming, initiator, location)
+			var outgoing *Interactable
+			var push bool
+			if source.reactions[i].ReactionWithOffset != nil {
+				outgoing, push = source.reactions[i].ReactionWithOffset(incoming, initiator, location, yOff, xOff)
+			} else if source.reactions[i].Reaction != nil {
+				outgoing, push = source.reactions[i].Reaction(incoming, initiator, location)
+			} else {
+				return false
+			}
 			if push {
 				nextTile := getRelativeTile(location, yOff, xOff, initiator)
 				if nextTile == nil {
@@ -150,11 +316,36 @@ func (source *Interactable) React(incoming *Interactable, initiator *Player, loc
 	return false
 }
 
+func (source *Interactable) applyState(stateName string) bool {
+	if source == nil || source.states == nil {
+		return false
+	}
+	state, ok := source.states[stateName]
+	if !ok {
+		return false
+	}
+
+	source.state = stateName
+	source.cssClass = state.cssClass
+	source.pushable = state.pushable
+	source.walkable = state.walkable
+	source.fragile = state.fragile
+	source.stickyGroups = append([]string(nil), state.stickGroups...)
+	source.reactions = state.reactions
+	source.rejectTeleport = state.rejectTeleport
+
+	return true
+}
+
 ////////////////////////////////////////////////////////////////////////
 // Gates
 
 func everything(*Interactable, *Player) bool {
 	return true
+}
+
+func everythingButNil(i *Interactable, _ *Player) bool {
+	return i != nil
 }
 
 func never(*Interactable, *Player) bool {
@@ -186,6 +377,33 @@ func interactableHasName(name string) func(*Interactable, *Player) bool {
 			return false
 		}
 		return i.name == name
+	}
+}
+
+func interactableStateIs(state string) func(*Interactable, *Player) bool {
+	return func(i *Interactable, _ *Player) bool {
+		if i == nil || state == "" {
+			return false
+		}
+		return i.state == state
+	}
+}
+
+func interactableStateIsNot(state string) func(*Interactable, *Player) bool {
+	return func(i *Interactable, _ *Player) bool {
+		if i == nil || state == "" {
+			return false
+		}
+		return i.state != state
+	}
+}
+
+func interactableStateContains(fragment string) func(*Interactable, *Player) bool {
+	return func(i *Interactable, _ *Player) bool {
+		if i == nil || fragment == "" {
+			return false
+		}
+		return strings.Contains(i.state, fragment)
 	}
 }
 
@@ -245,6 +463,91 @@ func eat(*Interactable, *Player, *Tile) (*Interactable, bool) {
 
 func pass(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	return i, true
+}
+
+func transmitPushAll(_ *Interactable, p *Player, t *Tile, yOff, xOff int) (*Interactable, bool) {
+	return transmitPushMatching(p, t, yOff, xOff, func(*Interactable) bool { return true })
+}
+
+func transmitPushByState(state string) func(*Interactable, *Player, *Tile, int, int) (*Interactable, bool) {
+	targetState := strings.TrimSpace(state)
+	return func(_ *Interactable, p *Player, t *Tile, yOff, xOff int) (*Interactable, bool) {
+		if targetState == "" {
+			return nil, false
+		}
+		return transmitPushMatching(p, t, yOff, xOff, func(i *Interactable) bool {
+			return i != nil && i.state == targetState
+		})
+	}
+}
+
+func transmitPushByName(targetName string) func(*Interactable, *Player, *Tile, int, int) (*Interactable, bool) {
+	name := strings.TrimSpace(targetName)
+	return func(_ *Interactable, p *Player, t *Tile, yOff, xOff int) (*Interactable, bool) {
+		if name == "" {
+			return nil, false
+		}
+		return transmitPushMatching(p, t, yOff, xOff, func(i *Interactable) bool {
+			return i != nil && i.name == name
+		})
+	}
+}
+
+func transmitPushMatching(p *Player, t *Tile, yOff, xOff int, include func(*Interactable) bool) (*Interactable, bool) {
+	if p == nil || t == nil || t.stage == nil {
+		return nil, false
+	}
+
+	type tilePushSnapshot struct {
+		tile         *Tile
+		interactable *Interactable
+	}
+
+	tilesToPush := make([]tilePushSnapshot, 0)
+	for row := range t.stage.tiles {
+		for col := range t.stage.tiles[row] {
+			tile := t.stage.tiles[row][col]
+			if tile == t || tile.interactable == nil || !include(tile.interactable) {
+				continue
+			}
+			tilesToPush = append(tilesToPush, tilePushSnapshot{tile: tile, interactable: tile.interactable})
+		}
+	}
+
+	sort.Slice(tilesToPush, func(i, j int) bool {
+		a := tilesToPush[i].tile
+		b := tilesToPush[j].tile
+
+		if yOff > 0 && a.y != b.y {
+			return a.y > b.y
+		}
+		if yOff < 0 && a.y != b.y {
+			return a.y < b.y
+		}
+		if xOff > 0 && a.x != b.x {
+			return a.x > b.x
+		}
+		if xOff < 0 && a.x != b.x {
+			return a.x < b.x
+		}
+
+		if a.y != b.y {
+			return a.y < b.y
+		}
+		return a.x < b.x
+	})
+
+	for _, snapshot := range tilesToPush {
+		if snapshot.tile.interactable == nil {
+			continue
+		}
+		if snapshot.tile.interactable != snapshot.interactable {
+			continue
+		}
+		p.push(snapshot.tile, nil, yOff, xOff)
+	}
+
+	return nil, false
 }
 
 func playSoundForInitiator(soundName string) func(*Interactable, *Player, *Tile) (*Interactable, bool) {
@@ -449,6 +752,91 @@ func tryPlaceInteractableOnStage(stage *Stage, interactable *Interactable) {
 	}
 }
 
+func isNamedAirlockPart(i *Interactable) bool {
+	return i != nil && strings.HasPrefix(i.name, "airlock-")
+}
+
+func interactableMatchesName(name string) func(*Interactable) bool {
+	return func(i *Interactable) bool {
+		return i != nil && i.name == name
+	}
+}
+
+func connectedInteractableTiles(start *Tile, include func(*Interactable) bool) []*Tile {
+	if start == nil || start.stage == nil || include == nil || !include(start.interactable) {
+		return nil
+	}
+
+	visited := map[*Tile]bool{start: true}
+	queue := []*Tile{start}
+	tiles := make([]*Tile, 0, 8)
+
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+		tiles = append(tiles, current)
+
+		for _, neighbor := range getVanNeumannNeighborsOfTile(current) {
+			if neighbor == nil || visited[neighbor] {
+				continue
+			}
+
+			neighborInteractable := tryGetInteractable(neighbor)
+			if !include(neighborInteractable) {
+				continue
+			}
+
+			visited[neighbor] = true
+			queue = append(queue, neighbor)
+		}
+	}
+
+	sort.Slice(tiles, func(i, j int) bool {
+		if tiles[i].y != tiles[j].y {
+			return tiles[i].y < tiles[j].y
+		}
+		return tiles[i].x < tiles[j].x
+	})
+
+	return tiles
+}
+
+func connectedInteractableHasState(start *Tile, include func(*Interactable) bool, stateName string) bool {
+	for _, tile := range connectedInteractableTiles(start, isNamedAirlockPart) {
+		var interactable *Interactable
+		if tile == start {
+			interactable = tile.interactable
+		} else {
+			interactable = tryGetInteractable(tile)
+		}
+		if include(interactable) && interactable.state == stateName {
+			return true
+		}
+	}
+	return false
+}
+
+func applyStateToConnectedInteractables(start *Tile, include func(*Interactable) bool, stateName string) bool {
+	updated := false
+	for _, tile := range connectedInteractableTiles(start, isNamedAirlockPart) {
+		if tile == start {
+			if include(tile.interactable) && tile.interactable.applyState(stateName) {
+				tile.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
+				updated = true
+			}
+			continue
+		}
+
+		tile.interactableMutex.Lock()
+		if include(tile.interactable) && tile.interactable.applyState(stateName) {
+			tile.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
+			updated = true
+		}
+		tile.interactableMutex.Unlock()
+	}
+	return updated
+}
+
 ////////////////////////////////////////////////////////////////
 // machines
 
@@ -483,6 +871,45 @@ var catapultEast = moveInitiatorPushSurrounding(0, 11)
 var catapultWest = moveInitiatorPushSurrounding(0, -11)
 var catapultNorth = moveInitiatorPushSurrounding(-11, 0)
 var catapultSouth = moveInitiatorPushSurrounding(11, 0)
+
+func cycleConnectedAirlockDoors(_ *Interactable, _ *Player, t *Tile) (*Interactable, bool) {
+	if t == nil {
+		return nil, false
+	}
+
+	targetState := "open"
+	if connectedInteractableHasState(t, interactableMatchesName("airlock-door"), "open") {
+		targetState = "closed"
+	}
+
+	updatedDoors := applyStateToConnectedInteractables(t, interactableMatchesName("airlock-door"), targetState)
+	updatedSwitches := applyStateToConnectedInteractables(t, interactableMatchesName("airlock-close-switch"), "disarmed")
+	_ = updatedDoors
+	_ = updatedSwitches
+	return nil, false
+}
+
+func openConnectedAirlockDoors(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	if connectedInteractableHasState(t, interactableMatchesName("airlock-door"), "open") {
+		return nil, false
+	}
+	return cycleConnectedAirlockDoors(i, p, t)
+}
+
+func closeConnectedAirlockDoors(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
+	if !connectedInteractableHasState(t, interactableMatchesName("airlock-door"), "open") {
+		return nil, false
+	}
+	return cycleConnectedAirlockDoors(i, p, t)
+}
+
+func armConnectedAirlockCloseSwitches(_ *Interactable, _ *Player, t *Tile) (*Interactable, bool) {
+	if t == nil || !connectedInteractableHasState(t, interactableMatchesName("airlock-door"), "open") {
+		return nil, false
+	}
+	_ = applyStateToConnectedInteractables(t, interactableMatchesName("airlock-close-switch"), "armed")
+	return nil, false
+}
 
 func makeDangerousForOtherTeam(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
 	initiatorTeam := p.getTeamNameSync()
@@ -703,184 +1130,13 @@ func tutorial2HideAndNotify(i *Interactable, p *Player, t *Tile) (*Interactable,
 
 // airlock
 func openAirlockDoors(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-	topLeft := findTopLeftOpenSwitch(t)
-	if topLeft == nil {
-		logger.Warn().Msgf("unexpected region for airlock press at %d,%d", t.y, t.x)
-		return nil, false
-	}
-
-	tiles := getOrderedRegion(t.stage, topLeft.y, topLeft.x+1, 6, 2)
-	for _, tile := range tiles {
-		tile.interactableMutex.Lock()
-		defer tile.interactableMutex.Unlock()
-
-		if tile.interactable != nil && tile.interactable.name == "airlock-door" {
-			tile.interactable.walkable = true
-			tile.interactable.cssClass = ""
-			tile.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
-		}
-		if tile.interactable != nil && tile.interactable.name == "airlock-close-switch" {
-			tile.interactable.reactions[0].ReactsWith = never
-		}
-	}
-	return nil, true
-}
-
-func findTopLeftOpenSwitch(t *Tile) *Tile {
-	s := t.stage
-
-	hasBelow := isAirlockOpenSwitch(s, t.y+5, t.x)
-	hasRight := isAirlockOpenSwitch(s, t.y, t.x+3)
-
-	switch {
-	case hasBelow && hasRight:
-		return t
-	case hasBelow && !hasRight:
-		return s.tiles[t.y][t.x-3]
-	case !hasBelow && hasRight:
-		return s.tiles[t.y-5][t.x]
-	case !hasBelow && !hasRight:
-		return s.tiles[t.y-5][t.x-3]
-	}
-	return nil
-}
-
-func isAirlockOpenSwitch(s *Stage, y, x int) bool {
-	if !validCoordinate(y, x, s) {
-		return false
-	}
-	t := s.tiles[y][x]
-	t.interactableMutex.Lock()
-	defer t.interactableMutex.Unlock()
-
-	if t.interactable != nil && t.interactable.name == "airlock-open-switch" {
-		return true
-	}
-	return false
+	return openConnectedAirlockDoors(i, p, t)
 }
 
 func closeAirlockDoors(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-	topLeft := findTopLeftCloseSwitch(t)
-	if topLeft == nil {
-		logger.Warn().Msgf("unexpected region for airlock press at %d,%d", t.y, t.x)
-		return nil, false
-	}
-
-	// Risk of hitting starting/player tile
-	tiles := getOrderedRegion(t.stage, topLeft.y-2, topLeft.x, 2, 2)
-	tiles = append(tiles, getOrderedRegion(t.stage, topLeft.y+2, topLeft.x, 2, 2)...)
-	for _, tile := range tiles {
-		tile.interactableMutex.Lock()
-		defer tile.interactableMutex.Unlock()
-
-		if tile.interactable != nil && tile.interactable.name == "airlock-door" {
-			tile.interactable.walkable = false
-			tile.interactable.cssClass = "s-hoz chocolate-b thick no-lr"
-			tile.updateAll(interactableBoxSpecific(tile.y, tile.x, tile.interactable))
-		}
-	}
-
-	return nil, false
-}
-
-func findTopLeftCloseSwitch(t *Tile) *Tile {
-	s := t.stage
-
-	hasBelow := isAirlockCloseSwitch(s, t.y+1, t.x)
-	hasRight := isAirlockCloseSwitch(s, t.y, t.x+1)
-
-	switch {
-	case hasBelow && hasRight:
-		return t
-	case hasBelow && !hasRight:
-		return s.tiles[t.y][t.x-1]
-	case !hasBelow && hasRight:
-		return s.tiles[t.y-1][t.x]
-	case !hasBelow && !hasRight:
-		return s.tiles[t.y-1][t.x-1]
-	}
-	return nil
-}
-
-func isAirlockCloseSwitch(s *Stage, y, x int) bool {
-	if !validCoordinate(y, x, s) {
-		return false
-	}
-	t := s.tiles[y][x]
-	t.interactableMutex.Lock()
-	defer t.interactableMutex.Unlock()
-
-	return t.interactable != nil &&
-		t.interactable.name == "airlock-close-switch"
+	return closeConnectedAirlockDoors(i, p, t)
 }
 
 func armAirlockDoors(i *Interactable, p *Player, t *Tile) (*Interactable, bool) {
-	// Need arm step to prevent close after being saved
-	topLeft := findTopLeftDoor(t)
-	if topLeft == nil {
-		logger.Warn().Msgf("unexpected region for airlock press at %d,%d", t.y, t.x)
-		return nil, false
-	}
-
-	// Risk of hitting starting/player tile
-	tiles := getOrderedRegion(t.stage, topLeft.y+2, topLeft.x, 2, 2)
-	for _, tile := range tiles {
-		tile.interactableMutex.Lock()
-		defer tile.interactableMutex.Unlock()
-
-		if tile.interactable != nil && tile.interactable.name == "airlock-close-switch" {
-			tile.interactable.reactions[0].ReactsWith = interactableIsNil
-		}
-	}
-
-	return nil, false
-}
-
-func findTopLeftDoor(t *Tile) *Tile {
-	s := t.stage
-
-	hasBelow := isAirlockDoor(s, t.y+1, t.x)
-	hasRight := isAirlockDoor(s, t.y, t.x+1)
-	topGroup := isAirlockDoor(s, t.y+4, t.x) || isAirlockArmOnly(s, t.y+4, t.x)
-
-	yAdjustment := 0
-	if !topGroup {
-		yAdjustment = -4
-	}
-
-	switch {
-	case hasBelow && hasRight:
-		return s.tiles[t.y+yAdjustment][t.x]
-	case hasBelow && !hasRight:
-		return s.tiles[t.y+yAdjustment][t.x-1]
-	case !hasBelow && hasRight:
-		return s.tiles[t.y-1+yAdjustment][t.x]
-	case !hasBelow && !hasRight:
-		return s.tiles[t.y-1+yAdjustment][t.x-1]
-	}
-	return nil
-}
-
-func isAirlockDoor(s *Stage, y, x int) bool {
-	if !validCoordinate(y, x, s) {
-		return false
-	}
-	t := s.tiles[y][x]
-	t.interactableMutex.Lock()
-	defer t.interactableMutex.Unlock()
-
-	return t.interactable != nil &&
-		t.interactable.name == "airlock-door"
-}
-
-func isAirlockArmOnly(s *Stage, y, x int) bool {
-	if !validCoordinate(y, x, s) {
-		return false
-	}
-	t := s.tiles[y][x]
-	t.interactableMutex.Lock()
-	defer t.interactableMutex.Unlock()
-
-	return t.interactable != nil &&
-		t.interactable.name == "airlock-arm-only"
+	return armConnectedAirlockCloseSwitches(i, p, t)
 }

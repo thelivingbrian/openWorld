@@ -358,9 +358,9 @@ func (c *Context) apiSaveInteractableSetHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	req, err := decodeJSONBody[saveInteractableSetRequest](r)
-	if err != nil {
-		writeJSONError(w, http.StatusBadRequest, "invalid request payload")
+	var req saveInteractableSetRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSONError(w, http.StatusBadRequest, fmt.Sprintf("invalid request payload: %v", err))
 		return
 	}
 
@@ -370,8 +370,23 @@ func (c *Context) apiSaveInteractableSetHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	col.InteractableSets[req.SetName] = req.Interactables
-	col.saveInteractableSet(req.SetName)
+	setName := strings.TrimSpace(req.SetName)
+	if setName == "" {
+		writeJSONError(w, http.StatusBadRequest, "setName is required")
+		return
+	}
+	if strings.ContainsAny(setName, `\\/:*?"<>|`) {
+		writeJSONError(w, http.StatusBadRequest, "setName contains invalid characters")
+		return
+	}
+
+	col.InteractableSets[setName] = req.Interactables
+	outFile := filepath.Join(COLLECTION_PATH, col.Name, "interactables", setName+".json")
+	if err := writeJsonFile(outFile, req.Interactables, true); err != nil {
+		writeJSONError(w, http.StatusInternalServerError, "failed to save interactable set")
+		return
+	}
+
 	encodeJSON(w, http.StatusOK, map[string]string{"status": "saved"})
 }
 

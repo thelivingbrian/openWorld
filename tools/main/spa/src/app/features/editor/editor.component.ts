@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { EditorApiService } from '../../core/services/editor-api.service';
@@ -12,12 +13,21 @@ import {
   Fragment,
   GridSelection,
   InteractableDescription,
+  InteractableStateDescription,
   Instruction,
   Material,
   Prototype,
+  ReactionRule,
   Space,
   Transport,
 } from '../../core/models/editor.models';
+import {
+  REACTS_WITH_REGISTRY,
+  REACTION_REGISTRY,
+  findReactsWithEntry,
+  findReactionEntry,
+  RegistryEntry,
+} from '../../core/models/reaction-registry';
 import {
   applyGridTool,
   deleteInstructionAndReapply,
@@ -101,6 +111,9 @@ export class EditorComponent {
   protected readonly prototypeSet = signal('');
   protected readonly fragmentSet = signal('');
   protected readonly interactableSet = signal('');
+  protected readonly interactableStateEditName = signal('default');
+  protected readonly interactableStateRenameName = signal('default');
+  protected readonly selectedInteractableState = signal('default');
 
   protected readonly prototypeEditId = signal('');
   protected readonly fragmentEditId = signal('');
@@ -137,6 +150,10 @@ export class EditorComponent {
   protected readonly newFragmentSetName = signal('');
   protected readonly newInteractableSetName = signal('');
   protected readonly newColor = signal({ cssClassName: '', R: 0, G: 0, B: 0, A: '' });
+
+  // Reaction rule registries exposed to the template
+  protected readonly reactsWithRegistry = REACTS_WITH_REGISTRY;
+  protected readonly reactionRegistry = REACTION_REGISTRY;
 
   protected readonly collectionNames = computed(() => Object.keys(this.bootstrap()?.collections ?? {}));
 
@@ -271,6 +288,25 @@ export class EditorComponent {
     return this.interactables().find((entry) => entry.id === this.interactableEditId());
   });
 
+  protected readonly editedInteractableStateNames = computed<string[]>(() => {
+    const interactable = this.editedInteractable();
+    if (!interactable) {
+      return [];
+    }
+    this.ensureInteractableStateModel(interactable);
+    return Object.keys(interactable.states ?? {});
+  });
+
+  protected readonly editedInteractableState = computed<InteractableStateDescription | undefined>(() => {
+    const interactable = this.editedInteractable();
+    if (!interactable) {
+      return undefined;
+    }
+    this.ensureInteractableStateModel(interactable);
+    const stateName = this.interactableStateEditName() || interactable.defaultState || 'default';
+    return interactable.states?.[stateName];
+  });
+
   protected readonly colors = computed<Color[]>(() => this.bootstrap()?.colors ?? []);
 
   protected readonly editedColor = computed<Color | undefined>(() => {
@@ -374,11 +410,12 @@ export class EditorComponent {
   });
 
   protected readonly selectedTileInteractable = computed<InteractableDescription | undefined>(() => {
-    const interactableId = this.selectedTile()?.interactableId?.trim() ?? '';
-    if (!interactableId) {
+    const tile = this.selectedTile();
+    const interactableId = tile?.interactableId?.trim() ?? '';
+    if (!interactableId || !tile) {
       return undefined;
     }
-    return this.interactablesById().get(interactableId);
+    return this.resolveInteractableForTile(tile);
   });
 
   protected readonly selectedTileInstructions = computed<SelectedTileInstructionInfo[]>(() => {
@@ -427,7 +464,7 @@ export class EditorComponent {
     if (!blueprint) {
       return [] as (InteractableDescription | undefined)[][];
     }
-    return blueprint.Tiles.map((row) => row.map((tile) => this.interactablesById().get(tile.interactableId ?? '')));
+    return blueprint.Tiles.map((row) => row.map((tile) => this.resolveInteractableForTile(tile)));
   });
 
   protected readonly fixturePreviewMaterials = computed<Material[][]>(() => {
@@ -489,7 +526,7 @@ export class EditorComponent {
     }
 
     if (fixture === 'interactable') {
-      return [[this.interactablesById().get(this.selectedAssetId())]];
+      return [[this.resolveInteractableForAssetAndState(this.selectedAssetId(), this.selectedInteractableState())]];
     }
 
     return [] as (InteractableDescription | undefined)[][];
@@ -575,7 +612,7 @@ export class EditorComponent {
     }
 
     if (this.fixture() === 'interactable') {
-      const interactable = this.interactablesById().get(this.selectedAssetId());
+      const interactable = this.resolveInteractableForAssetAndState(this.selectedAssetId(), this.selectedInteractableState());
       if (interactable && hover.y >= 0 && hover.y < out.length && hover.x >= 0 && hover.x < out[hover.y].length) {
         out[hover.y][hover.x] = interactable;
       }
@@ -599,7 +636,7 @@ export class EditorComponent {
             continue;
           }
           const interactableId = fragment.blueprint.Tiles[y][x].interactableId ?? '';
-          out[targetY][targetX] = this.interactablesById().get(interactableId);
+          out[targetY][targetX] = this.resolveInteractableForTile(fragment.blueprint.Tiles[y][x]);
         }
       }
     }
@@ -823,6 +860,7 @@ export class EditorComponent {
       case 'interactable':
         this.tool.set('interactable-replace');
         this.selectedAssetId.set(this.interactables()[0]?.id ?? '');
+        this.onSelectedInteractableAssetChange();
         break;
       case 'transformation':
         this.tool.set('rotate');
@@ -851,6 +889,12 @@ export class EditorComponent {
     const first = this.interactables()[0];
     this.selectedAssetId.set(first?.id ?? '');
     this.interactableEditId.set(first?.id ?? '');
+    this.ensureInteractableStateSelection();
+    this.ensureEditedInteractableStateSelection();
+  }
+
+  protected onSelectedInteractableAssetChange(): void {
+    this.ensureInteractableStateSelection();
   }
 
   protected getEffectiveTool(): Tool {
@@ -879,6 +923,7 @@ export class EditorComponent {
       x,
       tool: this.getEffectiveTool(),
       selectedAssetId: this.selectedAssetId(),
+      selectedInteractableState: this.selectedInteractableState(),
       selected: this.selection(),
       blueprint,
       prototypesById: this.prototypesById(),
@@ -1053,6 +1098,7 @@ export class EditorComponent {
     this.onInteractableSetChange();
     this.interactableEditId.set(interactable.id);
     this.selectedAssetId.set(interactable.id);
+    this.ensureEditedInteractableStateSelection();
     this.setViewMode('interactables');
   }
 
@@ -1283,13 +1329,24 @@ export class EditorComponent {
   protected addInteractableSet(): void {
     const name = this.newInteractableSetName().trim();
     const collection = this.currentCollection();
-    if (!collection || !name || collection.InteractableSets[name]) {
+    if (!collection) {
+      this.status.set('Select a collection before adding an interactable set.');
+      return;
+    }
+    if (!name) {
+      this.status.set('Interactable set name cannot be blank.');
+      return;
+    }
+    if (collection.InteractableSets[name]) {
+      this.status.set(`Interactable set "${name}" already exists.`);
       return;
     }
     collection.InteractableSets[name] = [];
     this.interactableSet.set(name);
+    this.onInteractableSetChange();
     this.newInteractableSetName.set('');
     this.touchBootstrap();
+    this.status.set(`Interactable set "${name}" added.`);
   }
 
   protected addInteractable(): void {
@@ -1302,15 +1359,32 @@ export class EditorComponent {
       id: crypto.randomUUID(),
       setName,
       name: 'new-interactable',
+      state: 'default',
+      defaultState: 'default',
+      states: {
+        default: {
+          cssClass: '',
+          pushable: false,
+          walkable: false,
+          fragile: false,
+          stickyGroups: [],
+          rejectTeleport: false,
+          reactions: '',
+          reactionRules: [],
+        },
+      },
       cssClass: '',
       pushable: false,
       walkable: false,
       fragile: false,
+      stickyGroups: [],
       reactions: '',
+      reactionRules: [],
     };
-    collection.InteractableSets[setName].push(next);
+    collection.InteractableSets[setName] = [...(collection.InteractableSets[setName] ?? []), next];
     this.interactableEditId.set(next.id);
     this.selectedAssetId.set(next.id);
+    this.ensureEditedInteractableStateSelection();
     this.touchBootstrap();
   }
 
@@ -1321,8 +1395,86 @@ export class EditorComponent {
       return;
     }
     this.status.set('Saving interactable set...');
-    await this.api.saveInteractableSet(colName, setName, this.interactables());
-    this.status.set('Interactable set saved.');
+    try {
+      await this.api.saveInteractableSet(colName, setName, this.interactables());
+      this.status.set('Interactable set saved.');
+    } catch (error) {
+      this.status.set(this.extractApiError(error, 'Failed to save interactable set.'));
+    }
+  }
+
+  // ── Reaction rule helpers ────────────────────────────────────────────
+
+  protected addReactionRule(): void {
+    const state = this.editedInteractableState();
+    if (!state) return;
+    if (!state.reactionRules) {
+      state.reactionRules = [];
+    }
+    state.reactionRules.push({
+      reactsWith: 'everything',
+      reactsWithArgs: [],
+      reaction: 'pass',
+      reactionArgs: [],
+    });
+    const interactable = this.editedInteractable();
+    if (interactable) {
+      this.syncTopLevelFromCurrentState(interactable);
+    }
+    this.touchBootstrap();
+  }
+
+  protected deleteReactionRule(index: number): void {
+    const state = this.editedInteractableState();
+    if (!state?.reactionRules) return;
+    state.reactionRules.splice(index, 1);
+    const interactable = this.editedInteractable();
+    if (interactable) {
+      this.syncTopLevelFromCurrentState(interactable);
+    }
+    this.touchBootstrap();
+  }
+
+  protected moveReactionRuleUp(index: number): void {
+    const state = this.editedInteractableState();
+    if (!state?.reactionRules || index <= 0) return;
+    const rules = state.reactionRules;
+    [rules[index - 1], rules[index]] = [rules[index], rules[index - 1]];
+    const interactable = this.editedInteractable();
+    if (interactable) {
+      this.syncTopLevelFromCurrentState(interactable);
+    }
+    this.touchBootstrap();
+  }
+
+  protected onReactsWithChange(rule: ReactionRule, newKey: string): void {
+    rule.reactsWith = newKey;
+    const entry = findReactsWithEntry(newKey);
+    rule.reactsWithArgs = entry ? entry.args.map(() => '') : [];
+    const interactable = this.editedInteractable();
+    if (interactable) {
+      this.syncTopLevelFromCurrentState(interactable);
+    }
+    this.touchBootstrap();
+  }
+
+  protected onReactionChange(rule: ReactionRule, newKey: string): void {
+    rule.reaction = newKey;
+    const entry = findReactionEntry(newKey);
+    rule.reactionArgs = entry ? entry.args.map(() => '') : [];
+    const interactable = this.editedInteractable();
+    if (interactable) {
+      this.syncTopLevelFromCurrentState(interactable);
+    }
+    this.touchBootstrap();
+  }
+
+  protected reactsWithArgsFor(key: string): RegistryEntry['args'] {
+    return findReactsWithEntry(key)?.args ?? [];
+  }
+
+  protected reactionArgsFor(key: string): RegistryEntry['args'] {
+    return findReactionEntry(key)?.args ?? [];
   }
 
   protected addColor(): void {
@@ -1437,6 +1589,358 @@ export class EditorComponent {
     this.status.set('Deployed.');
   }
 
+  protected ensureEditedInteractableStateSelection(): void {
+    const interactable = this.editedInteractable();
+    if (!interactable) {
+      this.interactableStateEditName.set('default');
+      this.interactableStateRenameName.set('default');
+      return;
+    }
+    this.ensureInteractableStateModel(interactable);
+    const candidate = this.interactableStateEditName() || interactable.defaultState || 'default';
+    if (interactable.states?.[candidate]) {
+      this.interactableStateEditName.set(candidate);
+    } else {
+      this.interactableStateEditName.set(interactable.defaultState || 'default');
+    }
+    this.interactableStateRenameName.set(this.interactableStateEditName());
+  }
+
+  protected addEditedInteractableState(): void {
+    const interactable = this.editedInteractable();
+    if (!interactable) {
+      return;
+    }
+    this.ensureInteractableStateModel(interactable);
+
+    const baseName = 'state';
+    let index = 1;
+    let nextName = `${baseName}-${index}`;
+    while (interactable.states?.[nextName]) {
+      index += 1;
+      nextName = `${baseName}-${index}`;
+    }
+
+    const sourceState = interactable.states?.[interactable.defaultState || 'default'] ?? {
+        cssClass: '',
+        pushable: false,
+        walkable: false,
+        fragile: false,
+        stickyGroups: [],
+        rejectTeleport: false,
+        reactions: '',
+        reactionRules: [],
+      };
+
+    interactable.states![nextName] = this.cloneInteractableStateConfig(sourceState);
+
+    this.interactableStateEditName.set(nextName);
+    this.interactableStateRenameName.set(nextName);
+    this.syncTopLevelFromCurrentState(interactable);
+    this.touchBootstrap();
+  }
+
+  protected renameEditedInteractableState(): void {
+    const interactable = this.editedInteractable();
+    if (!interactable) {
+      return;
+    }
+    this.ensureInteractableStateModel(interactable);
+
+    const currentName = this.interactableStateEditName();
+    const nextName = this.interactableStateRenameName().trim();
+    if (!currentName || !interactable.states?.[currentName]) {
+      return;
+    }
+    if (!nextName) {
+      this.status.set('State name cannot be blank.');
+      this.interactableStateRenameName.set(currentName);
+      return;
+    }
+    if (nextName === currentName) {
+      return;
+    }
+    if (interactable.states[nextName]) {
+      this.status.set(`State "${nextName}" already exists.`);
+      return;
+    }
+
+    const stateConfig = interactable.states[currentName];
+    delete interactable.states[currentName];
+    interactable.states[nextName] = stateConfig;
+
+    if (interactable.defaultState === currentName) {
+      interactable.defaultState = nextName;
+    }
+    if (interactable.state === currentName) {
+      interactable.state = nextName;
+    }
+
+    this.interactableStateEditName.set(nextName);
+    this.interactableStateRenameName.set(nextName);
+    this.syncTopLevelFromCurrentState(interactable);
+    this.touchBootstrap();
+    this.status.set(`State renamed to "${nextName}".`);
+  }
+
+  protected deleteEditedInteractableState(): void {
+    const interactable = this.editedInteractable();
+    if (!interactable) {
+      return;
+    }
+    this.ensureInteractableStateModel(interactable);
+
+    const stateName = this.interactableStateEditName();
+    const stateNames = Object.keys(interactable.states ?? {});
+    if (stateNames.length <= 1 || !stateName || !interactable.states?.[stateName]) {
+      return;
+    }
+
+    delete interactable.states[stateName];
+    if (interactable.defaultState === stateName) {
+      interactable.defaultState = Object.keys(interactable.states)[0] ?? 'default';
+    }
+
+    this.interactableStateEditName.set(interactable.defaultState || 'default');
+    this.interactableStateRenameName.set(this.interactableStateEditName());
+    this.syncTopLevelFromCurrentState(interactable);
+    this.touchBootstrap();
+  }
+
+  protected onEditedInteractableStateNameChange(): void {
+    const interactable = this.editedInteractable();
+    if (!interactable) {
+      return;
+    }
+    this.ensureInteractableStateModel(interactable);
+    this.interactableStateRenameName.set(this.interactableStateEditName());
+    this.syncTopLevelFromCurrentState(interactable);
+    this.touchBootstrap();
+  }
+
+  protected onEditedInteractableDefaultStateChange(): void {
+    const interactable = this.editedInteractable();
+    if (!interactable) {
+      return;
+    }
+    this.ensureInteractableStateModel(interactable);
+    if (!interactable.states?.[interactable.defaultState || '']) {
+      interactable.defaultState = Object.keys(interactable.states ?? {})[0] ?? 'default';
+    }
+    this.syncTopLevelFromCurrentState(interactable);
+    this.touchBootstrap();
+  }
+
+  protected setSelectedTileInteractableState(stateName: string): void {
+    const tile = this.selectedTile();
+    const interactable = this.selectedTileInteractable();
+    if (!tile || !interactable || !interactable.states?.[stateName]) {
+      return;
+    }
+    tile.interactableState = stateName;
+    this.touchBootstrap();
+  }
+
+  protected selectedTileInteractableStateNames(): string[] {
+    return Object.keys(this.selectedTileInteractable()?.states ?? {});
+  }
+
+  protected selectedInteractableAssetStateNames(): string[] {
+    const interactable = this.interactablesById().get(this.selectedAssetId());
+    if (!interactable) {
+      return ['default'];
+    }
+    this.ensureInteractableStateModel(interactable);
+    return Object.keys(
+      interactable.states ?? {
+        default: {
+          cssClass: '',
+          pushable: false,
+          walkable: false,
+          fragile: false,
+          stickyGroups: [],
+          rejectTeleport: false,
+          reactions: '',
+          reactionRules: [],
+        },
+      },
+    );
+  }
+
+  private ensureInteractableStateSelection(): void {
+    const interactable = this.interactablesById().get(this.selectedAssetId());
+    if (!interactable) {
+      this.selectedInteractableState.set('default');
+      return;
+    }
+
+    this.ensureInteractableStateModel(interactable);
+    const candidate = this.selectedInteractableState() || interactable.defaultState || 'default';
+    if (interactable.states?.[candidate]) {
+      this.selectedInteractableState.set(candidate);
+      return;
+    }
+    this.selectedInteractableState.set(interactable.defaultState || 'default');
+  }
+
+  private ensureInteractableStateModel(interactable: InteractableDescription): void {
+    const defaultState = (interactable.defaultState || 'default').trim() || 'default';
+    interactable.defaultState = defaultState;
+    if (!interactable.states) {
+      interactable.states = {};
+    }
+    if (!interactable.states[defaultState]) {
+      interactable.states[defaultState] = {
+        cssClass: interactable.cssClass ?? '',
+        pushable: Boolean(interactable.pushable),
+        walkable: Boolean(interactable.walkable),
+        fragile: Boolean(interactable.fragile),
+        stickyGroups: this.normalizeStickyGroups(interactable.stickyGroups),
+        rejectTeleport: Boolean(interactable.rejectTeleport),
+        reactions: interactable.reactions ?? '',
+        reactionRules: this.cloneReactionRules(interactable.reactionRules),
+      };
+    }
+
+    if (!interactable.state || !interactable.states[interactable.state]) {
+      interactable.state = defaultState;
+    }
+
+    this.syncTopLevelFromCurrentState(interactable);
+  }
+
+  private syncTopLevelFromCurrentState(interactable: InteractableDescription): void {
+    this.ensureStateRuleArrays(interactable);
+    const stateName = this.interactableStateEditName() || interactable.state || interactable.defaultState || 'default';
+    const config = interactable.states?.[stateName];
+    if (!config) {
+      return;
+    }
+
+    interactable.state = stateName;
+    interactable.cssClass = config.cssClass;
+    interactable.pushable = config.pushable;
+    interactable.walkable = config.walkable;
+    interactable.fragile = config.fragile;
+    interactable.stickyGroups = this.normalizeStickyGroups(config.stickyGroups);
+    interactable.rejectTeleport = config.rejectTeleport;
+    interactable.reactions = config.reactions;
+    interactable.reactionRules = config.reactionRules;
+  }
+
+  private ensureStateRuleArrays(interactable: InteractableDescription): void {
+    if (!interactable.states) {
+      return;
+    }
+    for (const stateName of Object.keys(interactable.states)) {
+      const state = interactable.states[stateName];
+      if (!state.reactionRules) {
+        state.reactionRules = [];
+      }
+    }
+  }
+
+  private cloneReactionRule(rule: ReactionRule): ReactionRule {
+    return {
+      reactsWith: rule.reactsWith,
+      reactsWithArgs: [...(rule.reactsWithArgs ?? [])],
+      reaction: rule.reaction,
+      reactionArgs: [...(rule.reactionArgs ?? [])],
+    };
+  }
+
+  private cloneReactionRules(rules: ReactionRule[] | undefined): ReactionRule[] {
+    return (rules ?? []).map((rule) => this.cloneReactionRule(rule));
+  }
+
+  protected stickyGroupsDisplay(state: InteractableStateDescription): string {
+    return this.normalizeStickyGroups(state?.stickyGroups).join(',');
+  }
+
+  protected setStickyGroupsFromInput(state: InteractableStateDescription, input: string): void {
+    if (!state) {
+      return;
+    }
+    state.stickyGroups = this.normalizeStickyGroups(input);
+    const interactable = this.editedInteractable();
+    if (interactable) {
+      this.syncTopLevelFromCurrentState(interactable);
+    }
+    this.touchBootstrap();
+  }
+
+  private normalizeStickyGroups(value: unknown): string[] {
+    if (Array.isArray(value)) {
+      const normalized: string[] = [];
+      for (const entry of value) {
+        if (typeof entry !== 'string') {
+          continue;
+        }
+        const group = entry.trim();
+        if (!group || normalized.includes(group)) {
+          continue;
+        }
+        normalized.push(group);
+      }
+      return normalized;
+    }
+
+    if (typeof value === 'string') {
+      return this.normalizeStickyGroups(value.split(','));
+    }
+
+    return [];
+  }
+
+  private cloneInteractableStateConfig(state: InteractableStateDescription): InteractableStateDescription {
+    return {
+      cssClass: state.cssClass,
+      pushable: state.pushable,
+      walkable: state.walkable,
+      fragile: state.fragile,
+      stickyGroups: this.normalizeStickyGroups(state.stickyGroups),
+      rejectTeleport: state.rejectTeleport,
+      reactions: state.reactions,
+      reactionRules: this.cloneReactionRules(state.reactionRules),
+    };
+  }
+
+  private resolveInteractableForAssetAndState(interactableId: string, tileStateName?: string): InteractableDescription | undefined {
+    const base = this.interactablesById().get((interactableId ?? '').trim());
+    if (!base) {
+      return undefined;
+    }
+
+    this.ensureInteractableStateModel(base);
+    const defaultState = base.defaultState || 'default';
+    const selectedState = (tileStateName || base.state || defaultState).trim();
+    const config = base.states?.[selectedState] ?? base.states?.[defaultState];
+    if (!config) {
+      return base;
+    }
+
+    return {
+      ...base,
+      state: selectedState && base.states?.[selectedState] ? selectedState : defaultState,
+      cssClass: config.cssClass,
+      pushable: config.pushable,
+      walkable: config.walkable,
+      fragile: config.fragile,
+      stickyGroups: this.normalizeStickyGroups(config.stickyGroups),
+      rejectTeleport: config.rejectTeleport,
+      reactions: config.reactions,
+      reactionRules: config.reactionRules,
+    };
+  }
+
+  private resolveInteractableForTile(tile: { interactableId?: string; interactableState?: string }): InteractableDescription | undefined {
+    const interactableId = (tile.interactableId ?? '').trim();
+    if (!interactableId) {
+      return undefined;
+    }
+    return this.resolveInteractableForAssetAndState(interactableId, tile.interactableState ?? '');
+  }
+
   private clampColorChannel(value: unknown): number {
     const parsed = Number(value);
     if (Number.isNaN(parsed)) {
@@ -1531,7 +2035,29 @@ export class EditorComponent {
 
   private touchBootstrap(): void {
     this.gridVersion.update((value) => value + 1);
-    this.bootstrap.set({ ...(this.bootstrap() as BootstrapResponse) });
+    const current = this.bootstrap();
+    if (!current) {
+      return;
+    }
+
+    const collectionName = this.collectionName();
+    const collections = { ...current.collections };
+
+    if (collectionName && collections[collectionName]) {
+      const collection = collections[collectionName];
+      collections[collectionName] = {
+        ...collection,
+        Spaces: { ...collection.Spaces },
+        Fragments: { ...collection.Fragments },
+        PrototypeSets: { ...collection.PrototypeSets },
+        InteractableSets: { ...collection.InteractableSets },
+      };
+    }
+
+    this.bootstrap.set({
+      ...current,
+      collections,
+    });
   }
 
   private markInstructionEdited(instructionId: string): void {
@@ -1539,6 +2065,27 @@ export class EditorComponent {
       return;
     }
     this.instructionEditedIds.update((current) => ({ ...current, [instructionId]: true }));
+  }
+
+  private extractApiError(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      if (typeof error.error === 'string' && error.error.trim()) {
+        return error.error;
+      }
+      if (error.error && typeof error.error === 'object') {
+        const message = (error.error as { error?: unknown }).error;
+        if (typeof message === 'string' && message.trim()) {
+          return message;
+        }
+      }
+      if (error.message) {
+        return error.message;
+      }
+    }
+    if (error instanceof Error && error.message.trim()) {
+      return error.message;
+    }
+    return fallback;
   }
 
   private async loadBootstrap(): Promise<void> {
@@ -1681,12 +2228,80 @@ export class EditorComponent {
         }));
       }
 
+      const outInteractableSets: Record<string, InteractableDescription[]> = {};
+      const sourceInteractableSets = (collection.InteractableSets ?? collection.interactableSets ?? {}) as Record<string, any[]>;
+      for (const setName of Object.keys(sourceInteractableSets)) {
+        outInteractableSets[setName] = (sourceInteractableSets[setName] ?? []).map((entry: any) => {
+          const legacyRules = (entry.reactionRules ?? entry.ReactionRules ?? []).map((rule: any) => ({
+            reactsWith: rule.reactsWith ?? '',
+            reactsWithArgs: rule.reactsWithArgs ?? [],
+            reaction: rule.reaction ?? '',
+            reactionArgs: rule.reactionArgs ?? [],
+          }));
+
+          const normalizedStates: Record<string, InteractableStateDescription> = {};
+          const sourceStates = entry.states ?? entry.States ?? {};
+          for (const stateName of Object.keys(sourceStates)) {
+            const state = sourceStates[stateName] ?? {};
+            normalizedStates[stateName] = {
+              cssClass: state.cssClass ?? state.CssClass ?? '',
+              pushable: Boolean(state.pushable ?? state.Pushable),
+              walkable: Boolean(state.walkable ?? state.Walkable),
+              fragile: Boolean(state.fragile ?? state.Fragile),
+              stickyGroups: this.normalizeStickyGroups(state.stickyGroups ?? state.StickyGroups),
+              rejectTeleport: Boolean(state.rejectTeleport ?? state.RejectTeleport),
+              reactions: state.reactions ?? state.Reactions ?? '',
+              reactionRules: (state.reactionRules ?? state.ReactionRules ?? []).map((rule: any) => ({
+                reactsWith: rule.reactsWith ?? '',
+                reactsWithArgs: rule.reactsWithArgs ?? [],
+                reaction: rule.reaction ?? '',
+                reactionArgs: rule.reactionArgs ?? [],
+              })),
+            };
+          }
+
+          const defaultState = (entry.defaultState ?? entry.DefaultState ?? 'default') as string;
+          if (!normalizedStates[defaultState]) {
+            normalizedStates[defaultState] = {
+              cssClass: entry.cssClass ?? entry.CssClass ?? '',
+              pushable: Boolean(entry.pushable ?? entry.Pushable),
+              walkable: Boolean(entry.walkable ?? entry.Walkable),
+              fragile: Boolean(entry.fragile ?? entry.Fragile),
+              stickyGroups: this.normalizeStickyGroups(entry.stickyGroups ?? entry.StickyGroups),
+              rejectTeleport: Boolean(entry.rejectTeleport ?? entry.RejectTeleport),
+              reactions: entry.reactions ?? entry.Reactions ?? '',
+              reactionRules: legacyRules,
+            };
+          }
+
+          const selectedState = (entry.state ?? entry.State ?? defaultState) as string;
+          const selectedConfig = normalizedStates[selectedState] ?? normalizedStates[defaultState];
+
+          return {
+            id: entry.id ?? entry.ID ?? crypto.randomUUID(),
+            name: entry.name ?? entry.Name ?? '',
+            setName: entry.setName ?? entry.SetName ?? setName,
+            state: selectedState,
+            defaultState,
+            states: normalizedStates,
+            cssClass: selectedConfig.cssClass,
+            pushable: selectedConfig.pushable,
+            walkable: selectedConfig.walkable,
+            fragile: selectedConfig.fragile,
+            stickyGroups: this.normalizeStickyGroups(selectedConfig.stickyGroups),
+            rejectTeleport: selectedConfig.rejectTeleport,
+            reactions: selectedConfig.reactions,
+            reactionRules: selectedConfig.reactionRules,
+          };
+        });
+      }
+
       outCollections[collectionName] = {
         Name: collection.Name ?? collection.name ?? collectionName,
         Spaces: spaces,
         Fragments: outFragments,
         PrototypeSets: (collection.PrototypeSets ?? collection.prototypeSets ?? {}) as Collection['PrototypeSets'],
-        InteractableSets: (collection.InteractableSets ?? collection.interactableSets ?? {}) as Collection['InteractableSets'],
+        InteractableSets: outInteractableSets,
       };
     }
 

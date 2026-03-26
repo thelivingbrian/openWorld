@@ -59,9 +59,10 @@ type Blueprint struct {
 }
 
 type TileData struct {
-	PrototypeId    string         `json:"prototypeId,omitempty"`
-	Transformation Transformation `json:"transformation,omitempty"`
-	InteractableId string         `json:"interactableId,omitempty"`
+	PrototypeId       string         `json:"prototypeId,omitempty"`
+	Transformation    Transformation `json:"transformation,omitempty"`
+	InteractableId    string         `json:"interactableId,omitempty"`
+	InteractableState string         `json:"interactableState,omitempty"`
 }
 
 type Transformation struct {

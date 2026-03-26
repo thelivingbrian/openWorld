@@ -1,0 +1,30 @@
+[
+  {
+    "id": "4efccf4c-b0be-4210-a74d-5e44dd3af9a8",
+    "commonName": "airlock-wall",
+    "cssColor": "",
+    "walkable": false,
+    "layer1css": "wall",
+    "layer2css": "",
+    "ceiling1css": "",
+    "ceiling2css": "",
+    "setName": "airlock",
+    "mapColor": "",
+    "editorColor": "",
+    "displayText": ""
+  },
+  {
+    "id": "df8347c1-6204-4b12-b5f7-aea51fd6a137",
+    "commonName": "airlock-wall-corner",
+    "cssColor": "",
+    "walkable": false,
+    "layer1css": "wall r1-{rotate:tr}",
+    "layer2css": "",
+    "ceiling1css": "",
+    "ceiling2css": "",
+    "setName": "airlock",
+    "mapColor": "",
+    "editorColor": "",
+    "displayText": ""
+  }
+]

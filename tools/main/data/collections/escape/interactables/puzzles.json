@@ -1,0 +1,183 @@
+[
+  {
+    "id": "8d4f55a3-3555-4c88-bd2d-bbf86c304dcb",
+    "name": "orb-black",
+    "setName": "puzzles",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "black r1 white-b thin",
+        "pushable": true,
+        "fragile": true
+      }
+    },
+    "cssClass": "black r1 white-b thin",
+    "pushable": true,
+    "walkable": false,
+    "fragile": true,
+    "reactions": ""
+  },
+  {
+    "id": "73ae7ff1-e02b-47aa-9247-6b5c6182a376",
+    "name": "orb-white",
+    "setName": "puzzles",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "white r1 black-b thin",
+        "pushable": true,
+        "fragile": true
+      }
+    },
+    "cssClass": "white r1 black-b thin",
+    "pushable": true,
+    "walkable": false,
+    "fragile": true,
+    "reactions": ""
+  },
+  {
+    "id": "c5534eb2-7fa7-44a6-8cda-7d30ede5d740",
+    "name": "target-lavender",
+    "setName": "puzzles",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "lavender-b thick",
+        "reactions": "target-lavender"
+      }
+    },
+    "cssClass": "lavender-b thick",
+    "pushable": false,
+    "walkable": false,
+    "fragile": false,
+    "reactions": "target-lavender"
+  },
+  {
+    "id": "0fea5fdd-a92e-4987-a0e8-b974291d0ea2",
+    "name": "ball-lavender",
+    "setName": "puzzles",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "lavender r1 dark-lavender-b thick",
+        "pushable": true,
+        "fragile": true
+      }
+    },
+    "cssClass": "lavender r1 dark-lavender-b thick",
+    "pushable": true,
+    "walkable": false,
+    "fragile": true,
+    "reactions": ""
+  },
+  {
+    "id": "5fea8a73-5fdd-47cc-9707-a2e09935cfd2",
+    "name": "target-dark-lavender",
+    "setName": "puzzles",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "dark-lavender-b thick",
+        "reactions": "target-dark-lavender"
+      }
+    },
+    "cssClass": "dark-lavender-b thick",
+    "pushable": false,
+    "walkable": false,
+    "fragile": false,
+    "reactions": "target-dark-lavender"
+  },
+  {
+    "id": "9988535e-c4e9-4eb4-886a-5919935c89cf",
+    "name": "walkable-toggle-off",
+    "setName": "puzzles",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {}
+    },
+    "cssClass": "",
+    "pushable": false,
+    "walkable": false,
+    "fragile": false,
+    "reactions": ""
+  },
+  {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "name": "sticky-teal",
+    "setName": "puzzles",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "teal r0 white-b thin",
+        "pushable": true,
+        "stickyGroups": [
+          "sticky"
+        ]
+      }
+    },
+    "cssClass": "teal r0 white-b thin",
+    "pushable": true,
+    "walkable": false,
+    "fragile": false,
+    "stickyGroups": [
+      "sticky"
+    ],
+    "reactions": ""
+  },
+  {
+    "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+    "name": "sticky-purple",
+    "setName": "puzzles",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "purple white-b thin",
+        "stickyGroups": [
+          "sticky",
+          "magnetic"
+        ]
+      }
+    },
+    "cssClass": "purple white-b thin",
+    "pushable": false,
+    "walkable": false,
+    "fragile": false,
+    "stickyGroups": [
+      "sticky",
+      "magnetic"
+    ],
+    "reactions": ""
+  },
+  {
+    "id": "69534b85-018f-41d7-a443-309d2a1ad37b",
+    "name": "sticky-group",
+    "setName": "puzzles",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "half-gray r1",
+        "pushable": true,
+        "stickyGroups": [
+          "magnetic"
+        ]
+      }
+    },
+    "cssClass": "half-gray r1",
+    "pushable": true,
+    "walkable": false,
+    "fragile": false,
+    "stickyGroups": [
+      "magnetic"
+    ],
+    "reactions": ""
+  }
+]

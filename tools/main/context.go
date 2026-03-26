@@ -252,10 +252,70 @@ func (col *Collection) generateInteractables(tiles [][]TileData) [][]*Interactab
 	for i := range tiles {
 		out[i] = make([]*InteractableDescription, len(tiles[i]))
 		for j := range tiles[i] {
-			out[i][j] = col.findInteractableById(tiles[i][j].InteractableId)
+			out[i][j] = col.resolveInteractableByTile(tiles[i][j])
 		}
 	}
 	return out
+}
+
+func (col *Collection) resolveInteractableByTile(tile TileData) *InteractableDescription {
+	base := col.findInteractableById(tile.InteractableId)
+	if base == nil {
+		return nil
+	}
+
+	out := *base
+	if base.States != nil {
+		out.States = make(map[string]InteractableStateDescription, len(base.States))
+		for key, value := range base.States {
+			out.States[key] = value
+		}
+	}
+
+	stateName := tile.InteractableState
+	if stateName == "" {
+		stateName = out.DefaultState
+	}
+	if stateName == "" {
+		stateName = "default"
+	}
+
+	if out.DefaultState == "" {
+		out.DefaultState = "default"
+	}
+	if out.States == nil {
+		out.States = map[string]InteractableStateDescription{}
+	}
+	if _, ok := out.States[out.DefaultState]; !ok {
+		out.States[out.DefaultState] = InteractableStateDescription{
+			CssClass:       out.CssClass,
+			Pushable:       out.Pushable,
+			Walkable:       out.Walkable,
+			Fragile:        out.Fragile,
+			StickyGroups:   append([]string(nil), out.StickyGroups...),
+			RejectTeleport: out.RejectTeleport,
+			Reactions:      out.Reactions,
+			ReactionRules:  out.ReactionRules,
+		}
+	}
+
+	selected := out.States[stateName]
+	if _, ok := out.States[stateName]; !ok {
+		stateName = out.DefaultState
+		selected = out.States[stateName]
+	}
+
+	out.State = stateName
+	out.CssClass = selected.CssClass
+	out.Pushable = selected.Pushable
+	out.Walkable = selected.Walkable
+	out.Fragile = selected.Fragile
+	out.StickyGroups = append([]string(nil), selected.StickyGroups...)
+	out.RejectTeleport = selected.RejectTeleport
+	out.Reactions = selected.Reactions
+	out.ReactionRules = append([]ReactionRule(nil), selected.ReactionRules...)
+
+	return &out
 }
 
 func (c Context) copyMapPNG(space *Space, area *AreaDescription) string {

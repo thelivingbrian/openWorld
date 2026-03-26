@@ -19,6 +19,7 @@ export function normalizeTile(tile: TileData): TileData {
   return {
     prototypeId: tile.prototypeId ?? '',
     interactableId: tile.interactableId ?? '',
+    interactableState: tile.interactableState ?? '',
     transformation: { clockwiseRotations: tile.transformation?.clockwiseRotations ?? 0 }
   };
 }
@@ -242,6 +243,7 @@ function pasteTiles(y: number, x: number, source: TileData[][], dest: TileData[]
       }
       if (tile.interactableId) {
         source[y + row][x + col].interactableId = tile.interactableId;
+        source[y + row][x + col].interactableState = tile.interactableState ?? '';
       }
     }
   }
@@ -258,6 +260,7 @@ function clearTiles(y: number, x: number, height: number, width: number, source:
       }
       source[y + row][x + col].prototypeId = '';
       source[y + row][x + col].interactableId = '';
+      source[y + row][x + col].interactableState = '';
       source[y + row][x + col].transformation = { clockwiseRotations: 0 };
     }
   }
@@ -384,13 +387,14 @@ export function applyGridTool(input: {
   x: number;
   tool: Tool;
   selectedAssetId: string;
+  selectedInteractableState?: string;
   selected?: GridSelection;
   blueprint: Blueprint;
   prototypesById: Map<string, Prototype>;
   fragmentsById: Map<string, Fragment>;
   interactablesById: Map<string, InteractableDescription>;
 }): GridSelection | undefined {
-  const { y, x, tool, selectedAssetId, blueprint, prototypesById, fragmentsById, interactablesById } = input;
+  const { y, x, tool, selectedAssetId, selectedInteractableState, blueprint, prototypesById, fragmentsById, interactablesById } = input;
   const selected = input.selected;
 
   for (const row of blueprint.Tiles) {
@@ -474,11 +478,13 @@ export function applyGridTool(input: {
     case 'interactable-replace': {
       const interactable = interactablesById.get(selectedAssetId);
       blueprint.Tiles[y][x].interactableId = interactable?.id ?? '';
+      blueprint.Tiles[y][x].interactableState = interactable ? (selectedInteractableState ?? '') : '';
       return selected;
     }
 
     case 'interactable-delete': {
       blueprint.Tiles[y][x].interactableId = '';
+      blueprint.Tiles[y][x].interactableState = '';
       return selected;
     }
 

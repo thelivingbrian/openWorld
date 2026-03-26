@@ -282,6 +282,120 @@ describe('EditorComponent', () => {
     expect(state.instructionEditedIds()).toEqual({});
     expect(state.status()).toBe('Unsaved changes in space-1 reset.');
   });
+
+  it('addInteractableSet adds a new set, selects it, and reports success', () => {
+    const state = component as any;
+
+    state.newInteractableSetName.set('advanced');
+    state.addInteractableSet();
+
+    expect(state.currentCollection().InteractableSets.advanced).toEqual([]);
+    expect(state.interactableSets()).toEqual(expect.arrayContaining(['advanced']));
+    expect(state.interactableSet()).toBe('advanced');
+    expect(state.newInteractableSetName()).toBe('');
+    expect(state.status()).toBe('Interactable set "advanced" added.');
+  });
+
+  it('addInteractable selects a new interactable and initializes editable default state', () => {
+    const state = component as any;
+
+    state.interactableSet.set('base-interactables');
+    state.onInteractableSetChange();
+    state.interactableStateEditName.set('missing-state');
+
+    state.addInteractable();
+
+    expect(state.editedInteractable()?.name).toBe('new-interactable');
+    expect(state.interactableStateEditName()).toBe('default');
+    expect(state.editedInteractableState()).toEqual(
+      expect.objectContaining({
+        cssClass: '',
+        pushable: false,
+        walkable: false,
+        fragile: false,
+        stickyGroups: [],
+      }),
+    );
+  });
+
+  it('addInteractable immediately updates a newly created interactable set without switching sets', () => {
+    const state = component as any;
+
+    state.newInteractableSetName.set('example');
+    state.addInteractableSet();
+    expect(state.interactableSet()).toBe('example');
+    expect(state.interactables()).toHaveLength(0);
+
+    state.addInteractable();
+
+    expect(state.interactables()).toHaveLength(1);
+    expect(state.interactables()[0].name).toBe('new-interactable');
+    expect(state.interactableEditId()).toBe(state.interactables()[0].id);
+    expect(state.editedInteractable()?.id).toBe(state.interactables()[0].id);
+  });
+
+  it('can rename an edited interactable state', () => {
+    const state = component as any;
+
+    state.interactableSet.set('base-interactables');
+    state.onInteractableSetChange();
+    state.addInteractable();
+    state.addEditedInteractableState();
+    expect(state.editedInteractableStateNames()).toEqual(expect.arrayContaining(['state-1']));
+
+    state.interactableStateRenameName.set('armed');
+    state.renameEditedInteractableState();
+
+    expect(state.editedInteractableStateNames()).toEqual(expect.arrayContaining(['default', 'armed']));
+    expect(state.editedInteractableStateNames()).not.toEqual(expect.arrayContaining(['state-1']));
+    expect(state.interactableStateEditName()).toBe('armed');
+    expect(state.interactableStateRenameName()).toBe('armed');
+    expect(state.status()).toBe('State renamed to "armed".');
+  });
+
+  it('addEditedInteractableState clones reaction rules instead of sharing references', () => {
+    const state = component as any;
+
+    state.interactableSet.set('base-interactables');
+    state.onInteractableSetChange();
+    state.addInteractable();
+
+    const interactable = state.editedInteractable();
+    interactable.states.default.reactionRules = [
+      {
+        reactsWith: 'everything',
+        reactsWithArgs: ['a'],
+        reaction: 'pass',
+        reactionArgs: ['b'],
+      },
+    ];
+
+    state.addEditedInteractableState();
+    const newStateName = state.interactableStateEditName();
+    const defaultRules = interactable.states.default.reactionRules;
+    const newRules = interactable.states[newStateName].reactionRules;
+
+    expect(newRules).not.toBe(defaultRules);
+    expect(newRules[0]).not.toBe(defaultRules[0]);
+
+    newRules[0].reaction = 'eat';
+    newRules[0].reactionArgs.push('c');
+
+    expect(interactable.states.default.reactionRules[0].reaction).toBe('pass');
+    expect(interactable.states.default.reactionRules[0].reactionArgs).toEqual(['b']);
+  });
+
+  it('addInteractableSet reports validation errors for blank and duplicate names', () => {
+    const state = component as any;
+
+    state.newInteractableSetName.set('   ');
+    state.addInteractableSet();
+    expect(state.status()).toBe('Interactable set name cannot be blank.');
+
+    state.newInteractableSetName.set('base-interactables');
+    state.addInteractableSet();
+    expect(state.status()).toBe('Interactable set "base-interactables" already exists.');
+  });
 });
 
 function buildBootstrap(): BootstrapResponse {
@@ -419,11 +533,13 @@ function buildBootstrap(): BootstrapResponse {
               id: 'inter-1',
               name: 'switch',
               setName: 'base-interactables',
+              state: '',
               cssClass: '',
               pushable: false,
               walkable: true,
               fragile: false,
               reactions: '',
+              reactionRules: [],
             },
           ],
         },
