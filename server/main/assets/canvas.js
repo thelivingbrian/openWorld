@@ -199,14 +199,35 @@ function drawGridCell(id, y, x, classes) {
 
     if (!fillColor && !strokeColor) return;
 
+    const shape = getShapeModifiers(classes, cellSize);
+    const outerX = px + shape.offsetX;
+    const outerY = py + shape.offsetY;
+    const outerW = shape.width;
+    const outerH = shape.height;
+
     const radii = getCornerRadii(classes, cellSize);
 
-    const inset   = borderWidth;
-    const innerX  = px + inset;
-    const innerY  = py + inset;
-    const innerW  = cellSize - inset * 2;
-    const innerH  = cellSize - inset * 2;
-    const innerR  = radii.map(r => Math.max(0, r - inset));
+    const borderTop    = shape.showBorderTop ? borderWidth : 0;
+    const borderRight  = shape.showBorderRight ? borderWidth : 0;
+    const borderBottom = shape.showBorderBottom ? borderWidth : 0;
+    const borderLeft   = shape.showBorderLeft ? borderWidth : 0;
+
+    const innerX  = outerX + borderLeft;
+    const innerY  = outerY + borderTop;
+    const innerW  = outerW - borderLeft - borderRight;
+    const innerH  = outerH - borderTop - borderBottom;
+    const innerR  = [
+        Math.max(0, radii[0] - Math.max(borderLeft, borderTop)),
+        Math.max(0, radii[1] - Math.max(borderRight, borderTop)),
+        Math.max(0, radii[2] - Math.max(borderRight, borderBottom)),
+        Math.max(0, radii[3] - Math.max(borderLeft, borderBottom)),
+    ];
+
+    const hasSelectiveBorder =
+        borderTop !== borderWidth ||
+        borderRight !== borderWidth ||
+        borderBottom !== borderWidth ||
+        borderLeft !== borderWidth;
 
     ctx.save();
     ctx.globalAlpha = alpha;  // trspXX applies to both border and fill (like CSS opacity)
@@ -222,22 +243,79 @@ function drawGridCell(id, y, x, classes) {
     // 2) Draw border as a ring (outer − inner, using even-odd rule)
     if (strokeColor && borderWidth > 0) {
         ctx.fillStyle = strokeColor;
-        // one path - multiple subpaths 
-        ctx.beginPath();
-        // outer path
-        pathRoundedRect(ctx, px, py, cellSize, cellSize, radii);
+        if (!hasSelectiveBorder) {
+            // one path - multiple subpaths
+            ctx.beginPath();
+            // outer path
+            pathRoundedRect(ctx, outerX, outerY, outerW, outerH, radii);
 
-        if (innerW > 0 && innerH > 0) {
-            // inner path (hole)
-            pathRoundedRect(ctx, innerX, innerY, innerW, innerH, innerR);
-            ctx.fill("evenodd");   // fill ring only
+            if (innerW > 0 && innerH > 0) {
+                // inner path (hole)
+                pathRoundedRect(ctx, innerX, innerY, innerW, innerH, innerR);
+                ctx.fill("evenodd");   // fill ring only
+            } else {
+                // very small tiles / huge border: just fill outer shape
+                ctx.fill();
+            }
         } else {
-            // very small tiles / huge border: just fill outer shape
-            ctx.fill();
+            drawSelectiveBorders(
+                ctx,
+                outerX,
+                outerY,
+                outerW,
+                outerH,
+                borderTop,
+                borderRight,
+                borderBottom,
+                borderLeft
+            );
         }
     }
 
     ctx.restore();
+}
+
+function getShapeModifiers(classes, cellSize) {
+    const tokens = classes.split(/\s+/);
+
+    const isHorizontalStrip = tokens.includes("s-hoz");
+    const isVerticalStrip = tokens.includes("s-vert");
+
+    let width = cellSize;
+    let height = cellSize;
+
+    if (isHorizontalStrip) {
+        height = Math.max(1, Math.round(cellSize * 0.5));
+    }
+    if (isVerticalStrip) {
+        width = Math.max(1, Math.round(cellSize * 0.5));
+    }
+
+    return {
+        offsetX: Math.round((cellSize - width) / 2),
+        offsetY: Math.round((cellSize - height) / 2),
+        width,
+        height,
+        showBorderLeft: !tokens.includes("no-lr"),
+        showBorderRight: !tokens.includes("no-lr"),
+        showBorderTop: !tokens.includes("no-tb"),
+        showBorderBottom: !tokens.includes("no-tb"),
+    };
+}
+
+function drawSelectiveBorders(ctx, x, y, w, h, top, right, bottom, left) {
+    if (top > 0) {
+        ctx.fillRect(x, y, w, top);
+    }
+    if (bottom > 0) {
+        ctx.fillRect(x, y + h - bottom, w, bottom);
+    }
+    if (left > 0) {
+        ctx.fillRect(x, y, left, h);
+    }
+    if (right > 0) {
+        ctx.fillRect(x + w - right, y, right, h);
+    }
 }
 
 function getCornerRadii(classes, cellSize) {
