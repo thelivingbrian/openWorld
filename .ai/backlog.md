@@ -5,22 +5,22 @@ Shared queue for human + agent execution.
 Notes: AI agents see .ai/AGENTS.md for high level overview of project and working process
 
 ## Current In-Progress 
-  Feature:  
+  Feature:  Support dynamic tiles in design workspace
   Idea: 
 
   Tasks:
+  - [ ] Design workspace dynamic tile previews
+    - [ ] Add shared dynamic-style token parser in SPA editor for `cycle(...)`, `cycle-b(...)`, `rainbow`, `rainbow-b`, `water`, and `sparkle`
+    - [ ] Add preview animation loop (`requestAnimationFrame`) in editor state to drive time-based style updates
+    - [ ] Wire computed dynamic styles into main grid tile rendering (all relevant visual layers)
+    - [ ] Wire computed dynamic styles into fixture preview rendering so selected assets preview animated behavior
+    - [ ] Ensure deterministic per-cell phase offsets (based on tile coordinates) so previews look stable while panning/editing
+    - [ ] Add fallback behavior for unknown/invalid tokens to keep editor rendering safe and non-breaking
+    - [ ] Add/update SPA tests for parser behavior and dynamic preview rendering paths
+    - [ ] Document editor preview support and any differences vs in-game runtime rendering
 
 
 ## Backlog
-- [ ] Design workspace dynamic tile previews
-  - [ ] Add shared dynamic-style token parser in SPA editor for `cycle(...)`, `cycle-b(...)`, `rainbow`, `rainbow-b`, `water`, and `sparkle`
-  - [ ] Add preview animation loop (`requestAnimationFrame`) in editor state to drive time-based style updates
-  - [ ] Wire computed dynamic styles into main grid tile rendering (all relevant visual layers)
-  - [ ] Wire computed dynamic styles into fixture preview rendering so selected assets preview animated behavior
-  - [ ] Ensure deterministic per-cell phase offsets (based on tile coordinates) so previews look stable while panning/editing
-  - [ ] Add fallback behavior for unknown/invalid tokens to keep editor rendering safe and non-breaking
-  - [ ] Add/update SPA tests for parser behavior and dynamic preview rendering paths
-  - [ ] Document editor preview support and any differences vs in-game runtime rendering
 - [ ] Admin Panel
   - [ ] View player info 
     - [ ] modify stats
