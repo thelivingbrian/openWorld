@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, NgZone, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { EditorApiService } from '../../core/services/editor-api.service';
 import {
@@ -37,6 +37,7 @@ import {
   Tool,
   updateInstructionAndReapply,
 } from './grid-engine';
+import { computeDynamicStyle, stripDynamicTokens } from './dynamic-tile';
 
 type ViewMode = 'world' | 'create' | 'modify-space' | 'prototypes' | 'fragments' | 'interactables' | 'colors';
 type GridTarget = 'area' | 'fragment';
@@ -75,11 +76,16 @@ interface SelectedTileInstructionInfo {
 })
 export class EditorComponent {
   private readonly api = inject(EditorApiService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly ngZone = inject(NgZone);
+  private rafHandle: number | null = null;
 
   protected readonly loading = signal(true);
   protected readonly status = signal('');
   protected readonly bootstrap = signal<BootstrapResponse | null>(null);
   protected readonly gridVersion = signal(0);
+  /** Current animation timestamp (ms) driven by requestAnimationFrame. */
+  protected readonly dynamicTimeMs = signal(0);
 
   protected readonly viewMode = signal<ViewMode>('world');
   protected readonly gridTarget = signal<GridTarget>('area');
@@ -345,7 +351,25 @@ export class EditorComponent {
     if (!className) {
       return '';
     }
-    return className.replace(/\{[a-zA-Z0-9_-]+:([^}]+)\}/g, '$1').trim();
+    return stripDynamicTokens(className.replace(/\{[a-zA-Z0-9_-]+:([^}]+)\}/g, '$1').trim());
+  }
+
+  /**
+   * Returns a copy of the class string with dynamic tokens removed so the
+   * string can be applied as a CSS class attribute without browser warnings.
+   */
+  protected cleanLayerClass(classes: string | undefined): string {
+    return stripDynamicTokens(classes);
+  }
+
+  /**
+   * Returns an Angular inline-style object for dynamic tile tokens in the given
+   * class string, computed at the current animation timestamp and world coords.
+   * Returns an empty object for purely static class strings (no-op for [ngStyle]).
+   */
+  protected layerDynamicStyle(classes: string | undefined, y: number, x: number): Record<string, string> {
+    const timeMs = this.dynamicTimeMs();
+    return computeDynamicStyle(classes, timeMs, y, x);
   }
 
   protected readonly prototypesById = computed(() => {
@@ -656,6 +680,7 @@ export class EditorComponent {
   constructor() {
     this.ensureLegacyStyles();
     void this.loadBootstrap();
+    this.startDynamicAnimation();
   }
 
   protected setViewMode(mode: ViewMode): void {
@@ -2309,5 +2334,31 @@ export class EditorComponent {
       collections: outCollections,
       colors: (raw['colors'] ?? []) as BootstrapResponse['colors'],
     };
+  }
+
+  /**
+   * Starts a requestAnimationFrame loop that keeps `dynamicTimeMs` updated.
+   * This drives time-based dynamic tile animations in the editor grid and
+   * fixture preview. The loop runs outside Angular's zone so it does not
+   * interfere with change-detection stability checks (e.g. in tests).
+   * Signal updates from outside the zone are still picked up by Angular's
+   * signal-based reactive system. The loop is cancelled automatically when
+   * the component is destroyed via DestroyRef.
+   */
+  private startDynamicAnimation(): void {
+    this.ngZone.runOutsideAngular(() => {
+      const loop = (nowMs: number) => {
+        this.dynamicTimeMs.set(nowMs);
+        this.rafHandle = requestAnimationFrame(loop);
+      };
+      this.rafHandle = requestAnimationFrame(loop);
+
+      this.destroyRef.onDestroy(() => {
+        if (this.rafHandle !== null) {
+          cancelAnimationFrame(this.rafHandle);
+          this.rafHandle = null;
+        }
+      });
+    });
   }
 }
