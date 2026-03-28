@@ -36,6 +36,8 @@ type Player struct {
 	health                   atomic.Int64
 	money                    atomic.Int64
 	killstreak               atomic.Int64
+	logoutInitiated          atomic.Bool
+	logoutCompleted          atomic.Bool
 	PlayerStats
 	SyncMenuList
 	camera *Camera
@@ -325,6 +327,9 @@ func (player *Player) updateRecordOnLogin() {
 }
 func (player *Player) updateRecordOnLogout() {
 	currentTile := player.getTileSync()
+	if player.world == nil || player.world.db == nil || currentTile == nil {
+		return
+	}
 	go player.world.db.updatePlayerRecordOnLogout(player, currentTile)
 }
 

@@ -23,6 +23,25 @@ Working memory for AI agents. This file is intentionally editable by agents.
 - Keep AI tracking files lightweight to prevent maintenance overhead.
 
 ## Update Log
+- 2026-03-28: Admin console follow-up hardening + UX refinement.
+	- Fixed duplicate logout panic (`close of closed channel`) by making logout completion idempotent using per-player atomic guards.
+	- Added regression test `TestCompleteLogout_Idempotent` in `server/main/world_test.go` to prevent double-logout crashes.
+	- Updated admin controls to one combined kick/ban section:
+		- Kick accepts minutes (`0` allowed).
+		- Kick with minutes > 0 applies temporary lockout (stored as timed ban fields) when an authorized user record exists.
+		- Ban is always permanent and still kicks immediately.
+- 2026-03-28: Implemented Admin Console MVP in `server/main`.
+	- Added admin routes: `/admin`, `/admin/player/update`, `/admin/player/ban`.
+	- Added admin-gate config via `ADMIN_IDENTIFIERS` (comma-separated user identifiers like `google:123...`).
+	- Added server-rendered admin template with:
+		- live logged-in players list + linkable player details,
+		- active stages list,
+		- live in-memory session summary,
+		- stat editing (money, health, accomplishments, team, location),
+		- ban action (immediate kick + optional duration).
+	- Added Mongo audit trail collection `adminActions` and logging for admin update/ban actions.
+	- Added authorized-user ban fields and login-time ban enforcement.
+	- Full `go test ./...` is environment-blocked when Mongo is unavailable; compile validation succeeded with `go test -run '^$' ./...`.
 - 2026-03-14: Initialized AI orchestration notes file.
 - 2026-03-14: Converted `todo.md` section `Interactables and puzzles` into `.ai/backlog.md` items AI-003 through AI-013.
 - 2026-03-14: Completed AI-003 by adding interactable `state` to server runtime + JSON description load path and added focused test coverage.

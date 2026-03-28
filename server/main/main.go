@@ -86,6 +86,10 @@ func main() {
 		// REST helper endpoints
 		mux.HandleFunc("/insert", world.postHorribleBypass)
 		mux.HandleFunc("/stats", world.getStats)
+		mux.HandleFunc("/admin", world.adminHandler)
+		mux.HandleFunc("/admin/player/update", world.adminUpdatePlayerHandler)
+		mux.HandleFunc("/admin/player/kick", world.adminKickPlayerHandler)
+		mux.HandleFunc("/admin/player/ban", world.adminBanPlayerHandler)
 
 		// Websockets
 		logger.Info().Msg("Initiating Websockets...")

@@ -415,6 +415,10 @@ func processLogouts(players chan *Player) {
 }
 
 func initiateLogout(player *Player) {
+	if !player.logoutInitiated.CompareAndSwap(false, true) {
+		return
+	}
+
 	player.tangibilityLock.Lock()
 	defer player.tangibilityLock.Unlock()
 	player.tangible = false
@@ -427,6 +431,10 @@ func initiateLogout(player *Player) {
 }
 
 func completeLogout(player *Player) {
+	if !player.logoutCompleted.CompareAndSwap(false, true) {
+		return
+	}
+
 	player.updateRecordOnLogout() // Should return error
 
 	player.world.leaderBoard.mostDangerous.incoming <- PlayerStreakRecord{id: player.id, username: player.username, killstreak: 0, team: ""}

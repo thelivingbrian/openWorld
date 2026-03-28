@@ -10,16 +10,26 @@ Notes: AI agents see .ai/AGENTS.md for high level overview of project and workin
 
   Tasks:
 - [ ] Admin Panel
-  - [ ] View player info 
-    - [ ] modify stats
-    - [ ] Ban Player 
+  - [x] View player info 
+    - [x] modify stats
+    - [x] Ban Player 
   - [ ] World console 
-    - [ ] Actively logged in players 
-      - [ ] links to player info
-    - [ ] Active stages 
+    - [x] Actively logged in players 
+      - [x] links to player info
+    - [x] Active stages 
     - [ ] Can observe by stage or player. E.g. see the same game screen / canvas
         - [ ] Should be extendable into a non-admin observation deck for the site 
-    - [ ] View session information 
+    - [x] View session information 
+
+Notes:
+- 2026-03-28 implementation update:
+  - Added server-rendered admin console routes on the game server (`/admin`, `/admin/player/update`, `/admin/player/ban`).
+  - Added admin access gating via `ADMIN_IDENTIFIERS` env var (comma-separated provider identifiers).
+  - Added player stat/location/team/accomplishment editing workflow with live-online player update + persistence.
+  - Added ban flow with immediate kick and optional duration in minutes (blank/0 = permanent).
+  - Added login-time ban enforcement for authorized users.
+  - Added admin audit trail persistence in new Mongo collection `adminActions`.
+  - Observation canvas parity is still pending and remains unchecked.
 
 Notes:
 - Planning session decisions (2026-03-28):

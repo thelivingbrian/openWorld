@@ -18,6 +18,12 @@ High-level architecture reference for agents and contributors.
 - Server is used by multiple players concurrently, changes must prioritize stability then performance.
 - Prefer focused tests near changed packages before broad test runs.
 
+## Admin Console Notes
+- Admin console is server-rendered in `server/main` and exposed via `/admin` on game server instances.
+- Admin access is identifier-based (`ADMIN_IDENTIFIERS` env var, comma-separated).
+- Admin write actions persist audit records in Mongo collection `adminActions`.
+- User bans are stored on user records and enforced at login (`banReason`, `bannedBy`, `banExpiresAt`).
+
 ## Rendering Notes
 - Canvas rendering lives in `server/main/assets/canvas.js` with per-layer stage buffers and immediate per-tile updates from websocket quick-swap messages.
 - Weather tint and dynamic weather effects share the `Lw1` layer:

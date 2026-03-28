@@ -222,6 +222,54 @@ func TestLogoutAndDeath_Concurrent(t *testing.T) {
 	}
 }
 
+func TestCompleteLogout_Idempotent(t *testing.T) {
+	world := &World{
+		worldPlayers:   map[string]*Player{},
+		teamQuantities: map[string]int{"fuchsia": 1},
+		leaderBoard: &LeaderBoard{
+			mostDangerous: MaxStreakHeap{incoming: make(chan PlayerStreakRecord, 4)},
+		},
+		sessionStats: &WorldSessionData{},
+	}
+
+	player := &Player{
+		id:       "player-1",
+		username: "player-one",
+		team:     "fuchsia",
+		world:    world,
+		updates:  make(chan []byte, 1),
+	}
+	world.worldPlayers[player.id] = player
+
+	mustNotPanic := func(f func()) {
+		t.Helper()
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				t.Fatalf("unexpected panic: %v", recovered)
+			}
+		}()
+		f()
+	}
+
+	mustNotPanic(func() { completeLogout(player) })
+	mustNotPanic(func() { completeLogout(player) })
+
+	if got := world.sessionStats.TotalSessionLogouts.Load(); got != 1 {
+		t.Fatalf("expected exactly one logout increment, got %d", got)
+	}
+	if _, exists := world.worldPlayers[player.id]; exists {
+		t.Fatal("player should be removed from world after logout")
+	}
+	select {
+	case _, ok := <-player.updates:
+		if ok {
+			t.Fatal("player updates channel should be closed")
+		}
+	default:
+		t.Fatal("expected closed updates channel")
+	}
+}
+
 func TestMostDangerous(t *testing.T) {
 	loadFromJson()
 	world, shutDown := createWorldForTesting()

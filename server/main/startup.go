@@ -26,11 +26,12 @@ type DB struct {
 	playerRecords *mongo.Collection
 	events        *mongo.Collection
 	sessionData   *mongo.Collection
+	adminActions  *mongo.Collection
 }
 
 func createDbConnection(config *Configuration) *DB {
 	mongodb := mongoClient(config).Database("bloopdb")
-	return &DB{mongodb.Collection("users"), mongodb.Collection("players"), mongodb.Collection("events"), mongodb.Collection("sessionData")}
+	return &DB{mongodb.Collection("users"), mongodb.Collection("players"), mongodb.Collection("events"), mongodb.Collection("sessionData"), mongodb.Collection("adminActions")}
 }
 
 func mongoClient(config *Configuration) *mongo.Client {
@@ -52,29 +53,31 @@ func mongoClient(config *Configuration) *mongo.Client {
 // Configuration
 
 type Configuration struct {
-	envName            string
-	logLevel           string
-	port               string
-	usesTLS            bool
-	tlsCertPath        string
-	tlsKeyPath         string
-	mongoHost          string
-	mongoPort          string
-	mongoPrefix        string
-	mongoUser          string
-	mongoPass          string
-	hashKey            []byte
-	blockKey           []byte
-	googleClientId     string
-	googleClientSecret string
-	googleCallbackUrl  string
-	rootDomain         string // root domain is used for cookie and CORS
-	corsPrefix         string // "http" or "https" (may not match usesTLS)
-	isHub              bool
-	domains            []string
-	serverName         string
-	domainName         string
-	loadPreviousState  bool
+	envName             string
+	logLevel            string
+	port                string
+	usesTLS             bool
+	tlsCertPath         string
+	tlsKeyPath          string
+	mongoHost           string
+	mongoPort           string
+	mongoPrefix         string
+	mongoUser           string
+	mongoPass           string
+	hashKey             []byte
+	blockKey            []byte
+	googleClientId      string
+	googleClientSecret  string
+	googleCallbackUrl   string
+	rootDomain          string // root domain is used for cookie and CORS
+	corsPrefix          string // "http" or "https" (may not match usesTLS)
+	isHub               bool
+	domains             []string
+	serverName          string
+	domainName          string
+	loadPreviousState   bool
+	adminIdentifiers    []string
+	observerIdentifiers []string
 	RuntimeConfiguration
 }
 
@@ -91,29 +94,31 @@ func getConfiguration() *Configuration {
 	hashKey, blockKey := retrieveKeys()
 
 	config := Configuration{
-		envName:            os.Getenv("BLOOP_ENV"),
-		logLevel:           os.Getenv("LOG_LEVEL"),
-		port:               os.Getenv("BLOOP_PORT"),
-		usesTLS:            strings.ToUpper(os.Getenv("USE_TLS")) == "TRUE",
-		tlsCertPath:        os.Getenv("BLOOP_TLS_CERT_PATH"),
-		tlsKeyPath:         os.Getenv("BLOOP_TLS_KEY_PATH"),
-		mongoHost:          os.Getenv("MONGO_HOST"),
-		mongoPort:          os.Getenv("MONGO_PORT"),
-		mongoPrefix:        os.Getenv("MONGO_PREFIX"),
-		mongoUser:          os.Getenv("MONGO_USER"),
-		mongoPass:          os.Getenv("MONGO_PASS"),
-		hashKey:            hashKey,
-		blockKey:           blockKey,
-		googleClientId:     os.Getenv("GOOGLE_CLIENT_ID"),
-		googleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
-		googleCallbackUrl:  os.Getenv("GOOGLE_CALLBACK_URL"),
-		isHub:              strings.ToUpper(os.Getenv("IS_HUB")) == "TRUE",
-		rootDomain:         os.Getenv("ROOT_DOMAIN"),
-		domains:            strings.Split(os.Getenv("DOMAINS"), ","),
-		serverName:         os.Getenv("SERVER_NAME"),
-		domainName:         os.Getenv("DOMAIN_NAME"),
-		corsPrefix:         os.Getenv("CORS_PREFIX"),
-		loadPreviousState:  strings.ToUpper(os.Getenv("LOAD_PREVIOUS_STATE")) == "TRUE",
+		envName:             os.Getenv("BLOOP_ENV"),
+		logLevel:            os.Getenv("LOG_LEVEL"),
+		port:                os.Getenv("BLOOP_PORT"),
+		usesTLS:             strings.ToUpper(os.Getenv("USE_TLS")) == "TRUE",
+		tlsCertPath:         os.Getenv("BLOOP_TLS_CERT_PATH"),
+		tlsKeyPath:          os.Getenv("BLOOP_TLS_KEY_PATH"),
+		mongoHost:           os.Getenv("MONGO_HOST"),
+		mongoPort:           os.Getenv("MONGO_PORT"),
+		mongoPrefix:         os.Getenv("MONGO_PREFIX"),
+		mongoUser:           os.Getenv("MONGO_USER"),
+		mongoPass:           os.Getenv("MONGO_PASS"),
+		hashKey:             hashKey,
+		blockKey:            blockKey,
+		googleClientId:      os.Getenv("GOOGLE_CLIENT_ID"),
+		googleClientSecret:  os.Getenv("GOOGLE_CLIENT_SECRET"),
+		googleCallbackUrl:   os.Getenv("GOOGLE_CALLBACK_URL"),
+		isHub:               strings.ToUpper(os.Getenv("IS_HUB")) == "TRUE",
+		rootDomain:          os.Getenv("ROOT_DOMAIN"),
+		domains:             strings.Split(os.Getenv("DOMAINS"), ","),
+		serverName:          os.Getenv("SERVER_NAME"),
+		domainName:          os.Getenv("DOMAIN_NAME"),
+		corsPrefix:          os.Getenv("CORS_PREFIX"),
+		loadPreviousState:   strings.ToUpper(os.Getenv("LOAD_PREVIOUS_STATE")) == "TRUE",
+		adminIdentifiers:    splitAndTrim(os.Getenv("ADMIN_IDENTIFIERS")),
+		observerIdentifiers: splitAndTrim(os.Getenv("OBSERVER_IDENTIFIERS")),
 	}
 
 	// Runtime configuration
@@ -184,6 +189,30 @@ func retrieveKeys() (hashKey, blockKey []byte) {
 		panic(fmt.Sprintf("Invalid key length for hashkey[%d] or blockKey[%d] expecting 32 bytes.", len(hashKey), len(blockKey)))
 	}
 	return hashKey, blockKey
+}
+
+func splitAndTrim(value string) []string {
+	if strings.TrimSpace(value) == "" {
+		return nil
+	}
+	tokens := strings.Split(value, ",")
+	result := make([]string, 0, len(tokens))
+	for _, token := range tokens {
+		trimmed := strings.TrimSpace(token)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+	return result
+}
+
+func (config *Configuration) isAdminIdentifier(identifier string) bool {
+	for _, admin := range config.adminIdentifiers {
+		if admin == identifier {
+			return true
+		}
+	}
+	return false
 }
 
 ////////////////////////////////////////////////////
