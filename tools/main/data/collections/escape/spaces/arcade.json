@@ -169,7 +169,9 @@
               "transformation": {}
             },
             {
-              "transformation": {}
+              "transformation": {},
+              "interactableId": "51afa0a0-8807-4441-9667-579a15d2cec3",
+              "interactableState": "default"
             },
             {
               "transformation": {}
@@ -233,14 +235,12 @@
               "transformation": {}
             },
             {
-              "prototypeId": "4604948f-0f6f-4f3a-b54a-d8010f54f815",
               "transformation": {}
             },
             {
               "transformation": {}
             },
             {
-              "prototypeId": "2bf2f6b5-b463-4fe2-83e1-e8a926425f4a",
               "transformation": {}
             },
             {
@@ -375,14 +375,12 @@
               "transformation": {}
             },
             {
-              "prototypeId": "8f5d0168-e16c-4df6-b72b-8e8aac5cc101",
               "transformation": {}
             },
             {
               "transformation": {}
             },
             {
-              "prototypeId": "c30b4ba5-a8cf-4f89-a76b-aa4ababc36c4",
               "transformation": {}
             },
             {
@@ -668,7 +666,9 @@
               "transformation": {}
             },
             {
-              "transformation": {}
+              "transformation": {},
+              "interactableId": "51afa0a0-8807-4441-9667-579a15d2cec3",
+              "interactableState": "default"
             },
             {
               "transformation": {}
@@ -751,7 +751,9 @@
               "transformation": {}
             },
             {
-              "transformation": {}
+              "transformation": {},
+              "interactableId": "51afa0a0-8807-4441-9667-579a15d2cec3",
+              "interactableState": "default"
             },
             {
               "transformation": {}
@@ -830,7 +832,9 @@
               "transformation": {}
             },
             {
-              "transformation": {}
+              "transformation": {},
+              "interactableId": "51afa0a0-8807-4441-9667-579a15d2cec3",
+              "interactableState": "default"
             },
             {
               "transformation": {}
@@ -3141,7 +3145,9 @@
               "transformation": {}
             },
             {
-              "transformation": {}
+              "transformation": {},
+              "interactableId": "51afa0a0-8807-4441-9667-579a15d2cec3",
+              "interactableState": "default"
             },
             {
               "transformation": {}
@@ -8591,7 +8597,9 @@
               "transformation": {}
             },
             {
-              "transformation": {}
+              "transformation": {},
+              "interactableId": "51afa0a0-8807-4441-9667-579a15d2cec3",
+              "interactableState": "default"
             },
             {
               "transformation": {}
@@ -11318,7 +11326,9 @@
               "transformation": {}
             },
             {
-              "transformation": {}
+              "transformation": {},
+              "interactableId": "51afa0a0-8807-4441-9667-579a15d2cec3",
+              "interactableState": "default"
             },
             {
               "transformation": {}

@@ -3,7 +3,7 @@
     "id": "da68f885-e69b-4a45-a1f7-0e974ea6e1bd",
     "name": "push-others",
     "setName": "advanced",
-    "state": "state-1",
+    "state": "default",
     "defaultState": "default",
     "states": {
       "default": {
@@ -28,7 +28,7 @@
         ]
       }
     },
-    "cssClass": "gold blue-b thick r0",
+    "cssClass": "red blue-b thick r0",
     "pushable": false,
     "walkable": false,
     "fragile": false,
@@ -36,11 +36,33 @@
     "reactionRules": [
       {
         "reactsWith": "interactableIsNil",
-        "reaction": "transmitPushByState",
-        "reactionArgs": [
-          "state-1"
-        ]
+        "reaction": "transmitPushAll"
       }
     ]
+  },
+  {
+    "id": "51afa0a0-8807-4441-9667-579a15d2cec3",
+    "name": "rainbow",
+    "setName": "advanced",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "rainbow",
+        "pushable": true,
+        "walkable": true,
+        "stickyGroups": [
+          "a"
+        ]
+      }
+    },
+    "cssClass": "rainbow",
+    "pushable": true,
+    "walkable": true,
+    "fragile": false,
+    "stickyGroups": [
+      "a"
+    ],
+    "reactions": ""
   }
 ]
