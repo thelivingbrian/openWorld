@@ -36,7 +36,8 @@ Notes:
   - Current codebase has no existing role/permission enforcement layer yet.
   - No existing admin routes/pages currently exist.
   - Existing telemetry endpoints are limited; admin-specific APIs/views will need to be added.
-  - Near-live spectator canvas was explored in planning but is now deferred under "no observers for now".
+  - live spectator view canvas is available only in the admin screen for now
+  - view can piggyback a logged in player or lock on a given stage 
 
 ## Backlog
 - [ ] Player created worlds
