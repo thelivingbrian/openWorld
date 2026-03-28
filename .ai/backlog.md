@@ -5,13 +5,10 @@ Shared queue for human + agent execution.
 Notes: AI agents see .ai/AGENTS.md for high level overview of project and working process
 
 ## Current In-Progress 
-  Feature: 
-  Idea: 
+  Feature: Admin console
+  Idea: There needs to be a way for bloopworld admins to see what is going on with the live server and databases, currently the only insight is via mongodb compass / console logs / actually signing into the game. The admin console will improve and consolidate all of these processes 
 
   Tasks:
-
-
-## Backlog
 - [ ] Admin Panel
   - [ ] View player info 
     - [ ] modify stats
@@ -23,6 +20,25 @@ Notes: AI agents see .ai/AGENTS.md for high level overview of project and workin
     - [ ] Can observe by stage or player. E.g. see the same game screen / canvas
         - [ ] Should be extendable into a non-admin observation deck for the site 
     - [ ] View session information 
+
+Notes:
+- Planning session decisions (2026-03-28):
+  - Roles for MVP: `admin` and `observer`.
+  - Observer access: no observers for now (observer-facing features deferred).
+  - Admin console UI location: server-rendered page in the game server.
+  - Ban behavior: include immediate kick + optional soft ban duration chosen at action time.
+  - Stat editing MVP fields: money, health, accomplishments, team, and location.
+  - Admin audit trail: required; add a new Mongo collection for admin action records.
+    - Capture at minimum: action type, acting admin identifier, target player identifier (if any), payload/delta, timestamp, and result/status.
+  - Session info scope (MVP): current live in-memory session information only.
+  - Historical session views: deferred to a later phase.
+- Discovery notes from planning:
+  - Current codebase has no existing role/permission enforcement layer yet.
+  - No existing admin routes/pages currently exist.
+  - Existing telemetry endpoints are limited; admin-specific APIs/views will need to be added.
+  - Near-live spectator canvas was explored in planning but is now deferred under "no observers for now".
+
+## Backlog
 - [ ] Player created worlds
     - [ ] From world select screen give option to edit or launch world
     - [ ] One Collection per player stored in mongo
