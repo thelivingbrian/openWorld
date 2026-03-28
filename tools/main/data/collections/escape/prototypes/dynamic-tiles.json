@@ -66,7 +66,7 @@
     "ceiling2css": "",
     "setName": "dynamic-tiles",
     "mapColor": "sky-blue",
-    "editorColor": "sky-blue",
+    "editorColor": "",
     "displayText": ""
   },
   {
@@ -80,7 +80,7 @@
     "ceiling2css": "",
     "setName": "dynamic-tiles",
     "mapColor": "sky-blue",
-    "editorColor": "sky-blue  r2-{rotate:tr}",
+    "editorColor": "",
     "displayText": ""
   },
   {
@@ -108,7 +108,7 @@
     "ceiling2css": "",
     "setName": "dynamic-tiles",
     "mapColor": "sky-blue",
-    "editorColor": "sky-blue",
+    "editorColor": "",
     "displayText": ""
   },
   {
@@ -122,7 +122,7 @@
     "ceiling2css": "",
     "setName": "dynamic-tiles",
     "mapColor": "sky-blue",
-    "editorColor": "sky-blue  r2-{rotate:tr}",
+    "editorColor": "",
     "displayText": ""
   }
 ]
