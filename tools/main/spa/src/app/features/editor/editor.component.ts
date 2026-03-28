@@ -366,10 +366,36 @@ export class EditorComponent {
    * Returns an Angular inline-style object for dynamic tile tokens in the given
    * class string, computed at the current animation timestamp and world coords.
    * Returns an empty object for purely static class strings (no-op for [ngStyle]).
+   * Always animates — suitable for preview panels (prototype preview, fixture preview).
    */
   protected layerDynamicStyle(classes: string | undefined, y: number, x: number): Record<string, string> {
     const timeMs = this.dynamicTimeMs();
     return computeDynamicStyle(classes, timeMs, y, x);
+  }
+
+  /**
+   * Like `layerDynamicStyle` but context-aware: animates only when the current
+   * view is the fragment editor. In the world-edit view the main grid can be
+   * visually noisy with every tile animating simultaneously, so a static (t=0)
+   * snapshot is returned instead — tiles still show their dynamic color at a
+   * fixed point in time rather than being invisible.
+   */
+  protected gridLayerDynamicStyle(classes: string | undefined, y: number, x: number): Record<string, string> {
+    const timeMs = this.viewMode() === 'fragments' ? this.dynamicTimeMs() : 0;
+    return computeDynamicStyle(classes, timeMs, y, x);
+  }
+
+  /**
+   * Dynamic style for the ceiling2 layer in the prototype preview.
+   * Respects the EditorColor toggle: when active, animates the editorColor
+   * field; otherwise animates ceiling2css.
+   */
+  protected prototypePreviewCeiling2Style(prototype: Prototype | undefined): Record<string, string> {
+    if (!prototype) return {};
+    const value = this.prototypePreviewUseEditorColor() && prototype.editorColor?.trim()
+      ? prototype.editorColor
+      : prototype.ceiling2css;
+    return this.layerDynamicStyle(value, 0, 0);
   }
 
   protected readonly prototypesById = computed(() => {
