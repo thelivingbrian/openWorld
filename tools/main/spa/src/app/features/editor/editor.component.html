@@ -372,7 +372,7 @@
               <strong>Reaction Rules</strong>
               <button type="button" (click)="addReactionRule()">+ Add Rule</button>
             </div>
-            @if (editedInteractableState()!.reactionRules?.length) {
+            @if (editedInteractableState()!.reactionRules.length) {
               <p class="entity-preview__meta">Rules are evaluated top-to-bottom; first match wins. These override the preset above when present.</p>
             } @else if (!editedInteractableState()!.reactions) {
               <p class="entity-preview__meta">No preset or rules defined. Add a rule or type a preset name above.</p>
@@ -434,7 +434,7 @@
               · {{ editedInteractableState()!.pushable ? 'Pushable' : 'Static' }}
               · {{ editedInteractableState()!.fragile ? 'Fragile' : 'Sturdy' }}
               · {{ editedInteractableState()!.stickyGroups?.length ? ('StickyGroups:' + editedInteractableState()!.stickyGroups!.join(',')) : '' }}
-              · {{ editedInteractableState()!.reactionRules?.length ? (editedInteractableState()!.reactionRules.length + ' rule(s)') : (editedInteractableState()!.reactions || 'no reactions') }}
+              · {{ editedInteractableState()!.reactionRules.length ? (editedInteractableState()!.reactionRules.length + ' rule(s)') : (editedInteractableState()!.reactions || 'no reactions') }}
             </p>
           </div>
           }
