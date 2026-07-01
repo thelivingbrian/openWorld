@@ -131,40 +131,17 @@
       "tiles": [
         [
           {
-            "prototypeId": "b2096e3a-f4e7-4029-9941-f5e708a921eb",
+            "prototypeId": "2fd01e99-bf5f-4837-be58-79fee0be0fd6",
             "transformation": {
               "clockwiseRotations": 3
             }
           },
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "ea4db37f-f635-49c0-859c-c05297948f34",
             "transformation": {}
           },
           {
-            "prototypeId": "b2096e3a-f4e7-4029-9941-f5e708a921eb",
-            "transformation": {}
-          },
-          {
-            "transformation": {}
-          },
-          {
-            "transformation": {}
-          },
-          {
-            "transformation": {}
-          }
-        ],
-        [
-          {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
-            "transformation": {}
-          },
-          {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
-            "transformation": {}
-          },
-          {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "2fd01e99-bf5f-4837-be58-79fee0be0fd6",
             "transformation": {}
           },
           {
@@ -179,15 +156,15 @@
         ],
         [
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "ea4db37f-f635-49c0-859c-c05297948f34",
             "transformation": {}
           },
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "8fcd67ab-ecde-4df4-bb9a-8db8b423da3d",
             "transformation": {}
           },
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "ea4db37f-f635-49c0-859c-c05297948f34",
             "transformation": {}
           },
           {
@@ -202,81 +179,104 @@
         ],
         [
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "ea4db37f-f635-49c0-859c-c05297948f34",
             "transformation": {}
           },
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "ea4db37f-f635-49c0-859c-c05297948f34",
             "transformation": {}
           },
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "8fcd67ab-ecde-4df4-bb9a-8db8b423da3d",
             "transformation": {}
           },
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
             "transformation": {}
           },
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
             "transformation": {}
           },
           {
-            "prototypeId": "b2096e3a-f4e7-4029-9941-f5e708a921eb",
             "transformation": {}
           }
         ],
         [
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "ea4db37f-f635-49c0-859c-c05297948f34",
             "transformation": {}
           },
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "8fcd67ab-ecde-4df4-bb9a-8db8b423da3d",
             "transformation": {}
           },
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "ea4db37f-f635-49c0-859c-c05297948f34",
             "transformation": {}
           },
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "ea4db37f-f635-49c0-859c-c05297948f34",
             "transformation": {}
           },
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "8fcd67ab-ecde-4df4-bb9a-8db8b423da3d",
             "transformation": {}
           },
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "6237db3d-2e99-4c7f-999b-6a628df7e7fe",
             "transformation": {}
           }
         ],
         [
           {
-            "prototypeId": "b2096e3a-f4e7-4029-9941-f5e708a921eb",
+            "prototypeId": "8fcd67ab-ecde-4df4-bb9a-8db8b423da3d",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "ea4db37f-f635-49c0-859c-c05297948f34",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "8fcd67ab-ecde-4df4-bb9a-8db8b423da3d",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "ea4db37f-f635-49c0-859c-c05297948f34",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "ea4db37f-f635-49c0-859c-c05297948f34",
+            "transformation": {}
+          },
+          {
+            "prototypeId": "8fcd67ab-ecde-4df4-bb9a-8db8b423da3d",
+            "transformation": {}
+          }
+        ],
+        [
+          {
+            "prototypeId": "2fd01e99-bf5f-4837-be58-79fee0be0fd6",
             "transformation": {
               "clockwiseRotations": 2
             }
           },
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "ea4db37f-f635-49c0-859c-c05297948f34",
             "transformation": {}
           },
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "8fcd67ab-ecde-4df4-bb9a-8db8b423da3d",
             "transformation": {}
           },
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "ea4db37f-f635-49c0-859c-c05297948f34",
             "transformation": {}
           },
           {
-            "prototypeId": "189ebce0-0246-47ff-8e02-2d956fdf7654",
+            "prototypeId": "ea4db37f-f635-49c0-859c-c05297948f34",
             "transformation": {}
           },
           {
-            "prototypeId": "b2096e3a-f4e7-4029-9941-f5e708a921eb",
+            "prototypeId": "6237db3d-2e99-4c7f-999b-6a628df7e7fe",
             "transformation": {
               "clockwiseRotations": 1
             }

@@ -396,6 +396,66 @@ describe('EditorComponent', () => {
     state.addInteractableSet();
     expect(state.status()).toBe('Interactable set "base-interactables" already exists.');
   });
+
+  it('gridLayerDynamicStyle returns empty object in world view and computes style in fragment view', () => {
+    const state = component as any;
+
+    // In world view (default), dynamic tokens produce a static snapshot (non-animated, no signal dep)
+    state.viewMode.set('world');
+    state.dynamicTimeMs.set(0);
+    const worldStyle = state.gridLayerDynamicStyle('rainbow', 0, 0);
+    state.dynamicTimeMs.set(99999);
+    const worldStyleLater = state.gridLayerDynamicStyle('rainbow', 0, 0);
+    // In world view time is fixed at 0 so the result is the same regardless of dynamicTimeMs
+    expect(worldStyle).toEqual(worldStyleLater);
+    expect(worldStyle['backgroundColor']).toBeDefined();
+
+    // In fragment view, the style changes as dynamicTimeMs advances
+    state.viewMode.set('fragments');
+    state.dynamicTimeMs.set(0);
+    const fragStyleT0 = state.gridLayerDynamicStyle('rainbow', 0, 0);
+    state.dynamicTimeMs.set(10000);
+    const fragStyleT1 = state.gridLayerDynamicStyle('rainbow', 0, 0);
+    expect(fragStyleT0['backgroundColor']).toBeDefined();
+    expect(fragStyleT0['backgroundColor']).not.toBe(fragStyleT1['backgroundColor']);
+  });
+
+  it('gridLayerDynamicStyle returns empty object for static class strings in all view modes', () => {
+    const state = component as any;
+
+    state.viewMode.set('world');
+    expect(state.gridLayerDynamicStyle('blue green', 0, 0)).toEqual({});
+
+    state.viewMode.set('fragments');
+    expect(state.gridLayerDynamicStyle('blue green', 0, 0)).toEqual({});
+  });
+
+  it('prototypePreviewCeiling2Style uses editorColor when toggle is active and ceiling2css otherwise', () => {
+    const state = component as any;
+
+    const proto = { editorColor: 'rainbow', ceiling2css: 'water' };
+
+    state.prototypePreviewUseEditorColor.set(true);
+    const styleWithEditorColor = state.prototypePreviewCeiling2Style(proto);
+    expect(styleWithEditorColor['backgroundColor']).toBeDefined(); // rainbow → backgroundColor
+
+    state.prototypePreviewUseEditorColor.set(false);
+    const styleWithCeiling2 = state.prototypePreviewCeiling2Style(proto);
+    expect(styleWithCeiling2['backgroundColor']).toBeDefined(); // water → backgroundColor
+
+    // They should differ since rainbow and water generate different colors at t=0
+    state.dynamicTimeMs.set(0);
+    state.prototypePreviewUseEditorColor.set(true);
+    const rainbowStyle = state.prototypePreviewCeiling2Style({ editorColor: 'rainbow', ceiling2css: 'green' });
+    state.prototypePreviewUseEditorColor.set(false);
+    const waterStyle = state.prototypePreviewCeiling2Style({ editorColor: 'rainbow', ceiling2css: 'water' });
+    expect(rainbowStyle['backgroundColor']).not.toBe(waterStyle['backgroundColor']);
+  });
+
+  it('prototypePreviewCeiling2Style returns empty object for undefined prototype', () => {
+    const state = component as any;
+    expect(state.prototypePreviewCeiling2Style(undefined)).toEqual({});
+  });
 });
 
 function buildBootstrap(): BootstrapResponse {

@@ -318,7 +318,7 @@ img {
     background-color: rgb(17, 53, 84); /* 60% darker */
   }
 
-/* Unimplemented in canvas css effects */
+/* Shape/border modifiers mirrored by the canvas renderer */
 .s-hoz {
     height : 50%;
     top: 25%;

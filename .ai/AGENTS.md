@@ -22,16 +22,15 @@ If instructions conflict, follow the higher-priority source.
 - Make targeted changes with terse, clever, readable code.
 - Fix root causes when practical; avoid cosmetic churn.
 - Preserve existing naming/style unless asked to refactor.
-- Define new go functions on lines below where they are first referenced 
+- Define new go functions on lines ~below~ where they are first referenced 
 - Do not modify unrelated files.
 - Validate changes with focused tests when available.
 
 ## Collaboration protocol
 - Before coding: read `.ai/backlog.md`, `.ai/notes.md`, `.ai/known-issues.md`, and `.ai/architecture.md`.
-- Claim one backlog item by setting it to `IN_PROGRESS` and filling owner/date.
+- Observe the currently in progress task for instructions
 - If an encountered issue appears in `.ai/known-issues.md`, do not fix it unless the active user request explicitly includes that issue.
-- Keep exactly one primary in-progress task at a time in the `Current In-Progress` block.
-- After coding: update backlog status, append notes to `.ai/notes.md`, and update `.ai/architecture.md` when new properties/decisions/constraints are discovered.
+- After coding: check completed tasks off, leave a note for items that cannot be completed and leave them unchecked. Append notes you believe will aid future agents to `.ai/notes.md`, and update `.ai/architecture.md` when new properties/decisions/constraints are discovered.
 
 ## File ownership model
 - `.ai/AGENTS.md`: stable policy; change only when workflow rules truly change.
@@ -42,5 +41,5 @@ If instructions conflict, follow the higher-priority source.
 
 ## Definition of done
 - Code changes compile or tests pass for the touched scope (when feasible).
-- Backlog item moved to `DONE` with a short outcome note.
+- In progress Backlog item(s) all are checked or include relevant note why they cannot be complete
 - Relevant learning captured in `.ai/notes.md`.

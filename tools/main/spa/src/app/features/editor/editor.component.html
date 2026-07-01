@@ -231,12 +231,12 @@
             <p class="entity-preview__title">Preview</p>
             <div class="prototype-preview-flow">
               <div class="prototype-preview" title="Layer inputs">
-                <div class="box {{ prototypePreviewClass(editedPrototype()!.cssColor) }}"></div>
-                <div class="box {{ prototypePreviewClass(editedPrototype()!.layer1css) }}"></div>
-                <div class="box {{ prototypePreviewClass(editedPrototype()!.layer2css) }}"></div>
-                <div class="box {{ prototypePreviewClass(editedPrototype()!.ceiling1css) }}"></div>
-                <div class="box {{ prototypePreviewClass(editedPrototype()!.ceiling2css) }}"></div>
-                <div class="box {{ prototypePreviewClass(editedPrototype()!.mapColor) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.cssColor) }}" [ngStyle]="layerDynamicStyle(editedPrototype()!.cssColor, 0, 0)"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.layer1css) }}" [ngStyle]="layerDynamicStyle(editedPrototype()!.layer1css, 0, 0)"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.layer2css) }}" [ngStyle]="layerDynamicStyle(editedPrototype()!.layer2css, 0, 0)"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.ceiling1css) }}" [ngStyle]="layerDynamicStyle(editedPrototype()!.ceiling1css, 0, 0)"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.ceiling2css) }}" [ngStyle]="layerDynamicStyle(editedPrototype()!.ceiling2css, 0, 0)"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.mapColor) }}" [ngStyle]="layerDynamicStyle(editedPrototype()!.mapColor, 0, 0)"></div>
               </div>
 
               <button
@@ -247,18 +247,18 @@
                 [disabled]="!editedPrototype()!.editorColor"
                 (click)="togglePrototypePreviewEditorColor()"
                 title="Use EditorColor as top layer (replaces Ceiling2 in combined preview)">
-                <div class="box {{ prototypePreviewClass(editedPrototype()!.editorColor) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.editorColor) }}" [ngStyle]="layerDynamicStyle(editedPrototype()!.editorColor, 0, 0)"></div>
                 <span>EditorColor</span>
               </button>
 
               <span class="prototype-preview-arrow" aria-hidden="true">→</span>
 
               <div class="prototype-preview-stack" title="Combined layers">
-                <div class="box {{ prototypePreviewClass(editedPrototype()!.cssColor) }}"></div>
-                <div class="box {{ prototypePreviewClass(editedPrototype()!.layer1css) }}"></div>
-                <div class="box {{ prototypePreviewClass(editedPrototype()!.layer2css) }}"></div>
-                <div class="box {{ prototypePreviewClass(editedPrototype()!.ceiling1css) }}"></div>
-                <div class="box {{ prototypePreviewCeiling2Class(editedPrototype()) }}"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.cssColor) }}" [ngStyle]="layerDynamicStyle(editedPrototype()!.cssColor, 0, 0)"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.layer1css) }}" [ngStyle]="layerDynamicStyle(editedPrototype()!.layer1css, 0, 0)"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.layer2css) }}" [ngStyle]="layerDynamicStyle(editedPrototype()!.layer2css, 0, 0)"></div>
+                <div class="box {{ prototypePreviewClass(editedPrototype()!.ceiling1css) }}" [ngStyle]="layerDynamicStyle(editedPrototype()!.ceiling1css, 0, 0)"></div>
+                <div class="box {{ prototypePreviewCeiling2Class(editedPrototype()) }}" [ngStyle]="prototypePreviewCeiling2Style(editedPrototype())"></div>
               </div>
             </div>
             <p class="entity-preview__meta">
@@ -425,7 +425,7 @@
           <div class="entity-preview">
             <p class="entity-preview__title">Preview</p>
             <div class="interactable-preview">
-              <div class="box zp {{ editedInteractableState()!.cssClass }}"></div>
+              <div class="box zp {{ cleanLayerClass(editedInteractableState()!.cssClass) }}" [ngStyle]="layerDynamicStyle(editedInteractableState()!.cssClass, 0, 0)"></div>
             </div>
             <p class="entity-preview__meta">
               {{ editedInteractable()!.name || 'Unnamed interactable' }}
@@ -533,12 +533,12 @@
                 <div class="grid-row">
                   @for (material of row; track $index; let x = $index) {
                     <div class="grid-square" (click)="onGridClick(y, x)" (mouseenter)="onGridHover(y, x)" (mouseleave)="onGridLeave()">
-                      <div class="box ground1 {{ material.ground1css ?? '' }}"></div>
-                      <div class="box ground2 {{ material.ground2css ?? '' }}"></div>
-                      <div class="box floor1 {{ material.layer1css ?? '' }}"></div>
-                      <div class="box floor2 {{ material.layer2css ?? '' }}"></div>
+                      <div class="box ground1 {{ cleanLayerClass(material.ground1css) }}" [ngStyle]="gridLayerDynamicStyle(material.ground1css, y, x)"></div>
+                      <div class="box ground2 {{ cleanLayerClass(material.ground2css) }}" [ngStyle]="gridLayerDynamicStyle(material.ground2css, y, x)"></div>
+                      <div class="box floor1 {{ cleanLayerClass(material.layer1css) }}" [ngStyle]="gridLayerDynamicStyle(material.layer1css, y, x)"></div>
+                      <div class="box floor2 {{ cleanLayerClass(material.layer2css) }}" [ngStyle]="gridLayerDynamicStyle(material.layer2css, y, x)"></div>
                       @if (gridInteractables()[y]?.[x]) {
-                        <div class="box zp {{ gridInteractables()[y]?.[x]?.cssClass ?? '' }}"></div>
+                        <div class="box zp {{ cleanLayerClass(gridInteractables()[y]?.[x]?.cssClass) }}" [ngStyle]="gridLayerDynamicStyle(gridInteractables()[y]?.[x]?.cssClass, y, x)"></div>
                       }
                       @if (ghostMaterials()[y]?.[x]) {
                         <div class="box ground1 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ground1css ?? '' }}"></div>
@@ -549,10 +549,10 @@
                         <div class="box ceiling2 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ceiling2css ?? '' }}"></div>
                       }
                       @if (ghostInteractables()[y]?.[x]) {
-                        <div class="box zp ghost-layer trsp60 {{ ghostInteractables()[y]?.[x]?.cssClass ?? '' }}"></div>
+                        <div class="box zp ghost-layer trsp60 {{ cleanLayerClass(ghostInteractables()[y]?.[x]?.cssClass) }}" [ngStyle]="gridLayerDynamicStyle(ghostInteractables()[y]?.[x]?.cssClass, y, x)"></div>
                       }
-                      <div class="box ceiling1 {{ material.ceiling1css ?? '' }}"></div>
-                      <div class="box ceiling2 {{ material.ceiling2css ?? '' }}"></div>
+                      <div class="box ceiling1 {{ cleanLayerClass(material.ceiling1css) }}" [ngStyle]="gridLayerDynamicStyle(material.ceiling1css, y, x)"></div>
+                      <div class="box ceiling2 {{ cleanLayerClass(material.ceiling2css) }}" [ngStyle]="gridLayerDynamicStyle(material.ceiling2css, y, x)"></div>
                       <div class="box top"
                         [class.red-b]="selection()?.y === y && selection()?.x === x"
                         [class.pink-b]="showTransports() && isTransportSourceTile(y, x) && !(selection()?.y === y && selection()?.x === x)"
@@ -769,15 +769,15 @@
                     <div class="grid-row">
                       @for (material of row; track $index; let x = $index) {
                         <div class="grid-square">
-                          <div class="box ground1 {{ material.ground1css ?? '' }}"></div>
-                          <div class="box ground2 {{ material.ground2css ?? '' }}"></div>
-                          <div class="box floor1 {{ material.layer1css ?? '' }}"></div>
-                          <div class="box floor2 {{ material.layer2css ?? '' }}"></div>
+                          <div class="box ground1 {{ cleanLayerClass(material.ground1css) }}" [ngStyle]="layerDynamicStyle(material.ground1css, y, x)"></div>
+                          <div class="box ground2 {{ cleanLayerClass(material.ground2css) }}" [ngStyle]="layerDynamicStyle(material.ground2css, y, x)"></div>
+                          <div class="box floor1 {{ cleanLayerClass(material.layer1css) }}" [ngStyle]="layerDynamicStyle(material.layer1css, y, x)"></div>
+                          <div class="box floor2 {{ cleanLayerClass(material.layer2css) }}" [ngStyle]="layerDynamicStyle(material.layer2css, y, x)"></div>
                           @if (fixturePreviewInteractables()[y]?.[x]) {
-                            <div class="box zp {{ fixturePreviewInteractables()[y]?.[x]?.cssClass ?? '' }}"></div>
+                            <div class="box zp {{ cleanLayerClass(fixturePreviewInteractables()[y]?.[x]?.cssClass) }}" [ngStyle]="layerDynamicStyle(fixturePreviewInteractables()[y]?.[x]?.cssClass, y, x)"></div>
                           }
-                          <div class="box ceiling1 {{ material.ceiling1css ?? '' }}"></div>
-                          <div class="box ceiling2 {{ material.ceiling2css ?? '' }}"></div>
+                          <div class="box ceiling1 {{ cleanLayerClass(material.ceiling1css) }}" [ngStyle]="layerDynamicStyle(material.ceiling1css, y, x)"></div>
+                          <div class="box ceiling2 {{ cleanLayerClass(material.ceiling2css) }}" [ngStyle]="layerDynamicStyle(material.ceiling2css, y, x)"></div>
                           <div class="box top"></div>
                         </div>
                       }
