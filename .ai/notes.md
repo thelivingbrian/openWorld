@@ -23,6 +23,12 @@ Working memory for AI agents. This file is intentionally editable by agents.
 - Keep AI tracking files lightweight to prevent maintenance overhead.
 
 ## Update Log
+- 2026-07-02: Refined the admin console UI in `server/main`.
+	- Added responsive panel/table styling and removed template inline styles.
+	- Player and stage names are now direct links to query-addressable detail modals (`?player=` and `?stage=`).
+	- Watch controls are rendered as disabled affordances pending the live-preview transport; no dead watch route was introduced.
+	- Stage modal data comes from the same in-memory stage snapshot used by the table.
+	- Polling note: a 3-5 second metadata refresh is reasonable at current scale if it uses a small dedicated endpoint, pauses in hidden tabs, and backs off on errors. Re-fetching the entire admin page repeatedly would waste HTML bandwidth, repeat Mongo reads while a player modal is open, and add avoidable world/stage lock traffic. Canvas preview should use differential WebSocket updates rather than polling full snapshots.
 - 2026-03-28: Admin console follow-up hardening + UX refinement.
 	- Fixed duplicate logout panic (`close of closed channel`) by making logout completion idempotent using per-player atomic guards.
 	- Added regression test `TestCompleteLogout_Idempotent` in `server/main/world_test.go` to prevent double-logout crashes.

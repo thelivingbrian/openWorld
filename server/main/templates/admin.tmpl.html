@@ -3,73 +3,91 @@
 <html>
     {{template "page-header"}}
     <body>
-        <div id="page" class="center-vertically">
-            <div id="container" style="max-width: 1100px; width: 100%; padding: 12px;">
+        <div id="page" class="admin-page">
+            <main class="admin-console">
                 {{template "logo-small"}}
-                <div id="landing">
-                    <h2>Admin Console</h2>
-                    <div>Signed in as: <strong>{{.AdminIdentifier}}</strong></div>
+                <div class="admin-heading">
                     <div>
-                        <a href="/">Home</a> |
-                        <a href="/admin">Refresh</a>
+                        <p class="admin-eyebrow">World operations</p>
+                        <h2>Admin Console</h2>
+                        <p class="admin-muted">Signed in as {{.AdminIdentifier}}</p>
                     </div>
+                    <nav class="admin-nav" aria-label="Admin console navigation">
+                        <a href="/">Home</a>
+                        <a href="/admin">Refresh</a>
+                    </nav>
+                </div>
                     {{if .Message}}
-                    <div style="margin-top: 8px;"><strong>{{.Message}}</strong></div>
+                    <div class="admin-alert" role="status">{{.Message}}</div>
                     {{end}}
 
-                    <hr />
-                    <h3>World Session</h3>
-                    <div>Session uptime: {{.Session.SessionDuration}}</div>
-                    <div>Total logins: {{.Session.TotalSessionLogins}} | Total logouts: {{.Session.TotalSessionLogouts}}</div>
-                    <div>Peak players: {{.Session.PeakSessionPlayerCount}}</div>
-                    <div>Peak killstreak: {{.Session.PeakSessionKillStreak}} ({{.Session.PeakSessionKiller}})</div>
-                    <div>
-                        <strong>Team counts:</strong>
+                <section class="admin-panel" aria-labelledby="session-heading">
+                    <div class="admin-section-heading">
+                        <h3 id="session-heading">World Session</h3>
+                        <span class="admin-status"><span aria-hidden="true"></span> Live</span>
+                    </div>
+                    <div class="admin-stats">
+                        <div><span>Uptime</span><strong>{{.Session.SessionDuration}}</strong></div>
+                        <div><span>Logins / logouts</span><strong>{{.Session.TotalSessionLogins}} / {{.Session.TotalSessionLogouts}}</strong></div>
+                        <div><span>Peak players</span><strong>{{.Session.PeakSessionPlayerCount}}</strong></div>
+                        <div><span>Peak killstreak</span><strong>{{.Session.PeakSessionKillStreak}} <small>{{.Session.PeakSessionKiller}}</small></strong></div>
+                    </div>
+                    <div class="admin-summary-row">
+                        <div><strong>Team counts</strong>
                         {{range $team, $count := .Session.TeamCounts}}
-                            {{$team}}={{$count}} 
+                            <span class="admin-chip">{{$team}} {{$count}}</span>
                         {{end}}
-                    </div>
-                    <div>
-                        <strong>Scoreboard:</strong>
+                        </div>
+                        <div><strong>Scoreboard</strong>
                         {{range $team, $score := .Session.Scoreboard}}
-                            {{$team}}={{$score}} 
+                            <span class="admin-chip">{{$team}} {{$score}}</span>
                         {{end}}
+                        </div>
                     </div>
+                </section>
 
-                    <hr />
-                    <h3>Actively Logged In Players ({{len .Players}})</h3>
-                    <table style="width: 100%; text-align: left;">
+                <section class="admin-panel" aria-labelledby="players-heading">
+                    <div class="admin-section-heading">
+                        <h3 id="players-heading">Actively Logged In Players</h3>
+                        <span class="admin-count">{{len .Players}}</span>
+                    </div>
+                    <div class="admin-table-wrap">
+                    <table class="admin-table">
                         <thead>
                             <tr>
-                                <th>Username</th>
+                                <th>Player</th>
                                 <th>Team</th>
                                 <th>Stage</th>
                                 <th>Y</th>
                                 <th>X</th>
                                 <th>Health</th>
                                 <th>Money</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {{range .Players}}
                             <tr>
-                                <td>{{.Username}}</td>
+                                <td><a class="admin-primary-link" href="/admin?player={{.Username | urlquery}}">{{.Username}}</a></td>
                                 <td>{{.Team}}</td>
-                                <td>{{.StageName}}</td>
+                                <td><a href="/admin?stage={{.StageName | urlquery}}">{{.StageName}}</a></td>
                                 <td>{{.Y}}</td>
                                 <td>{{.X}}</td>
                                 <td>{{.Health}}</td>
                                 <td>{{.Money}}</td>
-                                <td><a href="/admin?player={{.Username | urlquery}}">view</a></td>
                             </tr>
                             {{end}}
                         </tbody>
                     </table>
+                    </div>
+                </section>
 
-                    <hr />
-                    <h3>Active Stages ({{len .Stages}})</h3>
-                    <table style="width: 100%; text-align: left;">
+                <section class="admin-panel" aria-labelledby="stages-heading">
+                    <div class="admin-section-heading">
+                        <h3 id="stages-heading">Active Stages</h3>
+                        <span class="admin-count">{{len .Stages}}</span>
+                    </div>
+                    <div class="admin-table-wrap">
+                    <table class="admin-table">
                         <thead>
                             <tr>
                                 <th>Stage</th>
@@ -81,7 +99,7 @@
                         <tbody>
                             {{range .Stages}}
                             <tr>
-                                <td>{{.StageName}}</td>
+                                <td><a class="admin-primary-link" href="/admin?stage={{.StageName | urlquery}}">{{.StageName}}</a></td>
                                 <td>{{.PlayerCount}}</td>
                                 <td>{{.StageHeight}} x {{.StageWidth}}</td>
                                 <td>{{.WeatherClass}}</td>
@@ -89,43 +107,68 @@
                             {{end}}
                         </tbody>
                     </table>
+                    </div>
+                </section>
 
-                    <hr />
-                    {{if .SelectedPlayer}}
-                    <h3>Player Info: {{.SelectedPlayer.Username}}</h3>
-                    <div>User identifier: {{.SelectedPlayer.UserIdentifier}}</div>
-                    <div>Last login: {{.SelectedPlayer.LastLoginText}} | Last logout: {{.SelectedPlayer.LastLogoutText}}</div>
-                    <div>Ban status: {{.SelectedPlayer.BanStatusText}} {{if .SelectedPlayer.UserBanReason}}(Reason: {{.SelectedPlayer.UserBanReason}}){{end}}</div>
+                {{if .SelectedPlayer}}
+                <div class="admin-modal-backdrop">
+                    <section class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="player-modal-heading">
+                    <div class="admin-section-heading">
+                        <div><p class="admin-eyebrow">Player info</p><h3 id="player-modal-heading">{{.SelectedPlayer.Username}}</h3></div>
+                        <a class="admin-close" href="/admin" aria-label="Close player information">&times;</a>
+                    </div>
+                    <a class="admin-watch admin-disabled" aria-disabled="true" title="Live preview is not implemented yet">Watch player <span>Preview pending</span></a>
+                    <dl class="admin-detail-grid">
+                        <div><dt>User identifier</dt><dd>{{.SelectedPlayer.UserIdentifier}}</dd></div>
+                        <div><dt>Last login</dt><dd>{{.SelectedPlayer.LastLoginText}}</dd></div>
+                        <div><dt>Last logout</dt><dd>{{.SelectedPlayer.LastLogoutText}}</dd></div>
+                        <div><dt>Ban status</dt><dd>{{.SelectedPlayer.BanStatusText}} {{if .SelectedPlayer.UserBanReason}}&mdash; {{.SelectedPlayer.UserBanReason}}{{end}}</dd></div>
+                    </dl>
 
-                    <h4>Modify Stats</h4>
-                    <form method="post" action="/admin/player/update">
+                    <h4>Modify stats</h4>
+                    <form class="admin-form" method="post" action="/admin/player/update">
                         <input type="hidden" name="username" value="{{.SelectedPlayer.Username}}" />
-                        <label>Money <input name="money" value="{{.SelectedPlayer.Money}}" /></label><br />
-                        <label>Health <input name="health" value="{{.SelectedPlayer.Health}}" /></label><br />
-                        <label>Team <input name="team" value="{{.SelectedPlayer.Team}}" /></label><br />
-                        <label>Stage <input name="stagename" value="{{.SelectedPlayer.StageName}}" /></label><br />
-                        <label>Y <input name="y" value="{{.SelectedPlayer.Y}}" /></label><br />
-                        <label>X <input name="x" value="{{.SelectedPlayer.X}}" /></label><br />
-                        <label>Accomplishments (comma-separated)
-                            <input name="accomplishments" value="{{.SelectedPlayer.Accomplishments}}" style="width: 100%;" />
-                        </label><br />
-                        <button type="submit">Save</button>
+                        <label>Money <input name="money" inputmode="numeric" value="{{.SelectedPlayer.Money}}" /></label>
+                        <label>Health <input name="health" inputmode="numeric" value="{{.SelectedPlayer.Health}}" /></label>
+                        <label>Team <input name="team" value="{{.SelectedPlayer.Team}}" /></label>
+                        <label>Stage <input name="stagename" value="{{.SelectedPlayer.StageName}}" /></label>
+                        <label>Y <input name="y" inputmode="numeric" value="{{.SelectedPlayer.Y}}" /></label>
+                        <label>X <input name="x" inputmode="numeric" value="{{.SelectedPlayer.X}}" /></label>
+                        <label class="admin-form-wide">Accomplishments (comma-separated)<input name="accomplishments" value="{{.SelectedPlayer.Accomplishments}}" /></label>
+                        <button class="admin-button admin-form-wide" type="submit">Save changes</button>
                     </form>
 
-                    <h4>Kick/Ban Player</h4>
-                    <form method="post" action="/admin/player/kick">
+                    <h4>Kick or ban</h4>
+                    <form class="admin-form" method="post" action="/admin/player/kick">
                         <input type="hidden" name="username" value="{{.SelectedPlayer.Username}}" />
-                        <label>Reason <input name="reason" value="" style="width: 100%;" /></label><br />
-                        <label>Kick for minutes (0 allowed) <input name="durationMinutes" value="0" /></label><br />
-                        <button type="submit" formaction="/admin/player/kick">Kick</button>
-                        <button type="submit" formaction="/admin/player/ban">Ban Forever</button>
+                        <label class="admin-form-wide">Reason <input name="reason" value="" /></label>
+                        <label>Kick for minutes <input name="durationMinutes" inputmode="numeric" value="0" /></label>
+                        <div class="admin-form-actions">
+                            <button class="admin-button" type="submit" formaction="/admin/player/kick">Kick</button>
+                            <button class="admin-button admin-danger" type="submit" formaction="/admin/player/ban">Ban forever</button>
+                        </div>
                     </form>
-                    {{else}}
-                    <h3>Player Info</h3>
-                    <div>Select a player from the active player list to view/edit stats and ban settings.</div>
-                    {{end}}
+                    </section>
                 </div>
-            </div>
+                {{end}}
+
+                {{if .SelectedStage}}
+                <div class="admin-modal-backdrop">
+                    <section class="admin-modal admin-stage-modal" role="dialog" aria-modal="true" aria-labelledby="stage-modal-heading">
+                        <div class="admin-section-heading">
+                            <div><p class="admin-eyebrow">Stage info</p><h3 id="stage-modal-heading">{{.SelectedStage.StageName}}</h3></div>
+                            <a class="admin-close" href="/admin" aria-label="Close stage information">&times;</a>
+                        </div>
+                        <a class="admin-watch admin-disabled" aria-disabled="true" title="Live preview is not implemented yet">Watch stage <span>Preview pending</span></a>
+                        <dl class="admin-detail-grid">
+                            <div><dt>Players</dt><dd>{{.SelectedStage.PlayerCount}}</dd></div>
+                            <div><dt>Dimensions</dt><dd>{{.SelectedStage.StageHeight}} &times; {{.SelectedStage.StageWidth}}</dd></div>
+                            <div><dt>Weather</dt><dd>{{if .SelectedStage.WeatherClass}}{{.SelectedStage.WeatherClass}}{{else}}None{{end}}</dd></div>
+                        </dl>
+                    </section>
+                </div>
+                {{end}}
+            </main>
         </div>
     </body>
 </html>

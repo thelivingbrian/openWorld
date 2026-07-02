@@ -19,6 +19,7 @@ type AdminPageData struct {
 	Stages          []AdminStageRow
 	Session         AdminSessionRow
 	SelectedPlayer  *AdminPlayerDetails
+	SelectedStage   *AdminStageRow
 }
 
 type AdminPlayerRow struct {
@@ -79,8 +80,9 @@ func (world *World) adminHandler(w http.ResponseWriter, r *http.Request) {
 
 	message := r.URL.Query().Get("message")
 	selectedUsername := r.URL.Query().Get("player")
+	selectedStageName := r.URL.Query().Get("stage")
 
-	pageData := world.adminSnapshot(adminIdentifier, message, selectedUsername)
+	pageData := world.adminSnapshot(adminIdentifier, message, selectedUsername, selectedStageName)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	tmpl.ExecuteTemplate(w, "admin", pageData)
 }
@@ -356,10 +358,11 @@ func (world *World) adminKickPlayerHandler(w http.ResponseWriter, r *http.Reques
 	world.redirectAdminWithMessage(w, r, "Player kicked", username)
 }
 
-func (world *World) adminSnapshot(adminIdentifier, message, selectedUsername string) AdminPageData {
+func (world *World) adminSnapshot(adminIdentifier, message, selectedUsername, selectedStageName string) AdminPageData {
 	players := world.snapshotPlayers()
 	stages := world.snapshotStages()
 	selected := world.getAdminPlayerDetails(selectedUsername)
+	selectedStage := selectAdminStage(stages, selectedStageName)
 
 	return AdminPageData{
 		AdminIdentifier: adminIdentifier,
@@ -377,7 +380,18 @@ func (world *World) adminSnapshot(adminIdentifier, message, selectedUsername str
 			TeamCounts:             CopyTeamQuantities(world),
 		},
 		SelectedPlayer: selected,
+		SelectedStage:  selectedStage,
 	}
+}
+
+func selectAdminStage(stages []AdminStageRow, stageName string) *AdminStageRow {
+	stageName = strings.TrimSpace(stageName)
+	for i := range stages {
+		if stages[i].StageName == stageName {
+			return &stages[i]
+		}
+	}
+	return nil
 }
 
 func (world *World) snapshotPlayers() []AdminPlayerRow {

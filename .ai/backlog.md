@@ -20,8 +20,20 @@ Notes: AI agents see .ai/AGENTS.md for high level overview of project and workin
     - [ ] Can observe by stage or player. E.g. see the same game screen / canvas
         - [ ] Should be extendable into a non-admin observation deck for the site 
     - [x] View session information 
+    - [ ] Improve stylistic appearance
+      - [x] Player info appears in modal popup
+        - [ ] Player info has "watch" link for live preview
+      - [x] remove actions -> view column
+        - [x] player name is link to player info
+        - [ ] stage name is link to stage info modal which has live view link and live info
+      - [x] Produce quick write up on performance impact of polling for updates on console screens instead of manual refresh
+
 
 Notes:
+- 2026-07-02 UI update:
+  - Restyled the admin console as responsive panels and tables.
+  - Player names now open player details/editing in a modal; the redundant actions column was removed.
+  - Stage names now open a live-info modal. Player/stage watch affordances are visible but intentionally disabled until live preview is implemented, so watch-related tasks remain unchecked.
 - 2026-03-28 implementation update:
   - Added server-rendered admin console routes on the game server (`/admin`, `/admin/player/update`, `/admin/player/ban`).
   - Added admin access gating via `ADMIN_IDENTIFIERS` env var (comma-separated provider identifiers).
@@ -56,6 +68,7 @@ Notes:
         - [ ] need space limit 
     - [ ] "Edit" option opens user's collection in the design workspace
     - [ ] "Launch" will start the collection as a new world that will continue to run until the owning player signs out
+      - Admins can mark a world as "persistent" meaning it will stay live after the creator signs out
 
 ## Blocked / Questions
 
