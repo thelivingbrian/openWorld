@@ -375,6 +375,11 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
+	} else {
+		err := db.updateLastLoginForUserWithId(identifier)
+		if err != nil {
+			logger.Warn().Err(err).Msg("Unable to update user lastLogin for identifier: " + identifier)
+		}
 	}
 
 	session, err := store.Get(r, "user-session")

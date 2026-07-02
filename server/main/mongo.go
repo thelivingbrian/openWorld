@@ -131,6 +131,15 @@ func (db *DB) insertAuthorizedUser(user UserRecord) error {
 	return err
 }
 
+func (db *DB) updateLastLoginForUserWithId(identifier string) error {
+	_, err := db.users.UpdateOne(
+		context.TODO(),
+		bson.M{"identifier": bson.M{"$eq": identifier}},
+		bson.M{"$set": bson.M{"lastLogin": time.Now()}},
+	)
+	return err
+}
+
 func (db *DB) updateUsernameForUserWithId(identifier, username string) bool {
 	filter := bson.M{"identifier": bson.M{"$eq": identifier}, "username": ""}
 	update := bson.M{"$set": bson.M{"username": username}}
