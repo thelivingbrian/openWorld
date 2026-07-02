@@ -35,7 +35,6 @@
                             <input type="hidden" name="eventname" value="next-camera" />
                             <button class="admin-button" type="submit">Next camera</button>
                         </form>
-                        <p class="admin-muted">The camera also moves after 30 seconds without visible activity.</p>
                         {{else}}
                         <form class="watch-options" method="get" action="/admin/watch">
                             <input type="hidden" name="player" value="{{.Target}}" />
@@ -43,7 +42,6 @@
                             <label><input type="checkbox" name="menu" value="1" {{if .ShowMenu}}checked{{end}} /> Show menus</label>
                             <button class="admin-button" type="submit">Apply visibility</button>
                         </form>
-                        <p class="admin-muted">Highlights are always included.</p>
                         {{end}}
                     </aside>
                 </div>
