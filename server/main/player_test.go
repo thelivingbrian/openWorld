@@ -1,8 +1,22 @@
 package main
 
 import (
+	"strings"
 	"testing"
 )
+
+func TestPlayerInformationUsesPrintablePowerSpacing(t *testing.T) {
+	player := &Player{username: "Ada", actions: createDefaultActions()}
+	player.health.Store(100)
+
+	info := playerInformation(player)
+	if strings.Contains(info, "&#20") {
+		t.Fatalf("player HUD contains a control-character entity: %q", info)
+	}
+	if !strings.Contains(info, "&nbsp;") {
+		t.Fatalf("player HUD is missing power spacing: %q", info)
+	}
+}
 
 func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 	loadFromJson()

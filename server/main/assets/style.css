@@ -283,6 +283,7 @@ a {
     border: 1px solid #583b32;
     border-radius: 12px;
     background: #1d0c06;
+    z-index: 30;
 }
 
 .watch-controls .admin-button { width: 100%; margin-top: 14px; }
