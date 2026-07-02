@@ -41,7 +41,7 @@ fi
 
 ln -sfn "$TARGET_DIR" "$CURRENT_LINK"
 
-if systemctl list-unit-files | grep -q "^${SERVICE_NAME}.service"; then
+if systemctl cat "${SERVICE_NAME}.service" >/dev/null 2>&1; then
   systemctl daemon-reload
   systemctl restart "$SERVICE_NAME"
   systemctl --no-pager --full status "$SERVICE_NAME" | head -n 20

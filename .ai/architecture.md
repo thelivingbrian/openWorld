@@ -17,6 +17,7 @@ High-level architecture reference for agents and contributors.
 - Keep design changes in tools and runtime behavior changes in server aligned.
 - Server is used by multiple players concurrently, changes must prioritize stability then performance.
 - Prefer focused tests near changed packages before broad test runs.
+- Droplet releases are activated by `/opt/openworld/bin/deploy-openworld.sh`, which restarts the configured systemd unit after updating `/opt/openworld/current`; changes to the repository copy must also be installed into `/opt/openworld/bin`.
 
 ## Admin Console Notes
 - Admin console is server-rendered in `server/main` and exposed via `/admin` on game server instances.
