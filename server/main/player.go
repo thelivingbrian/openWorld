@@ -38,6 +38,10 @@ type Player struct {
 	killstreak               atomic.Int64
 	logoutInitiated          atomic.Bool
 	logoutCompleted          atomic.Bool
+	watchersMutex            sync.RWMutex
+	watchers                 map[*playerWatcher]struct{}
+	watchMenuMutex           sync.RWMutex
+	watchMenuSnapshot        []byte
 	PlayerStats
 	SyncMenuList
 	camera *Camera
@@ -185,6 +189,7 @@ func (player *Player) sendUpdates() {
 				logger.Info().Msg("Player:" + player.username + "- update channel closed")
 				return
 			}
+			player.publishWatchUpdate(update)
 			if !shouldSendUpdates {
 				continue
 			}
@@ -201,7 +206,7 @@ func (player *Player) sendUpdates() {
 				continue
 			}
 			// Every 25ms, if there's anything in the buffer, send it.
-			err := sendUpdate(player, buffer.Bytes())
+			err := writePlayerUpdate(player, buffer.Bytes())
 			if err != nil {
 				//logger.Warn().Err(err).Msg("Error - Stopping furture sends: ")
 				shouldSendUpdates = false
@@ -214,6 +219,11 @@ func (player *Player) sendUpdates() {
 }
 
 func sendUpdate(player *Player, update []byte) error {
+	player.publishWatchUpdate(update)
+	return writePlayerUpdate(player, update)
+}
+
+func writePlayerUpdate(player *Player, update []byte) error {
 	player.connLock.Lock()
 	defer player.connLock.Unlock()
 	if player.conn == nil {

@@ -23,10 +23,21 @@ Working memory for AI agents. This file is intentionally editable by agents.
 - Keep AI tracking files lightweight to prevent maintenance overhead.
 
 ## Update Log
+- 2026-07-02: Implemented admin live preview by player and stage.
+	- Added authenticated watch page/WebSocket routes and connected the player/stage modal watch links.
+	- Player preview taps source updates before player socket batching, preserving independent canvas/HUD/menu filtering; highlights are included in initial and live canvas state.
+	- Stage preview owns a non-blocking camera registered with existing camera zones and supports random initial view, 30-second visible-inactivity rotation, and manual Next camera.
+	- Player logout swaps in a persistent dark status state. Bounded queues use full-snapshot recovery on overflow.
+	- Added focused tests for filtering, mode-specific controls, highlights, logout state, backpressure, and visible stage activity.
+- 2026-07-02: Recorded live-preview behavior decisions.
+	- Player preview includes highlights; HUD and menu visibility are independent settings, initially off.
+	- Player logout retains the preview in a dark logged-out state rather than closing or freezing the last frame.
+	- Stage preview begins at a random valid viewport and jumps within the same stage after 30 seconds without visible updates.
+	- A manual Next camera action performs the same random viewport jump; free panning is deferred.
 - 2026-07-02: Refined the admin console UI in `server/main`.
 	- Added responsive panel/table styling and removed template inline styles.
 	- Player and stage names are now direct links to query-addressable detail modals (`?player=` and `?stage=`).
-	- Watch controls are rendered as disabled affordances pending the live-preview transport; no dead watch route was introduced.
+	- Watch controls were initially rendered as disabled affordances, then connected when the live-preview transport was implemented.
 	- Stage modal data comes from the same in-memory stage snapshot used by the table.
 	- Polling note: a 3-5 second metadata refresh is reasonable at current scale if it uses a small dedicated endpoint, pauses in hidden tabs, and backs off on errors. Re-fetching the entire admin page repeatedly would waste HTML bandwidth, repeat Mongo reads while a player modal is open, and add avoidable world/stage lock traffic. Canvas preview should use differential WebSocket updates rather than polling full snapshots.
 - 2026-03-28: Admin console follow-up hardening + UX refinement.

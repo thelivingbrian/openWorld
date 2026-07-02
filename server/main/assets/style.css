@@ -241,6 +241,77 @@ a {
 .admin-watch span { font-size: 12px; font-weight: 400; }
 .admin-disabled { cursor: not-allowed; opacity: .5; }
 
+/* Live spectator */
+
+.watch-page {
+    display: block;
+    min-height: 100dvh;
+    padding: 24px;
+}
+
+.watch-console {
+    width: min(1120px, 100%);
+    margin: 0 auto;
+    font-family: system-ui, sans-serif;
+    font-size: 16px;
+}
+
+.watch-heading,
+.watch-layout,
+.watch-options {
+    display: flex;
+    gap: 18px;
+}
+
+.watch-heading {
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.watch-heading h1 { margin: 2px 0 0; font-size: clamp(28px, 5vw, 44px); }
+.watch-layout { align-items: flex-start; }
+.watch-screen-panel { min-width: 0; flex: 1; text-align: center; }
+.watch-canvas-wrap { position: relative; display: inline-block; }
+.watch-canvas-wrap #screen { width: auto; }
+.watch-hud { min-height: 48px; margin-bottom: 8px; }
+.watch-bottom-text { min-height: 32px; }
+
+.watch-controls {
+    width: 270px;
+    padding: 18px;
+    border: 1px solid #583b32;
+    border-radius: 12px;
+    background: #1d0c06;
+}
+
+.watch-controls .admin-button { width: 100%; margin-top: 14px; }
+.watch-options { flex-direction: column; margin-top: 18px; }
+.watch-options label { display: flex; align-items: center; gap: 9px; }
+.watch-options input { width: 18px; height: 18px; accent-color: cyan; }
+
+.watch-state {
+    position: absolute;
+    z-index: 30;
+    inset: 0;
+    display: none;
+    place-items: center;
+    padding: 24px;
+    background: #262626;
+    color: white;
+    font-size: clamp(18px, 4vw, 28px);
+    text-align: center;
+}
+
+.watch-state-offline { display: grid; }
+
+@media (max-width: 800px) {
+    .watch-page { padding: 12px; }
+    .watch-layout { flex-direction: column; }
+    .watch-controls { width: 100%; }
+    .watch-screen-panel { width: 100%; }
+}
+
 .admin-detail-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

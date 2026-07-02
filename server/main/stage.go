@@ -30,7 +30,7 @@ func (zone *CameraZone) updateAll(update string) {
 	zone.camerasLock.RLock()
 	defer zone.camerasLock.RUnlock()
 	for camera := range zone.activeCameras {
-		camera.outgoing <- updateAsBytes
+		camera.send(updateAsBytes)
 	}
 }
 

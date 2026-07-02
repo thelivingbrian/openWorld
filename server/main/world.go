@@ -355,6 +355,7 @@ func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player 
 		actions:                  createDefaultActions(),
 		world:                    world,
 		playerStages:             make(map[string]*Stage),
+		watchers:                 make(map[*playerWatcher]struct{}),
 		team:                     record.Team,
 		accomplishments:          SyncAccomplishmentList{Accomplishments: record.Accomplishments},
 		SyncMenuList: SyncMenuList{
@@ -422,6 +423,7 @@ func initiateLogout(player *Player) {
 	player.tangibilityLock.Lock()
 	defer player.tangibilityLock.Unlock()
 	player.tangible = false
+	player.notifyWatchersPlayerLoggedOut()
 
 	logger.Info().Msg("initate logout: " + player.username)
 	//   Add time delay to prevent rage quit ? - Consequence of intangibility in this window?

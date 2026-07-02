@@ -17,23 +17,40 @@ Notes: AI agents see .ai/AGENTS.md for high level overview of project and workin
     - [x] Actively logged in players 
       - [x] links to player info
     - [x] Active stages 
-    - [ ] Can observe by stage or player. E.g. see the same game screen / canvas
+    - [x] Can observe by stage or player. E.g. see the same game screen / canvas
+        - [x] Player watch mirrors the player's camera and includes highlights
+        - [x] Player watch has independent HUD and menu visibility options, both off by default
+        - [x] Player logout leaves a dark canvas with a logged-out message
+        - [x] Stage watch starts at a random valid viewport and rotates to another viewport after 30 seconds without visible activity
+        - [x] Stage watch has a Next camera control that jumps to another random viewport on the same stage; free panning is deferred
         - [ ] Should be extendable into a non-admin observation deck for the site 
     - [x] View session information 
-    - [ ] Improve stylistic appearance
+    - [x] Improve stylistic appearance
       - [x] Player info appears in modal popup
-        - [ ] Player info has "watch" link for live preview
+        - [x] Player info has "watch" link for live preview
       - [x] remove actions -> view column
         - [x] player name is link to player info
-        - [ ] stage name is link to stage info modal which has live view link and live info
+        - [x] stage name is link to stage info modal which has live view link and live info
       - [x] Produce quick write up on performance impact of polling for updates on console screens instead of manual refresh
 
 
+
 Notes:
+- 2026-07-02 live-preview implementation:
+  - Added admin-authenticated `/admin/watch` and `/admin/watch/screen` routes for read-only player and stage canvas streaming.
+  - Player watches mirror canvas updates and highlights from the watched player's outbound stream. HUD and menu forwarding are independent query options and default off.
+  - Stage watches use non-blocking read-only cameras, random viewport selection, 30-second visible-inactivity rotation, and a manual Next camera action.
+  - Slow watcher queues request a full viewport resync instead of blocking gameplay camera-zone updates.
+  - Observer-role access remains deferred; watch routes currently require admin access.
+- 2026-07-02 live-preview planning decisions:
+  - Player preview includes the target player's highlight layer. HUD and menu visibility are separate preview settings and both default off.
+  - A player logout keeps the preview open but replaces the canvas with a dark state and an explanatory message.
+  - Stage preview chooses a random valid viewport initially. After 30 seconds with no updates visible in that viewport, it chooses another random viewport on the same stage.
+  - Stage preview has a manual Next camera action using the same random-view selection. Arbitrary panning is deferred.
 - 2026-07-02 UI update:
   - Restyled the admin console as responsive panels and tables.
   - Player names now open player details/editing in a modal; the redundant actions column was removed.
-  - Stage names now open a live-info modal. Player/stage watch affordances are visible but intentionally disabled until live preview is implemented, so watch-related tasks remain unchecked.
+  - Stage names now open a live-info modal. Player/stage watch affordances were subsequently connected to the live-preview routes.
 - 2026-03-28 implementation update:
   - Added server-rendered admin console routes on the game server (`/admin`, `/admin/player/update`, `/admin/player/ban`).
   - Added admin access gating via `ADMIN_IDENTIFIERS` env var (comma-separated provider identifiers).
@@ -68,7 +85,10 @@ Notes:
         - [ ] need space limit 
     - [ ] "Edit" option opens user's collection in the design workspace
     - [ ] "Launch" will start the collection as a new world that will continue to run until the owning player signs out
-      - Admins can mark a world as "persistent" meaning it will stay live after the creator signs out
+      - [ ] Admins can mark a world as "persistent" meaning it will stay live after the creator signs out
+    - [ ] world "watch" mode
+      - [ ] some method of picking the most interesting player / stage - shows them
+      - [ ] more efficient for public launch / high observer count? 
 
 ## Blocked / Questions
 

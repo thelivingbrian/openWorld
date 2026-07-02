@@ -117,7 +117,7 @@
                         <div><p class="admin-eyebrow">Player info</p><h3 id="player-modal-heading">{{.SelectedPlayer.Username}}</h3></div>
                         <a class="admin-close" href="/admin" aria-label="Close player information">&times;</a>
                     </div>
-                    <a class="admin-watch admin-disabled" aria-disabled="true" title="Live preview is not implemented yet">Watch player <span>Preview pending</span></a>
+                    <a class="admin-watch" href="/admin/watch?player={{.SelectedPlayer.Username | urlquery}}">Watch player <span>Open live preview</span></a>
                     <dl class="admin-detail-grid">
                         <div><dt>User identifier</dt><dd>{{.SelectedPlayer.UserIdentifier}}</dd></div>
                         <div><dt>Last login</dt><dd>{{.SelectedPlayer.LastLoginText}}</dd></div>
@@ -159,7 +159,7 @@
                             <div><p class="admin-eyebrow">Stage info</p><h3 id="stage-modal-heading">{{.SelectedStage.StageName}}</h3></div>
                             <a class="admin-close" href="/admin" aria-label="Close stage information">&times;</a>
                         </div>
-                        <a class="admin-watch admin-disabled" aria-disabled="true" title="Live preview is not implemented yet">Watch stage <span>Preview pending</span></a>
+                        <a class="admin-watch" href="/admin/watch?stage={{.SelectedStage.StageName | urlquery}}">Watch stage <span>Open live preview</span></a>
                         <dl class="admin-detail-grid">
                             <div><dt>Players</dt><dd>{{.SelectedStage.PlayerCount}}</dd></div>
                             <div><dt>Dimensions</dt><dd>{{.SelectedStage.StageHeight}} &times; {{.SelectedStage.StageWidth}}</dd></div>

@@ -90,6 +90,8 @@ func main() {
 		mux.HandleFunc("/admin/player/update", world.adminUpdatePlayerHandler)
 		mux.HandleFunc("/admin/player/kick", world.adminKickPlayerHandler)
 		mux.HandleFunc("/admin/player/ban", world.adminBanPlayerHandler)
+		mux.HandleFunc("/admin/watch", world.adminWatchPageHandler)
+		mux.HandleFunc("/admin/watch/screen", world.adminWatchSocketHandler)
 
 		// Websockets
 		logger.Info().Msg("Initiating Websockets...")
