@@ -19,6 +19,12 @@ Notes: AI agents see .ai/AGENTS.md for high level overview of project and workin
     - [ ] world "watch" mode
       - [ ] some method of picking the most interesting player / stage - shows them
       - [ ] more efficient for public launch / high observer count? 
+- [ ] Workflow deploy enhancements
+  - [ ] Install the repository's `deploy-openworld.sh` into `/opt/openworld/bin` during deployment so the installed copy cannot become stale.
+  - [ ] Add a manually triggered configuration-only workflow that writes production configuration atomically and restarts the service without deploying a new binary.
+    - [ ] Either need variables / secrets in GH or can use one multiline secret "env file" 
+  - [ ] Make deployment fail when the systemd service is missing or fails to restart, and remove status-output pipelines that can fail under `pipefail`.
+  - [ ] Verify application health after restart and preserve or restore the previous configuration when validation fails.
 
 ## Blocked / Questions
 

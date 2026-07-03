@@ -23,6 +23,7 @@ Working memory for AI agents. This file is intentionally editable by agents.
 - Keep AI tracking files lightweight to prevent maintenance overhead.
 
 ## Update Log
+- 2026-07-02: Added deployment-hardening follow-ups to the backlog: synchronize the installed deploy script, support configuration-only deployments, fail on restart errors, and health-check configuration changes.
 - 2026-07-02: Fixed deployment service detection under `set -o pipefail`; the deploy script now uses `systemctl cat` instead of a `systemctl list-unit-files | grep -q` pipeline that could misinterpret SIGPIPE as a missing service and skip restarts.
 - 2026-07-02: Implemented admin live preview by player and stage.
 	- Added authenticated watch page/WebSocket routes and connected the player/stage modal watch links.
