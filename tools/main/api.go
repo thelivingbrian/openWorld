@@ -446,14 +446,29 @@ func (c *Context) apiDeployHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Context) spaHandler(w http.ResponseWriter, r *http.Request) {
+	serveSPA("./spa/dist/spa/browser", w, r)
+}
+
+func serveSPA(distRoot string, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.NotFound(w, r)
 		return
 	}
 
-	const distRoot = "./spa/dist/spa/browser"
-	rel := strings.TrimPrefix(r.URL.Path, "/")
-	if rel == "" || rel == "/" {
+	if !strings.HasPrefix(r.URL.Path, "/design/") {
+		target := "/design" + r.URL.Path
+		if r.URL.Path == "/design" {
+			target = "/design/"
+		}
+		if r.URL.RawQuery != "" {
+			target += "?" + r.URL.RawQuery
+		}
+		http.Redirect(w, r, target, http.StatusTemporaryRedirect)
+		return
+	}
+
+	rel := strings.TrimPrefix(r.URL.Path, "/design/")
+	if rel == "" {
 		w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
 		w.Header().Set("Pragma", "no-cache")
 		w.Header().Set("Expires", "0")
@@ -461,8 +476,8 @@ func (c *Context) spaHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rel = strings.TrimPrefix(rel, "/")
-	target := filepath.Join(distRoot, filepath.Clean(rel))
+	clean := strings.TrimLeft(filepath.Clean("/"+rel), `/\`)
+	target := filepath.Join(distRoot, clean)
 	if info, err := os.Stat(target); err == nil && !info.IsDir() {
 		http.ServeFile(w, r, target)
 		return

@@ -94,13 +94,14 @@ func compileWorldResources(resources []WorldResource, admin bool) (CompiledRelea
 	if err != nil {
 		return CompiledRelease{}, err
 	}
-	var collection SourceCollection
+	collection, err := decodeSourceCollection(resources)
+	if err != nil {
+		return CompiledRelease{}, err
+	}
 	var manifest WorldManifest
 	var palette []WorldColor
 	for _, resource := range resources {
 		switch resource.Kind + "/" + resource.Key {
-		case "collection/source":
-			err = json.Unmarshal(resource.Content, &collection)
 		case "manifest/world":
 			err = json.Unmarshal(resource.Content, &manifest)
 		case "palette/colors":
@@ -111,7 +112,7 @@ func compileWorldResources(resources []WorldResource, admin bool) (CompiledRelea
 		}
 	}
 	if collection.Name == "" {
-		return CompiledRelease{}, fmt.Errorf("collection/source resource is required")
+		return CompiledRelease{}, fmt.Errorf("collection resources are required")
 	}
 	if err := validateManifest(manifest, admin); err != nil {
 		return CompiledRelease{}, err
@@ -130,6 +131,75 @@ func compileWorldResources(resources []WorldResource, admin bool) (CompiledRelea
 		return CompiledRelease{}, err
 	}
 	return CompiledRelease{Source: source, Artifact: artifact, SourceHash: sourceHash, ArtifactHash: hashBytes(artifact)}, nil
+}
+
+func decodeSourceCollection(resources []WorldResource) (SourceCollection, error) {
+	collection := SourceCollection{
+		Spaces:           map[string]*SourceSpace{},
+		Fragments:        map[string]json.RawMessage{},
+		PrototypeSets:    map[string][]SourcePrototype{},
+		InteractableSets: map[string][]InteractableDescription{},
+	}
+	foundLegacy := false
+	foundGranular := false
+	for _, resource := range resources {
+		switch {
+		case resource.Kind == "collection" && resource.Key == "source":
+			if err := json.Unmarshal(resource.Content, &collection); err != nil {
+				return SourceCollection{}, fmt.Errorf("decode %s/%s: %w", resource.Kind, resource.Key, err)
+			}
+			if collection.Spaces == nil {
+				collection.Spaces = map[string]*SourceSpace{}
+			}
+			if collection.Fragments == nil {
+				collection.Fragments = map[string]json.RawMessage{}
+			}
+			if collection.PrototypeSets == nil {
+				collection.PrototypeSets = map[string][]SourcePrototype{}
+			}
+			if collection.InteractableSets == nil {
+				collection.InteractableSets = map[string][]InteractableDescription{}
+			}
+			foundLegacy = true
+		case resource.Kind == "collection" && resource.Key == "meta":
+			var meta struct {
+				Name string `json:"name"`
+			}
+			if err := json.Unmarshal(resource.Content, &meta); err != nil {
+				return SourceCollection{}, fmt.Errorf("decode %s/%s: %w", resource.Kind, resource.Key, err)
+			}
+			collection.Name = meta.Name
+			foundGranular = true
+		case resource.Kind == "space":
+			var space SourceSpace
+			if err := json.Unmarshal(resource.Content, &space); err != nil {
+				return SourceCollection{}, fmt.Errorf("decode %s/%s: %w", resource.Kind, resource.Key, err)
+			}
+			collection.Spaces[resource.Key] = &space
+			foundGranular = true
+		case resource.Kind == "prototype-set":
+			var set []SourcePrototype
+			if err := json.Unmarshal(resource.Content, &set); err != nil {
+				return SourceCollection{}, fmt.Errorf("decode %s/%s: %w", resource.Kind, resource.Key, err)
+			}
+			collection.PrototypeSets[resource.Key] = set
+			foundGranular = true
+		case resource.Kind == "interactable-set":
+			var set []InteractableDescription
+			if err := json.Unmarshal(resource.Content, &set); err != nil {
+				return SourceCollection{}, fmt.Errorf("decode %s/%s: %w", resource.Kind, resource.Key, err)
+			}
+			collection.InteractableSets[resource.Key] = set
+			foundGranular = true
+		case resource.Kind == "fragment-set":
+			collection.Fragments[resource.Key] = append(json.RawMessage(nil), resource.Content...)
+			foundGranular = true
+		}
+	}
+	if foundLegacy || foundGranular {
+		return collection, nil
+	}
+	return SourceCollection{}, nil
 }
 
 func decodeWorldPalette(data []byte) ([]WorldColor, error) {

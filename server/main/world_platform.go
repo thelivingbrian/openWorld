@@ -274,7 +274,7 @@ func (s *WorldStore) ensureIndexes(ctx context.Context) error {
 	if _, err := s.db.worldReleases.Indexes().CreateOne(ctx, mongo.IndexModel{Keys: bson.D{{Key: "worldId", Value: 1}, {Key: "number", Value: -1}}, Options: options.Index().SetUnique(true)}); err != nil {
 		return err
 	}
-	if _, err := s.db.playerRecords.Indexes().CreateOne(ctx, mongo.IndexModel{Keys: bson.D{{Key: "worldId", Value: 1}, {Key: "userId", Value: 1}}, Options: options.Index().SetUnique(true).SetPartialFilterExpression(bson.M{"worldId": bson.M{"$exists": true}, "userId": bson.M{"$exists": true, "$ne": ""}})}); err != nil {
+	if _, err := s.db.playerRecords.Indexes().CreateOne(ctx, mongo.IndexModel{Keys: bson.D{{Key: "worldId", Value: 1}, {Key: "userId", Value: 1}}, Options: options.Index().SetUnique(true).SetPartialFilterExpression(bson.M{"worldId": bson.M{"$exists": true}, "userId": bson.M{"$gt": ""}})}); err != nil {
 		return err
 	}
 	_, err := s.db.runtimeInstances.Indexes().CreateOne(ctx, mongo.IndexModel{Keys: bson.D{{Key: "expiresAt", Value: 1}}, Options: options.Index().SetExpireAfterSeconds(0)})

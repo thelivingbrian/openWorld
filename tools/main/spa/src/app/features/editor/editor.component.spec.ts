@@ -42,6 +42,16 @@ describe('EditorComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('loads palette colors without importing the host application stylesheet', () => {
+    const stylesheetHrefs = Array.from(
+      document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'),
+      (link) => link.getAttribute('href'),
+    );
+
+    expect(stylesheetHrefs).toContain('/assets/colors.css');
+    expect(stylesheetHrefs).not.toContain('/assets/style.css');
+  });
+
   it('loads bootstrap and initializes editor selections', () => {
     const state = component as any;
 

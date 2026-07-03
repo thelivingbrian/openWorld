@@ -1,5 +1,5 @@
 from __future__ import annotations
-import shutil, subprocess, sys, threading, time, atexit
+import os, shutil, subprocess, sys, threading, time, atexit
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -8,7 +8,11 @@ IS_WIN = sys.platform.startswith("win")
 SERVICES = [
     ("server",   ["go", "run", "."],      ROOT / "server" / "main"),
     ("tools",    ["go", "run", "."],      ROOT / "tools" / "main"),
-    ("frontend", ["npm", "run", "watch"], ROOT / "tools" / "main" / "spa"),
+    (
+        "frontend",
+        ["npm", "run", "watch", "--", "--base-href", "/design/"],
+        ROOT / "tools" / "main" / "spa",
+    ),
 ]
 
 procs: list[tuple[str, subprocess.Popen]] = []
@@ -41,11 +45,17 @@ def stream(name: str, proc: subprocess.Popen):
 
 
 def main() -> int:
+    env = os.environ.copy()
+    env.setdefault(
+        "WORLD_DESIGN_DIR", str(ROOT / "tools" / "main" / "spa" / "dist" / "spa" / "browser")
+    )
+
     for name, cmd, cwd in SERVICES:
         resolved = resolve_cmd(cmd)
         print(f"Starting {name}: {' '.join(cmd)}  (cwd={cwd})")
         p = subprocess.Popen(
             resolved, cwd=cwd,
+            env=env,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             text=True, encoding="utf-8", errors="replace",
             # Prevent Ctrl+C from reaching children directly; we kill them

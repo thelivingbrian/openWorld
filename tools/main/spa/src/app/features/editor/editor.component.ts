@@ -72,7 +72,9 @@ interface SelectedTileInstructionInfo {
   selector: 'app-editor',
   imports: [CommonModule, FormsModule],
   templateUrl: './editor.component.html',
-  styleUrl: './editor.component.css',
+  // Keep the legacy tile geometry encapsulated inside the editor. Loading it
+  // from /assets would select the controller's site-wide stylesheet instead.
+  styleUrls: ['./editor.component.css', '../../../../../assets/style.css'],
 })
 export class EditorComponent {
   private readonly api = inject(EditorApiService);
@@ -704,7 +706,7 @@ export class EditorComponent {
   }
 
   constructor() {
-    this.ensureLegacyStyles();
+    this.ensurePaletteStyles();
     void this.loadBootstrap();
     this.startDynamicAnimation();
   }
@@ -2068,8 +2070,8 @@ export class EditorComponent {
     return `Interactable: ${resolved.asset.name || resolved.asset.id}`;
   }
 
-  private ensureLegacyStyles(): void {
-    const stylesheets = ['/assets/style.css', '/assets/colors.css'];
+  private ensurePaletteStyles(): void {
+    const stylesheets = ['/assets/colors.css'];
     for (const href of stylesheets) {
       const alreadyPresent = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(
         (el) => (el as HTMLLinkElement).href.endsWith(href),
