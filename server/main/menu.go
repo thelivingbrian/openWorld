@@ -231,7 +231,11 @@ func openMapMenu(p *Player) {
 	mapId := p.getTileSync().stage.mapId
 	if mapId != "" {
 		mapPath := p.world.config.domainName + "/images/" + mapId
-		copy.InfoHtml = template.HTML(`<img src="` + mapPath + `" width="100%" alt="map of space" />`)
+		if area, ok := p.world.config.mapAreas[p.getTileSync().stage.name]; ok {
+			copy.InfoHtml = template.HTML(fmt.Sprintf(`<div class="world-map"><img src="%s" width="100%%" alt="map of space" /><span class="world-map-current" style="top:%.4f%%;left:%.4f%%;width:%.4f%%;height:%.4f%%"></span></div>`, mapPath, area.Top, area.Left, area.Width, area.Height))
+		} else {
+			copy.InfoHtml = template.HTML(`<img src="` + mapPath + `" width="100%" alt="map of space" />`)
+		}
 	} else {
 		copy.InfoHtml = `<h2>unavailable</h2>`
 
@@ -402,5 +406,13 @@ func excludeSpecialStages(p *Player) bool {
 
 func currentlyInTutorial(p *Player) bool {
 	stagename := p.getTileSync().stage.name
+	if len(p.world.config.manifest.OnboardingStages) > 0 {
+		for _, stage := range p.world.config.manifest.OnboardingStages {
+			if stage == stagename {
+				return true
+			}
+		}
+		return false
+	}
 	return strings.HasPrefix(stagename, "tutorial")
 }

@@ -33,6 +33,13 @@ jobs:
       with:
         go-version: '1.22'
 
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: tools/main/spa/package-lock.json
+
     - name: Build
       run: cd ./server/main && go build
 
@@ -48,11 +55,21 @@ jobs:
         go build
         ./main deploy bloop
 
+    - name: Build hosted design workspace
+      working-directory: tools/main/spa
+      run: |
+        npm ci
+        npm run build -- --base-href /design/
+
     - name: Stage runtime files
       run: |
         cp -R ./server/main/assets ./dist/server-release/assets
         cp -R ./server/main/templates ./dist/server-release/templates
         cp -R ./server/main/data ./dist/server-release/data
+        cp -R ./tools/main/spa/dist/spa/browser ./dist/server-release/design
+        mkdir -p ./dist/server-release/seeds
+        cp -R ./tools/main/data/collections ./dist/server-release/seeds/collections
+        cp -R ./tools/main/data/colors ./dist/server-release/seeds/colors
 
     - name: Create release archive
       run: |

@@ -13,6 +13,15 @@ High-level architecture reference for agents and contributors.
 2. Compiled/exported data is consumed by the server runtime.
 3. Clients connect via HTTP/WebSocket and render with assets in `server/main/assets`.
 
+## Operational World Platform
+- The deployed server starts in `controller` mode. It hosts authentication, `/design/`, world APIs, the public directory, and `/w/{id-or-slug}` reverse proxying.
+- Each running world is a child process of the controller and loads exactly one immutable release from a read-only, content-addressed local cache. A world remains the scheduling and failure-isolation unit.
+- Editable source is stored as revisioned `worldResources`. Publishing validates a consistent draft, creates one deterministic ZIP containing `areas.json`, `manifest.json`, `maps.json`, per-world CSS, and one base PNG per tiled space, and stores source/artifact bundles in GridFS.
+- `worldPlayerProfiles` are represented by player records keyed/indexed with `worldId` and stable `userId`; legacy records are assigned to the reserved `legacy` world during platform initialization.
+- Runtime paths are same-origin under `/w/...`; textual runtime responses are base-path rewritten by the controller so existing HTMX/WebSocket/static URLs remain isolated.
+- Runtime lifecycle values are `owner-present` (60-second grace), `until-empty`, and admin-only `persistent`. Runtime heartbeats publish player count and owner presence through TTL-indexed Mongo records.
+- Repository collections and palettes are packaged as seeds, preserving local/offline authoring while allowing hosted worlds to fork known-good content.
+
 ## Operational Notes
 - Keep design changes in tools and runtime behavior changes in server aligned.
 - Server is used by multiple players concurrently, changes must prioritize stability then performance.

@@ -101,15 +101,19 @@ func (hub *Hub) highscoreHandler(w http.ResponseWriter, r *http.Request) {
 
 	queryValues := r.URL.Query()
 	category := strings.ToLower(queryValues.Get("category"))
+	worldID := queryValues.Get("world")
+	if worldID == "" {
+		worldID = legacyWorldID
+	}
 
 	var scores HighScoreList
 	switch category {
 	case "richest":
-		scores = generateRichestList(hub)
+		scores = generateRichestListForWorld(hub, worldID)
 	case "deadliest":
-		scores = generateDeadliestList(hub)
+		scores = generateDeadliestListForWorld(hub, worldID)
 	case "mvp":
-		scores = generateMVPList(hub)
+		scores = generateMVPListForWorld(hub, worldID)
 	default:
 		break
 	}
@@ -122,6 +126,20 @@ func (hub *Hub) highscoreHandler(w http.ResponseWriter, r *http.Request) {
 // Highscores
 
 func generateRichestList(hub *Hub) HighScoreList {
+	return generateRichestListForWorld(hub, legacyWorldID)
+}
+
+func generateRichestListForWorld(hub *Hub, worldID string) HighScoreList {
+	if provider, ok := hub.db.(interface {
+		getTopNPlayersByFieldForWorld(string, string, int) ([]PlayerRecord, error)
+	}); ok && worldID != legacyWorldID {
+		records, _ := provider.getTopNPlayersByFieldForWorld(worldID, "stats.peakWealth", 10)
+		entries := make([]HighScoreEntry, 0, len(records))
+		for _, record := range records {
+			entries = append(entries, HighScoreEntry{Username: record.Username, StatNames: []string{"money"}, StatValues: []string{strconv.Itoa(int(record.Stats.PeakWealth))}})
+		}
+		return HighScoreList{Category: "Richest", Entries: entries}
+	}
 	hub.richest.Lock()
 	defer hub.richest.Unlock()
 	if isOverNSecondsAgo(hub.richest.lastChecked, HIGHSCORE_CHECK_INTERVAL_IN_SECONDS) {
@@ -145,6 +163,16 @@ func generateRichestList(hub *Hub) HighScoreList {
 }
 
 func generateDeadliestList(hub *Hub) HighScoreList {
+	return generateDeadliestListForWorld(hub, legacyWorldID)
+}
+
+func generateDeadliestListForWorld(hub *Hub, worldID string) HighScoreList {
+	if provider, ok := hub.db.(interface {
+		getTopNPlayersByFieldForWorld(string, string, int) ([]PlayerRecord, error)
+	}); ok && worldID != legacyWorldID {
+		records, _ := provider.getTopNPlayersByFieldForWorld(worldID, "stats.peakKillStreak", 10)
+		return deadliestListFromRecords(records)
+	}
 	hub.deadliest.Lock()
 	defer hub.deadliest.Unlock()
 	if isOverNSecondsAgo(hub.deadliest.lastChecked, HIGHSCORE_CHECK_INTERVAL_IN_SECONDS) {
@@ -168,6 +196,14 @@ func generateDeadliestList(hub *Hub) HighScoreList {
 	return hub.deadliest.HighScoreList
 }
 
+func deadliestListFromRecords(records []PlayerRecord) HighScoreList {
+	entries := make([]HighScoreEntry, 0, len(records))
+	for _, record := range records {
+		entries = append(entries, HighScoreEntry{Username: record.Username, StatNames: []string{"Streak", "K/D"}, StatValues: []string{strconv.Itoa(int(record.Stats.PeakKillStreak)), DivideIntsFloatToString(int(record.Stats.KillCount+record.Stats.KillCountNpc), int(record.Stats.DeathCount))}})
+	}
+	return HighScoreList{Category: "Deadliest", Entries: entries}
+}
+
 func DivideIntsFloatToString(a, b int) string {
 	if b == 0 {
 		return "NaN" // or handle the error as preferred
@@ -177,6 +213,20 @@ func DivideIntsFloatToString(a, b int) string {
 }
 
 func generateMVPList(hub *Hub) HighScoreList {
+	return generateMVPListForWorld(hub, legacyWorldID)
+}
+
+func generateMVPListForWorld(hub *Hub, worldID string) HighScoreList {
+	if provider, ok := hub.db.(interface {
+		getTopNPlayersByFieldForWorld(string, string, int) ([]PlayerRecord, error)
+	}); ok && worldID != legacyWorldID {
+		records, _ := provider.getTopNPlayersByFieldForWorld(worldID, "stats.goalsScored", 10)
+		entries := make([]HighScoreEntry, 0, len(records))
+		for _, record := range records {
+			entries = append(entries, HighScoreEntry{Username: record.Username, StatNames: []string{"goals"}, StatValues: []string{strconv.Itoa(int(record.Stats.GoalsScored))}})
+		}
+		return HighScoreList{Category: "MVP", Entries: entries}
+	}
 	hub.mvp.Lock()
 	defer hub.mvp.Unlock()
 	if isOverNSecondsAgo(hub.mvp.lastChecked, HIGHSCORE_CHECK_INTERVAL_IN_SECONDS) {

@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 
@@ -22,16 +23,32 @@ import (
 //Database
 
 type DB struct {
-	users         *mongo.Collection
-	playerRecords *mongo.Collection
-	events        *mongo.Collection
-	sessionData   *mongo.Collection
-	adminActions  *mongo.Collection
+	database         *mongo.Database
+	users            *mongo.Collection
+	playerRecords    *mongo.Collection
+	events           *mongo.Collection
+	sessionData      *mongo.Collection
+	adminActions     *mongo.Collection
+	worlds           *mongo.Collection
+	worldResources   *mongo.Collection
+	worldReleases    *mongo.Collection
+	runtimeInstances *mongo.Collection
 }
 
 func createDbConnection(config *Configuration) *DB {
 	mongodb := mongoClient(config).Database("bloopdb")
-	return &DB{mongodb.Collection("users"), mongodb.Collection("players"), mongodb.Collection("events"), mongodb.Collection("sessionData"), mongodb.Collection("adminActions")}
+	return &DB{
+		database:         mongodb,
+		users:            mongodb.Collection("users"),
+		playerRecords:    mongodb.Collection("players"),
+		events:           mongodb.Collection("events"),
+		sessionData:      mongodb.Collection("sessionData"),
+		adminActions:     mongodb.Collection("adminActions"),
+		worlds:           mongodb.Collection("worlds"),
+		worldResources:   mongodb.Collection("worldResources"),
+		worldReleases:    mongodb.Collection("worldReleases"),
+		runtimeInstances: mongodb.Collection("runtimeInstances"),
+	}
 }
 
 func mongoClient(config *Configuration) *mongo.Client {
@@ -78,6 +95,15 @@ type Configuration struct {
 	loadPreviousState   bool
 	adminIdentifiers    []string
 	observerIdentifiers []string
+	mode                string
+	worldID             string
+	worldOwnerID        string
+	worldLifecycle      WorldLifecycle
+	basePath            string
+	contentDir          string
+	platformEnabled     bool
+	manifest            WorldManifest
+	mapAreas            map[string]WorldMapArea
 	RuntimeConfiguration
 }
 
@@ -119,6 +145,13 @@ func getConfiguration() *Configuration {
 		loadPreviousState:   strings.ToUpper(os.Getenv("LOAD_PREVIOUS_STATE")) == "TRUE",
 		adminIdentifiers:    splitAndTrim(os.Getenv("ADMIN_IDENTIFIERS")),
 		observerIdentifiers: splitAndTrim(os.Getenv("OBSERVER_IDENTIFIERS")),
+		mode:                strings.ToLower(strings.TrimSpace(os.Getenv("OPENWORLD_MODE"))),
+		worldID:             strings.TrimSpace(os.Getenv("WORLD_ID")),
+		worldOwnerID:        strings.TrimSpace(os.Getenv("WORLD_OWNER_ID")),
+		worldLifecycle:      WorldLifecycle(strings.TrimSpace(os.Getenv("WORLD_LIFECYCLE"))),
+		basePath:            strings.TrimSuffix(strings.TrimSpace(os.Getenv("WORLD_BASE_PATH")), "/"),
+		contentDir:          strings.TrimSpace(os.Getenv("WORLD_CONTENT_DIR")),
+		platformEnabled:     strings.ToUpper(os.Getenv("WORLD_PLATFORM_ENABLED")) == "TRUE",
 	}
 
 	// Runtime configuration
@@ -126,7 +159,7 @@ func getConfiguration() *Configuration {
 
 	switch config.envName {
 	case "prod":
-		log.Fatal("No Prod Environment")
+		// Production values are supplied by the systemd EnvironmentFile.
 	case "test":
 		// Nothing to do
 	case "dev":
@@ -154,13 +187,19 @@ func (config *Configuration) createCookieStore() *sessions.CookieStore {
 		panic("Invalid key lengths")
 	}
 	store := sessions.NewCookieStore(config.hashKey, config.blockKey)
+	domain := ""
+	sameSite := http.SameSiteLaxMode
+	if config.mode == "" {
+		domain = "." + config.rootDomain
+		sameSite = http.SameSiteNoneMode
+	}
 	store.Options = &sessions.Options{
-		Domain:   "." + config.rootDomain, // Leading dot allows subdomains
+		Domain:   domain,
 		Path:     "/",
 		MaxAge:   86400,
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteNoneMode,
+		SameSite: sameSite,
 	}
 	return store
 }
@@ -330,12 +369,55 @@ func populateStructUsingFileName[T any](ptr *T, filename string) {
 
 // This should return values instead of populating globals
 func loadFromJson() {
-	populateStructUsingFileName(&areas, "areas")
+	loadFromDirectory("./data")
+}
+
+func loadFromDirectory(directory string) {
+	jsonData, err := os.ReadFile(filepath.Join(directory, "areas.json"))
+	if err != nil {
+		panic(err)
+	}
+	if err := json.Unmarshal(jsonData, &areas); err != nil {
+		panic(err)
+	}
+}
+
+func loadWorldManifest(directory string) WorldManifest {
+	data, err := os.ReadFile(filepath.Join(directory, "manifest.json"))
+	if err != nil {
+		return WorldManifest{}
+	}
+	var manifest WorldManifest
+	if err := json.Unmarshal(data, &manifest); err != nil {
+		panic(err)
+	}
+	return manifest
+}
+
+func loadWorldMapAreas(directory string) map[string]WorldMapArea {
+	data, err := os.ReadFile(filepath.Join(directory, "maps.json"))
+	if err != nil {
+		return map[string]WorldMapArea{}
+	}
+	var maps map[string]WorldMapArea
+	if err := json.Unmarshal(data, &maps); err != nil {
+		panic(err)
+	}
+	return maps
 }
 
 func areaFromName(s string) (area Area, success bool) {
 	for _, area := range areas {
 		if area.Name == s {
+			return area, true
+		}
+	}
+	return Area{}, false
+}
+
+func (world *World) areaFromName(name string) (Area, bool) {
+	for _, area := range world.areas {
+		if area.Name == name {
 			return area, true
 		}
 	}

@@ -120,6 +120,7 @@ func randomHex16() (string, error) {
 
 func createNewGuestPlayerRecord(username, team string) PlayerRecord {
 	record := createNewPlayerRecord(username, team)
+	record.UserID = username
 	timestamp := time.Now()
 	record.GuestCreateTime = &timestamp
 	return record

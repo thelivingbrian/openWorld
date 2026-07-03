@@ -109,7 +109,7 @@ func (world *World) adminUpdatePlayerHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	record, err := world.db.getPlayerRecord(username)
+	record, err := world.db.getWorldPlayerRecord(world.config.worldID, username)
 	if err != nil {
 		world.logAdminAction(AdminActionRecord{
 			ActionType:        "player.update",
@@ -146,7 +146,7 @@ func (world *World) adminUpdatePlayerHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	team := decodedFormProperty(props, "team")
-	if !validTeam(team) {
+	if !world.validTeam(team) {
 		world.redirectAdminWithMessage(w, r, "Invalid team", username)
 		return
 	}
@@ -168,7 +168,7 @@ func (world *World) adminUpdatePlayerHandler(w http.ResponseWriter, r *http.Requ
 		"x":               x,
 		"accomplishments": accomplishments,
 	}
-	if err := world.db.adminUpdatePlayerRecord(username, updates); err != nil {
+	if err := world.db.adminUpdatePlayerRecord(world.config.worldID, username, updates); err != nil {
 		world.logAdminAction(AdminActionRecord{
 			ActionType:        "player.update",
 			ActingAdmin:       adminIdentifier,
@@ -468,7 +468,7 @@ func (world *World) getAdminPlayerDetails(username string) *AdminPlayerDetails {
 		return nil
 	}
 
-	record, err := world.db.getPlayerRecord(username)
+	record, err := world.db.getWorldPlayerRecord(world.config.worldID, username)
 	if err != nil {
 		return nil
 	}

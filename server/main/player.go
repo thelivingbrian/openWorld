@@ -14,6 +14,7 @@ import (
 
 type Player struct {
 	id                       string
+	userID                   string
 	username                 string
 	team                     string
 	icon                     string
@@ -399,7 +400,7 @@ func (player *Player) addAccomplishmentByName(accomplishmentName string) {
 	if acc == nil {
 		return
 	}
-	player.world.db.addAccomplishmentToPlayer(player.username, acc.Name, *acc)
+	player.world.db.addAccomplishmentToPlayer(player.world.config.worldID, player.username, acc.Name, *acc)
 }
 
 /////////////////////////////////////////////////////////////

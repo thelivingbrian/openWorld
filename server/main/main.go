@@ -1,11 +1,16 @@
 package main
 
 import (
+	"context"
 	"html/template"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"os/signal"
+	"path/filepath"
 	"strconv"
+	"syscall"
+	"time"
 
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
@@ -22,6 +27,7 @@ type App struct {
 	db           *DB
 	config       *Configuration
 	guestLimiter *GuestLimiter
+	platform     *WorldPlatform
 }
 
 func main() {
@@ -43,10 +49,19 @@ func main() {
 
 	logger.Info().Msg("Establishing Routes...")
 	mux := http.NewServeMux()
+	var activeWorld *World
+	app := App{db: db, config: config, guestLimiter: &GuestLimiter{}}
+	if config.platformEnabled || config.mode == "controller" {
+		platform, err := newWorldPlatform(context.Background(), db, config)
+		if err != nil {
+			logger.Fatal().Err(err).Msg("Failed to initialize world platform")
+		}
+		app.platform = platform
+		platform.register(mux, &app)
+	}
 
-	if config.isHub {
+	if config.isHub || config.mode == "controller" {
 		logger.Info().Msg("Setting up hub...")
-		app := App{db, config, &GuestLimiter{}}
 		hub := createDefaultHub(db) // rename ?
 
 		// Static Assets
@@ -64,7 +79,7 @@ func main() {
 		mux.HandleFunc("/signout", signOutHandler)
 
 		// Select World
-		mux.HandleFunc("/worlds", createWorldSelectHandler(config))
+		mux.HandleFunc("/worlds", app.worldSelectHandler)
 		mux.HandleFunc("/unavailable", unavailable)
 		mux.HandleFunc("/wrong", somethingWentWrong)
 
@@ -74,14 +89,37 @@ func main() {
 
 	if config.isServer() {
 		logger.Info().Msg("Starting game world...")
+		if config.contentDir != "" {
+			loadFromDirectory(config.contentDir)
+			config.manifest = loadWorldManifest(config.contentDir)
+			config.mapAreas = loadWorldMapAreas(config.contentDir)
+		} else {
+			loadFromJson()
+		}
 		world := createGameWorld(db, config)
+		activeWorld = world
 		go periodicSnapshot(world)
-		loadFromJson()
+		if config.mode == "runtime" && config.worldID != legacyWorldID {
+			go periodicRuntimeHeartbeat(world)
+		}
+		mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
 
 		// Game Fucntionality
 		mux.HandleFunc("/status", world.statusHandler)
 		mux.HandleFunc("/play", world.playHandler)
-		mux.HandleFunc("/images/", imageHandler) // note: trailing '/'
+		imageDirectory := "./data/images"
+		if config.contentDir != "" {
+			imageDirectory = filepath.Join(config.contentDir, "images")
+		}
+		if !(config.isHub || config.mode == "controller") {
+			mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
+		}
+		mux.HandleFunc("/images/", createImageHandler(imageDirectory)) // note: trailing '/'
+		if config.contentDir != "" {
+			mux.HandleFunc("/assets/colors.css", func(w http.ResponseWriter, r *http.Request) {
+				http.ServeFile(w, r, filepath.Join(config.contentDir, "colors.css"))
+			})
+		}
 
 		// REST helper endpoints
 		mux.HandleFunc("/insert", world.postHorribleBypass)
@@ -99,13 +137,28 @@ func main() {
 	}
 
 	logger.Info().Msg("Starting server, listening on port " + config.port)
+	server := &http.Server{Addr: config.port, Handler: mux}
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-stop
+		if activeWorld != nil {
+			gracefulWorldShutdown(activeWorld)
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if app.platform != nil {
+			app.platform.manager.Shutdown(ctx)
+		}
+		_ = server.Shutdown(ctx)
+	}()
 	var err error
 	if config.usesTLS {
-		err = http.ListenAndServeTLS(config.port, config.tlsCertPath, config.tlsKeyPath, mux)
+		err = server.ListenAndServeTLS(config.tlsCertPath, config.tlsKeyPath)
 	} else {
-		err = http.ListenAndServe(config.port, mux)
+		err = server.ListenAndServe()
 	}
-	if err != nil {
+	if err != nil && err != http.ErrServerClosed {
 		logger.Error().Err(err).Msg("Failed to start server")
 		return
 	}

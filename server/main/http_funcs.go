@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/markbates/goth/gothic"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 const ALLOWED_HEADERS = "Content-Type, hx-current-url, hx-request, hx-target, hx-trigger"
@@ -36,6 +37,38 @@ func createWorldSelectHandler(config *Configuration) func(w http.ResponseWriter,
 		}
 		tmpl.ExecuteTemplate(w, "world-select", config.domains)
 	}
+}
+
+func (app *App) worldSelectHandler(w http.ResponseWriter, r *http.Request) {
+	identifier, ok := getUserIdFromSession(r)
+	if !ok {
+		tmpl.ExecuteTemplate(w, "homepage", false)
+		return
+	}
+	if app.platform == nil {
+		createWorldSelectHandler(app.config)(w, r)
+		return
+	}
+	worlds, err := app.platform.store.listWorlds(r.Context(), bson.M{"visibility": "public", "moderationState": "active", "publishedReleaseId": bson.M{"$ne": ""}})
+	if err != nil {
+		http.Error(w, "Unable to load worlds", http.StatusInternalServerError)
+		return
+	}
+	type entry struct {
+		ID, Name, Route  string
+		Running, CanEdit bool
+	}
+	entries := make([]entry, 0, len(worlds))
+	admin := app.config.isAdminIdentifier(identifier)
+	for _, world := range worlds {
+		route := world.ID
+		if world.Slug != "" {
+			route = world.Slug
+		}
+		_, running := app.platform.manager.Info(world.ID)
+		entries = append(entries, entry{ID: world.ID, Name: world.Name, Route: route, Running: running, CanEdit: admin || world.OwnerID == identifier})
+	}
+	tmpl.ExecuteTemplate(w, "world-select-platform", entries)
 }
 
 func (world *World) statusHandler(w http.ResponseWriter, r *http.Request) {
@@ -129,6 +162,15 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 		tmpl.ExecuteTemplate(w, "homepage", world.config.guestsEnabled.Load())
 		return
 	}
+	if world.config.worldLifecycle == LifecycleUntilEmpty && id != world.config.worldOwnerID {
+		var runtime struct {
+			Draining bool `bson:"draining"`
+		}
+		if err := world.db.runtimeInstances.FindOne(r.Context(), bson.M{"_id": world.config.worldID}).Decode(&runtime); err == nil && runtime.Draining {
+			http.Error(w, "World is closing to new players", http.StatusServiceUnavailable)
+			return
+		}
+	}
 	var userRecord *UserRecord
 	if idBelongsToGuest(id) {
 		world.postPlayAsGuest(w, r)
@@ -167,14 +209,21 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 		tmpl.ExecuteTemplate(w, "choose-your-color", colorPage)
 	}
 
-	record, err := world.db.getPlayerRecord(userRecord.Username)
+	record, err := world.db.getWorldPlayerRecord(world.config.worldID, userRecord.Username)
 	if err != nil {
-		logger.Warn().Msg("User: " + id + " found but not corresponding Player with username: " + userRecord.Username)
-		io.WriteString(w, "Unable to sign in")
-		return
+		if world.config.worldID == legacyWorldID {
+			logger.Warn().Msg("User: " + id + " found but not corresponding Player with username: " + userRecord.Username)
+			io.WriteString(w, "Unable to sign in")
+			return
+		}
+		record = world.initialPlayerRecord(id, userRecord.Username)
+		if err := world.db.InsertPlayerRecord(record); err != nil {
+			io.WriteString(w, "Unable to create world profile")
+			return
+		}
 	}
 
-	receipt := world.initiateLogin(record)
+	receipt := world.initiateLogin(record, id)
 	tmpl.ExecuteTemplate(w, "player-page", receipt)
 }
 
@@ -183,8 +232,11 @@ type LoginReceipt struct {
 	DomainName   string
 }
 
-func (w *World) initiateLogin(record PlayerRecord) *LoginReceipt {
+func (w *World) initiateLogin(record PlayerRecord, userID ...string) *LoginReceipt {
 	loginReq := createLoginRequest(record)
+	if len(userID) > 0 {
+		loginReq.UserID = userID[0]
+	}
 	w.addIncoming(loginReq)
 	logger.Info().Msg("loginRequest for: " + loginReq.Record.Username)
 	return &LoginReceipt{
@@ -207,13 +259,20 @@ func (world *World) postPlayAsGuest(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "Unexpected Error.")
 		return
 	}
-	record, err := world.db.getPlayerRecord(id)
+	record, err := world.db.getWorldPlayerRecord(world.config.worldID, id)
 	if err != nil {
-		logger.Warn().Msg("Record for guest with id: " + id + " not found.")
-		io.WriteString(w, "Unable to sign in")
-		return
+		if world.config.worldID == legacyWorldID {
+			logger.Warn().Msg("Record for guest with id: " + id + " not found.")
+			io.WriteString(w, "Unable to sign in")
+			return
+		}
+		record = world.initialPlayerRecord(id, id)
+		if err := world.db.InsertPlayerRecord(record); err != nil {
+			io.WriteString(w, "Unable to create world profile")
+			return
+		}
 	}
-	receipt := world.initiateLogin(record)
+	receipt := world.initiateLogin(record, id)
 	tmpl.ExecuteTemplate(w, "player-page", receipt)
 }
 
@@ -270,6 +329,8 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 	}
 
 	record := createNewPlayerRecord(username, team)
+	record.UserID = id
+	record.WorldID = legacyWorldID
 	err = db.InsertPlayerRecord(record)
 	if err != nil {
 		io.WriteString(w, divBottomInvalid("Error saving new player"))
@@ -287,6 +348,7 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 func createNewPlayerRecord(username, team string) PlayerRecord {
 	return PlayerRecord{
 		Username:  username,
+		WorldID:   legacyWorldID,
 		Team:      team,
 		Health:    100,
 		StageName: "tutorial1:0-0",
@@ -294,6 +356,19 @@ func createNewPlayerRecord(username, team string) PlayerRecord {
 		Y:         3,
 		Money:     80,
 	}
+}
+
+func (world *World) initialPlayerRecord(userID, username string) PlayerRecord {
+	manifest := world.config.manifest
+	team := manifest.DefaultTeam
+	if team == "" {
+		team = "sky-blue"
+	}
+	entry := manifest.Entry
+	if entry.Stage == "" {
+		entry = WorldLocation{Stage: "tutorial1:0-0", Y: 3, X: 3}
+	}
+	return PlayerRecord{Username: username, UserID: userID, WorldID: world.config.worldID, Team: team, Health: 100, Money: 80, StageName: entry.Stage, Y: entry.Y, X: entry.X}
 }
 
 func validUsername(username string) bool {

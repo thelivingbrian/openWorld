@@ -25,6 +25,8 @@ type UserRecord struct {
 type PlayerRecord struct {
 	// ID
 	Username string `bson:"username"`
+	UserID   string `bson:"userId,omitempty"`
+	WorldID  string `bson:"worldId,omitempty"`
 
 	// Meta
 	LastLogin  time.Time `bson:"lastLogin,omitempty"`
@@ -58,6 +60,7 @@ type PlayerStatsRecord struct {
 }
 
 type EventRecord struct {
+	WorldID   string    `bson:"worldId,omitempty"`
 	Owner     string    `bson:"owner"`
 	Secondary string    `bson:"secondary"`
 	Type      string    `bson:"eventtype"`
@@ -69,6 +72,7 @@ type EventRecord struct {
 }
 
 type SessionDataRecord struct {
+	WorldID                string              `bson:"worldId,omitempty"`
 	ServerName             string              `bson:"serverName"`
 	Timestamp              time.Time           `bson:"timestamp"`
 	SessionStartTime       time.Time           `bson:"sessionStartTime"`
@@ -210,9 +214,14 @@ func (db *DB) InsertPlayerRecord(player PlayerRecord) error {
 }
 
 func (db *DB) getPlayerRecord(username string) (PlayerRecord, error) {
+	return db.getWorldPlayerRecord(legacyWorldID, username)
+}
+
+func (db *DB) getWorldPlayerRecord(worldID, username string) (PlayerRecord, error) {
 	collection := db.playerRecords
 	var result PlayerRecord
-	err := collection.FindOne(context.TODO(), bson.M{"username": bson.M{"$eq": username}}).Decode(&result)
+	filter := worldPlayerFilter(worldID, username)
+	err := collection.FindOne(context.TODO(), filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			logger.Error().Err(err).Msg("No document was found with the given username")
@@ -224,6 +233,13 @@ func (db *DB) getPlayerRecord(username string) (PlayerRecord, error) {
 	return result, nil
 }
 
+func worldPlayerFilter(worldID, username string) bson.M {
+	if worldID == legacyWorldID {
+		return bson.M{"username": username, "$or": bson.A{bson.M{"worldId": legacyWorldID}, bson.M{"worldId": bson.M{"$exists": false}}}}
+	}
+	return bson.M{"username": username, "worldId": worldID}
+}
+
 func (db *DB) foundUsername(username string) bool {
 	_, err := db.getPlayerRecord(username)
 	return err == nil
@@ -232,7 +248,7 @@ func (db *DB) foundUsername(username string) bool {
 func (db *DB) updateRecordForPlayer(p *Player, pTile *Tile) error {
 	_, err := db.playerRecords.UpdateOne(
 		context.TODO(),
-		bson.M{"username": bson.M{"$eq": p.username}},
+		worldPlayerFilter(p.world.config.worldID, p.username),
 		bson.M{
 			"$set": createPlayerSnapShot(p, pTile),
 		},
@@ -243,7 +259,7 @@ func (db *DB) updateRecordForPlayer(p *Player, pTile *Tile) error {
 func (db *DB) updateLoginForPlayer(p *Player) error {
 	_, err := db.playerRecords.UpdateOne(
 		context.TODO(),
-		bson.M{"username": bson.M{"$eq": p.username}},
+		worldPlayerFilter(p.world.config.worldID, p.username),
 		bson.M{
 			"$set": bson.M{
 				"lastLogin": time.Now(),
@@ -258,7 +274,7 @@ func (db *DB) updatePlayerRecordOnLogout(p *Player, pTile *Tile) error {
 	snapshot["lastLogout"] = time.Now()
 	_, err := db.playerRecords.UpdateOne(
 		context.TODO(),
-		bson.M{"username": bson.M{"$eq": p.username}},
+		worldPlayerFilter(p.world.config.worldID, p.username),
 		bson.M{
 			"$set": snapshot,
 		},
@@ -266,19 +282,19 @@ func (db *DB) updatePlayerRecordOnLogout(p *Player, pTile *Tile) error {
 	return err
 }
 
-func (db *DB) adminUpdatePlayerRecord(username string, updates bson.M) error {
+func (db *DB) adminUpdatePlayerRecord(worldID, username string, updates bson.M) error {
 	_, err := db.playerRecords.UpdateOne(
 		context.TODO(),
-		bson.M{"username": bson.M{"$eq": username}},
+		worldPlayerFilter(worldID, username),
 		bson.M{"$set": updates},
 	)
 	return err
 }
 
-func (db *DB) addAccomplishmentToPlayer(username string, key string, value Accomplishment) error {
+func (db *DB) addAccomplishmentToPlayer(worldID, username string, key string, value Accomplishment) error {
 	_, err := db.playerRecords.UpdateOne(
 		context.TODO(),
-		bson.M{"username": username},
+		worldPlayerFilter(worldID, username),
 		bson.M{
 			"$set": bson.M{
 				fmt.Sprintf("accomplishments.%s", key): value,
@@ -316,6 +332,7 @@ func statsRecordFromPlayerStats(stats *PlayerStats) PlayerStatsRecord {
 func (db *DB) saveKillEvent(tile *Tile, initiator Character, defeated *Player) error {
 	eventCollection := db.events
 	event := EventRecord{
+		WorldID:   defeated.world.config.worldID,
 		Owner:     initiator.getName(),
 		Secondary: defeated.username,
 		Type:      "Kill",
@@ -335,6 +352,7 @@ func (db *DB) saveKillEvent(tile *Tile, initiator Character, defeated *Player) e
 func (db *DB) saveScoreEvent(tile *Tile, initiator *Player, message string) error {
 	eventCollection := db.events
 	event := EventRecord{
+		WorldID:   initiator.world.config.worldID,
 		Owner:     initiator.username,
 		Secondary: "",
 		Type:      "Score",
@@ -356,13 +374,21 @@ func (db *DB) saveScoreEvent(tile *Tile, initiator *Player, message string) erro
 // Highscores
 
 func (db *DB) getTopNPlayersByField(field string, n int) ([]PlayerRecord, error) {
+	return db.getTopNPlayersByFieldForWorld(legacyWorldID, field, n)
+}
+
+func (db *DB) getTopNPlayersByFieldForWorld(worldID, field string, n int) ([]PlayerRecord, error) {
 	// Should add indexes where needed
 	findOptions := options.Find().
 		SetSort(bson.D{{Key: field, Value: -1}}).
 		SetLimit(int64(n))
 
 	// Impact of adding a team filter ?
-	cursor, err := db.playerRecords.Find(context.TODO(), bson.D{}, findOptions)
+	filter := bson.M{"worldId": worldID}
+	if worldID == legacyWorldID {
+		filter = bson.M{"$or": bson.A{bson.M{"worldId": legacyWorldID}, bson.M{"worldId": bson.M{"$exists": false}}}}
+	}
+	cursor, err := db.playerRecords.Find(context.TODO(), filter, findOptions)
 	if err != nil {
 		return nil, err
 	}

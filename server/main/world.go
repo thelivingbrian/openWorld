@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const SESSION_SNAPSHOT_INTERVAL_IN_MIN = 30
@@ -28,6 +30,7 @@ type World struct {
 	incomingPlayerMutex sync.Mutex
 	playersToLogout     chan *Player
 	worldStages         map[string]*Stage
+	areas               []Area
 	wStageMutex         sync.Mutex
 	leaderBoard         *LeaderBoard
 	sessionStats        *WorldSessionData
@@ -43,6 +46,7 @@ type TeamPlayerStatus struct {
 type LoginRequest struct {
 	Token     string
 	Record    PlayerRecord
+	UserID    string
 	timestamp time.Time
 }
 
@@ -59,6 +63,9 @@ type WorldSessionData struct {
 // Create World
 
 func createGameWorld(db *DB, config *Configuration) *World {
+	if config.worldID == "" {
+		config.worldID = legacyWorldID
+	}
 	out := &World{
 		App: App{
 			db:     db,
@@ -71,6 +78,7 @@ func createGameWorld(db *DB, config *Configuration) *World {
 		incomingPlayerMutex: sync.Mutex{},
 		playersToLogout:     make(chan *Player),
 		worldStages:         make(map[string]*Stage),
+		areas:               append([]Area(nil), areas...),
 		wStageMutex:         sync.Mutex{},
 		leaderBoard:         createLeaderBoard(),
 		sessionStats: &WorldSessionData{
@@ -112,8 +120,58 @@ func periodicSnapshot(world *World) {
 	}
 }
 
+func periodicRuntimeHeartbeat(world *World) {
+	writeRuntimeHeartbeat(world)
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+	for range ticker.C {
+		writeRuntimeHeartbeat(world)
+	}
+}
+
+func writeRuntimeHeartbeat(world *World) {
+	world.wPlayerMutex.Lock()
+	count := len(world.worldPlayers)
+	ownerPresent := false
+	for _, player := range world.worldPlayers {
+		if player.userID != "" && player.userID == world.config.worldOwnerID {
+			ownerPresent = true
+			break
+		}
+	}
+	world.wPlayerMutex.Unlock()
+	_, err := world.db.runtimeInstances.UpdateByID(context.Background(), world.config.worldID, bson.M{"$set": bson.M{"worldId": world.config.worldID, "playerCount": count, "ownerPresent": ownerPresent, "updatedAt": time.Now().UTC(), "expiresAt": time.Now().UTC().Add(20 * time.Second)}}, options.Update().SetUpsert(true))
+	if err != nil {
+		logger.Warn().Err(err).Msg("Failed runtime heartbeat")
+	}
+}
+
+func gracefulWorldShutdown(world *World) {
+	world.wPlayerMutex.Lock()
+	players := make([]*Player, 0, len(world.worldPlayers))
+	for _, player := range world.worldPlayers {
+		players = append(players, player)
+	}
+	world.wPlayerMutex.Unlock()
+	for _, player := range players {
+		sendUpdate(player, divLogOutResume("World is shutting down", "/worlds"))
+		player.closeConnectionSync()
+	}
+	deadline := time.Now().Add(3 * time.Second)
+	for time.Now().Before(deadline) {
+		world.wPlayerMutex.Lock()
+		remaining := len(world.worldPlayers)
+		world.wPlayerMutex.Unlock()
+		if remaining == 0 {
+			return
+		}
+		time.Sleep(25 * time.Millisecond)
+	}
+}
+
 func saveCurrentStatus(world *World) {
 	status := SessionDataRecord{
+		WorldID:                world.config.worldID,
 		ServerName:             world.config.serverName,
 		Timestamp:              time.Now(),
 		SessionStartTime:       world.sessionStats.sessionStartTime,
@@ -212,6 +270,7 @@ func createLoginRequest(record PlayerRecord) *LoginRequest {
 	return &LoginRequest{
 		Token:     createRandomToken(),
 		Record:    record,
+		UserID:    record.UserID,
 		timestamp: time.Now(),
 	}
 }
@@ -262,6 +321,7 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	}
 
 	newPlayer := world.newPlayerFromRecord(incoming.Record, incoming.Token)
+	newPlayer.userID = incoming.UserID
 
 	// TOCCTOA - capacity can be exceeded
 	if world.teamAtCapacity(newPlayer.getTeamNameSync()) {
@@ -338,6 +398,18 @@ func (world *World) teamAtCapacity(teamName string) bool {
 	defer world.wPlayerMutex.Unlock()
 	count := world.teamQuantities[teamName]
 	return count >= CAPACITY_PER_TEAM
+}
+
+func (world *World) validTeam(team string) bool {
+	if len(world.config.manifest.Teams) == 0 {
+		return validTeam(team)
+	}
+	for _, candidate := range world.config.manifest.Teams {
+		if candidate.ID == team {
+			return true
+		}
+	}
+	return false
 }
 
 func (world *World) newPlayerFromRecord(record PlayerRecord, id string) *Player {

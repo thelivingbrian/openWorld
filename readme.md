@@ -29,7 +29,21 @@ This project uses: https://github.com/gkampitakis/go-snaps
 
 To update snapshots once (Powershell) use:
 
-    $env:UPDATE_SNAPS = 'true'; go test; Remove-Item Env:\UPDATE_SNAPS
+        $env:UPDATE_SNAPS = 'true'; go test; Remove-Item Env:\UPDATE_SNAPS
+
+## Hosted world platform
+
+Production runs the server in controller mode. The controller serves `/design/`, the public `/worlds` directory, JSON APIs, and path-routed runtimes under `/w/{world-id-or-slug}`. Published worlds run as isolated child processes using immutable release artifacts cached beneath `WORLD_CACHE_DIR`.
+
+The packaged systemd service supplies the standard paths. For a local controller, set:
+
+    OPENWORLD_MODE=controller
+    WORLD_PLATFORM_ENABLED=TRUE
+    WORLD_SEED_DIR=../../tools/main/data/collections
+    WORLD_DESIGN_DIR=../../tools/main/spa/dist/spa/browser
+    WORLD_CACHE_DIR=./data/world-cache
+
+Optional runtime limits are `WORLD_RUNTIME_MEMORY_LIMIT` (Go memory-limit syntax such as `512MiB`) and `WORLD_RUNTIME_GOMAXPROCS`.
 
 
 ## AI orchestration

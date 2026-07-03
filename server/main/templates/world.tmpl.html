@@ -45,3 +45,30 @@
     </div>
 </div>
 {{end}}
+
+{{define "world-select-platform"}}
+<div id="page" class="center-vertically" hx-swap-oob="true">
+    <div id="container">
+        {{template "logo-small"}}
+        <div id="landing">
+            <button class="large-font" type="button" onclick="createPlayerWorld()">Create World</button><br />
+            {{range .}}
+            <div class="rounded-cyan-border center-horizontally">
+                <strong>{{.Name}}</strong><br />
+                {{if .Running}}<a class="large-font" href="#" hx-post="/w/{{.Route}}/play" hx-target="#page">Play</a>{{else}}Offline{{end}}
+                {{if .CanEdit}} | <a href="/design/?world={{.ID}}">Edit</a>{{end}}
+            </div>
+            {{else}}<div>No published worlds yet.</div>{{end}}
+        </div>
+    </div>
+    <script>
+    async function createPlayerWorld() {
+        const name = prompt('World name'); if (!name) return;
+        const csrf = await fetch('/api/csrf').then(r => r.json());
+        const response = await fetch('/api/design/worlds', {method:'POST', headers:{'Content-Type':'application/json','X-CSRF-Token':csrf.token}, body:JSON.stringify({name,seed:'bloop'})});
+        if (!response.ok) { alert(await response.text()); return; }
+        const world = await response.json(); location.href = '/design/?world=' + encodeURIComponent(world.id);
+    }
+    </script>
+</div>
+{{end}}

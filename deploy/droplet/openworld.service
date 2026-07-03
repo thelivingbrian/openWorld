@@ -6,6 +6,11 @@ After=network.target
 Type=simple
 WorkingDirectory=__APP_DIR__/current
 EnvironmentFile=__APP_DIR__/shared/.env
+Environment=OPENWORLD_MODE=controller
+Environment=WORLD_PLATFORM_ENABLED=TRUE
+Environment=WORLD_SEED_DIR=./seeds/collections
+Environment=WORLD_DESIGN_DIR=./design
+Environment=WORLD_CACHE_DIR=__APP_DIR__/shared/world-cache
 ExecStart=__APP_DIR__/current/openworld-server
 Restart=always
 RestartSec=5

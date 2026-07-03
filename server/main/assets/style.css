@@ -847,3 +847,5 @@ p {
     margin-bottom: 20px;
 }
 
+.world-map { position: relative; }
+.world-map-current { position: absolute; box-sizing: border-box; border: 2px solid red; pointer-events: none; }

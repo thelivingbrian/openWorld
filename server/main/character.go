@@ -188,7 +188,7 @@ func (player *Player) fetchStageSync(stagename string) *Stage {
 		return stage
 	}
 
-	area, success := areaFromName(stagename)
+	area, success := player.world.areaFromName(stagename)
 	if !success {
 		return nil
 	}
@@ -381,7 +381,7 @@ func (npc *NonPlayer) fetchStageSync(stagename string) *Stage {
 		return stage
 	}
 
-	area, success := areaFromName(stagename)
+	area, success := npc.world.areaFromName(stagename)
 	if !success {
 		return nil
 	}
