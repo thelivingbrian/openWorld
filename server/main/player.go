@@ -101,8 +101,8 @@ func handleDeath(player *Player) {
 	player.setIcon()
 	player.actions = createDefaultActions() // problematic, -> setDefaultActions(player)
 
-	stage := player.fetchStageSync("clinic") //infirmaryStagenameForPlayer(player))
-	y, x := 2, 2                             //	infirmaryCoordsForPlayer(player)
+	stage := player.fetchStageSync(infirmaryStagenameForPlayer(player))
+	y, x := infirmaryCoordsForPlayer(player)
 	player.updateRecordOnDeath(stage.tiles[y][x])
 	respawnOnStage(player, stage, y, x)
 }
