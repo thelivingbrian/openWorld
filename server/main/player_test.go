@@ -28,6 +28,25 @@ func TestMoveNorthBoostWithValidNorthernNeighbor(t *testing.T) {
 	}
 }
 
+func TestInfirmaryStagenameForPlayerTeamRouting(t *testing.T) {
+	cases := []struct {
+		team string
+		want string
+	}{
+		{team: "", want: "clinic"},
+		{team: "green", want: "clinic"},
+		{team: "sky-blue", want: "infirmary-flattened:0-0"},
+		{team: "fuchsia", want: "infirmary-flattened:0-0"},
+	}
+
+	for _, tc := range cases {
+		player := &Player{team: tc.team}
+		if got := infirmaryStagenameForPlayer(player); got != tc.want {
+			t.Fatalf("team %q routed to %q, want %q", tc.team, got, tc.want)
+		}
+	}
+}
+
 func (p *Player) placeOnStage(stage *Stage, y, x int) {
 	placePlayerOnStageAt(p, stage, y, x)
 }
