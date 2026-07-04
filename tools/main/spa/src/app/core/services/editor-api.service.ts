@@ -7,12 +7,13 @@ import { BootstrapResponse, Collection, InteractableDescription, Prototype, Spac
 export class EditorApiService {
   private readonly http = inject(HttpClient);
   private readonly hostedWorldId = new URLSearchParams(globalThis.location?.search ?? '').get('world');
+  readonly isHosted = Boolean(this.hostedWorldId && globalThis.location?.pathname.startsWith('/design'));
   private hostedCollection?: Collection;
   private paletteRevision = 0;
   private readonly hostedRevisions = new Map<string, number>();
   private csrfToken = '';
 
-  private get hosted(): boolean { return Boolean(this.hostedWorldId && globalThis.location?.pathname.startsWith('/design')); }
+  private get hosted(): boolean { return this.isHosted; }
 
   private async csrf(): Promise<HttpHeaders> {
     if (!this.csrfToken) this.csrfToken = (await firstValueFrom(this.http.get<{ token: string }>('/api/csrf'))).token;

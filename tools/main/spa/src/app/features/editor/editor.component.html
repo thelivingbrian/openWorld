@@ -4,17 +4,24 @@
   } @else {
     <section class="topbar">
       <div class="row gap">
-        <label>
-          Collection
-          <select [(ngModel)]="collectionName" (ngModelChange)="onCollectionChange()">
-            @for (name of collectionNames(); track name) {
-              <option [value]="name">{{ name }}</option>
-            }
-          </select>
-        </label>
-        <button (click)="compileCollection()">Compile</button>
-        <button (click)="deployCollection()">Deploy</button>
-        <button (click)="toggleNewCollectionForm()">New</button>
+        @if (hosted) {
+          <span>World: {{ collectionName() }}</span>
+          <button (click)="compileCollection()">Publish</button>
+          <button (click)="deployCollection()">Launch</button>
+          <a href="/">Worlds</a>
+        } @else {
+          <label>
+            Collection
+            <select [(ngModel)]="collectionName" (ngModelChange)="onCollectionChange()">
+              @for (name of collectionNames(); track name) {
+                <option [value]="name">{{ name }}</option>
+              }
+            </select>
+          </label>
+          <button (click)="compileCollection()">Compile</button>
+          <button (click)="deployCollection()">Deploy</button>
+          <button (click)="toggleNewCollectionForm()">New</button>
+        }
       </div>
       @if (showNewCollection()) {
         <div class="row wrap gap">
@@ -64,7 +71,9 @@
             </select>
           </label>
           <button (click)="saveSpace()">Save Space</button>
-          <button (click)="flattenSpace()" [disabled]="!canFlattenCurrentSpace()">Flatten Space</button>
+          @if (!hosted) {
+            <button (click)="flattenSpace()" [disabled]="!canFlattenCurrentSpace()">Flatten Space</button>
+          }
           <button (click)="resetUnsavedChanges()">Reset Changes</button>
           @if (currentArea()) {
             <div class="row gap panel__toggles panel__toggles--right">

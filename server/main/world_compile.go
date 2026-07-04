@@ -294,11 +294,11 @@ func compileCollectionFiles(collection SourceCollection, palette []WorldColor) (
 		}
 		mapID := ""
 		if space.Topology == "plane" || space.Topology == "torus" {
-			mapID = "space-" + hashBytes([]byte(spaceName))[:16]
 			mapPNG, err := renderSpaceMap(space, prototypes, colors)
 			if err != nil {
 				return nil, err
 			}
+			mapID = "space-" + hashBytes(mapPNG)[:16]
 			files["images/"+mapID+".png"] = mapPNG
 			for row := 0; row < space.Latitude; row++ {
 				for column := 0; column < space.Longitude; column++ {
@@ -525,12 +525,17 @@ func renderSpaceMap(space *SourceSpace, prototypes map[string]SourcePrototype, c
 			for y, tiles := range area.Blueprint.Tiles {
 				for x, tile := range tiles {
 					colorName := area.Blueprint.DefaultTileColor
-					if prototype, ok := prototypes[tile.PrototypeID]; ok && prototype.MapColor != "" {
-						colorName = prototype.MapColor
+					if y < len(area.Blueprint.Ground) && x < len(area.Blueprint.Ground[y]) && area.Blueprint.Ground[y][x].Status == 1 {
+						colorName = area.Blueprint.DefaultTileColor1
+					}
+					if prototype, ok := prototypes[tile.PrototypeID]; ok {
+						if prototypeColor := sourcePrototypeMapColor(prototype, colors); prototypeColor != "" {
+							colorName = prototypeColor
+						}
 					}
 					entry, ok := colors[colorName]
 					if !ok {
-						continue
+						entry = colors["black"]
 					}
 					img.Set(column*space.AreaWidth+x, row*space.AreaHeight+y, color.RGBA{entry.R, entry.G, entry.B, 255})
 				}
@@ -542,6 +547,21 @@ func renderSpaceMap(space *SourceSpace, prototypes map[string]SourcePrototype, c
 		return nil, err
 	}
 	return out.Bytes(), nil
+}
+
+func sourcePrototypeMapColor(prototype SourcePrototype, colors map[string]WorldColor) string {
+	if prototype.MapColor != "" {
+		return prototype.MapColor
+	}
+	colorName := prototype.CssColor
+	for _, layer := range []string{prototype.Floor1Css, prototype.Floor2Css, prototype.Ceiling1Css, prototype.Ceiling2Css} {
+		for _, token := range strings.Fields(layer) {
+			if _, ok := colors[token]; ok {
+				colorName = token
+			}
+		}
+	}
+	return colorName
 }
 
 func paletteCSS(palette []WorldColor) string {

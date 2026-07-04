@@ -82,6 +82,8 @@ export class EditorComponent {
   private readonly ngZone = inject(NgZone);
   private rafHandle: number | null = null;
 
+  protected readonly hosted = Boolean(this.api.isHosted);
+
   protected readonly loading = signal(true);
   protected readonly status = signal('');
   protected readonly bootstrap = signal<BootstrapResponse | null>(null);

@@ -42,6 +42,25 @@ describe('EditorComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('shows only the operations supported by the active editor context', () => {
+    const text = () => fixture.nativeElement.querySelector('.topbar').textContent;
+    const buttons = () => Array.from(
+      fixture.nativeElement.querySelectorAll('.topbar button') as NodeListOf<HTMLButtonElement>,
+      (button: HTMLButtonElement) => button.textContent?.trim(),
+    );
+
+    expect(buttons()).toEqual(expect.arrayContaining(['Compile', 'Deploy', 'New']));
+    expect(buttons()).not.toEqual(expect.arrayContaining(['Publish', 'Launch']));
+
+    (component as any).hosted = true;
+    fixture.detectChanges();
+
+    expect(buttons()).toEqual(expect.arrayContaining(['Publish', 'Launch']));
+    expect(buttons()).not.toEqual(expect.arrayContaining(['Compile', 'Deploy', 'New']));
+    expect(text()).toContain('Worlds');
+    expect(Array.from(fixture.nativeElement.querySelectorAll('button')).some((button: any) => button.textContent.includes('Flatten Space'))).toBe(false);
+  });
+
   it('loads palette colors without importing the host application stylesheet', () => {
     const stylesheetHrefs = Array.from(
       document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'),

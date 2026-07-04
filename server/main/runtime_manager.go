@@ -175,6 +175,13 @@ func (m *RuntimeManager) Start(ctx context.Context, world *WorldDocument) (*Runt
 	for {
 		m.mu.Lock()
 		if runtime := m.runtimes[world.ID]; runtime != nil {
+			if runtime.ReleaseID != world.PublishedReleaseID {
+				m.mu.Unlock()
+				if err := m.Stop(ctx, world.ID); err != nil {
+					return nil, err
+				}
+				continue
+			}
 			info := runtime.RuntimeInfo
 			m.mu.Unlock()
 			return &info, nil
