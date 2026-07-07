@@ -1,0 +1,110 @@
+name: Load Test
+
+run-name: Load test ${{ inputs.player_count }} player(s) on ${{ inputs.stagename }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      stagename:
+        description: Stage name to populate
+        required: true
+        type: string
+      player_count:
+        description: Number of simulated players (1-900)
+        required: true
+        default: 100
+        type: number
+      ttl_seconds:
+        description: Test duration in seconds (1-900)
+        required: true
+        default: 300
+        type: number
+      action:
+        description: Action performed by each simulated player
+        required: true
+        default: random
+        type: choice
+        options:
+          - random
+          - circles
+          - lr
+          - movespace
+          - space
+      team:
+        description: Team assigned to simulated players (optional)
+        required: false
+        type: string
+      read_messages:
+        description: Read messages sent back by the server
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-load-test
+  cancel-in-progress: false
+
+jobs:
+  load-test:
+    name: Run load test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production-load-test
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: integration/go.mod
+          cache-dependency-path: integration/go.sum
+
+      - name: Validate configuration
+        shell: bash
+        env:
+          BLOOP_HOST: ${{ vars.BLOOP_HOST }}
+          AUTO_PLAYER_PASSWORD: ${{ secrets.AUTO_PLAYER_PASSWORD }}
+          PLAYER_COUNT: ${{ inputs.player_count }}
+          TTL_SECONDS: ${{ inputs.ttl_seconds }}
+        run: |
+          if [[ -z "$BLOOP_HOST" ]]; then
+            echo "BLOOP_HOST must be configured as a production-load-test environment variable."
+            exit 1
+          fi
+          if [[ -z "$AUTO_PLAYER_PASSWORD" ]]; then
+            echo "AUTO_PLAYER_PASSWORD must be configured as a production-load-test environment secret."
+            exit 1
+          fi
+          if (( PLAYER_COUNT < 1 || PLAYER_COUNT > 900 )); then
+            echo "player_count must be between 1 and 900."
+            exit 1
+          fi
+          if (( TTL_SECONDS < 1 || TTL_SECONDS > 900 )); then
+            echo "ttl_seconds must be between 1 and 900."
+            exit 1
+          fi
+
+      - name: Run load test
+        working-directory: integration
+        env:
+          BLOOP_HOST: ${{ vars.BLOOP_HOST }}
+          AUTO_PLAYER_PASSWORD: ${{ secrets.AUTO_PLAYER_PASSWORD }}
+          STAGENAME: ${{ inputs.stagename }}
+          PLAYER_COUNT: ${{ inputs.player_count }}
+          TTL_SECONDS: ${{ inputs.ttl_seconds }}
+          PLAYER_ACTION: ${{ inputs.action }}
+          PLAYER_TEAM: ${{ inputs.team }}
+          READ_MESSAGES: ${{ inputs.read_messages }}
+        run: |
+          go run ./main \
+            -stagename "$STAGENAME" \
+            -count "$PLAYER_COUNT" \
+            -ttl "$TTL_SECONDS" \
+            -action "$PLAYER_ACTION" \
+            -team "$PLAYER_TEAM" \
+            -read="$READ_MESSAGES"

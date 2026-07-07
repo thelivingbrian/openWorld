@@ -5,12 +5,18 @@ import (
 	crand "crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
+	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -19,21 +25,102 @@ import (
 
 var WAIT_DURATION = 100 * time.Millisecond
 
+const (
+	maxLoadTestPlayers = 900
+	maxLoadTestTTL     = 900
+)
+
+type loadTestConfig struct {
+	StageName string
+	Count     int
+	TTL       int
+	Action    string
+	Team      string
+	Read      bool
+}
+
 func main() {
 	fmt.Println("Initializing...")
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
+	_ = godotenv.Load()
+
+	config := parseFlags()
+	if config.StageName != "" {
+		if err := runLoadTest(config); err != nil {
+			fmt.Fprintln(os.Stderr, "Load test failed:", err)
+			os.Exit(1)
+		}
+		return
 	}
 
 	fmt.Println("Preparing for interactions...")
 	http.HandleFunc("/mass", IntegrationClientBed)
 
-	err = http.ListenAndServe(":4440", nil)
+	err := http.ListenAndServe(":4440", nil)
 	if err != nil {
 		fmt.Println("Failed to start server", err)
 		return
 	}
+}
+
+func parseFlags() loadTestConfig {
+	config := loadTestConfig{}
+	flag.StringVar(&config.StageName, "stagename", "", "stage to populate; when omitted, serve the local /mass endpoint")
+	flag.IntVar(&config.Count, "count", 100, "number of simulated players")
+	flag.IntVar(&config.TTL, "ttl", 300, "test duration in seconds")
+	flag.StringVar(&config.Action, "action", "random", "player action: random, circles, lr, movespace, or space")
+	flag.StringVar(&config.Team, "team", "", "team assigned to simulated players")
+	flag.BoolVar(&config.Read, "read", true, "read messages received from the server")
+	flag.Parse()
+	return config
+}
+
+func runLoadTest(config loadTestConfig) error {
+	if err := validateLoadTestConfig(config); err != nil {
+		return err
+	}
+
+	action, err := socketActionForName(config.Action)
+	if err != nil {
+		return err
+	}
+
+	tokens, err := requestTokens(config.StageName, strconv.Itoa(config.Count), config.Team)
+	if err != nil {
+		return err
+	}
+	if len(tokens) != config.Count {
+		return fmt.Errorf("requested %d tokens but received %d", config.Count, len(tokens))
+	}
+
+	connected, done := createSocketsAndSendActions(tokens, config.Read, config.TTL, action)
+	fmt.Printf("Connected %d/%d simulated player(s); running for %d second(s)\n", connected, len(tokens), config.TTL)
+	<-done
+
+	if connected != len(tokens) {
+		return fmt.Errorf("only %d of %d WebSocket connections were established", connected, len(tokens))
+	}
+
+	fmt.Printf("Load test completed with %d simulated player(s)\n", connected)
+	return nil
+}
+
+func validateLoadTestConfig(config loadTestConfig) error {
+	if config.StageName == "" {
+		return errors.New("stagename is required")
+	}
+	if config.Count < 1 || config.Count > maxLoadTestPlayers {
+		return fmt.Errorf("count must be between 1 and %d", maxLoadTestPlayers)
+	}
+	if config.TTL < 1 || config.TTL > maxLoadTestTTL {
+		return fmt.Errorf("ttl must be between 1 and %d seconds", maxLoadTestTTL)
+	}
+	if strings.TrimSpace(os.Getenv("BLOOP_HOST")) == "" {
+		return errors.New("BLOOP_HOST is required")
+	}
+	if os.Getenv("AUTO_PLAYER_PASSWORD") == "" {
+		return errors.New("AUTO_PLAYER_PASSWORD is required")
+	}
+	return nil
 }
 
 func IntegrationClientBed(w http.ResponseWriter, r *http.Request) {
@@ -67,22 +154,17 @@ func IntegrationClientBed(w http.ResponseWriter, r *http.Request) {
 
 	team := r.URL.Query().Get("team")
 
-	action := r.URL.Query().Get("action")
-	socketAction := moveInCircles
-	if action == "random" {
-		socketAction = moveRandomly
-	}
-	if action == "lr" {
-		socketAction = leftRight
-	}
-	if action == "movespace" {
-		socketAction = moveAndSpace
-	}
-	if action == "space" {
-		socketAction = spamSpace
+	socketAction, err := socketActionForName(r.URL.Query().Get("action"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	tokens := requestTokens(stagename, count, team)
+	tokens, err := requestTokens(stagename, count, team)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
 	go func() {
 		createSocketsAndSendActions(tokens, read, ttl, socketAction)
 	}()
@@ -91,58 +173,94 @@ func IntegrationClientBed(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Request successful!")
 }
 
-func createSocketsAndSendActions(tokens []string, read bool, ttl int, action func(*TestingSocket, string)) {
+func socketActionForName(name string) (func(*TestingSocket, string), error) {
+	switch name {
+	case "", "circles":
+		return moveInCircles, nil
+	case "random":
+		return moveRandomly, nil
+	case "lr":
+		return leftRight, nil
+	case "movespace":
+		return moveAndSpace, nil
+	case "space":
+		return spamSpace, nil
+	default:
+		return nil, fmt.Errorf("unsupported action %q", name)
+	}
+}
+
+func createSocketsAndSendActions(tokens []string, read bool, ttl int, action func(*TestingSocket, string)) (int, <-chan struct{}) {
+	var wg sync.WaitGroup
+	connected := 0
+	done := make(chan struct{})
+
 	for _, token := range tokens {
 		testingSocket := createTestingSocket(os.Getenv("BLOOP_HOST") + "/screen")
 		if testingSocket == nil {
 			fmt.Println("failed to create testing socket")
-			return
+			continue
 		}
 
-		term := make(chan bool)
-		go testingSocket.closeOnRec(term) //defer testingSocket.ws.Close() occurs in closeOnRec
-		go func(chan bool) {
-			time.Sleep(time.Duration(ttl) * time.Second)
-			term <- true
-		}(term)
-
-		testingSocket.tryWrite(createInitialTokenMessage(token))
+		if err := testingSocket.tryWrite(createInitialTokenMessage(token)); err != nil {
+			testingSocket.close()
+			continue
+		}
+		connected++
+		wg.Add(1)
 
 		if read {
 			go testingSocket.readUntilNil()
 		}
 
 		go action(testingSocket, token)
+		go func(ts *TestingSocket) {
+			defer wg.Done()
+			time.Sleep(time.Duration(ttl) * time.Second)
+			ts.close()
+		}(testingSocket)
 	}
 
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	return connected, done
 }
 
-func requestTokens(stagename, count, team string) []string {
+func requestTokens(stagename, count, team string) ([]string, error) {
 	secret := os.Getenv("AUTO_PLAYER_PASSWORD")
 	username := createRandomString()
-	payload := []byte("secret=" + secret + "&username=" + username + "&stagename=" + stagename + "&team=" + team + "&count=" + count)
+	payload := url.Values{
+		"secret":    {secret},
+		"username":  {username},
+		"stagename": {stagename},
+		"team":      {team},
+		"count":     {count},
+	}
 
 	tokenEndpoint := os.Getenv("BLOOP_HOST") + "/insert"
-	resp, err := http.Post(tokenEndpoint, "application/x-www-form-urlencoded", bytes.NewBuffer(payload))
+	resp, err := http.Post(tokenEndpoint, "application/x-www-form-urlencoded", bytes.NewBufferString(payload.Encode()))
 	if err != nil {
-		fmt.Printf("Failed to fetch tokens: %v", err)
-		return nil
+		return nil, fmt.Errorf("failed to fetch tokens: %w", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("Failed to read response: %v", err)
-		return nil
+		return nil, fmt.Errorf("failed to read token response: %w", err)
+	}
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("token endpoint returned %s", resp.Status)
 	}
 	var tokens []string
 	if err := json.Unmarshal(body, &tokens); err != nil {
-		fmt.Printf("Failed to parse token response: %v", err)
-		return nil
+		return nil, fmt.Errorf("failed to parse token response: %w", err)
 	}
 
-	fmt.Println("Retrieved tokens:", tokens)
-	return tokens
+	fmt.Printf("Received %d Token(s)\n", len(tokens))
+	return tokens, nil
 }
 
 func createRandomString() string {
@@ -155,13 +273,15 @@ func createRandomString() string {
 }
 
 type TestingSocket struct {
-	ws *websocket.Conn
+	ws      *websocket.Conn
+	closing atomic.Bool
 }
 
 func createTestingSocket(url string) *TestingSocket {
-	if url[0:4] == "http" {
-		url = "ws" + url[len("http"):]
-
+	if strings.HasPrefix(url, "https://") {
+		url = "wss://" + strings.TrimPrefix(url, "https://")
+	} else if strings.HasPrefix(url, "http://") {
+		url = "ws://" + strings.TrimPrefix(url, "http://")
 	}
 	ws, _, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
@@ -206,22 +326,23 @@ func createSocketEventMessage(token, name string) []byte {
 
 func (ts *TestingSocket) tryWrite(msg []byte) error {
 	err := ts.ws.WriteMessage(websocket.TextMessage, msg)
-	if err != nil {
-		fmt.Printf("could not send message: %s, Error: %v\n", string(msg), err)
-		return err
+	if err != nil && !ts.closing.Load() {
+		fmt.Printf("could not send WebSocket message: %v\n", err)
 	}
-	return nil
+	return err
 }
 
-func (ts *TestingSocket) closeOnRec(term chan bool) {
-	<-term
+func (ts *TestingSocket) close() {
+	ts.closing.Store(true)
 	ts.ws.Close()
 }
 
 func (ts *TestingSocket) tryRead() []byte {
 	_, msg, err := ts.ws.ReadMessage()
 	if err != nil {
-		fmt.Printf("could not read message - Error: %v\n", err)
+		if !ts.closing.Load() {
+			fmt.Printf("could not read WebSocket message: %v\n", err)
+		}
 		return nil
 	}
 	return msg
