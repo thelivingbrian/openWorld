@@ -1,38 +1,26 @@
 package main
 
 import (
-	"fmt"
-	"io"
 	"net/http"
-	"strings"
 )
 
 //////////////////////////////////////////////////////////
 // Forms
 
-// Replace this with r.ParseForm() / r.FormValue and/or r.Form
 func requestToProperties(r *http.Request) (map[string]string, bool) {
-	// Works on standard htmx form post
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		logger.Error().Err(err).Msg(fmt.Sprintf("Error reading body: %v", err))
+	if err := r.ParseForm(); err != nil {
+		logger.Error().Err(err).Msg("Error parsing form body")
 		return nil, false
 	}
 
-	bodyS := string(body[:])
-	return bodyStringToProperties(bodyS), true
-}
-
-func bodyStringToProperties(body string) map[string]string {
-	propMap := make(map[string]string)
-	props := strings.Split(body, "&")
-	for _, prop := range props {
-		keyValue := strings.Split(prop, "=")
-		if len(keyValue) > 1 {
-			propMap[keyValue[0]] = keyValue[1] // 1: ?
+	properties := make(map[string]string, len(r.PostForm))
+	for key, values := range r.PostForm {
+		if len(values) > 0 {
+			// Preserve the old parser's behavior for duplicate fields.
+			properties[key] = values[len(values)-1]
 		}
 	}
-	return propMap
+	return properties, true
 }
 
 /////////////////////////////////////////////////////////

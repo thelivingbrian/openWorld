@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestValidateLoadTestConfig(t *testing.T) {
 	t.Setenv("BLOOP_HOST", "https://example.com")
@@ -25,6 +28,13 @@ func TestValidateLoadTestConfig(t *testing.T) {
 				StageName: "test-stage",
 				Count:     maxLoadTestPlayers,
 				TTL:       maxLoadTestTTL,
+			},
+		},
+		{
+			name: "valid 256-player named style",
+			config: loadTestConfig{
+				Style: twoTeams256PlayersLoadTestStyle,
+				TTL:   1,
 			},
 		},
 		{
@@ -89,18 +99,40 @@ func TestValidateLoadTestConfig(t *testing.T) {
 	}
 }
 
-func TestTwoTeams512PlayersBatches(t *testing.T) {
-	batches := twoTeams512PlayersBatches()
+func TestTwoTeamsPlayersBatches(t *testing.T) {
+	tests := []struct {
+		name            string
+		style           string
+		playersPerStage int
+		totalPlayers    int
+	}{
+		{name: "256 players", style: twoTeams256PlayersLoadTestStyle, playersPerStage: 8, totalPlayers: 256},
+		{name: "512 players", style: twoTeams512PlayersLoadTestStyle, playersPerStage: 16, totalPlayers: 512},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			batches, err := loadTestBatches(loadTestConfig{Style: test.style})
+			if err != nil {
+				t.Fatalf("loadTestBatches() returned error: %v", err)
+			}
+			assertTwoTeamsBatches(t, batches, test.playersPerStage, test.totalPlayers)
+		})
+	}
+}
+
+func assertTwoTeamsBatches(t *testing.T, batches []loadTestBatch, playersPerStage, wantTotalPlayers int) {
+	t.Helper()
 	if len(batches) != 32 {
-		t.Fatalf("twoTeams512PlayersBatches() returned %d batches, want 32", len(batches))
+		t.Fatalf("loadTestBatches() returned %d batches, want 32", len(batches))
 	}
 
 	totalPlayers := 0
 	stageNames := make(map[string]bool, len(batches))
 	for index, batch := range batches {
 		totalPlayers += batch.Count
-		if batch.Count != 16 {
-			t.Errorf("batch %q has %d players, want 16", batch.StageName, batch.Count)
+		if batch.Count != playersPerStage {
+			t.Errorf("batch %q has %d players, want %d", batch.StageName, batch.Count, playersPerStage)
 		}
 		if stageNames[batch.StageName] {
 			t.Errorf("duplicate stage %q", batch.StageName)
@@ -116,8 +148,8 @@ func TestTwoTeams512PlayersBatches(t *testing.T) {
 		}
 	}
 
-	if totalPlayers != 512 {
-		t.Errorf("twoTeams512PlayersBatches() has %d total players, want 512", totalPlayers)
+	if totalPlayers != wantTotalPlayers {
+		t.Errorf("loadTestBatches() has %d total players, want %d", totalPlayers, wantTotalPlayers)
 	}
 
 	for _, stageName := range []string{
@@ -142,5 +174,15 @@ func TestSocketActionForName(t *testing.T) {
 
 	if _, err := socketActionForName("unsupported"); err == nil {
 		t.Error("socketActionForName() accepted an unsupported action")
+	}
+}
+
+func TestTokenRequestPayloadKeepsStageColonLiteral(t *testing.T) {
+	payload := tokenRequestPayload("password", "runner", "team-blue:0-0", "fuchsia", "16")
+	if !strings.Contains(payload, "stagename=team-blue:0-0") {
+		t.Fatalf("tokenRequestPayload() encoded the stage name incompatibly: %q", payload)
+	}
+	if strings.Contains(payload, "%3A") {
+		t.Fatalf("tokenRequestPayload() contains an encoded colon: %q", payload)
 	}
 }

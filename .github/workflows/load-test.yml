@@ -11,6 +11,7 @@ on:
         default: two_teams_512_players
         type: choice
         options:
+          - two_teams_256_players
           - two_teams_512_players
       ttl_seconds:
         description: Test duration in seconds (1-900)

@@ -28,6 +28,7 @@ var WAIT_DURATION = 100 * time.Millisecond
 const (
 	maxLoadTestPlayers              = 900
 	maxLoadTestTTL                  = 1800
+	twoTeams256PlayersLoadTestStyle = "two_teams_256_players"
 	twoTeams512PlayersLoadTestStyle = "two_teams_512_players"
 )
 
@@ -98,8 +99,9 @@ func runLoadTest(config loadTestConfig) error {
 		return err
 	}
 
-	tokens := make([]string, 0)
 	expectedPlayers := 0
+	connectedPlayers := 0
+	doneChannels := make([]<-chan struct{}, 0, len(batches))
 	for _, batch := range batches {
 		batchTokens, err := requestTokens(batch.StageName, strconv.Itoa(batch.Count), batch.Team)
 		if err != nil {
@@ -108,19 +110,26 @@ func runLoadTest(config loadTestConfig) error {
 		if len(batchTokens) != batch.Count {
 			return fmt.Errorf("stage %q requested %d tokens but received %d", batch.StageName, batch.Count, len(batchTokens))
 		}
-		tokens = append(tokens, batchTokens...)
+
+		connected, done, joinErr := createSocketsAndSendActions(batchTokens, config.Read, config.TTL, action)
+		if joinErr != nil {
+			fmt.Printf("Stage %q joined %d/%d player(s); first failure: %v\n", batch.StageName, connected, batch.Count, joinErr)
+		}
+		connectedPlayers += connected
+		doneChannels = append(doneChannels, done)
 		expectedPlayers += batch.Count
 	}
 
-	connected, done := createSocketsAndSendActions(tokens, config.Read, config.TTL, action)
-	fmt.Printf("Connected %d/%d simulated player(s) across %d stage batch(es); running for %d second(s)\n", connected, expectedPlayers, len(batches), config.TTL)
-	<-done
-
-	if connected != expectedPlayers {
-		return fmt.Errorf("only %d of %d WebSocket connections were established", connected, expectedPlayers)
+	fmt.Printf("Connected %d/%d simulated player socket(s) across %d stage batch(es); running for %d second(s)\n", connectedPlayers, expectedPlayers, len(batches), config.TTL)
+	for _, done := range doneChannels {
+		<-done
 	}
 
-	fmt.Printf("Load test completed with %d simulated player(s)\n", connected)
+	if connectedPlayers != expectedPlayers {
+		return fmt.Errorf("only %d of %d WebSocket connections were established", connectedPlayers, expectedPlayers)
+	}
+
+	fmt.Printf("Load test completed with %d simulated player socket(s)\n", connectedPlayers)
 	return nil
 }
 
@@ -170,14 +179,16 @@ func loadTestBatches(config loadTestConfig) ([]loadTestBatch, error) {
 	}
 
 	switch config.Style {
+	case twoTeams256PlayersLoadTestStyle:
+		return twoTeamsPlayersBatches(8), nil
 	case twoTeams512PlayersLoadTestStyle:
-		return twoTeams512PlayersBatches(), nil
+		return twoTeamsPlayersBatches(16), nil
 	default:
 		return nil, fmt.Errorf("unsupported load-test style %q", config.Style)
 	}
 }
 
-func twoTeams512PlayersBatches() []loadTestBatch {
+func twoTeamsPlayersBatches(playersPerStage int) []loadTestBatch {
 	batches := make([]loadTestBatch, 0, 32)
 	stageTeams := []string{"team-blue", "team-fuchsia"}
 
@@ -186,7 +197,7 @@ func twoTeams512PlayersBatches() []loadTestBatch {
 			for _, stageTeam := range stageTeams {
 				batches = append(batches, loadTestBatch{
 					StageName: fmt.Sprintf("%s:%d-%d", stageTeam, a, b),
-					Count:     16,
+					Count:     playersPerStage,
 					Team:      "fuchsia",
 				})
 			}
@@ -198,7 +209,7 @@ func twoTeams512PlayersBatches() []loadTestBatch {
 			for _, stageTeam := range stageTeams {
 				batches = append(batches, loadTestBatch{
 					StageName: fmt.Sprintf("%s:%d-%d", stageTeam, a, b),
-					Count:     16,
+					Count:     playersPerStage,
 					Team:      "sky-blue",
 				})
 			}
@@ -275,20 +286,34 @@ func socketActionForName(name string) (func(*TestingSocket, string), error) {
 	}
 }
 
-func createSocketsAndSendActions(tokens []string, read bool, ttl int, action func(*TestingSocket, string)) (int, <-chan struct{}) {
+func createSocketsAndSendActions(tokens []string, read bool, ttl int, action func(*TestingSocket, string)) (int, <-chan struct{}, error) {
 	var wg sync.WaitGroup
 	connected := 0
 	done := make(chan struct{})
+	var firstJoinError error
 
 	for _, token := range tokens {
 		testingSocket := createTestingSocket(os.Getenv("BLOOP_HOST") + "/screen")
 		if testingSocket == nil {
 			fmt.Println("failed to create testing socket")
+			if firstJoinError == nil {
+				firstJoinError = errors.New("failed to create WebSocket")
+			}
 			continue
 		}
 
 		if err := testingSocket.tryWrite(createInitialTokenMessage(token)); err != nil {
 			testingSocket.close()
+			if firstJoinError == nil {
+				firstJoinError = fmt.Errorf("failed to send player token: %w", err)
+			}
+			continue
+		}
+		if err := testingSocket.waitForInitialScreen(); err != nil {
+			testingSocket.close()
+			if firstJoinError == nil {
+				firstJoinError = err
+			}
 			continue
 		}
 		connected++
@@ -311,22 +336,16 @@ func createSocketsAndSendActions(tokens []string, read bool, ttl int, action fun
 		close(done)
 	}()
 
-	return connected, done
+	return connected, done, firstJoinError
 }
 
 func requestTokens(stagename, count, team string) ([]string, error) {
 	secret := os.Getenv("AUTO_PLAYER_PASSWORD")
 	username := createRandomString()
-	payload := url.Values{
-		"secret":    {secret},
-		"username":  {username},
-		"stagename": {stagename},
-		"team":      {team},
-		"count":     {count},
-	}
+	payload := tokenRequestPayload(secret, username, stagename, team, count)
 
 	tokenEndpoint := os.Getenv("BLOOP_HOST") + "/insert"
-	resp, err := http.Post(tokenEndpoint, "application/x-www-form-urlencoded", bytes.NewBufferString(payload.Encode()))
+	resp, err := http.Post(tokenEndpoint, "application/x-www-form-urlencoded", bytes.NewBufferString(payload))
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch tokens: %w", err)
 	}
@@ -346,6 +365,20 @@ func requestTokens(stagename, count, team string) ([]string, error) {
 
 	fmt.Printf("Received %d Token(s)\n", len(tokens))
 	return tokens, nil
+}
+
+func tokenRequestPayload(secret, username, stagename, team, count string) string {
+	payload := url.Values{
+		"secret":    {secret},
+		"username":  {username},
+		"stagename": {stagename},
+		"team":      {team},
+		"count":     {count},
+	}
+
+	// Keep stage-name colons literal while load tests may target server versions
+	// whose legacy form parser does not URL-decode values. ParseForm accepts both.
+	return strings.ReplaceAll(payload.Encode(), "%3A", ":")
 }
 
 func createRandomString() string {
@@ -415,6 +448,24 @@ func (ts *TestingSocket) tryWrite(msg []byte) error {
 		fmt.Printf("could not send WebSocket message: %v\n", err)
 	}
 	return err
+}
+
+func (ts *TestingSocket) waitForInitialScreen() error {
+	if err := ts.ws.SetReadDeadline(time.Now().Add(10 * time.Second)); err != nil {
+		return fmt.Errorf("failed to set initial screen deadline: %w", err)
+	}
+	_, msg, err := ts.ws.ReadMessage()
+	_ = ts.ws.SetReadDeadline(time.Time{})
+	if err != nil {
+		return fmt.Errorf("server closed WebSocket before player joined: %w", err)
+	}
+	if bytes.Contains(msg, []byte("Unable to join")) {
+		if bytes.Contains(msg, []byte("Your team is at capacity")) {
+			return errors.New("server rejected player because the team is at capacity")
+		}
+		return errors.New("server rejected player")
+	}
+	return nil
 }
 
 func (ts *TestingSocket) close() {
