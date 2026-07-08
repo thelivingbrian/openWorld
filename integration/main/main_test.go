@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestValidateLoadTestConfig(t *testing.T) {
 	t.Setenv("BLOOP_HOST", "https://example.com")
@@ -142,5 +145,15 @@ func TestSocketActionForName(t *testing.T) {
 
 	if _, err := socketActionForName("unsupported"); err == nil {
 		t.Error("socketActionForName() accepted an unsupported action")
+	}
+}
+
+func TestTokenRequestPayloadKeepsStageColonLiteral(t *testing.T) {
+	payload := tokenRequestPayload("password", "runner", "team-blue:0-0", "fuchsia", "16")
+	if !strings.Contains(payload, "stagename=team-blue:0-0") {
+		t.Fatalf("tokenRequestPayload() encoded the stage name incompatibly: %q", payload)
+	}
+	if strings.Contains(payload, "%3A") {
+		t.Fatalf("tokenRequestPayload() contains an encoded colon: %q", payload)
 	}
 }
