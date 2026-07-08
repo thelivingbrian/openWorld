@@ -1,19 +1,17 @@
 name: Load Test
 
-run-name: Load test ${{ inputs.player_count }} player(s) on ${{ inputs.stagename }}
+run-name: Load test ${{ inputs.load_test_style }}
 
 on:
   workflow_dispatch:
     inputs:
-      stagename:
-        description: Stage name to populate
+      load_test_style:
+        description: Player and stage distribution to run
         required: true
-        type: string
-      player_count:
-        description: Number of simulated players (1-900)
-        required: true
-        default: 100
-        type: number
+        default: two_teams_512_players
+        type: choice
+        options:
+          - two_teams_512_players
       ttl_seconds:
         description: Test duration in seconds (1-900)
         required: true
@@ -30,10 +28,6 @@ on:
           - lr
           - movespace
           - space
-      team:
-        description: Team assigned to simulated players (optional)
-        required: false
-        type: string
       read_messages:
         description: Read messages sent back by the server
         required: true
@@ -69,7 +63,6 @@ jobs:
         env:
           BLOOP_HOST: ${{ vars.BLOOP_HOST }}
           AUTO_PLAYER_PASSWORD: ${{ secrets.AUTO_PLAYER_PASSWORD }}
-          PLAYER_COUNT: ${{ inputs.player_count }}
           TTL_SECONDS: ${{ inputs.ttl_seconds }}
         run: |
           if [[ -z "$BLOOP_HOST" ]]; then
@@ -78,10 +71,6 @@ jobs:
           fi
           if [[ -z "$AUTO_PLAYER_PASSWORD" ]]; then
             echo "AUTO_PLAYER_PASSWORD must be configured as a production-load-test environment secret."
-            exit 1
-          fi
-          if (( PLAYER_COUNT < 1 || PLAYER_COUNT > 900 )); then
-            echo "player_count must be between 1 and 900."
             exit 1
           fi
           if (( TTL_SECONDS < 1 || TTL_SECONDS > 900 )); then
@@ -94,17 +83,13 @@ jobs:
         env:
           BLOOP_HOST: ${{ vars.BLOOP_HOST }}
           AUTO_PLAYER_PASSWORD: ${{ secrets.AUTO_PLAYER_PASSWORD }}
-          STAGENAME: ${{ inputs.stagename }}
-          PLAYER_COUNT: ${{ inputs.player_count }}
+          LOAD_TEST_STYLE: ${{ inputs.load_test_style }}
           TTL_SECONDS: ${{ inputs.ttl_seconds }}
           PLAYER_ACTION: ${{ inputs.action }}
-          PLAYER_TEAM: ${{ inputs.team }}
           READ_MESSAGES: ${{ inputs.read_messages }}
         run: |
           go run ./main \
-            -stagename "$STAGENAME" \
-            -count "$PLAYER_COUNT" \
+            -style "$LOAD_TEST_STYLE" \
             -ttl "$TTL_SECONDS" \
             -action "$PLAYER_ACTION" \
-            -team "$PLAYER_TEAM" \
             -read="$READ_MESSAGES"

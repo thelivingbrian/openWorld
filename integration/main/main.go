@@ -26,11 +26,13 @@ import (
 var WAIT_DURATION = 100 * time.Millisecond
 
 const (
-	maxLoadTestPlayers = 900
-	maxLoadTestTTL     = 900
+	maxLoadTestPlayers              = 900
+	maxLoadTestTTL                  = 1800
+	twoTeams512PlayersLoadTestStyle = "two_teams_512_players"
 )
 
 type loadTestConfig struct {
+	Style     string
 	StageName string
 	Count     int
 	TTL       int
@@ -39,12 +41,18 @@ type loadTestConfig struct {
 	Read      bool
 }
 
+type loadTestBatch struct {
+	StageName string
+	Count     int
+	Team      string
+}
+
 func main() {
 	fmt.Println("Initializing...")
 	_ = godotenv.Load()
 
 	config := parseFlags()
-	if config.StageName != "" {
+	if config.Style != "" || config.StageName != "" {
 		if err := runLoadTest(config); err != nil {
 			fmt.Fprintln(os.Stderr, "Load test failed:", err)
 			os.Exit(1)
@@ -64,6 +72,7 @@ func main() {
 
 func parseFlags() loadTestConfig {
 	config := loadTestConfig{}
+	flag.StringVar(&config.Style, "style", "", "named load-test style")
 	flag.StringVar(&config.StageName, "stagename", "", "stage to populate; when omitted, serve the local /mass endpoint")
 	flag.IntVar(&config.Count, "count", 100, "number of simulated players")
 	flag.IntVar(&config.TTL, "ttl", 300, "test duration in seconds")
@@ -79,25 +88,36 @@ func runLoadTest(config loadTestConfig) error {
 		return err
 	}
 
+	batches, err := loadTestBatches(config)
+	if err != nil {
+		return err
+	}
+
 	action, err := socketActionForName(config.Action)
 	if err != nil {
 		return err
 	}
 
-	tokens, err := requestTokens(config.StageName, strconv.Itoa(config.Count), config.Team)
-	if err != nil {
-		return err
-	}
-	if len(tokens) != config.Count {
-		return fmt.Errorf("requested %d tokens but received %d", config.Count, len(tokens))
+	tokens := make([]string, 0)
+	expectedPlayers := 0
+	for _, batch := range batches {
+		batchTokens, err := requestTokens(batch.StageName, strconv.Itoa(batch.Count), batch.Team)
+		if err != nil {
+			return fmt.Errorf("prepare stage %q: %w", batch.StageName, err)
+		}
+		if len(batchTokens) != batch.Count {
+			return fmt.Errorf("stage %q requested %d tokens but received %d", batch.StageName, batch.Count, len(batchTokens))
+		}
+		tokens = append(tokens, batchTokens...)
+		expectedPlayers += batch.Count
 	}
 
 	connected, done := createSocketsAndSendActions(tokens, config.Read, config.TTL, action)
-	fmt.Printf("Connected %d/%d simulated player(s); running for %d second(s)\n", connected, len(tokens), config.TTL)
+	fmt.Printf("Connected %d/%d simulated player(s) across %d stage batch(es); running for %d second(s)\n", connected, expectedPlayers, len(batches), config.TTL)
 	<-done
 
-	if connected != len(tokens) {
-		return fmt.Errorf("only %d of %d WebSocket connections were established", connected, len(tokens))
+	if connected != expectedPlayers {
+		return fmt.Errorf("only %d of %d WebSocket connections were established", connected, expectedPlayers)
 	}
 
 	fmt.Printf("Load test completed with %d simulated player(s)\n", connected)
@@ -105,11 +125,11 @@ func runLoadTest(config loadTestConfig) error {
 }
 
 func validateLoadTestConfig(config loadTestConfig) error {
-	if config.StageName == "" {
-		return errors.New("stagename is required")
+	if config.Style == "" && config.StageName == "" {
+		return errors.New("style or stagename is required")
 	}
-	if config.Count < 1 || config.Count > maxLoadTestPlayers {
-		return fmt.Errorf("count must be between 1 and %d", maxLoadTestPlayers)
+	if config.Style != "" && config.StageName != "" {
+		return errors.New("style and stagename cannot be used together")
 	}
 	if config.TTL < 1 || config.TTL > maxLoadTestTTL {
 		return fmt.Errorf("ttl must be between 1 and %d seconds", maxLoadTestTTL)
@@ -120,7 +140,72 @@ func validateLoadTestConfig(config loadTestConfig) error {
 	if os.Getenv("AUTO_PLAYER_PASSWORD") == "" {
 		return errors.New("AUTO_PLAYER_PASSWORD is required")
 	}
+	batches, err := loadTestBatches(config)
+	if err != nil {
+		return err
+	}
+	totalPlayers := 0
+	for _, batch := range batches {
+		if batch.StageName == "" {
+			return errors.New("load-test batches must specify a stagename")
+		}
+		if batch.Count < 1 {
+			return errors.New("load-test batch counts must be positive")
+		}
+		totalPlayers += batch.Count
+	}
+	if totalPlayers > maxLoadTestPlayers {
+		return fmt.Errorf("load-test styles cannot exceed %d players", maxLoadTestPlayers)
+	}
 	return nil
+}
+
+func loadTestBatches(config loadTestConfig) ([]loadTestBatch, error) {
+	if config.Style == "" {
+		return []loadTestBatch{{
+			StageName: config.StageName,
+			Count:     config.Count,
+			Team:      config.Team,
+		}}, nil
+	}
+
+	switch config.Style {
+	case twoTeams512PlayersLoadTestStyle:
+		return twoTeams512PlayersBatches(), nil
+	default:
+		return nil, fmt.Errorf("unsupported load-test style %q", config.Style)
+	}
+}
+
+func twoTeams512PlayersBatches() []loadTestBatch {
+	batches := make([]loadTestBatch, 0, 32)
+	stageTeams := []string{"team-blue", "team-fuchsia"}
+
+	for a := 0; a <= 1; a++ {
+		for b := 0; b <= 3; b++ {
+			for _, stageTeam := range stageTeams {
+				batches = append(batches, loadTestBatch{
+					StageName: fmt.Sprintf("%s:%d-%d", stageTeam, a, b),
+					Count:     16,
+					Team:      "fuchsia",
+				})
+			}
+		}
+	}
+
+	for a := 2; a <= 3; a++ {
+		for b := 4; b <= 7; b++ {
+			for _, stageTeam := range stageTeams {
+				batches = append(batches, loadTestBatch{
+					StageName: fmt.Sprintf("%s:%d-%d", stageTeam, a, b),
+					Count:     16,
+					Team:      "sky-blue",
+				})
+			}
+		}
+	}
+
+	return batches
 }
 
 func IntegrationClientBed(w http.ResponseWriter, r *http.Request) {
