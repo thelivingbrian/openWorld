@@ -373,8 +373,8 @@ func tokenRequestPayload(secret, username, stagename, team, count string) string
 		"count":     {count},
 	}
 
-	// The deployed /insert endpoint splits form bodies without URL-decoding
-	// values. Keep stage-name colons literal until that parser is replaced.
+	// Keep stage-name colons literal while load tests may target server versions
+	// whose legacy form parser does not URL-decode values. ParseForm accepts both.
 	return strings.ReplaceAll(payload.Encode(), "%3A", ":")
 }
 

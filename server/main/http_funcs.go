@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -226,24 +225,14 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 	}
 
 	team := props["player-team"]
-	usernameEncoded := props["player-name"]
-	username, err := url.QueryUnescape(usernameEncoded)
-	if err != nil {
-		logger.Error().Err(err).Msg("Error decoding username:" + username)
-		return
-	}
+	username := props["player-name"]
 
 	if !validUsername(username) {
 		io.WriteString(w, divBottomInvalid("Invalid Username"))
 		return
 	}
 
-	desiredHostUrlEncoded := props["desired-host"]
-	desiredHost, err := url.QueryUnescape(desiredHostUrlEncoded)
-	if err != nil {
-		logger.Error().Err(err).Msg("Error decoding host:")
-		return
-	}
+	desiredHost := props["desired-host"]
 
 	if !validTeam(team) {
 		io.WriteString(w, divBottomInvalid("Invalid Player Color"))
@@ -256,7 +245,7 @@ func (db *DB) postNew(w http.ResponseWriter, r *http.Request) {
 	}
 
 	record := createNewPlayerRecord(username, team)
-	err = db.InsertPlayerRecord(record)
+	err := db.InsertPlayerRecord(record)
 	if err != nil {
 		io.WriteString(w, divBottomInvalid("Error saving new player"))
 		return
