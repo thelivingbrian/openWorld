@@ -28,6 +28,7 @@ var WAIT_DURATION = 100 * time.Millisecond
 const (
 	maxLoadTestPlayers              = 900
 	maxLoadTestTTL                  = 1800
+	twoTeams256PlayersLoadTestStyle = "two_teams_256_players"
 	twoTeams512PlayersLoadTestStyle = "two_teams_512_players"
 )
 
@@ -178,14 +179,16 @@ func loadTestBatches(config loadTestConfig) ([]loadTestBatch, error) {
 	}
 
 	switch config.Style {
+	case twoTeams256PlayersLoadTestStyle:
+		return twoTeamsPlayersBatches(8), nil
 	case twoTeams512PlayersLoadTestStyle:
-		return twoTeams512PlayersBatches(), nil
+		return twoTeamsPlayersBatches(16), nil
 	default:
 		return nil, fmt.Errorf("unsupported load-test style %q", config.Style)
 	}
 }
 
-func twoTeams512PlayersBatches() []loadTestBatch {
+func twoTeamsPlayersBatches(playersPerStage int) []loadTestBatch {
 	batches := make([]loadTestBatch, 0, 32)
 	stageTeams := []string{"team-blue", "team-fuchsia"}
 
@@ -194,7 +197,7 @@ func twoTeams512PlayersBatches() []loadTestBatch {
 			for _, stageTeam := range stageTeams {
 				batches = append(batches, loadTestBatch{
 					StageName: fmt.Sprintf("%s:%d-%d", stageTeam, a, b),
-					Count:     16,
+					Count:     playersPerStage,
 					Team:      "fuchsia",
 				})
 			}
@@ -206,7 +209,7 @@ func twoTeams512PlayersBatches() []loadTestBatch {
 			for _, stageTeam := range stageTeams {
 				batches = append(batches, loadTestBatch{
 					StageName: fmt.Sprintf("%s:%d-%d", stageTeam, a, b),
-					Count:     16,
+					Count:     playersPerStage,
 					Team:      "sky-blue",
 				})
 			}
