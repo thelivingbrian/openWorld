@@ -1,24 +1,12 @@
 #!/bin/bash
 
-for A in {0..1}; do
-  for B in {0..3}; do
-    for TEAM in "team-blue" "team-fuchsia"; do
-      # Construct the stagename
-      STAGENAME="${TEAM}:${A}-${B}"
-      # Execute the curl request
-      curl -X POST "http://localhost:4440/mass?stagename=${STAGENAME}&read=true&count=16&ttl=1800&action=random&team=fuchsia"
-    done
-  done
-done
+set -euo pipefail
 
-for A in {2..3}; do
-  for B in {4..7}; do
-    for TEAM in "team-blue" "team-fuchsia"; do
-      # Construct the stagename
-      STAGENAME="${TEAM}:${A}-${B}"
-      # Execute the curl request
-      curl -X POST "http://localhost:4440/mass?stagename=${STAGENAME}&read=true&count=16&ttl=1800&action=random&team=sky-blue"
-    done
-  done
-done
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
 
+go run . \
+  -style two_teams_512_players \
+  -ttl "${TTL_SECONDS:-1800}" \
+  -action "${PLAYER_ACTION:-random}" \
+  -read="${READ_MESSAGES:-true}"
