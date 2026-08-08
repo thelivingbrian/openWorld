@@ -80,9 +80,10 @@ func (app *App) homeHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Info().Msg("Home page accessed.") // Replace with metric
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	_, identifierFound := getUserIdFromSession(r)
+	identifier, identifierFound := getUserIdFromSession(r)
 	if identifierFound {
-		tmpl.ExecuteTemplate(w, "homepage-signed-in", nil)
+		fmt.Println(identifier)
+		tmpl.ExecuteTemplate(w, "homepage-signed-in", struct{ ShowAdmin bool }{ShowAdmin: app.config.isAdminIdentifier(identifier)})
 		return
 	}
 	tmpl.ExecuteTemplate(w, "homepage", app.config.guestsEnabled.Load())

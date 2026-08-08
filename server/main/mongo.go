@@ -12,11 +12,14 @@ import (
 )
 
 type UserRecord struct {
-	Identifier    string    `bson:"identifier"`
-	Username      string    `bson:"username"`
-	CreationEmail string    `bson:"creationEmail"`
-	Created       time.Time `bson:"created,omitempty"`
-	LastLogin     time.Time `bson:"lastLogin,omitempty"`
+	Identifier    string     `bson:"identifier"`
+	Username      string     `bson:"username"`
+	CreationEmail string     `bson:"creationEmail"`
+	Created       time.Time  `bson:"created,omitempty"`
+	LastLogin     time.Time  `bson:"lastLogin,omitempty"`
+	BanReason     string     `bson:"banReason,omitempty"`
+	BannedBy      string     `bson:"bannedBy,omitempty"`
+	BanExpiresAt  *time.Time `bson:"banExpiresAt,omitempty"`
 }
 
 type PlayerRecord struct {
@@ -82,6 +85,17 @@ type SessionStreakRecord struct {
 	PlayerName string `bson:"playerName"`
 }
 
+type AdminActionRecord struct {
+	ActionType        string    `bson:"actionType"`
+	ActingAdmin       string    `bson:"actingAdmin"`
+	TargetPlayer      string    `bson:"targetPlayer,omitempty"`
+	TargetIdentifier  string    `bson:"targetIdentifier,omitempty"`
+	Payload           bson.M    `bson:"payload,omitempty"`
+	ResultStatus      string    `bson:"resultStatus"`
+	ResultDescription string    `bson:"resultDescription,omitempty"`
+	Created           time.Time `bson:"created"`
+}
+
 ///////////////////////////////////////////////////////////
 // User Record
 
@@ -100,8 +114,29 @@ func (db *DB) getAuthorizedUserById(identifier string) *UserRecord {
 	return &result
 }
 
+func (db *DB) getAuthorizedUserByUsername(username string) *UserRecord {
+	var result UserRecord
+	err := db.users.FindOne(context.TODO(), bson.M{"username": bson.M{"$eq": username}}).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil
+		}
+		log.Fatal(err)
+	}
+	return &result
+}
+
 func (db *DB) insertAuthorizedUser(user UserRecord) error {
 	_, err := db.users.InsertOne(context.TODO(), user)
+	return err
+}
+
+func (db *DB) updateLastLoginForUserWithId(identifier string) error {
+	_, err := db.users.UpdateOne(
+		context.TODO(),
+		bson.M{"identifier": bson.M{"$eq": identifier}},
+		bson.M{"$set": bson.M{"lastLogin": time.Now()}},
+	)
 	return err
 }
 
@@ -129,6 +164,40 @@ func (db *DB) updateUsernameForUserWithId(identifier, username string) bool {
 	return true
 }
 
+func (db *DB) upsertBanForIdentifier(identifier, actingAdmin, reason string, banExpiresAt *time.Time) error {
+	_, err := db.users.UpdateOne(
+		context.TODO(),
+		bson.M{"identifier": bson.M{"$eq": identifier}},
+		bson.M{"$set": bson.M{
+			"bannedBy":     actingAdmin,
+			"banReason":    reason,
+			"banExpiresAt": banExpiresAt,
+		}},
+	)
+	return err
+}
+
+func (db *DB) clearBanForIdentifier(identifier string) error {
+	_, err := db.users.UpdateOne(
+		context.TODO(),
+		bson.M{"identifier": bson.M{"$eq": identifier}},
+		bson.M{"$unset": bson.M{
+			"bannedBy":     "",
+			"banReason":    "",
+			"banExpiresAt": "",
+		}},
+	)
+	return err
+}
+
+func (db *DB) saveAdminAction(record AdminActionRecord) error {
+	if db.adminActions == nil {
+		return nil
+	}
+	_, err := db.adminActions.InsertOne(context.TODO(), record)
+	return err
+}
+
 /////////////////////////////////////////////////////////////
 //  Player Record
 
@@ -146,7 +215,7 @@ func (db *DB) getPlayerRecord(username string) (PlayerRecord, error) {
 	err := collection.FindOne(context.TODO(), bson.M{"username": bson.M{"$eq": username}}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			logger.Error().Err(err).Msg("No document was found with the given email")
+			logger.Error().Err(err).Msg("No document was found with the given username")
 			return PlayerRecord{Username: "invalild"}, err
 		} else {
 			log.Fatal(err)
@@ -193,6 +262,15 @@ func (db *DB) updatePlayerRecordOnLogout(p *Player, pTile *Tile) error {
 		bson.M{
 			"$set": snapshot,
 		},
+	)
+	return err
+}
+
+func (db *DB) adminUpdatePlayerRecord(username string, updates bson.M) error {
+	_, err := db.playerRecords.UpdateOne(
+		context.TODO(),
+		bson.M{"username": bson.M{"$eq": username}},
+		bson.M{"$set": updates},
 	)
 	return err
 }

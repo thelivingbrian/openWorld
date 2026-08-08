@@ -17,6 +17,24 @@ High-level architecture reference for agents and contributors.
 - Keep design changes in tools and runtime behavior changes in server aligned.
 - Server is used by multiple players concurrently, changes must prioritize stability then performance.
 - Prefer focused tests near changed packages before broad test runs.
+- Droplet releases are activated by `/opt/openworld/bin/deploy-openworld.sh`, which restarts the configured systemd unit after updating `/opt/openworld/current`; changes to the repository copy must also be installed into `/opt/openworld/bin`.
+
+## Admin Console Notes
+- Admin console is server-rendered in `server/main` and exposed via `/admin` on game server instances.
+- Admin access is identifier-based (`ADMIN_IDENTIFIERS` env var, comma-separated).
+- Admin write actions persist audit records in Mongo collection `adminActions`.
+- User bans are stored on user records and enforced at login (`banReason`, `bannedBy`, `banExpiresAt`).
+
+### Live preview
+- Admin-only watch pages use `/admin/watch`; differential canvas updates use the authenticated `/admin/watch/screen` WebSocket.
+- Player watching mirrors the selected player's canvas viewport and includes highlights.
+- HUD and menu forwarding are independently configurable per watch session and default to off.
+- When the selected player logs out, the watch session remains open and renders a dark logged-out state with explanatory text.
+- Stage watching uses a read-only camera at a random valid viewport on the selected stage.
+- A stage camera jumps to another random viewport after 30 seconds without an update visible in its current viewport; a manual Next camera action triggers the same behavior.
+- Stage camera jumps stay within the selected stage. Free panning is deferred.
+- Spectator camera output is bounded and non-blocking. Queue overflow requests a full viewport resync so a slow spectator cannot block camera-zone gameplay updates.
+- Non-admin observer access is deferred; the route-level authorization boundary is the future extension point.
 
 ## Rendering Notes
 - Canvas rendering lives in `server/main/assets/canvas.js` with per-layer stage buffers and immediate per-tile updates from websocket quick-swap messages.

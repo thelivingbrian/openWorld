@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 )
 
 const VIEW_HEIGHT = 16
@@ -13,6 +14,22 @@ type Camera struct {
 	positionLock           sync.Mutex
 	topLeft                *Tile
 	outgoing               chan<- []byte // Send only: is == player.updates
+	dropUpdatesWhenBusy    bool
+	resyncRequired         *atomic.Bool
+}
+
+func (camera *Camera) send(update []byte) {
+	if !camera.dropUpdatesWhenBusy {
+		camera.outgoing <- update
+		return
+	}
+	select {
+	case camera.outgoing <- update:
+	default:
+		if camera.resyncRequired != nil {
+			camera.resyncRequired.Store(true)
+		}
+	}
 }
 
 func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
@@ -27,9 +44,9 @@ func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
 	y, x := topLeft(len(stage.tiles), len(stage.tiles[0]), camera.height, camera.width, posY, posX)
 	region := getRegion(stage.tiles, Rect{y, y + camera.height - 1, x, x + camera.width - 1})
 
-	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="set" y="%d" x="%d" class=""]`, y, x))
+	camera.send([]byte(fmt.Sprintf(`[~ id="set" y="%d" x="%d" class=""]`, y, x)))
 	for _, tile := range region {
-		camera.outgoing <- []byte(swapsForTileNoHighlight(tile))
+		camera.send([]byte(swapsForTileNoHighlight(tile)))
 	}
 
 	newTopLeft := region[0]
@@ -62,7 +79,7 @@ func (camera *Camera) track(character Character) []*Tile {
 		return nil
 	}
 
-	camera.outgoing <- []byte(fmt.Sprintf(`[~ id="shift" y="%d" x="%d" class=""]`, dy, dx))
+	camera.send([]byte(fmt.Sprintf(`[~ id="shift" y="%d" x="%d" class=""]`, dy, dx)))
 
 	return updateTiles(camera, newY, newX)
 }
@@ -102,7 +119,7 @@ func updateTiles(camera *Camera, newY, newX int) []*Tile {
 			}
 			if y < oldY0 || y > oldY1 || x < oldX0 || x > oldX1 {
 				newTiles = append(newTiles, stage.tiles[y][x])
-				camera.outgoing <- []byte(swapsForTileNoHighlight(stage.tiles[y][x]))
+				camera.send([]byte(swapsForTileNoHighlight(stage.tiles[y][x])))
 			}
 		}
 	}

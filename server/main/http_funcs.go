@@ -141,6 +141,20 @@ func (world *World) postPlay(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if isUserCurrentlyBanned(userRecord) {
+		if userRecord.BanExpiresAt != nil {
+			io.WriteString(w, "Account temporarily banned. Try again later.")
+		} else {
+			io.WriteString(w, "Account is banned.")
+		}
+		return
+	}
+	if isUserBanExpired(userRecord) {
+		if err := world.db.clearBanForIdentifier(userRecord.Identifier); err != nil {
+			logger.Warn().Err(err).Msg("Failed to clear expired ban for: " + userRecord.Identifier)
+		}
+	}
+
 	if userRecord.Username == "" {
 		colorPage := struct {
 			DomainName        string
@@ -349,6 +363,11 @@ func (db *DB) callback(w http.ResponseWriter, r *http.Request) {
 			logger.Warn().Msg("New User creation in mongo failed")
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
+		}
+	} else {
+		err := db.updateLastLoginForUserWithId(identifier)
+		if err != nil {
+			logger.Warn().Err(err).Msg("Unable to update user lastLogin for identifier: " + identifier)
 		}
 	}
 

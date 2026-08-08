@@ -12,3 +12,5 @@ main.exe
 .env
 .vscode
 *~
+__pycache__/
+*.py[cod]

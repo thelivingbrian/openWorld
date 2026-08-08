@@ -1,0 +1,52 @@
+{{ define "admin-watch" }}
+<!DOCTYPE html>
+<html>
+    {{template "page-header"}}
+    <body>
+        <div id="page" class="watch-page">
+            <main class="watch-console">
+                <header class="watch-heading">
+                    <div>
+                        <p class="admin-eyebrow">Live {{.Mode}} preview</p>
+                        <h1>{{.Target}}</h1>
+                    </div>
+                    <a href="/admin">Back to console</a>
+                </header>
+
+                <div id="watch-stream" class="watch-layout" hx-ext="ws" ws-connect="{{.SocketPath}}">
+                    <section class="watch-screen-panel" aria-label="Live game preview">
+                        <div id="info" class="watch-hud"></div>
+                        <div class="watch-canvas-wrap">
+                            {{template "player-screen"}}
+                            <div id="watch-state" class="watch-state"></div>
+                        </div>
+                        <div id="bottom_text" class="watch-bottom-text"></div>
+                        <div id="modal_background"></div>
+                    </section>
+
+                    <aside class="watch-controls">
+                        <div>
+                            <span class="admin-status"><span aria-hidden="true"></span> Live</span>
+                            <p class="admin-muted">Read-only spectator connection</p>
+                        </div>
+
+                        {{if eq .Mode "stage"}}
+                        <form ws-send>
+                            <input type="hidden" name="eventname" value="next-camera" />
+                            <button class="admin-button" type="submit">Next camera</button>
+                        </form>
+                        {{else}}
+                        <form class="watch-options" method="get" action="/admin/watch">
+                            <input type="hidden" name="player" value="{{.Target}}" />
+                            <label><input type="checkbox" name="hud" value="1" {{if .ShowHUD}}checked{{end}} /> Show HUD</label>
+                            <label><input type="checkbox" name="menu" value="1" {{if .ShowMenu}}checked{{end}} /> Show menus</label>
+                            <button class="admin-button" type="submit">Apply visibility</button>
+                        </form>
+                        {{end}}
+                    </aside>
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
+{{ end }}
