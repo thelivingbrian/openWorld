@@ -40,7 +40,19 @@ def stream(name: str, proc: subprocess.Popen):
         print(f"[{name}] {line}", end="")
 
 
+def ensure_frontend_dependencies() -> None:
+    frontend_dir = ROOT / "tools" / "main" / "spa"
+    angular_cli = frontend_dir / "node_modules" / ".bin" / "ng"
+    if angular_cli.exists():
+        return
+
+    print("Installing frontend dependencies: npm ci")
+    subprocess.run([*resolve_cmd(["npm", "ci"])], cwd=frontend_dir, check=True)
+
+
 def main() -> int:
+    ensure_frontend_dependencies()
+
     for name, cmd, cwd in SERVICES:
         resolved = resolve_cmd(cmd)
         print(f"Starting {name}: {' '.join(cmd)}  (cwd={cwd})")
