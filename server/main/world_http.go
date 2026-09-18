@@ -495,7 +495,9 @@ func (p *WorldPlatform) worldActionHandler(app *App) http.HandlerFunc {
 		}
 		switch parts[1] {
 		case "launch":
-			info, err := p.manager.Start(r.Context(), world)
+			launchCtx, cancel := context.WithTimeout(r.Context(), 45*time.Second)
+			defer cancel()
+			info, err := p.manager.Start(launchCtx, world)
 			if err != nil {
 				platformError(w, err)
 				return

@@ -1,11 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 import { BootstrapResponse, Collection, InteractableDescription, Prototype, Space, Color, Fragment, AreaDescription } from '../models/editor.models';
 
 @Injectable({ providedIn: 'root' })
 export class EditorApiService {
   private readonly http = inject(HttpClient);
+  private readonly actionTimeoutMs = 45_000;
   private readonly hostedWorldId = new URLSearchParams(globalThis.location?.search ?? '').get('world');
   readonly isHosted = Boolean(this.hostedWorldId && globalThis.location?.pathname.startsWith('/design'));
   private hostedCollection?: Collection;
@@ -122,13 +123,19 @@ export class EditorApiService {
   }
 
   async compile(collectionName: string): Promise<void> {
-    if (this.hosted) { await firstValueFrom(this.http.post<void>(`/api/design/worlds/${this.hostedWorldId}/releases`, {}, { headers: await this.csrf() })); return; }
-    await firstValueFrom(this.http.post<void>('/api/compile', { collectionName }));
+    if (this.hosted) {
+      await firstValueFrom(this.http.post<void>(`/api/design/worlds/${this.hostedWorldId}/releases`, {}, { headers: await this.csrf() }).pipe(timeout(this.actionTimeoutMs)));
+      return;
+    }
+    await firstValueFrom(this.http.post<void>('/api/compile', { collectionName }).pipe(timeout(this.actionTimeoutMs)));
   }
 
   async deploy(collectionName: string): Promise<void> {
-    if (this.hosted) { await firstValueFrom(this.http.post<void>(`/api/worlds/${this.hostedWorldId}/launch`, {}, { headers: await this.csrf() })); return; }
-    await firstValueFrom(this.http.post<void>('/api/deploy', { collectionName }));
+    if (this.hosted) {
+      await firstValueFrom(this.http.post<void>(`/api/worlds/${this.hostedWorldId}/launch`, {}, { headers: await this.csrf() }).pipe(timeout(this.actionTimeoutMs)));
+      return;
+    }
+    await firstValueFrom(this.http.post<void>('/api/deploy', { collectionName }).pipe(timeout(this.actionTimeoutMs)));
   }
 
   private async getHostedBootstrap(): Promise<BootstrapResponse> {

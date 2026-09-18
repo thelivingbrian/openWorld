@@ -1630,8 +1630,12 @@ export class EditorComponent {
       return;
     }
     this.status.set('Compiling...');
-    await this.api.compile(colName);
-    this.status.set('Compiled.');
+    try {
+      await this.api.compile(colName);
+      this.status.set('Compiled.');
+    } catch (error) {
+      this.status.set(this.extractApiError(error, 'Compile failed.'));
+    }
   }
 
   protected async deployCollection(): Promise<void> {
@@ -1640,8 +1644,12 @@ export class EditorComponent {
       return;
     }
     this.status.set('Deploying...');
-    await this.api.deploy(colName);
-    this.status.set('Deployed.');
+    try {
+      await this.api.deploy(colName);
+      this.status.set('Deployed.');
+    } catch (error) {
+      this.status.set(this.extractApiError(error, 'Deploy failed.'));
+    }
   }
 
   protected ensureEditedInteractableStateSelection(): void {

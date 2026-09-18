@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"regexp"
 	"sort"
 	"strings"
@@ -488,9 +489,33 @@ func (s *WorldStore) release(ctx context.Context, worldID, releaseID string) (*W
 }
 
 func (s *WorldStore) downloadArtifact(ctx context.Context, release *WorldRelease) ([]byte, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
+	stream, err := s.bucket.OpenDownloadStream(release.ArtifactFileID)
+	if err != nil {
+		return nil, err
+	}
+	defer stream.Close()
+
 	var out bytes.Buffer
-	_, err := s.bucket.DownloadToStream(release.ArtifactFileID, &out)
-	return out.Bytes(), err
+	copyDone := make(chan error, 1)
+	go func() {
+		_, copyErr := io.Copy(&out, stream)
+		copyDone <- copyErr
+	}()
+
+	select {
+	case copyErr := <-copyDone:
+		if copyErr != nil {
+			return nil, copyErr
+		}
+		return out.Bytes(), nil
+	case <-ctx.Done():
+		_ = stream.Close()
+		return nil, ctx.Err()
+	}
 }
 
 func (s *WorldStore) rollback(ctx context.Context, worldID, releaseID string) error {
