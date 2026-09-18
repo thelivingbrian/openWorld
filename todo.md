@@ -1,13 +1,27 @@
 # Todo List
 
 ### Current in progress -
-# Description: 
-  (Text description here)
-# Todo:
 
+# Description: 
+  Complete web design editor feature.
+# Todo:
+  - [ ] web design editor is fully functional for maintaining game world
+    - [ ] Can program NPCs with custom behavior
+    - [ ] Can set Spawn behavior from editor 
+    - [ ] Can create custom world achievements from editor
+    - [ ] Can choose to deploy consistently - persisting until shut off
+    - [ ] Admin console allows navigation by world / ability to shutdown or access editor
+    - [ ] For now only admins can edit or deploy world but user or member created worlds may follow 
+    - [ ] Current editor has umimpressive UI, switch with more professional setup 
+      - [ ] Should fit bloopworld thematically but as it is an editor primary color pallete must be gray-scale or adjacent
+    - [ ] Intuitive controls are a must
+      - [ ] Seek engine quality interface and functionality
+    - [ ] Core game maintenance is intended to occur from within the editor going forward
+      - [ ] Support for versions is needed to facilitate rollback / wip
 
 
 ### Full Backlog -
+
 ## Engine
 - [ ] Do not award new most dangerous on logout? - No Ties but legitmate person may get overlooked even with continued steeak
 - [ ] Smaller than 16 x 16 stage/area occupies only part of screen
