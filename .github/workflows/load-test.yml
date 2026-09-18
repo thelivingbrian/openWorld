@@ -1,0 +1,96 @@
+name: Load Test
+
+run-name: Load test ${{ inputs.load_test_style }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      load_test_style:
+        description: Player and stage distribution to run
+        required: true
+        default: two_teams_512_players
+        type: choice
+        options:
+          - two_teams_256_players
+          - two_teams_512_players
+      ttl_seconds:
+        description: Test duration in seconds (1-900)
+        required: true
+        default: 300
+        type: number
+      action:
+        description: Action performed by each simulated player
+        required: true
+        default: random
+        type: choice
+        options:
+          - random
+          - circles
+          - lr
+          - movespace
+          - space
+      read_messages:
+        description: Read messages sent back by the server
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-load-test
+  cancel-in-progress: false
+
+jobs:
+  load-test:
+    name: Run load test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production-load-test
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: integration/go.mod
+          cache-dependency-path: integration/go.sum
+
+      - name: Validate configuration
+        shell: bash
+        env:
+          BLOOP_HOST: ${{ vars.BLOOP_HOST }}
+          AUTO_PLAYER_PASSWORD: ${{ secrets.AUTO_PLAYER_PASSWORD }}
+          TTL_SECONDS: ${{ inputs.ttl_seconds }}
+        run: |
+          if [[ -z "$BLOOP_HOST" ]]; then
+            echo "BLOOP_HOST must be configured as a production-load-test environment variable."
+            exit 1
+          fi
+          if [[ -z "$AUTO_PLAYER_PASSWORD" ]]; then
+            echo "AUTO_PLAYER_PASSWORD must be configured as a production-load-test environment secret."
+            exit 1
+          fi
+          if (( TTL_SECONDS < 1 || TTL_SECONDS > 900 )); then
+            echo "ttl_seconds must be between 1 and 900."
+            exit 1
+          fi
+
+      - name: Run load test
+        working-directory: integration
+        env:
+          BLOOP_HOST: ${{ vars.BLOOP_HOST }}
+          AUTO_PLAYER_PASSWORD: ${{ secrets.AUTO_PLAYER_PASSWORD }}
+          LOAD_TEST_STYLE: ${{ inputs.load_test_style }}
+          TTL_SECONDS: ${{ inputs.ttl_seconds }}
+          PLAYER_ACTION: ${{ inputs.action }}
+          READ_MESSAGES: ${{ inputs.read_messages }}
+        run: |
+          go run ./main \
+            -style "$LOAD_TEST_STYLE" \
+            -ttl "$TTL_SECONDS" \
+            -action "$PLAYER_ACTION" \
+            -read="$READ_MESSAGES"

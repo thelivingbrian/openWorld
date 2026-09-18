@@ -1,5 +1,12 @@
 from __future__ import annotations
-import os, shutil, subprocess, sys, threading, time, atexit
+import atexit
+import os
+import shutil
+import signal
+import subprocess
+import sys
+import threading
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -34,7 +41,10 @@ def kill_all():
                 subprocess.run(["taskkill", "/PID", str(p.pid), "/T", "/F"],
                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             else:
-                p.kill()
+                try:
+                    os.killpg(p.pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
 
 atexit.register(kill_all)
 
@@ -44,11 +54,46 @@ def stream(name: str, proc: subprocess.Popen):
         print(f"[{name}] {line}", end="")
 
 
+def ensure_frontend_dependencies() -> None:
+    frontend_dir = ROOT / "tools" / "main" / "spa"
+    angular_cli = frontend_dir / "node_modules" / ".bin" / "ng"
+    if angular_cli.exists():
+        return
+
+    print("Installing frontend dependencies: npm ci")
+    subprocess.run([*resolve_cmd(["npm", "ci"])], cwd=frontend_dir, check=True)
+
+
+def ensure_mongodb() -> None:
+    print("Starting MongoDB: docker compose up --detach --wait mongodb")
+    subprocess.run(
+        [*resolve_cmd(["docker", "compose", "up", "--detach", "--wait", "mongodb"])],
+        cwd=ROOT,
+        check=True,
+    )
+
+
+def ensure_server_data() -> None:
+    data_file = ROOT / "server" / "main" / "data" / "areas.json"
+    if data_file.exists():
+        return
+
+    print("Generating game data: go run . deploy bloop")
+    subprocess.run(
+        [*resolve_cmd(["go", "run", ".", "deploy", "bloop"])],
+        cwd=ROOT / "tools" / "main",
+        check=True,
+    )
+
+
 def main() -> int:
     env = os.environ.copy()
     env.setdefault(
         "WORLD_DESIGN_DIR", str(ROOT / "tools" / "main" / "spa" / "dist" / "spa" / "browser")
     )
+    ensure_frontend_dependencies()
+    ensure_mongodb()
+    ensure_server_data()
 
     for name, cmd, cwd in SERVICES:
         resolved = resolve_cmd(cmd)
@@ -61,6 +106,7 @@ def main() -> int:
             # Prevent Ctrl+C from reaching children directly; we kill them
             # ourselves via taskkill, avoiding "Terminate batch job?" prompts.
             creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if IS_WIN else 0,
+            start_new_session=not IS_WIN,
         )
         procs.append((name, p))
         threading.Thread(target=stream, args=(name, p), daemon=True).start()
