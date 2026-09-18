@@ -1,14 +1,15 @@
-# Todo List (note: ai agents use .ai/backlog.md)
+# Todo List
 
+### Current in progress -
+# Description: 
+  (Text description here)
+# Todo:
+
+
+
+### Full Backlog -
 ## Engine
-- [ ] Admin screen
- - [-] Player / Team count
- - [ ] Stage list 
- - [ ] Most Dangerous stats 
- - [ ] Observe stage / player 
-- [-] Minimum streak for most dangerous (Possibly just for award but possibly for inclusion in heap as well)
-  - [ ] Do not award new most dangerous on logout? - No Ties but legitmate person may get overlooked even with continued steeak
-- [ ] Canvas based interactive/realtime stage map? 
+- [ ] Do not award new most dangerous on logout? - No Ties but legitmate person may get overlooked even with continued steeak
 - [ ] Smaller than 16 x 16 stage/area occupies only part of screen
 - [ ] thin lines behind tiles with ground on some screens 
 - [ ] Server tests are coupled to workspace output
@@ -21,7 +22,6 @@
     - [ ] group of N batteries provides N charge 
 
 ## Integration 
-- [ ] Python rewrite
 - [ ] Bot AI
   - [ ] Use boosts
   - [ ] Move in line
@@ -49,9 +49,11 @@
 
 ## Performance 
 - [-] Load test database cluster
-- [ ] Load Test NPC
+- [-] Load Test NPC
   - [-] Max count ~2000 cpu ~43.4%
-- [ ] Load test smaller server
+- [-] Load test smaller server
+  - [-] 256 Players -> 32% cpu, 15MBs outbound, minimal memory
+  - [-] Can invoke through github actions
 
 ## Design Workspace
 - [ ] place NPCs
@@ -162,5 +164,5 @@ One way or two way.
 type []byte(update) 100 times
 
 []byte(update) 
-I will type []byte(update) 56 more times 
-I will type []byte(update) 55 more times
+I will type []byte(update) 45 more times
+I will type []byte(update) 44 more times

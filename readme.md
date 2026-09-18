@@ -49,10 +49,9 @@ Optional runtime limits are `WORLD_RUNTIME_MEMORY_LIMIT` (Go memory-limit syntax
 ## AI orchestration
 
 - Stable instructions: `.ai/AGENTS.md`
-- Mutable agent notes: `.ai/notes.md`
-- Shared execution queue: `.ai/backlog.md`
+- Architecture reference: `.ai/architecture.md`
 
 Suggested flow:
-1. Read `.ai/AGENTS.md`, then `.ai/backlog.md`, then `.ai/notes.md`
-2. Claim one task by setting it to `IN_PROGRESS` and filling owner/date
-3. Complete work, set task to `DONE`, and add key learnings to `.ai/notes.md`
+1. Read `.ai/AGENTS.md`, then `.ai/architecture.md`
+2. Complete the active task
+3. Update `.ai/architecture.md` when a lasting project property changes
