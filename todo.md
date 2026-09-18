@@ -1,10 +1,10 @@
 # Todo List
 
-### Current in progress -
+## Current in progress -
 
-# Description: 
+### Description: 
   Complete web design editor feature.
-# Todo:
+### Todo:
   - [ ] web design editor is fully functional for maintaining game world
     - [ ] Can program NPCs with custom behavior
     - [ ] Can set Spawn behavior from editor 
@@ -23,7 +23,7 @@
 ---- AI Agents ignore below ----
 
 
-### Full Backlog -
+# Full Backlog -
 
 ## Engine
 - [ ] Do not award new most dangerous on logout? - No Ties but legitmate person may get overlooked even with continued steeak
