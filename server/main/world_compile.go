@@ -52,10 +52,19 @@ type SourceArea struct {
 }
 
 type SourceBlueprint struct {
-	Tiles             [][]SourceTile `json:"Tiles"`
-	Ground            [][]SourceCell `json:"Ground"`
-	DefaultTileColor  string         `json:"DefaultTileColor"`
-	DefaultTileColor1 string         `json:"DefaultTileColor1"`
+	Instructions      []SourceInstruction `json:"Instructions"`
+	Tiles             [][]SourceTile      `json:"Tiles"`
+	Ground            [][]SourceCell      `json:"Ground"`
+	DefaultTileColor  string              `json:"DefaultTileColor"`
+	DefaultTileColor1 string              `json:"DefaultTileColor1"`
+}
+
+type SourceInstruction struct {
+	ID                 string
+	X                  int
+	Y                  int
+	GridAssetID        string `json:"GridAssetId"`
+	ClockwiseRotations int
 }
 
 type SourceTile struct {
@@ -86,6 +95,8 @@ type SourcePrototype struct {
 	Ceiling1Css string `json:"ceiling1css"`
 	Ceiling2Css string `json:"ceiling2css"`
 	MapColor    string `json:"mapColor"`
+	SetName     string `json:"setName"`
+	EditorColor string `json:"editorColor"`
 	DisplayText string `json:"displayText"`
 }
 
@@ -122,6 +133,32 @@ func compileWorldResources(resources []WorldResource, admin bool) (CompiledRelea
 	}
 	files, err := compileCollectionFiles(collection, palette)
 	if err != nil {
+		return CompiledRelease{}, err
+	}
+	var compiledAreas []Area
+	if err := json.Unmarshal(files["areas.json"], &compiledAreas); err != nil {
+		return CompiledRelease{}, err
+	}
+	areasByName := map[string]Area{}
+	for _, area := range compiledAreas {
+		if area.Name == "" || areasByName[area.Name].Name != "" {
+			return CompiledRelease{}, fmt.Errorf("empty or duplicate area name %q", area.Name)
+		}
+		areasByName[area.Name] = area
+	}
+	locations := []WorldLocation{manifest.Entry}
+	for _, team := range manifest.Teams {
+		locations = append(locations, team.Spawn)
+	}
+	if manifest.OnboardingExit != nil {
+		locations = append(locations, *manifest.OnboardingExit)
+	}
+	for _, location := range locations {
+		if err := validateWorldLocation(location, areasByName); err != nil {
+			return CompiledRelease{}, err
+		}
+	}
+	if err := validateWorldRules(manifest, areasByName); err != nil {
 		return CompiledRelease{}, err
 	}
 	manifestJSON, _ := json.Marshal(manifest)
@@ -418,7 +455,7 @@ func compileArea(source SourceArea, mapID string, prototypes map[string]SourcePr
 	outInteractables := make([][]*InteractableDescription, height)
 	count := 0
 	for y, row := range source.Blueprint.Tiles {
-		if len(row) == 0 || len(row) > maxAreaSide {
+		if len(row) == 0 || len(row) > maxAreaSide || len(row) != len(source.Blueprint.Tiles[0]) {
 			return Area{}, 0, fmt.Errorf("area %q has invalid width", source.Name)
 		}
 		tiles[y] = make([]Material, len(row))
@@ -426,6 +463,9 @@ func compileArea(source SourceArea, mapID string, prototypes map[string]SourcePr
 		count += len(row)
 		for x, cell := range row {
 			prototype, ok := prototypes[cell.PrototypeID]
+			if cell.PrototypeID == "" && !ok {
+				prototype, ok = SourcePrototype{Walkable: true}, true
+			}
 			if !ok {
 				return Area{}, 0, fmt.Errorf("area %q references unknown prototype %q at %d,%d", source.Name, cell.PrototypeID, y, x)
 			}
@@ -471,6 +511,14 @@ func compileArea(source SourceArea, mapID string, prototypes map[string]SourcePr
 				return Area{}, 0, fmt.Errorf("area %q references unknown interactable %q", source.Name, cell.InteractableID)
 			}
 		}
+	}
+	for _, transport := range source.Transports {
+		if transport.SourceY < 0 || transport.SourceY >= height || transport.SourceX < 0 || transport.SourceX >= len(tiles[transport.SourceY]) {
+			return Area{}, 0, fmt.Errorf("area %q has an out-of-bounds transport", source.Name)
+		}
+	}
+	if _, ok := spawnActions[source.SpawnStrategy]; !ok {
+		return Area{}, 0, fmt.Errorf("area %q: unknown spawn strategy %q", source.Name, source.SpawnStrategy)
 	}
 	return Area{Name: source.Name, Safe: source.Safe, Tiles: tiles, Interactables: outInteractables, Transports: source.Transports, North: source.North, South: source.South, East: source.East, West: source.West, MapId: mapID, LoadStrategy: source.LoadStrategy, SpawnStrategy: source.SpawnStrategy, BroadcastGroup: source.BroadcastGroup, Weather: source.Weather}, count, nil
 }

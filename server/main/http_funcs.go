@@ -65,9 +65,12 @@ func (app *App) worldSelectHandler(w http.ResponseWriter, r *http.Request) {
 			route = world.Slug
 		}
 		_, running := app.platform.manager.Info(world.ID)
-		entries = append(entries, entry{ID: world.ID, Name: world.Name, Route: route, Running: running, CanEdit: admin || world.OwnerID == identifier})
+		entries = append(entries, entry{ID: world.ID, Name: world.Name, Route: route, Running: running, CanEdit: admin})
 	}
-	tmpl.ExecuteTemplate(w, "world-select-platform", entries)
+	tmpl.ExecuteTemplate(w, "world-select-platform", struct {
+		Worlds []entry
+		Admin  bool
+	}{entries, admin})
 }
 
 func (world *World) statusHandler(w http.ResponseWriter, r *http.Request) {

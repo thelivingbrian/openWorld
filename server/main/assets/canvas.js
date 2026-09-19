@@ -57,6 +57,23 @@ const COLOR_MAP = {
     "dark-lavender": "rgb(172, 152, 219)",
 };
 
+const DEFAULT_COLOR_MAP = { ...COLOR_MAP };
+
+// A world can override the built-in palette, including colors used in animations.
+// Reset first so moving between worlds never retains the previous world's colors.
+function applyCanvasPalette(sheet) {
+    if (!sheet) return;
+    let rules;
+    try { rules = sheet.cssRules; } catch { return; }
+    for (const name of Object.keys(COLOR_MAP)) delete COLOR_MAP[name];
+    Object.assign(COLOR_MAP, DEFAULT_COLOR_MAP);
+    for (const rule of rules) {
+        const name = rule.selectorText?.match(/^\.([a-z][a-z0-9-]{0,47})$/)?.[1];
+        if (name && rule.style?.backgroundColor) COLOR_MAP[name] = rule.style.backgroundColor;
+    }
+    if (document.getElementById('game')) redrawStage();
+}
+
 const BORDER_WIDTH_MAP = {
     thin: 1,
     med:  2,
@@ -759,18 +776,20 @@ function mixColor(colorA, colorB, amount) {
     const r = Math.round((a.r * (1 - t)) + (b.r * t));
     const g = Math.round((a.g * (1 - t)) + (b.g * t));
     const bCh = Math.round((a.b * (1 - t)) + (b.b * t));
-
+    const alpha = a.a * (1 - t) + b.a * t;
+    if (alpha !== 1) return `rgba(${r}, ${g}, ${bCh}, ${alpha})`;
     return `rgb(${r}, ${g}, ${bCh})`;
 }
 
 function parseRgbColor(color) {
-    const match = color.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+    const match = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/);
     if (!match) return null;
 
     return {
         r: Number(match[1]),
         g: Number(match[2]),
         b: Number(match[3]),
+        a: match[4] === undefined ? 1 : Number(match[4]),
     };
 }
 

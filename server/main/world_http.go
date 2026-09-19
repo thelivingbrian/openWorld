@@ -30,6 +30,7 @@ type WorldPlatform struct {
 	manager      *RuntimeManager
 	compileSlots chan struct{}
 	designDir    string
+	editLocks    sync.Map
 	rateMu       sync.Mutex
 	rate         map[string]requestWindow
 }
@@ -55,14 +56,18 @@ func newWorldPlatform(ctx context.Context, db *DB, config *Configuration) (*Worl
 }
 
 func (p *WorldPlatform) restorePersistentWorlds(ctx context.Context) {
-	worlds, err := p.store.listWorlds(ctx, bson.M{"lifecycle": LifecyclePersistent, "moderationState": "active", "publishedReleaseId": bson.M{"$ne": ""}})
+	worlds, err := p.store.listWorlds(ctx, bson.M{"lifecycle": LifecyclePersistent, "moderationState": "active", "publishedReleaseId": bson.M{"$ne": ""}, "deploymentEnabled": true})
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed to list persistent worlds")
 		return
 	}
 	for i := range worlds {
+		if worlds[i].DeployedReleaseID != "" {
+			worlds[i].PublishedReleaseID = worlds[i].DeployedReleaseID
+		}
 		if _, err := p.manager.Start(ctx, &worlds[i]); err != nil {
 			logger.Error().Err(err).Str("worldId", worlds[i].ID).Msg("Failed to restore persistent world")
+			go p.manager.retryPersistent(worlds[i].ID)
 		}
 	}
 }
@@ -96,14 +101,27 @@ var getenv = func(key string) string { return os.Getenv(key) }
 func (p *WorldPlatform) register(mux *http.ServeMux, app *App) {
 	mux.HandleFunc("/api/csrf", app.csrfHandler)
 	mux.HandleFunc("/api/worlds", p.publicWorldsHandler)
-	mux.HandleFunc("/api/worlds/", p.worldActionHandler(app))
-	mux.HandleFunc("/api/design/worlds", p.designWorldsHandler(app))
-	mux.HandleFunc("/api/design/worlds/", p.designWorldHandler(app))
+	mux.HandleFunc("/api/worlds/", p.auditWorldWrite(app, p.worldActionHandler(app)))
+	mux.HandleFunc("/api/design/worlds", p.auditWorldWrite(app, p.designWorldsHandler(app)))
+	mux.HandleFunc("/api/design/worlds/", p.auditWorldWrite(app, p.designWorldHandler(app)))
 	mux.HandleFunc("/w/", p.worldProxyHandler)
 	mux.HandleFunc("/design", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/design/", http.StatusPermanentRedirect)
 	})
-	mux.Handle("/design/", http.StripPrefix("/design/", spaFileHandler(p.designDir)))
+	mux.HandleFunc("/admin/worlds", p.adminWorldsHandler(app))
+	if app.config.mode == "controller" || !app.config.isServer() {
+		mux.HandleFunc("/admin", p.adminWorldsHandler(app))
+	}
+	mux.Handle("/design/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, ok := requireWorldAdmin(app, w, r); !ok {
+			return
+		}
+		if r.URL.Path == "/design/" && r.URL.Query().Get("world") == "" {
+			http.Redirect(w, r, "/admin/worlds", http.StatusSeeOther)
+			return
+		}
+		http.StripPrefix("/design/", spaFileHandler(p.designDir)).ServeHTTP(w, r)
+	}))
 }
 
 func spaFileHandler(directory string) http.Handler {
@@ -167,7 +185,97 @@ func actorFor(app *App, r *http.Request) (string, bool, bool) {
 	return id, app.config.isAdminIdentifier(id), true
 }
 func canEdit(world *WorldDocument, actor string, admin bool) bool {
-	return admin || world.OwnerID == actor
+	return admin
+}
+
+func requireWorldAdmin(app *App, w http.ResponseWriter, r *http.Request) (string, bool) {
+	actor, admin, authenticated := actorFor(app, r)
+	if !authenticated {
+		http.Error(w, "Sign in with an administrator account to manage worlds.", 401)
+		return "", false
+	}
+	if !admin {
+		http.Error(w, "World editing and deployment require an administrator.", 403)
+		return "", false
+	}
+	return actor, true
+}
+
+func (p *WorldPlatform) lockWorld(id string) func() {
+	lock, _ := p.editLocks.LoadOrStore(id, &sync.Mutex{})
+	mutex := lock.(*sync.Mutex)
+	mutex.Lock()
+	return mutex.Unlock
+}
+
+func (p *WorldPlatform) runtimeInfo(id string) *RuntimeInfo {
+	if info, ok := p.manager.Info(id); ok {
+		return &info
+	}
+	return nil
+}
+
+func (p *WorldPlatform) setDeployment(ctx context.Context, id string, enabled bool) error {
+	_, err := p.store.db.worlds.UpdateByID(ctx, id, bson.M{"$set": bson.M{"deploymentEnabled": enabled, "updatedAt": time.Now().UTC()}})
+	return err
+}
+
+type worldWriteResponse struct {
+	http.ResponseWriter
+	status int
+}
+
+func (w *worldWriteResponse) WriteHeader(status int) {
+	w.status = status
+	w.ResponseWriter.WriteHeader(status)
+}
+
+func (p *WorldPlatform) auditWorldWrite(app *App, handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		actor, admin, _ := actorFor(app, r)
+		if r.Method == http.MethodGet || !admin {
+			handler(w, r)
+			return
+		}
+		response := &worldWriteResponse{ResponseWriter: w, status: http.StatusOK}
+		handler(response, r)
+		status := "success"
+		if response.status >= 400 {
+			status = "failed"
+		}
+		if err := p.store.db.saveAdminAction(AdminActionRecord{ActionType: "world." + strings.ToLower(r.Method), ActingAdmin: actor, Payload: bson.M{"path": r.URL.Path, "httpStatus": response.status}, ResultStatus: status, Created: time.Now().UTC()}); err != nil {
+			logger.Error().Err(err).Msg("Failed to audit world action")
+		}
+	}
+}
+
+func (p *WorldPlatform) adminWorldsHandler(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if _, ok := requireWorldAdmin(app, w, r); !ok {
+			return
+		}
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", 405)
+			return
+		}
+		worlds, err := p.store.listWorlds(r.Context(), bson.M{})
+		if err != nil {
+			platformError(w, err)
+			return
+		}
+		type row struct {
+			WorldDocument
+			Runtime *RuntimeInfo
+		}
+		rows := make([]row, 0, len(worlds))
+		for _, world := range worlds {
+			rows = append(rows, row{world, p.runtimeInfo(world.ID)})
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		if err := tmpl.ExecuteTemplate(w, "admin-worlds", rows); err != nil {
+			logger.Error().Err(err).Msg("render world administration")
+		}
+	}
 }
 
 func (p *WorldPlatform) publicWorldsHandler(w http.ResponseWriter, r *http.Request) {
@@ -197,11 +305,11 @@ func (p *WorldPlatform) publicWorldsHandler(w http.ResponseWriter, r *http.Reque
 
 func (p *WorldPlatform) designWorldsHandler(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		actor, admin, ok := actorFor(app, r)
+		actor, ok := requireWorldAdmin(app, w, r)
 		if !ok {
-			http.Error(w, "unauthorized", 401)
 			return
 		}
+		admin := true
 		switch r.Method {
 		case http.MethodGet:
 			filter := bson.M{"ownerId": actor}
@@ -252,11 +360,11 @@ func (p *WorldPlatform) designWorldsHandler(app *App) http.HandlerFunc {
 
 func (p *WorldPlatform) designWorldHandler(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		actor, admin, ok := actorFor(app, r)
+		actor, ok := requireWorldAdmin(app, w, r)
 		if !ok {
-			http.Error(w, "unauthorized", 401)
 			return
 		}
+		admin := true
 		parts := splitPlatformPath(strings.TrimPrefix(r.URL.Path, "/api/design/worlds/"))
 		if len(parts) < 1 {
 			http.NotFound(w, r)
@@ -267,28 +375,12 @@ func (p *WorldPlatform) designWorldHandler(app *App) http.HandlerFunc {
 			platformError(w, err)
 			return
 		}
-		if parts[1] == "report" {
-			if !p.allow(actor, "report", 10) {
-				http.Error(w, "rate limit exceeded", 429)
-				return
-			}
-			var request struct {
-				Reason string `json:"reason"`
-			}
-			if err := decodePlatformJSON(w, r, &request, 16<<10); err != nil {
-				return
-			}
-			request.Reason = strings.TrimSpace(request.Reason)
-			if request.Reason == "" || len(request.Reason) > 1000 {
-				http.Error(w, "invalid report reason", 400)
-				return
-			}
-			err := p.store.db.saveAdminAction(AdminActionRecord{ActionType: "world-report", ActingAdmin: actor, TargetIdentifier: world.OwnerID, Payload: bson.M{"worldId": world.ID, "reason": request.Reason}, ResultStatus: "reported", Created: time.Now().UTC()})
-			if err != nil {
-				platformError(w, err)
-				return
-			}
-			w.WriteHeader(http.StatusNoContent)
+
+		unlock := p.lockWorld(world.ID)
+		defer unlock()
+		world, err = p.store.getWorld(r.Context(), world.ID)
+		if err != nil {
+			platformError(w, err)
 			return
 		}
 		if !canEdit(world, actor, admin) {
@@ -304,13 +396,32 @@ func (p *WorldPlatform) designWorldHandler(app *App) http.HandlerFunc {
 			return
 		}
 		switch {
+		case len(parts) == 2 && parts[1] == "report" && r.Method == http.MethodPost:
+			var request struct {
+				Reason string `json:"reason"`
+			}
+			if err := decodePlatformJSON(w, r, &request, 16<<10); err != nil {
+				return
+			}
+			request.Reason = strings.TrimSpace(request.Reason)
+			if request.Reason == "" || len(request.Reason) > 1000 {
+				http.Error(w, "invalid report reason", 400)
+				return
+			}
+			if err := p.store.db.saveAdminAction(AdminActionRecord{ActionType: "world-report", ActingAdmin: actor, TargetIdentifier: world.OwnerID, Payload: bson.M{"worldId": world.ID, "reason": request.Reason}, ResultStatus: "reported", Created: time.Now().UTC()}); err != nil {
+				platformError(w, err)
+				return
+			}
+			w.WriteHeader(http.StatusNoContent)
+		case len(parts) == 1 && r.Method == http.MethodGet:
+			writePlatformJSON(w, 200, map[string]any{"world": world, "runtime": p.runtimeInfo(world.ID)})
 		case len(parts) == 2 && parts[1] == "draft" && r.Method == http.MethodGet:
 			resources, err := p.store.resources(r.Context(), world.ID)
 			if err != nil {
 				platformError(w, err)
 				return
 			}
-			writePlatformJSON(w, 200, map[string]any{"world": world, "resources": resources})
+			writePlatformJSON(w, 200, map[string]any{"world": world, "resources": resources, "runtime": p.runtimeInfo(world.ID)})
 		case len(parts) == 4 && parts[1] == "resources" && r.Method == http.MethodPut:
 			expected, err := parseExpectedRevision(r)
 			if err != nil {
@@ -330,13 +441,13 @@ func (p *WorldPlatform) designWorldHandler(app *App) http.HandlerFunc {
 			w.Header().Set("ETag", fmt.Sprintf("\"%d\"", saved.Revision))
 			writePlatformJSON(w, 200, saved)
 		case len(parts) == 2 && parts[1] == "releases" && r.Method == http.MethodGet:
-			cursor, err := p.store.db.worldReleases.Find(r.Context(), bson.M{"worldId": world.ID}, options.Find().SetSort(bson.D{{Key: "number", Value: -1}}).SetLimit(20))
+			cursor, err := p.store.db.worldReleases.Find(r.Context(), bson.M{"worldId": world.ID}, options.Find().SetSort(bson.D{{Key: "number", Value: -1}}))
 			if err != nil {
 				platformError(w, err)
 				return
 			}
 			defer cursor.Close(r.Context())
-			var releases []WorldRelease
+			releases := []WorldRelease{}
 			if err := cursor.All(r.Context(), &releases); err != nil {
 				platformError(w, err)
 				return
@@ -349,7 +460,23 @@ func (p *WorldPlatform) designWorldHandler(app *App) http.HandlerFunc {
 				platformError(w, err)
 				return
 			}
-			_ = p.manager.Stop(r.Context(), world.ID)
+			// Selection does not change a running world until Launch is requested.
+			w.WriteHeader(204)
+		case len(parts) == 3 && parts[1] == "restore" && r.Method == http.MethodPost:
+			var request struct {
+				Generation int64 `json:"generation"`
+			}
+			if err := decodePlatformJSON(w, r, &request, 1024); err != nil {
+				return
+			}
+			if request.Generation != world.DraftGeneration {
+				platformError(w, ErrRevisionConflict)
+				return
+			}
+			if err := p.store.restoreDraft(r.Context(), world, parts[2]); err != nil {
+				platformError(w, err)
+				return
+			}
 			w.WriteHeader(204)
 		case len(parts) == 1 && r.Method == http.MethodPatch:
 			p.patchWorldHandler(w, r, world, admin)
@@ -373,6 +500,17 @@ func (p *WorldPlatform) publishHandler(w http.ResponseWriter, r *http.Request, w
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 	defer cancel()
+	var request struct {
+		Label    string `json:"label"`
+		Activate *bool  `json:"activate"`
+	}
+	if err := decodePlatformJSON(w, r, &request, 4096); err != nil {
+		return
+	}
+	if len(request.Label) > 120 {
+		http.Error(w, "version label must be at most 120 characters", 400)
+		return
+	}
 	resources, err := p.store.resources(ctx, world.ID)
 	if err != nil {
 		platformError(w, err)
@@ -391,7 +529,7 @@ func (p *WorldPlatform) publishHandler(w http.ResponseWriter, r *http.Request, w
 		http.Error(w, err.Error(), 422)
 		return
 	}
-	release, err := p.store.publish(ctx, world, compiled, actor)
+	release, err := p.store.publish(ctx, world, compiled, actor, strings.TrimSpace(request.Label), request.Activate == nil || *request.Activate)
 	if err != nil {
 		platformError(w, err)
 		return
@@ -428,6 +566,10 @@ func (p *WorldPlatform) patchWorldHandler(w http.ResponseWriter, r *http.Request
 		updates["slug"] = value
 	}
 	if request.Lifecycle != nil {
+		if *request.Lifecycle != LifecyclePersistent && *request.Lifecycle != LifecycleOwnerPresent && *request.Lifecycle != LifecycleUntilEmpty {
+			http.Error(w, "invalid lifecycle", 400)
+			return
+		}
 		if *request.Lifecycle == LifecyclePersistent && !admin {
 			http.Error(w, "persistent lifecycle requires admin", 403)
 			return
@@ -470,11 +612,11 @@ func (p *WorldPlatform) patchWorldHandler(w http.ResponseWriter, r *http.Request
 
 func (p *WorldPlatform) worldActionHandler(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		actor, admin, ok := actorFor(app, r)
+		actor, ok := requireWorldAdmin(app, w, r)
 		if !ok {
-			http.Error(w, "unauthorized", 401)
 			return
 		}
+		admin := true
 		if r.Method != http.MethodPost || !requireCSRF(r) {
 			http.Error(w, "forbidden", 403)
 			return
@@ -489,21 +631,43 @@ func (p *WorldPlatform) worldActionHandler(app *App) http.HandlerFunc {
 			platformError(w, err)
 			return
 		}
+		unlock := p.lockWorld(world.ID)
+		defer unlock()
+		world, err = p.store.getWorld(r.Context(), world.ID)
+		if err != nil {
+			platformError(w, err)
+			return
+		}
 		if !canEdit(world, actor, admin) {
 			http.Error(w, "forbidden", 403)
 			return
 		}
 		switch parts[1] {
 		case "launch":
+			if world.ModerationState != "active" || world.PublishedReleaseID == "" {
+				http.Error(w, "select a published version of an active world before launching", 409)
+				return
+			}
+			if _, err := p.store.db.worlds.UpdateByID(r.Context(), world.ID, bson.M{"$set": bson.M{"deploymentEnabled": true, "deployedReleaseId": world.PublishedReleaseID, "updatedAt": time.Now().UTC()}}); err != nil {
+				platformError(w, err)
+				return
+			}
 			launchCtx, cancel := context.WithTimeout(r.Context(), 45*time.Second)
 			defer cancel()
 			info, err := p.manager.Start(launchCtx, world)
 			if err != nil {
+				if world.Lifecycle == LifecyclePersistent {
+					go p.manager.retryPersistent(world.ID)
+				}
 				platformError(w, err)
 				return
 			}
 			writePlatformJSON(w, 200, info)
 		case "stop":
+			if err := p.setDeployment(r.Context(), world.ID, false); err != nil {
+				platformError(w, err)
+				return
+			}
 			if err := p.manager.Stop(r.Context(), world.ID); err != nil {
 				platformError(w, err)
 				return

@@ -32,6 +32,7 @@ type World struct {
 	worldStages         map[string]*Stage
 	areas               []Area
 	wStageMutex         sync.Mutex
+	programmedNPCCount  atomic.Int64
 	leaderBoard         *LeaderBoard
 	sessionStats        *WorldSessionData
 }
@@ -238,12 +239,28 @@ func CopyTeamQuantities(world *World) map[string]int {
 func (world *World) addPlayer(p *Player) int {
 	world.wPlayerMutex.Lock()
 	defer world.wPlayerMutex.Unlock()
+	return world.addLockedPlayer(p)
+}
+
+func (world *World) addLockedPlayer(p *Player) int {
 	// Update team count
 	previousCount := world.teamQuantities[p.team]
 	world.teamQuantities[p.team] = previousCount + 1
 	// Update world players
 	world.worldPlayers[p.id] = p
 	return len(world.worldPlayers)
+}
+
+func (world *World) admitPlayer(player *Player) (int, bool) {
+	world.wPlayerMutex.Lock()
+	defer world.wPlayerMutex.Unlock()
+	if world.teamQuantities[player.team] >= CAPACITY_PER_TEAM {
+		return 0, false
+	}
+	if limit := world.config.manifest.MaxPlayers; limit > 0 && len(world.worldPlayers) >= limit {
+		return 0, false
+	}
+	return world.addLockedPlayer(player), true
 }
 
 func (world *World) removePlayer(p *Player) {
@@ -322,8 +339,20 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 
 	newPlayer := world.newPlayerFromRecord(incoming.Record, incoming.Token)
 	newPlayer.userID = incoming.UserID
+	stage := newPlayer.fetchStageSync(incoming.Record.StageName)
+	y, x := incoming.Record.Y, incoming.Record.X
+	if !validCoordinate(y, x, stage) {
+		if spawn, ok := newPlayer.worldSpawn(); ok {
+			stage, y, x = newPlayer.fetchStageSync(spawn.Stage), spawn.Y, spawn.X
+		} else {
+			stage = getStageByNameOrGetDefault(newPlayer, incoming.Record.StageName)
+		}
+	}
+	if !validCoordinate(y, x, stage) {
+		sendUnableToJoinMessage(conn, "Your spawn point is unavailable.")
+		return nil
+	}
 
-	// TOCCTOA - capacity can be exceeded
 	if world.teamAtCapacity(newPlayer.getTeamNameSync()) {
 		sendUnableToJoinMessage(conn, "Your team is at capacity.")
 		return nil
@@ -336,21 +365,18 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 	}
 	newPlayer.camera = camera
 
-	newPlayer.updateRecordOnLogin()
 	newPlayer.conn = conn
-	go newPlayer.sendUpdates()
-
-	count := world.addPlayer(newPlayer)
-	trySetPeakPlayerCount(world, count)
-
-	stage := getStageByNameOrGetDefault(newPlayer, incoming.Record.StageName)
-	if !validCoordinate(incoming.Record.Y, incoming.Record.X, stage) {
-		// Could be an invalid coordianate too - not just unloadable stage
-		logger.Error().Msg("WARN: Player " + newPlayer.username + " on unloadable stage: " + incoming.Record.StageName)
+	count, admitted := world.admitPlayer(newPlayer)
+	if !admitted {
+		sendUnableToJoinMessage(conn, "This world is at capacity.")
 		return nil
 	}
+	newPlayer.updateRecordOnLogin()
+	go newPlayer.sendUpdates()
 
-	placePlayerOnStageAt(newPlayer, stage, incoming.Record.Y, incoming.Record.X)
+	trySetPeakPlayerCount(world, count)
+
+	placePlayerOnStageAt(newPlayer, stage, y, x)
 	return newPlayer
 }
 
@@ -397,6 +423,9 @@ func (world *World) teamAtCapacity(teamName string) bool {
 	world.wPlayerMutex.Lock()
 	defer world.wPlayerMutex.Unlock()
 	count := world.teamQuantities[teamName]
+	if world.config != nil && world.config.manifest.MaxPlayers > 0 && len(world.worldPlayers) >= world.config.manifest.MaxPlayers {
+		return true
+	}
 	return count >= CAPACITY_PER_TEAM
 }
 

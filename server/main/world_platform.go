@@ -49,8 +49,11 @@ type WorldDocument struct {
 	Visibility         string         `bson:"visibility" json:"visibility"`
 	ModerationState    string         `bson:"moderationState" json:"moderationState"`
 	Lifecycle          WorldLifecycle `bson:"lifecycle" json:"lifecycle"`
+	DeploymentEnabled  bool           `bson:"deploymentEnabled" json:"deploymentEnabled"`
 	DraftGeneration    int64          `bson:"draftGeneration" json:"draftGeneration"`
+	DraftResourceID    string         `bson:"draftResourceId,omitempty" json:"-"`
 	PublishedReleaseID string         `bson:"publishedReleaseId,omitempty" json:"publishedReleaseId,omitempty"`
+	DeployedReleaseID  string         `bson:"deployedReleaseId,omitempty" json:"deployedReleaseId,omitempty"`
 	CreatedAt          time.Time      `bson:"createdAt" json:"createdAt"`
 	UpdatedAt          time.Time      `bson:"updatedAt" json:"updatedAt"`
 	DeletedAt          *time.Time     `bson:"deletedAt,omitempty" json:"-"`
@@ -70,6 +73,7 @@ type WorldRelease struct {
 	ID              string             `bson:"_id" json:"id"`
 	WorldID         string             `bson:"worldId" json:"worldId"`
 	Number          int64              `bson:"number" json:"number"`
+	Label           string             `bson:"label,omitempty" json:"label,omitempty"`
 	DraftGeneration int64              `bson:"draftGeneration" json:"draftGeneration"`
 	SourceHash      string             `bson:"sourceHash" json:"sourceHash"`
 	ArtifactHash    string             `bson:"artifactHash" json:"artifactHash"`
@@ -110,6 +114,9 @@ type WorldManifest struct {
 	Leaderboards     []LeaderboardDefinition `json:"leaderboards,omitempty"`
 	OnboardingStages []string                `json:"onboardingStages,omitempty"`
 	OnboardingExit   *WorldLocation          `json:"onboardingExit,omitempty"`
+	NPCs             []NPCDefinition         `json:"npcs,omitempty"`
+	Spawns           []WorldSpawnRule        `json:"spawns,omitempty"`
+	Achievements     []WorldAchievement      `json:"achievements,omitempty"`
 }
 
 type WorldColor struct {
@@ -259,6 +266,10 @@ func newWorldStore(db *DB) (*WorldStore, error) {
 }
 
 func (s *WorldStore) ensureIndexes(ctx context.Context) error {
+	// Existing persistent worlds predate the explicit shutdown flag.
+	if _, err := s.db.worlds.UpdateMany(ctx, bson.M{"lifecycle": LifecyclePersistent, "deploymentEnabled": bson.M{"$exists": false}}, bson.M{"$set": bson.M{"deploymentEnabled": true}}); err != nil {
+		return err
+	}
 	if err := s.migrateLegacyProfiles(ctx); err != nil {
 		return err
 	}
@@ -364,18 +375,40 @@ func (s *WorldStore) listWorlds(ctx context.Context, filter bson.M) ([]WorldDocu
 }
 
 func (s *WorldStore) resources(ctx context.Context, worldID string) ([]WorldResource, error) {
-	cursor, err := s.db.worldResources.Find(ctx, bson.M{"worldId": worldID})
+	world, err := s.getWorld(ctx, worldID)
+	if err != nil {
+		return nil, err
+	}
+	cursor, err := s.db.worldResources.Find(ctx, bson.M{"worldId": world.resourceID()})
 	if err != nil {
 		return nil, err
 	}
 	defer cursor.Close(ctx)
-	var resources []WorldResource
-	return resources, cursor.All(ctx, &resources)
+	resources := []WorldResource{}
+	if err := cursor.All(ctx, &resources); err != nil {
+		return nil, err
+	}
+	for i := range resources {
+		resources[i].WorldID = worldID
+	}
+	return resources, nil
+}
+
+func (world *WorldDocument) resourceID() string {
+	if world.DraftResourceID != "" {
+		return world.DraftResourceID
+	}
+	return world.ID
 }
 
 var ErrRevisionConflict = errors.New("resource revision conflict")
 
 func (s *WorldStore) putResource(ctx context.Context, resource WorldResource, expected int64) (*WorldResource, error) {
+	world, err := s.getWorld(ctx, resource.WorldID)
+	if err != nil {
+		return nil, err
+	}
+	resource.WorldID = world.resourceID()
 	if err := validateResourcePart(resource.Kind); err != nil {
 		return nil, err
 	}
@@ -422,11 +455,12 @@ func (s *WorldStore) putResource(ctx context.Context, resource WorldResource, ex
 	if err != nil {
 		return nil, err
 	}
-	_, err = s.db.worlds.UpdateByID(ctx, resource.WorldID, bson.M{"$inc": bson.M{"draftGeneration": 1}, "$set": bson.M{"updatedAt": now}})
+	_, err = s.db.worlds.UpdateByID(ctx, world.ID, bson.M{"$inc": bson.M{"draftGeneration": 1}, "$set": bson.M{"updatedAt": now}})
+	saved.WorldID = world.ID
 	return &saved, err
 }
 
-func (s *WorldStore) publish(ctx context.Context, world *WorldDocument, release CompiledRelease, actor string) (*WorldRelease, error) {
+func (s *WorldStore) publish(ctx context.Context, world *WorldDocument, release CompiledRelease, actor, label string, activate bool) (*WorldRelease, error) {
 	latest := WorldRelease{}
 	err := s.db.worldReleases.FindOne(ctx, bson.M{"worldId": world.ID}, options.FindOne().SetSort(bson.D{{Key: "number", Value: -1}})).Decode(&latest)
 	if err != nil && err != mongo.ErrNoDocuments {
@@ -442,13 +476,17 @@ func (s *WorldStore) publish(ctx context.Context, world *WorldDocument, release 
 		_ = s.bucket.Delete(sourceID)
 		return nil, err
 	}
-	record := &WorldRelease{ID: uuid.NewString(), WorldID: world.ID, Number: number, DraftGeneration: world.DraftGeneration, SourceHash: release.SourceHash, ArtifactHash: release.ArtifactHash, CompilerVersion: "1", SourceFileID: sourceID, ArtifactFileID: artifactID, CreatedBy: actor, CreatedAt: time.Now().UTC()}
+	record := &WorldRelease{ID: uuid.NewString(), WorldID: world.ID, Number: number, Label: label, DraftGeneration: world.DraftGeneration, SourceHash: release.SourceHash, ArtifactHash: release.ArtifactHash, CompilerVersion: "2", SourceFileID: sourceID, ArtifactFileID: artifactID, CreatedBy: actor, CreatedAt: time.Now().UTC()}
 	if _, err = s.db.worldReleases.InsertOne(ctx, record); err != nil {
 		_ = s.bucket.Delete(sourceID)
 		_ = s.bucket.Delete(artifactID)
 		return nil, err
 	}
-	result, err := s.db.worlds.UpdateOne(ctx, bson.M{"_id": world.ID, "draftGeneration": world.DraftGeneration}, bson.M{"$set": bson.M{"publishedReleaseId": record.ID, "updatedAt": time.Now().UTC()}})
+	updates := bson.M{"updatedAt": time.Now().UTC()}
+	if activate {
+		updates["publishedReleaseId"] = record.ID
+	}
+	result, err := s.db.worlds.UpdateOne(ctx, bson.M{"_id": world.ID, "draftGeneration": world.DraftGeneration}, bson.M{"$set": updates})
 	if err != nil || result.ModifiedCount != 1 {
 		_, _ = s.db.worldReleases.DeleteOne(ctx, bson.M{"_id": record.ID})
 		_ = s.bucket.Delete(sourceID)
@@ -458,27 +496,55 @@ func (s *WorldStore) publish(ctx context.Context, world *WorldDocument, release 
 		}
 		return nil, ErrRevisionConflict
 	}
-	_ = s.pruneReleases(ctx, world.ID, 20)
 	return record, nil
 }
 
-func (s *WorldStore) pruneReleases(ctx context.Context, worldID string, retain int64) error {
-	cursor, err := s.db.worldReleases.Find(ctx, bson.M{"worldId": worldID}, options.Find().SetSort(bson.D{{Key: "number", Value: -1}}).SetSkip(retain))
+// Restore into a fresh resource namespace, then atomically switch the draft
+// pointer. Readers never see half a restored version, even on standalone Mongo.
+func (s *WorldStore) restoreDraft(ctx context.Context, world *WorldDocument, releaseID string) error {
+	release, err := s.release(ctx, world.ID, releaseID)
 	if err != nil {
 		return err
 	}
-	defer cursor.Close(ctx)
-	var releases []WorldRelease
-	if err := cursor.All(ctx, &releases); err != nil {
+	stream, err := s.bucket.OpenDownloadStream(release.SourceFileID)
+	if err != nil {
 		return err
 	}
-	for _, release := range releases {
-		_ = s.bucket.Delete(release.SourceFileID)
-		_ = s.bucket.Delete(release.ArtifactFileID)
-		if _, err := s.db.worldReleases.DeleteOne(ctx, bson.M{"_id": release.ID}); err != nil {
-			return err
-		}
+	defer stream.Close()
+	data, err := io.ReadAll(io.LimitReader(stream, maxWorldSourceBytes+1))
+	if err != nil {
+		return err
 	}
+	if len(data) > maxWorldSourceBytes || hashBytes(data) != release.SourceHash {
+		return errors.New("release source hash mismatch")
+	}
+	var resources []WorldResource
+	if err := json.Unmarshal(data, &resources); err != nil {
+		return err
+	}
+	resourceID := world.ID + "-draft-" + uuid.NewString()
+	docs := make([]any, 0, len(resources))
+	for _, resource := range resources {
+		resource.WorldID, resource.Revision = resourceID, world.DraftGeneration+1
+		resource.Size, resource.UpdatedAt = len(resource.Content), time.Now().UTC()
+		docs = append(docs, resource)
+	}
+	if len(docs) == 0 {
+		return errors.New("release source is empty")
+	}
+	if _, err := s.db.worldResources.InsertMany(ctx, docs); err != nil {
+		_, _ = s.db.worldResources.DeleteMany(context.Background(), bson.M{"worldId": resourceID})
+		return err
+	}
+	result, err := s.db.worlds.UpdateOne(ctx, bson.M{"_id": world.ID, "draftGeneration": world.DraftGeneration}, bson.M{"$set": bson.M{"draftResourceId": resourceID, "updatedAt": time.Now().UTC()}, "$inc": bson.M{"draftGeneration": 1}})
+	if err != nil {
+		return err
+	} // Retain both namespaces if the write result is uncertain.
+	if result.MatchedCount != 1 {
+		_, _ = s.db.worldResources.DeleteMany(context.Background(), bson.M{"worldId": resourceID})
+		return ErrRevisionConflict
+	}
+	_, _ = s.db.worldResources.DeleteMany(ctx, bson.M{"worldId": world.resourceID()})
 	return nil
 }
 

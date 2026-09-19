@@ -57,6 +57,9 @@ func (accomplishments *SyncAccomplishmentList) addByName(name string) *Accomplis
 		return nil
 	}
 	newAccomplishment := Accomplishment{Name: name, AcquiredAt: time.Now().UTC()}
+	if accomplishments.Accomplishments == nil {
+		accomplishments.Accomplishments = map[string]Accomplishment{}
+	}
 	accomplishments.Accomplishments[name] = newAccomplishment
 	return &newAccomplishment
 }

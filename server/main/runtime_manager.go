@@ -43,12 +43,13 @@ type RuntimeInfo struct {
 
 type ManagedRuntime struct {
 	RuntimeInfo
-	cmd      *exec.Cmd
-	proxy    *httputil.ReverseProxy
-	cancel   context.CancelFunc
-	done     chan error
-	basePath string
-	ownerID  string
+	cmd       *exec.Cmd
+	proxy     *httputil.ReverseProxy
+	cancel    context.CancelFunc
+	done      chan error
+	basePath  string
+	ownerID   string
+	lifecycle WorldLifecycle
 }
 
 type RuntimeLauncher interface {
@@ -131,6 +132,8 @@ func prefixRuntimeResponse(basePath string) func(*http.Response) error {
 			for _, path := range runtimePaths {
 				body = bytes.ReplaceAll(body, []byte(attribute+path), []byte(attribute+basePath+path))
 			}
+			// World navigation belongs to the controller, including from a runtime console.
+			body = bytes.ReplaceAll(body, []byte(attribute+basePath+`/admin/worlds"`), []byte(attribute+`/admin/worlds"`))
 		}
 		response.Body = io.NopCloser(bytes.NewReader(body))
 		response.ContentLength = int64(len(body))
@@ -140,7 +143,6 @@ func prefixRuntimeResponse(basePath string) func(*http.Response) error {
 }
 
 func (l *ProcessLauncher) Stop(ctx context.Context, runtime *ManagedRuntime) error {
-	runtime.State = RuntimeStopping
 	if runtime.cmd != nil && runtime.cmd.Process != nil {
 		_ = runtime.cmd.Process.Signal(os.Interrupt)
 	}
@@ -158,6 +160,9 @@ func (l *ProcessLauncher) Stop(ctx context.Context, runtime *ManagedRuntime) err
 }
 
 type RuntimeManager struct {
+	opMu     sync.Mutex
+	closing  bool
+	closed   chan struct{}
 	mu       sync.RWMutex
 	store    *WorldStore
 	launcher RuntimeLauncher
@@ -168,16 +173,35 @@ type RuntimeManager struct {
 }
 
 func newRuntimeManager(ctx context.Context, store *WorldStore, launcher RuntimeLauncher, cacheDir string) *RuntimeManager {
-	return &RuntimeManager{store: store, launcher: launcher, cacheDir: cacheDir, runtimes: map[string]*ManagedRuntime{}, starts: map[string]chan struct{}{}, context: ctx}
+	return &RuntimeManager{store: store, launcher: launcher, cacheDir: cacheDir, runtimes: map[string]*ManagedRuntime{}, starts: map[string]chan struct{}{}, context: ctx, closed: make(chan struct{})}
 }
 
 func (m *RuntimeManager) Start(ctx context.Context, world *WorldDocument) (*RuntimeInfo, error) {
+	m.opMu.Lock()
+	defer m.opMu.Unlock()
+	if m.closing || m.context.Err() != nil {
+		return nil, errors.New("controller is shutting down")
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	latest, err := m.store.getWorld(ctx, world.ID)
+	if err != nil {
+		return nil, err
+	}
+	if !latest.DeploymentEnabled {
+		return nil, errors.New("world deployment is disabled")
+	}
+	if latest.DeployedReleaseID != "" {
+		latest.PublishedReleaseID = latest.DeployedReleaseID
+	}
+	world = latest
 	for {
 		m.mu.Lock()
 		if runtime := m.runtimes[world.ID]; runtime != nil {
-			if runtime.ReleaseID != world.PublishedReleaseID {
+			if runtime.ReleaseID != world.PublishedReleaseID || runtime.lifecycle != world.Lifecycle {
 				m.mu.Unlock()
-				if err := m.Stop(ctx, world.ID); err != nil {
+				if err := m.stopLocked(ctx, world.ID); err != nil {
 					return nil, err
 				}
 				continue
@@ -226,19 +250,17 @@ func (m *RuntimeManager) Start(ctx context.Context, world *WorldDocument) (*Runt
 	if err != nil {
 		return nil, err
 	}
+	runtime.lifecycle = world.Lifecycle
 	m.mu.Lock()
 	m.runtimes[world.ID] = runtime
+	info := runtime.RuntimeInfo
 	m.mu.Unlock()
 	go m.observe(world, runtime)
 	go m.monitorLifecycle(world, runtime)
-	info := runtime.RuntimeInfo
 	return &info, nil
 }
 
 func (m *RuntimeManager) monitorLifecycle(world *WorldDocument, runtime *ManagedRuntime) {
-	if world.Lifecycle == LifecyclePersistent {
-		return
-	}
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 	lastOwner := time.Now()
@@ -259,6 +281,10 @@ func (m *RuntimeManager) monitorLifecycle(world *WorldDocument, runtime *Managed
 			continue
 		}
 		m.mu.Lock()
+		if m.runtimes[world.ID] != runtime {
+			m.mu.Unlock()
+			return
+		}
 		runtime.PlayerCount = heartbeat.PlayerCount
 		runtime.OwnerPresent = heartbeat.OwnerPresent
 		m.mu.Unlock()
@@ -279,11 +305,24 @@ func (m *RuntimeManager) monitorLifecycle(world *WorldDocument, runtime *Managed
 		}
 		if shouldStop {
 			ctx, cancel := context.WithTimeout(context.Background(), 6*time.Second)
-			_ = m.Stop(ctx, world.ID)
+			_ = m.stopInstance(ctx, world.ID, runtime)
 			cancel()
 			return
 		}
 	}
+}
+
+// A delayed lifecycle check must never shut down a replacement runtime.
+func (m *RuntimeManager) stopInstance(ctx context.Context, worldID string, expected *ManagedRuntime) error {
+	m.opMu.Lock()
+	defer m.opMu.Unlock()
+	m.mu.RLock()
+	active := m.runtimes[worldID] == expected
+	m.mu.RUnlock()
+	if !active {
+		return nil
+	}
+	return m.stopLocked(ctx, worldID)
 }
 
 func (m *RuntimeManager) materialize(ctx context.Context, release *WorldRelease) (string, error) {
@@ -330,14 +369,51 @@ func (m *RuntimeManager) observe(world *WorldDocument, runtime *ManagedRuntime) 
 	}
 	m.mu.Unlock()
 	if world.Lifecycle == LifecyclePersistent && !stopping {
-		time.Sleep(2 * time.Second)
-		if _, startErr := m.Start(context.Background(), world); startErr != nil {
-			logger.Error().Err(startErr).Str("worldId", world.ID).Msg("Failed to restart persistent runtime")
+		m.retryPersistent(world.ID)
+	}
+}
+
+func (m *RuntimeManager) retryPersistent(worldID string) {
+	delay := 2 * time.Second
+	for {
+		timer := time.NewTimer(delay)
+		select {
+		case <-m.closed:
+			timer.Stop()
+			return
+		case <-m.context.Done():
+			timer.Stop()
+			return
+		case <-timer.C:
+		}
+		ctx, cancel := context.WithTimeout(m.context, 45*time.Second)
+		latest, err := m.store.getWorld(ctx, worldID)
+		if err == nil {
+			if !latest.DeploymentEnabled || latest.Lifecycle != LifecyclePersistent || latest.ModerationState != "active" {
+				cancel()
+				return
+			}
+			_, err = m.Start(ctx, latest)
+		}
+		cancel()
+		if err == nil {
+			return
+		}
+		logger.Error().Err(err).Str("worldId", worldID).Msg("Persistent runtime restart will retry")
+		delay *= 2
+		if delay > 30*time.Second {
+			delay = 30 * time.Second
 		}
 	}
 }
 
 func (m *RuntimeManager) Stop(ctx context.Context, worldID string) error {
+	m.opMu.Lock()
+	defer m.opMu.Unlock()
+	return m.stopLocked(ctx, worldID)
+}
+
+func (m *RuntimeManager) stopLocked(ctx context.Context, worldID string) error {
 	m.mu.Lock()
 	runtime := m.runtimes[worldID]
 	if runtime != nil {
@@ -352,6 +428,13 @@ func (m *RuntimeManager) Stop(ctx context.Context, worldID string) error {
 }
 
 func (m *RuntimeManager) Shutdown(ctx context.Context) {
+	m.opMu.Lock()
+	defer m.opMu.Unlock()
+	if m.closing {
+		return
+	}
+	m.closing = true
+	close(m.closed)
 	m.mu.RLock()
 	ids := make([]string, 0, len(m.runtimes))
 	for id := range m.runtimes {
@@ -359,7 +442,7 @@ func (m *RuntimeManager) Shutdown(ctx context.Context) {
 	}
 	m.mu.RUnlock()
 	for _, id := range ids {
-		_ = m.Stop(ctx, id)
+		_ = m.stopLocked(ctx, id)
 	}
 }
 

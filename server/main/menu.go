@@ -315,6 +315,15 @@ func createAccomplishmentsHtmlForPlayer(p *Player) template.HTML {
 		}
 	}
 
+	if p.world != nil && p.world.config != nil {
+		for _, achievement := range p.world.config.manifest.Achievements {
+			mark := "❌"
+			if _, ok := p.accomplishments.Accomplishments["world-"+achievement.ID]; ok {
+				mark = "✔️"
+			}
+			fmt.Fprintf(&sb, `<p>%s %s<br><small>%s</small></p>`, mark, template.HTMLEscapeString(achievement.Name), template.HTMLEscapeString(achievement.Description))
+		}
+	}
 	sb.WriteString(`</div>`)
 	return template.HTML(sb.String())
 }

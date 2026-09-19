@@ -152,13 +152,13 @@ func TestExtractReleaseArchiveWritesReadonlyFiles(t *testing.T) {
 }
 
 func TestPrefixRuntimeResponse(t *testing.T) {
-	response := &http.Response{Header: http.Header{"Content-Type": []string{"text/html"}}, Body: io.NopCloser(bytes.NewBufferString(`<a href="/play" hx-post="/play"><script src="/assets/ws.js"></script></a>`))}
+	response := &http.Response{Header: http.Header{"Content-Type": []string{"text/html"}}, Body: io.NopCloser(bytes.NewBufferString(`<a href="/play" hx-post="/play"><script src="/assets/ws.js"></script></a><a href="/admin/worlds">All worlds</a>`))}
 	if err := prefixRuntimeResponse("/w/world-1")(response); err != nil {
 		t.Fatal(err)
 	}
 	body, _ := io.ReadAll(response.Body)
 	text := string(body)
-	for _, expected := range []string{`href="/w/world-1/play"`, `hx-post="/w/world-1/play"`, `src="/w/world-1/assets/ws.js"`} {
+	for _, expected := range []string{`href="/w/world-1/play"`, `hx-post="/w/world-1/play"`, `src="/w/world-1/assets/ws.js"`, `href="/admin/worlds"`} {
 		if !strings.Contains(text, expected) {
 			t.Fatalf("%q missing from %q", expected, text)
 		}

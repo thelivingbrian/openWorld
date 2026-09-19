@@ -95,6 +95,7 @@ func main() {
 			config.mapAreas = loadWorldMapAreas(config.contentDir)
 		} else {
 			loadFromJson()
+			config.manifest = loadWorldManifest("./data")
 		}
 		world := createGameWorld(db, config)
 		activeWorld = world

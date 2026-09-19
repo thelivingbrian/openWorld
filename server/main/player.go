@@ -151,6 +151,9 @@ func removeFromTileAndStage(player *Player) {
 }
 
 func infirmaryStagenameForPlayer(player *Player) string {
+	if spawn, ok := player.worldSpawn(); ok {
+		return spawn.Stage
+	}
 	team := player.getTeamNameSync()
 	if team != "sky-blue" && team != "fuchsia" {
 		return "clinic"
@@ -160,6 +163,9 @@ func infirmaryStagenameForPlayer(player *Player) string {
 }
 
 func infirmaryCoordsForPlayer(player *Player) (int, int) {
+	if spawn, ok := player.worldSpawn(); ok {
+		return spawn.Y, spawn.X
+	}
 	team := player.getTeamNameSync()
 	if team != "sky-blue" && team != "fuchsia" {
 		return 2, 2
@@ -171,6 +177,22 @@ func infirmaryCoordsForPlayer(player *Player) (int, int) {
 	longitude := rand.IntN(4)
 	x := (longitude * 16) + 2
 	return y, x
+}
+
+func (player *Player) worldSpawn() (WorldLocation, bool) {
+	if player.world == nil || player.world.config == nil {
+		return WorldLocation{}, false
+	}
+	manifest := player.world.config.manifest
+	if manifest.Entry.Stage == "" {
+		return WorldLocation{}, false
+	}
+	for _, team := range manifest.Teams {
+		if team.ID == player.getTeamNameSync() {
+			return team.Spawn, true
+		}
+	}
+	return manifest.Entry, true
 }
 
 ////////////////////////////////////////////////////////////
@@ -352,6 +374,9 @@ func getStageByNameOrGetDefault(player *Player, stagename string) *Stage {
 	stage := player.fetchStageSync(stagename)
 	if stage == nil {
 		logger.Warn().Msg("WARNING: Fetching default stage instead of: " + stagename)
+		if spawn, ok := player.worldSpawn(); ok {
+			return player.fetchStageSync(spawn.Stage)
+		}
 		stage = player.fetchStageSync("clinic")
 		if stage == nil {
 			panic("Default stage not found")
@@ -442,6 +467,7 @@ func (player *Player) halveMoney() int64 {
 }
 
 func (player *Player) addMoneyAndUpdate(n int) {
+	defer player.checkWorldAchievements("")
 	totalMoney := player.money.Add(int64(n))
 	if SetMaxAtomic64IfGreater(&player.peakWealth, totalMoney) {
 		checkMoneyAccomplishments(player, int(totalMoney))
@@ -458,6 +484,7 @@ func (player *Player) zeroKillStreak() {
 }
 
 func (player *Player) incrementKillStreak() int64 {
+	defer player.checkWorldAchievements("")
 	currentKs := player.killstreak.Add(1)
 	if SetMaxAtomic64IfGreater(&player.peakKillStreak, currentKs) {
 		checkStreakAccomplishments(player, int(currentKs))
@@ -471,19 +498,23 @@ func (player *Player) incrementKillStreak() int64 {
 }
 
 func (player *Player) incrementKillCount() int64 {
+	defer player.checkWorldAchievements("")
 	player.addAccomplishmentByName(defeatPlayer)
 	return player.killCount.Add(1)
 }
 
 func (player *Player) incrementKillCountNpc() int64 {
+	defer player.checkWorldAchievements("")
 	return player.killCountNpc.Add(1)
 }
 
 func (player *Player) incrementDeathCount() int64 {
+	defer player.checkWorldAchievements("")
 	return player.deathCount.Add(1)
 }
 
 func (player *Player) incrementGoalsScored() int64 {
+	defer player.checkWorldAchievements("")
 	return player.goalsScored.Add(1)
 }
 

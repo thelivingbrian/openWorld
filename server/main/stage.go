@@ -16,6 +16,8 @@ type Stage struct {
 	west               string
 	mapId              string
 	spawn              []SpawnAction
+	ruleMu             sync.Mutex
+	ruleState          map[string]*spawnRuleState
 	broadcastGroupName string
 	weather            string
 }
@@ -222,6 +224,8 @@ func placePlayerOnStageAt(p *Player, stage *Stage, y, x int) {
 // Spawn Items
 
 func spawnItemsFor(p *Player, stage *Stage) {
+	spawnWorldRules(p, stage)
+	p.checkWorldAchievements(stage.name)
 	for i := range stage.spawn {
 		stage.spawn[i].activateFor(p, stage)
 	}

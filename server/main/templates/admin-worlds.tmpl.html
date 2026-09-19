@@ -1,0 +1,50 @@
+{{define "admin-worlds"}}
+<!DOCTYPE html>
+<html lang="en">
+{{template "page-header"}}
+<body>
+<main class="admin-page">
+  <div class="admin-console">
+    <div class="admin-heading">
+      <div><p class="admin-eyebrow">bloopworld / operations</p><h1>Worlds</h1><p class="admin-muted">Manage drafts, releases, and live worlds.</p></div>
+      <nav class="admin-nav" aria-label="World navigation"><a href="/">Home</a><a href="/admin/worlds">Refresh</a></nav>
+    </div>
+    <p id="world-operation-status" role="status" aria-live="polite"></p>
+    <section class="admin-panel">
+      <h2>Create a world</h2>
+      <form id="create-world-form">
+        <label>Name <input name="name" required maxlength="80" placeholder="My world"></label>
+        <label>Starting collection <select name="seed"><option value="bloop">Bloop</option><option value="escape">Escape</option></select></label>
+        <button type="submit">Create and open editor</button>
+      </form>
+    </section>
+    <section class="admin-panel admin-table-wrap">
+      <table class="admin-table">
+        <thead><tr><th>World</th><th>Status</th><th>Deployment</th><th>Players</th><th>Actions</th></tr></thead>
+        <tbody>
+        {{range .}}
+          <tr>
+            <td><strong>{{.Name}}</strong><br><small>{{if .Slug}}{{.Slug}}{{else}}{{.ID}}{{end}}</small></td>
+            <td>{{if .Runtime}}{{.Runtime.State}}{{else}}Stopped{{end}} · {{.ModerationState}}</td>
+            <td>{{.Lifecycle}}{{if .DeploymentEnabled}} · enabled{{end}}</td>
+            <td>{{if .Runtime}}{{.Runtime.PlayerCount}}{{else}}0{{end}}</td>
+            <td>
+              <a href="/design/?world={{.ID}}">Open editor</a>
+              {{if .Runtime}}
+                · <a href="/w/{{.ID}}/admin">Players and stages</a>
+                · <button type="button" data-world="{{.ID}}" data-action="stop">Shut down</button>
+              {{else if .PublishedReleaseID}}
+                · <button type="button" data-world="{{.ID}}" data-action="launch">Launch</button>
+              {{end}}
+            </td>
+          </tr>
+        {{else}}<tr><td colspan="5">No worlds yet. Create one to start designing.</td></tr>{{end}}
+        </tbody>
+      </table>
+    </section>
+  </div>
+</main>
+<script src="/assets/admin-worlds.js" defer></script>
+</body>
+</html>
+{{end}}

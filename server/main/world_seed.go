@@ -26,8 +26,19 @@ func (s *WorldStore) seedWorld(ctx context.Context, world *WorldDocument, seedRo
 	if err != nil {
 		return fmt.Errorf("read seed palette: %w", err)
 	}
-	entry := firstSeedStage(collection)
-	manifest := WorldManifest{Name: world.Name, Entry: WorldLocation{Stage: entry, Y: 3, X: 3}, Teams: []WorldTeam{{ID: "sky-blue", Label: "Sky Blue", Color: "sky-blue", Spawn: WorldLocation{Stage: entry, Y: 3, X: 3}}, {ID: "fuchsia", Label: "Fuchsia", Color: "fuchsia", Spawn: WorldLocation{Stage: entry, Y: 3, X: 3}}}, DefaultTeam: "sky-blue", MaxPlayers: 400, Lifecycle: world.Lifecycle, Leaderboards: []LeaderboardDefinition{{ID: "richest", Label: "Richest", Metric: "peakWealth"}, {ID: "deadliest", Label: "Deadliest", Metric: "peakKillStreak"}, {ID: "mvp", Label: "MVP", Metric: "goalsScored"}}}
+	entry, err := firstSeedLocation(collection)
+	if err != nil {
+		return err
+	}
+	manifest := WorldManifest{Name: world.Name, Entry: entry, Teams: []WorldTeam{{ID: "sky-blue", Label: "Sky Blue", Color: "sky-blue", Spawn: entry}, {ID: "fuchsia", Label: "Fuchsia", Color: "fuchsia", Spawn: entry}}, DefaultTeam: "sky-blue", MaxPlayers: 400, Lifecycle: world.Lifecycle, Leaderboards: []LeaderboardDefinition{{ID: "richest", Label: "Richest", Metric: "peakWealth"}, {ID: "deadliest", Label: "Deadliest", Metric: "peakKillStreak"}, {ID: "mvp", Label: "MVP", Metric: "goalsScored"}}}
+	if data, readErr := os.ReadFile(filepath.Join(seedRoot, seedName, "manifest.json")); readErr == nil {
+		if err := json.Unmarshal(data, &manifest); err != nil {
+			return fmt.Errorf("read seed manifest: %w", err)
+		}
+		manifest.Name, manifest.Lifecycle = world.Name, world.Lifecycle
+	} else if !os.IsNotExist(readErr) {
+		return readErr
+	}
 	manifestJSON, _ := json.Marshal(manifest)
 	now := time.Now().UTC()
 	resources := []any{}
@@ -153,19 +164,46 @@ func loadSeedDirectory(directory string, accept func(string, []byte) error) erro
 	return nil
 }
 
-func firstSeedStage(collection SourceCollection) string {
-	names := make([]string, 0, len(collection.Spaces))
-	for name := range collection.Spaces {
-		names = append(names, name)
-	}
-	sort.Strings(names)
-	for _, name := range names {
-		space := collection.Spaces[name]
-		if space != nil && len(space.Areas) > 0 {
-			return space.Areas[0].Name
+func firstSeedLocation(collection SourceCollection) (WorldLocation, error) {
+	prototypes := map[string]SourcePrototype{}
+	for _, set := range collection.PrototypeSets {
+		for _, prototype := range set {
+			prototypes[prototype.ID] = prototype
 		}
 	}
-	return ""
+	var areas []SourceArea
+	for _, space := range collection.Spaces {
+		if space != nil {
+			areas = append(areas, space.Areas...)
+		}
+	}
+	sort.Slice(areas, func(i, j int) bool { return areas[i].Name < areas[j].Name })
+	walkable := func(area SourceArea, y, x int) bool {
+		if area.Blueprint == nil || y >= len(area.Blueprint.Tiles) || x >= len(area.Blueprint.Tiles[y]) {
+			return false
+		}
+		id := area.Blueprint.Tiles[y][x].PrototypeID
+		prototype, exists := prototypes[id]
+		return prototype.Walkable || (!exists && id == "")
+	}
+	for _, area := range areas {
+		if area.Name == "tutorial1:0-0" && walkable(area, 3, 3) {
+			return WorldLocation{Stage: area.Name, Y: 3, X: 3}, nil
+		}
+	}
+	for _, area := range areas {
+		if area.Blueprint == nil {
+			continue
+		}
+		for y, row := range area.Blueprint.Tiles {
+			for x := range row {
+				if walkable(area, y, x) {
+					return WorldLocation{Stage: area.Name, Y: y, X: x}, nil
+				}
+			}
+		}
+	}
+	return WorldLocation{}, fmt.Errorf("seed has no walkable entry tile")
 }
 func seedRootFromEnvironment() string {
 	if value := strings.TrimSpace(os.Getenv("WORLD_SEED_DIR")); value != "" {
