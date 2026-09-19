@@ -1,0 +1,86 @@
+<div class="settings" (input)="changed.emit()" (change)="changed.emit()">
+  <datalist id="world-stages">@for (stage of stages; track stage) { <option [value]="stage"></option> }</datalist>
+  @if (mode === 'settings') {
+    <header><div><p class="eyebrow">WORLD CONFIGURATION</p><h2>Player entry & teams</h2><p>Configure where players arrive and return after respawning.</p></div></header>
+    <section class="card fields">
+      <label>World name<input [(ngModel)]="manifest.name" maxlength="80" required></label>
+      <label class="wide">Description<textarea [(ngModel)]="manifest.description" maxlength="1000" rows="2"></textarea></label>
+      <label>Entry stage<input [(ngModel)]="manifest.entry.stage" list="world-stages" required></label>
+      <label>Entry X<input type="number" min="0" [(ngModel)]="manifest.entry.x"></label>
+      <label>Entry Y<input type="number" min="0" [(ngModel)]="manifest.entry.y"></label>
+      <label>Player limit<input type="number" min="1" max="500" [(ngModel)]="manifest.maxPlayers"></label>
+      <label>Default team<select [(ngModel)]="manifest.defaultTeam"><option value="">None</option>@for (team of manifest.teams; track $index) { <option [value]="team.id">{{team.label}}</option> }</select></label>
+    </section>
+    <div class="section-heading"><h3>Teams</h3><button (click)="addTeam()">+ Add team</button></div>
+    @for (team of manifest.teams; track $index; let i = $index) {
+      <section class="card fields">
+        <label>ID<input [(ngModel)]="team.id"></label><label>Label<input [(ngModel)]="team.label"></label><label>Color<input [(ngModel)]="team.color"></label>
+        <label>Respawn stage<input [(ngModel)]="team.spawn.stage" list="world-stages"></label>
+        <label>X<input type="number" min="0" [(ngModel)]="team.spawn.x"></label><label>Y<input type="number" min="0" [(ngModel)]="team.spawn.y"></label>
+        <button class="remove" (click)="remove(manifest.teams, i)">Remove team</button>
+      </section>
+    } @empty { <p class="empty">No custom teams. Add teams to give each group its own spawn point.</p> }
+  }
+  @if (mode === 'npcs') {
+    <header><div><p class="eyebrow">BEHAVIOR LIBRARY</p><h2>NPC programs</h2><p>Steps run in order and loop. One tick lasts the interval below. Add a spawn rule to place an NPC in the world.</p></div><button (click)="addNPC()">+ New NPC</button></header>
+    @for (npc of manifest.npcs; track $index; let i = $index) {
+      <section class="card">
+        <div class="section-heading"><h3>{{npc.name}}</h3><button class="remove" (click)="remove(manifest.npcs, i)">Remove NPC</button></div>
+        <div class="fields">
+          <label>ID<input [(ngModel)]="npc.id" required pattern="[a-z][a-z0-9-]*"></label><label>Name<input [(ngModel)]="npc.name" maxlength="80"></label>
+          <label>Team<input [(ngModel)]="npc.team"></label><label>Appearance classes<input [(ngModel)]="npc.appearance" placeholder="red-b thick r0"></label>
+          <label>Health<input type="number" min="1" max="10000" [(ngModel)]="npc.health"></label><label>Money dropped<input type="number" min="0" max="100000" [(ngModel)]="npc.money"></label>
+          <label>Tick interval (ms)<input type="number" min="100" max="10000" step="100" [(ngModel)]="npc.intervalMs"></label><label>Lifetime (seconds)<input type="number" min="1" max="3600" [(ngModel)]="npc.lifetimeSeconds"></label>
+        </div>
+        <ol class="program">
+          @for (step of npc.program; track $index; let j = $index) {
+            <li><div class="fields">
+              <label>Action<select [(ngModel)]="step.action">@for (action of actions; track action) { <option [value]="action">{{action}}</option> }</select></label>
+              <label>Repeat ticks<input type="number" min="1" max="100" [(ngModel)]="step.ticks"></label>
+              <label>Run when<select [(ngModel)]="step.condition"><option value="always">Always</option><option value="hurt">Health below half</option><option value="player-nearby">Enemy player nearby</option></select></label>
+              @if (step.action === 'chase' || step.action === 'attack' || step.condition === 'player-nearby') { <label>Radius (tiles)<input type="number" min="1" max="8" [(ngModel)]="step.radius"></label> }
+              @if (step.action === 'attack') { <label>Damage<input type="number" min="1" max="1000" [(ngModel)]="step.damage"></label> }
+              <div class="step-actions"><button [disabled]="j === 0" (click)="moveStep(npc.program, j, -1)" aria-label="Move step up">↑</button><button [disabled]="j === npc.program.length - 1" (click)="moveStep(npc.program, j, 1)" aria-label="Move step down">↓</button><button (click)="remove(npc.program, j)" aria-label="Remove step">×</button></div>
+            </div></li>
+          }
+        </ol>
+        <button (click)="addStep(npc)" [disabled]="npc.program.length >= 64">+ Add step</button>
+      </section>
+    } @empty { <div class="empty"><h3>Your cast starts here</h3><p>Create a guard, a roaming creature, or a patrol using an ordered set of actions.</p><button (click)="addNPC()">Create your first NPC</button></div> }
+  }
+  @if (mode === 'spawns') {
+    <header><div><p class="eyebrow">WORLD POPULATION</p><h2>Spawn rules</h2><p>Rules run when a player enters their stage. “Once” runs on the first entry; “Every entry” respects the cooldown. NPC capacity is shared by all players on the stage.</p></div><button (click)="addSpawn()">+ New spawn rule</button></header>
+    @for (spawn of manifest.spawns; track $index; let i = $index) {
+      <section class="card">
+        <div class="section-heading"><h3>{{spawn.id}}</h3><button class="remove" (click)="remove(manifest.spawns, i)">Remove rule</button></div>
+        <div class="fields">
+          <label>ID<input [(ngModel)]="spawn.id" required></label><label>Stage<input [(ngModel)]="spawn.stage" list="world-stages" required></label>
+          <label>Spawn<select [(ngModel)]="spawn.kind"><option value="npc">NPC</option><option value="money">Money</option><option value="boost">Boost</option><option value="powerup">Power-up</option></select></label>
+          @if (spawn.kind === 'npc') { <label>NPC program<select [(ngModel)]="spawn.npc">@for (npc of manifest.npcs; track $index) { <option [value]="npc.id">{{npc.name}} ({{npc.id}})</option> }</select></label> }
+          <label>Trigger<select [(ngModel)]="spawn.trigger"><option value="entry">Every entry</option><option value="once">Once per stage instance</option></select></label>
+          <label>Count per trigger<input type="number" min="1" max="20" [(ngModel)]="spawn.count"></label>
+          @if (spawn.kind === 'npc') { <label>Maximum alive<input type="number" min="1" max="50" [(ngModel)]="spawn.maxAlive"></label> }
+          @if (spawn.kind === 'money') { <label>Money per drop<input type="number" min="1" max="10000" [(ngModel)]="spawn.amount"></label> }
+          <label>Cooldown (seconds)<input type="number" min="1" max="86400" [(ngModel)]="spawn.cooldownSeconds"></label>
+          <label class="check"><input type="checkbox" [(ngModel)]="spawn.randomPosition">Random walkable tile</label>
+          @if (!spawn.randomPosition) { <label>X<input type="number" min="0" [(ngModel)]="spawn.x"></label><label>Y<input type="number" min="0" [(ngModel)]="spawn.y"></label> }
+        </div>
+      </section>
+    } @empty { <div class="empty"><h3>Bring the world to life</h3><p>Add NPCs, money, boosts, or power-ups. Existing stage spawn presets continue to work alongside these rules.</p><button (click)="addSpawn()">Create a spawn rule</button></div> }
+  }
+  @if (mode === 'achievements') {
+    <header><div><p class="eyebrow">PLAYER PROGRESS</p><h2>World achievements</h2><p>Achievements are awarded automatically and saved with each player’s world profile. Keep the ID stable when renaming an achievement.</p></div><button (click)="addAchievement()">+ New achievement</button></header>
+    @for (achievement of manifest.achievements; track $index; let i = $index) {
+      <section class="card">
+        <div class="section-heading"><h3>{{achievement.name}}</h3><button class="remove" (click)="remove(manifest.achievements, i)">Remove achievement</button></div>
+        <div class="fields">
+          <label>Stable ID<input [(ngModel)]="achievement.id" required></label><label>Name<input [(ngModel)]="achievement.name" maxlength="80" required></label>
+          <label class="wide">Description<input [(ngModel)]="achievement.description" maxlength="500"></label>
+          <label>Award for<select [(ngModel)]="achievement.metric">@for (metric of metrics; track metric.id) { <option [value]="metric.id">{{metric.label}}</option> }</select></label>
+          @if (achievement.metric === 'visit-stage') { <label>Stage<input [(ngModel)]="achievement.stage" list="world-stages"></label> }
+          @else { <label>Target<input type="number" min="1" max="1000000000" [(ngModel)]="achievement.target"></label> }
+        </div>
+      </section>
+    } @empty { <div class="empty"><h3>Give players something to discover</h3><p>Reward exploration, goals, wealth, or combat milestones.</p><button (click)="addAchievement()">Create an achievement</button></div> }
+  }
+</div>

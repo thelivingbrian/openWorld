@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 )
 
 type Collection struct {
+	Manifest         json.RawMessage `json:"Manifest,omitempty"`
 	Name             string
 	Spaces           map[string]*Space
 	Fragments        map[string][]Fragment

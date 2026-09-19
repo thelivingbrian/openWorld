@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, DestroyRef, inject, NgZone, signal } from '@angular/core';
+import { Component, computed, DestroyRef, HostListener, inject, NgZone, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { EditorApiService } from '../../core/services/editor-api.service';
 import {
@@ -37,9 +37,11 @@ import {
   Tool,
   updateInstructionAndReapply,
 } from './grid-engine';
-import { computeDynamicStyle, stripDynamicTokens } from './dynamic-tile';
+import { computeDynamicStyle, DYNAMIC_COLOR_MAP, stripDynamicTokens } from './dynamic-tile';
+import { defaultManifest, WorldDocument, WorldRelease, RuntimeInfo } from '../../core/models/world.models';
+import { WorldSettingsComponent } from './world-settings.component';
 
-type ViewMode = 'world' | 'create' | 'modify-space' | 'prototypes' | 'fragments' | 'interactables' | 'colors';
+type ViewMode = 'world' | 'create' | 'modify-space' | 'prototypes' | 'fragments' | 'interactables' | 'colors' | 'settings' | 'npcs' | 'spawns' | 'achievements' | 'versions';
 type GridTarget = 'area' | 'fragment';
 type BulkAreaProperty =
   | 'safe'
@@ -70,7 +72,7 @@ interface SelectedTileInstructionInfo {
 
 @Component({
   selector: 'app-editor',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, WorldSettingsComponent],
   templateUrl: './editor.component.html',
   // Keep the legacy tile geometry encapsulated inside the editor. Loading it
   // from /assets would select the controller's site-wide stylesheet instead.
@@ -81,8 +83,140 @@ export class EditorComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly ngZone = inject(NgZone);
   private rafHandle: number | null = null;
+  private paletteStyle?: HTMLStyleElement;
+  private readonly palette = signal<Record<string, string>>({ ...DYNAMIC_COLOR_MAP });
 
   protected readonly hosted = Boolean(this.api.isHosted);
+  protected readonly busy = signal(false);
+  protected readonly dirty = signal(false);
+  protected readonly world = signal<WorldDocument | undefined>(undefined);
+  protected readonly runtime = signal<RuntimeInfo | undefined>(undefined);
+  protected readonly releases = signal<WorldRelease[]>([]);
+  protected readonly versionLabel = signal('');
+  protected readonly zoom = signal(1);
+  protected readonly undoStack = signal<Blueprint[]>([]);
+  protected readonly redoStack = signal<Blueprint[]>([]);
+  protected readonly manifest = computed(() => this.currentCollection()?.Manifest);
+  protected readonly allStageNames = computed(() => Object.values(this.currentCollection()?.Spaces ?? {}).flatMap(space => space.Areas.map(area => area.Name)));
+  protected readonly playURL = computed(() => `/w/${this.world()?.id}/admin`);
+  private readonly savedContent = new Map<string, string>();
+
+  protected markDirty(): void {
+    if (this.loading()) return;
+    this.updatePaletteStyles();
+    this.gridVersion.update(value => value + 1);
+    this.dirty.set(this.draftResources().some(entry => JSON.stringify(entry.value) !== this.savedContent.get(entry.key)));
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  protected beforeUnload(event: BeforeUnloadEvent): void {
+    if (this.dirty()) { event.preventDefault(); event.returnValue = ''; }
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  protected keyboard(event: KeyboardEvent): void {
+    if (!(event.ctrlKey || event.metaKey) || this.busy()) return;
+    if (event.key.toLowerCase() === 's') { event.preventDefault(); void this.saveAll(); return; }
+    if ((event.target as HTMLElement)?.closest('input, textarea, select, [contenteditable]')) return;
+    if (event.key.toLowerCase() === 'z') { event.preventDefault(); this.undoPaint(event.shiftKey); }
+  }
+
+  protected undoPaint(redo = false): void {
+    const blueprint = this.activeBlueprint();
+    const source = redo ? this.redoStack : this.undoStack;
+    const destination = redo ? this.undoStack : this.redoStack;
+    const previous = source().at(-1);
+    if (!blueprint || !previous) return;
+    destination.update(items => [...items, JSON.parse(JSON.stringify(blueprint))]);
+    source.update(items => items.slice(0, -1));
+    Object.assign(blueprint, previous);
+    this.touchBootstrap();
+  }
+
+  private draftResources(): { key: string; value: unknown; save: (value: any) => Promise<void> }[] {
+    const resources: { key: string; value: unknown; save: (value: any) => Promise<void> }[] = [];
+    for (const [name, col] of Object.entries(this.bootstrap()?.collections ?? {})) {
+      for (const [key, value] of Object.entries(col.Spaces)) resources.push({ key: `${name}/space/${key}`, value, save: data => this.api.saveSpace(name, key, data) });
+      for (const [key, value] of Object.entries(col.PrototypeSets)) resources.push({ key: `${name}/prototype/${key}`, value, save: data => this.api.savePrototypeSet(name, key, data) });
+      for (const [key, value] of Object.entries(col.Fragments)) resources.push({ key: `${name}/fragment/${key}`, value, save: data => this.api.saveFragmentSet(name, key, data) });
+      for (const [key, value] of Object.entries(col.InteractableSets)) resources.push({ key: `${name}/interactable/${key}`, value, save: data => this.api.saveInteractableSet(name, key, data) });
+      if (col.Manifest) resources.push({ key: `${name}/manifest`, value: col.Manifest, save: data => this.api.saveManifest(name, data) });
+    }
+    resources.push({ key: 'colors', value: this.colors(), save: data => this.api.saveColors(data) });
+    return resources;
+  }
+
+  private async persistDraft(): Promise<void> {
+    for (const resource of this.draftResources()) {
+      const serialized = JSON.stringify(resource.value);
+      if (this.savedContent.get(resource.key) === serialized) continue;
+      await resource.save(JSON.parse(serialized));
+      this.savedContent.set(resource.key, serialized);
+    }
+    this.dirty.set(false);
+  }
+
+  private async saveDraftResource(key: string, label: string): Promise<void> {
+    const resource = this.draftResources().find(entry => entry.key === key);
+    if (!resource) return;
+    await this.perform(`Saving ${label.toLowerCase()}…`, async () => {
+      const serialized = JSON.stringify(resource.value);
+      await resource.save(JSON.parse(serialized));
+      this.savedContent.set(key, serialized);
+      this.dirty.set(this.draftResources().some(entry => JSON.stringify(entry.value) !== this.savedContent.get(entry.key)));
+      if (this.hosted) await this.refreshVersions();
+    }, `${label} saved.`);
+  }
+
+  private async perform(label: string, action: () => Promise<void>, success: string | (() => string)): Promise<void> {
+    if (this.busy()) return;
+    this.busy.set(true); this.status.set(label);
+    try { await action(); this.status.set(typeof success === 'function' ? success() : success); }
+    catch (error) { this.status.set(this.extractApiError(error, `${label} failed.`)); }
+    finally { this.busy.set(false); }
+  }
+
+  protected async saveAll(): Promise<void> {
+    await this.perform('Saving draft…', async () => { await this.persistDraft(); if (this.hosted) await this.refreshVersions(); }, 'All changes saved to draft.');
+  }
+
+  protected async refreshVersions(): Promise<void> {
+    if (!this.hosted) return;
+    const data = await this.api.getWorldState();
+    this.world.set(data.world); this.runtime.set(data.runtime);
+    this.releases.set(await this.api.listReleases());
+  }
+
+  protected async saveVersion(): Promise<void> {
+    await this.perform('Saving version…', async () => {
+      await this.persistDraft();
+      await this.api.saveVersion(this.versionLabel());
+      this.versionLabel.set('');
+      await this.refreshVersions();
+    }, 'Version saved. Your running world is unchanged.');
+  }
+
+  protected async selectVersion(release: WorldRelease): Promise<void> {
+    await this.perform('Selecting version…', async () => {
+      await this.api.selectRelease(release.id); await this.refreshVersions();
+    }, `Version ${release.number} selected. Launch to apply it.`);
+  }
+
+  protected async restoreVersion(release: WorldRelease): Promise<void> {
+    if (!globalThis.confirm(`Replace the editing draft with version ${release.number}? Save a version first if you want to keep your current work.`)) return;
+    await this.perform('Restoring draft…', async () => {
+      // Refreshing the revision token here would hide another editor's changes.
+      const generation = this.world()?.draftGeneration;
+      if (generation === undefined) throw new Error('Reload the editor before restoring a version.');
+      await this.api.restoreDraft(release.id, generation);
+      await this.loadBootstrap();
+    }, `Draft restored from version ${release.number}.`);
+  }
+
+  protected async stopWorld(): Promise<void> {
+    if (!globalThis.confirm('Shut down this world and disconnect its players? It will stay off until you launch it again.')) return;
+    await this.perform('Shutting down…', async () => { await this.api.stop(); await this.refreshVersions(); }, 'World stopped.');
+  }
 
   protected readonly loading = signal(true);
   protected readonly status = signal('');
@@ -164,6 +298,11 @@ export class EditorComponent {
   // Reaction rule registries exposed to the template
   protected readonly reactsWithRegistry = REACTS_WITH_REGISTRY;
   protected readonly reactionRegistry = REACTION_REGISTRY;
+  protected readonly spawnPresets = [
+    { value: '', label: 'Basic items' }, { value: 'none', label: 'None (custom rules only)' },
+    { value: 'basic-ring', label: 'Items, rings & NPCs' }, { value: 'basic-weak', label: 'Weak items' },
+    ...['tutorial-boost', 'tutorial-1-skip', 'tutorial-1-menu', 'tutorial-1-boost', 'tutorial-1-ring', 'tutorial-1-npc', 'tutorial-power', 'tutorial-2', 'tutorial-2-boost'].map(value => ({ value, label: value })),
+  ];
 
   protected readonly collectionNames = computed(() => Object.keys(this.bootstrap()?.collections ?? {}));
 
@@ -237,8 +376,8 @@ export class EditorComponent {
   });
 
   protected readonly navigationMapRows = computed<NavigationMapCell[][]>(() => {
+    this.gridVersion();
     const space = this.currentSpace();
-    const collectionName = this.collectionName();
     if (!space || !this.hasNavigationMap()) {
       return [];
     }
@@ -256,7 +395,7 @@ export class EditorComponent {
           areaName,
           row,
           column,
-          imageUrl: this.buildAreaImageUrl(space.Name, areaName, collectionName),
+          imageUrl: this.buildAreaImageUrl(space.Areas.find(area => area.Name === areaName)),
           exists,
           isCurrent: selected === areaName,
         });
@@ -374,7 +513,7 @@ export class EditorComponent {
    */
   protected layerDynamicStyle(classes: string | undefined, y: number, x: number): Record<string, string> {
     const timeMs = this.dynamicTimeMs();
-    return computeDynamicStyle(classes, timeMs, y, x);
+    return computeDynamicStyle(classes, timeMs, y, x, this.palette());
   }
 
   /**
@@ -386,7 +525,7 @@ export class EditorComponent {
    */
   protected gridLayerDynamicStyle(classes: string | undefined, y: number, x: number): Record<string, string> {
     const timeMs = this.viewMode() === 'fragments' ? this.dynamicTimeMs() : 0;
-    return computeDynamicStyle(classes, timeMs, y, x);
+    return computeDynamicStyle(classes, timeMs, y, x, this.palette());
   }
 
   /**
@@ -714,6 +853,7 @@ export class EditorComponent {
   }
 
   protected setViewMode(mode: ViewMode): void {
+    this.undoStack.set([]); this.redoStack.set([]);
     this.viewMode.set(mode);
     this.gridTarget.set(mode === 'fragments' ? 'fragment' : 'area');
     this.selection.set(undefined);
@@ -874,6 +1014,7 @@ export class EditorComponent {
   }
 
   protected onAreaChange(): void {
+    this.undoStack.set([]); this.redoStack.set([]);
     this.selection.set(undefined);
     this.hoverPosition.set(undefined);
   }
@@ -973,6 +1114,10 @@ export class EditorComponent {
       return;
     }
 
+    if (this.getEffectiveTool() !== 'select') {
+      this.undoStack.update(items => [...items.slice(-29), JSON.parse(JSON.stringify(blueprint))]);
+      this.redoStack.set([]);
+    }
     const nextSelection = applyGridTool({
       y,
       x,
@@ -1185,12 +1330,13 @@ export class EditorComponent {
     if (!this.newCollectionName().trim()) {
       return;
     }
-    this.status.set('Creating collection...');
+    await this.perform('Creating collection...', async () => {
+    await this.persistDraft();
     await this.api.createCollection(this.newCollectionName().trim());
     this.newCollectionName.set('');
     await this.loadBootstrap();
     this.showNewCollection.set(false);
-    this.status.set('Collection created.');
+    }, 'Collection created.');
   }
 
   protected toggleNewCollectionForm(): void {
@@ -1207,7 +1353,8 @@ export class EditorComponent {
       return;
     }
 
-    this.status.set('Creating space...');
+    await this.perform('Creating space...', async () => {
+    await this.persistDraft();
     await this.api.createSpace({
       collectionName: colName,
       ...this.newSpace(),
@@ -1215,7 +1362,7 @@ export class EditorComponent {
     });
     this.newSpace.set({ ...this.newSpace(), name: '' });
     await this.loadBootstrap();
-    this.status.set('Space created.');
+    }, 'Space created.');
   }
 
   protected async createArea(): Promise<void> {
@@ -1225,7 +1372,8 @@ export class EditorComponent {
       return;
     }
 
-    this.status.set('Creating area...');
+    await this.perform('Creating area...', async () => {
+    await this.persistDraft();
     await this.api.createArea({
       collectionName: colName,
       spaceName: sName,
@@ -1234,7 +1382,7 @@ export class EditorComponent {
     });
     this.newArea.set({ ...this.newArea(), name: '' });
     await this.loadBootstrap();
-    this.status.set('Area created.');
+    }, 'Area created.');
   }
 
   protected async applyAreaPropertyToSpace(): Promise<void> {
@@ -1320,14 +1468,7 @@ export class EditorComponent {
   }
 
   protected async savePrototypeSet(): Promise<void> {
-    const colName = this.collectionName();
-    const setName = this.prototypeSet();
-    if (!colName || !setName) {
-      return;
-    }
-    this.status.set('Saving prototype set...');
-    await this.api.savePrototypeSet(colName, setName, this.prototypes());
-    this.status.set('Prototype set saved.');
+    await this.saveDraftResource(`${this.collectionName()}/prototype/${this.prototypeSet()}`, 'Prototype set');
   }
 
   protected addFragmentSet(): void {
@@ -1371,14 +1512,7 @@ export class EditorComponent {
   }
 
   protected async saveFragmentSet(): Promise<void> {
-    const colName = this.collectionName();
-    const setName = this.fragmentSet();
-    if (!colName || !setName) {
-      return;
-    }
-    this.status.set('Saving fragment set...');
-    await this.api.saveFragmentSet(colName, setName, this.fragments());
-    this.status.set('Fragment set saved.');
+    await this.saveDraftResource(`${this.collectionName()}/fragment/${this.fragmentSet()}`, 'Fragment set');
   }
 
   protected addInteractableSet(): void {
@@ -1444,18 +1578,7 @@ export class EditorComponent {
   }
 
   protected async saveInteractableSet(): Promise<void> {
-    const colName = this.collectionName();
-    const setName = this.interactableSet();
-    if (!colName || !setName) {
-      return;
-    }
-    this.status.set('Saving interactable set...');
-    try {
-      await this.api.saveInteractableSet(colName, setName, this.interactables());
-      this.status.set('Interactable set saved.');
-    } catch (error) {
-      this.status.set(this.extractApiError(error, 'Failed to save interactable set.'));
-    }
+    await this.saveDraftResource(`${this.collectionName()}/interactable/${this.interactableSet()}`, 'Interactable set');
   }
 
   // ── Reaction rule helpers ────────────────────────────────────────────
@@ -1552,22 +1675,11 @@ export class EditorComponent {
   }
 
   protected async saveColors(): Promise<void> {
-    this.status.set('Saving colors...');
-    await this.api.saveColors(this.colors());
-    this.status.set('Colors saved.');
+    await this.saveDraftResource('colors', 'Colors');
   }
 
   protected async saveSpace(): Promise<void> {
-    const colName = this.collectionName();
-    const sName = this.spaceName();
-    const space = this.currentSpace();
-    if (!colName || !sName || !space) {
-      return;
-    }
-
-    this.status.set('Saving space...');
-    await this.api.saveSpace(colName, sName, space);
-    this.status.set('Space saved.');
+    await this.saveDraftResource(`${this.collectionName()}/space/${this.spaceName()}`, 'Space');
   }
 
   protected async flattenSpace(): Promise<void> {
@@ -1582,17 +1694,20 @@ export class EditorComponent {
       return;
     }
 
-    this.status.set('Flattening space...');
+    let flattenedName = '';
+    await this.perform('Flattening space...', async () => {
+    await this.persistDraft();
     const result = await this.api.flattenSpace(colName, sName);
-    const flattenedName = result.spaceName;
+    flattenedName = result.spaceName;
     await this.loadBootstrap();
     this.spaceName.set(flattenedName);
     this.modifySpaceName.set(flattenedName);
     this.onSpaceChange();
-    this.status.set(`Space flattened into ${flattenedName}.`);
+    }, () => `Space flattened into ${flattenedName}.`);
   }
 
   protected async resetUnsavedChanges(): Promise<void> {
+    if (this.busy() || (this.dirty() && !window.confirm('Discard all unsaved edits and reload the saved draft?'))) return;
     const previousCollectionName = this.collectionName();
     const previousSpaceName = this.spaceName();
     const previousAreaName = this.areaName();
@@ -1600,7 +1715,7 @@ export class EditorComponent {
       return;
     }
 
-    this.status.set('Resetting unsaved space changes...');
+    this.status.set('Reloading saved draft...');
     await this.loadBootstrap();
 
     if (this.collectionNames().includes(previousCollectionName)) {
@@ -1621,35 +1736,29 @@ export class EditorComponent {
 
     this.instructionEditedIds.set({});
 
-    this.status.set(`Unsaved changes in ${previousSpaceName} reset.`);
+    this.status.set('Saved draft reloaded.');
   }
 
   protected async compileCollection(): Promise<void> {
-    const colName = this.collectionName();
-    if (!colName) {
-      return;
-    }
-    this.status.set('Compiling...');
-    try {
-      await this.api.compile(colName);
-      this.status.set('Compiled.');
-    } catch (error) {
-      this.status.set(this.extractApiError(error, 'Compile failed.'));
-    }
+    if (!this.collectionName()) return;
+    await this.perform(this.hosted ? 'Publishing…' : 'Compiling…', async () => {
+      await this.persistDraft();
+      await this.api.compile(this.collectionName());
+      if (this.hosted) await this.refreshVersions();
+    }, this.hosted ? 'Version published. Launch to apply it.' : 'Compiled.');
   }
 
   protected async deployCollection(): Promise<void> {
-    const colName = this.collectionName();
-    if (!colName) {
-      return;
-    }
-    this.status.set('Deploying...');
-    try {
-      await this.api.deploy(colName);
-      this.status.set('Deployed.');
-    } catch (error) {
-      this.status.set(this.extractApiError(error, 'Deploy failed.'));
-    }
+    if (!this.collectionName()) return;
+    if (this.hosted && this.runtime() && !globalThis.confirm('Apply the selected version and deployment mode? Players will reconnect if the runtime changes.')) return;
+    await this.perform(this.hosted ? 'Launching…' : 'Deploying…', async () => {
+      if (this.hosted) {
+        if (!this.world()?.publishedReleaseId) throw new Error('Publish or select a version before launching.');
+        await this.api.patchWorld({ lifecycle: this.manifest()!.lifecycle, name: this.manifest()!.name });
+      } else { await this.persistDraft(); }
+      await this.api.deploy(this.collectionName());
+      if (this.hosted) await this.refreshVersions();
+    }, this.hosted ? 'World is running the selected version.' : 'Deployed.');
   }
 
   protected ensureEditedInteractableStateSelection(): void {
@@ -2027,8 +2136,24 @@ export class EditorComponent {
     return space.Topology === 'plane' || space.Topology === 'torus';
   }
 
-  private buildAreaImageUrl(spaceName: string, areaName: string, collectionName: string): string {
-    return `/images/make/${encodeURIComponent(spaceName)}/${encodeURIComponent(areaName)}?currentCollection=${encodeURIComponent(collectionName)}`;
+  private buildAreaImageUrl(area: AreaDescription | undefined): string {
+    if (!area) return '';
+    const blueprint = area.Blueprint;
+    const palette = this.palette();
+    const rectangles = blueprint.Tiles.flatMap((row, y) => row.map((tile, x) => {
+      let color = palette[blueprint.Ground?.[y]?.[x]?.status === 1 ? blueprint.DefaultTileColor1 : blueprint.DefaultTileColor] ?? '#333';
+      const prototype = this.prototypesById().get(tile.prototypeId ?? '');
+      if (prototype) {
+        const layers = prototype.mapColor ? [prototype.mapColor] : [prototype.cssColor, prototype.layer1css, prototype.layer2css, prototype.ceiling1css, prototype.ceiling2css];
+        for (const layer of layers) {
+          const name = (layer ?? '').split(/\s+/).find(token => Object.hasOwn(palette, token));
+          if (name) color = palette[name];
+        }
+      }
+      return `<rect x="${x}" y="${y}" width="1" height="1" fill="${color}"/>`;
+    })).join('');
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${blueprint.Tiles[0]?.length ?? 1} ${blueprint.Tiles.length || 1}" shape-rendering="crispEdges">${rectangles}</svg>`;
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
   }
 
   private navigationImageKey(areaName: string): string {
@@ -2081,6 +2206,10 @@ export class EditorComponent {
   }
 
   private ensurePaletteStyles(): void {
+    this.paletteStyle = document.createElement('style');
+    this.paletteStyle.dataset['editorPalette'] = '';
+    document.head.appendChild(this.paletteStyle);
+    this.destroyRef.onDestroy(() => this.paletteStyle?.remove());
     const stylesheets = ['/assets/colors.css'];
     for (const href of stylesheets) {
       const alreadyPresent = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(
@@ -2096,8 +2225,26 @@ export class EditorComponent {
     }
   }
 
+  private updatePaletteStyles(): void {
+    const palette = { ...DYNAMIC_COLOR_MAP };
+    const rules: string[] = [];
+    for (const color of this.colors()) {
+      if (!/^[a-z][a-z0-9-]{0,47}$/.test(color.cssClassName)) continue;
+      const value = this.colorPreviewStyle(color)['background'];
+      palette[color.cssClassName] = value;
+      rules.push(`app-editor .${color.cssClassName} { background-color: ${value}; }`,
+        `app-editor .${color.cssClassName}-b { border-color: ${value}; }`,
+        `app-editor .${color.cssClassName}-t { color: ${value}; }`);
+    }
+    const css = rules.join('\n');
+    if (this.paletteStyle && this.paletteStyle.textContent !== css) {
+      this.paletteStyle.textContent = css;
+      this.palette.set(palette);
+    }
+  }
+
   private touchBootstrap(): void {
-    this.gridVersion.update((value) => value + 1);
+    this.markDirty();
     const current = this.bootstrap();
     if (!current) {
       return;
@@ -2153,9 +2300,12 @@ export class EditorComponent {
 
   private async loadBootstrap(): Promise<void> {
     this.loading.set(true);
+    try {
     const raw = await this.api.getBootstrap();
     const data = this.normalizeBootstrap(raw as unknown as Record<string, unknown>);
     this.bootstrap.set(data);
+    this.updatePaletteStyles();
+    this.world.set(raw.world); this.runtime.set(raw.runtime);
 
     this.collectionName.set(this.collectionNames()[0] ?? '');
     this.spaceName.set(this.spaceNames()[0] ?? '');
@@ -2172,7 +2322,13 @@ export class EditorComponent {
 
     this.selectedAssetId.set(this.prototypes()[0]?.id ?? '');
     this.tool.set('select');
-    this.loading.set(false);
+    this.savedContent.clear();
+    for (const resource of this.draftResources()) this.savedContent.set(resource.key, JSON.stringify(resource.value));
+    this.dirty.set(false);
+    this.undoStack.set([]); this.redoStack.set([]);
+    if (this.hosted) this.releases.set(await this.api.listReleases());
+    } catch (error) { this.status.set(this.extractApiError(error, 'Unable to load the editor.')); }
+    finally { this.loading.set(false); }
   }
 
   private normalizeBlueprint(input: any): Blueprint {
@@ -2360,6 +2516,8 @@ export class EditorComponent {
       }
 
       outCollections[collectionName] = {
+        Manifest: { ...defaultManifest(collection.Name ?? collectionName, Object.values(spaces)[0]?.Areas[0]?.Name ?? ''),
+          ...(collection.Manifest ?? {}), npcs: collection.Manifest?.npcs ?? [], spawns: collection.Manifest?.spawns ?? [], achievements: collection.Manifest?.achievements ?? [] },
         Name: collection.Name ?? collection.name ?? collectionName,
         Spaces: spaces,
         Fragments: outFragments,
@@ -2370,7 +2528,7 @@ export class EditorComponent {
 
     return {
       collections: outCollections,
-      colors: (raw['colors'] ?? []) as BootstrapResponse['colors'],
+      colors: ((raw['colors'] ?? []) as any[]).map(color => ({ cssClassName: color.cssClassName ?? color.name, R: color.R ?? color.r, G: color.G ?? color.g, B: color.B ?? color.b, A: String(color.A ?? color.a ?? '') })),
     };
   }
 

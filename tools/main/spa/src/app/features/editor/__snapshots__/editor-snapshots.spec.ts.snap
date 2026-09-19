@@ -41,14 +41,7 @@ r06 - | - | - | - | - | - | - | -
 r07 - | - | - | - | - | - | - | -
 
 Ground Grid:
-r00 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
-r01 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
-r02 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
-r03 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
-r04 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
-r05 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
-r06 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
-r07 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0"
+(none)"
 `;
 
 exports[`EditorComponent snapshots captures baseline area snapshots: baseline staged-room 1`] = `
@@ -92,14 +85,7 @@ r06 - | - | - | - | - | - | - | -
 r07 - | - | - | - | - | - | - | -
 
 Ground Grid:
-r00 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
-r01 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
-r02 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
-r03 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
-r04 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
-r05 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
-r06 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
-r07 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0"
+(none)"
 `;
 
 exports[`EditorComponent snapshots captures ghost highlight overlays for hover previews: ghost fragment hover 1`] = `

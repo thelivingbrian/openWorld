@@ -26,11 +26,12 @@ func main() {
 	http.HandleFunc("/api/prototype-set", c.apiSavePrototypeSetHandler)
 	http.HandleFunc("/api/interactable-set", c.apiSaveInteractableSetHandler)
 	http.HandleFunc("/api/colors", c.apiColorsHandler)
+	http.HandleFunc("/api/manifest", c.apiManifestHandler)
 	http.HandleFunc("/api/compile", c.apiCompileHandler)
 	http.HandleFunc("/api/deploy", c.apiDeployHandler)
 	http.HandleFunc("/", c.spaHandler)
 
-	err := http.ListenAndServe(":4444", nil)
+	err := http.ListenAndServe("127.0.0.1:4444", nil)
 	if err != nil {
 		fmt.Println("Failed to start server", err)
 		return

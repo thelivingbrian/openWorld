@@ -533,13 +533,12 @@ export function generateMaterials(
   prototypesById: Map<string, Prototype>,
   groundOnly: boolean
 ): Material[][] {
-  ensureGround(blueprint);
   const out: Material[][] = [];
 
   for (let y = 0; y < blueprint.Tiles.length; y += 1) {
     const row: Material[] = [];
     for (let x = 0; x < blueprint.Tiles[y].length; x += 1) {
-      const cell = blueprint.Ground?.[y]?.[x];
+      const cell = blueprint.Ground?.[y]?.[x] ?? { status: 0 };
       if (groundOnly) {
         row.push(addGroundToMaterial({}, cell, blueprint.DefaultTileColor, blueprint.DefaultTileColor1));
         continue;

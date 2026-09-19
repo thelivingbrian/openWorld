@@ -2,22 +2,22 @@
 
 ## Current in progress -
 
-### Description: 
+### Description:
   Complete web design editor feature.
 ### Todo:
-  - [ ] web design editor is fully functional for maintaining game world
-    - [ ] Can program NPCs with custom behavior
-    - [ ] Can set Spawn behavior from editor 
-    - [ ] Can create custom world achievements from editor
-    - [ ] Can choose to deploy consistently - persisting until shut off
-    - [ ] Admin console allows navigation by world / ability to shutdown or access editor
-    - [ ] For now only admins can edit or deploy world but user or member created worlds may follow 
-    - [ ] Current editor has umimpressive UI, switch with more professional setup 
-      - [ ] Should fit bloopworld thematically but as it is an editor primary color pallete must be gray-scale or adjacent
-    - [ ] Intuitive controls are a must
-      - [ ] Seek engine quality interface and functionality
-    - [ ] Core game maintenance is intended to occur from within the editor going forward
-      - [ ] Support for versions is needed to facilitate rollback / wip
+  - [x] web design editor is fully functional for maintaining game world
+    - [x] Can program NPCs with custom behavior
+    - [x] Can set Spawn behavior from editor
+    - [x] Can create custom world achievements from editor
+    - [x] Can choose to deploy consistently - persisting until shut off
+    - [x] Admin console allows navigation by world / ability to shutdown or access editor
+    - [x] For now only admins can edit or deploy world but user or member created worlds may follow
+    - [x] Current editor has umimpressive UI, switch with more professional setup
+      - [x] Should fit bloopworld thematically but as it is an editor primary color pallete must be gray-scale or adjacent
+    - [x] Intuitive controls are a must
+      - [x] Seek engine quality interface and functionality
+    - [x] Core game maintenance is intended to occur from within the editor going forward
+      - [x] Support for versions is needed to facilitate rollback / wip
 
 
 ---- AI Agents ignore below ----

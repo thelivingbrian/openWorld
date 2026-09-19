@@ -1,3 +1,5 @@
+import { WorldDocument, WorldManifest, RuntimeInfo } from './world.models';
+
 export interface Color {
   cssClassName: string;
   R: number;
@@ -135,6 +137,7 @@ export interface InteractableDescription {
 }
 
 export interface Collection {
+  Manifest?: WorldManifest;
   Name: string;
   Spaces: Record<string, Space>;
   Fragments: Record<string, Fragment[]>;
@@ -143,6 +146,8 @@ export interface Collection {
 }
 
 export interface BootstrapResponse {
+  world?: WorldDocument;
+  runtime?: RuntimeInfo;
   collections: Record<string, Collection>;
   colors: Color[];
 }

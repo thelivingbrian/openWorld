@@ -140,6 +140,9 @@ func (c Context) getAllCollections(collectionPath string) map[string]*Collection
 			}
 
 			pathToSpaces := filepath.Join(collectionPath, entry.Name(), "spaces")
+			if data, err := os.ReadFile(filepath.Join(collectionPath, entry.Name(), "manifest.json")); err == nil && json.Valid(data) {
+				collection.Manifest = data
+			}
 			populateMaps(collection.Spaces, pathToSpaces)
 
 			pathToFragments := filepath.Join(collectionPath, entry.Name(), "fragments")
@@ -202,6 +205,11 @@ func (c Context) compileCollectionByName(collectionName string) {
 }
 
 func (c Context) compileCollection(collection *Collection) {
+	if len(collection.Manifest) > 0 {
+		if err := writeJsonFile(filepath.Join(COMPILE_basePath, "manifest.json"), collection.Manifest, true); err != nil {
+			panic(err)
+		}
+	}
 	areas := make([]AreaOutput, 0)
 
 	for _, space := range collection.Spaces {

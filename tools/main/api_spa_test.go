@@ -1,12 +1,48 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
+
+func TestManifestSaveReloadAndCompile(t *testing.T) {
+	previous, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chdir(t.TempDir()); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(previous) })
+	if err := os.MkdirAll("data/collections/test", 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(COMPILE_basePath, 0755); err != nil {
+		t.Fatal(err)
+	}
+	collection := &Collection{Name: "test", Spaces: map[string]*Space{}}
+	context := Context{Collections: map[string]*Collection{"test": collection}}
+	body := `{"collectionName":"test","manifest":{"name":"Test","npcs":[{"id":"guard","program":[{"action":"wander","ticks":2}]}],"spawns":[],"achievements":[{"id":"explore","metric":"visit-stage","stage":"room"}]}}`
+	response := httptest.NewRecorder()
+	context.apiManifestHandler(response, httptest.NewRequest(http.MethodPut, "/api/manifest", strings.NewReader(body)))
+	if response.Code != http.StatusOK {
+		t.Fatal(response.Body.String())
+	}
+	loaded := context.getAllCollections(COLLECTION_PATH)["test"]
+	if !json.Valid(loaded.Manifest) {
+		t.Fatal("saved manifest was not reloaded")
+	}
+	context.compileCollection(loaded)
+	data, err := os.ReadFile(filepath.Join(COMPILE_basePath, "manifest.json"))
+	if err != nil || !strings.Contains(string(data), `"guard"`) || !strings.Contains(string(data), `"explore"`) {
+		t.Fatal("compiled manifest lost NPC or achievement definitions", err)
+	}
+}
 
 func TestServeSPARedirectsToolsRootToDesign(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/?world=test-world", nil)

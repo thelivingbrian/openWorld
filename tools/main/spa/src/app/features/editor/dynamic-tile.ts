@@ -110,6 +110,7 @@ export function computeDynamicStyle(
   timeMs: number,
   y: number,
   x: number,
+  palette: Record<string, string> = DYNAMIC_COLOR_MAP,
 ): Record<string, string> {
   if (!hasDynamicToken(classes)) {
     return {};
@@ -121,8 +122,8 @@ export function computeDynamicStyle(
   for (const token of tokens) {
     const cycleMatch = token.match(/^cycle\(([^,]+),([^)]+)\)$/);
     if (cycleMatch) {
-      const colorA = DYNAMIC_COLOR_MAP[cycleMatch[1].trim()];
-      const colorB = DYNAMIC_COLOR_MAP[cycleMatch[2].trim()];
+      const colorA = palette[cycleMatch[1].trim()];
+      const colorB = palette[cycleMatch[2].trim()];
       if (colorA && colorB) {
         const mix = 0.5 + 0.5 * Math.sin(timeMs / 420 + (y + x) * 0.3);
         style['backgroundColor'] = mixColor(colorA, colorB, mix);
@@ -132,8 +133,8 @@ export function computeDynamicStyle(
 
     const cycleBorderMatch = token.match(/^cycle-b\(([^,]+),([^)]+)\)$/);
     if (cycleBorderMatch) {
-      const colorA = DYNAMIC_COLOR_MAP[cycleBorderMatch[1].trim()];
-      const colorB = DYNAMIC_COLOR_MAP[cycleBorderMatch[2].trim()];
+      const colorA = palette[cycleBorderMatch[1].trim()];
+      const colorB = palette[cycleBorderMatch[2].trim()];
       if (colorA && colorB) {
         const mix = 0.5 + 0.5 * Math.sin(timeMs / 420 + (y + x) * 0.3);
         style['borderColor'] = mixColor(colorA, colorB, mix);
@@ -161,8 +162,8 @@ export function computeDynamicStyle(
 
     if (token === 'water') {
       const wave = 0.5 + 0.5 * Math.sin(timeMs / 560 + x * 0.7 + y * 0.35);
-      const blueColor = DYNAMIC_COLOR_MAP['blue'];
-      const skyBlueColor = DYNAMIC_COLOR_MAP['sky-blue'];
+      const blueColor = palette['blue'];
+      const skyBlueColor = palette['sky-blue'];
       if (blueColor && skyBlueColor) {
         style['backgroundColor'] = mixColor(blueColor, skyBlueColor, wave);
       }
@@ -203,14 +204,15 @@ function mixColor(colorA: string, colorB: string, amount: number): string {
   const r = Math.round(a.r * (1 - t) + b.r * t);
   const g = Math.round(a.g * (1 - t) + b.g * t);
   const bCh = Math.round(a.b * (1 - t) + b.b * t);
-
+  const alpha = a.a * (1 - t) + b.a * t;
+  if (alpha !== 1) return `rgba(${r}, ${g}, ${bCh}, ${alpha})`;
   return `rgb(${r}, ${g}, ${bCh})`;
 }
 
-function parseRgbColor(color: string): { r: number; g: number; b: number } | null {
-  const match = color.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+function parseRgbColor(color: string): { r: number; g: number; b: number; a: number } | null {
+  const match = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/);
   if (!match) return null;
-  return { r: Number(match[1]), g: Number(match[2]), b: Number(match[3]) };
+  return { r: Number(match[1]), g: Number(match[2]), b: Number(match[3]), a: match[4] === undefined ? 1 : Number(match[4]) };
 }
 
 function rainbowColorAt(timeMs: number, phase: number): string {

@@ -20,6 +20,11 @@ describe('EditorComponent', () => {
       saveFragmentSet: jest.fn().mockResolvedValue(undefined),
       saveInteractableSet: jest.fn().mockResolvedValue(undefined),
       saveColors: jest.fn().mockResolvedValue(undefined),
+      saveManifest: jest.fn().mockResolvedValue(undefined),
+      saveVersion: jest.fn().mockResolvedValue({ id: 'v1', number: 1 }),
+      listReleases: jest.fn().mockResolvedValue([]),
+      getWorldState: jest.fn().mockResolvedValue({ world: { id: 'world', draftGeneration: 2 } }),
+      selectRelease: jest.fn().mockResolvedValue(undefined),
       compile: jest.fn().mockResolvedValue(undefined),
       deploy: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<EditorApiService>;
@@ -40,6 +45,56 @@ describe('EditorComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('saves changed resources before publishing and skips unchanged resources', async () => {
+    const state = component as any;
+    state.currentArea().Safe = true;
+    state.manifest().npcs.push({ id: 'guard' });
+    await state.compileCollection();
+    expect(api.saveSpace).toHaveBeenCalledTimes(1);
+    expect(api.saveManifest).toHaveBeenCalledTimes(1);
+    expect(api.savePrototypeSet).not.toHaveBeenCalled();
+    expect(api.saveSpace.mock.invocationCallOrder[0]).toBeLessThan(api.compile.mock.invocationCallOrder[0]);
+    await state.saveAll();
+    expect(api.saveSpace).toHaveBeenCalledTimes(1);
+    expect(state.dirty()).toBe(false);
+  });
+
+  it('keeps edits and prevents publishing when a draft save fails', async () => {
+    const state = component as any;
+    state.currentArea().Safe = true; state.markDirty();
+    api.saveSpace.mockRejectedValue(new Error('resource revision conflict'));
+    await state.compileCollection();
+    expect(api.compile).not.toHaveBeenCalled();
+    expect(state.currentArea().Safe).toBe(true);
+    expect(state.dirty()).toBe(true);
+    expect(state.busy()).toBe(false);
+    expect(state.status()).toContain('revision conflict');
+  });
+
+  it('selects a release without reloading draft data or launching it', async () => {
+    const state = component as any; state.hosted = true;
+    api.getBootstrap.mockClear();
+    state.currentArea().Safe = true;
+    await state.selectVersion({ id: 'older', number: 1 });
+    expect(api.selectRelease).toHaveBeenCalledWith('older');
+    expect(api.getBootstrap).not.toHaveBeenCalled();
+    expect(api.deploy).not.toHaveBeenCalled();
+    expect(state.currentArea().Safe).toBe(true);
+  });
+
+  it('undoes and redoes paint without losing the original blueprint', () => {
+    const state = component as any;
+    state.fixture.set('prototype'); state.tool.set('fill');
+    state.currentArea().Blueprint.Tiles[0][0] = {};
+    state.selectedAssetId.set(state.prototypes()[0].id);
+    const before = JSON.stringify(state.activeBlueprint());
+    state.onGridClick(0, 0);
+    const after = JSON.stringify(state.activeBlueprint());
+    expect(after).not.toBe(before);
+    state.undoPaint(); expect(JSON.stringify(state.activeBlueprint())).toBe(before);
+    state.undoPaint(true); expect(JSON.stringify(state.activeBlueprint())).toBe(after);
   });
 
   it('shows only the operations supported by the active editor context', () => {
@@ -85,6 +140,22 @@ describe('EditorComponent', () => {
     expect(state.interactableSet()).toBe('base-interactables');
     expect(state.selectedAssetId()).toBe('proto-1');
     expect(state.tool()).toBe('select');
+  });
+
+  it('keeps navigation clean and previews draft palette changes in tiles, animations and minimaps', () => {
+    const state = component as any;
+    state.setViewMode('colors'); state.markDirty();
+    expect(state.dirty()).toBe(false);
+    const before = state.navigationMapRows()[0][0].imageUrl;
+    expect(before).toMatch(/^data:image\/svg\+xml,/);
+    state.colors()[0].R = 80;
+    state.markDirty();
+    expect(state.dirty()).toBe(true);
+    expect(document.querySelector('style[data-editor-palette]')?.textContent).toContain('rgba(80, 128, 0, 1)');
+    expect(state.gridLayerDynamicStyle('cycle(green,green)', 0, 0)['backgroundColor']).toBe('rgb(80, 128, 0)');
+    expect(state.navigationMapRows()[0][0].imageUrl).not.toBe(before);
+    state.colors()[0].R = 0; state.markDirty();
+    expect(state.dirty()).toBe(false);
   });
 
   it('setViewMode resets area edit panels when leaving world view', () => {
@@ -296,6 +367,7 @@ describe('EditorComponent', () => {
   });
 
   it('resetUnsavedChanges reloads current space and discards local edits', async () => {
+    const confirm = jest.spyOn(window, 'confirm').mockReturnValue(true);
     const state = component as any;
     const area = state.currentArea();
     area.Blueprint.DefaultTileColor = 'purple';
@@ -309,7 +381,18 @@ describe('EditorComponent', () => {
     expect(state.areaName()).toBe('space-1:0-0');
     expect(state.currentArea().Blueprint.DefaultTileColor).toBe('green');
     expect(state.instructionEditedIds()).toEqual({});
-    expect(state.status()).toBe('Unsaved changes in space-1 reset.');
+    expect(state.status()).toBe('Saved draft reloaded.');
+    confirm.mockRestore();
+  });
+
+  it('keeps unsaved edits when reset is canceled', async () => {
+    const confirm = jest.spyOn(window, 'confirm').mockReturnValue(false);
+    const state = component as any;
+    state.currentArea().Safe = true; state.markDirty();
+    await state.resetUnsavedChanges();
+    expect(api.getBootstrap).toHaveBeenCalledTimes(1);
+    expect(state.currentArea().Safe).toBe(true);
+    confirm.mockRestore();
   });
 
   it('addInteractableSet adds a new set, selects it, and reports success', () => {

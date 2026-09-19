@@ -14,6 +14,33 @@ type bootstrapResponse struct {
 	Colors      []Color                `json:"colors"`
 }
 
+func (c *Context) apiManifestHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		writeJSONError(w, 405, "method not allowed")
+		return
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, 2<<20)
+	request, err := decodeJSONBody[struct {
+		CollectionName string          `json:"collectionName"`
+		Manifest       json.RawMessage `json:"manifest"`
+	}](r)
+	if err != nil || !json.Valid(request.Manifest) {
+		writeJSONError(w, 400, "invalid manifest")
+		return
+	}
+	collection := c.Collections[request.CollectionName]
+	if collection == nil {
+		writeJSONError(w, 404, "collection not found")
+		return
+	}
+	if err := writeJsonFile(filepath.Join(COLLECTION_PATH, collection.Name, "manifest.json"), request.Manifest, true); err != nil {
+		writeJSONError(w, 500, err.Error())
+		return
+	}
+	collection.Manifest = request.Manifest
+	encodeJSON(w, 200, map[string]string{"status": "saved"})
+}
+
 type saveSpaceRequest struct {
 	CollectionName string `json:"collectionName"`
 	SpaceName      string `json:"spaceName"`

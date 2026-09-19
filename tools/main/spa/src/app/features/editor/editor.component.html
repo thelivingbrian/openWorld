@@ -1,14 +1,16 @@
-<main class="page">
+<main class="page" (input)="markDirty()" (change)="markDirty()">
   @if (loading()) {
     <p>Loading editor...</p>
   } @else {
     <section class="topbar">
+      <div class="editor-brand"><span class="brand-symbol" aria-hidden="true">◉</span><strong>bloopworld</strong><span class="brand-divider">/</span><span>World editor</span><span class="draft-badge" [class.unsaved]="dirty()">{{ dirty() ? 'Unsaved changes' : 'Draft saved' }}</span></div>
       <div class="row gap">
+        <button class="primary-action" (click)="saveAll()" [disabled]="busy()" title="Save all changes (⌘/Ctrl+S)">Save all</button>
         @if (hosted) {
           <span>World: {{ collectionName() }}</span>
-          <button (click)="compileCollection()">Publish</button>
-          <button (click)="deployCollection()">Launch</button>
-          <a href="/">Worlds</a>
+          <button (click)="compileCollection()" [disabled]="busy()">Publish</button>
+          <button (click)="deployCollection()" [disabled]="busy() || !world()?.publishedReleaseId">Launch</button>
+          <a href="/admin/worlds">Worlds</a>
         } @else {
           <label>
             Collection
@@ -18,8 +20,8 @@
               }
             </select>
           </label>
-          <button (click)="compileCollection()">Compile</button>
-          <button (click)="deployCollection()">Deploy</button>
+          <button (click)="compileCollection()" [disabled]="busy()">Compile</button>
+          <button (click)="deployCollection()" [disabled]="busy()">Deploy</button>
           <button (click)="toggleNewCollectionForm()">New</button>
         }
       </div>
@@ -33,11 +35,12 @@
           <button (click)="hideNewCollectionForm()">Cancel</button>
         </div>
       }
-      <div class="row">
+      <div class="row status-line" role="status" aria-live="polite">
         <span>{{ status() }}</span>
       </div>
     </section>
 
+    <fieldset class="editor-body" [disabled]="busy()">
     <section class="mode-nav">
       <div class="row wrap gap">
         <button type="button" (click)="setViewMode('world')" [class.active]="viewMode() === 'world'">World</button>
@@ -47,8 +50,41 @@
         <button type="button" (click)="setViewMode('fragments')" [class.active]="viewMode() === 'fragments'">Fragments</button>
         <button type="button" (click)="setViewMode('interactables')" [class.active]="viewMode() === 'interactables'">Interactables</button>
         <button type="button" (click)="setViewMode('colors')" [class.active]="viewMode() === 'colors'">Colors</button>
+        <span class="nav-divider"></span>
+        <button type="button" (click)="setViewMode('settings')" [class.active]="viewMode() === 'settings'">Settings</button>
+        <button type="button" (click)="setViewMode('npcs')" [class.active]="viewMode() === 'npcs'">NPCs</button>
+        <button type="button" (click)="setViewMode('spawns')" [class.active]="viewMode() === 'spawns'">Spawns</button>
+        <button type="button" (click)="setViewMode('achievements')" [class.active]="viewMode() === 'achievements'">Achievements</button>
+        @if (hosted) { <button type="button" (click)="setViewMode('versions')" [class.active]="viewMode() === 'versions'">Versions & deployment</button> }
       </div>
     </section>
+
+    @if (viewMode() === 'settings' || viewMode() === 'npcs' || viewMode() === 'spawns' || viewMode() === 'achievements') {
+      @if (manifest(); as config) { <app-world-settings [manifest]="config" [mode]="viewMode()" [stages]="allStageNames()" (changed)="markDirty()" /> }
+    }
+
+    @if (viewMode() === 'versions' && hosted) {
+      <section class="panel versions-panel">
+        <div class="section-header"><div><p class="eyebrow">RELEASE MANAGEMENT</p><h2>Versions & deployment</h2></div><span class="draft-badge">{{ runtime()?.state ?? 'Stopped' }} · {{ runtime()?.playerCount ?? 0 }} players</span></div>
+        <p class="muted">Save all keeps your work in the draft. Publishing creates a version and selects it for launch. Saving a version keeps it in history. Launch applies the selected version.</p>
+        <div class="row wrap gap">
+          <label>Version label<input [(ngModel)]="versionLabel" maxlength="120" placeholder="e.g. Village patrols — WIP"></label><button (click)="saveVersion()">Save version</button>
+          @if (manifest(); as config) {
+            <label>Deployment mode<select [(ngModel)]="config.lifecycle"><option value="persistent">Keep running until shut down</option><option value="owner-present">While the owner is present (60s grace)</option><option value="until-empty">Until empty after the owner leaves</option></select></label>
+          }
+          <button (click)="deployCollection()" [disabled]="!world()?.publishedReleaseId">Launch selected version</button>
+          @if (runtime()) { <a [href]="playURL()" target="_blank" rel="noopener">Open live console ↗</a> }
+          @if (runtime() || world()?.deploymentEnabled) { <button class="danger-action" (click)="stopWorld()">Shut down</button> }
+        </div>
+        <p class="muted">Persistent worlds recover after a controller restart. Shut down keeps a world off until you launch it again. Deployment mode takes effect on launch.</p>
+        <div class="version-table-wrap"><table class="version-table"><thead><tr><th>Version</th><th>Created</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+          @for (release of releases(); track release.id) {
+            <tr><td><strong>v{{release.number}}</strong> {{release.label || 'Untitled version'}}</td><td>{{release.createdAt | date:'medium'}}</td><td>@if (release.id === world()?.publishedReleaseId) { <span class="draft-badge">Selected</span> } @if (release.id === runtime()?.releaseId) { <span class="draft-badge">Live</span> }</td>
+              <td><button (click)="selectVersion(release)" [disabled]="release.id === world()?.publishedReleaseId">Select for launch</button> <button (click)="restoreVersion(release)">Restore draft</button></td></tr>
+          } @empty { <tr><td colspan="4">No versions yet. Save a version or publish your draft.</td></tr> }
+        </tbody></table></div>
+      </section>
+    }
 
     @if (viewMode() === 'world') {
       <section class="panel">
@@ -75,6 +111,9 @@
             <button (click)="flattenSpace()" [disabled]="!canFlattenCurrentSpace()">Flatten Space</button>
           }
           <button (click)="resetUnsavedChanges()">Reset Changes</button>
+          <button (click)="undoPaint()" [disabled]="!undoStack().length" title="Undo paint (⌘/Ctrl+Z)">Undo paint</button>
+          <button (click)="undoPaint(true)" [disabled]="!redoStack().length" title="Redo paint (⌘/Ctrl+Shift+Z)">Redo</button>
+          <label>Zoom<select [(ngModel)]="zoom"><option [ngValue]="0.5">50%</option><option [ngValue]="0.75">75%</option><option [ngValue]="1">100%</option><option [ngValue]="1.5">150%</option><option [ngValue]="2">200%</option></select></label>
           @if (currentArea()) {
             <div class="row gap panel__toggles panel__toggles--right">
               <button
@@ -537,7 +576,7 @@
               </p>
             }
 
-            <div class="grid" id="screen">
+            <div class="grid" id="screen" [style.zoom]="zoom()">
               @for (row of gridMaterials(); track $index; let y = $index) {
                 <div class="grid-row">
                   @for (material of row; track $index; let x = $index) {
@@ -603,8 +642,8 @@
               <label>Color1 <input [(ngModel)]="currentArea()!.Blueprint.DefaultTileColor1" /></label>
               <label>Weather <input [(ngModel)]="currentArea()!.Weather" /></label>
               <div class="panel__break" aria-hidden="true"></div>
-              <label>Load <input [(ngModel)]="currentArea()!.LoadStrategy" /></label>
-              <label>Spawn <input [(ngModel)]="currentArea()!.SpawnStrategy" /></label>
+              <label>Stage instance<select [(ngModel)]="currentArea()!.LoadStrategy"><option value="">Shared world</option><option value="Team">Per team</option><option value="Personal">Per player</option><option value="Individual">New on every entry</option></select></label>
+              <label>Spawn preset<select [(ngModel)]="currentArea()!.SpawnStrategy">@for (preset of spawnPresets; track preset.value) { <option [value]="preset.value">{{preset.label}}</option> }</select></label>
               <label>Broadcast <input [(ngModel)]="currentArea()!.BroadcastGroup" /></label>
             </div>
           } @else if (viewMode() === 'world' && currentArea() && showTransports()) {
@@ -965,5 +1004,6 @@
       </div>
       </section>
     }
+    </fieldset>
   }
 </main>
