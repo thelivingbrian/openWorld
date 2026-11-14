@@ -126,6 +126,12 @@ describe('EditorComponent', () => {
     expect(stylesheetHrefs).not.toContain('/assets/style.css');
   });
 
+  it('renders built-in border colors above the scoped box border fallback', () => {
+    const css = document.querySelector('style[data-editor-palette]')?.textContent;
+    expect(css).toContain('app-editor .box.chocolate-b { border-color: rgb(123, 63, 0); }');
+    expect(css).toContain('app-editor .box.white-b { border-color: rgb(255, 255, 255); }');
+  });
+
   it('loads bootstrap and initializes editor selections', () => {
     const state = component as any;
 

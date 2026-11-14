@@ -505,36 +505,65 @@ func makeAirlockTestArea(oneWay bool) Area {
 }
 
 func TestAirlockRulesOpenArmAndCloseConnectedDoors(t *testing.T) {
-	stage := createStageFromArea(makeAirlockTestArea(false))
+	for _, source := range []string{"test", "bloop", "escape"} {
+		t.Run(source, func(t *testing.T) {
+			area := makeAirlockTestArea(false)
+			if source != "test" {
+				collection, err := loadSeedCollection(seedRootFromEnvironment(), source)
+				if err != nil {
+					t.Fatal(err)
+				}
+				byName := map[string]InteractableDescription{}
+				for _, set := range collection.InteractableSets {
+					for _, item := range set {
+						byName[item.Name] = item
+					}
+				}
+				for _, row := range area.Interactables {
+					for x, item := range row {
+						if item == nil {
+							continue
+						}
+						replacement, ok := byName[item.Name]
+						if !ok {
+							t.Fatalf("missing seed interactable %q", item.Name)
+						}
+						row[x] = &replacement
+					}
+				}
+			}
+			stage := createStageFromArea(area)
 
-	openSwitch := stage.tiles[0][1]
-	if !openSwitch.interactable.React(nil, nil, openSwitch, 0, 0) {
-		t.Fatal("expected open switch reaction to fire")
-	}
-	if ia := stage.tiles[0][2].interactable; ia == nil || ia.state != "open" || !ia.walkable {
-		t.Fatal("expected top door to be open and walkable after opening")
-	}
-	if ia := stage.tiles[2][2].interactable; ia == nil || ia.state != "disarmed" {
-		t.Fatal("expected close switch to remain disarmed immediately after opening")
-	}
+			openSwitch := stage.tiles[0][1]
+			if !openSwitch.interactable.React(nil, nil, openSwitch, 0, 0) {
+				t.Fatal("expected open switch reaction to fire")
+			}
+			if ia := stage.tiles[0][2].interactable; ia == nil || ia.state != "open" || !ia.walkable {
+				t.Fatal("expected top door to be open and walkable after opening")
+			}
+			if ia := stage.tiles[2][2].interactable; ia == nil || ia.state != "disarmed" {
+				t.Fatal("expected close switch to remain disarmed immediately after opening")
+			}
 
-	doorTile := stage.tiles[1][2]
-	if !doorTile.interactable.React(nil, nil, doorTile, 0, 0) {
-		t.Fatal("expected open door to arm close switches")
-	}
-	if ia := stage.tiles[2][2].interactable; ia == nil || ia.state != "armed" {
-		t.Fatal("expected close switch to become armed after traversing open door")
-	}
+			doorTile := stage.tiles[1][2]
+			if !doorTile.interactable.React(nil, nil, doorTile, 0, 0) {
+				t.Fatal("expected open door to arm close switches")
+			}
+			if ia := stage.tiles[2][2].interactable; ia == nil || ia.state != "armed" {
+				t.Fatal("expected close switch to become armed after traversing open door")
+			}
 
-	closeSwitch := stage.tiles[2][2]
-	if !closeSwitch.interactable.React(nil, nil, closeSwitch, 0, 0) {
-		t.Fatal("expected armed close switch reaction to fire")
-	}
-	if ia := stage.tiles[0][2].interactable; ia == nil || ia.state != "closed" || ia.walkable {
-		t.Fatal("expected top door to be closed and blocking after closing")
-	}
-	if ia := stage.tiles[2][2].interactable; ia == nil || ia.state != "disarmed" {
-		t.Fatal("expected close switch to reset to disarmed after closing")
+			closeSwitch := stage.tiles[2][2]
+			if !closeSwitch.interactable.React(nil, nil, closeSwitch, 0, 0) {
+				t.Fatal("expected armed close switch reaction to fire")
+			}
+			if ia := stage.tiles[0][2].interactable; ia == nil || ia.state != "closed" || ia.walkable {
+				t.Fatal("expected top door to be closed and blocking after closing")
+			}
+			if ia := stage.tiles[2][2].interactable; ia == nil || ia.state != "disarmed" {
+				t.Fatal("expected close switch to reset to disarmed after closing")
+			}
+		})
 	}
 }
 

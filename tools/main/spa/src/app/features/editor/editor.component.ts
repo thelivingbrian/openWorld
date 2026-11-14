@@ -2227,14 +2227,16 @@ export class EditorComponent {
 
   private updatePaletteStyles(): void {
     const palette = { ...DYNAMIC_COLOR_MAP };
-    const rules: string[] = [];
     for (const color of this.colors()) {
       if (!/^[a-z][a-z0-9-]{0,47}$/.test(color.cssClassName)) continue;
       const value = this.colorPreviewStyle(color)['background'];
       palette[color.cssClassName] = value;
-      rules.push(`app-editor .${color.cssClassName} { background-color: ${value}; }`,
-        `app-editor .${color.cssClassName}-b { border-color: ${value}; }`,
-        `app-editor .${color.cssClassName}-t { color: ${value}; }`);
+    }
+    const rules: string[] = [];
+    for (const [name, value] of Object.entries(palette)) {
+      rules.push(`app-editor .box.${name} { background-color: ${value}; }`,
+        `app-editor .box.${name}-b { border-color: ${value}; }`,
+        `app-editor .box.${name}-t { color: ${value}; }`);
     }
     const css = rules.join('\n');
     if (this.paletteStyle && this.paletteStyle.textContent !== css) {

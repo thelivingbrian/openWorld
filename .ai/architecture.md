@@ -52,6 +52,8 @@ High-level architecture reference for agents and contributors.
 - Non-admin observer access is deferred; the route-level authorization boundary is the future extension point.
 
 ## Rendering Notes
+- Editor palette rules target `.box` with enough specificity to override Angular-scoped tile border defaults; built-in colors remain available when draft palettes are incomplete.
+- Bloop and Escape airlocks use explicit door (`closed`/`open`) and close-switch (`disarmed`/`armed`) states with connected-airlock reaction rules. Keep these seed definitions aligned; legacy stateless airlock reactions cannot drive the state transitions. Existing stateless airlocks are not migrated; the proof-of-concept world will use the corrected seeds.
 - Canvas rendering lives in `server/main/assets/canvas.js` with per-layer stage buffers and immediate per-tile updates from websocket quick-swap messages.
 - Weather tint and dynamic weather effects share the `Lw1` layer:
 	- Static weather remains class-driven (`blue trsp20`, etc.) via existing color/transparency token parsing.

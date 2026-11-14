@@ -67,7 +67,20 @@
     "pushable": false,
     "walkable": false,
     "fragile": false,
-    "reactions": "airlock-open"
+    "reactions": "",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "white-b thick",
+        "reactionRules": [
+          {
+            "reactsWith": "interactableIsNil",
+            "reaction": "openConnectedAirlockDoors"
+          }
+        ]
+      }
+    }
   },
   {
     "id": "52141da8-5ae4-4df5-9d5f-82448fb52b46",
@@ -77,7 +90,25 @@
     "pushable": false,
     "walkable": true,
     "fragile": false,
-    "reactions": "airlock-close"
+    "reactions": "",
+    "state": "disarmed",
+    "defaultState": "disarmed",
+    "states": {
+      "disarmed": {
+        "cssClass": "",
+        "walkable": true
+      },
+      "armed": {
+        "cssClass": "",
+        "walkable": true,
+        "reactionRules": [
+          {
+            "reactsWith": "interactableIsNil",
+            "reaction": "closeConnectedAirlockDoors"
+          }
+        ]
+      }
+    }
   },
   {
     "id": "cb9bf5f2-ffd9-4a34-96e9-3ed693c0bb93",
@@ -87,7 +118,24 @@
     "pushable": false,
     "walkable": false,
     "fragile": false,
-    "reactions": "airlock-arm"
+    "reactions": "",
+    "state": "closed",
+    "defaultState": "closed",
+    "states": {
+      "closed": {
+        "cssClass": "s-hoz chocolate-b thick no-lr"
+      },
+      "open": {
+        "cssClass": "",
+        "walkable": true,
+        "reactionRules": [
+          {
+            "reactsWith": "interactableIsNil",
+            "reaction": "armConnectedAirlockCloseSwitches"
+          }
+        ]
+      }
+    }
   },
   {
     "id": "316451a5-5403-4417-ad8a-bea9c4708413",
@@ -97,6 +145,20 @@
     "pushable": false,
     "walkable": true,
     "fragile": false,
-    "reactions": "airlock-arm"
+    "reactions": "",
+    "state": "default",
+    "defaultState": "default",
+    "states": {
+      "default": {
+        "cssClass": "",
+        "walkable": true,
+        "reactionRules": [
+          {
+            "reactsWith": "interactableIsNil",
+            "reaction": "armConnectedAirlockCloseSwitches"
+          }
+        ]
+      }
+    }
   }
 ]

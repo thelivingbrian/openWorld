@@ -64,7 +64,41 @@ def ensure_frontend_dependencies() -> None:
     subprocess.run([*resolve_cmd(["npm", "ci"])], cwd=frontend_dir, check=True)
 
 
+def ensure_docker() -> None:
+    if not shutil.which("docker"):
+        raise RuntimeError("Docker is not installed or is missing from PATH.")
+
+    def ready() -> bool:
+        try:
+            return subprocess.run(
+                ["docker", "info"], stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL, timeout=5,
+            ).returncode == 0
+        except subprocess.TimeoutExpired:
+            return False
+
+    if ready():
+        return
+    if sys.platform != "darwin" or os.environ.get("DOCKER_HOST") or os.environ.get("DOCKER_CONTEXT"):
+        raise RuntimeError("Docker is unavailable. Start your Docker engine and check your Docker context.")
+    context = subprocess.run(
+        ["docker", "context", "show"], capture_output=True, text=True, check=True,
+    ).stdout.strip()
+    if context not in ("default", "desktop-linux"):
+        raise RuntimeError(f"Docker context '{context}' is unavailable. Start its Docker engine.")
+
+    print("Starting Docker Desktop; waiting up to 120 seconds for the engine...")
+    subprocess.run(["open", "-a", "Docker"], check=True)
+    deadline = time.monotonic() + 120
+    while time.monotonic() < deadline:
+        if ready():
+            return
+        time.sleep(2)
+    raise RuntimeError("Docker did not become ready. Open Docker Desktop and check its startup status.")
+
+
 def ensure_mongodb() -> None:
+    ensure_docker()
     print("Starting MongoDB: docker compose up --detach --wait mongodb")
     subprocess.run(
         [*resolve_cmd(["docker", "compose", "up", "--detach", "--wait", "mongodb"])],
@@ -126,4 +160,8 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except (RuntimeError, OSError, subprocess.SubprocessError) as exc:
+        print(f"Startup failed: {exc}", file=sys.stderr)
+        raise SystemExit(1)
