@@ -84,6 +84,25 @@ describe('EditorComponent', () => {
     expect(state.currentArea().Safe).toBe(true);
   });
 
+  it.each([
+    [undefined, 'selected', 'stopped'],
+    [{ state: 'starting', releaseId: 'selected' }, 'selected', 'stopped'],
+    [{ state: 'stopping', releaseId: 'selected' }, 'selected', 'stopped'],
+    [{ state: 'failed', releaseId: 'selected' }, 'selected', 'stopped'],
+    [{ state: 'running', releaseId: 'selected' }, 'selected', 'selected'],
+    [{ state: 'running', releaseId: 'older' }, 'selected', 'other'],
+    [{ state: 'running', releaseId: 'older' }, undefined, 'other'],
+  ])('colors only the status bubble for runtime %j and selection %s', (runtime, selected, expected) => {
+    const state = component as any;
+    state.world.set({ publishedReleaseId: selected });
+    state.runtime.set(runtime);
+    fixture.detectChanges();
+    const bubble: HTMLElement = fixture.nativeElement.querySelector('.brand-symbol');
+    expect(bubble.classList.contains('live-selected')).toBe(expected === 'selected');
+    expect(bubble.classList.contains('live-other')).toBe(expected === 'other');
+    expect(bubble.getAttribute('aria-label')).toBe(state.deploymentStatus().label);
+  });
+
   it('undoes and redoes paint without losing the original blueprint', () => {
     const state = component as any;
     state.fixture.set('prototype'); state.tool.set('fill');

@@ -91,6 +91,13 @@ export class EditorComponent {
   protected readonly dirty = signal(false);
   protected readonly world = signal<WorldDocument | undefined>(undefined);
   protected readonly runtime = signal<RuntimeInfo | undefined>(undefined);
+  protected readonly deploymentStatus = computed(() => {
+    const runtime = this.runtime();
+    if (runtime?.state !== 'running') return { color: 'stopped', label: 'No version is live' };
+    return runtime.releaseId && runtime.releaseId === this.world()?.publishedReleaseId
+      ? { color: 'selected', label: 'Selected version is live' }
+      : { color: 'other', label: 'A different version is live' };
+  });
   protected readonly releases = signal<WorldRelease[]>([]);
   protected readonly versionLabel = signal('');
   protected readonly zoom = signal(1);

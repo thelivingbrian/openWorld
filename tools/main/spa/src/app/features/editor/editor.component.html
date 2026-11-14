@@ -3,7 +3,7 @@
     <p>Loading editor...</p>
   } @else {
     <section class="topbar">
-      <div class="editor-brand"><span class="brand-symbol" aria-hidden="true">◉</span><strong>bloopworld</strong><span class="brand-divider">/</span><span>World editor</span><span class="draft-badge" [class.unsaved]="dirty()">{{ dirty() ? 'Unsaved changes' : 'Draft saved' }}</span></div>
+      <div class="editor-brand"><span class="brand-symbol" [class.live-selected]="deploymentStatus().color === 'selected'" [class.live-other]="deploymentStatus().color === 'other'" role="img" [attr.aria-label]="deploymentStatus().label" [title]="deploymentStatus().label">◉</span><strong>bloopworld</strong><span class="brand-divider">/</span><span>World editor</span><span class="draft-badge" [class.unsaved]="dirty()">{{ dirty() ? 'Unsaved changes' : 'Draft saved' }}</span></div>
       <div class="row gap">
         <button class="primary-action" (click)="saveAll()" [disabled]="busy()" title="Save all changes (⌘/Ctrl+S)">Save all</button>
         @if (hosted) {

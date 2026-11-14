@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"image/png"
 	"io"
 	"net/http"
@@ -58,6 +59,37 @@ func TestRenderSpaceMapUsesGroundAndPrototypeColors(t *testing.T) {
 		if got != [4]uint32{want[0], want[1], want[2], 255} {
 			t.Fatalf("pixel %d = %v; want %v", x, got, want)
 		}
+	}
+}
+
+func TestCompileAreaPreservesPrototypeColorOverGround(t *testing.T) {
+	for _, hasGround := range []bool{false, true} {
+		t.Run(fmt.Sprint(hasGround), func(t *testing.T) {
+			blueprint := &SourceBlueprint{
+				Tiles:            [][]SourceTile{{{PrototypeID: "red"}, {PrototypeID: "plain"}}},
+				DefaultTileColor: "night", DefaultTileColor1: "grass",
+			}
+			if hasGround {
+				blueprint.Ground = [][]SourceCell{{{Status: 1, TopLeft: true}, {Status: 1, TopLeft: true}}}
+			}
+			area, _, err := compileArea(SourceArea{Name: "test", Blueprint: blueprint}, "map", map[string]SourcePrototype{
+				"red": {CssColor: "red", Walkable: false}, "plain": {Walkable: true},
+			}, nil, map[string]WorldColor{"night": {}, "grass": {}, "red": {}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			colored, plain := area.Tiles[0][0], area.Tiles[0][1]
+			if colored.Ground2Css != "red" || colored.Walkable {
+				t.Fatalf("prototype color or collision lost: %+v", colored)
+			}
+			if hasGround {
+				if plain.Ground2Css != "grass r0-tl" || plain.Ground1Css != "night" {
+					t.Fatalf("ground paint lost: %+v", plain)
+				}
+			} else if plain.Ground1Css != "night" {
+				t.Fatalf("default ground lost: %+v", plain)
+			}
+		})
 	}
 }
 

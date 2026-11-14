@@ -480,25 +480,27 @@ func compileArea(source SourceArea, mapID string, prototypes map[string]SourcePr
 				return Area{}, 0, fmt.Errorf("area %q references unknown color %q", source.Name, primary)
 			}
 			if y < len(source.Blueprint.Ground) && x < len(source.Blueprint.Ground[y]) {
-				ground := source.Blueprint.Ground[y][x]
-				if ground.Status != 0 {
-					primary, secondary = secondary, primary
-				}
-				material.Ground2Css = primary
-				if ground.BottomRight || ground.BottomLeft || ground.TopRight || ground.TopLeft {
-					material.Ground1Css = secondary
-				}
-				if ground.TopLeft {
-					material.Ground2Css += " r0-tl"
-				}
-				if ground.TopRight {
-					material.Ground2Css += " r0-tr"
-				}
-				if ground.BottomLeft {
-					material.Ground2Css += " r0-bl"
-				}
-				if ground.BottomRight {
-					material.Ground2Css += " r0-br"
+				if material.Ground2Css == "" {
+					ground := source.Blueprint.Ground[y][x]
+					if ground.Status != 0 {
+						primary, secondary = secondary, primary
+					}
+					material.Ground2Css = primary
+					if ground.BottomRight || ground.BottomLeft || ground.TopRight || ground.TopLeft {
+						material.Ground1Css = secondary
+					}
+					if ground.TopLeft {
+						material.Ground2Css += " r0-tl"
+					}
+					if ground.TopRight {
+						material.Ground2Css += " r0-tr"
+					}
+					if ground.BottomLeft {
+						material.Ground2Css += " r0-bl"
+					}
+					if ground.BottomRight {
+						material.Ground2Css += " r0-br"
+					}
 				}
 			} else {
 				material.Ground1Css = primary

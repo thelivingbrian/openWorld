@@ -52,6 +52,8 @@ High-level architecture reference for agents and contributors.
 - Non-admin observer access is deferred; the route-level authorization boundary is the future extension point.
 
 ## Rendering Notes
+- Hosted compilation preserves a prototype’s explicit `cssColor` over blueprint ground paint, matching the editor and offline compiler. Ground status and corner styling apply only when the prototype has no explicit ground color.
+- The editor brand bubble is green when the running release matches the selected `publishedReleaseId`, yellow when another release is running, and gray otherwise.
 - Editor palette rules target `.box` with enough specificity to override Angular-scoped tile border defaults; built-in colors remain available when draft palettes are incomplete.
 - Bloop and Escape airlocks use explicit door (`closed`/`open`) and close-switch (`disarmed`/`armed`) states with connected-airlock reaction rules. Keep these seed definitions aligned; legacy stateless airlock reactions cannot drive the state transitions. Existing stateless airlocks are not migrated; the proof-of-concept world will use the corrected seeds.
 - Canvas rendering lives in `server/main/assets/canvas.js` with per-layer stage buffers and immediate per-tile updates from websocket quick-swap messages.
