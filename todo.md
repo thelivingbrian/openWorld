@@ -5,19 +5,10 @@
 ### Description:
   Complete web design editor feature.
 ### Todo:
-  - [x] web design editor is fully functional for maintaining game world
-    - [x] Can program NPCs with custom behavior
-    - [x] Can set Spawn behavior from editor
-    - [x] Can create custom world achievements from editor
-    - [x] Can choose to deploy consistently - persisting until shut off
-    - [x] Admin console allows navigation by world / ability to shutdown or access editor
-    - [x] For now only admins can edit or deploy world but user or member created worlds may follow
-    - [x] Current editor has umimpressive UI, switch with more professional setup
-      - [x] Should fit bloopworld thematically but as it is an editor primary color pallete must be gray-scale or adjacent
-    - [x] Intuitive controls are a must
-      - [x] Seek engine quality interface and functionality
-    - [x] Core game maintenance is intended to occur from within the editor going forward
-      - [x] Support for versions is needed to facilitate rollback / wip
+  - [ ] Can I spawn sub agents to work on levels using the same interface
+  - [ ] New world design. Intentional use of fixed camera, default to moving 
+  - [ ] Fix top / down perspective confusion 
+  - [ ] Fix janky control buttons, enable true full screen 
 
 
 ---- AI Agents ignore below ----
