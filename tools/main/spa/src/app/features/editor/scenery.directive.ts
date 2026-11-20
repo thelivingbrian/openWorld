@@ -12,6 +12,7 @@ export class SceneryDirective implements OnChanges {
   @Input() bloopScenery = '';
   @Input() sceneryRow = 0;
   @Input() sceneryThumbnail = false;
+  @Input() sceneryBounds = false;
   private readonly element = inject(ElementRef<HTMLCanvasElement>);
   ngOnChanges(): void {
     const canvas = this.element.nativeElement;
@@ -24,7 +25,7 @@ export class SceneryDirective implements OnChanges {
     canvas.width = width * 2; canvas.height = height * 2;
     Object.assign(canvas.style, { position: 'absolute', width: `${width}px`, height: `${height}px`, bottom: '0', left: `calc(50% - ${width / 2}px)`, pointerEvents: 'none', zIndex: String(100 + this.sceneryRow) });
     const ctx = canvas.getContext('2d');
-    if (ctx) { ctx.scale(2,2); BloopScenery.draw(ctx,kind,width/2,height-3,size); }
+    if (ctx) { ctx.scale(2,2); BloopScenery.draw(ctx,kind,width/2,height-3,size); if(this.sceneryBounds) {ctx.strokeStyle="#ffdd83";ctx.lineWidth=1;ctx.setLineDash([3,2]);ctx.strokeRect(1,1,width-2,height-2);ctx.setLineDash([]);ctx.fillStyle="#ffe0a0";ctx.beginPath();ctx.arc(width/2,height-3,3,0,Math.PI*2);ctx.fill();} }
     canvas.setAttribute('aria-label',`${kind} scenery; collision is shown on the grid`);
   }
 }

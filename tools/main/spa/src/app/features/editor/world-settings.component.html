@@ -21,6 +21,22 @@
       </section>
     } @empty { <p class="empty">No custom teams. Add teams to give each group its own spawn point.</p> }
   }
+  @if (mode === 'settings') {
+    <div class="section-heading"><h3>Safe puzzle chambers</h3><button (click)="addPuzzle()">Add chamber</button></div>
+    <p>Use a safe stage. Gate tiles are blocked in the blueprint; the relay opens them while all plates are held. Exits must remain accessible. Chamber state is shared, resets on vacancy, and gives no combat rewards.</p>
+    @if (pointError) { <p role="alert">{{pointError}}</p> }
+    @for (puzzle of manifest.puzzles ?? []; track $index; let i=$index) {
+      <section class="card fields">
+        <label>ID<input [(ngModel)]="puzzle.id"></label><label>Stage<input [(ngModel)]="puzzle.stage" list="world-stages"></label>
+        <label>Minimum players<input type="number" min="1" max="8" [(ngModel)]="puzzle.minPlayers"></label>
+        <label class="check"><input type="checkbox" [(ngModel)]="puzzle.playersOnly">Players must hold plates (blocks do not count)</label>
+        <label>Plates (Y,X; Y,X)<input [ngModel]="pointsText(puzzle.plates)" (ngModelChange)="setPoints(puzzle,'plates',$event)"></label>
+        <label>Gates (Y,X; Y,X)<input [ngModel]="pointsText(puzzle.gates)" (ngModelChange)="setPoints(puzzle,'gates',$event)"></label>
+        <label>Goal Y<input type="number" min="0" [(ngModel)]="puzzle.goal.y"></label><label>Goal X<input type="number" min="0" [(ngModel)]="puzzle.goal.x"></label>
+        <button class="remove" (click)="remove(manifest.puzzles!,i)">Remove chamber</button>
+      </section>
+    }
+  }
   @if (mode === 'npcs') {
     <header><div><p class="eyebrow">BEHAVIOR LIBRARY</p><h2>NPC programs</h2><p>Steps run in order and loop. One tick lasts the interval below. Add a spawn rule to place an NPC in the world.</p></div><button (click)="addNPC()">+ New NPC</button></header>
     @for (npc of manifest.npcs; track $index; let i = $index) {
@@ -49,21 +65,30 @@
     } @empty { <div class="empty"><h3>Your cast starts here</h3><p>Create a guard, a roaming creature, or a patrol using an ordered set of actions.</p><button (click)="addNPC()">Create your first NPC</button></div> }
   }
   @if (mode === 'spawns') {
-    <header><div><p class="eyebrow">WORLD POPULATION</p><h2>Spawn rules</h2><p>Rules run when a player enters their stage. “Once” runs on the first entry; “Every entry” respects the cooldown. NPC capacity is shared by all players on the stage.</p></div><button (click)="addSpawn()">+ New spawn rule</button></header>
+    <header><div><p class="eyebrow">WORLD POPULATION</p><h2>Spawn rules</h2><p>Interval rules replenish supplies and enemies while the stage is occupied, without crossing an area boundary. Capacity is shared across players and includes pickups. Once/entry rules remain available.</p></div><button (click)="addSpawn()">+ New spawn rule</button></header>
     @for (spawn of manifest.spawns; track $index; let i = $index) {
       <section class="card">
         <div class="section-heading"><h3>{{spawn.id}}</h3><button class="remove" (click)="remove(manifest.spawns, i)">Remove rule</button></div>
         <div class="fields">
-          <label>ID<input [(ngModel)]="spawn.id" required></label><label>Stage<input [(ngModel)]="spawn.stage" list="world-stages" required></label>
+          <label>ID<input [(ngModel)]="spawn.id" required></label><label>Public location label<input [(ngModel)]="spawn.label" maxlength="80" placeholder="Riverbank"></label><label>Stage<input [(ngModel)]="spawn.stage" list="world-stages" required></label>
           <label>Spawn<select [(ngModel)]="spawn.kind"><option value="npc">NPC</option><option value="money">Money</option><option value="boost">Boost</option><option value="powerup">Power-up</option></select></label>
           @if (spawn.kind === 'npc') { <label>NPC program<select [(ngModel)]="spawn.npc">@for (npc of manifest.npcs; track $index) { <option [value]="npc.id">{{npc.name}} ({{npc.id}})</option> }</select></label> }
-          <label>Trigger<select [(ngModel)]="spawn.trigger"><option value="entry">Every entry</option><option value="once">Once per stage instance</option></select></label>
+          <label>Trigger<select [(ngModel)]="spawn.trigger"><option value="interval">Recurring while occupied</option><option value="entry">Every entry</option><option value="once">Once per stage instance</option></select></label>
           <label>Count per trigger<input type="number" min="1" max="20" [(ngModel)]="spawn.count"></label>
-          @if (spawn.kind === 'npc') { <label>Maximum alive<input type="number" min="1" max="50" [(ngModel)]="spawn.maxAlive"></label> }
+          <label>Maximum alive / pickups<input type="number" min="1" max="50" [(ngModel)]="spawn.maxAlive"></label>
           @if (spawn.kind === 'money') { <label>Money per drop<input type="number" min="1" max="10000" [(ngModel)]="spawn.amount"></label> }
           <label>Cooldown (seconds)<input type="number" min="1" max="86400" [(ngModel)]="spawn.cooldownSeconds"></label>
           <label class="check"><input type="checkbox" [(ngModel)]="spawn.randomPosition">Random walkable tile</label>
           @if (!spawn.randomPosition) { <label>X<input type="number" min="0" [(ngModel)]="spawn.x"></label><label>Y<input type="number" min="0" [(ngModel)]="spawn.y"></label> }
+          <label>Minimum distance from players<input type="number" min="0" max="32" [(ngModel)]="spawn.minPlayerDistance"></label>
+          <label>Pickup lifetime (seconds, 0 = no expiry)<input type="number" min="0" max="3600" [(ngModel)]="spawn.lifetimeSeconds"></label>
+          <label>Rotating group (optional)<input [(ngModel)]="spawn.rotationGroup" placeholder="supply-signal"></label>
+          @if (spawn.rotationGroup) {<label>Seconds per rotating site<input type="number" min="10" max="3600" [(ngModel)]="spawn.activeSeconds"></label>}
+          <button (click)="toggleRegion(spawn)">{{spawn.region ? 'Remove region' : 'Limit to region'}}</button>
+          @if (spawn.region; as region) {
+            <label>Region X<input type="number" min="0" [(ngModel)]="region.x"></label><label>Region Y<input type="number" min="0" [(ngModel)]="region.y"></label>
+            <label>Region width<input type="number" min="1" [(ngModel)]="region.width"></label><label>Region height<input type="number" min="1" [(ngModel)]="region.height"></label>
+          }
         </div>
       </section>
     } @empty { <div class="empty"><h3>Bring the world to life</h3><p>Add NPCs, money, boosts, or power-ups. Existing stage spawn presets continue to work alongside these rules.</p><button (click)="addSpawn()">Create a spawn rule</button></div> }

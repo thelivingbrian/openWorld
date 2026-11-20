@@ -13,14 +13,18 @@ export interface NPCDefinition {
   money: number; intervalMs: number; lifetimeSeconds: number; program: NPCStep[];
 }
 export interface SpawnRule {
+  label?: string;
   id: string; stage: string; kind: 'npc' | 'money' | 'boost' | 'powerup'; npc: string;
-  trigger: 'once' | 'entry'; count: number; maxAlive: number; cooldownSeconds: number;
+  trigger: 'once' | 'entry' | 'interval'; count: number; maxAlive: number; cooldownSeconds: number;
   randomPosition: boolean; y: number; x: number; amount: number;
+  region?: { x: number; y: number; width: number; height: number }; minPlayerDistance?: number; lifetimeSeconds?: number; rotationGroup?: string; activeSeconds?: number;
 }
 export interface WorldAchievement {
   id: string; name: string; description: string; metric: string; target: number; stage: string;
 }
+export interface WorldPuzzle { id: string; stage: string; plates: {y:number;x:number}[]; goal:{y:number;x:number}; gates:{y:number;x:number}[]; minPlayers:number; playersOnly?:boolean; }
 export interface WorldManifest {
+  puzzles?: WorldPuzzle[];
   name: string; description?: string; entry: WorldLocation; teams: WorldTeam[];
   defaultTeam: string; maxPlayers: number; lifecycle: Lifecycle;
   leaderboards?: { id: string; label: string; metric: string }[];

@@ -113,6 +113,7 @@
           <button (click)="resetUnsavedChanges()">Reset Changes</button>
           <button (click)="undoPaint()" [disabled]="!undoStack().length" title="Undo paint (⌘/Ctrl+Z)">Undo paint</button>
           <button (click)="undoPaint(true)" [disabled]="!redoStack().length" title="Redo paint (⌘/Ctrl+Shift+Z)">Redo</button>
+          <label><input type="checkbox" [(ngModel)]="showSceneryBounds">Anchors & visual bounds</label><label><input type="checkbox" [(ngModel)]="showCollision">Blocked footprint</label>
           <label>Zoom<select [(ngModel)]="zoom"><option [ngValue]="0.5">50%</option><option [ngValue]="0.75">75%</option><option [ngValue]="1">100%</option><option [ngValue]="1.5">150%</option><option [ngValue]="2">200%</option></select></label>
           @if (currentArea()) {
             <div class="row gap panel__toggles panel__toggles--right">
@@ -585,7 +586,7 @@
                       <div class="box ground1 {{ cleanLayerClass(material.ground1css) }}" [ngStyle]="gridLayerDynamicStyle(material.ground1css, y, x)"></div>
                       <div class="box ground2 {{ cleanLayerClass(material.ground2css) }}" [ngStyle]="gridLayerDynamicStyle(material.ground2css, y, x)"></div>
                       <div class="box floor1 {{ cleanLayerClass(material.layer1css) }}" [ngStyle]="gridLayerDynamicStyle(material.layer1css, y, x)"></div>
-                      <canvas [bloopScenery]="material.layer2css ?? ''" [sceneryRow]="y"></canvas>
+                      <canvas [bloopScenery]="material.layer2css ?? ''" [sceneryRow]="y" [sceneryBounds]="showSceneryBounds()"></canvas>
                       <div class="box floor2 {{ cleanLayerClass(material.layer2css) }}" [ngStyle]="gridLayerDynamicStyle(material.layer2css, y, x)"></div>
                       @if (gridInteractables()[y]?.[x]) {
                         <div class="box zp {{ cleanLayerClass(gridInteractables()[y]?.[x]?.cssClass) }}" [ngStyle]="gridLayerDynamicStyle(gridInteractables()[y]?.[x]?.cssClass, y, x)"></div>
@@ -594,7 +595,7 @@
                         <div class="box ground1 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ground1css ?? '' }}"></div>
                         <div class="box ground2 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ground2css ?? '' }}"></div>
                         <div class="box floor1 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.layer1css ?? '' }}"></div>
-                        <canvas class="ghost-layer trsp60" [bloopScenery]="ghostMaterials()[y]?.[x]?.layer2css ?? ''" [sceneryRow]="y"></canvas>
+                        <canvas class="ghost-layer trsp60" [bloopScenery]="ghostMaterials()[y]?.[x]?.layer2css ?? ''" [sceneryRow]="y" [sceneryBounds]="showSceneryBounds()"></canvas>
                         <div class="box floor2 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.layer2css ?? '' }}"></div>
                         <div class="box ceiling1 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ceiling1css ?? '' }}"></div>
                         <div class="box ceiling2 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ceiling2css ?? '' }}"></div>
@@ -604,7 +605,7 @@
                       }
                       <div class="box ceiling1 {{ cleanLayerClass(material.ceiling1css) }}" [ngStyle]="gridLayerDynamicStyle(material.ceiling1css, y, x)"></div>
                       <div class="box ceiling2 {{ cleanLayerClass(material.ceiling2css) }}" [ngStyle]="gridLayerDynamicStyle(material.ceiling2css, y, x)"></div>
-                      <div class="box top"
+                      <div class="box top" [class.collision-overlay]="showCollision() && !material.walkable"
                         [class.red-b]="selection()?.y === y && selection()?.x === x"
                         [class.pink-b]="showTransports() && isTransportSourceTile(y, x) && !(selection()?.y === y && selection()?.x === x)"
                         [class.delete-overlay]="tool() === 'interactable-delete' && isHoverTile(y, x)"
@@ -814,7 +815,12 @@
 
             @if (fixturePreviewMaterials().length > 0) {
               <div class="fixture-preview">
-                <strong>Selected Fixture Preview</strong>
+                @if (fixture() === 'fragment') {
+                  <div class="fixture-shelf">@for (fragment of fragments(); track fragment.id) {
+                    <button type="button" (click)="selectedAssetId.set(fragment.id)" [class.selected]="selectedAssetId()===fragment.id"><span class="fixture-thumb"><canvas [bloopScenery]="fragmentScenery(fragment)" [sceneryThumbnail]="true"></canvas></span><span>{{fragment.name}}</span></button>
+                  }</div>
+                }
+                <strong>Selected Fixture Preview</strong><p>Place a complete fragment to preserve its footprint; anchor-only prototypes do not include surrounding collision tiles. Enable Edit Transports to inspect entrances.</p>
                 <div class="grid">
                   @for (row of fixturePreviewMaterials(); track $index; let y = $index) {
                     <div class="grid-row">
@@ -823,7 +829,7 @@
                           <div class="box ground1 {{ cleanLayerClass(material.ground1css) }}" [ngStyle]="layerDynamicStyle(material.ground1css, y, x)"></div>
                           <div class="box ground2 {{ cleanLayerClass(material.ground2css) }}" [ngStyle]="layerDynamicStyle(material.ground2css, y, x)"></div>
                           <div class="box floor1 {{ cleanLayerClass(material.layer1css) }}" [ngStyle]="layerDynamicStyle(material.layer1css, y, x)"></div>
-                          <canvas [bloopScenery]="material.layer2css ?? ''" [sceneryRow]="y"></canvas>
+                          <canvas [bloopScenery]="material.layer2css ?? ''" [sceneryRow]="y" [sceneryBounds]="showSceneryBounds()"></canvas>
                       <div class="box floor2 {{ cleanLayerClass(material.layer2css) }}" [ngStyle]="layerDynamicStyle(material.layer2css, y, x)"></div>
                           @if (fixturePreviewInteractables()[y]?.[x]) {
                             <div class="box zp {{ cleanLayerClass(fixturePreviewInteractables()[y]?.[x]?.cssClass) }}" [ngStyle]="layerDynamicStyle(fixturePreviewInteractables()[y]?.[x]?.cssClass, y, x)"></div>

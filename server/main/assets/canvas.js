@@ -919,10 +919,11 @@ function drawCircle(colorName, ctx, px, py, cellSize) {
 
     ctx.save();
     ctx.fillStyle = spec.fill;
-    ctx.globalAlpha = 0.6;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.globalAlpha = .95;
+    ctx.shadowColor=spec.fill;ctx.shadowBlur=cellSize*.15;
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;ctx.strokeStyle='#fff4d7';ctx.lineWidth=Math.max(1,cellSize*.035);ctx.stroke();
+    ctx.fillStyle='#fff6e0';ctx.font=`bold ${Math.round(cellSize*.34)}px system-ui`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(colorName==='red'?'✦':colorName==='blue'?'»':'$',cx,cy);
     ctx.restore();
 }
 
@@ -945,7 +946,7 @@ function drawWorldObjects() {
     if (!ctx) return;
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     const { objects, players } = worldDrawables();
-    const modern = objects.length > 0;
+    const modern = (stage.Lg1?.[topLeftY]?.[topLeftX] || "").includes("annex-") || (stage.Lg2?.[topLeftY]?.[topLeftX] || "").includes("annex-") || objects.length > 0 || (stage.Lg1?.[topLeftY]?.[topLeftX] || "").includes("willow-") || (stage.Lg2?.[topLeftY]?.[topLeftX] || "").includes("willow-");
     for (const item of [...objects, ...players].sort((a,b) => a.order-b.order || a.x-b.x)) {
         const x = (item.x-topLeftX+.5)*cellSize, y = (item.y-topLeftY+1)*cellSize;
         if (item.kind) {
@@ -964,6 +965,9 @@ function drawWorldObjects() {
             ctx.strokeStyle=style.strokeColor || '#ffffffbb'; ctx.lineWidth=Math.max(1,cellSize*.045); ctx.stroke();
             ctx.fillStyle='#193b40';
             for (const offset of [-.12,.12]) { ctx.beginPath();ctx.ellipse(x+offset*cellSize,y-cellSize*.54,cellSize*.035,cellSize*.055,0,0,Math.PI*2);ctx.fill(); }
+            ctx.fillStyle='#fff7da';ctx.beginPath();
+            if (item.classes.includes('fuchsia')) {ctx.moveTo(x,y-cellSize*.91);ctx.lineTo(x+cellSize*.09,y-cellSize*.82);ctx.lineTo(x,y-cellSize*.73);ctx.lineTo(x-cellSize*.09,y-cellSize*.82);ctx.closePath();}
+            else {ctx.arc(x,y-cellSize*.82,cellSize*.07,0,Math.PI*2);}ctx.fill();
             ctx.restore();
         }
     }

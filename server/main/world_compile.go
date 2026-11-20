@@ -436,6 +436,11 @@ func validateInteractableSource(item InteractableDescription) error {
 }
 
 func validateClassTokens(value string) error {
+	for _, token := range strings.Fields(value) {
+		if strings.HasPrefix(token, "scenery-") && !validSceneryToken(token) {
+			return fmt.Errorf("unsupported scenery token %q", token)
+		}
+	}
 	lower := strings.ToLower(value)
 	if len(value) > 512 || strings.ContainsAny(value, ";<>") || strings.Contains(lower, "javascript:") || strings.Contains(lower, "url(") {
 		return errors.New("unsafe class token string")
@@ -468,6 +473,9 @@ func compileArea(source SourceArea, mapID string, prototypes map[string]SourcePr
 			}
 			if !ok {
 				return Area{}, 0, fmt.Errorf("area %q references unknown prototype %q at %d,%d", source.Name, cell.PrototypeID, y, x)
+			}
+			if strings.Contains(prototype.Floor2Css, "scenery-") && cell.Transformation.ClockwiseRotations%4 != 0 {
+				return Area{}, 0, fmt.Errorf("scenery keeps a fixed viewing direction")
 			}
 			material := Material{Walkable: prototype.Walkable, Ground2Css: prototype.CssColor, Floor1Css: prototype.Floor1Css, Floor2Css: prototype.Floor2Css, Ceiling1Css: prototype.Ceiling1Css, Ceiling2Css: prototype.Ceiling2Css, DisplayText: prototype.DisplayText}
 			material.Floor1Css = rotateSourceCSS(material.Floor1Css, cell.Transformation.ClockwiseRotations)
@@ -698,4 +706,12 @@ func writeReadonlyFile(path string, source io.Reader, size int64) error {
 		return copyErr
 	}
 	return closeErr
+}
+
+func validSceneryToken(token string) bool {
+	switch token {
+	case "scenery-oak", "scenery-pine", "scenery-snowpine", "scenery-birch", "scenery-cottage", "scenery-lantern", "scenery-sign", "scenery-rock", "scenery-flower", "scenery-bench", "scenery-well":
+		return true
+	}
+	return false
 }

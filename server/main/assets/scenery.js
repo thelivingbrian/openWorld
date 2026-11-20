@@ -3,7 +3,7 @@
  * collision lives in the source fragment, never in the painted silhouette. */
 (function (root) {
     const catalog = {
-        oak: { width: 2.8, height: 3.2 }, pine: { width: 2.4, height: 3.5 },
+        oak: { width: 2.8, height: 3.2 }, pine: { width: 2.4, height: 3.5 }, snowpine: { width: 2.4, height: 3.5 },
         birch: { width: 2.3, height: 3.1 }, cottage: { width: 5, height: 4 },
         lantern: { width: 1, height: 1.9 }, sign: { width: 1.5, height: 1.3 },
         rock: { width: 1.4, height: 1 }, flower: { width: 1, height: .75 },
@@ -44,7 +44,7 @@
             ellipse(-.33,-2.65,.55,.39,light); ellipse(-.77,-2.2,.28,.22,light);
             ellipse(.53,-2.4,.18,.13,'#b2ca8b');
             box(-.55,-1.64,.35,.08,.04,'#25544538');
-        } else if (type === 'pine') {
+        } else if (type === 'pine' || type === 'snowpine') {
             shadow(.95,.24); box(-.15,-1.1,.3,1.05,.06,'#8d7556');
             for (let i=0;i<3;i++) {
                 const yy=-.65-i*.8, w=1.13-i*.25;
@@ -53,6 +53,7 @@
                 ctx.quadraticCurveTo(w*1.1,yy+.2,0,yy+.22); ctx.quadraticCurveTo(-w*1.1,yy+.2,-w,yy-.12);
                 ctx.quadraticCurveTo(-w*.45,yy-.55,0,yy-1.25); ctx.fill();
                 poly([[0,yy-1.22],[-w*.75,yy-.1],[-w*.25,yy-.28]],'#a8cba038');
+                if (type==='snowpine') {ctx.fillStyle='#dfebdd';ctx.beginPath();ctx.moveTo(0,yy-1.22);ctx.quadraticCurveTo(w*.25,yy-.82,w*.48,yy-.57);ctx.quadraticCurveTo(w*.12,yy-.46,0,yy-.62);ctx.quadraticCurveTo(-w*.28,yy-.41,-w*.53,yy-.52);ctx.quadraticCurveTo(-w*.25,yy-.85,0,yy-1.22);ctx.fill();}
             }
         } else if (type === 'cottage') {
             shadow(2.5,.35);

@@ -22,7 +22,7 @@ func TestWillowReachCompiledRoutesAndCottageReturns(t *testing.T) {
 			t.Errorf("unreachable landmark %v", point)
 		}
 	}
-	if !strings.Contains(out.Tiles[23][17].DisplayText, "WILLOW REACH") {
+	if out.Tiles[23][17].DisplayText == "" {
 		t.Error("arrival lost its introduction")
 	}
 	seed := out.Interactables[37][11]
@@ -34,14 +34,9 @@ func TestWillowReachCompiledRoutesAndCottageReturns(t *testing.T) {
 		if !reachable[[2]int{door.SourceY, door.SourceX}] {
 			t.Error("unreachable transport", door)
 		}
-		if door.DestStage == "infirmary:0-0" {
-			legacy := getAreaByName(col.Spaces["infirmary"].Areas, door.DestStage)
-			tiles, err := col.compileMaterialsFromBlueprint(legacy.Blueprint)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if !door.Confirmation || !tiles[door.DestY][door.DestX].Walkable {
-				t.Error("old-world connection must confirm and land on walkable ground")
+		if !strings.HasPrefix(door.DestStage, "willow-cottage:") {
+			if !strings.HasPrefix(door.DestStage, "willow-") {
+				t.Fatal("new frontier connects to legacy content")
 			}
 			continue
 		}

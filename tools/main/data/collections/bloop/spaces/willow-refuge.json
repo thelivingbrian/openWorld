@@ -1,0 +1,977 @@
+{
+  "CollectionName": "bloop",
+  "Name": "willow-refuge",
+  "Topology": "disconnected",
+  "Latitude": 1,
+  "Longitude": 2,
+  "AreaHeight": 12,
+  "AreaWidth": 12,
+  "Areas": [
+    {
+      "name": "willow-refuge:0-0",
+      "safe": true,
+      "blueprint": {
+        "tiles": [
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-oak"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-refuge-exit"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-oak"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-flower"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-refuge-welcome"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-bench"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-flower"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ]
+        ],
+        "Instructions": [],
+        "DefaultTileColor": "willow-grass",
+        "DefaultTileColor1": "willow-path"
+      },
+      "transports": [
+        {
+          "sourceY": 3,
+          "sourceX": 6,
+          "destStage": "willow-reach:0-0",
+          "destY": 24,
+          "destX": 17,
+          "confirmation": false,
+          "rejectInteractable": true
+        }
+      ],
+      "loadStrategy": "",
+      "spawnStrategy": "none",
+      "mapId": "",
+      "weather": "",
+      "broadcastGroup": "willow-reach"
+    },
+    {
+      "name": "willow-refuge:0-1",
+      "safe": true,
+      "blueprint": {
+        "tiles": [
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-oak"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-refuge-exit"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-oak"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-flower"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-refuge-welcome"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-bench"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-stone"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-flower"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-ground"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            },
+            {
+              "prototypeId": "willow-boundary"
+            }
+          ]
+        ],
+        "Instructions": [],
+        "DefaultTileColor": "willow-grass",
+        "DefaultTileColor1": "willow-path"
+      },
+      "transports": [
+        {
+          "sourceY": 3,
+          "sourceX": 6,
+          "destStage": "willow-reach:0-0",
+          "destY": 26,
+          "destX": 38,
+          "confirmation": false,
+          "rejectInteractable": true
+        }
+      ],
+      "loadStrategy": "",
+      "spawnStrategy": "none",
+      "mapId": "",
+      "weather": "",
+      "broadcastGroup": "willow-reach"
+    }
+  ]
+}

@@ -59,12 +59,13 @@ func TestWorldSpawnCapacityCooldownAndNPCProgram(t *testing.T) {
 	}
 	group.Wait()
 	state := stage.ruleState["guards"]
-	if len(state.npcs) != 2 {
-		t.Fatalf("concurrent entry spawned %d NPCs, want 2", len(state.npcs))
+	if len(state.npcs) != 1 {
+		t.Fatalf("concurrent entry spawned %d NPCs, want 1 at a fixed unoccupied site", len(state.npcs))
 	}
+	moveEast(state.npcs[0])
 	state.last = time.Now().Add(-time.Minute)
 	spawnWorldRules(player, stage)
-	if len(state.npcs) != 3 {
+	if len(state.npcs) != 2 {
 		t.Fatalf("capacity not respected: %d", len(state.npcs))
 	}
 	t.Cleanup(func() {
@@ -72,7 +73,7 @@ func TestWorldSpawnCapacityCooldownAndNPCProgram(t *testing.T) {
 			npc.terminate()
 		}
 	})
-	npc := state.npcs[0]
+	npc := state.npcs[1]
 	runNPCStep(npc, 100, NPCStep{Action: "east", Condition: "hurt"})
 	if npc.getTileSync().x != 1 {
 		t.Fatal("conditional action ran while healthy")

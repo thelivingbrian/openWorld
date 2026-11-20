@@ -104,6 +104,7 @@ type LeaderboardDefinition struct {
 }
 
 type WorldManifest struct {
+	Puzzles          []WorldPuzzle           `json:"puzzles,omitempty"`
 	Name             string                  `json:"name"`
 	Description      string                  `json:"description,omitempty"`
 	Entry            WorldLocation           `json:"entry"`

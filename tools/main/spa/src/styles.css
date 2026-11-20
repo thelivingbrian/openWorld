@@ -4,3 +4,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
 /* Scenery previews use the same ground anchor as gameplay. */
 app-editor .grid .box.top { z-index: 1000; }
 app-editor .prototype-preview-stack:has(canvas:not([style*="display: none"])) { min-height: 110px; min-width: 110px; }
+
+app-editor .collision-overlay { background: repeating-linear-gradient(135deg,#ff87743b 0 3px,transparent 3px 8px); }
+app-editor .fixture-preview { padding-top: 100px; overflow: visible; }
+
+app-editor .fixture-shelf { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+app-editor .fixture-shelf button { width:120px; padding:8px; font-size:12px; white-space:normal; }
+app-editor .fixture-thumb { display:block; position:relative; height:105px; }

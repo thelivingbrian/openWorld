@@ -245,6 +245,8 @@ export class EditorComponent {
   protected readonly showGridTools = signal(true);
   protected readonly showAreaDetails = signal(false);
   protected readonly showTransports = signal(false);
+  protected readonly showSceneryBounds = signal(false);
+  protected readonly showCollision = signal(false);
   protected readonly showNeighbors = signal(false);
   protected readonly showNavigationMap = signal(false);
   protected readonly showBlueprintInstructions = signal(false);
@@ -667,6 +669,10 @@ export class EditorComponent {
     }
     return blueprint.Tiles.map((row) => row.map((tile) => this.resolveInteractableForTile(tile)));
   });
+
+  protected fragmentScenery(fragment: Fragment): string {
+    for(const row of fragment.blueprint.Tiles) for(const tile of row) {const classes=this.prototypesById().get(tile.prototypeId ?? '')?.layer2css ?? '';if(classes.includes('scenery-')) return classes;}return '';
+  }
 
   protected readonly fixturePreviewMaterials = computed<Material[][]>(() => {
     const fixture = this.fixture();

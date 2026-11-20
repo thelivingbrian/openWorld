@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"html"
 	"math/rand"
 	"strings"
 	"time"
@@ -31,18 +32,24 @@ type NPCStep struct {
 }
 
 type WorldSpawnRule struct {
-	ID              string `json:"id"`
-	Stage           string `json:"stage"`
-	Kind            string `json:"kind"`
-	NPC             string `json:"npc,omitempty"`
-	Trigger         string `json:"trigger"`
-	Count           int    `json:"count"`
-	MaxAlive        int    `json:"maxAlive"`
-	CooldownSeconds int    `json:"cooldownSeconds"`
-	RandomPosition  bool   `json:"randomPosition"`
-	Y               int    `json:"y"`
-	X               int    `json:"x"`
-	Amount          int    `json:"amount,omitempty"`
+	Label             string       `json:"label,omitempty"`
+	ID                string       `json:"id"`
+	Stage             string       `json:"stage"`
+	Kind              string       `json:"kind"`
+	NPC               string       `json:"npc,omitempty"`
+	Trigger           string       `json:"trigger"`
+	Count             int          `json:"count"`
+	MaxAlive          int          `json:"maxAlive"`
+	CooldownSeconds   int          `json:"cooldownSeconds"`
+	RandomPosition    bool         `json:"randomPosition"`
+	Y                 int          `json:"y"`
+	X                 int          `json:"x"`
+	Amount            int          `json:"amount,omitempty"`
+	Region            *SpawnRegion `json:"region,omitempty"`
+	MinPlayerDistance int          `json:"minPlayerDistance,omitempty"`
+	LifetimeSeconds   int          `json:"lifetimeSeconds,omitempty"`
+	RotationGroup     string       `json:"rotationGroup,omitempty"`
+	ActiveSeconds     int          `json:"activeSeconds,omitempty"`
 }
 
 type WorldAchievement struct {
@@ -100,6 +107,7 @@ func validateWorldRules(manifest WorldManifest, areas map[string]Area) error {
 		}
 	}
 	spawns := map[string]bool{}
+	rotationPeriods := map[string]int{}
 	totalNPCs := 0
 	for _, rule := range manifest.Spawns {
 		if err := checkID(rule.ID, spawns); err != nil {
@@ -115,8 +123,8 @@ func validateWorldRules(manifest WorldManifest, areas map[string]Area) error {
 		if rule.Kind == "npc" && !npcs[rule.NPC] {
 			return fmt.Errorf("spawn %q: unknown NPC %q", rule.ID, rule.NPC)
 		}
-		if rule.Trigger != "once" && rule.Trigger != "entry" {
-			return fmt.Errorf("spawn %q: trigger must be once or entry", rule.ID)
+		if rule.Trigger != "once" && rule.Trigger != "entry" && rule.Trigger != "interval" {
+			return fmt.Errorf("spawn %q: trigger must be once, entry or interval", rule.ID)
 		}
 		if rule.Count < 1 || rule.Count > 20 || rule.MaxAlive < 1 || rule.MaxAlive > 50 || rule.CooldownSeconds < 1 || rule.CooldownSeconds > 86400 || rule.Amount < 0 || rule.Amount > 10000 {
 			return fmt.Errorf("spawn %q: invalid count, capacity, cooldown or amount", rule.ID)
@@ -124,6 +132,28 @@ func validateWorldRules(manifest WorldManifest, areas map[string]Area) error {
 		if rule.Kind == "npc" {
 			totalNPCs += rule.MaxAlive
 		}
+		if len(rule.Label) > 80 {
+			return fmt.Errorf("spawn label at most 80 characters")
+		}
+		if rule.MinPlayerDistance < 0 || rule.MinPlayerDistance > 32 || rule.LifetimeSeconds < 0 || rule.LifetimeSeconds > 3600 {
+			return fmt.Errorf("spawn %q: invalid distance or lifetime", rule.ID)
+		}
+		if rule.RotationGroup != "" && (!paletteNamePattern.MatchString(rule.RotationGroup) || rule.ActiveSeconds < 10 || rule.ActiveSeconds > 3600 || rule.Trigger != "interval") {
+			return fmt.Errorf("spawn %q: rotation requires interval trigger and active seconds 10–3600", rule.ID)
+		}
+		if rule.RotationGroup != "" {
+			key := rule.Stage + "/" + rule.RotationGroup
+			if duration, ok := rotationPeriods[key]; ok && duration != rule.ActiveSeconds {
+				return fmt.Errorf("rotation group must use one active duration")
+			}
+			rotationPeriods[key] = rule.ActiveSeconds
+		}
+		if r := rule.Region; r != nil {
+			if r.X < 0 || r.Y < 0 || r.Width < 1 || r.Height < 1 || r.Y+r.Height > len(area.Tiles) || r.X+r.Width > len(area.Tiles[0]) {
+				return fmt.Errorf("spawn %q: invalid region", rule.ID)
+			}
+		}
+
 		if !rule.RandomPosition {
 			if err := validateWorldLocation(WorldLocation{Stage: rule.Stage, Y: rule.Y, X: rule.X}, areas); err != nil {
 				return fmt.Errorf("spawn %q: %w", rule.ID, err)
@@ -164,7 +194,7 @@ func validateWorldRules(manifest WorldManifest, areas map[string]Area) error {
 			return fmt.Errorf("achievement %q: unknown metric", achievement.ID)
 		}
 	}
-	return nil
+	return validatePuzzles(manifest, areas)
 }
 
 func validateWorldLocation(location WorldLocation, areas map[string]Area) error {
@@ -178,33 +208,90 @@ func validateWorldLocation(location WorldLocation, areas map[string]Area) error 
 	return nil
 }
 
+type SpawnRegion struct {
+	X      int `json:"x"`
+	Y      int `json:"y"`
+	Width  int `json:"width"`
+	Height int `json:"height"`
+}
+
 type spawnRuleState struct {
-	last time.Time
-	npcs []*NonPlayer
+	last    time.Time
+	npcs    []*NonPlayer
+	pickups map[*Tile]time.Time
+	active  bool
 }
 
 func spawnWorldRules(player *Player, stage *Stage) {
 	if player.world == nil || player.world.config == nil {
 		return
 	}
-	manifest := &player.world.config.manifest
+	processPopulationStage(player.world, stage, time.Now(), false)
+}
+
+// A single world-owned clock services all occupied stages. It never depends on
+// players crossing boundaries and never creates a goroutine per entry/rule.
+func runWorldPopulation(world *World, ctx context.Context) {
+	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case now := <-ticker.C:
+			world.wPlayerMutex.Lock()
+			players := make([]*Player, 0, len(world.worldPlayers))
+			for _, p := range world.worldPlayers {
+				players = append(players, p)
+			}
+			world.wPlayerMutex.Unlock()
+			stages := map[*Stage]bool{}
+			for _, p := range players {
+				if tile := p.getTileSync(); tile != nil {
+					stages[tile.stage] = true
+				}
+			}
+			for stage := range stages {
+				processPopulationStage(world, stage, now, true)
+				updatePuzzle(world, stage)
+			}
+			world.wStageMutex.Lock()
+			emptyPuzzles := []*Stage{}
+			for _, s := range world.worldStages {
+				if !stages[s] && puzzleFor(world, s) != nil {
+					emptyPuzzles = append(emptyPuzzles, s)
+				}
+			}
+			world.wStageMutex.Unlock()
+			for _, s := range emptyPuzzles {
+				updatePuzzle(world, s)
+			}
+		}
+	}
+}
+
+func processPopulationStage(world *World, stage *Stage, now time.Time, interval bool) {
 	stage.ruleMu.Lock()
 	defer stage.ruleMu.Unlock()
 	if stage.ruleState == nil {
 		stage.ruleState = map[string]*spawnRuleState{}
 	}
+	manifest := &world.config.manifest
 	for _, rule := range manifest.Spawns {
-		if rule.Stage != stage.name {
+		if rule.Stage != stage.name || (interval && rule.Trigger != "interval") {
 			continue
 		}
 		state := stage.ruleState[rule.ID]
 		if state == nil {
-			state = &spawnRuleState{}
+			state = &spawnRuleState{pickups: map[*Tile]time.Time{}}
 			stage.ruleState[rule.ID] = state
 		}
-		if !state.last.IsZero() && (rule.Trigger == "once" || time.Since(state.last) < time.Duration(rule.CooldownSeconds)*time.Second) {
-			continue
+		active := rotationRuleActive(manifest.Spawns, rule, now)
+		if active && (!state.active || !interval) && rule.RotationGroup != "" && rule.Kind == "powerup" {
+			stage.updateAll(soundTriggerByName("clink"))
+			stage.updateAll(fmt.Sprintf(`<div id="frontier-event" role="status">Supply signal · %s</div>`, html.EscapeString(supplyLabel(rule))))
 		}
+		state.active = active
 		alive := state.npcs[:0]
 		for _, npc := range state.npcs {
 			if npc.health.Load() > 0 {
@@ -212,48 +299,199 @@ func spawnWorldRules(player *Player, stage *Stage) {
 			}
 		}
 		state.npcs = alive
-		tiles := walkableTiles(stage.tiles)
-		if len(tiles) == 0 {
+		for tile, born := range state.pickups {
+			tile.itemMutex.Lock()
+			owns := tile.spawnOwner == rule.ID
+			present := (rule.Kind == "powerup" && tile.powerUp != nil) || (rule.Kind == "boost" && tile.boosts > 0) || (rule.Kind == "money" && tile.money > 0)
+			expired := rule.LifetimeSeconds > 0 && now.Sub(born) >= time.Duration(rule.LifetimeSeconds)*time.Second
+			if owns && present && (expired || !active) {
+				switch rule.Kind {
+				case "powerup":
+					tile.powerUp = nil
+				case "boost":
+					tile.boosts = 0
+				case "money":
+					tile.money = 0
+				}
+				tile.spawnOwner = ""
+			}
+			tile.itemMutex.Unlock()
+			if !owns || !present || expired || !active {
+				delete(state.pickups, tile)
+				if owns {
+					tile.updateAll(svgFromTile(tile))
+				}
+			}
+		}
+		if !active || (!state.last.IsZero() && (rule.Trigger == "once" || now.Sub(state.last) < time.Duration(rule.CooldownSeconds)*time.Second)) {
 			continue
 		}
-		spawned := false
-		for i := 0; i < rule.Count; i++ {
-			tile := tiles[rand.Intn(len(tiles))]
-			if !rule.RandomPosition {
-				if !validCoordinate(rule.Y, rule.X, stage) {
-					break
-				}
-				tile = stage.tiles[rule.Y][rule.X]
-			}
-			switch rule.Kind {
-			case "npc":
+		state.last = now // failed attempts also back off; occupied sites cannot spin
+		candidates := populationCandidates(stage, rule)
+		for i := 0; i < rule.Count && len(candidates) > 0; i++ {
+			index := rand.Intn(len(candidates))
+			tile := candidates[index]
+			candidates = append(candidates[:index], candidates[index+1:]...)
+			if rule.Kind == "npc" {
 				if len(state.npcs) >= rule.MaxAlive {
-					continue
+					break
 				}
 				for _, definition := range manifest.NPCs {
 					if definition.ID == rule.NPC {
-						if npc := spawnProgrammedNPC(player.world, tile, definition); npc != nil {
+						if npc := spawnProgrammedNPC(world, tile, definition); npc != nil {
 							state.npcs = append(state.npcs, npc)
-							spawned = true
 						}
 						break
 					}
 				}
-			case "money":
-				tile.addMoneyAndNotifyAll(rule.Amount)
-				spawned = true
-			case "boost":
-				tile.addBoostsAndNotifyAll()
-				spawned = true
-			case "powerup":
-				tile.addPowerUpAndNotifyAll(shapesNpc[0])
-				spawned = true
+			} else {
+				if len(state.pickups) >= rule.MaxAlive {
+					break
+				}
+				if insertRulePickup(tile, rule) {
+					state.pickups[tile] = now
+				}
 			}
 		}
-		if spawned {
-			state.last = time.Now()
+	}
+}
+
+func rotationRuleActive(rules []WorldSpawnRule, rule WorldSpawnRule, now time.Time) bool {
+	if rule.RotationGroup == "" {
+		return true
+	}
+	group := []string{}
+	for _, r := range rules {
+		if r.Stage == rule.Stage && r.RotationGroup == rule.RotationGroup {
+			group = append(group, r.ID)
 		}
 	}
+	if len(group) == 0 || rule.ActiveSeconds < 1 {
+		return false
+	}
+	return group[(now.Unix()/int64(rule.ActiveSeconds))%int64(len(group))] == rule.ID
+}
+
+func populationCandidates(stage *Stage, rule WorldSpawnRule) []*Tile {
+	stage.playerMutex.RLock()
+	players := make([]*Player, 0, len(stage.playerMap))
+	for _, p := range stage.playerMap {
+		players = append(players, p)
+	}
+	stage.playerMutex.RUnlock()
+	locations := []*Tile{}
+	for _, p := range players {
+		if t := p.getTileSync(); t != nil && t.stage == stage {
+			locations = append(locations, t)
+		}
+	}
+	out := []*Tile{}
+	for _, row := range stage.tiles {
+		for _, tile := range row {
+			if !tile.material.Walkable || tile.teleport != nil || (rule.Kind == "npc" && stage.safe) {
+				continue
+			}
+			if !rule.RandomPosition && (tile.y != rule.Y || tile.x != rule.X) {
+				continue
+			}
+			if r := rule.Region; r != nil && (tile.x < r.X || tile.y < r.Y || tile.x >= r.X+r.Width || tile.y >= r.Y+r.Height) {
+				continue
+			}
+			if hasCharacters(tile) {
+				continue
+			}
+			tile.interactableMutex.Lock()
+			blocked := tile.interactable != nil
+			tile.interactableMutex.Unlock()
+			if blocked {
+				continue
+			}
+			distant := true
+			for _, p := range locations {
+				if absInt(p.x-tile.x)+absInt(p.y-tile.y) < rule.MinPlayerDistance {
+					distant = false
+					break
+				}
+			}
+			if distant {
+				out = append(out, tile)
+			}
+		}
+	}
+	if len(locations) > 0 && rule.RandomPosition {
+		reachable := map[*Tile]bool{}
+		queue := append([]*Tile{}, locations...)
+		for _, t := range queue {
+			reachable[t] = true
+		}
+		for head := 0; head < len(queue); head++ {
+			t := queue[head]
+			for _, off := range [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
+				y, x := t.y+off[0], t.x+off[1]
+				if !validCoordinate(y, x, stage) {
+					continue
+				}
+				next := stage.tiles[y][x]
+				if !reachable[next] && next.material.Walkable {
+					reachable[next] = true
+					queue = append(queue, next)
+				}
+			}
+		}
+		connected := out[:0]
+		for _, t := range out {
+			if reachable[t] {
+				connected = append(connected, t)
+			}
+		}
+		out = connected
+	}
+
+	if rule.Kind == "npc" && len(locations) > 0 {
+		nearby := []*Tile{}
+		for _, t := range out {
+			for _, p := range locations {
+				if absInt(p.y-t.y)+absInt(p.x-t.x) <= max(6, rule.MinPlayerDistance+1) {
+					nearby = append(nearby, t)
+					break
+				}
+			}
+		}
+		if len(nearby) > 0 {
+			return nearby
+		}
+	}
+	return out
+}
+
+func absInt(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+
+func insertRulePickup(tile *Tile, rule WorldSpawnRule) bool {
+	tile.itemMutex.Lock()
+	if tile.powerUp != nil || tile.boosts > 0 || tile.money > 0 {
+		tile.itemMutex.Unlock()
+		return false
+	}
+	tile.spawnOwner = rule.ID
+	switch rule.Kind {
+	case "powerup":
+		tile.powerUp = &PowerUp{areaOfInfluence: grid3x3}
+	case "boost":
+		tile.boosts = rule.Amount
+		if tile.boosts < 1 {
+			tile.boosts = 5
+		}
+	case "money":
+		tile.money = rule.Amount
+	}
+	tile.itemMutex.Unlock()
+	tile.updateAll(svgFromTile(tile))
+	return true
 }
 
 func spawnProgrammedNPC(world *World, tile *Tile, definition NPCDefinition) *NonPlayer {
@@ -296,7 +534,7 @@ func runNPCProgram(ctx context.Context, npc *NonPlayer, definition NPCDefinition
 		case <-expires.C:
 			return
 		case <-ticker.C:
-			if ctx.Err() != nil || npc.health.Load() <= 0 {
+			if ctx.Err() != nil || npc.health.Load() <= 0 || (npc.world.populationContext != nil && npc.world.populationContext.Err() != nil) {
 				return
 			}
 			step := definition.Program[index]
@@ -366,7 +604,7 @@ func nearestNPCPlayer(npc *NonPlayer, origin *Tile, radius int) *Tile {
 			continue
 		}
 		tile := player.getTileSync()
-		if tile == nil || tile.stage != origin.stage {
+		if tile == nil || tile.stage != origin.stage || safeFromDamage(tile) {
 			continue
 		}
 		dy, dx := tile.y-origin.y, tile.x-origin.x
@@ -419,4 +657,47 @@ func (player *Player) checkWorldAchievements(stage string) {
 			player.world.db.addAccomplishmentToPlayer(player.world.config.worldID, player.username, key, *acc)
 		}
 	}
+}
+
+// Local review telemetry: no production route exposes this endpoint.
+func populationStatus(world *World) map[string]any {
+	world.wPlayerMutex.Lock()
+	players := make([]*Player, 0, len(world.worldPlayers))
+	for _, p := range world.worldPlayers {
+		players = append(players, p)
+	}
+	world.wPlayerMutex.Unlock()
+	playerRows := []map[string]any{}
+	for _, p := range players {
+		if t := p.getTileSync(); t != nil {
+			playerRows = append(playerRows, map[string]any{"name": p.username, "team": p.getTeamNameSync(), "stage": t.stage.name, "y": t.y, "x": t.x, "health": p.health.Load(), "streak": p.killstreak.Load(), "powers": p.actions.spaceStack.count(), "boosts": p.getBoostCountSync()})
+		}
+	}
+	world.wStageMutex.Lock()
+	stages := []*Stage{}
+	for _, s := range world.worldStages {
+		stages = append(stages, s)
+	}
+	world.wStageMutex.Unlock()
+	rules := []map[string]any{}
+	for _, s := range stages {
+		s.ruleMu.Lock()
+		for _, r := range world.config.manifest.Spawns {
+			if r.Stage != s.name {
+				continue
+			}
+			if state := s.ruleState[r.ID]; state != nil {
+				rules = append(rules, map[string]any{"id": r.ID, "stage": s.name, "active": state.active, "npcs": len(state.npcs), "pickups": len(state.pickups), "capacity": r.MaxAlive, "nextSeconds": max(0, int(time.Until(state.last.Add(time.Duration(r.CooldownSeconds)*time.Second)).Seconds()))})
+			}
+		}
+		s.ruleMu.Unlock()
+	}
+	return map[string]any{"players": playerRows, "rules": rules}
+}
+
+func supplyLabel(rule WorldSpawnRule) string {
+	if rule.Label != "" {
+		return rule.Label
+	}
+	return strings.ReplaceAll(strings.TrimSuffix(strings.TrimSuffix(rule.ID, "-power"), "-boost"), "-", " ") + " · Powers + Boosts"
 }

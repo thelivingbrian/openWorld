@@ -6,6 +6,9 @@ import (
 )
 
 type Stage struct {
+	safe               bool
+	puzzleMu           sync.Mutex
+	puzzleState        *puzzleRuntime
 	tiles              [][]*Tile
 	playerMap          map[string]*Player // Previously used for updates - Now unused.
 	playerMutex        sync.RWMutex
@@ -63,6 +66,7 @@ func createStageFromArea(area Area) *Stage {
 		playerMap:          make(map[string]*Player),
 		playerMutex:        sync.RWMutex{},
 		name:               area.Name,
+		safe:               area.Safe,
 		north:              area.North,
 		south:              area.South,
 		east:               area.East,
@@ -187,6 +191,15 @@ func createStageFromArea(area Area) *Stage {
 
 	}
 
+	outputStage.puzzleState = &puzzleRuntime{original: map[*Tile]*Interactable{}, votes: map[string]bool{}, active: true}
+	for _, row := range outputStage.tiles {
+		for _, t := range row {
+			if t.interactable != nil {
+				copy := *t.interactable
+				outputStage.puzzleState.original[t] = &copy
+			}
+		}
+	}
 	return &outputStage
 }
 
@@ -285,4 +298,15 @@ func getOrderedRegion(s *Stage, y, x, height, width int) []*Tile {
 		}
 	}
 	return region
+}
+
+func (stage *Stage) updateAll(message string) {
+	for _, p := range stagePlayers(stage) {
+		if p.tangibilityLock.TryLock() {
+			if p.tangible {
+				updateOne(message, p)
+			}
+			p.tangibilityLock.Unlock()
+		}
+	}
 }

@@ -74,6 +74,7 @@ func handleNewPlayer(player *Player) {
 	lastRead := time.Unix(0, 0)
 	previous := ""
 	lastViewport := time.Time{}
+	lastPower := time.Time{}
 	for {
 		player.conn.SetReadDeadline(time.Now().Add(MAX_IDLE_IN_SECONDS))
 		_, msg, err := player.conn.ReadMessage()
@@ -99,9 +100,11 @@ func handleNewPlayer(player *Player) {
 			continue
 		}
 
-		if player.handlePressActive(event) {
-			lastRead = currentRead
-			time.Sleep(20 * time.Millisecond)
+		if event.Name == "Space-On" {
+			if currentRead.Sub(lastPower) >= 125*time.Millisecond {
+				player.handlePressActive(event)
+				lastPower = currentRead
+			}
 			continue
 		}
 
@@ -111,7 +114,15 @@ func handleNewPlayer(player *Player) {
 		}
 		lastRead = currentRead
 
+		before := player.getTileSync()
 		player.handlePress(event, previous)
+		if before != nil {
+			updatePuzzle(player.world, before.stage)
+		}
+		if after := player.getTileSync(); after != nil && (before == nil || after.stage != before.stage) {
+			updatePuzzle(player.world, after.stage)
+			player.updatePlayerHud()
+		}
 		player.tryTrack()
 		previous = event.Name
 	}
@@ -159,16 +170,24 @@ func (player *Player) handlePressActive(event *PlayerSocketEvent) bool {
 func (player *Player) handlePress(event *PlayerSocketEvent, previous string) {
 	switch event.Name {
 	case "w":
-		tryJukeNorth(previous, player)
+		if !inPuzzle(player) {
+			tryJukeNorth(previous, player)
+		}
 		moveNorth(player)
 	case "a":
-		tryJukeWest(previous, player)
+		if !inPuzzle(player) {
+			tryJukeWest(previous, player)
+		}
 		moveWest(player)
 	case "s":
-		tryJukeSouth(previous, player)
+		if !inPuzzle(player) {
+			tryJukeSouth(previous, player)
+		}
 		moveSouth(player)
 	case "d":
-		tryJukeEast(previous, player)
+		if !inPuzzle(player) {
+			tryJukeEast(previous, player)
+		}
 		moveEast(player)
 	case "W":
 		player.moveNorthBoost()

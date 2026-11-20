@@ -65,9 +65,9 @@ Choose **Keep running until shut down** for persistent deployment. The controlle
 The offline tools server listens on `127.0.0.1:4444`. NPCs, spawns and achievements are saved in each collection's `manifest.json` and included in local compilation/deployment. Hosted version and runtime controls are available through the controller; offline sources can continue to use Git for version history.
 
 
-## Willow Reach review
+## Willow Frontier review
 
-The Bloop seed now opens in **Willow Reach**, a 48×48 woodland village with three enterable cottages, a river bridge, a pine/snow grove, a village fountain, and a pushable seed garden. The old-world portal has a separate confirmed return tile. Existing published releases are unchanged until a new version is published and launched.
+The Bloop seed now has a standalone multiplayer loop: **spawn, collect, explore/fight, extend a streak, die, and quickly return**. Health decreases through combat and hazards; only death restores it. There is no automatic drain, kill healing, or streak banking. Safe spaces preserve current health and inventory. Player and NPC kill counters remain separate; the existing streak includes hostile defeats of either type.
 
 Run the real compiler and game server locally without MongoDB or sign-in:
 
@@ -76,22 +76,33 @@ cd server/main
 go run . --preview
 ```
 
-Open **http://127.0.0.1:4445**. Preview progress is temporary. Reload to start again; open another tab to test multiple players. Use WASD/arrows to move, Shift + direction to boost when stocked, Space to use a collected power, and M/Escape for the menu. Touch controls support holding a direction and using Power simultaneously; Boost toggles boosted movement. The upper-right fullscreen button enters/exits fullscreen where the browser permits it; browser mode uses the visible viewport and safe-area insets.
+Open **http://127.0.0.1:4445/review** to choose Sky Blue or Fuchsia in separate tabs and inspect live population counts/countdowns. Direct links are `http://127.0.0.1:4445/?team=sky-blue` and `http://127.0.0.1:4445/?team=fuchsia`. Preview players are temporary; reloading creates a new test player. Production profiles keep their existing persistence behavior. The preview never publishes or changes database records. It compiles source at startup; restart it to load saved editor changes.
 
-Review route: start at `willow-reach:0-0` (y23, x17), visit the cottage northwest at (19,13), leave through its south door, walk behind its roof, then cross the bridge east to the pine grove. The seed garden is southwest; push the golden seed toward the ring. The Old Road portal is at (44,17); in the old world, the return tile is at (9,10), next to the arrival tile. These coordinates are for locating review cases in the editor.
+WASD/arrows or the direction pad move; Space/Power uses a collected red power; Shift + direction or the Boost toggle uses blue boosts. M/Escape opens the menu. Optional **How to play** help replaces a mandatory tutorial. Team symbols supplement color. The compact HUD shows health, powers, boosts, and zone safety; the fullscreen button and browser-mode layout support short mobile viewports.
 
-The source is ordinary Bloop collection data in the `willow-reach` prototype/fragment sets and `willow-reach` / `willow-cottage` spaces. The editor uses the same `server/main/assets/scenery.js` catalog as gameplay. Rebuild the editor with `npm run build -- --base-href /design/` from `tools/main/spa`. If another tools server is already running, start this checkout with `TOOLS_PORT=4446 go run .` from `tools/main` and open http://127.0.0.1:4446/design/.
+Review route:
 
-Scenery authoring rules:
+1. Each team starts in its own 12×12 safe refuge at (Y7,X6). Walk north to collect a boost and a power, then leave at (3,6). Supplies replenish while people remain in the room.
+2. Explore the 48×48 shared frontier. Orange wild bloops chase and attack; allies cannot hurt one another. Defeat enemies with powers, collect new supplies, and continue without crossing an area boundary to trigger spawning. A brief 1.5-second arrival shield after leaving safety ends immediately when attacking.
+3. Both the village bridge and north crossing connect the riverbanks. Baseline power/boost caches remain available while the announced **North Crossing / Riverbank / Seed Garden** bonus site rotates every minute. Health does not regenerate when visiting a cottage or refuge.
+4. Visit the snowy northeast grove to review rounded snow boundaries, snow pine silhouettes, and scenery bases that match the ground.
+5. Enter the dark annex from the southern frontier portal at (44,17). The foyer's left portal (5,4) leads to the solo room; its right portal (5,11) leads to the optional two-player relay. Foyer exits (13,6) and (13,9) lead to the labeled team refuges without healing or changing a streak.
+6. In the solo room, push the block north onto (9,5), then cross the gate at row 6 to the goal at (4,8). In the duo room, two players of any teams stand on (9,5) and (9,11) together. Completion gives recognition, not health, supplies, money, or competitive score. Gates close when plates are released; they never close on an occupied gate tile. Exits remain usable with gates closed.
+7. **Menu → Reset chamber** requires agreement from everyone currently in that room; empty chambers reset automatically. Ordinary turns do not juke blocks in puzzle rooms. Boost becomes a single step there without consuming charges, so it cannot bypass a gate. Disconnect a partner to check recovery and gate closure.
 
-- The anchor is the center-bottom of its ground tile. Artwork extends upward; the catalog records visual width/height in tiles. Light comes from the upper left, with short shadows toward the lower right.
-- Place complete fragments to preserve collision: a tree blocks one trunk tile; cottages use a 5×2 footprint with a walkable bottom-center doorway; the fountain uses a 3×2 footprint. Add a transport at each new cottage doorway and a distinct return tile outside it.
-- Keep the three-quarter viewing direction fixed. The editor disables rotation of scenery fixtures. Use rounded silhouettes, restrained `willow-*` colors, and paths that remain legible under foliage. New scenery uses `scenery-*` tokens in Floor2; legacy ceiling layers keep their existing behavior.
-- The deterministic `python3 tools/worlds/build_willow_reach.py` script rebuilds this authored seed and verifies connectivity. It replaces Willow assets and updates the old-world return tile; preserve editor changes before regenerating.
+The new world has no links to legacy Bloopworld. Legacy seed areas remain available in source for separate worlds/releases. Existing published versions are unchanged until explicitly published and launched.
 
-Review validation: all 97 Angular tests and 11 snapshots, the tools Go suite, four canvas/shell tests, and focused server/compiler/camera tests with the race detector passed. Browser checks covered desktop, 375×667 portrait, 667×375 and 667×300 landscape (reduced height for browser chrome), rotation, simultaneous touch input and cancellation, menu focus, cottage entry/return, garden-seed pushing, old-world travel in both directions, and fullscreen entry/exit. Local captures and a movement video are in `.cache/review/`. The full server suite is not green: `TestWorldAuthoringRequiresAdmin` panics in the unchanged baseline as well. The editor build also retains its existing stylesheet-budget warning.
+Population defaults are editable in **Spawns**: recurring/entry/once triggers, regions, minimum player distance, counts/caps, lifetimes, and rotation labels/groups. There are 21 recurring rules. Hostiles replenish every 18 seconds with a maximum of three per region (nine total), a two-minute lifetime, and a five-tile minimum spawn distance. Starter supplies return every 12–15 seconds; baseline supplies return every 18–24 seconds. NPCs spawn on unoccupied connected terrain, outside safe stages and transports. Pickup expiry preserves unrelated dropped items. One world-owned scheduler services occupied stages and stops on shutdown.
 
-Before release: test physical iOS/Android browser bars, notches, touch comfort, and frame rate; review competitive sight ranges with the responsive viewport. Day/night, weather cycles, and conversion of the remaining old regions are follow-up work. The review scene remains bright and readable without those effects.
+The editor's **Settings → Safe puzzle chambers** controls plates, gates, goals, and player requirements. Use safe source stages and blocked gate tiles. The **Anchors & visual bounds** and **Blocked footprint** toggles explain scenery placement; Edit Transports marks entrances. The fragment shelf provides labeled thumbnails of complete fixtures. Gameplay and editor share `server/main/assets/scenery.js`; fixtures keep a fixed viewing direction. Unknown scenery tokens and rotated scenery anchors fail compilation. Current catalog extents fit the four-tile camera margin.
+
+To review the editor, build with `npm run build -- --base-href /design/` from `tools/main/spa`, then start `TOOLS_PORT=4446 go run .` from `tools/main` and open http://127.0.0.1:4446/design/. Select the `bloop` collection and `willow-*` spaces/sets. Rebuild the deterministic native source with `python3 tools/worlds/build_willow_reach.py`; preserve manual editor changes before regenerating.
+
+A ten-minute automated two-team session observed first pickup at one second, 19 death/respawn cycles, at most nine hostile NPCs and twelve rule pickups, with no session errors. This confirms bounded replenishment and repeatable play, not final difficulty balance.
+
+Validation and captures are in `.cache/frontier-review/`: real browser routes for both teams, solo/duo completion, partner disconnect, desktop/mobile dark rooms, winter, editor controls, and population session telemetry. Focused Go race tests cover replenishment over fifteen simulated minutes, caps/exclusion, safe rooms, puzzle reset/completion, gate bypass prevention, and release serialization. All 98 Angular tests and 11 snapshots pass, as do the tools Go suite and four canvas/shell tests. The editor production build passes with initial-bundle and stylesheet-budget warnings. The previous authorization-test failure was fixed by denying unmatched admin identifiers.
+
+Before release, test physical iOS/Android browser bars, safe areas, touch comfort and frame rate; assess team balance, repeated-victim farming, and competitive sight ranges. These remain playtest/release checks rather than claims established by automation. Day/night, weather, broader biome expansion, and general sprite import remain follow-ups.
 
 
 ## AI orchestration

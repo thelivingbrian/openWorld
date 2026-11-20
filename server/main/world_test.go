@@ -413,6 +413,9 @@ func createWorldForTesting() (*World, context.CancelFunc) {
 		for {
 			select {
 			case <-ctx.Done():
+				if world.stopPopulation != nil {
+					world.stopPopulation()
+				}
 				close(world.playersToLogout)
 				close(world.leaderBoard.mostDangerous.incoming)
 				return

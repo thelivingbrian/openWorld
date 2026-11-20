@@ -21,6 +21,8 @@ const SESSION_SNAPSHOT_INTERVAL_IN_MIN = 30
 var CAPACITY_PER_TEAM = 200 // Is modified by test => not const
 
 type World struct {
+	populationContext context.Context
+	stopPopulation    context.CancelFunc
 	App
 	worldPlayers        map[string]*Player
 	wPlayerMutex        sync.Mutex
@@ -86,6 +88,8 @@ func createGameWorld(db *DB, config *Configuration) *World {
 			sessionStartTime: time.Now(),
 		},
 	}
+	out.populationContext, out.stopPopulation = context.WithCancel(context.Background())
+	go runWorldPopulation(out, out.populationContext)
 	if config.loadPreviousState {
 		loadPreviousState(out)
 	}
@@ -148,6 +152,9 @@ func writeRuntimeHeartbeat(world *World) {
 }
 
 func gracefulWorldShutdown(world *World) {
+	if world.stopPopulation != nil {
+		world.stopPopulation()
+	}
 	world.wPlayerMutex.Lock()
 	players := make([]*Player, 0, len(world.worldPlayers))
 	for _, player := range world.worldPlayers {

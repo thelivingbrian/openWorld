@@ -38,6 +38,8 @@ var pauseMenu = Menu{
 	Links: []MenuLink{
 		{Text: "Resume", eventHandler: turnMenuOff, auth: nil},
 		{Text: "You", eventHandler: openStatsMenu, auth: nil},
+		{Text: "How to play", eventHandler: openHelp},
+		{Text: "Reset chamber (everyone agrees)", eventHandler: turnMenuOffAnd(requestPuzzleReset), auth: inPuzzle},
 		{Text: "Map", eventHandler: openMapMenu, auth: nil},
 		{Text: "Respawn", eventHandler: openRespawnMenu, auth: excludeSpecialStages},
 		{Text: "Quit", eventHandler: Quit, auth: nil},

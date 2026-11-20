@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"regexp"
+	"strings"
 )
 
 ////////////////////////////////////////////////////////////
@@ -43,12 +44,12 @@ func swapsForTilesWithHighlights(tiles [][]*Tile, highlights map[*Tile]bool) []b
 
 func swapsForTileWithHighlight(tile *Tile, highlight string) string {
 	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.quickSwapTemplate, characterBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x, tile.stage.weather), oobHighlightBox(tile, highlight))
+	return fmt.Sprintf(tile.quickSwapTemplate, characterBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x, tile.stage.weather), oobHighlightBox(tile, highlight)) + gateSwap(tile)
 }
 
 func swapsForTileNoHighlight(tile *Tile) string {
 	svgtag := svgFromTile(tile)
-	return fmt.Sprintf(tile.quickSwapTemplate, characterBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x, tile.stage.weather), "")
+	return fmt.Sprintf(tile.quickSwapTemplate, characterBox(tile), interactableBox(tile), svgtag, emptyWeatherBox(tile.y, tile.x, tile.stage.weather), "") + gateSwap(tile)
 }
 
 ////////////////////////////////////////////////////////////
@@ -56,18 +57,27 @@ func swapsForTileNoHighlight(tile *Tile) string {
 
 type PlayerHUD struct {
 	Username, Hearts string
+	Team, Zone       string
+	Health           int64
 	Streak, Money    int64
 	Boosts, Power    int
 }
 
 func (receipt *LoginReceipt) HUD() PlayerHUD {
 	record := receipt.LoginRequest.Record
-	return PlayerHUD{Username: record.Username, Hearts: record.HeartsFromRecord(), Money: record.Money}
+	zone := "FRONTIER"
+	if strings.Contains(record.StageName, "refuge") || strings.Contains(record.StageName, "cottage") {
+		zone = "SAFE"
+	}
+	if strings.Contains(record.StageName, "annex") || strings.Contains(record.StageName, "solo") || strings.Contains(record.StageName, "duo") {
+		zone = "PUZZLE"
+	}
+	return PlayerHUD{Username: record.Username, Hearts: record.HeartsFromRecord(), Money: record.Money, Health: record.Health, Team: teamLabel(record.Team), Zone: zone}
 }
 
 func divPlayerInformation(player *Player) string {
 	var out bytes.Buffer
-	hud := PlayerHUD{Username: player.username, Hearts: getHeartsFromHealth(player.health.Load()), Streak: player.killstreak.Load(), Money: player.money.Load(), Boosts: player.getBoostCountSync(), Power: player.actions.spaceStack.count()}
+	hud := PlayerHUD{Username: player.username, Hearts: getHeartsFromHealth(player.health.Load()), Streak: player.killstreak.Load(), Money: player.money.Load(), Boosts: player.getBoostCountSync(), Power: player.actions.spaceStack.count(), Health: player.health.Load(), Team: teamLabel(player.getTeamNameSync()), Zone: zoneLabel(player)}
 	if err := tmpl.ExecuteTemplate(&out, "player-hud", hud); err != nil {
 		return ""
 	}

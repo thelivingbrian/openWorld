@@ -34,6 +34,23 @@
     }
   },
   {
+    "id": "willow-fragment-snowpine",
+    "name": "Willow Snowpine",
+    "setName": "willow-reach",
+    "blueprint": {
+      "tiles": [
+        [
+          {
+            "prototypeId": "willow-snowpine"
+          }
+        ]
+      ],
+      "Instructions": [],
+      "DefaultTileColor": "willow-grass",
+      "DefaultTileColor1": "willow-path"
+    }
+  },
+  {
     "id": "willow-fragment-birch",
     "name": "Willow Birch",
     "setName": "willow-reach",

@@ -350,6 +350,18 @@ func (collection *Collection) compileMaterialsFromBlueprint(bp *Blueprint) ([][]
 				return nil, fmt.Errorf("Prototype with id: %s Not found. y:%d x:%d", bp.Tiles[y][x].PrototypeId, y, x)
 			}
 
+			for _, token := range strings.Fields(proto.Floor2Css) {
+				if strings.HasPrefix(token, "scenery-") {
+					switch token {
+					case "scenery-oak", "scenery-pine", "scenery-snowpine", "scenery-birch", "scenery-cottage", "scenery-lantern", "scenery-sign", "scenery-rock", "scenery-flower", "scenery-bench", "scenery-well":
+					default:
+						return nil, fmt.Errorf("unsupported scenery token %s", token)
+					}
+					if tile.Transformation.ClockwiseRotations%4 != 0 {
+						return nil, fmt.Errorf("scenery keeps a fixed viewing direction")
+					}
+				}
+			}
 			// Apply transform
 			mat := proto.applyTransform(tile.Transformation)
 

@@ -13,6 +13,7 @@ import (
 )
 
 type Player struct {
+	arrivalProtection        atomic.Int64
 	id                       string
 	userID                   string
 	username                 string
@@ -77,6 +78,10 @@ func (player *Player) moveWestBoost() {
 }
 
 func (player *Player) moveBoost(yOffset int, xOffset int) {
+	if inPuzzle(player) {
+		move(player, yOffset, xOffset)
+		return
+	}
 	if player.useBoost() {
 		move(player, 2*yOffset, 2*xOffset)
 	} else {
@@ -277,6 +282,8 @@ func updatePlayerHighlights(player *Player) {
 }
 
 func updatePlayerAfterStageChange(p *Player) {
+	updateOne(`<div id="frontier-event" role="status"></div>`, p)
+	p.updatePlayerHud()
 	p.setSpaceHighlights()
 	updateEntireExistingScreen(p)
 }

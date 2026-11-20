@@ -339,7 +339,9 @@ export function updateInstructionAndReapply(
     target.X = normalizeInstructionField(nextValues.X, target.X);
   }
   if (nextValues.ClockwiseRotations !== undefined) {
-    target.ClockwiseRotations = mod(normalizeInstructionField(nextValues.ClockwiseRotations, target.ClockwiseRotations), 4);
+    const tiles=getTileGridByAssetId(nextValues.GridAssetId ?? target.GridAssetId,prototypesById,fragmentsById);
+    const scenery=tiles.some(row=>row.some(tile=>(prototypesById.get(tile.prototypeId ?? '')?.layer2css ?? '').includes('scenery-')));
+    target.ClockwiseRotations = scenery ? 0 : mod(normalizeInstructionField(nextValues.ClockwiseRotations, target.ClockwiseRotations), 4);
   }
   if (nextValues.GridAssetId !== undefined) {
     target.GridAssetId = nextValues.GridAssetId;
@@ -453,6 +455,7 @@ export function applyGridTool(input: {
     }
 
     case 'rotate': {
+      if ((prototypesById.get(blueprint.Tiles[y][x].prototypeId ?? '')?.layer2css ?? '').includes('scenery-')) return selected;
       const tx = blueprint.Tiles[y][x].transformation ?? { clockwiseRotations: 0 };
       tx.clockwiseRotations = mod((tx.clockwiseRotations ?? 0) + 1, 4);
       blueprint.Tiles[y][x].transformation = tx;

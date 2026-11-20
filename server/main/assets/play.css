@@ -46,3 +46,12 @@ body:has(.play-page) { overflow: hidden; background: #203c35; overscroll-behavio
 .watch-page .hud-actions { display: none; }
 .play-page #modal_options a { display: inline-block; padding: 10px 14px; min-height: 44px; border-radius: 8px; color: #d4e6c6; text-decoration: none; }
 .play-page #modal_options a.selected { background: #d4e6c6; color: #203e35; }
+
+.health-meter { width: 45px; height: 12px; accent-color: #b4da8d; }
+.zone-label { font-size: 10px; letter-spacing: .08em; color: #bdd0b8; }
+#frontier-event { position: absolute; top: 78px; right: 14px; z-index: 30; padding: 8px 12px; border-radius: 10px; background: #183b35e8; color: #f2ddb0; font-size: 12px; max-width: 65%; }
+#frontier-event:empty { display: none; }
+@media(max-width:700px) { .health-meter { width: 30px; } .zone-label { display: none; } .play-page #hearts { font-size: 16px; } }
+
+.team-badge { font-size: 11px; }
+@media(max-width:700px) { .team-badge { max-width: 12px; overflow: hidden; white-space: nowrap; } .play-hud .hud-vitals { gap:5px; } }

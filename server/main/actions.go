@@ -75,6 +75,11 @@ func (player *Player) updateSpaceHighlights() []*Tile { // Returns removed highl
 // rewrite as tryActivate for atomicity.
 func (player *Player) activatePower() {
 	tile := player.getTileSync()
+	if safeFromDamage(tile) {
+		player.updateBottomText("Safe space · Save your powers for the frontier.")
+		return
+	}
+	player.arrivalProtection.Store(0)
 	tile.updateAll(soundTriggerByName("explosion"))
 
 	playerHighlights := highlightMapToSlice(player)
@@ -153,7 +158,7 @@ func (stack *StackOfPowerUp) hasPower() bool {
 	return len(stack.powers) > 0
 }
 
-//////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////
 // Boosts
 func (player *Player) addBoosts(n int) int {
 	player.actions.boostMutex.Lock()

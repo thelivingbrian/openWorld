@@ -1,10 +1,10 @@
 {
-  "name": "Bloopworld \u00b7 Willow Reach",
-  "description": "A riverside village, woodland paths, and a little room to wander.",
+  "name": "Bloopworld \u00b7 Willow Frontier",
+  "description": "Two refuges. A living woodland frontier. A quiet place to solve things together.",
   "entry": {
-    "stage": "willow-reach:0-0",
-    "y": 23,
-    "x": 17
+    "stage": "willow-refuge:0-0",
+    "y": 7,
+    "x": 6
   },
   "teams": [
     {
@@ -12,9 +12,9 @@
       "label": "Sky Blue",
       "color": "sky-blue",
       "spawn": {
-        "stage": "willow-reach:0-0",
-        "y": 23,
-        "x": 17
+        "stage": "willow-refuge:0-0",
+        "y": 7,
+        "x": 6
       }
     },
     {
@@ -22,9 +22,9 @@
       "label": "Fuchsia",
       "color": "fuchsia",
       "spawn": {
-        "stage": "willow-reach:0-0",
-        "y": 23,
-        "x": 17
+        "stage": "willow-refuge:0-1",
+        "y": 7,
+        "x": 6
       }
     }
   ],
@@ -33,23 +33,31 @@
   "lifecycle": "persistent",
   "npcs": [
     {
-      "id": "wayfarer",
-      "name": "Wayfarer",
-      "team": "sky-blue",
-      "appearance": "lavender r1",
-      "health": 100,
+      "id": "wild-bloop",
+      "name": "Wild bloop",
+      "team": "wild",
+      "appearance": "orange r1 red-b thin",
+      "health": 50,
       "money": 0,
-      "intervalMs": 1100,
-      "lifetimeSeconds": 3600,
+      "intervalMs": 600,
+      "lifetimeSeconds": 120,
       "program": [
         {
-          "action": "wander",
+          "action": "chase",
           "ticks": 3,
-          "condition": "always"
+          "condition": "player-nearby",
+          "radius": 6
         },
         {
-          "action": "wait",
-          "ticks": 3,
+          "action": "attack",
+          "ticks": 1,
+          "condition": "player-nearby",
+          "radius": 1,
+          "damage": 25
+        },
+        {
+          "action": "wander",
+          "ticks": 1,
           "condition": "always"
         }
       ]
@@ -57,18 +65,406 @@
   ],
   "spawns": [
     {
-      "id": "village-wayfarers",
+      "id": "sky-blue-starter-power",
+      "stage": "willow-refuge:0-0",
+      "kind": "powerup",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 15,
+      "randomPosition": false,
+      "y": 5,
+      "x": 6,
+      "amount": 1,
+      "lifetimeSeconds": 90
+    },
+    {
+      "id": "sky-blue-starter-boost",
+      "stage": "willow-refuge:0-0",
+      "kind": "boost",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 12,
+      "randomPosition": false,
+      "y": 6,
+      "x": 6,
+      "amount": 3,
+      "lifetimeSeconds": 90
+    },
+    {
+      "id": "fuchsia-starter-power",
+      "stage": "willow-refuge:0-1",
+      "kind": "powerup",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 15,
+      "randomPosition": false,
+      "y": 5,
+      "x": 6,
+      "amount": 1,
+      "lifetimeSeconds": 90
+    },
+    {
+      "id": "fuchsia-starter-boost",
+      "stage": "willow-refuge:0-1",
+      "kind": "boost",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 12,
+      "randomPosition": false,
+      "y": 6,
+      "x": 6,
+      "amount": 3,
+      "lifetimeSeconds": 90
+    },
+    {
+      "id": "village-power",
+      "stage": "willow-reach:0-0",
+      "kind": "powerup",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 24,
+      "randomPosition": false,
+      "y": 21,
+      "x": 18,
+      "amount": 1,
+      "lifetimeSeconds": 90
+    },
+    {
+      "id": "village-boost",
+      "stage": "willow-reach:0-0",
+      "kind": "boost",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 18,
+      "randomPosition": false,
+      "y": 21,
+      "x": 19,
+      "amount": 2,
+      "lifetimeSeconds": 90
+    },
+    {
+      "id": "pinewatch-power",
+      "stage": "willow-reach:0-0",
+      "kind": "powerup",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 24,
+      "randomPosition": false,
+      "y": 28,
+      "x": 39,
+      "amount": 1,
+      "lifetimeSeconds": 90
+    },
+    {
+      "id": "pinewatch-boost",
+      "stage": "willow-reach:0-0",
+      "kind": "boost",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 18,
+      "randomPosition": false,
+      "y": 28,
+      "x": 40,
+      "amount": 2,
+      "lifetimeSeconds": 90
+    },
+    {
+      "id": "north-road-power",
+      "stage": "willow-reach:0-0",
+      "kind": "powerup",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 24,
+      "randomPosition": false,
+      "y": 13,
+      "x": 26,
+      "amount": 1,
+      "lifetimeSeconds": 90
+    },
+    {
+      "id": "north-road-boost",
+      "stage": "willow-reach:0-0",
+      "kind": "boost",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 18,
+      "randomPosition": false,
+      "y": 13,
+      "x": 27,
+      "amount": 2,
+      "lifetimeSeconds": 90
+    },
+    {
+      "id": "garden-power",
+      "stage": "willow-reach:0-0",
+      "kind": "powerup",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 24,
+      "randomPosition": false,
+      "y": 38,
+      "x": 15,
+      "amount": 1,
+      "lifetimeSeconds": 90
+    },
+    {
+      "id": "garden-boost",
+      "stage": "willow-reach:0-0",
+      "kind": "boost",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 18,
+      "randomPosition": false,
+      "y": 38,
+      "x": 16,
+      "amount": 2,
+      "lifetimeSeconds": 90
+    },
+    {
+      "id": "north-cache-power",
+      "stage": "willow-reach:0-0",
+      "kind": "powerup",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 12,
+      "randomPosition": false,
+      "y": 9,
+      "x": 25,
+      "amount": 1,
+      "lifetimeSeconds": 90,
+      "rotationGroup": "frontier-supply",
+      "activeSeconds": 60,
+      "label": "North Crossing"
+    },
+    {
+      "id": "north-cache-boost",
+      "stage": "willow-reach:0-0",
+      "kind": "boost",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 12,
+      "randomPosition": false,
+      "y": 9,
+      "x": 26,
+      "amount": 4,
+      "lifetimeSeconds": 90,
+      "rotationGroup": "frontier-boost",
+      "activeSeconds": 60,
+      "label": "North Crossing"
+    },
+    {
+      "id": "river-cache-power",
+      "stage": "willow-reach:0-0",
+      "kind": "powerup",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 12,
+      "randomPosition": false,
+      "y": 20,
+      "x": 40,
+      "amount": 1,
+      "lifetimeSeconds": 90,
+      "rotationGroup": "frontier-supply",
+      "activeSeconds": 60,
+      "label": "Riverbank"
+    },
+    {
+      "id": "river-cache-boost",
+      "stage": "willow-reach:0-0",
+      "kind": "boost",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 12,
+      "randomPosition": false,
+      "y": 20,
+      "x": 41,
+      "amount": 4,
+      "lifetimeSeconds": 90,
+      "rotationGroup": "frontier-boost",
+      "activeSeconds": 60,
+      "label": "Riverbank"
+    },
+    {
+      "id": "garden-cache-power",
+      "stage": "willow-reach:0-0",
+      "kind": "powerup",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 12,
+      "randomPosition": false,
+      "y": 33,
+      "x": 22,
+      "amount": 1,
+      "lifetimeSeconds": 90,
+      "rotationGroup": "frontier-supply",
+      "activeSeconds": 60,
+      "label": "Seed Garden"
+    },
+    {
+      "id": "garden-cache-boost",
+      "stage": "willow-reach:0-0",
+      "kind": "boost",
+      "trigger": "interval",
+      "count": 1,
+      "maxAlive": 1,
+      "cooldownSeconds": 12,
+      "randomPosition": false,
+      "y": 33,
+      "x": 23,
+      "amount": 4,
+      "lifetimeSeconds": 90,
+      "rotationGroup": "frontier-boost",
+      "activeSeconds": 60,
+      "label": "Seed Garden"
+    },
+    {
+      "id": "west-roam",
       "stage": "willow-reach:0-0",
       "kind": "npc",
-      "npc": "wayfarer",
-      "trigger": "entry",
-      "count": 3,
+      "trigger": "interval",
+      "count": 2,
       "maxAlive": 3,
-      "cooldownSeconds": 60,
+      "cooldownSeconds": 18,
       "randomPosition": true,
       "y": 0,
-      "x": 0
+      "x": 0,
+      "amount": 1,
+      "lifetimeSeconds": 120,
+      "npc": "wild-bloop",
+      "region": {
+        "x": 4,
+        "y": 18,
+        "width": 21,
+        "height": 25
+      },
+      "minPlayerDistance": 5
+    },
+    {
+      "id": "east-roam",
+      "stage": "willow-reach:0-0",
+      "kind": "npc",
+      "trigger": "interval",
+      "count": 2,
+      "maxAlive": 3,
+      "cooldownSeconds": 18,
+      "randomPosition": true,
+      "y": 0,
+      "x": 0,
+      "amount": 1,
+      "lifetimeSeconds": 120,
+      "npc": "wild-bloop",
+      "region": {
+        "x": 37,
+        "y": 17,
+        "width": 9,
+        "height": 27
+      },
+      "minPlayerDistance": 5
+    },
+    {
+      "id": "north-roam",
+      "stage": "willow-reach:0-0",
+      "kind": "npc",
+      "trigger": "interval",
+      "count": 2,
+      "maxAlive": 3,
+      "cooldownSeconds": 18,
+      "randomPosition": true,
+      "y": 0,
+      "x": 0,
+      "amount": 1,
+      "lifetimeSeconds": 120,
+      "npc": "wild-bloop",
+      "region": {
+        "x": 16,
+        "y": 5,
+        "width": 12,
+        "height": 12
+      },
+      "minPlayerDistance": 5
     }
   ],
-  "achievements": []
+  "achievements": [],
+  "puzzles": [
+    {
+      "id": "quiet-solo",
+      "stage": "willow-solo:0-0",
+      "plates": [
+        {
+          "y": 9,
+          "x": 5
+        }
+      ],
+      "goal": {
+        "y": 4,
+        "x": 8
+      },
+      "gates": [
+        {
+          "y": 6,
+          "x": 7
+        },
+        {
+          "y": 6,
+          "x": 8
+        },
+        {
+          "y": 6,
+          "x": 9
+        }
+      ],
+      "minPlayers": 1
+    },
+    {
+      "id": "quiet-duo",
+      "stage": "willow-duo:0-0",
+      "plates": [
+        {
+          "y": 9,
+          "x": 5
+        },
+        {
+          "y": 9,
+          "x": 11
+        }
+      ],
+      "goal": {
+        "y": 9,
+        "x": 11
+      },
+      "gates": [
+        {
+          "y": 6,
+          "x": 7
+        },
+        {
+          "y": 6,
+          "x": 8
+        },
+        {
+          "y": 6,
+          "x": 9
+        }
+      ],
+      "minPlayers": 2,
+      "playersOnly": true
+    }
+  ]
 }

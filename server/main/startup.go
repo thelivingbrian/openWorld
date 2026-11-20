@@ -251,7 +251,7 @@ func (config *Configuration) isAdminIdentifier(identifier string) bool {
 			return true
 		}
 	}
-	return true // fix later 
+	return false
 }
 
 ////////////////////////////////////////////////////

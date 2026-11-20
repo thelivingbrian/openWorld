@@ -247,6 +247,9 @@ func transferPlayerAcrossStages(p *Player, source, dest *Tile) bool {
 	source.stage.removeLockedPlayerById(p.id)
 	p.camera.drop()
 
+	if source.stage.safe && !dest.stage.safe {
+		p.arrivalProtection.Store(time.Now().Add(1500 * time.Millisecond).UnixNano())
+	}
 	dest.stage.addLockedPlayer(p)
 	p.camera.setView(dest.y, dest.x, dest.stage)
 
@@ -303,6 +306,9 @@ func (p *Player) push(tile *Tile, incoming *Interactable, yOff, xOff int) bool {
 }
 
 func (target *Player) takeDamageFrom(initiator Character, dmg int) bool {
+	if time.Now().UnixNano() < target.arrivalProtection.Load() {
+		return false
+	}
 	location := target.getTileSync()
 	if safe(location, target, initiator) {
 		return false
@@ -322,7 +328,7 @@ func (target *Player) takeDamageFrom(initiator Character, dmg int) bool {
 }
 
 func safe(location *Tile, partyA, partyB Character) bool {
-	if safeFromDamage(location) {
+	if safeFromDamage(location) || safeFromDamage(partyB.getTileSync()) {
 		return true
 	}
 	if partyA.getTeamNameSync() == partyB.getTeamNameSync() {

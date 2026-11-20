@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NPCDefinition, NPCStep, WorldManifest } from '../../core/models/world.models';
+import { NPCDefinition, NPCStep, WorldManifest, WorldPuzzle } from '../../core/models/world.models';
 
 @Component({
   selector: 'app-world-settings',
@@ -13,6 +13,8 @@ export class WorldSettingsComponent {
   @Input() mode = 'settings';
   @Input() stages: string[] = [];
   @Output() changed = new EventEmitter<void>();
+
+  pointError = '';
 
   readonly actions = ['wait', 'north', 'south', 'east', 'west', 'wander', 'chase', 'attack'];
   readonly metrics = [
@@ -50,9 +52,32 @@ export class WorldSettingsComponent {
   addSpawn(): void {
     this.manifest.spawns.push({ id: this.nextID('spawn', this.manifest.spawns), stage: this.stages[0] ?? '',
       kind: this.manifest.npcs.length ? 'npc' : 'money', npc: this.manifest.npcs[0]?.id ?? '',
-      trigger: 'entry', count: 1, maxAlive: 5, cooldownSeconds: 30, randomPosition: true, y: 0, x: 0, amount: 10 });
+      trigger: 'interval', count: 1, maxAlive: 5, cooldownSeconds: 30, randomPosition: true, y: 0, x: 0, amount: 10 });
     this.changed.emit();
   }
+
+  toggleRegion(spawn: WorldManifest['spawns'][number]): void {
+    spawn.region = spawn.region ? undefined : {x:0,y:0,width:8,height:8}; this.changed.emit();
+  }
+
+  addPuzzle(): void {
+    this.manifest.puzzles ??= [];
+    this.manifest.puzzles.push({id:this.nextID('puzzle',this.manifest.puzzles),stage:this.stages[0] ?? '',plates:[{y:1,x:1}],goal:{y:2,x:2},gates:[{y:3,x:3}],minPlayers:1,playersOnly:false});this.changed.emit();
+  }
+  pointsText(points: {y:number;x:number}[]): string {return points.map(p=>`${p.y},${p.x}`).join('; ');}
+  setPoints(puzzle: WorldPuzzle, field: 'plates'|'gates', value: string): void {
+    if (!/^\s*\d+\s*,\s*\d+\s*(;\s*\d+\s*,\s*\d+\s*)*$/.test(value)) {
+      this.pointError = 'Use tile pairs such as 9,5; 9,11 (Y,X). The previous valid layout is retained.';
+      return;
+    }
+    this.pointError = '';
+    puzzle[field] = value.split(';').map(pair => {
+      const [y,x] = pair.split(',').map(Number);
+      return {y,x};
+    });
+    this.changed.emit();
+  }
+
 
   addAchievement(): void {
     this.manifest.achievements.push({ id: this.nextID('achievement', this.manifest.achievements),

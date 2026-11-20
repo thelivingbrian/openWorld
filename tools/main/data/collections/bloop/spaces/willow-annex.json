@@ -1,0 +1,865 @@
+{
+  "CollectionName": "bloop",
+  "Name": "willow-annex",
+  "Topology": "plane",
+  "Latitude": 1,
+  "Longitude": 1,
+  "AreaHeight": 16,
+  "AreaWidth": 16,
+  "Areas": [
+    {
+      "name": "willow-annex:0-0",
+      "safe": true,
+      "blueprint": {
+        "tiles": [
+          [
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-lamp"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-lamp"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-solo-entrance"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-duo-entrance"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-welcome"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-floor"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-lamp"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-sky-exit"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-pink-exit"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-lamp"
+            },
+            {
+              "prototypeId": "willow-annex-wall"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            },
+            {
+              "prototypeId": "willow-annex-void"
+            }
+          ]
+        ],
+        "Instructions": [],
+        "DefaultTileColor": "annex-floor",
+        "DefaultTileColor1": "willow-path"
+      },
+      "transports": [
+        {
+          "sourceY": 5,
+          "sourceX": 4,
+          "destStage": "willow-solo:0-0",
+          "destY": 12,
+          "destX": 8,
+          "confirmation": false,
+          "rejectInteractable": true
+        },
+        {
+          "sourceY": 5,
+          "sourceX": 11,
+          "destStage": "willow-duo:0-0",
+          "destY": 12,
+          "destX": 8,
+          "confirmation": false,
+          "rejectInteractable": true
+        },
+        {
+          "sourceY": 13,
+          "sourceX": 6,
+          "destStage": "willow-refuge:0-0",
+          "destY": 4,
+          "destX": 6,
+          "confirmation": false,
+          "rejectInteractable": true
+        },
+        {
+          "sourceY": 13,
+          "sourceX": 9,
+          "destStage": "willow-refuge:0-1",
+          "destY": 4,
+          "destX": 6,
+          "confirmation": false,
+          "rejectInteractable": true
+        }
+      ],
+      "loadStrategy": "",
+      "spawnStrategy": "none",
+      "mapId": "",
+      "weather": "",
+      "broadcastGroup": "willow-reach"
+    }
+  ]
+}

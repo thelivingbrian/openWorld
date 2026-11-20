@@ -20,6 +20,8 @@ type Tile struct {
 	x                 int
 	eventsInFlight    atomic.Int32
 	itemMutex         sync.Mutex
+	gateMode          atomic.Int32
+	spawnOwner        string
 	powerUp           *PowerUp
 	money             int
 	boosts            int
@@ -131,6 +133,7 @@ func (tile *Tile) collectItemsForPlayer(player *Player) bool {
 	tile.itemMutex.Lock()
 	defer tile.itemMutex.Unlock()
 	if tile.powerUp != nil {
+		tile.spawnOwner = ""
 		powerUp := tile.powerUp
 		tile.powerUp = nil
 		addPowerToStack(player, powerUp)
@@ -139,11 +142,13 @@ func (tile *Tile) collectItemsForPlayer(player *Player) bool {
 	if tile.money != 0 {
 		player.addMoneyAndUpdate(tile.money)
 		tile.money = 0
+		tile.spawnOwner = ""
 		itemChange = true
 	}
 	if tile.boosts > 0 {
 		player.addBoostsAndUpdate(tile.boosts)
 		tile.boosts = 0
+		tile.spawnOwner = ""
 		itemChange = true
 	}
 	return itemChange
@@ -182,12 +187,17 @@ func collectItemNPC(tile *Tile, npc *NonPlayer) bool {
 	if tile.money != 0 {
 		npc.money.Add(int64(tile.money))
 		tile.money = 0
+		tile.spawnOwner = ""
 		itemChange = true
 	}
 	if tile.boosts > 0 {
 		npc.boosts.Add(int64(tile.boosts))
 		tile.boosts = 0
+		tile.spawnOwner = ""
 		itemChange = true
+	}
+	if itemChange {
+		tile.spawnOwner = ""
 	}
 	return itemChange
 }
@@ -317,6 +327,9 @@ func safeFromDamage(tile *Tile) bool {
 	if tile == nil {
 		return true
 	}
+	if tile.stage.safe {
+		return true
+	}
 	stagename := tile.stage.name
 	if stagename == "clinic" {
 		return true
@@ -345,7 +358,7 @@ func replaceNilInteractable(tile *Tile, incoming *Interactable) bool {
 	if incoming == nil {
 		return true
 	}
-	if tile.material.Walkable { // Prevents lock contention from using Walkable()
+	if tile.groundWalkable() { // Prevents lock contention from using Walkable()
 		if !incoming.walkable && hasCharacters(tile) {
 			return false
 		}
@@ -410,7 +423,7 @@ func walkable(tile *Tile) bool {
 	if tile == nil {
 		return false
 	}
-	if !tile.material.Walkable {
+	if !tile.groundWalkable() {
 		return false
 	}
 	tile.interactableMutex.Lock()
@@ -534,4 +547,9 @@ func (tile *Tile) addMoney(amount int) {
 	tile.itemMutex.Lock()
 	defer tile.itemMutex.Unlock()
 	tile.money += amount
+}
+
+func (tile *Tile) groundWalkable() bool {
+	mode := tile.gateMode.Load()
+	return mode == 2 || (mode == 0 && tile.material.Walkable)
 }

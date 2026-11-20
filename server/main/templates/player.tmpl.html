@@ -3,6 +3,7 @@
     <link rel="stylesheet" href="{{.DomainName}}/assets/colors.css" onload="applyCanvasPalette(this.sheet)">
     <div id="main_view">
         {{template "player-hud" .HUD}}
+        <div id="frontier-event" role="status"></div>
         <div id="connection-state" role="status" aria-live="polite"></div>
         <div id="screen" class="grid">
             <div class="center-horizontally">
@@ -125,8 +126,8 @@
 
 {{define "player-hud"}}
 <header id="info" class="play-hud">
-            <div class="hud-identity"><span class="world-wordmark">BLOOP<span>WORLD</span></span><span class="player-name">{{.Username}}</span></div>
-            <div class="hud-vitals"><span id="hearts" aria-label="Health">{{.Hearts}}</span><span id="power">{{if .Power}}🗡️×{{.Power}}{{end}}</span></div>
+            <div class="hud-identity"><span class="world-wordmark">BLOOP<span>WORLD</span></span><span class="player-name">{{.Username}} · {{.Team}}</span></div>
+            <div class="hud-vitals"><span class="team-badge" title="{{.Team}}">{{.Team}}</span><span class="zone-label">{{.Zone}}</span><span id="hearts" aria-label="Health">{{.Hearts}}</span><meter class="health-meter" min="0" max="150" value="{{.Health}}" aria-label="Health">{{.Health}}</meter><span id="power">{{if .Power}}🗡️×{{.Power}}{{end}}</span></div>
             <div class="hud-stats"><span id="streak" title="Streak">Streak {{.Streak}}</span><span id="boosts" title="Boosts">⚡ {{.Boosts}}</span><span id="money" title="Money">$ {{.Money}}</span></div>
             <nav class="hud-actions" aria-label="Game"><button type="button" id="fullscreen-toggle" onclick="toggleGameFullscreen()" aria-label="Enter fullscreen" title="Fullscreen">⛶</button><button type="button" id="hud-menu" onclick="openGameMenu()" aria-label="Open menu">Menu</button></nav>
         </header>

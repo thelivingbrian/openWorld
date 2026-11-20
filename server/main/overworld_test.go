@@ -108,13 +108,15 @@ func TestWillowRuntimePreservesAuthoredDoorsAndManifest(t *testing.T) {
 			t.Fatal("transport marker erased authored cottage")
 		}
 	}
-	legacy := createStageFromArea(areasByName["infirmary:0-0"])
-	back := legacy.tiles[9][10].teleport
-	if back == nil || back.destStage != "willow-reach:0-0" || !back.confirmation {
-		t.Fatal("missing confirmed return route")
+	for _, area := range compiled {
+		for _, door := range area.Transports {
+			if strings.HasPrefix(area.Name, "willow-") && !strings.HasPrefix(door.DestStage, "willow-") {
+				t.Fatal("new world connects to legacy")
+			}
+		}
 	}
-	if !stage.tiles[back.destY][back.destX].material.Walkable || stage.tiles[back.destY][back.destX].teleport != nil {
-		t.Fatal("return must land safely outside the outgoing portal")
+	if stage.safe || !areasByName["willow-refuge:0-0"].Safe {
+		t.Fatal("frontier/refuge safety inverted")
 	}
 
 }

@@ -8,5 +8,15 @@
     "walkable": false,
     "fragile": false,
     "reactions": ""
+  },
+  {
+    "id": "willow-puzzle-block",
+    "name": "Quiet annex block",
+    "setName": "willow-reach",
+    "cssClass": "annex-edge annex-cyan-b thin r0",
+    "pushable": true,
+    "walkable": false,
+    "fragile": false,
+    "reactions": ""
   }
 ]
