@@ -1,0 +1,2492 @@
+{
+  "CollectionName": "bloop",
+  "Name": "willow-cottage",
+  "Topology": "disconnected",
+  "Latitude": 1,
+  "Longitude": 3,
+  "AreaHeight": 16,
+  "AreaWidth": 16,
+  "Areas": [
+    {
+      "name": "willow-cottage:0-0",
+      "safe": true,
+      "blueprint": {
+        "tiles": [
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-lantern"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-flower"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-lantern"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-bench"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-bench"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-lantern"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-welcome-room"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-threshold"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ]
+        ],
+        "Instructions": [],
+        "DefaultTileColor": "willow-wood",
+        "DefaultTileColor1": "willow-path"
+      },
+      "transports": [
+        {
+          "sourceY": 13,
+          "sourceX": 8,
+          "destStage": "willow-reach:0-0",
+          "destY": 20,
+          "destX": 13,
+          "confirmation": false,
+          "rejectInteractable": true
+        }
+      ],
+      "loadStrategy": "",
+      "spawnStrategy": "none",
+      "mapId": "",
+      "weather": "",
+      "broadcastGroup": "willow-reach"
+    },
+    {
+      "name": "willow-cottage:0-1",
+      "safe": true,
+      "blueprint": {
+        "tiles": [
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-lantern"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-flower"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-lantern"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-bench"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-bench"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-lantern"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-welcome-room"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-threshold"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ]
+        ],
+        "Instructions": [],
+        "DefaultTileColor": "willow-wood",
+        "DefaultTileColor1": "willow-path"
+      },
+      "transports": [
+        {
+          "sourceY": 13,
+          "sourceX": 8,
+          "destStage": "willow-reach:0-0",
+          "destY": 14,
+          "destX": 23,
+          "confirmation": false,
+          "rejectInteractable": true
+        }
+      ],
+      "loadStrategy": "",
+      "spawnStrategy": "none",
+      "mapId": "",
+      "weather": "",
+      "broadcastGroup": "willow-reach"
+    },
+    {
+      "name": "willow-cottage:0-2",
+      "safe": true,
+      "blueprint": {
+        "tiles": [
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-lantern"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-flower"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-lantern"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-bench"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-bench"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-rug"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-lantern"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-welcome-room"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-wood-floor"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-threshold"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-wall"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ],
+          [
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            },
+            {
+              "prototypeId": "willow-interior-void"
+            }
+          ]
+        ],
+        "Instructions": [],
+        "DefaultTileColor": "willow-wood",
+        "DefaultTileColor1": "willow-path"
+      },
+      "transports": [
+        {
+          "sourceY": 13,
+          "sourceX": 8,
+          "destStage": "willow-reach:0-0",
+          "destY": 36,
+          "destX": 39,
+          "confirmation": false,
+          "rejectInteractable": true
+        }
+      ],
+      "loadStrategy": "",
+      "spawnStrategy": "none",
+      "mapId": "",
+      "weather": "",
+      "broadcastGroup": "willow-reach"
+    }
+  ]
+}

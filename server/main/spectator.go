@@ -439,6 +439,9 @@ func cameraSnapshot(camera *Camera) []byte {
 		return nil
 	}
 	var out bytes.Buffer
+	camera.positionLock.Lock()
+	fmt.Fprintf(&out, `[~ id="view" y="%d" x="%d" class="%d,%d"]`, camera.height, camera.width, len(topLeft.stage.tiles), len(topLeft.stage.tiles[0]))
+	camera.positionLock.Unlock()
 	fmt.Fprintf(&out, `[~ id="set" y="%d" x="%d" class=""]`, topLeft.y, topLeft.x)
 	for _, tile := range tiles {
 		out.WriteString(swapsForTileNoHighlight(tile))
@@ -455,10 +458,10 @@ func cameraView(camera *Camera) (*Tile, []*Tile) {
 	topLeft := camera.topLeft
 	stage := topLeft.stage
 	tiles := getRegion(stage.tiles, Rect{
-		topLeft.y,
-		min(topLeft.y+camera.height-1, len(stage.tiles)-1),
-		topLeft.x,
-		min(topLeft.x+camera.width-1, len(stage.tiles[0])-1),
+		max(0, topLeft.y-SCENERY_MARGIN),
+		min(topLeft.y+camera.height-1+SCENERY_MARGIN, len(stage.tiles)-1),
+		max(0, topLeft.x-SCENERY_MARGIN),
+		min(topLeft.x+camera.width-1+SCENERY_MARGIN, len(stage.tiles[0])-1),
 	})
 	return topLeft, tiles
 }

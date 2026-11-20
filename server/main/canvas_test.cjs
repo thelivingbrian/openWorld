@@ -21,3 +21,38 @@ test('world palettes drive static and animated canvas colors and reset between w
     assert.equal(vm.runInContext('COLOR_MAP.custom', context), undefined);
     assert.equal(vm.runInContext('COLOR_MAP.green', context), 'rgb(32, 255, 60)');
 });
+
+test('scenery uses anchored depth ordering and keeps offscreen canopy anchors', () => {
+    const context = vm.createContext({window:{addEventListener(){}},document:{getElementById(){return null;}},
+        topLeftY:10,topLeftX:10,height:12,width:24,stageHeight:48,stageWidth:48});
+    vm.runInContext(fs.readFileSync(`${__dirname}/assets/scenery.js`,'utf8'),context);
+    vm.runInContext(fs.readFileSync(`${__dirname}/assets/canvas.js`,'utf8'),context);
+    vm.runInContext(`stage.Lf2[24][15]='scenery-pine'; stage.Lf2[14][15]='scenery-oak'; stage.Lp1[13][15]='sky-blue'; stage.Lp1[15][15]='fuchsia';`,context);
+    const items=JSON.parse(vm.runInContext(`JSON.stringify([...worldDrawables().objects,...worldDrawables().players].sort((a,b)=>a.order-b.order))`,context));
+    assert.deepEqual(items.map(x=>x.kind||x.classes),['sky-blue','oak','fuchsia','pine']);
+    assert.equal(vm.runInContext(`BloopScenery.kind('scenery-unknown')`,context),null);
+    vm.runInContext('resetStageBuffers()',context);
+    assert.equal(vm.runInContext('worldDrawables().objects.length + worldDrawables().players.length',context),0);
+});
+
+test('responsive camera dimensions stay bounded and use short landscape screens', () => {
+    const context=vm.createContext({window:{addEventListener(){}},document:{addEventListener(){}}});
+    vm.runInContext(fs.readFileSync(`${__dirname}/assets/game-shell.js`,'utf8'),context);
+    const viewport=(w,h)=>JSON.parse(vm.runInContext(`JSON.stringify(desiredViewport(${w},${h}))`,context));
+    assert.deepEqual(viewport(667,300),{rows:11,columns:24});
+    assert.deepEqual(viewport(375,667),{rows:22,columns:12});
+    assert.deepEqual(viewport(8000,8000),{rows:32,columns:32});
+    assert.deepEqual(viewport(10,10),{rows:8,columns:8});
+});
+
+test('fullscreen failures leave a usable fallback and an accurate button state', async () => {
+    const button={setAttribute(name,value){this[name]=value;}},notice={textContent:'',hidden:true};
+    const context=vm.createContext({window:{addEventListener(){}},document:{documentElement:{requestFullscreen:async()=>{throw Error('denied');}},fullscreenElement:null,addEventListener(){},querySelector(){return null;},getElementById(id){return id==='fullscreen-toggle'?button:notice;}}});
+    vm.runInContext(fs.readFileSync(`${__dirname}/assets/game-shell.js`,'utf8'),context);
+    await vm.runInContext('toggleGameFullscreen()',context);
+    assert.match(notice.textContent,/could not open/);
+    assert.equal(notice.hidden,false);
+    vm.runInContext('updateFullscreenControl()',context);
+    assert.equal(button['aria-pressed'],'false');
+    assert.equal(button['aria-label'],'Enter fullscreen');
+});

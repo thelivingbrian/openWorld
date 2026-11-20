@@ -1,0 +1,48 @@
+/* The play surface owns the viewport; HUD and touch controls float above it. */
+body:has(.play-page) { overflow: hidden; background: #203c35; overscroll-behavior: none; }
+#page.play-page { position: fixed; inset: 0; width: 100%; height: var(--play-height,100dvh); min-height: 0; overflow: hidden; color: #f1f4df; font-family: system-ui, sans-serif; font-size: 14px; background: #729b75; }
+.play-page #main_view { position: absolute; inset: 0; display: block; }
+.play-page #screen { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; touch-action: none; }
+.play-page #game { flex: none; }
+.play-page #game canvas { image-rendering: auto; }
+.play-hud { position: absolute; z-index: 30; top: max(12px,env(safe-area-inset-top)); left: max(14px,env(safe-area-inset-left)); right: max(14px,env(safe-area-inset-right)); display: flex; align-items: center; gap: 10px; pointer-events: none; }
+.hud-identity,.hud-vitals,.hud-stats,.hud-actions { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid #d8ecd637; border-radius: 14px; background: #183b35e8; box-shadow: 0 4px 18px #1c403329; backdrop-filter: blur(10px); }
+.hud-identity { flex-direction: column; gap: 3px; align-items: flex-start; }
+.world-wordmark { font: 17px 'BloopRetro',monospace; letter-spacing: .08em; color: #f2ddb0; }
+.world-wordmark span { color: #b0ceab; }
+.player-name { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: #c0d2bb; }
+.hud-vitals { min-height: 44px; }
+.play-page #hearts { font-size: 19px; white-space: nowrap; letter-spacing: 2px; }
+.hud-stats { gap: 14px; color: #e8dfbb; font-variant-numeric: tabular-nums; font-weight: 600; }
+.hud-stats > span { background: none !important; white-space: nowrap; font-size: 13px; }
+.hud-actions { margin-left: auto; padding: 0; background: none; border: none; box-shadow: none; pointer-events: auto; gap: 6px; }
+.hud-actions button { background: #183b35eb; border: 1px solid #d8ecd647; color: #f1f4df; border-radius: 12px; height: 44px; min-width: 44px; padding: 0 13px; font: 600 13px system-ui,sans-serif; cursor: pointer; }
+.hud-actions #fullscreen-toggle { font-size: 25px; padding: 0; }
+.play-page button:focus-visible { outline: 3px solid #ffe4a1; outline-offset: 3px; }
+.play-page #bottom_text { position: absolute; left: 50%; bottom: max(25px,env(safe-area-inset-bottom)); transform: translateX(-50%); width: max-content; max-width: min(540px,70%); padding: 10px 17px; background: #183b35ed; border: 1px solid #d8ecd637; border-radius: 12px; color: #f1e8cb; font: 14px/1.5 system-ui,sans-serif; text-align: center; box-shadow: 0 4px 16px #183b3520; }
+.play-page #bottom_text:empty { display: none; }
+.play-page #connection-state { position: absolute; top: 76px; left: 50%; transform: translateX(-50%); z-index: 40; background: #783e36; padding: 8px 16px; border-radius: 8px; }
+.play-page #connection-state:empty { display: none; }
+.play-page .container { position: absolute; inset: auto 0 max(16px,env(safe-area-inset-bottom)); height: 148px; width: 100%; padding: 0 max(18px,env(safe-area-inset-right)) 0 max(18px,env(safe-area-inset-left)); display: none; grid-template-columns: 148px 1fr 138px; align-items: end; gap: 8px; pointer-events: none; z-index: 35; }
+.play-page .container.hidden { display: none; }
+.play-page .dpad-container { display: grid; grid-template-areas: '. up .' 'left middle right' '. down .'; grid-template-columns: repeat(3,46px); grid-template-rows: repeat(3,46px); gap: 3px; pointer-events: auto; }
+.play-page .button { width: 46px; height: 46px; aspect-ratio: auto; border: 1px solid #d9eed550; border-radius: 15px; background: #244a40bd; color: #fbf6df; font: 600 15px system-ui,sans-serif; box-shadow: 0 3px 0 #16392e40; backdrop-filter: blur(8px); display: grid; place-items: center; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+.play-page .button.pressed,.play-page .button:active { background: #e6d3a3; color: #294638; transform: translateY(2px); }
+.play-page .button.shift { border-color: #ffe3a0; color: #ffe3a0; }
+.play-page .up { grid-area: up; }.play-page .left { grid-area: left; }.play-page .right { grid-area: right; }.play-page .down { grid-area: down; }
+.play-page .middle { grid-area: middle; visibility: hidden; }
+.play-page .center-container { display: none; }
+.play-page .a-b-container { grid-column: 3; display: flex; align-items: end; gap: 10px; pointer-events: auto; }
+.play-page .a-b-container .button { width: 62px; height: 62px; border-radius: 50%; font-size: 12px; }
+.play-page .a-b-container .A { margin-bottom: 38px; background: #345d4bd9; border-color: #d8e4aeaa; }
+.play-page .modal_bg { background: #102c27b8; display: grid; place-items: center; padding: max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom)); }
+.play-page .modal_content { top: auto; width: min(600px,100%); max-height: 100%; background: #203e35; border: 1px solid #a4c09b70; border-radius: 18px; padding: 20px; font: 16px/1.5 system-ui,sans-serif; }
+@media (pointer: coarse) { .play-page .container { display: grid; } .play-page .container.hidden { display: none; } .play-page #bottom_text { bottom: 180px; max-width: 85%; } }
+@media (max-width: 700px) { .hud-identity { display: none; } .play-hud { gap: 6px; top: max(8px,env(safe-area-inset-top)); left: max(8px,env(safe-area-inset-left)); right: max(8px,env(safe-area-inset-right)); } .hud-vitals,.hud-stats { padding: 8px 10px; border-radius: 11px; gap: 8px; } .hud-stats #streak { display: none; } .hud-actions button { padding: 0 10px; } }
+@media (pointer: coarse) and (orientation: landscape) { .play-page .container { bottom: max(10px,env(safe-area-inset-bottom)); } .play-page #bottom_text { bottom: 12px; max-width: 45%; font-size: 12px; padding: 7px 12px; } }
+@media (prefers-reduced-motion: reduce) { .play-page * { scroll-behavior: auto; } }
+
+.watch-page .play-hud { position: static; margin-bottom: 12px; flex-wrap: wrap; }
+.watch-page .hud-actions { display: none; }
+.play-page #modal_options a { display: inline-block; padding: 10px 14px; min-height: 44px; border-radius: 8px; color: #d4e6c6; text-decoration: none; }
+.play-page #modal_options a.selected { background: #d4e6c6; color: #203e35; }

@@ -54,11 +54,24 @@ func swapsForTileNoHighlight(tile *Tile) string {
 ////////////////////////////////////////////////////////////
 // Player Information
 
+type PlayerHUD struct {
+	Username, Hearts string
+	Streak, Money    int64
+	Boosts, Power    int
+}
+
+func (receipt *LoginReceipt) HUD() PlayerHUD {
+	record := receipt.LoginRequest.Record
+	return PlayerHUD{Username: record.Username, Hearts: record.HeartsFromRecord(), Money: record.Money}
+}
+
 func divPlayerInformation(player *Player) string {
-	return `
-	<div id="info" hx-swap-oob="true">
-		<b>` + playerInformation(player) + `</b>
-	</div>`
+	var out bytes.Buffer
+	hud := PlayerHUD{Username: player.username, Hearts: getHeartsFromHealth(player.health.Load()), Streak: player.killstreak.Load(), Money: player.money.Load(), Boosts: player.getBoostCountSync(), Power: player.actions.spaceStack.count()}
+	if err := tmpl.ExecuteTemplate(&out, "player-hud", hud); err != nil {
+		return ""
+	}
+	return out.String()
 }
 
 func playerInformation(player *Player) string {
@@ -78,7 +91,7 @@ func spanStreak(quantity int64) string {
 	return fmt.Sprintf(`<span id="streak" class="red">Streak %d</span>`, quantity)
 }
 func spanBoosts(quantity int) string {
-	return fmt.Sprintf(`<span id="boosts" class="blue">^ %d</span>`, quantity)
+	return fmt.Sprintf(`<span id="boosts" class="blue" title="Boosts">⚡ %d</span>`, quantity)
 }
 func spanMoney(quantity int64) string {
 	return fmt.Sprintf(`<span id="money" class="dark-green">$ %d</span>`, quantity)

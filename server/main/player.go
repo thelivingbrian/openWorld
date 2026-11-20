@@ -346,16 +346,25 @@ func updateOne(update string, player *Player) {
 // Database update
 
 func (player *Player) updateRecord() {
+	if player.world.db == nil {
+		return
+	}
 	currentTile := player.getTileSync()
 	go player.world.db.updateRecordForPlayer(player, currentTile)
 }
 
 func (player *Player) updateRecordOnDeath(respawnTile *Tile) {
+	if player.world.db == nil {
+		return
+	}
 	// vs just incrementing death count?
 	go player.world.db.updateRecordForPlayer(player, respawnTile)
 }
 
 func (player *Player) updateRecordOnLogin() {
+	if player.world.db == nil {
+		return
+	}
 	go player.world.db.updateLoginForPlayer(player)
 }
 func (player *Player) updateRecordOnLogout() {
@@ -425,7 +434,9 @@ func (player *Player) addAccomplishmentByName(accomplishmentName string) {
 	if acc == nil {
 		return
 	}
-	player.world.db.addAccomplishmentToPlayer(player.world.config.worldID, player.username, acc.Name, *acc)
+	if player.world.db != nil {
+		player.world.db.addAccomplishmentToPlayer(player.world.config.worldID, player.username, acc.Name, *acc)
+	}
 }
 
 /////////////////////////////////////////////////////////////

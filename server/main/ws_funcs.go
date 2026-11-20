@@ -24,6 +24,8 @@ type PlayerSocketEvent struct {
 	Name     string `json:"eventname"`
 	MenuName string `json:"menuName"`
 	Arg0     string `json:"arg0"`
+	Rows     int    `json:"rows"`
+	Columns  int    `json:"columns"`
 }
 
 var (
@@ -71,6 +73,7 @@ func handleNewPlayer(player *Player) {
 	logger.Info().Msg("New Connection from: " + player.username)
 	lastRead := time.Unix(0, 0)
 	previous := ""
+	lastViewport := time.Time{}
 	for {
 		player.conn.SetReadDeadline(time.Now().Add(MAX_IDLE_IN_SECONDS))
 		_, msg, err := player.conn.ReadMessage()
@@ -85,6 +88,14 @@ func handleNewPlayer(player *Player) {
 		event, success := getKeyPress(msg) // If your press was read it must now complete before logout e.g. player is tangible
 		if !success {
 			logger.Info().Msg("Invalid input")
+			continue
+		}
+
+		if event.Name == "viewport" {
+			if time.Since(lastViewport) >= 100*time.Millisecond {
+				player.resizeViewport(event.Rows, event.Columns)
+				lastViewport = currentRead
+			}
 			continue
 		}
 

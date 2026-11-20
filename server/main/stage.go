@@ -74,9 +74,9 @@ func createStageFromArea(area Area) *Stage {
 	}
 
 	// Initialize camera zones
-	zones := make([][]*CameraZone, (len(area.Tiles)+VIEW_HEIGHT-1)/VIEW_HEIGHT)
+	zones := make([][]*CameraZone, (len(area.Tiles)+MAX_VIEW_SIZE-1)/MAX_VIEW_SIZE)
 	for i := range zones {
-		zones[i] = make([]*CameraZone, (len(area.Tiles[0])+VIEW_WIDTH-1)/VIEW_WIDTH)
+		zones[i] = make([]*CameraZone, (len(area.Tiles[0])+MAX_VIEW_SIZE-1)/MAX_VIEW_SIZE)
 		for j := range zones[i] {
 			zones[i][j] = &CameraZone{
 				activeCameras: make(map[*Camera]struct{}),
@@ -92,7 +92,7 @@ func createStageFromArea(area Area) *Stage {
 			outputStage.tiles[y][x].stage = &outputStage
 
 			// Add zones to tile (Missing micro-optimization, certain tiles can only be seen by one or two zones)
-			zoneY, zoneX := y/VIEW_HEIGHT, x/VIEW_WIDTH
+			zoneY, zoneX := y/MAX_VIEW_SIZE, x/MAX_VIEW_SIZE
 			outputStage.tiles[y][x].primaryZone = zones[zoneY][zoneX]
 			if zoneX > 0 {
 				outputStage.tiles[y][x].adjacentZones = append(outputStage.tiles[y][x].adjacentZones, zones[zoneY][zoneX-1])
@@ -178,10 +178,11 @@ func createStageFromArea(area Area) *Stage {
 	for _, transport := range area.Transports {
 		outputStage.tiles[transport.SourceY][transport.SourceX].teleport = &Teleport{transport.DestStage, transport.DestY, transport.DestX, area.Name, transport.Confirmation, transport.RejectInteractable}
 
-		// Change this
+		// Preserve authored entrances and scenery; use the legacy marker only for unstyled transports.
 		mat := outputStage.tiles[transport.SourceY][transport.SourceX].material
-		mat.Floor1Css = "pink"
-		mat.Floor2Css = ""
+		if mat.Floor1Css == "" && mat.Floor2Css == "" {
+			mat.Floor1Css = "pink"
+		}
 		outputStage.tiles[transport.SourceY][transport.SourceX].quickSwapTemplate = makeQuickSwapTemplate(mat, transport.SourceY, transport.SourceX)
 
 	}

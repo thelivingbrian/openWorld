@@ -146,11 +146,11 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 		let htmlPart = "";
 		let swaps = [];
 		while (position < response.length) {
-			check = response[position];
+			const check = response[position];
 			switch (check) {
 			case '[':
 				var next = response.indexOf('<', position);
-				var quickSwapString = response.slice(position, next);
+				var quickSwapString = response.slice(position, next === -1 ? response.length : next);
 				swaps.push(...quickSwapString.split("]"));
 				if (next === -1) {
 					next = response.length;
@@ -179,7 +179,13 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 				const yStr = match[2];
 				const xStr = match[3];
 				const classes = match[4];
-				if (id === "set") {
+				if (id === "view") {
+                    height = Number(yStr); width = Number(xStr);
+                    [stageHeight, stageWidth] = classes.split(",").map(Number);
+                    resizeCanvas();
+                    continue;
+                }
+                if (id === "set") {
 					setGrid(yStr, xStr)
 					continue
 				}
@@ -188,8 +194,8 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 					continue
 				}
 				if (yStr === "") {
-					target = document.getElementById(id);
-					target.className = classes;
+					const target = document.getElementById(id);
+					if (target) target.className = classes;
 					continue
 				}
 				const y = Number(yStr);
@@ -204,21 +210,12 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 				}
 				stage[id][y][x] = classes;
 
-				// if currently in view - draw immediately
-				const vy = y - topLeftY;
-				const vx = x - topLeftX;
-				if (vy >= 0 && vy < height && vx >= 0 && vx < width) {
-					if (id === "Ls1") {
-						drawSpriteCell(id, vy, vx, classes);
-					} else {
-						drawGridCell(id, vy, vx, classes, performance.now(), y, x);
-					}
-				}
+				scheduleStageDraw();
 			}
 		}
 
 		// Any HTML in the websocket message is sent to htmx as normal 
-		var fragment = api.makeFragment(response)
+		var fragment = api.makeFragment(htmlPart)
   
 		if (fragment.children.length) {
 		  var children = Array.from(fragment.children)

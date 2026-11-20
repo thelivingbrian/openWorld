@@ -56,7 +56,7 @@ observeSoundTrigger()
 
 
 ////////////////////////////////////////////////////////////////
-//  Video 
+//  Video
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -74,13 +74,15 @@ async function flashBg(color){
 
 var topLeftY = 0
 var topLeftX = 0
-const height = 16 // Camera height and Camera Width 
-const width = 16
+let height = 16 // Negotiated with the server; square world tiles.
+let width = 16
+let stageHeight = 16, stageWidth = 16;
 
 function setGrid(y, x) {
+    resetStageBuffers();
     topLeftY = Number(y);
     topLeftX = Number(x);
-    redrawStage(); 
+    scheduleStageDraw();
 }
 
 function shiftGrid(dy, dx) {
@@ -89,40 +91,40 @@ function shiftGrid(dy, dx) {
     topLeftY -= dy;
     topLeftX -= dx;
 
-    redrawStage();
+    scheduleStageDraw();
 }
 
 ///////////////////////////////////////////////////////////////
-//  Mobile Controls 
+//  Mobile Controls
 
 function addRepeater(btn) {
-    let delay = 300, period = 55
-    let delayId, repeatId;
-
+    if (btn.dataset.repeater) return;
+    btn.dataset.repeater = 'true';
+    let timer, interval, pointer;
+    const lifecycle = new AbortController();
+    const options = { signal: lifecycle.signal };
     const stop = () => {
-        clearTimeout(delayId);
-        clearInterval(repeatId);
+        clearTimeout(timer); clearInterval(interval); pointer = undefined;
+        btn.classList.remove('pressed');
     };
-
     const fire = () => {
+        if (!btn.isConnected || document.hidden || document.querySelector('.modal_bg')) { stop(); return; }
         btn.dispatchEvent(new CustomEvent('fire', { bubbles: true }));
-    }
-
+    };
     btn.addEventListener('pointerdown', e => {
-        e.preventDefault();   // stop scroll / focus
-
-        fire();               // first hit right away
-
-        delayId = setTimeout(
-            () => { repeatId = setInterval(fire, period); },
-            delay
-        );
+        if (pointer !== undefined) return;
+        e.preventDefault(); stop(); pointer = e.pointerId;
+        btn.setPointerCapture(e.pointerId); btn.classList.add('pressed'); fire();
+        timer = setTimeout(() => { interval = setInterval(fire, 90); }, 220);
     });
-
-    ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => btn.addEventListener(t, stop));
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => btn.addEventListener(t, stop));
+    window.addEventListener('blur', stop, options);
+    document.addEventListener('visibilitychange', stop, options);
+    document.addEventListener('htmx:beforeSwap', stop, options);
+    document.addEventListener('htmx:beforeCleanupElement', e => {
+        if (e.target === btn || e.target.contains(btn)) { stop(); lifecycle.abort(); }
+    }, options);
 }
-
 function enableKeyRepeat() {
-    document.querySelectorAll('#dpad button, #dpad-shift button')
-        .forEach(addRepeater);
+    document.querySelectorAll('#dpad button[data-repeat], #dpad-shift button[data-repeat]').forEach(addRepeater);
 }

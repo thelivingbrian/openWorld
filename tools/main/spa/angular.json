@@ -27,6 +27,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "scenery.js",
+                "input": "../../../server/main/assets",
+                "output": "assets"
               }
             ],
             "styles": [

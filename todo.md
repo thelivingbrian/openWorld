@@ -12,51 +12,55 @@
   - Treat world dimensions, camera viewport dimensions, and on-screen tile size as separate decisions. A larger world alone will not fix wasted screen space.
   - Make the world the primary screen content. Account for mobile browser chrome, safe areas, and orientation changes as well as true fullscreen.
 
+### Review status:
+  Implemented Willow Reach and the responsive play experience. Start the local preview with `cd server/main && go run . --preview`, then open http://127.0.0.1:4445. See `readme.md` for the review route, authoring rules, validation, and remaining release checks. Screenshots and a movement walkthrough are available in `.cache/review/`. Nothing has been published.
+
 ### Todo:
 
 #### 1. Establish the visual and spatial rules
-  - [ ] Build a representative scene with a house and entrance, deciduous and winter trees, water, paths, an interactable, and moving characters.
-  - [ ] Give tall objects consistent ground anchors, upward visual extent, scale, and contact shadows. Replace centered-trunk overhead trees with trees that follow the agreed perspective.
-  - [ ] Separate each scenery object's ground anchor, collision footprint, and visual extent. Canopies and roof overhangs must not implicitly block every tile they cover.
-  - [ ] Implement front/behind ordering based on ground position, with explicit handling for roofs and overhead scenery. Verify players can visibly pass in front of and behind tall objects.
-  - [ ] Keep obscured players readable with an outline or selective scenery fading; keep entrances, hazards, and interaction targets legible.
-  - [ ] Define a restrained palette, shadow direction, corner treatment, and scale guide that future assets can follow.
+  - [x] Build a representative scene with a house and entrance, deciduous and winter trees, water, paths, an interactable, and moving characters.
+  - [x] Give tall objects consistent ground anchors, upward visual extent, scale, and contact shadows. Replace centered-trunk overhead trees with trees that follow the agreed perspective.
+  - [x] Separate each scenery object's ground anchor, collision footprint, and visual extent. Canopies and roof overhangs must not implicitly block every tile they cover.
+  - [x] Implement front/behind ordering based on ground position, with explicit handling for roofs and overhead scenery. Verify players can visibly pass in front of and behind tall objects.
+  - [x] Keep obscured players readable with an outline or selective scenery fading; keep entrances, hazards, and interaction targets legible.
+  - [x] Define a restrained palette, shadow direction, corner treatment, and scale guide that future assets can follow.
 
 #### 2. Make camera, fullscreen, and mobile layout work together
-  - [ ] Replace the narrow centered play area with a layout that uses the available viewport in portrait and landscape, including short landscape screens.
-  - [ ] Add a clear user-initiated enter/exit fullscreen control where supported; keep its state correct after browser-driven exit or failure.
-  - [ ] Make browser mode fully usable when fullscreen is unavailable or declined. Respond to the visible viewport as browser bars expand/collapse and respect safe-area insets.
-  - [ ] Support rectangular camera views and choose visible tile counts and tile size for readability. Preserve square tiles rather than stretching the world to fit.
-  - [ ] Trial a larger overworld region and choose a new authoring size default based on traversal and composition, independently of camera size.
-  - [ ] Tune camera following and boundaries; verify resizing, rotation, and fullscreen transitions do not lose the player, show stale tiles, or break input.
-  - [ ] Check gameplay implications of different visible areas, including mobile visibility of threats and interactions.
+  - [x] Replace the narrow centered play area with a layout that uses the available viewport in portrait and landscape, including short landscape screens.
+  - [x] Add a clear user-initiated enter/exit fullscreen control where supported; keep its state correct after browser-driven exit or failure.
+  - [x] Make browser mode fully usable when fullscreen is unavailable or declined. Respond to the visible viewport as browser bars expand/collapse and respect safe-area insets.
+  - [x] Support rectangular camera views and choose visible tile counts and tile size for readability. Preserve square tiles rather than stretching the world to fit.
+  - [x] Trial a larger overworld region and choose a new authoring size default based on traversal and composition, independently of camera size.
+  - [x] Tune camera following and boundaries; verify resizing, rotation, and fullscreen transitions do not lose the player, show stale tiles, or break input.
+  - [ ] Check gameplay implications of different visible areas, including mobile visibility of threats and interactions. Safe-region navigation is reviewed; competitive sight-range balancing remains.
 
 #### 3. Improve HUD and controls
-  - [ ] Replace the large two-row heading with a compact HUD: prioritize health and useful gameplay state; reduce the prominence of the player name and secondary stats.
-  - [ ] Keep HUD, menu, notifications, and fullscreen controls readable without reserving large empty bands around the world.
-  - [ ] Replace oversized keyboard-labeled touch buttons with clear directional and action controls, using labels that describe the actions.
-  - [ ] Position touch controls for comfortable reach in both orientations; minimize obstruction of the player and nearby gameplay while preserving usable touch targets.
-  - [ ] Support simultaneous movement/action touches and reliable release/cancel behavior. Prevent stuck inputs, accidental text selection, and page gestures during play.
-  - [ ] Preserve keyboard controls and make menus usable on short screens, with clear focus and dismissal behavior.
+  - [x] Replace the large two-row heading with a compact HUD: prioritize health and useful gameplay state; reduce the prominence of the player name and secondary stats.
+  - [x] Keep HUD, menu, notifications, and fullscreen controls readable without reserving large empty bands around the world.
+  - [x] Replace oversized keyboard-labeled touch buttons with clear directional and action controls, using labels that describe the actions.
+  - [x] Position touch controls for comfortable reach in both orientations; minimize obstruction of the player and nearby gameplay while preserving usable touch targets.
+  - [x] Support simultaneous movement/action touches and reliable release/cancel behavior. Prevent stuck inputs, accidental text selection, and page gestures during play.
+  - [x] Preserve keyboard controls and make menus usable on short screens, with clear focus and dismissal behavior.
 
 #### 4. Build the new overworld region and reusable authoring assets
-  - [ ] Expand the representative scene into a coherent playable region with a recognizable arrival point, village, wooded area, water crossing, and connections to existing gameplay.
-  - [ ] Compose landmarks, paths, clearings, and transitions deliberately; maintain visual interest while keeping navigation and collisions understandable.
-  - [ ] Replace inconsistent scenery throughout the review region, including older overhead trees and front-only buildings.
-  - [ ] Package complete reusable trees, buildings, and scenery groups with their anchors, footprints, and overlap behavior in the design workspace.
-  - [ ] Keep editor previews, saved data, compiled releases, and runtime rendering consistent; preserve existing worlds when extending the content format.
-  - [ ] Add restrained environmental motion and effects that complement the simple graphics and preserve gameplay readability.
-  - [ ] Evaluate whether agents can author independent level sections through the same editor interface, with clear boundaries and validation before combining changes.
+  - [x] Expand the representative scene into a coherent playable region with a recognizable arrival point, village, wooded area, water crossing, and connections to existing gameplay.
+  - [x] Compose landmarks, paths, clearings, and transitions deliberately; maintain visual interest while keeping navigation and collisions understandable.
+  - [x] Replace inconsistent scenery throughout the review region, including older overhead trees and front-only buildings.
+  - [x] Package complete reusable trees, buildings, and scenery groups with their anchors, footprints, and overlap behavior in the design workspace.
+  - [x] Keep editor previews, saved data, compiled releases, and runtime rendering consistent; preserve existing worlds when extending the content format.
+  - [x] Add restrained environmental motion and effects that complement the simple graphics and preserve gameplay readability.
+  - [ ] Evaluate whether agents can author independent level sections through the same editor interface, with clear boundaries and validation before combining changes. Independent source-asset authoring and compiler validation worked; concurrent editor writers are unverified.
 
 #### 5. Verify and deliver a reviewable implementation
-  - [ ] Provide a reproducible local preview or unpublished draft/version of the new region, with a clear entry point and instructions for playing it.
-  - [ ] Walk through arrival, exploration, a building entrance, an interaction, and a return route; verify connectivity and collision footprints.
-  - [ ] Exercise front/behind ordering, canopy occlusion, multiple characters, camera edges, and transitions to existing areas.
-  - [ ] Review desktop, mobile portrait, and mobile landscape, including the supplied 667 x 375 reference and reduced visible height from browser chrome.
-  - [ ] Check both browser mode and fullscreen, browser-bar changes, safe areas, orientation changes, menus, and touch controls on actual mobile browsers where available; record any unverified cases.
-  - [ ] Capture repeatable screenshots of the same locations and a short movement walkthrough demonstrating depth, camera behavior, HUD, and controls.
-  - [ ] Add focused regression checks for changed rendering, camera, input, and content behavior; verify editor-to-runtime consistency and performance on a representative mobile device.
-  - [ ] Record the preview location, validation results, known limitations, and remaining polish so the implementation can be reviewed before release.
+  - [x] Provide a reproducible local preview or unpublished draft/version of the new region, with a clear entry point and instructions for playing it.
+  - [x] Walk through arrival, exploration, a building entrance, an interaction, and a return route; verify connectivity and collision footprints.
+  - [x] Exercise front/behind ordering, canopy occlusion, multiple characters, camera edges, and transitions to existing areas.
+  - [x] Review desktop, mobile portrait, and mobile landscape, including the supplied 667 x 375 reference and reduced visible height from browser chrome.
+  - [ ] Check both browser mode and fullscreen, browser-bar changes, safe areas, orientation changes, menus, and touch controls on actual mobile browsers where available; record any unverified cases. Chrome emulation and desktop fullscreen passed; physical iOS/Android checks remain.
+  - [x] Capture repeatable screenshots of the same locations and a short movement walkthrough demonstrating depth, camera behavior, HUD, and controls.
+  - [x] Add focused regression checks for changed rendering, camera, input, and content behavior; verify editor-to-runtime consistency. Software checks passed; the baseline server authorization test failure is documented in the README.
+  - [ ] Verify frame rate and touch comfort on representative physical mobile devices.
+  - [x] Record the preview location, validation results, known limitations, and remaining polish so the implementation can be reviewed before release.
 
 #### 6. Extend the established foundation
   - [ ] Add a real-time day/night and weather cycle with an explicit world clock policy and controllable preview states in the editor.

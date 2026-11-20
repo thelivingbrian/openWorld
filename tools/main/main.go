@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"html/template"
+	"net"
 	"net/http"
+	"os"
 )
 
 var tmpl = template.New("legacy")
@@ -31,7 +33,13 @@ func main() {
 	http.HandleFunc("/api/deploy", c.apiDeployHandler)
 	http.HandleFunc("/", c.spaHandler)
 
-	err := http.ListenAndServe("127.0.0.1:4444", nil)
+	port := os.Getenv("TOOLS_PORT")
+	if port == "" {
+		port = "4444"
+	}
+	address := net.JoinHostPort("127.0.0.1", port)
+	fmt.Printf("Design workspace: http://%s/design/\n", address)
+	err := http.ListenAndServe(address, nil)
 	if err != nil {
 		fmt.Println("Failed to start server", err)
 		return

@@ -1,0 +1,12 @@
+[
+  {
+    "id": "willow-seed",
+    "name": "Garden seed",
+    "setName": "willow-reach",
+    "cssClass": "gold r1 willow-wood-b thin",
+    "pushable": true,
+    "walkable": false,
+    "fragile": false,
+    "reactions": ""
+  }
+]

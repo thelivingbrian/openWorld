@@ -314,7 +314,9 @@ func (target *Player) takeDamageFrom(initiator Character, dmg int) bool {
 		initiator.incrementKillStreak()
 		initiator.updateRecord()
 
-		go target.world.db.saveKillEvent(location, initiator, target)
+		if target.world.db != nil {
+			go target.world.db.saveKillEvent(location, initiator, target)
+		}
 	}
 	return fatal
 }

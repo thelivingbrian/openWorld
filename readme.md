@@ -65,6 +65,35 @@ Choose **Keep running until shut down** for persistent deployment. The controlle
 The offline tools server listens on `127.0.0.1:4444`. NPCs, spawns and achievements are saved in each collection's `manifest.json` and included in local compilation/deployment. Hosted version and runtime controls are available through the controller; offline sources can continue to use Git for version history.
 
 
+## Willow Reach review
+
+The Bloop seed now opens in **Willow Reach**, a 48×48 woodland village with three enterable cottages, a river bridge, a pine/snow grove, a village fountain, and a pushable seed garden. The old-world portal has a separate confirmed return tile. Existing published releases are unchanged until a new version is published and launched.
+
+Run the real compiler and game server locally without MongoDB or sign-in:
+
+```sh
+cd server/main
+go run . --preview
+```
+
+Open **http://127.0.0.1:4445**. Preview progress is temporary. Reload to start again; open another tab to test multiple players. Use WASD/arrows to move, Shift + direction to boost when stocked, Space to use a collected power, and M/Escape for the menu. Touch controls support holding a direction and using Power simultaneously; Boost toggles boosted movement. The upper-right fullscreen button enters/exits fullscreen where the browser permits it; browser mode uses the visible viewport and safe-area insets.
+
+Review route: start at `willow-reach:0-0` (y23, x17), visit the cottage northwest at (19,13), leave through its south door, walk behind its roof, then cross the bridge east to the pine grove. The seed garden is southwest; push the golden seed toward the ring. The Old Road portal is at (44,17); in the old world, the return tile is at (9,10), next to the arrival tile. These coordinates are for locating review cases in the editor.
+
+The source is ordinary Bloop collection data in the `willow-reach` prototype/fragment sets and `willow-reach` / `willow-cottage` spaces. The editor uses the same `server/main/assets/scenery.js` catalog as gameplay. Rebuild the editor with `npm run build -- --base-href /design/` from `tools/main/spa`. If another tools server is already running, start this checkout with `TOOLS_PORT=4446 go run .` from `tools/main` and open http://127.0.0.1:4446/design/.
+
+Scenery authoring rules:
+
+- The anchor is the center-bottom of its ground tile. Artwork extends upward; the catalog records visual width/height in tiles. Light comes from the upper left, with short shadows toward the lower right.
+- Place complete fragments to preserve collision: a tree blocks one trunk tile; cottages use a 5×2 footprint with a walkable bottom-center doorway; the fountain uses a 3×2 footprint. Add a transport at each new cottage doorway and a distinct return tile outside it.
+- Keep the three-quarter viewing direction fixed. The editor disables rotation of scenery fixtures. Use rounded silhouettes, restrained `willow-*` colors, and paths that remain legible under foliage. New scenery uses `scenery-*` tokens in Floor2; legacy ceiling layers keep their existing behavior.
+- The deterministic `python3 tools/worlds/build_willow_reach.py` script rebuilds this authored seed and verifies connectivity. It replaces Willow assets and updates the old-world return tile; preserve editor changes before regenerating.
+
+Review validation: all 97 Angular tests and 11 snapshots, the tools Go suite, four canvas/shell tests, and focused server/compiler/camera tests with the race detector passed. Browser checks covered desktop, 375×667 portrait, 667×375 and 667×300 landscape (reduced height for browser chrome), rotation, simultaneous touch input and cancellation, menu focus, cottage entry/return, garden-seed pushing, old-world travel in both directions, and fullscreen entry/exit. Local captures and a movement video are in `.cache/review/`. The full server suite is not green: `TestWorldAuthoringRequiresAdmin` panics in the unchanged baseline as well. The editor build also retains its existing stylesheet-budget warning.
+
+Before release: test physical iOS/Android browser bars, notches, touch comfort, and frame rate; review competitive sight ranges with the responsive viewport. Day/night, weather cycles, and conversion of the remaining old regions are follow-up work. The review scene remains bright and readable without those effects.
+
+
 ## AI orchestration
 
 - Stable instructions: `.ai/AGENTS.md`

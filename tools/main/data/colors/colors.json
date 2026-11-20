@@ -299,5 +299,68 @@
     "G": 152,
     "B": 219,
     "A": ""
+  },
+  {
+    "cssClassName": "willow-grass",
+    "R": 145,
+    "G": 183,
+    "B": 126,
+    "A": ""
+  },
+  {
+    "cssClassName": "willow-moss",
+    "R": 115,
+    "G": 157,
+    "B": 114,
+    "A": ""
+  },
+  {
+    "cssClassName": "willow-path",
+    "R": 223,
+    "G": 201,
+    "B": 149,
+    "A": ""
+  },
+  {
+    "cssClassName": "willow-water",
+    "R": 78,
+    "G": 147,
+    "B": 156,
+    "A": ""
+  },
+  {
+    "cssClassName": "willow-deep",
+    "R": 53,
+    "G": 121,
+    "B": 134,
+    "A": ""
+  },
+  {
+    "cssClassName": "willow-wood",
+    "R": 182,
+    "G": 141,
+    "B": 97,
+    "A": ""
+  },
+  {
+    "cssClassName": "willow-stone",
+    "R": 168,
+    "G": 179,
+    "B": 164,
+    "A": ""
+  },
+  {
+    "cssClassName": "willow-snow",
+    "R": 220,
+    "G": 231,
+    "B": 213,
+    "A": ""
+  },
+  {
+    "cssClassName": "willow-shadow",
+    "R": 41,
+    "G": 73,
+    "B": 63,
+    "A": ""
   }
 ]

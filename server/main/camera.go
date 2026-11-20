@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"sync/atomic"
 )
 
 const VIEW_HEIGHT = 16
 const VIEW_WIDTH = 16
+const MAX_VIEW_SIZE = 32
+const SCENERY_MARGIN = 4
 
 type Camera struct {
 	height, width, padding int
@@ -42,14 +45,18 @@ func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
 	}
 
 	y, x := topLeft(len(stage.tiles), len(stage.tiles[0]), camera.height, camera.width, posY, posX)
-	region := getRegion(stage.tiles, Rect{y, y + camera.height - 1, x, x + camera.width - 1})
+	region := getRegion(stage.tiles, Rect{max(0, y-SCENERY_MARGIN), min(len(stage.tiles)-1, y+camera.height-1+SCENERY_MARGIN), max(0, x-SCENERY_MARGIN), min(len(stage.tiles[0])-1, x+camera.width-1+SCENERY_MARGIN)})
 
-	camera.send([]byte(fmt.Sprintf(`[~ id="set" y="%d" x="%d" class=""]`, y, x)))
+	var snapshot strings.Builder
+	fmt.Fprintf(&snapshot, `[~ id="view" y="%d" x="%d" class="%d,%d"]`, camera.height, camera.width, len(stage.tiles), len(stage.tiles[0]))
+
+	fmt.Fprintf(&snapshot, `[~ id="set" y="%d" x="%d" class=""]`, y, x)
 	for _, tile := range region {
-		camera.send([]byte(swapsForTileNoHighlight(tile)))
+		snapshot.WriteString(swapsForTileNoHighlight(tile))
 	}
 
-	newTopLeft := region[0]
+	camera.send([]byte(snapshot.String()))
+	newTopLeft := stage.tiles[y][x]
 	newTopLeft.primaryZone.addCamera(camera)
 	camera.topLeft = newTopLeft
 	return region
@@ -102,10 +109,10 @@ func updateTiles(camera *Camera, newY, newX int) []*Tile {
 	stage := oldTopLeft.stage
 	stageH, stageW := len(oldTopLeft.stage.tiles), len(oldTopLeft.stage.tiles[0])
 
-	oldY0, oldY1 := oldTopLeft.y, oldTopLeft.y+camera.height-1
-	oldX0, oldX1 := oldTopLeft.x, oldTopLeft.x+camera.width-1
-	newY0, newY1 := newY, newY+camera.height-1
-	newX0, newX1 := newX, newX+camera.width-1
+	oldY0, oldY1 := oldTopLeft.y-SCENERY_MARGIN, oldTopLeft.y+camera.height-1+SCENERY_MARGIN
+	oldX0, oldX1 := oldTopLeft.x-SCENERY_MARGIN, oldTopLeft.x+camera.width-1+SCENERY_MARGIN
+	newY0, newY1 := newY-SCENERY_MARGIN, newY+camera.height-1+SCENERY_MARGIN
+	newX0, newX1 := newX-SCENERY_MARGIN, newX+camera.width-1+SCENERY_MARGIN
 
 	// Tiles that came into view.
 	newTiles := make([]*Tile, 0)
@@ -174,6 +181,7 @@ func axisAdjust(pos, oldBoundary, viewLength, gridLength, padding int) int {
 		return 0
 	}
 
+	padding = min(padding, max(1, (viewLength-1)/3))
 	lo := oldBoundary + padding                  // nearest allowed position inside view
 	hi := oldBoundary + viewLength - padding - 1 // farthest allowed position inside view
 
@@ -194,4 +202,23 @@ func axisAdjust(pos, oldBoundary, viewLength, gridLength, padding int) int {
 		newBoundary = max
 	}
 	return newBoundary
+}
+
+// Resize only from the player's serialized input loop. Keep a bounded viewport
+// so camera-zone broadcasts and per-client work remain bounded.
+func (player *Player) resizeViewport(rows, columns int) {
+	if rows < 8 || rows > MAX_VIEW_SIZE || columns < 8 || columns > MAX_VIEW_SIZE {
+		return
+	}
+	camera := player.camera
+	if camera.height == rows && camera.width == columns {
+		return
+	}
+	tile := player.getTileSync()
+	camera.drop()
+	camera.positionLock.Lock()
+	camera.height, camera.width = rows, columns
+	camera.positionLock.Unlock()
+	tiles := camera.setView(tile.y, tile.x, tile.stage)
+	player.updates <- highlightBoxesForPlayer(player, tiles)
 }

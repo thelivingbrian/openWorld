@@ -1,3 +1,4 @@
+import { SceneryDirective } from './scenery.directive';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, HostListener, inject, NgZone, signal } from '@angular/core';
@@ -72,7 +73,7 @@ interface SelectedTileInstructionInfo {
 
 @Component({
   selector: 'app-editor',
-  imports: [CommonModule, FormsModule, WorldSettingsComponent],
+  imports: [CommonModule, FormsModule, WorldSettingsComponent, SceneryDirective],
   templateUrl: './editor.component.html',
   // Keep the legacy tile geometry encapsulated inside the editor. Loading it
   // from /assets would select the controller's site-wide stylesheet instead.
@@ -279,10 +280,10 @@ export class EditorComponent {
   protected readonly newSpace = signal({
     name: '',
     topology: 'plane',
-    latitude: 8,
-    longitude: 8,
-    areaWidth: 16,
-    areaHeight: 16,
+    latitude: 1,
+    longitude: 1,
+    areaWidth: 48,
+    areaHeight: 48,
     tileColor: 'green',
     tileColor1: 'brown',
     weather: '',
@@ -291,8 +292,8 @@ export class EditorComponent {
   protected readonly newArea = signal({
     name: '',
     safe: false,
-    height: 16,
-    width: 16,
+    height: 48,
+    width: 48,
     defaultTileColor: 'green',
     defaultTileColor1: 'brown',
   });
@@ -1238,6 +1239,10 @@ export class EditorComponent {
     if (!blueprint || !instruction) {
       return;
     }
+    if (this.instructionHasScenery(instruction.GridAssetId)) {
+      this.status.set('Three-quarter scenery keeps a fixed viewing direction. Move the complete fixture without rotating its footprint.');
+      return;
+    }
     updateInstructionAndReapply(
       blueprint,
       index,
@@ -1247,6 +1252,11 @@ export class EditorComponent {
     );
     this.markInstructionEdited(instruction.ID);
     this.touchBootstrap();
+  }
+
+  protected instructionHasScenery(assetId: string): boolean {
+    const tiles = this.fragmentsById().get(assetId)?.blueprint.Tiles ?? [[{ prototypeId: assetId }]];
+    return tiles.some(row => row.some(tile => /(?:^|\s)scenery-/.test(this.prototypesById().get(tile.prototypeId ?? '')?.layer2css ?? '')));
   }
 
   protected instructionAssetLabel(assetId: string): string {

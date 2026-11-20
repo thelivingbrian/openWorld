@@ -686,8 +686,7 @@
               "transformation": {}
             },
             {
-              "prototypeId": "7",
-              "transformation": {}
+              "prototypeId": "willow-return-portal"
             },
             {
               "prototypeId": "7",
@@ -2973,7 +2972,17 @@
         "DefaultTileColor": "night",
         "DefaultTileColor1": "white"
       },
-      "transports": [],
+      "transports": [
+        {
+          "sourceY": 9,
+          "sourceX": 10,
+          "destStage": "willow-reach:0-0",
+          "destY": 43,
+          "destX": 17,
+          "confirmation": true,
+          "rejectInteractable": true
+        }
+      ],
       "south": "infirmary:1-0",
       "east": "infirmary:0-1",
       "mapId": "",

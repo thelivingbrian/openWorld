@@ -1,0 +1,405 @@
+[
+  {
+    "id": "willow-fragment-oak",
+    "name": "Willow Oak",
+    "setName": "willow-reach",
+    "blueprint": {
+      "tiles": [
+        [
+          {
+            "prototypeId": "willow-oak"
+          }
+        ]
+      ],
+      "Instructions": [],
+      "DefaultTileColor": "willow-grass",
+      "DefaultTileColor1": "willow-path"
+    }
+  },
+  {
+    "id": "willow-fragment-pine",
+    "name": "Willow Pine",
+    "setName": "willow-reach",
+    "blueprint": {
+      "tiles": [
+        [
+          {
+            "prototypeId": "willow-pine"
+          }
+        ]
+      ],
+      "Instructions": [],
+      "DefaultTileColor": "willow-grass",
+      "DefaultTileColor1": "willow-path"
+    }
+  },
+  {
+    "id": "willow-fragment-birch",
+    "name": "Willow Birch",
+    "setName": "willow-reach",
+    "blueprint": {
+      "tiles": [
+        [
+          {
+            "prototypeId": "willow-birch"
+          }
+        ]
+      ],
+      "Instructions": [],
+      "DefaultTileColor": "willow-grass",
+      "DefaultTileColor1": "willow-path"
+    }
+  },
+  {
+    "id": "willow-fragment-lantern",
+    "name": "Willow Lantern",
+    "setName": "willow-reach",
+    "blueprint": {
+      "tiles": [
+        [
+          {
+            "prototypeId": "willow-lantern"
+          }
+        ]
+      ],
+      "Instructions": [],
+      "DefaultTileColor": "willow-grass",
+      "DefaultTileColor1": "willow-path"
+    }
+  },
+  {
+    "id": "willow-fragment-sign",
+    "name": "Willow Sign",
+    "setName": "willow-reach",
+    "blueprint": {
+      "tiles": [
+        [
+          {
+            "prototypeId": "willow-village-sign"
+          }
+        ]
+      ],
+      "Instructions": [],
+      "DefaultTileColor": "willow-grass",
+      "DefaultTileColor1": "willow-path"
+    }
+  },
+  {
+    "id": "willow-fragment-rock",
+    "name": "Willow Rock",
+    "setName": "willow-reach",
+    "blueprint": {
+      "tiles": [
+        [
+          {
+            "prototypeId": "willow-rock"
+          }
+        ]
+      ],
+      "Instructions": [],
+      "DefaultTileColor": "willow-grass",
+      "DefaultTileColor1": "willow-path"
+    }
+  },
+  {
+    "id": "willow-fragment-flower",
+    "name": "Willow Flower",
+    "setName": "willow-reach",
+    "blueprint": {
+      "tiles": [
+        [
+          {
+            "prototypeId": "willow-flower"
+          }
+        ]
+      ],
+      "Instructions": [],
+      "DefaultTileColor": "willow-grass",
+      "DefaultTileColor1": "willow-path"
+    }
+  },
+  {
+    "id": "willow-fragment-bench",
+    "name": "Willow Bench",
+    "setName": "willow-reach",
+    "blueprint": {
+      "tiles": [
+        [
+          {
+            "prototypeId": "willow-bench"
+          }
+        ]
+      ],
+      "Instructions": [],
+      "DefaultTileColor": "willow-grass",
+      "DefaultTileColor1": "willow-path"
+    }
+  },
+  {
+    "id": "willow-fragment-well",
+    "name": "Willow Village Fountain",
+    "setName": "willow-reach",
+    "blueprint": {
+      "tiles": [
+        [
+          {
+            "prototypeId": "willow-footprint"
+          },
+          {
+            "prototypeId": "willow-footprint"
+          },
+          {
+            "prototypeId": "willow-footprint"
+          }
+        ],
+        [
+          {
+            "prototypeId": "willow-footprint"
+          },
+          {
+            "prototypeId": "willow-well"
+          },
+          {
+            "prototypeId": "willow-footprint"
+          }
+        ]
+      ],
+      "Instructions": [],
+      "DefaultTileColor": "willow-grass",
+      "DefaultTileColor1": "willow-path"
+    }
+  },
+  {
+    "id": "willow-fragment-cottage",
+    "name": "Willow Cottage \u00b7 place transport at bottom center",
+    "setName": "willow-reach",
+    "blueprint": {
+      "tiles": [
+        [
+          {
+            "prototypeId": "willow-footprint"
+          },
+          {
+            "prototypeId": "willow-footprint"
+          },
+          {
+            "prototypeId": "willow-footprint"
+          },
+          {
+            "prototypeId": "willow-footprint"
+          },
+          {
+            "prototypeId": "willow-footprint"
+          }
+        ],
+        [
+          {
+            "prototypeId": "willow-footprint"
+          },
+          {
+            "prototypeId": "willow-footprint"
+          },
+          {
+            "prototypeId": "willow-cottage"
+          },
+          {
+            "prototypeId": "willow-footprint"
+          },
+          {
+            "prototypeId": "willow-footprint"
+          }
+        ]
+      ],
+      "Instructions": [],
+      "DefaultTileColor": "willow-grass",
+      "DefaultTileColor1": "willow-path"
+    }
+  },
+  {
+    "id": "willow-fragment-bridge",
+    "name": "Willow River Bridge",
+    "setName": "willow-reach",
+    "blueprint": {
+      "tiles": [
+        [
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          }
+        ],
+        [
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          }
+        ],
+        [
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          }
+        ],
+        [
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          },
+          {
+            "prototypeId": "willow-bridge"
+          }
+        ],
+        [
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          },
+          {
+            "prototypeId": "willow-bridge-rail"
+          }
+        ]
+      ],
+      "Instructions": [],
+      "DefaultTileColor": "willow-grass",
+      "DefaultTileColor1": "willow-path"
+    }
+  }
+]

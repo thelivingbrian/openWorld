@@ -1,14 +1,9 @@
 {{ define "player-page" }}
-<div id="page" hx-swap-oob="true">
+<div id="page" class="play-page" hx-swap-oob="true">
     <link rel="stylesheet" href="{{.DomainName}}/assets/colors.css" onload="applyCanvasPalette(this.sheet)">
     <div id="main_view">
-        <div id="info">
-            <b>
-                {{.LoginRequest.Record.Username}} <span id="hearts">{{.LoginRequest.Record.HeartsFromRecord}}</span> <br />
-                <span id="streak" class="red">Streak 0</span> | <span id="boosts" class="blue">^ 0</span>  | <span id="money" class="dark-green">$ {{.LoginRequest.Record.Money}}</span>&nbsp;<span id="power"></span>
-            </b>
-        </div>
-
+        {{template "player-hud" .HUD}}
+        <div id="connection-state" role="status" aria-live="polite"></div>
         <div id="screen" class="grid">
             <div class="center-horizontally">
                 <br />
@@ -17,7 +12,7 @@
                 <br />
             </div>
         </div>
-        <div id="bottom_text">
+        <div id="bottom_text" role="status" aria-live="polite">
             <!-- &nbsp;&nbsp;&gt; Press 'm' for Menu. -->
         </div>
     </div>
@@ -62,10 +57,10 @@
         <input id="aShift" type="hidden" ws-send hx-trigger="keydown[key=='A'||(shiftKey&&key=='ArrowLeft')] from:body" name="eventname" value="A" />
         <input id="sShift" type="hidden" ws-send hx-trigger="keydown[key=='S'||(shiftKey&&key=='ArrowDown')] from:body" name="eventname" value="S" />
         <input id="dShift" type="hidden" ws-send hx-trigger="keydown[key=='D'||(shiftKey&&key=='ArrowRight')] from:body" name="eventname" value="D" />
-        <input id="wKey" type="hidden" ws-send hx-trigger="keydown[key=='w'||key=='ArrowUp'] from:body" name="eventname" value="w" />
-        <input id="aKey" type="hidden" ws-send hx-trigger="keydown[key=='a'||key=='ArrowLeft'] from:body" name="eventname" value="a" />
-        <input id="sKey" type="hidden" ws-send hx-trigger="keydown[key=='s'||key=='ArrowDown'] from:body" name="eventname" value="s" />
-        <input id="dKey" type="hidden" ws-send hx-trigger="keydown[key=='d'||key=='ArrowRight'] from:body" name="eventname" value="d" />
+        <input id="wKey" type="hidden" ws-send hx-trigger="keydown[key=='w'||(!shiftKey&&key=='ArrowUp')] from:body" name="eventname" value="w" />
+        <input id="aKey" type="hidden" ws-send hx-trigger="keydown[key=='a'||(!shiftKey&&key=='ArrowLeft')] from:body" name="eventname" value="a" />
+        <input id="sKey" type="hidden" ws-send hx-trigger="keydown[key=='s'||(!shiftKey&&key=='ArrowDown')] from:body" name="eventname" value="s" />
+        <input id="dKey" type="hidden" ws-send hx-trigger="keydown[key=='d'||(!shiftKey&&key=='ArrowRight')] from:body" name="eventname" value="d" />
         <input id="eKey" type="hidden" ws-send hx-trigger="keydown[key=='e'||key=='E'] from:body" name="eventname" value="e" />
         <input id="qKey" type="hidden" ws-send hx-trigger="keydown[key=='q'||key=='Q'] from:body" name="eventname" value="q" />
         <input id="fKey" type="hidden" ws-send hx-trigger="keydown[key=='f'] from:body" name="eventname" value="f" />
@@ -79,10 +74,10 @@
     <input id="a" type="hidden" ws-send hx-trigger="fire from:#but-a" name="eventname" value="a" />
     <input id="s" type="hidden" ws-send hx-trigger="fire from:#but-s" name="eventname" value="s" />
     <input id="d" type="hidden" ws-send hx-trigger="fire from:#but-d" name="eventname" value="d" />
-    <input id="wShift" type="hidden" ws-send hx-trigger="fire from:#but-wShift" name="eventname" value="W" />
-    <input id="aShift" type="hidden" ws-send hx-trigger="fire from:#but-aShift" name="eventname" value="A" />
-    <input id="sShift" type="hidden" ws-send hx-trigger="fire from:#but-sShift" name="eventname" value="S" />
-    <input id="dShift" type="hidden" ws-send hx-trigger="fire from:#but-dShift" name="eventname" value="D" />
+    <input id="w-boost" type="hidden" ws-send hx-trigger="fire from:#but-wShift" name="eventname" value="W" />
+    <input id="a-boost" type="hidden" ws-send hx-trigger="fire from:#but-aShift" name="eventname" value="A" />
+    <input id="s-boost" type="hidden" ws-send hx-trigger="fire from:#but-sShift" name="eventname" value="S" />
+    <input id="d-boost" type="hidden" ws-send hx-trigger="fire from:#but-dShift" name="eventname" value="D" />
 
     <input id="menuOn" type="hidden" ws-send hx-trigger="click from:#but-m,click from:#but-m-shift" name="eventname" value="menuOn" />
     <input id="space-on" type="hidden" ws-send hx-trigger="fire from:#but-space,click from:#but-space-shift" name="eventname" value="Space-On" />
@@ -91,38 +86,48 @@
 
     <div id="dpad" class="container">
         <div class="dpad-container">
-            <button id="but-w" class="button borderless up">w  &#9650;</button>
-            <button id="but-a" class="button borderless left">&#9666; a</button>
-            <button class="button middle"></button>
-            <button id="but-d" class="button borderless right">d &#9656;</button>
-            <button id="but-s" class="button borderless down">s &#9660;</button>
+            <button id="but-w" data-repeat aria-label="Move north" class="button borderless up">&#9650;</button>
+            <button id="but-a" data-repeat aria-label="Move west" class="button borderless left">&#9666;</button>
+            <button class="button middle" tabindex="-1" aria-hidden="true"></button>
+            <button id="but-d" data-repeat aria-label="Move east" class="button borderless right">&#9656;</button>
+            <button id="but-s" data-repeat aria-label="Move south" class="button borderless down">&#9660;</button>
         </div>
         <div class="center-container">
             <button id="but-m" class="half-button">menu</button>
         </div>
         <div class="a-b-container">
-            <button id="but-space" class="button borderless A">Space</button>
-            <button id="but-shift-on" class="button borderless B">Shift</button>
+            <button id="but-space" data-repeat aria-label="Use power" class="button borderless A">Power</button>
+            <button id="but-shift-on" class="button borderless B" aria-label="Enable boost movement">Boost</button>
         </div>
     </div>
     <div id="dpad-shift" class="container hidden">
         <div class="dpad-container">
-            <button id="but-wShift" class="button shift up">W&#9650;</button>
-            <button id="but-aShift" class="button shift med left">&#9666;A</button>
-            <button class="button middle"></button>
-            <button id="but-dShift" class="button shift med right">D&#9656;</button>
-            <button id="but-sShift" class="button shift med down">S&#9660;</button>
+            <button id="but-wShift" data-repeat aria-label="Boost north" class="button shift up">&#9650;</button>
+            <button id="but-aShift" data-repeat aria-label="Boost west" class="button shift med left">&#9666;</button>
+            <button class="button middle" tabindex="-1" aria-hidden="true"></button>
+            <button id="but-dShift" data-repeat aria-label="Boost east" class="button shift med right">&#9656;</button>
+            <button id="but-sShift" data-repeat aria-label="Boost south" class="button shift med down">&#9660;</button>
         </div>
         <div class="center-container">
             <button id="but-m-shift" class="half-button">menu</button>
         </div>
         <div class="a-b-container">
-            <button id="but-space-shift" class="button borderless A">Space</button>
-            <button id="but-shift-off" class="button shift B">Shift</button>
+            <button id="but-space-shift" data-repeat aria-label="Use power" class="button borderless A">Power</button>
+            <button id="but-shift-off" class="button shift B" aria-label="Disable boost movement">Boost</button>
         </div>
     </div>
     <script>
-        enableKeyRepeat()
+        enableKeyRepeat();
+        syncGameViewport();
     </script>
 </div>
+{{end}}
+
+{{define "player-hud"}}
+<header id="info" class="play-hud">
+            <div class="hud-identity"><span class="world-wordmark">BLOOP<span>WORLD</span></span><span class="player-name">{{.Username}}</span></div>
+            <div class="hud-vitals"><span id="hearts" aria-label="Health">{{.Hearts}}</span><span id="power">{{if .Power}}🗡️×{{.Power}}{{end}}</span></div>
+            <div class="hud-stats"><span id="streak" title="Streak">Streak {{.Streak}}</span><span id="boosts" title="Boosts">⚡ {{.Boosts}}</span><span id="money" title="Money">$ {{.Money}}</span></div>
+            <nav class="hud-actions" aria-label="Game"><button type="button" id="fullscreen-toggle" onclick="toggleGameFullscreen()" aria-label="Enter fullscreen" title="Fullscreen">⛶</button><button type="button" id="hud-menu" onclick="openGameMenu()" aria-label="Open menu">Menu</button></nav>
+        </header>
 {{end}}

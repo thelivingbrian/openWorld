@@ -1,0 +1,74 @@
+{
+  "name": "Bloopworld \u00b7 Willow Reach",
+  "description": "A riverside village, woodland paths, and a little room to wander.",
+  "entry": {
+    "stage": "willow-reach:0-0",
+    "y": 23,
+    "x": 17
+  },
+  "teams": [
+    {
+      "id": "sky-blue",
+      "label": "Sky Blue",
+      "color": "sky-blue",
+      "spawn": {
+        "stage": "willow-reach:0-0",
+        "y": 23,
+        "x": 17
+      }
+    },
+    {
+      "id": "fuchsia",
+      "label": "Fuchsia",
+      "color": "fuchsia",
+      "spawn": {
+        "stage": "willow-reach:0-0",
+        "y": 23,
+        "x": 17
+      }
+    }
+  ],
+  "defaultTeam": "sky-blue",
+  "maxPlayers": 100,
+  "lifecycle": "persistent",
+  "npcs": [
+    {
+      "id": "wayfarer",
+      "name": "Wayfarer",
+      "team": "sky-blue",
+      "appearance": "lavender r1",
+      "health": 100,
+      "money": 0,
+      "intervalMs": 1100,
+      "lifetimeSeconds": 3600,
+      "program": [
+        {
+          "action": "wander",
+          "ticks": 3,
+          "condition": "always"
+        },
+        {
+          "action": "wait",
+          "ticks": 3,
+          "condition": "always"
+        }
+      ]
+    }
+  ],
+  "spawns": [
+    {
+      "id": "village-wayfarers",
+      "stage": "willow-reach:0-0",
+      "kind": "npc",
+      "npc": "wayfarer",
+      "trigger": "entry",
+      "count": 3,
+      "maxAlive": 3,
+      "cooldownSeconds": 60,
+      "randomPosition": true,
+      "y": 0,
+      "x": 0
+    }
+  ],
+  "achievements": []
+}

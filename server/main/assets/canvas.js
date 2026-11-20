@@ -113,66 +113,43 @@ function clearCanvasAndStage() {
 } 
 
 function getCanvasContextByLayerId(id) {
-    if (!canvasLayers[id]) {
-        const canvas = document.getElementById(id);
-        if (!canvas) return null;
-        canvasLayers[id]  = canvas.getContext("2d");
-    }
+    const canvas = document.getElementById(id);
+    if (!canvas) return null;
+    if (!canvasLayers[id] || canvasLayers[id].canvas !== canvas) canvasLayers[id] = canvas.getContext('2d');
     return canvasLayers[id];
 }
 
 function resizeCanvas() {
-    const game = document.getElementById("game");
+    const game = document.getElementById('game');
     if (!game) return;
-
-    const dpr = 1; // don't even mess with window.devicePixelRatio -> is land mine 
-    const vw  = window.innerWidth;
-    const vh  = window.innerHeight;
-
-    // mimics previous CSS: #screen is 40% wide in landscape, 87% in portrait
-    const landscape = vw >= vh;
-    const maxScreenWidth = landscape ? vw * 0.40 : vw * 0.87;
-    const maxScreenHeight = vh; // we don't restrict height as much
-
-    const avail = Math.min(maxScreenWidth, maxScreenHeight);
-
-    // tiles across (assuming square viewport); use width or height as needed
-    const maxCellsAcross = width;
-
-    // snap cell size to an integer so tiles land on whole pixels
-    const newCellSize = Math.max(1, Math.floor(avail / maxCellsAcross));
-    const stageCssSize = newCellSize * maxCellsAcross;  // exact integer
-
-    // update globals
-    cellSize = newCellSize;
-
-    // size #game container
-    game.style.width  = `${stageCssSize}px`;
-    game.style.height = `${stageCssSize}px`;
-
-    // Assuming square canvases, Todo: DPR adds no value here 
-    const backingWidth = Math.round(stageCssSize * dpr);
-    const backingHeight = Math.round(stageCssSize * dpr);
-
-    // resize each canvas backing store + CSS size
+    // Measure the actual play surface, not the browser's layout viewport.
+    const screen = document.getElementById('screen');
+    const playing = !!document.querySelector('.play-page');
+    const bounds = playing ? screen.getBoundingClientRect() : { width: Math.min(window.innerWidth * .7, 740), height: window.innerHeight * .7 };
+    cellSize = Math.max(1, Math.floor(Math.min(bounds.width / Math.min(width, stageWidth), bounds.height / Math.min(height, stageHeight))));
+    const cssWidth = cellSize * Math.min(width, stageWidth);
+    const cssHeight = cellSize * Math.min(height, stageHeight);
+    game.style.width = `${cssWidth}px`; game.style.height = `${cssHeight}px`;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     for (const id of layerIds) {
         const canvas = document.getElementById(id);
         if (!canvas) continue;
-
-        canvas.width  = backingWidth;
-        canvas.height = backingHeight;
-
-        canvas.style.width  = `${stageCssSize}px`;
-        canvas.style.height = `${stageCssSize}px`;
-
+        canvas.width = Math.round(cssWidth * dpr); canvas.height = Math.round(cssHeight * dpr);
+        canvas.style.width = `${cssWidth}px`; canvas.style.height = `${cssHeight}px`;
         const ctx = getCanvasContextByLayerId(id);
-        if (!ctx) continue;
-
-        // normalize 0..stageCssSize coordinates in CSS pixels
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
+    scheduleStageDraw();
+}
 
-    redrawStage();
+let stageDrawPending = false;
+function scheduleStageDraw() {
+    if (stageDrawPending) return;
+    stageDrawPending = true;
+    requestAnimationFrame(() => { stageDrawPending = false; if (document.getElementById('game')) redrawStage(); });
+}
+function resetStageBuffers() {
+    for (const id of layerIds) stage[id] = Array.from({ length: maxStageHeight }, () => Array(maxStageWidth).fill(''));
 }
 
 // Dynamically resize canvas
@@ -182,8 +159,12 @@ window.addEventListener("resize", resizeCanvas);
 //  Drawing 
 
 function redrawStage() {
+    const screen = document.getElementById("screen");
+    const ground = stage.Lg2?.[topLeftY]?.[topLeftX] || stage.Lg1?.[topLeftY]?.[topLeftX] || "";
+    if (screen) screen.style.backgroundColor = getDrawingStyle(ground,0,topLeftY,topLeftX).fillColor || "#203c35";
     for (const id of layerIds) {
         const ctx    = getCanvasContextByLayerId(id);
+        if (!ctx) continue;
         const canvas = ctx.canvas;
 
         // clear this whole layer
@@ -207,13 +188,16 @@ function redrawStage() {
                 }
 
                 const classes = stage[id][wy][wx];
-                if (!classes) continue;
+                if (!classes || id === "Lp1") continue;
+                if (id === "Lf2" && typeof BloopScenery !== "undefined" && BloopScenery.kind(classes)) continue;
 
-                drawGridCell(id, vy, vx, classes, undefined, wy, wx);
+                if (id === "Ls1") drawSpriteCell(id, vy, vx, classes);
+                else drawGridCell(id, vy, vx, classes, undefined, wy, wx);
             }
         }
     }
 
+    drawWorldObjects();
     ensureVisualEffectsAnimationLoop();
 }
 
@@ -256,7 +240,10 @@ function ensureVisualEffectsAnimationLoop() {
     requestAnimationFrame(stepVisualEffects);
 }
 
+let lastEffectsFrame = 0;
 function stepVisualEffects(nowMs) {
+    if (document.hidden || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || nowMs-lastEffectsFrame < 50) { requestAnimationFrame(stepVisualEffects); return; }
+    lastEffectsFrame=nowMs;
     const mode = getVisibleWeatherMode();
     const dynamicLayerIds = getVisibleDynamicLayerIds();
     const hasAnimatedTiles = dynamicLayerIds.length > 0;
@@ -292,6 +279,7 @@ function stepVisualEffects(nowMs) {
 
 function redrawDynamicLayers(layerIds, nowMs) {
     for (const id of layerIds) {
+        if (id === "Lp1") { drawWorldObjects(); continue; }
         const ctx = getCanvasContextByLayerId(id);
         if (!ctx) continue;
 
@@ -495,6 +483,11 @@ function drawGridCell(id, y, x, classes, nowMs, worldY, worldX) {
         ctx.beginPath();
         pathRoundedRect(ctx, innerX, innerY, innerW, innerH, innerR);
         ctx.fill();
+        if (classes.includes('willow-')) {
+            ctx.save(); ctx.clip();
+            drawTerrainDetail(ctx, classes, px, py, cellSize, tileWorldY, tileWorldX, renderTimeMs);
+            ctx.restore();
+        }
     }
 
     // 2) Draw border as a ring (outer − inner, using even-odd rule)
@@ -755,6 +748,7 @@ function getDrawingStyle(classes, timeMs, worldY, worldX) {
 }
 
 function hasDynamicTileToken(classes) {
+    if (classes.includes("willow-water")) return true;
     if (!classes) return false;
 
     return (
@@ -930,4 +924,69 @@ function drawCircle(colorName, ctx, px, py, cellSize) {
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+}
+
+// Scenery and characters share a ground-position-sorted layer. Legacy ceiling
+// layers retain their previous behavior; only explicit scenery tokens opt in.
+function worldDrawables() {
+    const objects = [], players = [];
+    for (let y = Math.max(0, topLeftY - 4); y < Math.min(stageHeight, topLeftY + height + 4); y++) {
+        for (let x = Math.max(0, topLeftX - 4); x < Math.min(stageWidth, topLeftX + width + 4); x++) {
+            const kind = typeof BloopScenery === 'undefined' ? null : BloopScenery.kind(stage.Lf2?.[y]?.[x]);
+            if (kind) objects.push({ x, y, kind, order: y + .8 });
+            const classes = stage.Lp1?.[y]?.[x];
+            if (classes) players.push({ x, y, classes, order: y + .9 });
+        }
+    }
+    return { objects, players };
+}
+function drawWorldObjects() {
+    const ctx = getCanvasContextByLayerId('Lp1');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    const { objects, players } = worldDrawables();
+    const modern = objects.length > 0;
+    for (const item of [...objects, ...players].sort((a,b) => a.order-b.order || a.x-b.x)) {
+        const x = (item.x-topLeftX+.5)*cellSize, y = (item.y-topLeftY+1)*cellSize;
+        if (item.kind) {
+            const extent = BloopScenery.catalog[item.kind];
+            const occluded = players.some(p => p.y < item.y && p.y > item.y-extent.height && Math.abs(p.x-item.x) < extent.width/2);
+            BloopScenery.draw(ctx,item.kind,x,y,cellSize,{ alpha: occluded ? .48 : 1 });
+        } else if (!modern) {
+            drawGridCell('Lp1',item.y-topLeftY,item.x-topLeftX,item.classes);
+        } else {
+            const style = getDrawingStyle(item.classes,performance.now(),item.y,item.x);
+            if (!style.fillColor && !style.strokeColor) continue;
+            ctx.save(); ctx.globalAlpha = style.alpha;
+            ctx.fillStyle='#203f3940'; ctx.beginPath(); ctx.ellipse(x,y-cellSize*.08,cellSize*.36,cellSize*.13,0,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle=style.fillColor || style.strokeColor;
+            ctx.beginPath(); ctx.roundRect(x-cellSize*.34,y-cellSize*.85,cellSize*.68,cellSize*.72,cellSize*.23); ctx.fill();
+            ctx.strokeStyle=style.strokeColor || '#ffffffbb'; ctx.lineWidth=Math.max(1,cellSize*.045); ctx.stroke();
+            ctx.fillStyle='#193b40';
+            for (const offset of [-.12,.12]) { ctx.beginPath();ctx.ellipse(x+offset*cellSize,y-cellSize*.54,cellSize*.035,cellSize*.055,0,0,Math.PI*2);ctx.fill(); }
+            ctx.restore();
+        }
+    }
+}
+
+function drawTerrainDetail(ctx, classes, x, y, size, wy, wx, now) {
+    const seed = ((wx*374761393 + wy*668265263) >>> 0);
+    const fraction = n => (((seed ^ (n*1274126177)) >>> 0) % 997) / 997;
+    ctx.lineWidth = Math.max(.7, size*.025); ctx.lineCap='round';
+    if (classes.includes('willow-water')) {
+        const phase=(now/2200+wy*.7+wx*.4);
+        ctx.strokeStyle='#d4ece33b';
+        for(let i=0;i<2;i++) {
+            const yy=y+size*(.25+i*.46), xx=x+size*(.15+Math.sin(phase+i)*.06);
+            ctx.beginPath();ctx.moveTo(xx,yy);ctx.quadraticCurveTo(xx+size*.14,yy+Math.sin(phase)*size*.035,xx+size*.32,yy);ctx.stroke();
+        }
+    } else if (classes.includes('willow-grass') || classes.includes('willow-moss')) {
+        if (seed%4) return;
+        const xx=x+size*(.2+fraction(2)*.6), yy=y+size*(.25+fraction(3)*.5);
+        ctx.strokeStyle='#416c4e30';ctx.beginPath();ctx.moveTo(xx-size*.07,yy-size*.06);ctx.lineTo(xx,yy);ctx.lineTo(xx+size*.02,yy-size*.1);ctx.stroke();
+        ctx.fillStyle='#e2e5ab44';ctx.beginPath();ctx.arc(x+size*fraction(4),y+size*fraction(5),size*.025,0,Math.PI*2);ctx.fill();
+    } else if (classes.includes('willow-path') || classes.includes('willow-snow')) {
+        ctx.fillStyle=classes.includes('willow-path')?'#a68d6229':'#ffffff50';
+        for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(x+size*(.1+.8*fraction(i+1)),y+size*(.1+.8*fraction(i+4)),size*.035,size*.02,0,0,Math.PI*2);ctx.fill();}
+    }
 }

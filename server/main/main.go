@@ -31,6 +31,12 @@ type App struct {
 }
 
 func main() {
+	if len(os.Args) == 2 && os.Args[1] == "--preview" {
+		if err := runLocalPreview(); err != nil {
+			logger.Fatal().Err(err).Msg("Preview failed")
+		}
+		return
+	}
 	logger.Info().Msg("Initializing...")
 	config := getConfiguration()
 	setGlobalLogLevel(config.logLevel)

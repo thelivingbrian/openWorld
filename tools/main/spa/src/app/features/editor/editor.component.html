@@ -302,6 +302,7 @@
               <span class="prototype-preview-arrow" aria-hidden="true">→</span>
 
               <div class="prototype-preview-stack" title="Combined layers">
+                <canvas [bloopScenery]="editedPrototype()!.layer2css" [sceneryThumbnail]="true"></canvas>
                 <div class="box {{ prototypePreviewClass(editedPrototype()!.cssColor) }}" [ngStyle]="layerDynamicStyle(editedPrototype()!.cssColor, 0, 0)"></div>
                 <div class="box {{ prototypePreviewClass(editedPrototype()!.layer1css) }}" [ngStyle]="layerDynamicStyle(editedPrototype()!.layer1css, 0, 0)"></div>
                 <div class="box {{ prototypePreviewClass(editedPrototype()!.layer2css) }}" [ngStyle]="layerDynamicStyle(editedPrototype()!.layer2css, 0, 0)"></div>
@@ -584,6 +585,7 @@
                       <div class="box ground1 {{ cleanLayerClass(material.ground1css) }}" [ngStyle]="gridLayerDynamicStyle(material.ground1css, y, x)"></div>
                       <div class="box ground2 {{ cleanLayerClass(material.ground2css) }}" [ngStyle]="gridLayerDynamicStyle(material.ground2css, y, x)"></div>
                       <div class="box floor1 {{ cleanLayerClass(material.layer1css) }}" [ngStyle]="gridLayerDynamicStyle(material.layer1css, y, x)"></div>
+                      <canvas [bloopScenery]="material.layer2css ?? ''" [sceneryRow]="y"></canvas>
                       <div class="box floor2 {{ cleanLayerClass(material.layer2css) }}" [ngStyle]="gridLayerDynamicStyle(material.layer2css, y, x)"></div>
                       @if (gridInteractables()[y]?.[x]) {
                         <div class="box zp {{ cleanLayerClass(gridInteractables()[y]?.[x]?.cssClass) }}" [ngStyle]="gridLayerDynamicStyle(gridInteractables()[y]?.[x]?.cssClass, y, x)"></div>
@@ -592,6 +594,7 @@
                         <div class="box ground1 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ground1css ?? '' }}"></div>
                         <div class="box ground2 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ground2css ?? '' }}"></div>
                         <div class="box floor1 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.layer1css ?? '' }}"></div>
+                        <canvas class="ghost-layer trsp60" [bloopScenery]="ghostMaterials()[y]?.[x]?.layer2css ?? ''" [sceneryRow]="y"></canvas>
                         <div class="box floor2 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.layer2css ?? '' }}"></div>
                         <div class="box ceiling1 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ceiling1css ?? '' }}"></div>
                         <div class="box ceiling2 ghost-layer trsp60 {{ ghostMaterials()[y]?.[x]?.ceiling2css ?? '' }}"></div>
@@ -820,7 +823,8 @@
                           <div class="box ground1 {{ cleanLayerClass(material.ground1css) }}" [ngStyle]="layerDynamicStyle(material.ground1css, y, x)"></div>
                           <div class="box ground2 {{ cleanLayerClass(material.ground2css) }}" [ngStyle]="layerDynamicStyle(material.ground2css, y, x)"></div>
                           <div class="box floor1 {{ cleanLayerClass(material.layer1css) }}" [ngStyle]="layerDynamicStyle(material.layer1css, y, x)"></div>
-                          <div class="box floor2 {{ cleanLayerClass(material.layer2css) }}" [ngStyle]="layerDynamicStyle(material.layer2css, y, x)"></div>
+                          <canvas [bloopScenery]="material.layer2css ?? ''" [sceneryRow]="y"></canvas>
+                      <div class="box floor2 {{ cleanLayerClass(material.layer2css) }}" [ngStyle]="layerDynamicStyle(material.layer2css, y, x)"></div>
                           @if (fixturePreviewInteractables()[y]?.[x]) {
                             <div class="box zp {{ cleanLayerClass(fixturePreviewInteractables()[y]?.[x]?.cssClass) }}" [ngStyle]="layerDynamicStyle(fixturePreviewInteractables()[y]?.[x]?.cssClass, y, x)"></div>
                           }
@@ -984,7 +988,7 @@
                     <span>#{{ i }}</span>
                     <label>Y <input class="instruction-axis-input instruction-axis-input--editable" type="number" [ngModel]="instruction.Y" (ngModelChange)="updateInstructionY(i, $event)" /></label>
                     <label>X <input class="instruction-axis-input instruction-axis-input--editable" type="number" [ngModel]="instruction.X" (ngModelChange)="updateInstructionX(i, $event)" /></label>
-                    <label>Rot <input class="instruction-axis-input instruction-axis-input--editable" type="number" [ngModel]="instruction.ClockwiseRotations" (ngModelChange)="updateInstructionRotation(i, $event)" /></label>
+                    <label>Rot <input class="instruction-axis-input instruction-axis-input--editable" type="number" [disabled]="instructionHasScenery(instruction.GridAssetId)" title="Three-quarter scenery keeps its fixed viewing direction" [ngModel]="instruction.ClockwiseRotations" (ngModelChange)="updateInstructionRotation(i, $event)" /></label>
                     <label class="instruction-asset-label">Asset
                       @if (instructionHasKnownAsset(instruction.GridAssetId)) {
                         <a href="#" (click)="openInstructionAssetDetails(instruction.GridAssetId, $event)">{{ instructionAssetLabel(instruction.GridAssetId) }}</a>
