@@ -6,9 +6,14 @@
   Complete web design editor feature.
 ### Todo:
   - [ ] Can I spawn sub agents to work on levels using the same interface
-  - [ ] New world design. Intentional use of fixed camera, default to moving 
+  - [ ] New world design. Intentional use of fixed camera, default to moving
+    - [ ] 16 x 16 is too small need new default world size 
   - [ ] Fix top / down perspective confusion 
+    - [ ] screenshot included
+  - [ ] Overworld needs to be aesthetically beautiful, leverage the simplicity of the graphics for cool effects
+  - [ ] Needs to be a systematic process that enables extension and verification until the world is consistently high quality of visual interest 
   - [ ] Fix janky control buttons, enable true full screen 
+  - [ ] Real time day/night and weather cycle 
 
 
 ---- AI Agents ignore below ----
