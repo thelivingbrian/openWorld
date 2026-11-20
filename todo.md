@@ -3,14 +3,14 @@
 ## Current in progress — A living multiplayer frontier
 
 ### Description
-  Turn the visual review into a self-contained, playable Bloopworld slice. Preserve the pressure of life drain and competing for kill streaks, give teams reasons to meet in a larger world, and introduce a dark cooperative puzzle zone. Deliver an unpublished, reproducible review build before tuning or expanding the whole world.
+  Turn the visual review into a self-contained, playable Bloopworld slice. Preserve sustained danger from aggressive NPCs and rival players while competing for kill streaks, give teams reasons to meet in a larger world, and introduce a dark cooperative puzzle zone. Deliver an unpublished, reproducible review build before tuning or expanding the whole world.
 
 ### Design direction
-  - Keep cute geometric bloops, rounded silhouettes, restrained palettes, and minimal faces. Scenery supports navigation and play; functional objects remain abstract and immediately recognizable. - Bloopworlds simplicity is part of its charm 
+  - Keep cute geometric bloops, rounded silhouettes, restrained palettes, and minimal faces. Scenery supports navigation and play; functional objects remain abstract and immediately recognizable. Bloopworld’s simplicity is part of its charm.
   - Separate the new world from legacy Bloopworld. Remove review portals in both directions and restore the legacy source tile. Legacy content stays available as its own world/version.
-  - A large authored world does not require a large active combat area. Begin with two team refuges around a compact shared frontier; open space must have routes, resources, or meaningful choices. - I suppose this is judicious. I like the idea of an open combat world but it is difficult from a planning perspective and references are scarce. I do like for bloop death to be lightweight and fundamentally acceptable though. Tradeoffs to consider 
-  - Proposed first loop: leave refuge → collect powers/boosts → fight roaming threats or rival players → use a limited recovery opportunity → decide whether to push a streak or take a puzzle expedition → die and return to team refuge. CTF is outside this slice.
-  - Life drain creates expedition pressure. Camping at a refuge, reconnecting, or changing stages must not preserve a competitive streak indefinitely.
+  - Keep the feel of an open combat world. Begin with two small team arrival areas and a shared frontier with multiple routes; use supplies and threats to create encounters without forcing everyone into a narrow arena. Death is lightweight, expected, and followed by a quick return to play.
+  - Proposed first loop: spawn → collect powers/boosts → explore and fight roaming threats or rival players → push a streak or visit a puzzle → die and quickly respawn. CTF is outside this slice.
+  - Health decreases through environmental hazards, aggressive NPCs, and PvP damage. There is no automatic health timer. Keep the first slice without healing; test the existing survival challenge before adding recovery.
   - Keep player kills, NPC kills, team objectives, and puzzle completions distinct. No new generic currency or crafting system is needed to test this loop.
 
 ### Findings from the visual review
@@ -18,30 +18,29 @@
   - Current spawn triggers are once/entry; staying within a large region does not trigger recurring activity. NPC capacity is tracked, but pickup capacity/ownership and respawn scheduling need explicit design.
   - Scenery is a coded procedural catalog using Floor2 tokens, not general uploaded sprites. Each drawing can extend beyond its ground anchor; native tiles/fragments still define collision. Catalog edits currently require code changes, and a four-tile visibility margin limits supported visual extent.
   - Three-quarter scenery fixtures keep a fixed viewing direction. Extend the editor with explicit anchor, footprint, and visual-bounds previews rather than implying arbitrary scenery rotation or sprite import already exists.
-  - Confirm the exact live life-drain behavior before replacing/tuning it: its ticking/recovery rules are not evident in the current checkout's ordinary player damage path. Preserve the intended pressure, while documenting any live/check-out discrepancy.
+  - The user clarified that “life drain” means accumulated harm from NPCs and other players, not periodic automatic damage. No health-clock investigation or new drain mechanic is required.
 
 ### Proposed first slice and tuning hypotheses
-  - Two teams, two protected arrival/refuge areas, one shared woodland/river frontier, and one small dark puzzle annex. Separate team spawns, several viable paths, and avoid a single unavoidable bridge camp. +up
-  - Try a base expedition budget around 3 minutes. This is a playtest hypothesis, not an established balance value. Tune using measured traversal time and actual kill/health recovery rules.
-  - Provide a visible power and boost within roughly 10–15 seconds of a normal departure. Use multiple public pickup sites, some safe and predictable, others contested. Supplies are neutral after departure. +up agree must always have simple fast obvious gameplay
-  - Preserve kill-streak survival as the main competitive challenge. choose one bounded recovery rule after that audit. Recovery must extend a good run without allowing an uncontested infinite run or easy teammate/alt farming. Right now health is strictly decreasing through envionmental npc and pvp harm do we need to consider recovery
-  - Use one announced, rotating supply/recovery hotspot to draw both teams toward a changing meeting point. Prototype this with an existing item/recovery mechanic before adding a capture system. Local supplies must still make the game viable when another team holds the hotspot. + sounds good in theory 
-  - A neutral safe puzzle annex pauses drain only during a separate expedition: entering explicitly banks/ends the active combat streak. Return through team refuge with a fresh run; no combat-health/power farming through puzzle entry or resets. Review this proposed tradeoff in playtesting.
-  - One solo-solvable introductory chamber, followed by one clearly marked two-player chamber. Any teams can cooperate inside the annex. Neither chamber blocks ordinary combat progression. - This is important. Bloopworld *is* full live multiplayer which is part of what makes it technically cool, howver bloopworld is early stage in gaining an audience and needs solo playability 
+  - Two teams, two protected arrival/refuge areas, one shared woodland/river frontier, and one small dark puzzle annex. Separate team spawns, several viable paths, and avoid a single unavoidable bridge camp.
+  - Tune encounter frequency and return-to-play time through observation. Do not impose an expedition time limit or a target lifetime on every player.
+  - Provide a visible power and boost within roughly 10–15 seconds of a normal departure. Use multiple public pickup sites, some safe and predictable, others contested. Supplies are neutral after departure. Gameplay must be simple, fast, and obvious from the first moments.
+  - Preserve kill-streak survival with strictly decreasing health during a life. Do not add kill healing or recovery pickups in this slice. Evaluate recovery later only if playtesting identifies a concrete problem.
+  - Use one announced, rotating power/boost supply hotspot to draw both teams toward a changing meeting point. Prototype this with existing collectible items before adding a capture system. Local supplies must still make the game viable when another team holds the hotspot. Treat the hotspot as a playtest hypothesis, not the only source of action.
+  - A neutral puzzle annex allows cooperation without PvP or aggressive NPC interference. Entering/leaving does not heal, refill combat supplies, bank a streak, or start a new run. Preserve health and the existing streak until ordinary death/reset rules apply; keep competitive rewards inside the combat world.
+  - One solo-solvable introductory chamber, followed by one clearly marked two-player chamber. Any teams can cooperate inside the annex. Neither chamber blocks ordinary combat progression. The world must remain engaging and fully playable with one person online; the two-player chamber is an optional destination.
 
 ### 1. Specify the rules and preserve the existing challenge
 
-  - [ ] Separate tutorial/refuge preparation from competitive runs. Leaving refuge starts a run; returning ends/banks it and clears combat advantages according to a documented policy. Do not allow safe-area streak camping.
-      - [ ] Should there be a dedicated tutorial like there is today? or should play be ultra-simple. Playtesting of bloopworld indicated many players did not complete the tutorial 
-  - [ ] Preserve existing leaderboard semantics where possible. Add separate run/puzzle/team metrics only if the slice requires them; no PvP kill credit for drain expiry, NPC deaths, friendly kills, or puzzle hazards.
-  - [ ] Define multiplayer targeting/team damage, kill attribution, simultaneous-death handling, and rules against repeated cooperative/alt farming before adding recovery rewards.
-]
+  - [ ] Teach through the first moments of ordinary play: an obvious pickup, a brief contextual movement/Power/Boost hint, and a nearby readable enemy. No mandatory separate tutorial; prior playtesting showed many players did not finish it. Offer optional help/replayable practice.
+  - [ ] Preserve current health, damage, death, and streak behavior as the baseline. Do not add automatic drain, healing, banking, or refuge-entry resets. Audit reconnect/respawn handling to prevent free refills and duplicate rewards.
+  - [ ] Preserve existing leaderboard semantics where possible. Add separate run/puzzle/team metrics only if the slice requires them; no PvP kill credit for NPC deaths, friendly kills, or puzzle hazards.
+  - [ ] Define multiplayer targeting/team damage, kill attribution, simultaneous-death handling, and rules against repeated cooperative/alt farming while keeping recovery rewards out of the initial scope.
 
 ### 2. Build a sustainable population and pickup system
   - [ ] Add server-owned recurring spawn rules independent of stage entry. Activate on occupied stages, stop on unload/shutdown, and prevent duplicate schedulers after re-entry/reconnect.
   - [ ] Author spawn groups/regions, permitted terrain, time intervals, caps, retry behavior, and minimum player distance. Never materialize threats on a player, inside a refuge, or in an inaccessible pocket.
   - [ ] Track NPCs and pickups per rule; replenish missing supplies without stacking an unlimited pile on one tile. Account for collection, consumption, despawn, lifetime expiry, and stage reset.
-  - [ ] Seed a starter supply immediately, then maintain a predictable baseline while a player stays in the same region. Make powers, boosts, and recovery visually distinct from decorations and puzzle objects.
+  - [ ] Seed a starter supply immediately, then maintain a predictable baseline while a player stays in the same region. Make powers and boosts visually distinct from decorations and puzzle objects.
   - [ ] Add a small bounded enemy population with readable behavior and replenishment at low and higher occupancy. Maintain solo activity without filling the region with offscreen enemies.
   - [ ] Add the rotating public hotspot with clear location/timing cues. Avoid stage-wide random drops as the only way to find supplies.
   - [ ] Expose spawn regions, intervals, caps, live counts/next spawn, and rule validation in the designer and local review tooling. Keep publish/offline compilation aligned.
@@ -49,7 +48,7 @@
 ### 3. Compose a standalone multiplayer world
   - [ ] Create separate team refuges with readable exits and protected respawn positions. Add brief spawn protection that ends on departure/attack and cannot be used to attack safely.
   - [ ] Remove the old-world connection and add the new frontier/puzzle entry without requiring access to legacy areas. Update the manifest, review route, and generator together.
-  - [ ] Rework paths around two or more approach/escape routes, pickup pockets, sightlines, and the rotating hotspot. Tune travel times against the life budget, not only tile dimensions.
+  - [ ] Rework paths around two or more approach/escape routes, pickup pockets, sightlines, and the rotating hotspot. Tune travel and respawn times against pickup availability and encounter frequency, not only tile dimensions.
   - [ ] Verify the loop with one player, two allies, opposing players, and uneven teams. Provide ordinary solo activity and keep optional multiplayer puzzles clearly marked.
   - [ ] Bound gameplay visibility/reach independently of desktop/mobile camera proportions where needed. Verify that offscreen attacks, enemy discovery, and hotspot cues remain fair on short mobile viewports.
 
@@ -68,14 +67,14 @@
   - [ ] Define participant scope, occupancy, simultaneous switch evaluation, and reset authority. Reuse existing state/reaction systems where sufficient; add only the minimal missing group trigger behavior.
   - [ ] Make puzzles recoverable after a disconnect, death, extra player, or abandoned block. Provide an obvious leave/reset flow; prevent griefing the only exit and duplicate completion rewards.
   - [ ] Isolate puzzle state per chamber/session where needed. Show required participant count before entry and allow waiting players to leave freely.
-  - [ ] Keep puzzle completion recognition separate from competitive streak/health supplies. Test whether the drain-free expedition boundary feels coherent rather than splitting the game awkwardly.
+  - [ ] Keep puzzle completion recognition separate from competitive streak/health supplies. Verify that safe puzzle entry preserves the no-healing rules and does not change a combat streak merely by crossing a doorway.
 
 ### 6. Reviewable completion criteria
-  - [ ] Deliver one reproducible preview/version with two team arrivals, the shared frontier, visible collectible powers/boosts, sustained enemy/supply spawning, explicit life pressure, and both puzzle chambers.
-  - [ ] Demonstrate a continuous 10–15 minute session in one large area without crossing a boundary to replenish supplies or enemies. Observe at least several complete drain/death/respawn cycles.
-  - [ ] Demonstrate two opposing players racing for supplies, fighting, and recovering/losing a streak; demonstrate allies solving the two-player puzzle and recovering when one disconnects.
-  - [ ] Validate duplicate scheduler prevention, capacity bounds, occupied spawn exclusion, item collection races, time/drain transitions, score attribution, and puzzle reset/reward idempotency with focused tests.
-  - [ ] Capture short solo, opposing-team, and cooperative walkthroughs, plus polished winter and dark-zone screenshots. Record first-pickup time, time between encounters, life-budget/travel ratio, and longest observed supply drought.
+  - [ ] Deliver one reproducible preview/version with two team arrivals, the shared frontier, visible collectible powers/boosts, sustained enemy/supply spawning, sustained combat pressure, and both puzzle chambers.
+  - [ ] Demonstrate a continuous 10–15 minute session in one large area without crossing a boundary to replenish supplies or enemies. Observe at least several complete combat/death/respawn cycles.
+  - [ ] Demonstrate two opposing players racing for supplies, fighting, and extending/losing a streak; demonstrate allies solving the two-player puzzle and recovering when one disconnects.
+  - [ ] Validate duplicate scheduler prevention, capacity bounds, occupied spawn exclusion, item collection races, damage/death/respawn transitions, score attribution, and puzzle reset/reward idempotency with focused tests.
+  - [ ] Capture short solo, opposing-team, and cooperative walkthroughs, plus polished winter and dark-zone screenshots. Record first-pickup time, time between encounters, death-to-next-action time, and longest observed supply drought.
   - [ ] Check physical iOS/Android layout, browser bars, safe areas, touch comfort, and frame rate. Keep desktop/mobile sight-range balance as an explicit review item.
   - [ ] Update review docs and todo with implemented rules, tunable defaults, results, and known limitations. Keep the build unpublished until the gameplay slice has been reviewed.
 
