@@ -1,95 +1,68 @@
 # Todo List
 
-## Current in progress — A living multiplayer frontier
+## Current in progress — A living frontier 
 
 ### Description
-  Turn the visual review into a self-contained, playable Bloopworld slice. Preserve sustained danger from aggressive NPCs and rival players while competing for kill streaks, give teams reasons to meet in a larger world, and introduce a dark cooperative puzzle zone. Deliver an unpublished, reproducible review build before tuning or expanding the whole world.
+  New visual language lacks full-world cohesivenesss. Decide how to create a living world that is enjoyable at variety of player counts. 
 
-### Design direction
+### Open Questions
+  - [ ] Is the design workspace intended to be the first class medium for world design, is it capable/functional/convienient with the new level of graphics 
+    - [ ] Is admin console still fully functional
+    - [ ] Does preview script duplicate functionality of start_dev.py script? Will it be removed prior to release 
+    - [ ] Commit to long term world release change strategy, like that the target decouples world changes from code changes 
+      - [ ] Impact on horizontal scalability 
+  - [ ] Grindy exp gameplayfacet and/or economy 
+    - [ ] Cut tree and other actions 
+    - [ ] Type of puzzle we can proceedurally generate 
+      - [ ] Try multiple candidates 
+    - [ ] How does this balance with high risk of death / hard to regenerate health / lightweight death mechanic
+    - [ ] Reward risk taking
+  - [ ] Live day / night 
+  - [ ] Different biomes 
+    - [ ] Not too many but enough for a distinctive cool world 
+    - [ ] Connected feel, extensible but complete 
+    - [ ] Thinking creative and large scale
+      - [ ] Bloop universe should feel fun/diverse/abstract enticing to explore 
+      - [ ] Teleporting and visual screen hallucinations are a component ("Press G" - today)
+      - [ ] The bloopworld has at least two teams - how does that influence the gameplay / design 
+      - [ ] Bloopworld can seemlessly integrate muliplayer and singleplayer areas, influence on gameplay / design 
+      - [ ] Think big. swarms of bloops, bloop armies, cinematic sequences, simple abstract world should be easier to push further
+  - [ ] What can be worked on in parallel ?
+
+
+### Previous iteration findings / review
+  - Do new wandering NPCs seem less dangerous? 
+  - must menu have reset/agree option always even when unusable?
+  - map is not displaying correctly 
+
+### Previous Design directions
   - Keep cute geometric bloops, rounded silhouettes, restrained palettes, and minimal faces. Scenery supports navigation and play; functional objects remain abstract and immediately recognizable. Bloopworld’s simplicity is part of its charm.
-  - Separate the new world from legacy Bloopworld. Remove review portals in both directions and restore the legacy source tile. Legacy content stays available as its own world/version.
-  - Keep the feel of an open combat world. Begin with two small team arrival areas and a shared frontier with multiple routes; use supplies and threats to create encounters without forcing everyone into a narrow arena. Death is lightweight, expected, and followed by a quick return to play.
-  - Proposed first loop: spawn → collect powers/boosts → explore and fight roaming threats or rival players → push a streak or visit a puzzle → die and quickly respawn. CTF is outside this slice.
-  - Health decreases through environmental hazards, aggressive NPCs, and PvP damage. There is no automatic health timer. Keep the first slice without healing; test the existing survival challenge before adding recovery.
-  - Keep player kills, NPC kills, team objectives, and puzzle completions distinct. No new generic currency or crafting system is needed to test this loop.
+  - Separate the new world from legacy Bloopworld. Remove review portals in both directions and restore the legacy source tile. Legacy content stays available as long as not actively hindering future design
+  - Keep an open combat world. Death is lightweight, expected, and followed by a quick return to play.
+  - Health decreases through environmental hazards, aggressive NPCs, and PvP damage. Test the existing survival challenge before adding recovery. Evaluate gameplay consequences. 
+  - Rely on simplicity, bloopworld should be simple, abstract, fun and emergent
 
-### Implementation review status
-  Implemented the standalone frontier, recurring population, both team refuges, optional solo/duo relays, winter polish, and editor controls. Start `cd server/main && go run . --preview`, then open http://127.0.0.1:4445/review. Review captures/video and session telemetry are in `.cache/frontier-review/`; instructions and limits are in `readme.md`. Nothing is published.
+### -01. Previous todo uncompleted
 
-  A ten-minute local two-team session completed with 19 observed death/respawn cycles, a first pickup at one second, and no observed population growth beyond nine hostile NPCs or twelve rule pickups. Fifteen simulated minutes independently verify replenishment without stage entry. These are automated observations, not a claim that difficulty is balanced. Physical-device comfort/performance, broader PvP sight-range balance, repeated-victim farming policy, and database-backed reconnect timing remain release/playtest checks.
-
-### Original findings from the visual review
-  - Willow Reach currently has no pickup rules: its manifest only spawns wandering NPCs. Powers and boosts need explicit placement and reliable replenishment.
-  - Current spawn triggers are once/entry; staying within a large region does not trigger recurring activity. NPC capacity is tracked, but pickup capacity/ownership and respawn scheduling need explicit design.
-  - Scenery is a coded procedural catalog using Floor2 tokens, not general uploaded sprites. Each drawing can extend beyond its ground anchor; native tiles/fragments still define collision. Catalog edits currently require code changes, and a four-tile visibility margin limits supported visual extent.
-  - Three-quarter scenery fixtures keep a fixed viewing direction. Extend the editor with explicit anchor, footprint, and visual-bounds previews rather than implying arbitrary scenery rotation or sprite import already exists.
-  - The user clarified that “life drain” means accumulated harm from NPCs and other players, not periodic automatic damage. No health-clock investigation or new drain mechanic is required.
-
-### Proposed first slice and tuning hypotheses
-  - Two teams, two protected arrival/refuge areas, one shared woodland/river frontier, and one small dark puzzle annex. Separate team spawns, several viable paths, and avoid a single unavoidable bridge camp.
-  - Tune encounter frequency and return-to-play time through observation. Do not impose an expedition time limit or a target lifetime on every player.
-  - Provide a visible power and boost within roughly 10–15 seconds of a normal departure. Use multiple public pickup sites, some safe and predictable, others contested. Supplies are neutral after departure. Gameplay must be simple, fast, and obvious from the first moments.
-  - Preserve kill-streak survival with strictly decreasing health during a life. Do not add kill healing or recovery pickups in this slice. Evaluate recovery later only if playtesting identifies a concrete problem.
-  - Use one announced, rotating power/boost supply hotspot to draw both teams toward a changing meeting point. Prototype this with existing collectible items before adding a capture system. Local supplies must still make the game viable when another team holds the hotspot. Treat the hotspot as a playtest hypothesis, not the only source of action.
-  - A neutral puzzle annex allows cooperation without PvP or aggressive NPC interference. Entering/leaving does not heal, refill combat supplies, bank a streak, or start a new run. Preserve health and the existing streak until ordinary death/reset rules apply; keep competitive rewards inside the combat world.
-  - One solo-solvable introductory chamber, followed by one clearly marked two-player chamber. Any teams can cooperate inside the annex. Neither chamber blocks ordinary combat progression. The world must remain engaging and fully playable with one person online; the two-player chamber is an optional destination.
-
-### 1. Specify the rules and preserve the existing challenge
-
-  - [x] Teach through the first moments of ordinary play: an obvious pickup, a brief contextual movement/Power/Boost hint, and a nearby readable enemy. No mandatory separate tutorial; prior playtesting showed many players did not finish it. Offer optional help/replayable practice.
-  - [x] Preserve current health, damage, death, and streak behavior as the baseline. No automatic drain, healing, banking, or refuge-entry resets. Rival defeat/respawn and friendly-fire regression checks pass.
   - [ ] Verify database-backed reconnect timing under rapid refresh before release; preview sessions are intentionally ephemeral.
-  - [x] Preserve existing leaderboard semantics where possible. Add separate run/puzzle/team metrics only if the slice requires them; no PvP kill credit for NPC deaths, friendly kills, or puzzle hazards.
-  - [x] Preserve friendly-fire exclusions and separate rival/NPC kill counters, and verify death restores only the defeated player. No recovery rewards added.
+
   - [ ] Define a repeated-victim/alt-farming policy before public competitive release.
 
-### 2. Build a sustainable population and pickup system
-  - [x] Add server-owned recurring spawn rules independent of stage entry. Activate on occupied stages, stop on unload/shutdown, and prevent duplicate schedulers after re-entry/reconnect.
-  - [x] Author spawn groups/regions, permitted terrain, time intervals, caps, retry behavior, and minimum player distance. Never materialize threats on a player, inside a refuge, or in an inaccessible pocket.
-  - [x] Track NPCs and pickups per rule; replenish missing supplies without stacking an unlimited pile on one tile. Account for collection, consumption, despawn, lifetime expiry, and stage reset.
-  - [x] Seed a starter supply immediately, then maintain a predictable baseline while a player stays in the same region. Make powers and boosts visually distinct from decorations and puzzle objects.
-  - [x] Add a small bounded enemy population with readable behavior and replenishment at low and higher occupancy. Maintain solo activity without filling the region with offscreen enemies.
-  - [x] Add the rotating public hotspot with clear location/timing cues. Avoid stage-wide random drops as the only way to find supplies.
-  - [x] Expose spawn regions, intervals, caps, live counts/next spawn, and rule validation in the designer and local review tooling. Keep publish/offline compilation aligned.
-
-### 3. Compose a standalone multiplayer world
-  - [x] Create separate team refuges with readable exits and protected respawn positions. Add brief spawn protection that ends on departure/attack and cannot be used to attack safely.
-  - [x] Remove the old-world connection and add the new frontier/puzzle entry without requiring access to legacy areas. Update the manifest, review route, and generator together.
-  - [x] Rework paths around two or more approach/escape routes, pickup pockets, sightlines, and the rotating hotspot. Tune travel and respawn times against pickup availability and encounter frequency, not only tile dimensions.
-  - [x] Verify the loop with one player, two allies, opposing players, and uneven teams. Provide ordinary solo activity and keep optional multiplayer puzzles clearly marked.
   - [ ] Bound gameplay visibility/reach independently of desktop/mobile camera proportions where needed. Verify that offscreen attacks, enemy discovery, and hotspot cues remain fair on short mobile viewports.
 
-### 4. Strengthen the art and authoring contract
-  - [x] Polish the winter grove: remove green squares under tree anchors, blend snow/grass/path borders, give pines coherent rounded tiers and snow accents, and match shadows to snow. Remove arbitrary patchwork and floating foliage.
-  - [x] Keep scenery intentionally simple: a few flat color masses, one restrained shadow direction, small highlights, no realistic textures, heavy outlines, or detailed humanoid characters. Reserve stronger contrast/glow for gameplay signals.
-  - [x] Add editor toggles for anchor, blocked footprint, interaction/entrance tile, and full visual bounds. Fixture placement previews should show the complete object before committing it.
-  - [x] Make palette selection offer complete labeled fixtures with thumbnails. Clearly distinguish placing a full cottage/fountain from placing only an anchor prototype.
-  - [x] Validate extent against supported camera margins and reject unsupported scenery tokens. Document fixed-facing fixtures and prevent footprint-only rotation through all authoring paths.
-  - [x] Preserve shared renderer parity; new scenery must be verifiable in editor, compiled runtime, local preview, and saved releases.
-
-### 5. Build the dark puzzle annex
-  - [x] Establish a second environment in the same visual language: dark navy/charcoal void, low slate platforms/walls, restrained cyan/lilac illumination, cute bloops, clear walkable edges. Keep foreground height low enough to read puzzle state and adjacency.
-  - [x] Preserve abstract mechanics: plain pushable blocks, sockets, switches, gates, and distinct active/inactive shapes. Decorative glows must never resemble pickups or obscure hitboxes.
-  - [x] Build one solo teaching puzzle using existing push/group/airlock mechanics, then a two-player chamber with a shared observable goal and clear cooperative roles.
-  - [x] Define participant scope, occupancy, simultaneous switch evaluation, and reset authority. Reuse existing state/reaction systems where sufficient; add only the minimal missing group trigger behavior.
-  - [x] Make puzzles recoverable after a disconnect, death, extra player, or abandoned block. Provide an obvious leave/reset flow; prevent griefing the only exit and duplicate completion rewards.
-  - [x] Isolate puzzle state per chamber/session where needed. Show required participant count before entry and allow waiting players to leave freely.
-  - [x] Keep puzzle completion recognition separate from competitive streak/health supplies. Verify that safe puzzle entry preserves the no-healing rules and does not change a combat streak merely by crossing a doorway.
 
 ### 6. Reviewable completion criteria
-  - [x] Deliver one reproducible preview/version with two team arrivals, the shared frontier, visible collectible powers/boosts, sustained enemy/supply spawning, sustained combat pressure, and both puzzle chambers.
-  - [x] Demonstrate a continuous 10–15 minute session in one large area without crossing a boundary to replenish supplies or enemies. Observe at least several complete combat/death/respawn cycles.
-  - [x] Demonstrate two opposing players racing for supplies, fighting, and extending/losing a streak; demonstrate allies solving the two-player puzzle and recovering when one disconnects.
-  - [x] Validate duplicate scheduler prevention, capacity bounds, occupied spawn exclusion, item collection races, damage/death/respawn transitions, score attribution, and puzzle reset/reward idempotency with focused tests.
-  - [x] Capture the team-entry/solo/cooperative movement walkthrough and winter/dark-zone/editor screenshots. Record first pickup, bounded populations, and death/respawn observations.
   - [ ] Measure encounter spacing, death-to-next-action time, and worst supply drought in human playtests across team sizes.
   - [ ] Check physical iOS/Android layout, browser bars, safe areas, touch comfort, and frame rate. Keep desktop/mobile sight-range balance as an explicit review item.
-  - [x] Update review docs and todo with implemented rules, tunable defaults, results, and known limitations. Keep the build unpublished until the gameplay slice has been reviewed.
+  - [ ] Confirm no "Ghost Line" bug on any devices
+
 
 ### Follow-up scope
-  - Day/night and weather remain deferred until the new combat/puzzle loop and visual readability are validated.
-  - Broader biome expansion, additional teams/modes, general sprite import/custom scenery editing, and concurrent agent authoring through the editor follow this slice.
-  - Resolve the known baseline authorization-test failure before production release; keep it distinct from this gameplay plan's regression checks.
+  - Resolve the known baseline authorization-test failure before production release; keep it distinct from this gameplay plan's regression checks. (AI said this but I don't know what test it refers to, delete this?)
+  - Highscore from menu 
+  - Create a test environment? easiest way?
+  - Release / v1 replacement plan 
+
 
 
 
@@ -178,9 +151,8 @@
   - [-] Controls
     - [-] Vertical
     - [-] Horizontal
-      - [ ] Full screen? (screen resizes)
+      - [-] Full screen? (screen resizes)
       - [ ] menu button overlap
-  - [ ] Pause continued support? 
   - [ ] clicking triggers highlighting
 
 ## Bottom text
@@ -203,6 +175,7 @@
   - [ ] Apply to rest of world
   - [ ] can occur with juke 
   - [ ] Include automatically via engine? 
+- [ ] Remove tutorial? too much time investment / play tests indicate people don't finish 
 
 ## Bugs
 
