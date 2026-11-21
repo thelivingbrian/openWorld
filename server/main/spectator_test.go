@@ -99,6 +99,9 @@ func TestPlayerWatchSnapshotIncludesHighlights(t *testing.T) {
 	player.camera.setView(8, 8, stage)
 
 	snapshot := string(player.watchSnapshot(false, false))
+	if !strings.Contains(snapshot, `id="focus" y="8" x="8"`) {
+		t.Fatal("player watching omitted viewer focus")
+	}
 	if !strings.Contains(snapshot, `id="set"`) {
 		t.Fatal("snapshot omitted camera origin")
 	}

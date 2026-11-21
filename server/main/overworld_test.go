@@ -131,3 +131,33 @@ func TestHUDRefreshKeepsCompactControlsAndEscapesName(t *testing.T) {
 		}
 	}
 }
+
+func TestViewerFocusIsPrivateAndStageWatchingHasNoFocus(t *testing.T) {
+	stage := makeSpectatorTestStage(32, 32)
+	updates := make(chan []byte, 10)
+	camera := newCamera(updates)
+	camera.setView(10, 11, stage)
+	if snapshot := string(<-updates); !strings.Contains(snapshot, `id="focus" y="10" x="11"`) {
+		t.Fatal("initial screen omitted viewer focus")
+	}
+	observerUpdates := make(chan []byte, 10)
+	observer := &Camera{height: 16, width: 16, outgoing: observerUpdates}
+	observer.setView(10, 11, stage)
+	if snapshot := string(<-observerUpdates); strings.Contains(snapshot, `id="focus"`) {
+		t.Fatal("stage observer was assigned a player focus")
+	}
+	stage.tiles[10][11].updateAll(playerBoxSpecifc(10, 11, "fuchsia"))
+	if update := string(<-observerUpdates); strings.Contains(update, `id="focus"`) {
+		t.Fatal("viewer metadata leaked through a stage broadcast")
+	}
+	p := &Player{tile: stage.tiles[12][11]}
+	camera.track(p)
+	if update := string(<-updates); strings.Contains(update, `id="focus"`) {
+		t.Fatal("broadcast included focus")
+	}
+	if update := string(<-updates); !strings.Contains(update, `id="focus" y="12" x="11"`) {
+		t.Fatal("movement did not update viewer focus")
+	}
+	camera.drop()
+	observer.drop()
+}

@@ -56,3 +56,31 @@ test('fullscreen failures leave a usable fallback and an accurate button state',
     assert.equal(button['aria-pressed'],'false');
     assert.equal(button['aria-label'],'Enter fullscreen');
 });
+
+test('only the viewer triggers fading, which reveals everyone beneath the same scenery', () => {
+    const draws=[];
+    const makeContext=name=>new Proxy({name,canvas:{width:640,height:480}}, {
+        get(target,key) {return key in target ? target[key] : ()=>{};},
+    });
+    const main=makeContext('main');
+    const canvas={getContext:()=>main}; main.canvas=canvas;
+    const context=vm.createContext({
+        window:{addEventListener(){}},performance:{now:()=>0},topLeftY:10,topLeftX:10,height:12,width:24,stageHeight:48,stageWidth:48,
+        document:{getElementById:id=>id==='Lp1'?canvas:null},
+        BloopScenery:{catalog:{oak:{width:2.8,height:3.2}},kind:classes=>classes==='scenery-oak'?'oak':null,
+            draw:(ctx,kind,x,y,size,options)=>draws.push({context:ctx.name,x,alpha:options?.alpha??1,operation:ctx.globalCompositeOperation})},
+    });
+    vm.runInContext(fs.readFileSync(`${__dirname}/assets/canvas.js`,'utf8'),context);
+    vm.runInContext(`stage.Lf2[14][15]='scenery-oak';stage.Lf2[14][20]='scenery-oak';
+        stage.Lp1[13][15]='sky-blue';stage.Lp1[13][16]='sky-blue';stage.Lp1[13][20]='orange';drawWorldObjects()`,context);
+    assert.deepEqual(draws.filter(x=>x.context==='main').map(x=>x.alpha),[1,1]);
+    draws.length=0;
+    vm.runInContext('localPlayerPosition={y:13,x:15};drawWorldObjects()',context);
+    assert.deepEqual(draws.filter(x=>x.context==='main').map(x=>x.alpha),[.48,1]);
+    assert.equal(draws.length,2, 'only scenery is drawn; no per-character occlusion masks');
+    draws.length=0;
+    vm.runInContext('localPlayerPosition={y:15,x:15};drawWorldObjects()',context);
+    assert.deepEqual(draws.filter(x=>x.context==='main').map(x=>x.alpha),[1,1]);
+    vm.runInContext('resetStageBuffers()',context);
+    assert.equal(vm.runInContext('localPlayerPosition',context),null);
+});

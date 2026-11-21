@@ -185,6 +185,11 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
                     resizeCanvas();
                     continue;
                 }
+                if (id === "focus") {
+                    localPlayerPosition = { y: Number(yStr), x: Number(xStr) };
+                    scheduleStageDraw();
+                    continue;
+                }
                 if (id === "set") {
 					setGrid(yStr, xStr)
 					continue

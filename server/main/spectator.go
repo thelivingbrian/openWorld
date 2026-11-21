@@ -394,6 +394,7 @@ func (player *Player) watchSnapshot(showHUD, showMenu bool) []byte {
 	out.Write(cameraSnapshot(player.camera))
 	tile := player.getTileSync()
 	if tile != nil {
+		out.WriteString(focusBox(tile))
 		topLeft, visibleTiles := cameraView(player.camera)
 		if topLeft != nil {
 			out.Write(highlightBoxesForPlayer(player, visibleTiles))

@@ -107,7 +107,10 @@ for (const id of layerIds) {
     );
 }
 
+let localPlayerPosition = null;
+
 function clearCanvasAndStage() {
+    localPlayerPosition = null;
     canvasLayers = {};
     stage = {};
 } 
@@ -149,6 +152,7 @@ function scheduleStageDraw() {
     requestAnimationFrame(() => { stageDrawPending = false; if (document.getElementById('game')) redrawStage(); });
 }
 function resetStageBuffers() {
+    localPlayerPosition = null;
     for (const id of layerIds) stage[id] = Array.from({ length: maxStageHeight }, () => Array(maxStageWidth).fill(''));
 }
 
@@ -947,30 +951,36 @@ function drawWorldObjects() {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     const { objects, players } = worldDrawables();
     const modern = (stage.Lg1?.[topLeftY]?.[topLeftX] || "").includes("annex-") || (stage.Lg2?.[topLeftY]?.[topLeftX] || "").includes("annex-") || objects.length > 0 || (stage.Lg1?.[topLeftY]?.[topLeftX] || "").includes("willow-") || (stage.Lg2?.[topLeftY]?.[topLeftX] || "").includes("willow-");
+    const fadedObjects = objects.filter(object => sceneryCoversPosition(object, localPlayerPosition));
     for (const item of [...objects, ...players].sort((a,b) => a.order-b.order || a.x-b.x)) {
         const x = (item.x-topLeftX+.5)*cellSize, y = (item.y-topLeftY+1)*cellSize;
         if (item.kind) {
-            const extent = BloopScenery.catalog[item.kind];
-            const occluded = players.some(p => p.y < item.y && p.y > item.y-extent.height && Math.abs(p.x-item.x) < extent.width/2);
-            BloopScenery.draw(ctx,item.kind,x,y,cellSize,{ alpha: occluded ? .48 : 1 });
+            BloopScenery.draw(ctx,item.kind,x,y,cellSize,{ alpha: fadedObjects.includes(item) ? .48 : 1 });
         } else if (!modern) {
             drawGridCell('Lp1',item.y-topLeftY,item.x-topLeftX,item.classes);
         } else {
-            const style = getDrawingStyle(item.classes,performance.now(),item.y,item.x);
-            if (!style.fillColor && !style.strokeColor) continue;
-            ctx.save(); ctx.globalAlpha = style.alpha;
-            ctx.fillStyle='#203f3940'; ctx.beginPath(); ctx.ellipse(x,y-cellSize*.08,cellSize*.36,cellSize*.13,0,0,Math.PI*2); ctx.fill();
-            ctx.fillStyle=style.fillColor || style.strokeColor;
-            ctx.beginPath(); ctx.roundRect(x-cellSize*.34,y-cellSize*.85,cellSize*.68,cellSize*.72,cellSize*.23); ctx.fill();
-            ctx.strokeStyle=style.strokeColor || '#ffffffbb'; ctx.lineWidth=Math.max(1,cellSize*.045); ctx.stroke();
-            ctx.fillStyle='#193b40';
-            for (const offset of [-.12,.12]) { ctx.beginPath();ctx.ellipse(x+offset*cellSize,y-cellSize*.54,cellSize*.035,cellSize*.055,0,0,Math.PI*2);ctx.fill(); }
-            ctx.fillStyle='#fff7da';ctx.beginPath();
-            if (item.classes.includes('fuchsia')) {ctx.moveTo(x,y-cellSize*.91);ctx.lineTo(x+cellSize*.09,y-cellSize*.82);ctx.lineTo(x,y-cellSize*.73);ctx.lineTo(x-cellSize*.09,y-cellSize*.82);ctx.closePath();}
-            else {ctx.arc(x,y-cellSize*.82,cellSize*.07,0,Math.PI*2);}ctx.fill();
-            ctx.restore();
+            drawBloop(ctx,item,x,y);
         }
     }
+}
+
+function sceneryCoversPosition(object, position) {
+    if (!position) return false;
+    const extent = BloopScenery.catalog[object.kind];
+    return position.y < object.y && position.y > object.y-extent.height && Math.abs(position.x-object.x) < extent.width/2;
+}
+
+function drawBloop(ctx,item,x,y) {
+    const style = getDrawingStyle(item.classes,performance.now(),item.y,item.x);
+    if (!style.fillColor && !style.strokeColor) return;
+    ctx.save(); ctx.globalAlpha = style.alpha;
+    ctx.fillStyle='#203f3940'; ctx.beginPath(); ctx.ellipse(x,y-cellSize*.08,cellSize*.36,cellSize*.13,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=style.fillColor || style.strokeColor;
+    ctx.beginPath(); ctx.roundRect(x-cellSize*.34,y-cellSize*.85,cellSize*.68,cellSize*.72,cellSize*.23); ctx.fill();
+    ctx.strokeStyle=style.strokeColor || '#ffffffbb'; ctx.lineWidth=Math.max(1,cellSize*.045); ctx.stroke();
+    ctx.fillStyle='#193b40';
+    for (const offset of [-.12,.12]) { ctx.beginPath();ctx.ellipse(x+offset*cellSize,y-cellSize*.54,cellSize*.035,cellSize*.055,0,0,Math.PI*2);ctx.fill(); }
+    ctx.restore();
 }
 
 function drawTerrainDetail(ctx, classes, x, y, size, wy, wx, now) {

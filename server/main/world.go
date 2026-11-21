@@ -389,11 +389,12 @@ func (world *World) join(incoming *LoginRequest, conn WebsocketConnection) *Play
 
 func newCamera(playerUpdates chan []byte) *Camera {
 	cam := Camera{
-		height:   VIEW_HEIGHT,
-		width:    VIEW_WIDTH,
-		padding:  5,
-		topLeft:  nil,
-		outgoing: playerUpdates,
+		followsPlayer: true,
+		height:        VIEW_HEIGHT,
+		width:         VIEW_WIDTH,
+		padding:       5,
+		topLeft:       nil,
+		outgoing:      playerUpdates,
 	}
 	return &cam
 }

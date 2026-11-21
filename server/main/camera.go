@@ -13,6 +13,7 @@ const MAX_VIEW_SIZE = 32
 const SCENERY_MARGIN = 4
 
 type Camera struct {
+	followsPlayer          bool
 	height, width, padding int
 	positionLock           sync.Mutex
 	topLeft                *Tile
@@ -55,6 +56,9 @@ func (camera *Camera) setView(posY, posX int, stage *Stage) []*Tile {
 		snapshot.WriteString(swapsForTileNoHighlight(tile))
 	}
 
+	if camera.followsPlayer {
+		snapshot.WriteString(focusBox(stage.tiles[posY][posX]))
+	}
 	camera.send([]byte(snapshot.String()))
 	newTopLeft := stage.tiles[y][x]
 	newTopLeft.primaryZone.addCamera(camera)
@@ -70,6 +74,9 @@ func (player *Player) tryTrack() {
 
 func (camera *Camera) track(character Character) []*Tile {
 	focus := character.getTileSync()
+	if camera.followsPlayer {
+		camera.send([]byte(focusBox(focus)))
+	}
 	stageH, stageW := len(focus.stage.tiles), len(focus.stage.tiles[0])
 	camera.positionLock.Lock()
 	defer camera.positionLock.Unlock()

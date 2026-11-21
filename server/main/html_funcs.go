@@ -160,6 +160,11 @@ func playerBoxSpecifc(y, x int, icon string) string {
 	return fmt.Sprintf(`[~ id="Lp1" y="%d" x="%d" class="%s"]`, y, x, icon)
 }
 
+// Viewer-only position metadata; never broadcast with a tile's character art.
+func focusBox(tile *Tile) string {
+	return swapToken(tile.y, tile.x, "focus", "", "")
+}
+
 func characterBox(tile *Tile) string {
 	characterIndicator := ""
 	if ch := tile.getACharacter(); ch != nil {

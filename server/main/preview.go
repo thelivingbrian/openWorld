@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -100,8 +101,13 @@ func runLocalPreview() error {
 		tmpl.ExecuteTemplate(w, "player-page", login)
 		fmt.Fprint(w, `<div id="sound-trigger" class="invisible"></div></body></html>`)
 	})
-	fmt.Println("Willow Reach preview: http://127.0.0.1:4445 (ephemeral; no database or publication)")
-	return (&http.Server{Addr: "127.0.0.1:4445", Handler: mux, ReadHeaderTimeout: 5 * time.Second}).ListenAndServe()
+	port := os.Getenv("OPENWORLD_PREVIEW_PORT")
+	if port == "" {
+		port = "4445"
+	}
+	address := net.JoinHostPort("127.0.0.1", port)
+	fmt.Printf("Willow Reach preview: http://%s (ephemeral; no database or publication)\n", address)
+	return (&http.Server{Addr: address, Handler: mux, ReadHeaderTimeout: 5 * time.Second}).ListenAndServe()
 }
 
 func validatePreviewWorld(manifest WorldManifest) error {
