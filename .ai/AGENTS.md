@@ -9,6 +9,7 @@ Stable operating instructions for AI agents working in this repository.
 ## Priority and source of truth
 1. User request in the active session.
 2. System/developer runtime instructions.
+3. ./todo.md up to the agent do-not-pass
 3. This file (`.ai/AGENTS.md`).
 4. `.ai/architecture.md`.
 5. Existing code/tests/docs.
